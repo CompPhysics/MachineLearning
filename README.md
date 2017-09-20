@@ -1,6 +1,6 @@
 # Data Analysis and Machine Learning with Numerical projects
 
-This site contains all material relevant fr the course FYS-MAT3155/4155, Data Analysis and Machine Learning at the University of Oslo. 
+This site contains all material relevant for the course FYS-MAT3155/4155, Data Analysis and Machine Learning at the University of Oslo. 
 
 ## Course content
 
