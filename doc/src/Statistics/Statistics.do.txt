@@ -1473,4 +1473,299 @@ int ix = (int) (RandomNumberGenerator(gen)*NSpins);
 
 
 
+!split
+===== Why blocking? ===== 
+!bblock Statistical analysis
+    * Monte Carlo simulations can be treated as *computer experiments*
+    * The results can be analysed with the same statistical tools as we would use analysing experimental data.
+    * As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
+
+A very good article which explains blocking is H. Flyvbjerg and H. G. Petersen, *Error estimates on averages of correlated data*,  "Journal of Chemical Physics 91, 461-466 (1989)":"http://scitation.aip.org/content/aip/journal/jcp/91/1/10.1063/1.457480".
+
+!eblock    
+
+
+
+!split
+===== Why blocking? ===== 
+!bblock Statistical analysis
+    * As in other experiments, Monte Carlo experiments have two classes of errors:
+      * Statistical errors
+      * Systematical errors
+    * Statistical errors can be estimated using standard tools from statistics
+    * Systematical errors are method specific and must be treated differently from case to case. (In VMC a common source is the step length or time step in importance sampling)
+!eblock    
+
+
+!split
+===== Code to demonstrate the calculation of the autocorrelation function =====
+The following code computes the autocorrelation function, the covariance and the standard deviation
+for standard RNG. 
+The "following  file":"https://github.com/CompPhysics/ComputationalPhysics2/tree/gh-pages/doc/Programs/LecturePrograms/programs/Blocking/autocorrelation.cpp" gives the code.
+!bc cppcod
+//  This function computes the autocorrelation function for 
+//  the Mersenne random number generator with a uniform distribution
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cstdlib>
+#include <random>
+#include <armadillo>
+#include <string>
+#include <cmath>
+using namespace  std;
+using namespace arma;
+// output file
+ofstream ofile;
+
+//     Main function begins here     
+int main(int argc, char* argv[])
+{
+  int MonteCarloCycles;
+  string filename;
+  if (argc > 1) {
+    filename=argv[1];
+    MonteCarloCycles = atoi(argv[2]);
+    string fileout = filename;
+    string argument = to_string(MonteCarloCycles);
+    fileout.append(argument);
+    ofile.open(fileout);
+  }
+
+  // Compute the variance and the mean value of the uniform distribution
+  // Compute also the specific values x for each cycle in order to be able to
+  // compute the covariance and the correlation function  
+
+  vec X  = zeros<vec>(MonteCarloCycles);
+  double MCint = 0.;      double MCintsqr2=0.;
+  std::random_device rd;
+  std::mt19937_64 gen(rd());
+  // Set up the uniform distribution for x \in [[0, 1]
+  std::uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
+  for (int i = 0;  i < MonteCarloCycles; i++){
+    double x =   RandomNumberGenerator(gen); 
+    X(i) = x;
+    MCint += x;
+    MCintsqr2 += x*x;
+  }
+  double Mean = MCint/((double) MonteCarloCycles );
+  MCintsqr2 = MCintsqr2/((double) MonteCarloCycles );
+  double STDev = sqrt(MCintsqr2-Mean*Mean);
+  double Variance = MCintsqr2-Mean*Mean;
+  //   Write mean value and variance
+  cout << " Sample variance= " << Variance  << " Mean value = " << Mean << endl;
+  // Now we compute the autocorrelation function
+  vec autocorrelation = zeros<vec>(MonteCarloCycles);
+  for (int j = 0; j < MonteCarloCycles; j++){
+    double sum = 0.0;
+    for (int k = 0; k < (MonteCarloCycles-j); k++){
+      sum  += (X(k)-Mean)*(X(k+j)-Mean); 
+    }
+    autocorrelation(j) = sum/Variance/((double) MonteCarloCycles );
+    ofile << setiosflags(ios::showpoint | ios::uppercase);
+    ofile << setw(15) << setprecision(8) << j;
+    ofile << setw(15) << setprecision(8) << autocorrelation(j) << endl;
+  }
+  // Now compute the exact covariance using the autocorrelation function
+  double Covariance = 0.0;
+  for (int j = 0; j < MonteCarloCycles; j++){
+    Covariance  += autocorrelation(j);
+  }
+  Covariance *=  2.0/((double) MonteCarloCycles);
+  // Compute now the total variance, including the covariance, and obtain the standard deviation
+  double TotalVariance = (Variance/((double) MonteCarloCycles ))+Covariance;
+  cout << "Covariance =" << Covariance << "Totalvariance= " << TotalVariance << "Sample Variance/n= " << (Variance/((double) MonteCarloCycles )) << endl;
+  cout << " STD from sample variance= " << sqrt(Variance/((double) MonteCarloCycles )) << " STD with covariance = " << sqrt(TotalVariance) << endl;
+
+  ofile.close();  // close output file
+  return 0;
+}  // end of main program 
+
+
+!ec
+
+
+!split
+===== What is blocking? =====
+!bblock Blocking
+    * Say that we have a set of samples from a Monte Carlo experiment
+    * Assuming (wrongly) that our samples are uncorrelated our best estimate of the standard deviation of the mean $\langle \mathbf{M}\rangle$ is given by
+!bt   
+\[
+\sigma=\sqrt{\frac{1}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)} 
+\]
+!et
+    * If the samples are correlated we can rewrite our results to show  that
+!bt      
+\[
+\sigma=\sqrt{\frac{1+2\tau/\Delta t}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)}
+\]
+!et
+      where $\tau$ is the correlation time (the time between a sample and the next uncorrelated sample) and $\Delta t$ is time between each sample
+!eblock    
+
+!split
+===== What is blocking? =====
+!bblock Blocking 
+    * If $\Delta t\gg\tau$ our first estimate of $\sigma$ still holds
+    * Much more common that $\Delta t<\tau$
+    * In the method of data blocking we divide the sequence of samples into blocks
+    * We then take the mean $\langle \mathbf{M}_i\rangle$ of block $i=1\ldots n_{blocks}$ to calculate the total mean and variance
+    * The size of each block must be so large that sample $j$ of block $i$ is not correlated with sample $j$ of block $i+1$
+    * The correlation time $\tau$ would be a good choice
+!eblock
+
+!split
+===== What is blocking? =====
+!bblock Blocking
+    * Problem: We don't know $\tau$ or it is too expensive to compute
+    * Solution: Make a plot of std. dev. as a function of blocksize
+    * The estimate of std. dev. of correlated data is too low $\to$ the error will increase with increasing block size until the blocks are uncorrelated, where we reach a plateau
+    * When the std. dev. stops increasing the blocks are uncorrelated
+!eblock
+
+!split
+===== Implementation =====
+!bblock 
+    * Do a Monte Carlo simulation, storing all samples to file
+    * Do the statistical analysis on this file, independently of your Monte Carlo program
+    * Read the file into an array
+    * Loop over various block sizes
+    * For each block size $n_b$, loop over the array in steps of $n_b$ taking the mean of elements $i n_b,\ldots,(i+1) n_b$
+    * Take the mean and variance of the resulting array
+    * Write the results for each block size to file for later
+      analysis
+!eblock
+
+
+
+
+
+!split
+===== Actual implementation with code, main function =====
+When the file gets large, it can be useful to write your data in binary mode instead of ascii characters.
+The "following python file":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py"   reads data from file with the output from every Monte Carlo cycle.
+!bc pycod
+# Blocking
+    @timeFunction
+    def blocking(self, blockSizeMax = 500):
+        blockSizeMin = 1
+
+        self.blockSizes = []
+        self.meanVec = []
+        self.varVec = []
+
+        for i in range(blockSizeMin, blockSizeMax):
+            if(len(self.data) % i != 0):
+                pass#continue
+            blockSize = i
+            meanTempVec = []
+            varTempVec = []
+            startPoint = 0
+            endPoint = blockSize
+
+            while endPoint <= len(self.data):
+                meanTempVec.append(np.average(self.data[startPoint:endPoint]))
+                startPoint = endPoint
+                endPoint += blockSize
+            mean, var = np.average(meanTempVec), np.var(meanTempVec)/len(meanTempVec)
+            self.meanVec.append(mean)
+            self.varVec.append(var)
+            self.blockSizes.append(blockSize)
+
+        self.blockingAvg = np.average(self.meanVec[-200:])
+        self.blockingVar = (np.average(self.varVec[-200:]))
+        self.blockingStd = np.sqrt(self.blockingVar)
+
+!ec
+
+
+
+
+!split
+===== The Bootstrap method =====
+
+The Bootstrap  resampling method is also very popular. It is very simple:
+
+o Start with your sample of measurements and compute the sample variance and the mean values
+o Then start again but pick in a random way the numbers in the sample and recalculate the mean and the sample variance.
+o Repeat this $K$ times.
+
+It can be shown, see the article by "Efron":"https://projecteuclid.org/download/pdf_1/euclid.aos/1176344552"
+that it produces the correct standard deviation.
+
+This method is very useful for small ensembles of data points.  
+
+!split 
+===== Bootstrapping =====
+Given a set of $N$ data, assume that we are interested in some 
+observable $\theta$ which may be estimated from that set. This observable can also be for example the result of a fit based on all $N$ raw data. 
+Let us call the value of the observable obtained from the original 
+data set $\hat{\theta}$. One recreates from the sample repeatedly 
+other samples by choosing randomly $N$ data out of the original set. 
+This costs essentially nothing, since we just recycle the original data set for the building of new sets. 
+
+!split 
+===== Bootstrapping, recipe =====
+Let us assume we have done this $K$ times and thus have $K$ sets of $N$ 
+data values each. 
+Of course some values will enter more than once in the new sets. For each of these sets one computes the observable $\theta$ resulting in values $\theta_k$ with $k = 1,...,K$. Then one determines
+!bt
+\[
+\tilde{\theta} = \frac{1}{K} \sum_{k=1}^K \theta_k,
+\]
+!et
+and
+!bt
+\[
+sigma^2_{\tilde{\theta}} = \frac{1}{K} \sum_{k=1}^K \left(\theta_k-\tilde{\theta}\right)^2.
+\]
+!et
+
+These are estimators for $\angle\theta\rangle$ and its variance. They are not unbiased and therefore 
+$\tilde{\theta}\neq\hat{\theta}$  for finite K. 
+
+The difference is called bias and gives an idea on how far away the result may be from 
+the true $\angle\theta\rangle$. As final result for the observable one quotes $\angle\theta\rangle = \tilde{\theta} \pm \sigma_{\tilde{\theta}}$ .
+
+
+!split 
+===== Bootstrapping, "code":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py" =====
+!bc
+# Bootstrap
+    @timeFunction
+    def bootstrap(self, nBoots = 1000):
+        bootVec = np.zeros(nBoots)
+        for k in range(0,nBoots):
+            bootVec[k] = np.average(np.random.choice(self.data, len(self.data)))
+        self.bootAvg = np.average(bootVec)
+        self.bootVar = np.var(bootVec)
+        self.bootStd = np.std(bootVec)
+!ec
+
+!split 
+===== Jackknife, "code":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py" =====
+!bc
+# Jackknife
+    @timeFunction
+    def jackknife(self):
+        jackknVec = np.zeros(len(self.data))
+        for k in range(0,len(self.data)):
+            jackknVec[k] = np.average(np.delete(self.data, k))
+        self.jackknAvg = self.avg - (len(self.data) - 1) * (np.average(jackknVec) - self.avg)
+        self.jackknVar = float(len(self.data) - 1) * np.var(jackknVec)
+        self.jackknStd = np.sqrt(self.jackknVar)
+!ec
+
+
+
+
+
+
+
+
+
+
+
+
 

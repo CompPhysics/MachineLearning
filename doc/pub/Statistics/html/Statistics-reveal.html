@@ -1,3 +1,4 @@
+\
 <!DOCTYPE html>
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -131,8 +132,8 @@ MathJax.Hub.Config({
   }
 });
 </script>
-<script type="text/javascript"
- src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+<script type="text/javascript" async
+ src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
 
 
@@ -162,7 +163,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Sep 20, 2017</h4></center> <!-- date -->
+<center><h4>Oct 4, 2017</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -2096,6 +2097,372 @@ std::uniform_real_distribution&lt;<span style="color: #a7a7a7; font-weight: bold
 </pre></div>
 
 </div>
+</section>
+
+
+<section>
+<h2 id="___sec59">Why blocking? </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Statistical analysis.</b>
+<ul>
+
+<p><li> Monte Carlo simulations can be treated as <em>computer experiments</em></li>
+
+<p><li> The results can be analysed with the same statistical tools as we would use analysing experimental data.</li>
+
+<p><li> As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.</li>
+</ul>
+<p>
+
+A very good article which explains blocking is H. Flyvbjerg and H. G. Petersen, <em>Error estimates on averages of correlated data</em>,  <a href="http://scitation.aip.org/content/aip/journal/jcp/91/1/10.1063/1.457480" target="_blank">Journal of Chemical Physics 91, 461-466 (1989)</a>.
+
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec60">Why blocking? </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Statistical analysis.</b>
+<ul>
+
+<p><li> As in other experiments, Monte Carlo experiments have two classes of errors:</li>
+
+<ul>
+
+<p><li> Statistical errors</li>
+
+<p><li> Systematical errors</li>
+</ul>
+<p><li> Statistical errors can be estimated using standard tools from statistics</li>
+
+<p><li> Systematical errors are method specific and must be treated differently from case to case. (In VMC a common source is the step length or time step in importance sampling)</li>
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec61">Code to demonstrate the calculation of the autocorrelation function </h2>
+The following code computes the autocorrelation function, the covariance and the standard deviation
+for standard RNG. 
+The <a href="https://github.com/CompPhysics/ComputationalPhysics2/tree/gh-pages/doc/Programs/LecturePrograms/programs/Blocking/autocorrelation.cpp" target="_blank">following  file</a> gives the code.
+<p>
+
+<!-- code=c++ (!bc cppcod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22">//  This function computes the autocorrelation function for </span>
+<span style="color: #228B22">//  the Mersenne random number generator with a uniform distribution</span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;iostream&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;fstream&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;iomanip&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;cstdlib&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;random&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;armadillo&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;string&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #1e889b">#include</span> <span style="color: #228B22">&lt;cmath&gt;</span><span style="color: #1e889b"></span>
+<span style="color: #8B008B; font-weight: bold">using</span> <span style="color: #8B008B; font-weight: bold">namespace</span>  std;
+<span style="color: #8B008B; font-weight: bold">using</span> <span style="color: #8B008B; font-weight: bold">namespace</span> arma;
+<span style="color: #228B22">// output file</span>
+ofstream ofile;
+
+<span style="color: #228B22">//     Main function begins here     </span>
+<span style="color: #a7a7a7; font-weight: bold">int</span> <span style="color: #008b45">main</span>(<span style="color: #a7a7a7; font-weight: bold">int</span> argc, <span style="color: #a7a7a7; font-weight: bold">char</span>* argv[])
+{
+  <span style="color: #a7a7a7; font-weight: bold">int</span> MonteCarloCycles;
+  string filename;
+  <span style="color: #8B008B; font-weight: bold">if</span> (argc &gt; <span style="color: #B452CD">1</span>) {
+    filename=argv[<span style="color: #B452CD">1</span>];
+    MonteCarloCycles = atoi(argv[<span style="color: #B452CD">2</span>]);
+    string fileout = filename;
+    string argument = to_string(MonteCarloCycles);
+    fileout.append(argument);
+    ofile.open(fileout);
+  }
+
+  <span style="color: #228B22">// Compute the variance and the mean value of the uniform distribution</span>
+  <span style="color: #228B22">// Compute also the specific values x for each cycle in order to be able to</span>
+  <span style="color: #228B22">// compute the covariance and the correlation function  </span>
+
+  vec X  = zeros&lt;vec&gt;(MonteCarloCycles);
+  <span style="color: #a7a7a7; font-weight: bold">double</span> MCint = <span style="color: #B452CD">0.</span>;      <span style="color: #a7a7a7; font-weight: bold">double</span> MCintsqr2=<span style="color: #B452CD">0.</span>;
+  std::random_device rd;
+  std::mt19937_64 gen(rd());
+  <span style="color: #228B22">// Set up the uniform distribution for x \in [[0, 1]</span>
+  std::uniform_real_distribution&lt;<span style="color: #a7a7a7; font-weight: bold">double</span>&gt; RandomNumberGenerator(<span style="color: #B452CD">0.0</span>,<span style="color: #B452CD">1.0</span>);
+  <span style="color: #8B008B; font-weight: bold">for</span> (<span style="color: #a7a7a7; font-weight: bold">int</span> i = <span style="color: #B452CD">0</span>;  i &lt; MonteCarloCycles; i++){
+    <span style="color: #a7a7a7; font-weight: bold">double</span> x =   RandomNumberGenerator(gen); 
+    X(i) = x;
+    MCint += x;
+    MCintsqr2 += x*x;
+  }
+  <span style="color: #a7a7a7; font-weight: bold">double</span> Mean = MCint/((<span style="color: #a7a7a7; font-weight: bold">double</span>) MonteCarloCycles );
+  MCintsqr2 = MCintsqr2/((<span style="color: #a7a7a7; font-weight: bold">double</span>) MonteCarloCycles );
+  <span style="color: #a7a7a7; font-weight: bold">double</span> STDev = sqrt(MCintsqr2-Mean*Mean);
+  <span style="color: #a7a7a7; font-weight: bold">double</span> Variance = MCintsqr2-Mean*Mean;
+  <span style="color: #228B22">//   Write mean value and variance</span>
+  cout &lt;&lt; <span style="color: #CD5555">&quot; Sample variance= &quot;</span> &lt;&lt; Variance  &lt;&lt; <span style="color: #CD5555">&quot; Mean value = &quot;</span> &lt;&lt; Mean &lt;&lt; endl;
+  <span style="color: #228B22">// Now we compute the autocorrelation function</span>
+  vec autocorrelation = zeros&lt;vec&gt;(MonteCarloCycles);
+  <span style="color: #8B008B; font-weight: bold">for</span> (<span style="color: #a7a7a7; font-weight: bold">int</span> j = <span style="color: #B452CD">0</span>; j &lt; MonteCarloCycles; j++){
+    <span style="color: #a7a7a7; font-weight: bold">double</span> sum = <span style="color: #B452CD">0.0</span>;
+    <span style="color: #8B008B; font-weight: bold">for</span> (<span style="color: #a7a7a7; font-weight: bold">int</span> k = <span style="color: #B452CD">0</span>; k &lt; (MonteCarloCycles-j); k++){
+      sum  += (X(k)-Mean)*(X(k+j)-Mean); 
+    }
+    autocorrelation(j) = sum/Variance/((<span style="color: #a7a7a7; font-weight: bold">double</span>) MonteCarloCycles );
+    ofile &lt;&lt; setiosflags(ios::showpoint | ios::uppercase);
+    ofile &lt;&lt; setw(<span style="color: #B452CD">15</span>) &lt;&lt; setprecision(<span style="color: #B452CD">8</span>) &lt;&lt; j;
+    ofile &lt;&lt; setw(<span style="color: #B452CD">15</span>) &lt;&lt; setprecision(<span style="color: #B452CD">8</span>) &lt;&lt; autocorrelation(j) &lt;&lt; endl;
+  }
+  <span style="color: #228B22">// Now compute the exact covariance using the autocorrelation function</span>
+  <span style="color: #a7a7a7; font-weight: bold">double</span> Covariance = <span style="color: #B452CD">0.0</span>;
+  <span style="color: #8B008B; font-weight: bold">for</span> (<span style="color: #a7a7a7; font-weight: bold">int</span> j = <span style="color: #B452CD">0</span>; j &lt; MonteCarloCycles; j++){
+    Covariance  += autocorrelation(j);
+  }
+  Covariance *=  <span style="color: #B452CD">2.0</span>/((<span style="color: #a7a7a7; font-weight: bold">double</span>) MonteCarloCycles);
+  <span style="color: #228B22">// Compute now the total variance, including the covariance, and obtain the standard deviation</span>
+  <span style="color: #a7a7a7; font-weight: bold">double</span> TotalVariance = (Variance/((<span style="color: #a7a7a7; font-weight: bold">double</span>) MonteCarloCycles ))+Covariance;
+  cout &lt;&lt; <span style="color: #CD5555">&quot;Covariance =&quot;</span> &lt;&lt; Covariance &lt;&lt; <span style="color: #CD5555">&quot;Totalvariance= &quot;</span> &lt;&lt; TotalVariance &lt;&lt; <span style="color: #CD5555">&quot;Sample Variance/n= &quot;</span> &lt;&lt; (Variance/((<span style="color: #a7a7a7; font-weight: bold">double</span>) MonteCarloCycles )) &lt;&lt; endl;
+  cout &lt;&lt; <span style="color: #CD5555">&quot; STD from sample variance= &quot;</span> &lt;&lt; sqrt(Variance/((<span style="color: #a7a7a7; font-weight: bold">double</span>) MonteCarloCycles )) &lt;&lt; <span style="color: #CD5555">&quot; STD with covariance = &quot;</span> &lt;&lt; sqrt(TotalVariance) &lt;&lt; endl;
+
+  ofile.close();  <span style="color: #228B22">// close output file</span>
+  <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">0</span>;
+}  <span style="color: #228B22">// end of main program </span>
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec62">What is blocking? </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Blocking.</b>
+<ul>
+
+<p><li> Say that we have a set of samples from a Monte Carlo experiment</li>
+
+<p><li> Assuming (wrongly) that our samples are uncorrelated our best estimate of the standard deviation of the mean \( \langle \mathbf{M}\rangle \) is given by</li>
+</ul>
+<p>&nbsp;<br>
+$$
+\sigma=\sqrt{\frac{1}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)} 
+$$
+<p>&nbsp;<br>
+
+
+<ul>
+
+<p><li> If the samples are correlated we can rewrite our results to show  that</li>
+</ul>
+<p>&nbsp;<br>
+$$
+\sigma=\sqrt{\frac{1+2\tau/\Delta t}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)}
+$$
+<p>&nbsp;<br>
+
+      where \( \tau \) is the correlation time (the time between a sample and the next uncorrelated sample) and \( \Delta t \) is time between each sample
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec63">What is blocking? </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Blocking.</b>
+<ul>
+
+<p><li> If \( \Delta t\gg\tau \) our first estimate of \( \sigma \) still holds</li>
+
+<p><li> Much more common that \( \Delta t < \tau \)</li>
+
+<p><li> In the method of data blocking we divide the sequence of samples into blocks</li>
+
+<p><li> We then take the mean \( \langle \mathbf{M}_i\rangle \) of block \( i=1\ldots n_{blocks} \) to calculate the total mean and variance</li>
+
+<p><li> The size of each block must be so large that sample \( j \) of block \( i \) is not correlated with sample \( j \) of block \( i+1 \)</li>
+
+<p><li> The correlation time \( \tau \) would be a good choice</li>
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec64">What is blocking? </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Blocking.</b>
+<ul>
+
+<p><li> Problem: We don't know \( \tau \) or it is too expensive to compute</li>
+
+<p><li> Solution: Make a plot of std. dev. as a function of blocksize</li>
+
+<p><li> The estimate of std. dev. of correlated data is too low \( \to \) the error will increase with increasing block size until the blocks are uncorrelated, where we reach a plateau</li>
+
+<p><li> When the std. dev. stops increasing the blocks are uncorrelated</li>
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec65">Implementation </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<ul>
+
+<p><li> Do a Monte Carlo simulation, storing all samples to file</li>
+
+<p><li> Do the statistical analysis on this file, independently of your Monte Carlo program</li>
+
+<p><li> Read the file into an array</li>
+
+<p><li> Loop over various block sizes</li>
+
+<p><li> For each block size \( n_b \), loop over the array in steps of \( n_b \) taking the mean of elements \( i n_b,\ldots,(i+1) n_b \)</li>
+
+<p><li> Take the mean and variance of the resulting array</li>
+
+<p><li> Write the results for each block size to file for later
+      analysis</li>
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec66">Actual implementation with code, main function </h2>
+When the file gets large, it can be useful to write your data in binary mode instead of ascii characters.
+The <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py" target="_blank">following python file</a>   reads data from file with the output from every Monte Carlo cycle.
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Blocking</span>
+    <span style="color: #707a7c">@timeFunction</span>
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">blocking</span>(<span style="color: #658b00">self</span>, blockSizeMax = <span style="color: #B452CD">500</span>):
+        blockSizeMin = <span style="color: #B452CD">1</span>
+
+        <span style="color: #658b00">self</span>.blockSizes = []
+        <span style="color: #658b00">self</span>.meanVec = []
+        <span style="color: #658b00">self</span>.varVec = []
+
+        <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(blockSizeMin, blockSizeMax):
+            <span style="color: #8B008B; font-weight: bold">if</span>(<span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.data) % i != <span style="color: #B452CD">0</span>):
+                <span style="color: #8B008B; font-weight: bold">pass</span><span style="color: #228B22">#continue</span>
+            blockSize = i
+            meanTempVec = []
+            varTempVec = []
+            startPoint = <span style="color: #B452CD">0</span>
+            endPoint = blockSize
+
+            <span style="color: #8B008B; font-weight: bold">while</span> endPoint &lt;= <span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.data):
+                meanTempVec.append(np.average(<span style="color: #658b00">self</span>.data[startPoint:endPoint]))
+                startPoint = endPoint
+                endPoint += blockSize
+            mean, var = np.average(meanTempVec), np.var(meanTempVec)/<span style="color: #658b00">len</span>(meanTempVec)
+            <span style="color: #658b00">self</span>.meanVec.append(mean)
+            <span style="color: #658b00">self</span>.varVec.append(var)
+            <span style="color: #658b00">self</span>.blockSizes.append(blockSize)
+
+        <span style="color: #658b00">self</span>.blockingAvg = np.average(<span style="color: #658b00">self</span>.meanVec[-<span style="color: #B452CD">200</span>:])
+        <span style="color: #658b00">self</span>.blockingVar = (np.average(<span style="color: #658b00">self</span>.varVec[-<span style="color: #B452CD">200</span>:]))
+        <span style="color: #658b00">self</span>.blockingStd = np.sqrt(<span style="color: #658b00">self</span>.blockingVar)
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec67">The Bootstrap method </h2>
+
+<p>
+The Bootstrap  resampling method is also very popular. It is very simple:
+
+<ol>
+<p><li> Start with your sample of measurements and compute the sample variance and the mean values</li>
+<p><li> Then start again but pick in a random way the numbers in the sample and recalculate the mean and the sample variance.</li>
+<p><li> Repeat this \( K \) times.</li>
+</ol>
+<p>
+
+It can be shown, see the article by <a href="https://projecteuclid.org/download/pdf_1/euclid.aos/1176344552" target="_blank">Efron</a>
+that it produces the correct standard deviation.
+
+<p>
+This method is very useful for small ensembles of data points.
+</section>
+
+
+<section>
+<h2 id="___sec68">Bootstrapping </h2>
+Given a set of \( N \) data, assume that we are interested in some 
+observable \( \theta \) which may be estimated from that set. This observable can also be for example the result of a fit based on all \( N \) raw data. 
+Let us call the value of the observable obtained from the original 
+data set \( \hat{\theta} \). One recreates from the sample repeatedly 
+other samples by choosing randomly \( N \) data out of the original set. 
+This costs essentially nothing, since we just recycle the original data set for the building of new sets.
+</section>
+
+
+<section>
+<h2 id="___sec69">Bootstrapping, recipe </h2>
+Let us assume we have done this \( K \) times and thus have \( K \) sets of \( N \) 
+data values each. 
+Of course some values will enter more than once in the new sets. For each of these sets one computes the observable \( \theta \) resulting in values \( \theta_k \) with \( k = 1,...,K \). Then one determines
+<p>&nbsp;<br>
+$$
+\tilde{\theta} = \frac{1}{K} \sum_{k=1}^K \theta_k,
+$$
+<p>&nbsp;<br>
+
+and
+<p>&nbsp;<br>
+$$
+sigma^2_{\tilde{\theta}} = \frac{1}{K} \sum_{k=1}^K \left(\theta_k-\tilde{\theta}\right)^2.
+$$
+<p>&nbsp;<br>
+
+<p>
+These are estimators for \( \angle\theta\rangle \) and its variance. They are not unbiased and therefore 
+\( \tilde{\theta}\neq\hat{\theta} \)  for finite K.
+
+<p>
+The difference is called bias and gives an idea on how far away the result may be from 
+the true \( \angle\theta\rangle \). As final result for the observable one quotes \( \angle\theta\rangle = \tilde{\theta} \pm \sigma_{\tilde{\theta}} \) .
+</section>
+
+
+<section>
+<h2 id="___sec70">Bootstrapping, <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py" target="_blank">code</a> </h2>
+<p>
+
+<!-- code=text typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span># Bootstrap
+    @timeFunction
+    def bootstrap(self, nBoots = 1000):
+        bootVec = np.zeros(nBoots)
+        for k in range(0,nBoots):
+            bootVec[k] = np.average(np.random.choice(self.data, len(self.data)))
+        self.bootAvg = np.average(bootVec)
+        self.bootVar = np.var(bootVec)
+        self.bootStd = np.std(bootVec)
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec71">Jackknife, <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py" target="_blank">code</a> </h2>
+<p>
+
+<!-- code=text typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span># Jackknife
+    @timeFunction
+    def jackknife(self):
+        jackknVec = np.zeros(len(self.data))
+        for k in range(0,len(self.data)):
+            jackknVec[k] = np.average(np.delete(self.data, k))
+        self.jackknAvg = self.avg - (len(self.data) - 1) * (np.average(jackknVec) - self.avg)
+        self.jackknVar = float(len(self.data) - 1) * np.var(jackknVec)
+        self.jackknStd = np.sqrt(self.jackknVar)
+</pre></div>
 </section>
 
 
