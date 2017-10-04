@@ -1,9 +1,20 @@
 from sys import argv
 from os import mkdir, path
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.font_manager import FontProperties
+
+# Timing Decorator
+def timeFunction(f):
+    def wrap(*args):
+        time1 = time.time()
+        ret = f(*args)
+        time2 = time.time()
+        print '%s function took %0.3f s' % (f.func_name, (time2-time1))
+        return ret
+    return wrap
 
 class dataAnalysisClass:
     # General Init functions
@@ -19,8 +30,8 @@ class dataAnalysisClass:
         if size != 0:
             self.data = np.loadtxt(self.inputFileName)[0:size]
         else:
-            self.data = np.loadtxt(self.inputFileName)  
-        
+            self.data = np.loadtxt(self.inputFileName)
+
     # Statistical Analysis with Multiple Methods
     def runAllAnalyses(self):
         if len(self.data) <= 100000:
@@ -34,6 +45,7 @@ class dataAnalysisClass:
         self.blocking()
 
     # Standard Autocorrelation
+    @timeFunction
     def autocorrelation(self):
         self.acf = np.zeros(len(self.data)/2)
         for k in range(0, len(self.data)/2):
@@ -41,6 +53,7 @@ class dataAnalysisClass:
                                             self.data[k:len(self.data)]]))[0,1]
 
     # Bootstrap
+    @timeFunction
     def bootstrap(self, nBoots = 1000):
         bootVec = np.zeros(nBoots)
         for k in range(0,nBoots):
@@ -50,6 +63,7 @@ class dataAnalysisClass:
         self.bootStd = np.std(bootVec)
 
     # Jackknife
+    @timeFunction
     def jackknife(self):
         jackknVec = np.zeros(len(self.data))
         for k in range(0,len(self.data)):
@@ -58,18 +72,19 @@ class dataAnalysisClass:
         self.jackknVar = float(len(self.data) - 1) * np.var(jackknVec)
         self.jackknStd = np.sqrt(self.jackknVar)
 
-
-    def blocking(self, nPoints=500):
+    # Blocking
+    @timeFunction
+    def blocking(self, blockSizeMax = 500):
         blockSizeMin = 1
-        blockSizeMax = len(self.data)/2
 
         self.blockSizes = []
         self.meanVec = []
         self.varVec = []
 
-        blockList = np.linspace(blockSizeMin, blockSizeMax, nPoints)
-        for i in range(0, nPoints):
-            blockSize = int(blockList[i])
+        for i in range(blockSizeMin, blockSizeMax):
+            if(len(self.data) % i != 0):
+                pass#continue
+            blockSize = i
             meanTempVec = []
             varTempVec = []
             startPoint = 0
@@ -79,16 +94,14 @@ class dataAnalysisClass:
                 meanTempVec.append(np.average(self.data[startPoint:endPoint]))
                 startPoint = endPoint
                 endPoint += blockSize
-            mean, var = np.average(meanTempVec), np.var(meanTempVec) 
+            mean, var = np.average(meanTempVec), np.var(meanTempVec)/len(meanTempVec)
             self.meanVec.append(mean)
             self.varVec.append(var)
             self.blockSizes.append(blockSize)
-            
-        self.blockingAvg = np.average(self.meanVec[-3:])
-        self.blockingVar = (np.average(self.varVec[-3:]))
+
+        self.blockingAvg = np.average(self.meanVec[-200:])
+        self.blockingVar = (np.average(self.varVec[-200:]))
         self.blockingStd = np.sqrt(self.blockingVar)
-
-
 
 
 
@@ -187,6 +200,7 @@ class dataAnalysisClass:
         print "Blocking Average: \t", self.blockingAvg
         print "Blocking Variance:\t", self.blockingVar
         print "Blocking Error:   \t", self.blockingStd, "\n"
+
 
 
 
