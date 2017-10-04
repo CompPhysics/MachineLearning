@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
   ofile.open(fileout);
   // Start Monte Carlo sampling by looping over the selcted Temperatures
   for (double Temperature = InitialTemp; Temperature <= FinalTemp; Temperature+=TempStep){
-    vec ExpectationValues = zeros<mat>(5);
+    vec ExpectationValues = zeros<mat>(2);
     // Start Monte Carlo computation and get expectation values
     MetropolisSampling(NSpins, MCcycles, Temperature, ExpectationValues);
     // 
@@ -113,10 +113,8 @@ void MetropolisSampling(int NSpins, int MCcycles, double Temperature, vec &Expec
       }
     }
     // update expectation values  for local node
-    ExpectationValues(0) += Energy;    ExpectationValues(1) += Energy*Energy;
-    ExpectationValues(2) += MagneticMoment;    
-    ExpectationValues(3) += MagneticMoment*MagneticMoment; 
-    ExpectationValues(4) += fabs(MagneticMoment);
+    ExpectationValues(0) += Energy;    
+    ExpectationValues(1) += MagneticMoment;    
   }
 } // end of Metropolis sampling over spins
 
@@ -146,20 +144,12 @@ void WriteResultstoFile(int NSpins, int MCcycles, double temperature, vec Expect
 {
   double norm = 1.0/((double) (MCcycles));  // divided by  number of cycles 
   double E_ExpectationValues = ExpectationValues(0)*norm;
-  double E2_ExpectationValues = ExpectationValues(1)*norm;
-  double M_ExpectationValues = ExpectationValues(2)*norm;
-  double M2_ExpectationValues = ExpectationValues(3)*norm;
-  double Mabs_ExpectationValues = ExpectationValues(4)*norm;
+  double M_ExpectationValues = ExpectationValues(1)*norm;
   // all expectation values are per spin, divide by 1/NSpins/NSpins
-  double Evariance = (E2_ExpectationValues- E_ExpectationValues*E_ExpectationValues)/NSpins/NSpins;
-  double Mvariance = (M2_ExpectationValues - Mabs_ExpectationValues*Mabs_ExpectationValues)/NSpins/NSpins;
   ofile << setiosflags(ios::showpoint | ios::uppercase);
   ofile << setw(15) << setprecision(8) << temperature;
   ofile << setw(15) << setprecision(8) << E_ExpectationValues/NSpins/NSpins;
-  ofile << setw(15) << setprecision(8) << Evariance/temperature/temperature;
-  ofile << setw(15) << setprecision(8) << M_ExpectationValues/NSpins/NSpins;
-  ofile << setw(15) << setprecision(8) << Mvariance/temperature;
-  ofile << setw(15) << setprecision(8) << Mabs_ExpectationValues/NSpins/NSpins << endl;
+  ofile << setw(15) << setprecision(8) << M_ExpectationValues/NSpins/NSpins << endl;
 } // end output function
 
 
