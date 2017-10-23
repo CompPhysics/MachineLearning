@@ -97,7 +97,7 @@ _General Machine Learning Books_:
 - Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer
 - David J.C. MacKay, Information Theory, Inference, and Learning Algorithms, Cambridge University Press
 - Trevor Hastie, Robert Tibshirani, and Jerome Friedman, The Elements of Statistical Learning, Springer
-- David Barber, Bayesian Reasoning and Machine Learning, Cambridge University Press
+- David Barber, Bayesian Reasoning and Machine Learning, Cambridge University Press 
 
 
 
