@@ -174,7 +174,131 @@ Your task here is thus to use the data from part a) and generate the standard de
 These data will then be used in our next step, where we will try to obtain a functional approximation to our data sets. 
 
 \paragraph{Part c): Fitting the data using regression analysis and other methods.}
-More text to come
+With the data from part b), with a proper determination of the standard deviation, the task here is to find a fit to the data using regression methods. Here we will focus on the least square method with a straight line fit first and thereafter using singular value decomposition to fit a function that reproduces the data.
+
+Since obtaining these data points may not be trivial, we want to use these data to fit a function which can allow us to make predictions for values of $y$ which are not in the present set. The perhaps simplest approach is to assume we can parametrize our function in terms of a polynomial of degree $n-1$ with $n$ points, that is
+\[
+y=y(x) \rightarrow y(x_i)=\tilde{y}_i+\epsilon_i=\sum_{j=0}^{n-1} \beta_i x_i^j+\epsilon_i,
+\]
+where $\epsilon_i$ is the error in our approximation. 
+
+In order to find the optimal parameters $\beta_i$ instead of solving the above linear algebra problem, we define a function which gives a measure of the spread between the values $y_i$ (which represent hopefully the exact values) and the parametrized values $\tilde{y}_i$, namely
+\[
+Q(\hat{\beta})=\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\left(\hat{y}-\hat{\tilde{y}}\right)^T\left(\hat{y}-\hat{\tilde{y}}\right),
+\]
+or using the matrix $\hat{X}$ as
+\[
+Q(\hat{\beta})=\left(\hat{y}-\hat{X}\hat{\beta}\right)^T\left(\hat{y}-\hat{X}\hat{\beta}\right).
+\]
+
+The function 
+\[
+Q(\hat{\beta})=\left(\hat{y}-\hat{X}\hat{\beta}\right)^T\left(\hat{y}-\hat{X}\hat{\beta}\right),
+\]
+can be linked to the variance of the quantity $y_i$ if we interpret the latter as the mean value of for example a numerical  experiment. When linking below with the maximum likelihood approach below, we will indeed interpret $y_i$ as a mean value
+\[
+y_{i}=\langle y_i \rangle = \beta_0x_{i,0}+\beta_1x_{i,1}+\beta_2x_{i,2}+\dots+\beta_{n-1}x_{i,n-1}+\epsilon_i,
+\]
+where $\langle y_i \rangle$ is the mean value. Keep in mind also that till now  we have treated $y_i$ as the exact value. Normally, the response (dependent or outcome) variable $y_i$ the outcome of a numerical experiment or another type of experiment and is thus only an approximation to the true value. It is then always accompanied by an error estimate, often limited to a statistical error estimate given by the standard deviation discussed earlier. In the discussion here we will treat $y_i$ as our exact value for the response variable.
+
+Introducing the standard deviation $\sigma_i$ for each measurement $y_i$, we define now the $\chi^2$ function as  
+\[
+\chi^2(\hat{\beta})=\sum_{i=0}^{n-1}\frac{\left(y_i-\tilde{y}_i\right)^2}{\sigma_i^2}=\left(\hat{y}-\hat{\tilde{y}}\right)^T\frac{1}{\hat{\Sigma^2}}\left(\hat{y}-\hat{\tilde{y}}\right),
+\]
+where the matrix $\hat{\Sigma}$ is a diagonal matrix with $\sigma_i$ as matrix elements. 
+
+
+
+
+In order to find the parameters $\beta_i$ we will then minimize the spread of $\chi^2(\hat{\beta})$ by requiring
+\[
+\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_j} = \frac{\partial }{\partial \beta_j}\left[ \sum_{i=0}^{n-1}\left(\frac{y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}}{\sigma_i}\right)^2\right]=0, 
+\]
+which results in
+\[
+\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_j} = -2\left[ \sum_{i=0}^{n-1}\frac{x_{ij}}{\sigma_i}\left(\frac{y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}}{\sigma_i}\right)\right]=0, 
+\]
+or in a matrix-vector form as
+\[
+\frac{\partial \chi^2(\hat{\beta})}{\partial \hat{\beta}} = 0 = \hat{A}^T\left( \hat{b}-\hat{A}\hat{\beta}\right).  
+\]
+where we have defined the matrix $\hat{A} =\hat{X}/\hat{\Sigma}$ with matrix elements $a_{ij} = x_{ij}/\sigma_i$ and the vector $\hat{b}$ with elements $b_i = y_i/\sigma_i$.   
+
+
+We can rewrite
+\[
+\frac{\partial \chi^2(\hat{\beta})}{\partial \hat{\beta}} = 0 = \hat{A}^T\left( \hat{b}-\hat{A}\hat{\beta}\right),  
+\]
+as
+\[
+\hat{A}^T\hat{b} = \hat{A}^T\hat{A}\hat{\beta},  
+\]
+and if the matrix $\hat{A}^T\hat{A}$ is invertible we have the solution
+\[
+\hat{\beta} =\left(\hat{A}^T\hat{A}\right)^{-1}\hat{A}^T\hat{b}.
+\]
+If we then introduce the matrix
+\[
+\hat{H} =  \hat{A}^T\hat{A},
+\]
+we have then the following expression for the parameters $\beta_j$ (the matrix elements of $\hat{H}$ are $h_{ij}$)
+\[
+\beta_j = \sum_{k=0}^{p-1}h_{jk}\sum_{i=0}^{n-1}\frac{y_i}{\sigma_i}\frac{x_{ik}}{\sigma_i} = \sum_{k=0}^{p-1}h_{jk}\sum_{i=0}^{n-1}b_ia_{ik}
+\]
+We state without proof the expression for the uncertainty  in the parameters $\beta_j$ as
+\[
+\sigma^2(\beta_j) = \sum_{i=0}^{n-1}\sigma_i^2\left( \frac{\partial \beta_j}{\partial y_i}\right)^2, 
+\]
+resulting in 
+\[
+\sigma^2(\beta_j) = \left(\sum_{k=0}^{p-1}h_{jk}\sum_{i=0}^{n-1}a_{ik}\right)\left(\sum_{l=0}^{p-1}h_{jl}\sum_{m=0}^{n-1}a_{ml}\right) = h_{jj}!
+\]
+
+
+The first step here is to approximate the function $y$ with a first-order polynomial, that is we write
+\[
+y=y(x) \rightarrow y(x_i) \approx \beta_0+\beta_1 x_i.
+\]
+By computing the derivatives of $\chi^2$ with respect to $\beta_0$ and $\beta_1$ show that these are given by
+\[
+\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{1}\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0,
+\]
+and
+\[
+\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{1}x_i\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0.
+\]
+Define then
+\[
+\gamma =  \sum_{i=0}^{1}\frac{1}{\sigma_i^2},
+\]
+
+\[
+\gamma_x =  \sum_{i=0}^{1}\frac{x_{i}}{\sigma_i^2},
+\]
+\[
+\gamma_y = \sum_{i=0}^{1}\left(\frac{y_i}{\sigma_i^2}\right),
+\]
+\[
+\gamma_{xx} =  \sum_{i=0}^{1}\frac{x_ix_{i}}{\sigma_i^2},
+\]
+\[
+\gamma_{xy} = \sum_{i=0}^{1}\frac{y_ix_{i}}{\sigma_i^2},
+\]
+and show that
+\[
+\beta_0 = \frac{\gamma_{xx}\gamma_y-\gamma_x\gamma_y}{\gamma\gamma_{xx}-\gamma_x^2},
+\]
+\[
+\beta_1 = \frac{\gamma_{xy}\gamma-\gamma_x\gamma_y}{\gamma\gamma_{xx}-\gamma_x^2}.
+\]
+Find these parameters for your data set and compare the fitted function $y=y(x) \rightarrow y(x_i) \approx \beta_0+\beta_1 x_i$ and find the error in the parameters $\beta_0$ and $\beta_1$ as well.
+How does your parametrization compare with the input data $y_i$? Give a critical discussion of the method.
+
+Develop now a program where you extract the parameters $\beta_i$ and their corresponding errors using the general Least Square method (LSM), with polynomials of degree $p=2$ and $p=3$. Which polyomials gives the best fit to your data?  Here you should prepare an input file with the number of data points in your training data set, the corresponding standard deviation $\sigma_i$ as well as the degree $p$ of the polynomial you want to fit.
+
+The LSM suffers often from both being underdetermined and overdetermined in the unknown coefficients $\beta_i$.  A better approach is to use the Singular Value Decomposition (SVD) method discussed in the lecture notes on regression analysis. Here you should use the \href{{https://github.com/CompPhysics/MachineLearning/tree/master/doc/Programs/SVD}}{SVD programs} and use the same input file you used for the general LSM. In the main functions you should specifiy which function you wish to approximate the date with. The example programs discussed above show you examples on how to use these codes as well as how to write the functional form of the polynomial or fitting function. 
+
+
 \paragraph{Part d): Introducing Bayesian statistics.}
 More text to come
 
