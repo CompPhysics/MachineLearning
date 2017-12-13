@@ -1,5 +1,7 @@
 # Data Analysis and Machine Learning with Numerical projects
 
+[![Build Status](https://travis-ci.org/CompPhysics/MachineLearning.svg?branch=master)](https://travis-ci.org/CompPhysics/MachineLearning)
+
 This site contains all material relevant for the course FYS-MAT3155/4155, Data Analysis and Machine Learning at the University of Oslo. 
 
 ## Course content
