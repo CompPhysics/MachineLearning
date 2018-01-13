@@ -2,14 +2,14 @@
 
 [![Build Status](https://travis-ci.org/CompPhysics/MachineLearning.svg?branch=master)](https://travis-ci.org/CompPhysics/MachineLearning)
 
-This site contains all material relevant for the course FYS-MAT3155/4155, Data Analysis and Machine Learning at the University of Oslo. 
+This site contains all material relevant for the course on Data Analysis and Machine Learning at the University of Oslo. The material is developed in a modular fashion and can thus be reused for other courses at other universities or as material for intensive courses on data analysis and machine learning.
 
 ## Course content
 
 Probability theory and statistical methods play a central role in science. Nowadays we are
 surrounded by huge amounts of data. For example, there are about one trillion web pages; more than one
 hour of video is uploaded to YouTube every second, amounting to 10 years of content every
-day; the genomes of 1000s of people, each of which has a length of $3.8\times 10^9$ base pairs, have
+day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
 been sequenced by various labs and so on.
 This deluge of data calls for automated methods of data analysis,
 which is exactly what machine
@@ -39,9 +39,8 @@ essential for studies of data analysis and machine learning. The course is proje
 
 ## Prerequisites
 
-Basic knowledge in programming and numerics. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1xxx. 
+Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is required and experience with Jupiter notebook is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1xxx. 
 
-Overlapping courses (?). To be determined.
 
 ## The course has two central parts
 
