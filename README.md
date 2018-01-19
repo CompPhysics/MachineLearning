@@ -35,7 +35,7 @@ essential for studies of data analysis and machine learning. The course is proje
 - Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications, from numerical integration to simulation of stock markets;
 - Understand linear methods for regression and classification;
 - Learn about neural network, genetic algorithms and Boltzmann machines;
-- Work on numerical projects to illustrate the theory. The projects play a central role and students are expected to know modern programming languages like Python or C++. 
+- Work on numerical projects to illustrate the theory. The projects play a central role and students are expected to know modern programming languages like Python or C++.  
 
 ## Prerequisites
 
