@@ -53,6 +53,8 @@ The following topics will be covered
 - Basic concepts, expectation values, variance, covariance, correlation functions and errors;
 - Simpler models, binomial distribution, the Poisson distribution, simple and multivariate normal distributions;
 - Central elements of Bayesian statistics and modeling;
+- Central elements from linear algebra
+- Cubic splines and gradient methods for data optimization
 - Monte Carlo methods, Markov chains, Metropolis-Hastings algorithm, ergodicity;
 - Linear methods for regression and classification;
 - Estimation of errors using blocking, bootstrapping and jackknife methods;
@@ -65,6 +67,8 @@ The following topics will be covered
 - Gaussian and Dirichlet processes;
 - Boltzmann machines;
 - Neural networks;
+- Decisions trees and nearest neighbor algorithms
+- Support vector machines
 - Genetic algorithms.
 
 All the above topics will be supported by examples, hands-on exercises and project work.
