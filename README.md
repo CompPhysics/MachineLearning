@@ -1,4 +1,4 @@
-# Data Analysis and Machine Learning with Numerical projects
+# FYS-STK3155/4155 Applied Data Analysis and Machine Learning
 
 [![Build Status](https://travis-ci.org/CompPhysics/MachineLearning.svg?branch=master)](https://travis-ci.org/CompPhysics/MachineLearning)
 
