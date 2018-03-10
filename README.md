@@ -31,7 +31,6 @@ essential for studies of data analysis and machine learning. The course is proje
 - Learn about basic data analysis, Bayesian statistics, Monte Carlo methods, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
-- Have a basic knowledge of Bayesian statistics  and learning and common distributions;
 - Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications, from numerical integration to simulation of stock markets;
 - Understand linear methods for regression and classification;
 - Learn about neural network, genetic algorithms and Boltzmann machines;
