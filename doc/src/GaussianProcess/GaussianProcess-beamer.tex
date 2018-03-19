@@ -1,0 +1,219 @@
+
+% LaTeX Beamer file automatically generated from DocOnce
+% https://github.com/hplgit/doconce
+
+%-------------------- begin beamer-specific preamble ----------------------
+
+\documentclass{beamer}
+
+\usetheme{red_plain}
+\usecolortheme{default}
+
+% turn off the almost invisible, yet disturbing, navigation symbols:
+\setbeamertemplate{navigation symbols}{}
+
+% Examples on customization:
+%\usecolortheme[named=RawSienna]{structure}
+%\usetheme[height=7mm]{Rochester}
+%\setbeamerfont{frametitle}{family=\rmfamily,shape=\itshape}
+%\setbeamertemplate{items}[ball]
+%\setbeamertemplate{blocks}[rounded][shadow=true]
+%\useoutertheme{infolines}
+%
+%\usefonttheme{}
+%\useinntertheme{}
+%
+%\setbeameroption{show notes}
+%\setbeameroption{show notes on second screen=right}
+
+% fine for B/W printing:
+%\usecolortheme{seahorse}
+
+\usepackage{pgf}
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{relsize}
+
+\usepackage{fancybox}  % make sure fancybox is loaded before fancyvrb
+
+\usepackage{fancyvrb}
+%\usepackage{minted} % requires pygments and latex -shell-escape filename
+%\usepackage{anslistings}
+%\usepackage{listingsutf8}
+
+\usepackage{amsmath,amssymb,bm}
+%\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{colortbl}
+\usepackage[english]{babel}
+\usepackage{tikz}
+\usepackage{framed}
+% Use some nice templates
+\beamertemplatetransparentcovereddynamic
+
+% --- begin table of contents based on sections ---
+% Delete this, if you do not want the table of contents to pop up at
+% the beginning of each section:
+% (Only section headings can enter the table of contents in Beamer
+% slides generated from DocOnce source, while subsections are used
+% for the title in ordinary slides.)
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>[plain]
+  \frametitle{}
+  %\frametitle{Outline}
+  \tableofcontents[currentsection]
+  \end{frame}
+}
+% --- end table of contents based on sections ---
+
+% If you wish to uncover everything in a step-wise fashion, uncomment
+% the following command:
+
+%\beamerdefaultoverlayspecification{<+->}
+
+\newcommand{\shortinlinecomment}[3]{\note{\textbf{#1}: #2}}
+\newcommand{\longinlinecomment}[3]{\shortinlinecomment{#1}{#2}{#3}}
+
+\definecolor{linkcolor}{rgb}{0,0,0.4}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=linkcolor,
+    urlcolor=linkcolor,
+    pdfmenubar=true,
+    pdftoolbar=true,
+    bookmarksdepth=3
+    }
+\setlength{\parskip}{0pt}  % {1em}
+
+\newenvironment{doconceexercise}{}{}
+\newcounter{doconceexercisecounter}
+\newenvironment{doconce:movie}{}{}
+\newcounter{doconce:movie:counter}
+
+\newcommand{\subex}[1]{\noindent\textbf{#1}}  % for subexercises: a), b), etc
+
+\logo{{\tiny \copyright\ 1999-2018, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license}}
+
+%-------------------- end beamer-specific preamble ----------------------
+
+% Add user's preamble
+
+
+
+
+% insert custom LaTeX commands...
+
+\raggedbottom
+\makeindex
+
+%-------------------- end preamble ----------------------
+
+\begin{document}
+
+% matching end for #ifdef PREAMBLE
+
+\newcommand{\exercisesection}[1]{\subsection*{#1}}
+
+
+
+% ------------------- main content ----------------------
+
+
+
+% ----------------- title -------------------------
+
+\title{Data Analysis and Machine Learning: Machine learning with Gaussian Processes}
+
+% ----------------- author(s) -------------------------
+
+\author{Christian Forssén\inst{1}
+\and
+Morten Hjorth-Jensen\inst{2,3}}
+\institute{Department of Physics, Chalmers University of Technology, Sweden\inst{1}
+\and
+Department of Physics, University of Oslo\inst{2}
+\and
+Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University\inst{3}}
+% ----------------- end author(s) -------------------------
+
+\date{Mar 19, 2018
+% <optional titlepage figure>
+\ \\ 
+{\tiny \copyright\ 1999-2018, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license}
+}
+
+\begin{frame}[plain,fragile]
+\titlepage
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{What is a Gaussian Process?}
+
+\begin{itemize}
+\item We have considered splines and kernel regression methods. These
+\end{itemize}
+
+\noindent
+require choice of somewhat arbitrary set of knots.
+
+\begin{itemize}
+\item Antoher possibility is to setup a prior distribution for the
+  regression function using a \emph{Gaussian Process}.
+
+\item This is a very flexible class of models that has distinct computational
+  and theoretical advantages. It can be viewed as a potentially
+  infinite-dimensional generalization of Gaussian distributions.
+
+\item See the excellent (and free) book \href{{http://www.gaussianprocess.org/gpml/}}{Gaussian Processes for Machine
+  Learning} by Carl Edward
+  Rasmussen and Christopher K. I. Williams. 
+\end{itemize}
+
+\noindent
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Gaussian process regression}
+
+\begin{itemize}
+\item Realizations from a Gaussian process correspond to random functions
+
+\item Let us first consider an unknown regression function $\mu(x)$ that
+  depends on a single, continuous variable $x$.
+
+\item The Gaussian process is written as $\mu \sim \mathrm{GP}(m,k)$, and
+  is parametrized in terms of a mean function $m(x)$ and a covariance
+  function $k(x,x')$.
+
+\item The GP prior on $\mu$ describes it as a random function for which
+  the values at any set of $N$ prespecified points $\{x_i\}_{i=1}^N$
+  are a draw from a $N$-dimensional normal distribution
+\end{itemize}
+
+\noindent
+$$
+  \mu(x_1), \ldots \mu(x_N) \sim \mathrm{N}\left( \left( m(x_1),
+  \ldots, m(x_N) \right), K(x_1, \ldots, x_N) \right),
+$$
+  with mean $m$ and covariance $K$.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Topics}
+
+\begin{itemize}
+\item More matematical details
+
+\item The role of the covariance function (different kernels)
+
+\item multidimensional case
+
+\item examples.
+\end{itemize}
+
+\noindent
+\end{frame}
+
+\end{document}
