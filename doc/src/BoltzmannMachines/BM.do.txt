@@ -119,20 +119,30 @@ process then follows the same structure as the VMC method.
 
 
 
-A common thread in many unsupervised learning tasks is accurately representing the underlying probability distribution from which a dataset is drawn. 
-Unsupervised learning of high-dimensional, complex distributions presents a new set of technical and computational challenges that are different from those we encountered in a  supervised learning setting. When dealing with complicated probability distributions, it is often much easier to learn the \emph{relative weights} of different states or data points (ratio of probabilities), than \emph{absolute} probabilities. In physics, this is the familiar statement that the weights of a Boltzmann distribution are much easier to calculate than the partition function. The relative probability of two configurations, $\bd{x}_1$ and $\bd{x}_2$, are proportional to the difference between their Boltzmann weights
-\be
-{p(\mathbf{x}_1) \over p(\mathbf{x}_2)} =e^{-\beta \left(E(\mathbf{x}_1)-E(\mathbf{x}_2)\right)},
-\ee
-where as is usual in statistical mechanics  $\beta$ is the inverse temperature and $E(\mathbf{x}; \theta)$ is the energy of state $\mathbf{x}$ given some parameters (couplings) $\theta$ . However, calculating the absolute weight of a configuration requires knowledge of the partition function 
-\be
-Z_p =\mathrm{Tr}_{\mathbf{x} }e^{-\beta E(\mathbf{x})},
-\ee
-(where the trace is taken over all possible configurations $\mathbf{x}$) since 
-\be
-p(\mathbf{x}) ={ e^{-\beta E(\mathbf{x}_1)} \over Z_p}.
-\ee
-In general, calculating the partition function $Z_p$ is analytically and computationally intractable. 
+A common thread in many unsupervised learning tasks is accurately
+representing the underlying probability distribution from which a
+dataset is drawn.  Unsupervised learning of high-dimensional, complex
+distributions presents a new set of technical and computational
+challenges that are different from those we encountered in a
+supervised learning setting. When dealing with complicated probability
+distributions, it is often much easier to learn the \emph{relative
+weights} of different states or data points (ratio of probabilities),
+than \emph{absolute} probabilities. In physics, this is the familiar
+statement that the weights of a Boltzmann distribution are much easier
+to calculate than the partition function. The relative probability of
+two configurations, $\bd{x}_1$ and $\bd{x}_2$, are proportional to the
+difference between their Boltzmann weights \be {p(\mathbf{x}_1) \over
+p(\mathbf{x}_2)} =e^{-\beta
+\left(E(\mathbf{x}_1)-E(\mathbf{x}_2)\right)}, \ee where as is usual
+in statistical mechanics $\beta$ is the inverse temperature and
+$E(\mathbf{x}; \theta)$ is the energy of state $\mathbf{x}$ given some
+parameters (couplings) $\theta$ . However, calculating the absolute
+weight of a configuration requires knowledge of the partition function
+\be Z_p =\mathrm{Tr}_{\mathbf{x} }e^{-\beta E(\mathbf{x})}, \ee (where
+the trace is taken over all possible configurations $\mathbf{x}$)
+since \be p(\mathbf{x}) ={ e^{-\beta E(\mathbf{x}_1)} \over Z_p}.  \ee
+In general, calculating the partition function $Z_p$ is analytically
+and computationally intractable.
 
 For example, for the Ising model with $N$ binary spins, the trace involves calculating a sum over $2^N$ terms, which is a difficult task for most energy functions. For this reason, physicists (and machine learning scientists) have developed various numerical and computational methods for evaluating such partition functions. One approach is to use Monte-Carlo based methods to draw samples from the underlying distribution (this can be done knowing only the relative probabilities) and then use these samples to numerically estimate the partition function. This is the philosophy behind powerful methods such as Markov Chain Monte Carlo (MCMC) \cite{andrieu2003introduction} and annealed importance sampling \cite{neal1998view} which are widely used in both the statistical physics and machine learning communities. An alternative approach -- which we focus on here  -- is to approximate the the probability distribution $p(\mathbf{x})$ and partition function using a ``variational distribution'' $q(\mathbf{x}; \theta_q)$ whose partition function we can calculate exactly. The variational parameters $\theta_q$ are chosen to make the variational distribution as close to the true distribution as possible (how this is done is the focus of much of this section). 
 
@@ -809,30 +819,8 @@ One drawback of Gibbs sampling is that it may take many back and forth iteration
 Some of these undesirable features can be tempered by using a slightly different variant of CD called Persistent Contrastive Divergence (PCD) \cite{tieleman2009using}. In PCD, rather than restarting the Gibbs sampler from the data at each gradient descent step, we start the Gibbs sampling at the fantasy particles (samples from the model) in the last gradient descent step (see Figure \ref{fig:CD-PCD}). Since parameters change slowly compared to the Gibbs sampling, samples that are high probability at one step of the SGD are also likely to be high probability at the next step. This ensures that PCD does not introduce large errors in the estimation of the gradients. The advantage of using fantasy particles to initialize the Gibbs sampler is to allow PCD to explore parts of the feature space that are much further from the training dataset than once could reach with ordinary CD. 
 
  
-\subsubsection{Practical Considerations}
-\label{subsubsec:energy_practical}
-
-The previous section gave an overview of how to train RBMs. However, there are many ``tricks-of-the-trade'' that are missing from this discussion. Luckily, a succinct summary of these has been compiled by Geoff Hinton and published as a note that readers interested in training RBMs are urged to consult  \cite{hinton2012practical}. 
-
-For completeness, we briefly list some of the important points here:
-\begin{itemize}
-\item {\bf Initialization.} The model must be initialized. Hinton suggests taking the weights $W_{i\mu}$ from a Gaussian with mean zero and standard deviation $\sigma= 0.01$ \cite{hinton2012practical}. An alternative initialization scheme proposed by Glorot and Bengio instead chooses the standard deviation to scale with the size of the layers: $\sigma = 2/\sqrt{N_v +N_h}$ where $N_v$ and $N_h$ are number of visible and hidden units respectively \cite{glorot2010understanding}. The bias of the hidden units is initialized to zero while the bias of the visible units is typically taken to be inversely proportional to the mean activation, $a_i= \langle v_i \rangle_\mathrm{data}^{-1}$.
-\item {\bf Regularization} One can of course use an $L_1$ or $L_2$ penalty, typically only on the weight parameters, not the biases. Alternatively, Dropout has been shown to decrease overfitting when training with CD and PCD and to result in more interpretable learned features.
-\item{\bf Learning Rates}  Typically, it is helpful to reduce the learning rate in later stages of training.
-\item{\bf Updates for CD and PCD} There are several computational tricks one can use for speeding up the alternating updates in CD and PCD (see Section 3 in~\cite{hinton2012practical}).
-\end{itemize}
-
-%\subsection{A new method for training: temperature driven sampling}
-
 
 \subsection{Deep Boltzmann Machine}
-
-\begin{figure}[t]
-\includegraphics[width=1.0\columnwidth]{Energy/DBM.pdf}
-\caption{ Deep Boltzmann Machine contain multiple hidden layers. To train deep networks, first we perform layerwise training where each two layers are treated as a RBM. This
-can be followed by fine-tuning using gradient descent and persistent contrastive divergence (PCD).}
-\label{fig:DBM}
-\end{figure}
 
 In this section, we introduce Deep Boltzmann Machines (DBMs). Unlike RBMs, DBMs possess multiple hidden layers and were the first  models rebranded as ``deep learning'' \cite{hinton2006fast,hinton2006reducing} \footnote{Technically, these were Deep Belief Networks (DBNs) where only the top layer was undirected}. Many of the advantages that are thought to stem from having deep layers were already discussed in Sec.~\ref{sec:DNN-III} in the context of discriminative DNNs. Here, we revisit many of the same themes with emphasis on energy-based models.
 
@@ -845,126 +833,6 @@ Training DBMs is more subtle than RBMs due to the difficulty of propagating info
 
 
 This pretraining initializes the weights so that SGD can be used effectively when the network is trained in a supervised fashion. In particular, the pretraining helps the gradients to stay well behaved rather than vanish or blow up -- a problem that we discussed extensively in the earlier sections of DNNs. It is worth noting that once pretrained, we can use the usual Boltzmann learning rules (Eq.~\eqref{eq:Pos-neg-energy}) to fine-tune the weights and improve the performance of the DBM \cite{ hinton2006fast,hinton2006reducing}.  As we demonstrate in the next section, the Paysage package presented here can be used to both construct and train DBNs using such a pretraining procedure.
-
-
-
-\subsection{Example: Using Paysage for MNIST}
-
-In this section, we demonstrate how to use the new open source package Paysage (French for \emph{landscape}) for training unsupervised energy-based models on the MNIST dataset. Paysage's documentation is available on GitHub under \href{https://github.com/drckf/paysage/tree/master/docs}{https://github.com/drckf/paysage/tree/master/docs}. The package was developed by one of the authors (CKF)  along with his colleagues at Unlearn.AI and makes it easy to build, train, and deploy energy-based generative models with different architectures. 
-
-\begin{figure}[t!]
-	\includegraphics[width=1.0\columnwidth]{Energy/MNISTfantasyparticles.png}
-	\caption{ Samples (``fantasy particles'' ) generated using the indicated model trained on MNIST dataset. Samples were
-		generated by running  (alternative) layerwise Gibbs sampling for 100 steps. This allows the final sample to be very far away
-		from the starting point in our feature space. Notice that the generated samples look much less like hand written
-		reconstructions than in Fig. \ref{fig:MNIST-generative} which uses a single max-probability iteration of the Gibbs sampler, indicating
-		that training is much less effective when exploring regions of probability space faraway from the training data. In the next section, we will argue 
-		that this is likely generic feature of Likelihood-based training.}
-	\label{fig:MNISTfantasy}
-\end{figure}
-
-\begin{widetext}
-
-Below, we show how to build and train four different kinds of models: (i) a ``Hopfield'' type RBM with Gaussian hidden units and Bernoulli (binary) visible units, (ii) a conventional RBM where both the visible and hidden units are Bernoulli, (iii) a conventional RBM with an additional $L_1$-penalty that enforces sparsity, and (iv) a Deep Boltzmann Machine (DBM) with three Bernoulli layers with $L_1$ penalty each. In the following, we demonstrate the simplicity of using Paysage walking the reader step-by-step through shorts snippets of code. 
-
-
-We kick off by loading the required packages. Note that Paysage requires Python 3.6 or higher (see additional guides to install the package in \href{https://physics.bu.edu/~pankajm/MLnotebooks.html}{Notebook 17}). We also fix the seed of the random number generator to ensure reproducibility of our numerical experiment.
-\lstinputlisting[firstline=1, lastline=13, firstnumber=1]{RBM_MNIST.py}
-We want to study the MNIST digit dataset. A preprocessed version of  the data is conveniently built into Paysage, and our first task is to download it. To this end, let us fetch the directory Paysage was installed in and print it:
-\lstinputlisting[firstline=15, lastline=21, firstnumber=15]{RBM_MNIST.py}
-To download the data, open up a terminal and navigate to the Paysage directory to run \texttt{python} \texttt{mnist/download\_mnist.py}. We can also check if the data have been successfully downloaded: 
-\lstinputlisting[firstline=22, lastline=24, firstnumber=22]{RBM_MNIST.py}
-If this is the first time using the data set, we need to shuffle it. This step is necessary, since we shall shortly employ SGD-based algorithms in the training process (cf.~Sec.~\ref{sec:gradient_descent}) which requires using small minibatches of data to compute the gradient at each step. If the data have an order, then the estimates for the gradients computed from the minibatches will be biased. Shuffling the data ensures that the gradient estimates are unbiased (though still noisy). The data can be compressed by setting `complevel > 0`, but we won't use that here.
-\lstinputlisting[firstline=26, lastline=29, firstnumber=26]{RBM_MNIST.py}
-Next, we create a python generator, which splits the \texttt{data} into a training and validation sets, and separates them into minibatches of size \texttt{batch\_size}. Before we begin training, we set \texttt{data} to training mode.
-\lstinputlisting[firstline=30, lastline=36, firstnumber=30]{RBM_MNIST.py}
-To monitor the progress of performance metrics during training, we define the variable \texttt{performance} which tells Paysage to measure the reconstruction error from the validation set. Possible metrics include the reconstruction error (used in this example) and metrics related to difference in energy of random samples and samples from the model (see \href{https://github.com/drckf/paysage/blob/master/docs/metrics.md}{\texttt{metrics.md}} in Paysage documentation for a complete list).
-\lstinputlisting[firstline=37, lastline=38, firstnumber=37]{RBM_MNIST.py}  
-Having loaded and preprocessed the data, we now move on to construct a \texttt{hopfield} model. To do this, we use the \texttt{Model} class and with a visible \texttt{BernoulliLayer} and a hidden \texttt{GaussianLayer}. Note that the visible layer has the same size as the input data points, which is read off \texttt{data.ncols}. The number of hidden units is \texttt{num\_hidden\_units}. We also standardize the mean and variance of the Gaussian layer setting them to zero and unity, respectively (the nomenclature of Paysage here is inspired by the terminology in Variational Autoencoders, cf.~Sec.~\ref{sec:vae}).
-\lstinputlisting[firstline=40, lastline=48, firstnumber=40]{RBM_MNIST.py}
-We choose to train the model with the \texttt{Adam} optimizer. To ensure convergence, we attenuate the \texttt{learning\_rate} hyperparameter according to a \texttt{PowerLawDecay} schedule: \texttt{learning\_rate}$(t) =$\texttt{initial}$/(1 + $\texttt{coefficient}$\times t)$. It will prove convenient to define the function \texttt{Adam\_optimizer} for this purpose.
-\lstinputlisting[firstline=49, lastline=54, firstnumber=49]{RBM_MNIST.py}
-Next, we have to create the model. First, we initialize the \texttt{model} using the \texttt{initialize} function attribute which accepts the \texttt{data} as a required argument. We choose the initialization routine \texttt{glorot}, cf.~discussion in Sec~\ref{subsubsec:energy_practical}. Second, we define an optimizer calling the function \texttt{Adam\_optimizer}, and store the object under the name \texttt{opt}. To create an MCMC \texttt{sampler}, we use the method \texttt{from\_batch} of the \texttt{SequentialMC} class, passing the \texttt{model} and the \texttt{data}. Last, we create an \texttt{SGD} object called \texttt{trainer} to train the model using Persistent Contrastive Divergence (\texttt{pcd}) with a fixed number of \texttt{monte\_carlo\_steps}. We can also \texttt{monitor} the reconstruction error during training. Last, we train the model in epochs (cf.~variable \texttt{num\_epochs}), calling the \texttt{train()} method of \texttt{trainer}. These steps are universal for shallow generative \texttt{model}s, and it is convenient to combine them in the function \texttt{train\_model}, which we shall use repeatedly.
-\lstinputlisting[firstline=55, lastline=71, firstnumber=55]{RBM_MNIST.py}
-
-Let us now show how to build a few more generative models with Paysage. We can easily create a Bernoulli RBM and train it using the functions defined above as follows:
-\lstinputlisting[firstline=73, lastline=78, firstnumber=73]{RBM_MNIST.py}
-
-Constructing a Bernoulli RBM with L1 regularization is also straightforward in Paysage, using the \texttt{add\_penalty} method which accepts a dictionary as an input. Some layers may have multiple properties (such as the location and scale parameters of a Gaussian layer) so the dictionary key specifies to which property the penalty should be applied \lstinputlisting[firstline=80, lastline=87, firstnumber=80]{RBM_MNIST.py} 
-To define a deep Boltzmann machine (DBM), we just add more layers, and an L1 penalty for every layer.
-\lstinputlisting[firstline=89, lastline=97, firstnumber=89]{RBM_MNIST.py}
-Recalling the essential trick with layer-wise pre-training to prepare the weights of the DBM, we define a \texttt{pretrainer} as an object of the \texttt{LayerwisePretrain} class (see code snippet below). This results in a slight modification of the function \texttt{train\_model}.  
-\lstinputlisting[firstline=98, lastline=123, firstnumber=98]{RBM_MNIST.py}
-
-
-Having trained our models, let us see how they perform by computing some reconstructions and fantasy particles from the validation data. Recall that a reconstruction ${\bf v'}$ of a given data point ${\bf x}$ is computed in two steps: (i) we fix the visible layer ${\bf v}={\bf x}$ to be the data, and use MCMC sampling to find the state of the hidden layer ${\bf h}$ which maximizes the probability distribution $p({\bf h}\vert{\bf v})$. (ii) fixing the same obtained state ${\bf h}$, we find the reconstruction ${\bf v'}$ of the original data point which maximizes the probability $p({\bf v'}\vert{\bf h})$. In the case of a DBM, the forward pass continues until we reach the last of the hidden layers, and the backward pass goes in reverse. A configuration sampled from an RBM needs to specify the values of both the visible and hidden units. Since the data only specify the visible units, we need to initialize some hidden unit values. The visible and hidden units are stored in a \texttt{State} object. To compute reconstructions, we define an MCMC \texttt{sampler} based on the trained \texttt{model}. The stating point for the MCMC sampler is set using the \texttt{set\_state()} method. To compute reconstructions, we need to keep the probability distribution learned by the generative \texttt{model} fixed which is done with the help of the \texttt{deterministic\_iteration} function method, that takes in its first argument the number of passes (\texttt{1} for a single ${\bf v}\to {\bf h}\to {\bf v'}$ pass), and the state of the sampler \texttt{sampler.state} as required arguments. We can combine these steps in the function \texttt{compute\_reconstructions}. Figure~\ref{fig:MNIST-generative} shows the result.
-
-
-\lstinputlisting[firstline=125, lastline=152, firstnumber=125]{RBM_MNIST.py}
-
-
-Once we have the trained models ready, we can use MCMC to draw samples from the corresponding probability distributions, called ``fantasy particles''. To this end, let us draw a \texttt{random\_sample} from the validation data and compute the \texttt{model\_state}. Next, we define an MCMC \texttt{sampler} based on the \texttt{model}, and set its state to \texttt{model\_state}. To compute the fantasy particles, we do layer-wise Gibbs sampling for a total of \texttt{n\_steps} equilibration steps. The last step (controlled by the boolean \texttt{mean\_field}) is a final mean-field iteration (see tricks discussed in~\cite{hinton2012practical}). Figure~\ref{fig:MNISTfantasy} shows the result. 
-\lstinputlisting[firstline=154, lastline=185, firstnumber=154]{RBM_MNIST.py}
-
-
-
-One can use generative models to reduce the noise in images (de-noising). Let us randomly flip a fraction, \texttt{fraction\_to\_flip}, of the black\&white bits in the validation data, and use the models defined above to reconstruct (de-noise) the digit images. Figure~\ref{fig:denoiseRBM} shows the result. 
-\lstinputlisting[firstline=187, lastline=204, firstnumber=187]{RBM_MNIST.py}
-The full code used to generate Figs.~\ref{fig:MNIST-generative},~\ref{fig:MNISTfantasy} and ~\ref{fig:denoiseRBM} is available in \href{https://physics.bu.edu/~pankajm/MLnotebooks.html}{Notebook 17}.
-\end{widetext}
-
-\begin{figure}[t]
-\includegraphics[width=1.0\columnwidth]{Energy/denoiseRBM.png}
-\caption{ Images from MNIST were randomly corrupted by adding noise. These noisy images were used as inputs to the visible layer of the
-generative model. The denoised images are obtained by a single ``deterministic'' (max probability) iteration $\mathbf{v} \rightarrow {\bf h} \rightarrow{\bf v'}$. }
-\label{fig:denoiseRBM}
-
-\end{figure}
-
-\begin{figure*}[t]
-
-	\includegraphics[width=1.0\textwidth]{Energy/DBM_Ising-ordered_hid-units=1000.png}
-	\caption{MC samples, their reconstructions and fantasy particles generated by a Deep Boltzmann Machine in the {\bf ordered phase} of the the 2D Ising data set at $T/J=1.75$. We used two hidden layers of $1000$ and $100$ layers, respectively.}
-	\label{fig:RBM_Ising_T=1_75}
-\end{figure*}
-
-\begin{figure*}[t]
-
-	\includegraphics[width=1.0\textwidth]{Energy/DBM_Ising-critical_hid-units=1000.png}
-	\caption{MC samples, their reconstructions and fantasy particles generated by a Deep Boltzmann Machine in the {\bf critical regime} of the the 2D Ising data set at $T/J=2.25$. We used two hidden layers of $1000$ and $100$ layers, respectively.}
-
-	\label{fig:RBM_Ising_T=2_25}
-\end{figure*}
-
-\begin{figure*}[t]
-
-	\includegraphics[width=1.0\textwidth]{Energy/DBM_Ising-disordered_hid-units=1000.png}
-	\caption{MC samples, their reconstructions and fantasy particles generated by a Deep Boltzmann Machine in the {\bf disordered phase} of the the 2D Ising data set at $T/J=2.75$. We used two hidden layers of $1000$ and $100$ layers, respectively.}
-
-	\label{fig:RBM_Ising_T=2_75}
-\end{figure*}
-
-\subsection{Example: Using Paysage for the Ising Model}
-
-We can also use Paysage to analyze the 2D Ising data set. In previous sections, we used our knowledge of the critical point at $T_c/J\approx 2.26$ (see Onsager's solution) to label the spin configurations and study the problem of classifying the states according to their phase of matter. However, in more complicated models, where the precise position of $T_c$ is not known, one cannot label the states with such an accuracy, if at all. 
-
-As we explained, generative models can be used to learn a variational approximation for the probability distribution that generated the data points. By using only the 2D spin configurations, we now want to train a Bernoulli RBM, the fantasy particles of which are thermal Ising configurations. Unlike in previous studies of the Ising dataset, here we perform the analysis at a fixed temperature $T$. We can then apply our model at three different values $T=1.75,2.25,2.75$ in the ordered, critical and disordered regions, respectively.
-
-We define a Deep Boltzmann machine with two hidden layers of $N_\mathrm{hidden}$ and $N_\mathrm{hidden}/10$ units, respectively, and apply $L_1$ regularization to all weights. As in the MNIST problem above, we apply layer-wise pre-training, and deploy Persistent Contrastive Divergence to train the DBM using ADAM.
-
-
-One of the lessons from this problem is that, similar to real-life problems, this task is computationally intensive (\href{https://physics.bu.edu/~pankajm/MLnotebooks.html}{Notebook 17}). The training time on present-day laptops easily exceeds that of previous studies from this review. Thus, we encourage the interested reader to try GPU-based training and study the resulting speed-up.
-
-Figures~\ref{fig:RBM_Ising_T=1_75},~\ref{fig:RBM_Ising_T=2_25} and~\ref{fig:RBM_Ising_T=2_75} show the results of the numerical experiment at $T/J=1.75,2.25,2.75$ respectively, for a DBM with $N_\mathrm{hidden}=800$. Looking at the reconstructions and the fantasy particles, we see that our DBM works well in the disordered and critical regions. However, the chosen layer architecture is not optimal for $T=1.75$ in the ordered phase.
-
-
-\subsection{Generative models in physics}
-
-
-Generative models have been studied in the context of physics. For instance, in Biophysics, dynamic Boltzmann distributions have been used as effective models in chemical kinetics~\cite{ernst2018learning}. In Statistical Physics, they were used to identify the criticality in the Ising model~\cite{morningstar2017deep}. In parallel, tools from Statistical Physics have been applied to analyze the learning ability of RBMs~\cite{huang2017statistical,decelle2018thermodynamics}, characterizing the sparsity of the weights, the effective temperature, the nonlinearities in the activation functions of hidden units, and the adaptation of fields maintaining the activity in the visible layer~\cite{tubiana2017emergence}. Spin glass theory motivated a deterministic framework for the training, evaluation, and use of RBMs~\cite{tramel2017deterministic}; it was demonstrated that the training process in RBMs itself exhibits phase transitions~\cite{barra2016phase,barra2017phase}; learning in RBMs was studied in the context of nonequilibrium thermodynamics~\cite{salazar2017nonequilibrium}, and spectral dynamics~\cite{decelle2017spectral}; mean-field theory found application in analyzing DBMs~\cite{huang2017mean}. Another interesting direction of research is the use of generative models to improve Monte Carlo algorithms~\cite{cristoforetti2017towards,tanaka2017towards,wang2017can,nagai2017self}. Ideas from quantum mechanics have been put forward to introduce improved speed-up in certain parts of the learning algorithms for Helmholtz machines~\cite{benedetti2017quantum,benedetti2016quantum}. 
-
-
-At the same time, generative models have applications in the study of quantum systems too. Most notably, an RBM-inspired variational ansatzes were used to learn the probability distribution associated with the absolute square of a quantum state~\cite{nomura2017restricted,carleo2017solving,carleo2018constructing,freitas2018neural} and, in this context, RBMs are sometimes called Born machines~\cite{cheng2017information}. Further applications include the detection of order in low-energy product states~\cite{rao2017identifying}, and learning Einstein-Podolsky-Rosen correlations on an RBM~\cite{weinstein2017learning}. Inspired by the success of tensor networks in physics, the latter have been used as a basis for RBMs~\cite{chen2018equivalence} to extract the spatial geometry from entanglement~\cite{you2017machine}, and generative models based on matrix product states have been developed~\cite{han2017unsupervised}. Last but not least, Quantum entanglement was studied using RBM-encoded states~\cite{deng2017quantum} and tensor product based generative models have been used to understand MNIST and other ML datasets \cite{stoudenmire2016supervised}.
 
 
 
