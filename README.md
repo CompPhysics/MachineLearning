@@ -1,4 +1,4 @@
-# FYS-STK3155/4155 Applied Data Analysis and Machine Learning
+# FYS-STK3155/4155 Applied Data Analysis and Machine Learning, http://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/index-eng.html
 
 [![Build Status](https://travis-ci.org/CompPhysics/MachineLearning.svg?branch=master)](https://travis-ci.org/CompPhysics/MachineLearning)
 
