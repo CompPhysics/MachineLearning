@@ -850,7 +850,7 @@ Change `r` in the program and play around to make a better fit!
 !split
 ===== Simulating financial transcations =====
 
-The aim of this project is to simulate financial transactions among financial agents
+The aim here is to simulate financial transactions among financial agents
 using Monte Carlo methods. The final goal is to extract a distribution of income  as function
 of the income $m$.   From Pareto's work ("V.~Pareto, 1897":"http://www.institutcoppet.org/2012/05/08/cours-deconomie-politique-1896-de-vilfredo-pareto") it is known from empirical studies
 that the higher end of the distribution of money follows a distribution 
@@ -917,8 +917,8 @@ several runs of the above simulations, at least $10^3-10^4$ runs (experiments).
 
 
 
-=== Project 4a): Simulation of Transactions   ===
-Your task is to first set up an algorithm which simulates the above transactions with an initial
+=== Simulation of Transactions   ===
+Our task is to first set up an algorithm which simulates the above transactions with an initial
   amount $m_0$.
   The challenge here is to figure out a Monte Carlo  simulation  based on the
   above equations.
@@ -929,10 +929,45 @@ Your task is to first set up an algorithm which simulates the above transactions
   $m,m+\Delta m$. The number of times you register this income, represents the value that enters the histogram.
   You will also need to find a criterion for when the equilibrium situation has been reached.
 
-=== Project 4b): Recognizing the distribution   ===
-Make thereafter a plot of  $\log{(w_m)}$ as function of $m$
-  and see if you get a straight line.
-  Comment the result.
+!bc pycod
+#!/usr/bin/env python
+import numpy as np
+import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
+import random
+
+# initialize the rng with a seed
+random.seed()
+# Hard coding of input parameters
+Agents  = 500
+MCcounts = 1000
+Transactions = 100000
+startMoney = 1.0
+Lambda = 0.0
+FinancialAgents = startMoney*np.ones(Agents)
+for i in range (1, MCcounts, 1):
+    for j in range (1, Transactions, 1):
+        agent_i = int(Agents*random.random())
+        agent_j = int(Agents*random.random())
+        epsilon = random.random()
+        if agent_i != agent_j:
+           m1 = Lambda*FinancialAgents[agent_i] + (1-Lambda)*epsilon*(FinancialAgents[agent_i] + FinancialAgents[agent_j])
+           m2 = Lambda*FinancialAgents[agent_j] + (1-Lambda)*(1-epsilon)*(FinancialAgents[agent_i] + FinancialAgents[agent_j])
+           FinancialAgents[agent_i] = m1
+           FinancialAgents[agent_j] = m2
+
+# the histogram of the data
+n, bins, patches = plt.hist(FinancialAgents, 50, facecolor='green')
+
+plt.xlabel('$x$')
+plt.ylabel('Distribution of wealth')
+plt.title(r'Money')
+plt.axis([0, 10, 0, 500])
+plt.grid(True)
+plt.show()
+
+!ec
+
 
 We can then change our model to allow for a saving criterion, meaning that the agents save
   a fraction $\lambda$ of the money they have before the transaction is made. The final distribution will then no longer be given by Gibbs distribution. It could also include a taxation on financial transactions.
@@ -978,7 +1013,6 @@ We can then change our model to allow for a saving criterion, meaning that the a
   equilibrium distributions and compare these with the Gibbs distribution. Comment your results.
 Extract a parametrization of the above curves, see for example "Patriarca and collaborators":"http://www.sciencedirect.com/science/article/pii/S0378437104004327" and see if you can parametrize the high-end tails of the distributions in terms of power laws. Comment your results.
 
-In the rest of this project we will follow the work of "Goswami and Sen":"http://www.sciencedirect.com/science/article/pii/S0378437114006967". 
 In the studies above the agents were selected randomly, irrespective of whether we allowed for
 saving or not during a transaction. What is often observed is that various agents tend to make preferences for for whom to interact with. We will now study the evolution of the distribution of wealth $w_m$ by assuming that there is a likelihood 
 !bt
