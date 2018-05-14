@@ -98,13 +98,30 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                '___sec10'),
-              ('The $\\chi^2$ function', 2, None, '___sec11'),
-              ('The $\\chi^2$ function', 2, None, '___sec12'),
-              ('The $\\chi^2$ function', 2, None, '___sec13'),
+              ('Simple regression model', 2, None, '___sec11'),
+              ('Simple regression model, now using _scikit-learn_',
+               2,
+               None,
+               '___sec12'),
+              ('Correlations and the quality of our results',
+               2,
+               None,
+               '___sec13'),
               ('The $\\chi^2$ function', 2, None, '___sec14'),
               ('The $\\chi^2$ function', 2, None, '___sec15'),
               ('The $\\chi^2$ function', 2, None, '___sec16'),
-              ('The singular value decompostion', 2, None, '___sec17')]}
+              ('The $\\chi^2$ function', 2, None, '___sec17'),
+              ('The $\\chi^2$ function', 2, None, '___sec18'),
+              ('The $\\chi^2$ function', 2, None, '___sec19'),
+              ('Simple regression model with gradient descent',
+               2,
+               None,
+               '___sec20'),
+              ('Simple regression model with stochastic gradient descent',
+               2,
+               None,
+               '___sec21'),
+              ('The singular value decompostion', 2, None, '___sec22')]}
 end of tocinfo -->
 
 <body>
@@ -146,7 +163,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Nov 26, 2017</h4></center> <!-- date -->
+<center><h4>May 14, 2018</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -446,7 +463,80 @@ meaning that the solution for \( \hat{\beta} \) is the one which minimizes the r
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec11">The \( \chi^2 \) function  </h2>
+<h2 id="___sec11">Simple regression model </h2>
+We are now ready to write our first program which aims at solving the above linear regression equations. We start with data we have produced ourselves, in this case normally distributed random numbers along the \( x \)-axis. These numbers define then the value of a function \( y(x)=4+3x+N(0,1) \). Thereafter we order the \( x \) values and employ our linear regression algorithm to set up the best fit.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># Importing various packages</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+
+xb <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)), x]
+theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(xb<span style="color: #666666">.</span>T<span style="color: #666666">.</span>dot(xb))<span style="color: #666666">.</span>dot(xb<span style="color: #666666">.</span>T)<span style="color: #666666">.</span>dot(y)
+xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([[<span style="color: #666666">0</span>],[<span style="color: #666666">2</span>]])
+xbnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)), xnew]
+ypredict <span style="color: #666666">=</span> xbnew<span style="color: #666666">.</span>dot(theta)
+
+plt<span style="color: #666666">.</span>plot(xnew, ypredict, <span style="color: #BA2121">&quot;r-&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, y ,<span style="color: #BA2121">&#39;ro&#39;</span>)
+plt<span style="color: #666666">.</span>axis([<span style="color: #666666">0</span>,<span style="color: #666666">2.0</span>,<span style="color: #666666">0</span>, <span style="color: #666666">15.0</span>])
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&#39;$x$&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&#39;$y$&#39;</span>)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&#39;Linear Regression&#39;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec12">Simple regression model, now using <b>scikit-learn</b> </h2>
+We can repeat the above algorithm using <b>scikit-learn</b> as follows.
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># Importing various packages</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression
+
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+linreg <span style="color: #666666">=</span> LinearRegression()
+linreg<span style="color: #666666">.</span>fit(x,y)
+xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([[<span style="color: #666666">0</span>],[<span style="color: #666666">2</span>]])
+ypredict <span style="color: #666666">=</span> linreg<span style="color: #666666">.</span>predict(xnew)
+
+plt<span style="color: #666666">.</span>plot(xnew, ypredict, <span style="color: #BA2121">&quot;r-&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, y ,<span style="color: #BA2121">&#39;ro&#39;</span>)
+plt<span style="color: #666666">.</span>axis([<span style="color: #666666">0</span>,<span style="color: #666666">2.0</span>,<span style="color: #666666">0</span>, <span style="color: #666666">15.0</span>])
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&#39;$x$&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&#39;$y$&#39;</span>)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&#39;Random numbers &#39;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec13">Correlations and the quality of our results </h2>
+In order to test the quality of our fit, there are several measures which can be implemented. One is the so-called
+correlation function defined as
+$$
+\mathrm{Corr}(X,Y) = \frac{\sum_{i=1}^n(x_i-\overline{x})(y_i-\overline{y})}{\sqrt{\sum_{i=1}^n(x_i-\overline{x})^2}\sqrt{\sum_{i=1}^n(y_i-\overline{y})^2} }
+$$
+
+<p>
+Another quantity is the autocorrelation function we discussed in our chapter on statistical analysis.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec14">The \( \chi^2 \) function  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -469,7 +559,7 @@ where the matrix \( \hat{\Sigma} \) is a diagonal matrix with \( \sigma_i \) as 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec12">The \( \chi^2 \) function  </h2>
+<h2 id="___sec15">The \( \chi^2 \) function  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -497,7 +587,7 @@ where we have defined the matrix \( \hat{A} =\hat{X}/\hat{\Sigma} \) with matrix
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec13">The \( \chi^2 \) function  </h2>
+<h2 id="___sec16">The \( \chi^2 \) function  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -523,7 +613,7 @@ $$
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec14">The \( \chi^2 \) function  </h2>
+<h2 id="___sec17">The \( \chi^2 \) function  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -554,7 +644,7 @@ $$
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec15">The \( \chi^2 \) function  </h2>
+<h2 id="___sec18">The \( \chi^2 \) function  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -578,7 +668,7 @@ $$
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec16">The \( \chi^2 \) function  </h2>
+<h2 id="___sec19">The \( \chi^2 \) function  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -623,7 +713,76 @@ The LSM suffers often from both being underdetermined and overdetermined in the 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec17">The singular value decompostion  </h2>
+<h2 id="___sec20">Simple regression model with gradient descent  </h2>
+Add info about the equations, play around with different learning rates
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># Importing various packages</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">math</span> <span style="color: #008000; font-weight: bold">import</span> exp, sqrt
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+
+xb <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)), x]
+theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(xb<span style="color: #666666">.</span>T<span style="color: #666666">.</span>dot(xb))<span style="color: #666666">.</span>dot(xb<span style="color: #666666">.</span>T)<span style="color: #666666">.</span>dot(y)
+<span style="color: #008000; font-weight: bold">print</span>(theta_linreg)
+theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
+
+eta <span style="color: #666666">=</span> <span style="color: #666666">0.1</span>
+Niterations <span style="color: #666666">=</span> <span style="color: #666666">1000</span>
+m <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    gradients <span style="color: #666666">=</span> <span style="color: #666666">2.0/</span>m<span style="color: #666666">*</span>xb<span style="color: #666666">.</span>T<span style="color: #666666">.</span>dot(xb<span style="color: #666666">.</span>dot(theta)<span style="color: #666666">-</span>y)
+    theta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
+
+<span style="color: #008000; font-weight: bold">print</span>(theta)
+xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([[<span style="color: #666666">0</span>],[<span style="color: #666666">2</span>]])
+xbnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)), xnew]
+ypredict <span style="color: #666666">=</span> xbnew<span style="color: #666666">.</span>dot(theta)
+ypredict2 <span style="color: #666666">=</span> xbnew<span style="color: #666666">.</span>dot(theta_linreg)
+plt<span style="color: #666666">.</span>plot(xnew, ypredict, <span style="color: #BA2121">&quot;r-&quot;</span>)
+plt<span style="color: #666666">.</span>plot(xnew, ypredict2, <span style="color: #BA2121">&quot;b-&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, y ,<span style="color: #BA2121">&#39;ro&#39;</span>)
+plt<span style="color: #666666">.</span>axis([<span style="color: #666666">0</span>,<span style="color: #666666">2.0</span>,<span style="color: #666666">0</span>, <span style="color: #666666">15.0</span>])
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&#39;$x$&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&#39;$y$&#39;</span>)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&#39;Random numbers &#39;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec21">Simple regression model with stochastic gradient descent  </h2>
+Add info about the equations, play around with different learning rates
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># Importing various packages</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">math</span> <span style="color: #008000; font-weight: bold">import</span> exp, sqrt
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> SGDRegressor
+
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)
+
+xb <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((<span style="color: #666666">100</span>,<span style="color: #666666">1</span>)), x]
+theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(xb<span style="color: #666666">.</span>T<span style="color: #666666">.</span>dot(xb))<span style="color: #666666">.</span>dot(xb<span style="color: #666666">.</span>T)<span style="color: #666666">.</span>dot(y)
+<span style="color: #008000; font-weight: bold">print</span>(theta_linreg)
+sgdreg <span style="color: #666666">=</span> SGDRegressor(n_iter <span style="color: #666666">=</span> <span style="color: #666666">50</span>, penalty<span style="color: #666666">=</span><span style="color: #008000">None</span>, eta0<span style="color: #666666">=0.1</span>)
+sgdreg<span style="color: #666666">.</span>fit(x,y<span style="color: #666666">.</span>ravel())
+<span style="color: #008000; font-weight: bold">print</span>(sgdreg<span style="color: #666666">.</span>intercept_, sgdreg<span style="color: #666666">.</span>coef_)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec22">The singular value decompostion  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -640,7 +799,7 @@ $$
 
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2017, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright --> &copy; 1999-2018, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
 </center>
 
 
