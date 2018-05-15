@@ -268,6 +268,79 @@ meaning that the solution for $\hat{\beta}$ is the one which minimizes the resid
 !eblock
 
 !split
+===== Simple regression model =====
+We are now ready to write our first program which aims at solving the above linear regression equations. We start with data we have produced ourselves, in this case normally distributed random numbers along the $x$-axis. These numbers define then the value of a function $y(x)=4+3x+N(0,1)$. Thereafter we order the $x$ values and employ our linear regression algorithm to set up the best fit. 
+
+!bc pycod
+# Importing various packages
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = 2*np.random.rand(100,1)
+y = 4+3*x+np.random.randn(100,1)
+
+xb = np.c_[np.ones((100,1)), x]
+theta = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+xnew = np.array([[0],[2]])
+xbnew = np.c_[np.ones((2,1)), xnew]
+ypredict = xbnew.dot(theta)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Linear Regression')
+plt.show()
+
+!ec
+
+
+
+
+
+
+!split
+===== Simple regression model, now using _scikit-learn_ =====
+We can repeat the above algorithm using _scikit-learn_ as follows.
+!bc pycod
+# Importing various packages
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+x = 2*np.random.rand(100,1)
+y = 4+3*x+np.random.randn(100,1)
+linreg = LinearRegression()
+linreg.fit(x,y)
+xnew = np.array([[0],[2]])
+ypredict = linreg.predict(xnew)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Random numbers ')
+plt.show()
+!ec
+
+
+!split
+===== Correlations and the quality of our results =====
+In order to test the quality of our fit, there are several measures which can be implemented. One is the so-called
+correlation function defined as
+!bt
+\[
+\mathrm{Corr}(X,Y) = \frac{\sum_{i=1}^n(x_i-\overline{x})(y_i-\overline{y})}{\sqrt{\sum_{i=1}^n(x_i-\overline{x})^2}\sqrt{\sum_{i=1}^n(y_i-\overline{y})^2} }
+\]
+!et
+
+Another quantity is the autocorrelation function we discussed in our chapter on statistical analysis. 
+
+!split
 ===== The $\chi^2$ function  =====
 !bblock
 
@@ -430,6 +503,83 @@ and show that
 
 The LSM suffers often from both being underdetermined and overdetermined in the unknown coefficients $\beta_i$.  A better approach is to use the Singular Value Decomposition (SVD) method discussed below. 
 !eblock
+
+
+
+
+
+
+
+
+
+
+
+!split
+===== Simple regression model with gradient descent  =====
+Add info about the equations, play around with different learning rates
+!bc pycod
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = 2*np.random.rand(100,1)
+y = 4+3*x+np.random.randn(100,1)
+
+xb = np.c_[np.ones((100,1)), x]
+theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+print(theta_linreg)
+theta = np.random.randn(2,1)
+
+eta = 0.1
+Niterations = 1000
+m = 100
+
+for iter in range(Niterations):
+    gradients = 2.0/m*xb.T.dot(xb.dot(theta)-y)
+    theta -= eta*gradients
+
+print(theta)
+xnew = np.array([[0],[2]])
+xbnew = np.c_[np.ones((2,1)), xnew]
+ypredict = xbnew.dot(theta)
+ypredict2 = xbnew.dot(theta_linreg)
+plt.plot(xnew, ypredict, "r-")
+plt.plot(xnew, ypredict2, "b-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Random numbers ')
+plt.show()
+!ec
+
+
+!split
+===== Simple regression model with stochastic gradient descent  =====
+Add info about the equations, play around with different learning rates
+!bc pycod
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import SGDRegressor
+
+x = 2*np.random.rand(100,1)
+y = 4+3*x+np.random.randn(100,1)
+
+xb = np.c_[np.ones((100,1)), x]
+theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+print(theta_linreg)
+sgdreg = SGDRegressor(n_iter = 50, penalty=None, eta0=0.1)
+sgdreg.fit(x,y.ravel())
+print(sgdreg.intercept_, sgdreg.coef_)
+
+!ec
+
+
 
 
 
