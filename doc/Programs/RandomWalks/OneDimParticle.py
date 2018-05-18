@@ -1,6 +1,4 @@
-# Program to test the Metropolis algorithm with one particle at given temp in
-# one dimension
-#!/usr/bin/env python
+# Program to test the Metropolis algorithm with one particle at given temp in one dimension
 import numpy as np
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
