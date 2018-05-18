@@ -1,3 +1,6 @@
+# Simulation of financial transations with or without saving/taxation on transaction
+# If lambda =0.0, no saving/taxation
+# See Patriarca et al http://www.sciencedirect.com/science/article/pii/S0378437104004327
 #!/usr/bin/env python
 import numpy as np
 import matplotlib.mlab as mlab
@@ -11,7 +14,7 @@ Agents  = 500
 MCcounts = 1000
 Transactions = 100000
 startMoney = 1.0
-Lambda = 0.0
+Lambda = 0.2
 FinancialAgents = startMoney*np.ones(Agents)
 for i in range (1, MCcounts, 1):
     for j in range (1, Transactions, 1):
@@ -30,6 +33,6 @@ n, bins, patches = plt.hist(FinancialAgents, 50, facecolor='green')
 plt.xlabel('$x$')
 plt.ylabel('Distribution of wealth')
 plt.title(r'Money')
-plt.axis([0, 10, 0, 500])
+plt.axis([0, 10, 0, 100])
 plt.grid(True)
 plt.show()
