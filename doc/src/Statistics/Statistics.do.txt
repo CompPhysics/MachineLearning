@@ -612,6 +612,39 @@ uncorrelated.
 !eblock
 
 !split
+=====  Covariance =====
+!bc pycod
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+
+def covariance(x, y, n):
+    sum = 0.0
+    mean_x = np.mean(x)
+    mean_y = np.mean(y)
+    for i in range(0, n):
+        sum += (x[(i)]-mean_x)*(y[i]-mean_y)
+    return  sum/n
+
+n = 10
+
+x=np.random.normal(size=n)
+y = 4+3*x+np.random.normal(size=n)
+covxy = covariance(x,y,n)
+print(covxy)
+z = np.vstack((x, y))
+c = np.cov(z.T)
+
+print(c)
+
+!ec
+
+
+
+
+!split
 ===== Meet the  covariance, uncorrelated events =====
 !bblock
 
@@ -1341,6 +1374,58 @@ assumption for approximating $\sigma_N$ is no longer valid.
 
 
 !split
+===== Autocorrelation function =====
+This program computes the autocorrelation function as discussed in the equation on the previous slide for random numbers generated with the normal distribution $N(0,1)$.
+!bc pycod
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+
+def autocovariance(x, n, k, mean_x):
+    sum = 0.0
+    for i in range(0, n-k):
+        sum += (x[(i+k)]-mean_x)*(x[i]-mean_x)
+    return  sum/n
+
+n = 1000
+x=np.random.normal(size=n)
+autocor = np.zeros(n)
+figaxis = np.zeros(n)
+mean_x=np.mean(x)
+var_x = np.var(x)
+print(mean_x, var_x)
+for i in range (0, n):
+    figaxis[i] = i
+    autocor[i]=(autocovariance(x, n, i, mean_x))/var_x    
+
+plt.plot(figaxis, autocor, "r-")
+plt.axis([0,n,-0.1, 1.0])
+plt.xlabel(r'$i$')
+plt.ylabel(r'$\gamma_i$')
+plt.title(r'Autocorrelation function')
+plt.show()
+!ec
+As can be seen from the plot, the first point gives back the variance and a value of one. 
+For the remaining values we notice that there are still non-zero values for the auto-correlation function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+!split
 ===== Correlation function and which random number generators should I use =====
 !bblock
 The program here computes the correlation function for one of the standard functions included with the c++ compiler. 
@@ -1415,36 +1500,12 @@ int main(int argc, char* argv[])
 !eblock
 
 
-!split
-===== Correlation function and which random number generators should I use =====
-!bblock
-The following Python code plots the results for the correlation function from the above program.
-!bc pyscpro
-import numpy as np
-from  matplotlib import pyplot as plt
-# Load in data file
-data = np.loadtxt("datafiles/autocor.dat")
-# Make arrays containing x-axis and binding energies as function of A
-x = data[:,0]
-corr = data[:,1]
-plt.plot(x, corr ,'ro')
-plt.axis([0,1000,-0.2, 1.1])
-plt.xlabel(r'$d$')
-plt.ylabel(r'$C_d$')
-plt.title(r'autocorrelation function for RNG')
-plt.savefig('autocorr.pdf')
-plt.show()
-
-!ec
-!eblock
-
-
 
 !split
 ======= Which RNG should I use?  =======
 !bblock
-* In the library files lib.cpp and lib.h we have included four popular RNGs taken from the widely used textbook "Numerical Recipes":"http://numerical.recipes/". These are called ran0, ran1, ran2 and ran3.
 * C++ has a class called _random_. The "random class":"http://www.cplusplus.com/reference/random/" contains a large selection of RNGs and is highly recommended. Some of these RNGs have very large periods making it thereby very safe to use these RNGs in case one is performing large calculations. In particular, the "Mersenne twister random number engine":"http://www.cplusplus.com/reference/random/mersenne_twister_engine/" has a period of $2^{19937}$. 
+* Add RNGs in Python
  
 !eblock
 
@@ -1756,82 +1817,5 @@ the true $\angle\theta\rangle$. As final result for the observable one quotes $\
         self.jackknVar = float(len(self.data) - 1) * np.var(jackknVec)
         self.jackknStd = np.sqrt(self.jackknVar)
 !ec
-
-
-!split
-===== Autocorrelation function =====
-!bc pycod
-# Importing various packages
-from math import exp, sqrt
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-
-def autocovariance(x, n, k, mean_x):
-    sum = 0.0
-    for i in range(0, n-k):
-        sum += (x[(i+k)]-mean_x)*(x[i]-mean_x)
-    return  sum/n
-
-n = 1000
-x=np.random.normal(size=n)
-autocor = np.zeros(n)
-figaxis = np.zeros(n)
-mean_x=np.mean(x)
-var_x = np.var(x)
-print(mean_x, var_x)
-for i in range (0, n):
-    figaxis[i] = i
-    autocor[i]=(autocovariance(x, n, i, mean_x))/var_x    
-
-plt.plot(figaxis, autocor, "r-")
-plt.axis([0,n,-0.1, 1.0])
-plt.xlabel(r'$i$')
-plt.ylabel(r'$\gamma_i$')
-plt.title(r'Autocorrelation function')
-plt.show()
-
-
-!ec
-
-!split
-=====  Covariance =====
-!bc pycod
-# Importing various packages
-from math import exp, sqrt
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-
-def covariance(x, y, n):
-    sum = 0.0
-    mean_x = np.mean(x)
-    mean_y = np.mean(y)
-    for i in range(0, n):
-        sum += (x[(i)]-mean_x)*(y[i]-mean_y)
-    return  sum/n
-
-n = 10
-
-x=np.random.normal(size=n)
-y = 4+3*x+np.random.normal(size=n)
-covxy = covariance(x,y,n)
-print(covxy)
-z = np.vstack((x, y))
-c = np.cov(z.T)
-
-print(c)
-
-!ec
-
-
-
-
-
-
-
-
-
-
 
 
