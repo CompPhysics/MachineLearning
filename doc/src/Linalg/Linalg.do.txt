@@ -1,30 +1,53 @@
-TITLE: Data analysis and Machine Learning  Lectures: Linear Algebra methods 
+TITLE: Data analysis and Machine Learning  Lectures: Linear Algebra and Handling of Arrays
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 DATE: today
 
 
 !split
-===== To do =====
+===== Introduction =====
+The aim of this set of lectures is to review some central linear algebra algorithms that we will need in our 
+data analysis part and in the construction of Machine Learning algorithms (ML). 
+This will allow us to introduce some central programming features of high-level languages like Python and 
+compiled languages like C++ and/or Fortran. 
 
-* add material on python handling of matrices and vectors
-* keep c++ material?
+As discussed in the introductory notes, these series of lectures focuses both on using
+central Python packages like _tensorflow_ and _scikit-learn_ as well
+as writing your own codes for some central ML algorithms. The
+latter can be written in a language of your choice, be it Python, Julia, R,
+Rust, C++, Fortran etc. In order to avoid confusion however, in these lectures we will limit our
+attention to Python, C++ and Fortran.  
 
 
-!split
+!split 
 ===== Important Matrix and vector handling packages =====
 
-The Numerical Recipes codes have been rewritten in Fortran 90/95 and
-C/C++ by us.  The original source codes are taken from the widely used
+There are several central software packages for linear algebra and eigenvalue problems. Several of the more
+popular ones have been wrapped into ofter software packages like those from the widely used text _Numerical Recipes_. The original source codes in many of the available packages are often taken from the widely used
 software package LAPACK, which follows two other popular packages
-developed in the 1970s, namely EISPACK and LINPACK.
+developed in the 1970s, namely EISPACK and LINPACK.  We describe them shortly here.
 
   * LINPACK: package for linear equations and least square problems.
   * LAPACK:package for solving symmetric, unsymmetric and generalized eigenvalue problems. From LAPACK's website URL: "http://www.netlib.org" it is possible to download for free all source codes from this library. Both C/C++ and Fortran versions are available.
   * BLAS (I, II and III): (Basic Linear Algebra Subprograms) are routines that provide standard building blocks for performing basic vector and matrix operations. Blas I is vector operations, II vector-matrix operations and III matrix-matrix operations. Highly parallelized and efficient codes, all available for download from URL: "http://www.netlib.org".
 
-_Add python material on linear algebra and array handling, text on numpy etc_
+When dealing with matrices and vectors a central issue is memory
+handling and allocation. If our code is written in Python the way we
+declare these objects and the way they are handled, interpreted and
+used by say a linear algebra library, requires codes that interface
+our Python program with such libraries. For Python programmers,
+_Numpy_ is by now the standard Python package for numerical arrays in
+Python as well as the source of functions which act on these
+arrays. These functions span from eigenvalue solvers to functions that
+compute the mean value, variance or the covariance matrix. If you are
+not familiar with how arrays are handled in say Python or compiled
+languages like C++ and Fortran, the sections in this chapter may be
+useful. For C++ programmer, _Armadillo_ is widely used library for
+linear algebra and eigenvalue problems. In addition it offers a
+convenient way to handle and organize arrays. We discuss this library
+as well.   Before we proceed we believe  it may be convenient to repeat some basic features of 
+ matrices and vectors.
 
-!split
+!split 
 ===== Basic Matrix Features =====
 
 !bblock Matrix properties reminder
@@ -48,6 +71,7 @@ _Add python material on linear algebra and array handling, text on numpy etc_
 !split
 ===== Basic Matrix Features =====
 !bblock
+
 The inverse of a matrix is defined by
 
 !bt
@@ -100,6 +124,171 @@ For an $N\times N$ matrix  $\mathbf{A}$ the following properties are all equival
   * $\mathbf{A}$ is a product of elementary matrices.
   * $0$ is not eigenvalue of $\mathbf{A}$.
 !eblock
+
+!split
+===== Numpy and arrays =====
+"Numpy":"http://www.numpy.org/" provides an easy way to handle arrays in Python. The standard way to import this library is as
+!bc pycod
+import numpy as np
+n = 10
+x = np.random.normal(size=n)
+print(x)
+!ec
+Here we have defined a vector $x$ with $n=10$ elements with its values given by the Normal distribution $N(0,1)$.
+Another alternative is to declare a vector as follows
+!bc pycod
+import numpy as np
+x = np.array([1, 2, 3])
+print(x)
+!ec
+Here we have defined a vector with three elements, with $x_0=1$, $x_1=2$ and $x_2=3$. Note that both Python and C++
+start numbering array elements from $0$ and on. This means that a vector with $n$ elements has a sequence of entities $x_0, x_1, x_2, \dots, x_{n-1}$. We could also let (recommended) Numpy to compute the logarithms of a specific array as
+!bc pycod
+import numpy as np
+x = np.log(np.array([4, 7, 8]))
+print(x)
+!ec
+
+Here we have used Numpy's unary function $np.log$. This function is
+highly tuned to compute array elements since the code is vectorized
+and does not require looping. We normaly recommend that you use the
+Numpy intrinsic functions instead of the corresponding _log_ function
+from Python's _math_ module. The looping is done explicitely by the
+_np.log_ function. The alternative, and slower way to compute the
+logarithms of a vector would be to write
+
+!bc pycod
+import numpy as np
+from math import log
+x = np.array([4, 7, 8])
+for i in range(0, len(x)):
+    x[i] = log(x[i])
+print(x)
+!ec
+We note that our code is much longer already and we need to import the _log_ function from the _math_ module. 
+The attentive reader will also notice that the output is $[1, 1, 2]$. Python interprets automacally our numbers as integers (like the _automatic_ keyword in C++). To change this we could define our array elements to be double precision numbers as
+!bc pycod
+import numpy as np
+x = np.log(np.array([4, 7, 8], dtype = np.float64))
+print(x)
+!ec
+or simply write them as double precision numbers (Python uses 64 bits as default for floating point type variables), that is
+!bc pycod
+import numpy as np
+x = np.log(np.array([4.0, 7.0, 8.0])
+print(x)
+!ec
+To check the number of bytes (remember that one byte contains eight bits for double precision variables), you can use simple use the _itemsize_ functionality (the array $x$ is actually an object which inherits the functionalities defined in Numpy) as 
+!bc pycod
+import numpy as np
+x = np.log(np.array([4.0, 7.0, 8.0])
+print(x.itemsize)
+!ec
+
+!split
+===== Matrices in Python =====
+Having defined vectors, we are now ready to try out matrices. We can define a $3 \times 3 $ real matrix $\hat{A}$
+as (recall that we user lowercase letters for vectors and uppercase letters for matrices)
+!bc pycod
+import numpy as np
+A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
+print(A)
+!ec
+If we use the _shape_ function we would get $(3, 3)$ as output, that is verifying that our matrix is a $3\times 3$ matrix. We can slice the matrix and print for example the first column (Python organized matrix elements in a row-major order, see below) as
+!bc pycod
+import numpy as np
+A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
+# print the first column, row-major order and elements start with 0
+print(A[:,0]) 
+!ec
+We can continue this was by printing out other columns or rows. The example here prints out the second column
+!bc pycod
+import numpy as np
+A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
+# print the first column, row-major order and elements start with 0
+print(A[1,:]) 
+!ec 
+Numpy contains many other functionalities that allow us to slice, subdivide etc etc arrays. We strongly recommend that you look up the "Numpy website for more details":"http://www.numpy.org/". Useful functions when defining a matrix are the _np.zeros_ function which declares a matrix of a given dimension and sets all elements to zero
+!bc pycod
+import numpy as np
+n = 10
+# define a matrix of dimension 10 x 10 and set all elements to zero
+A = np.zeros( (n, n) )
+print(A) 
+!ec 
+or initializing all elements to 
+!bc pycod
+import numpy as np
+n = 10
+# define a matrix of dimension 10 x 10 and set all elements to one
+A = np.ones( (n, n) )
+print(A) 
+!ec 
+or as unitarily distributed random numbers (see the material on random number generators in the statistics part)
+!bc pycod
+import numpy as np
+n = 10
+# define a matrix of dimension 10 x 10 and set all elements to random numbers with x \in [0, 1]
+A = np.random.rand(n, n)
+print(A) 
+!ec 
+
+As we will see throughout these lectures, there are several extremely useful functionalities in Numpy.
+As an example, consider the discussion of the covariance matrix. Suppose we have defined three vectors
+$\hat{x}, \hat{y}, \hat{z}$ with $n$ elements each. The covariance matrix is defined as 
+!bt
+\[
+\hat{\Sigma} = \begin{bmatrix} \sigma_{xx} & \sigma_{xy} & \sigma_{xz} \\
+                              \sigma_{yx} & \sigma_{yy} & \sigma_{yz} \\
+                              \sigma_{zx} & \sigma_{zy} & \sigma_{zz} 
+             \end{bmatrix},
+\]
+!et
+where for example
+!bt
+\[
+\sigma_{xy} =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
+\]
+!et
+The Numpy function _np.cov_ calculates the covariance elements using the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have the exact mean values. For a more in-depth discussion of the covariance and covariance matrix and its meaning, we refer you to the lectures on statistics. 
+The following simple function uses the _np.vstack_ function which takes each vector of dimension $1\times n$ and produces a $ 3\times n$ matrix $\hat{W}$
+!bt
+\[
+\hat{W} = \begin{bmatrix} x_0 & y_0 & z_0 \\
+                          x_1 & y_1 & z_1 \\
+                          x_2 & y_2 & z_2 \\
+                          \dots & \dots & \dots \\
+                          x_{n-2} & y_{n-2} & z_{n-2} \\
+                          x_{n-1} & y_{n-1} & z_{n-1}
+             \end{bmatrix},
+\]
+!et
+
+which in turn is converted into into the $3 times 3$ covariance matrix
+$\hat{\Sigma}$ via the Numpy function _np.cov()_. In our review of
+statistical functions and quantities we will discuss more about the
+meaning of the covariance matrix. Here we note that we can calculate
+the mean value of each set of samples $\hat{x}$ etc using the Numpy
+function _np.mean(x)_. We can also extract the eigenvalues of the
+covariance matrix through the _np.linalg.eig()_ function.
+
+!bc pycod
+# Importing various packages
+import numpy as np
+
+n = 100
+x = np.random.normal(size=n)
+print(np.mean(x))
+y = 4+3*x+np.random.normal(size=n)
+print(np.mean(y))
+z = x**3+np.random.normal(size=n)
+print(np.mean(z))
+W = np.vstack((x, y, z))
+Sigma = np.cov(W)
+print(Sigma)
+Eigvals, Eigvecs = np.linalg.eig(Sigma)
+print(Eigvals)
+!ec
 
 
 !split
@@ -744,7 +933,7 @@ to rewrite our system of linear equations as
 !bt
 \[  \mathbf{LUx}=\mathbf{w}, \]
 !et
-and since the determinat of $\mathbf{L}$ is equal to 1 (by construction
+and since the determinant of $\mathbf{L}$ is equal to 1 (by construction
 since the diagonals of $\mathbf{L}$ equal 1) we can use the inverse of
 $\mathbf{L}$ to obtain
 
@@ -910,198 +1099,6 @@ int main()
   }
 !ec
 
-!split
-===== Iterative methods, Chapter 6 =====
-!bblock
- * Direct solvers such as Gauss elimination and  LU decomposition discussed in connection with project 1.
- * Iterative solvers such as Basic iterative solvers,  Jacobi,  Gauss-Seidel, Successive over-relaxation. These methods are easy to parallelize, as we will se later. Much used in solutions of partial differential equations.
- * Other iterative methods such as Krylov subspace methods with Generalized minimum residual (GMRES) and Conjugate gradient etc will not be discussed.
-!eblock
-
-
-!split
-===== Iterative methods, Jacobi's method =====
-!bblock
-It is a simple method for solving
-!bt
-\[ 
-\mathbf{A}\mathbf{x}=\mathbf{b},
-\]
-!et
-where $\mathbf{A}$ is a matrix and $\mathbf{x}$ and $\mathbf{b}$ are vectors. The vector $\mathbf{x}$ is 
-the unknown.
-
-It is an iterative scheme where we start with a guess for the unknown, and 
-after $k+1$ iterations we have  
-!bt
-\[ 
-\mathbf{x}^{(k+1)}= \mathbf{D}^{-1}(\mathbf{b}-(\mathbf{L}+\mathbf{U})\mathbf{x}^{(k)}),
-\]
-!et
-with $\mathbf{A}=\mathbf{D}+\mathbf{U}+\mathbf{L}$ and
-$\mathbf{D}$ being a diagonal matrix, $\mathbf{U}$ an upper triangular matrix and $\mathbf{L}$ a  lower triangular
-matrix.
-
-If the matrix $\mathbf{A}$ is positive definite or diagonally dominant, one can show that this method will always converge to the exact solution. 
-!eblock
-
-
-!split
-===== Iterative methods, Jacobi's method =====
-!bblock
-We can demonstrate Jacobi's method by this $4\times 4$ matrix problem. We assume a guess
-for the vector elements $x_i^{(0)}$, a guess which represents our first iteration. The new
-values are obtained by substitution
-!bt
-\begin{align}
- x_1^{(1)} =&(b_1-a_{12}x_2^{(0)} -a_{13}x_3^{(0)} - a_{14}x_4^{(0)})/a_{11} \nonumber \\
- x_2^{(1)} =&(b_2-a_{21}x_1^{(0)} - a_{23}x_3^{(0)} - a_{24}x_4^{(0)})/a_{22} \nonumber \\
- x_3^{(1)} =&(b_3- a_{31}x_1^{(0)} -a_{32}x_2^{(0)} -a_{34}x_4^{(0)})/a_{33} \nonumber \\
- x_4^{(1)}=&(b_4-a_{41}x_1^{(0)} -a_{42}x_2^{(0)} - a_{43}x_3^{(0)})/a_{44},  \nonumber
-\end{align}
-!et
-which after $k+1$ iterations reads
-!bt
-\begin{align}
- x_1^{(k+1)} =&(b_1-a_{12}x_2^{(k)} -a_{13}x_3^{(k)} - a_{14}x_4^{(k)})/a_{11} \nonumber \\
- x_2^{(k+1)} =&(b_2-a_{21}x_1^{(k)} - a_{23}x_3^{(k)} - a_{24}x_4^{(k)})/a_{22} \nonumber \\
- x_3^{(k+1)} =&(b_3- a_{31}x_1^{(k)} -a_{32}x_2^{(k)} -a_{34}x_4^{(k)})/a_{33} \nonumber \\
- x_4^{(k+1)}=&(b_4-a_{41}x_1^{(k)} -a_{42}x_2^{(k)} - a_{43}x_3^{(k)})/a_{44},  \nonumber
-\end{align}
-!et
-!eblock
-
-
-!split
-===== Iterative methods, Jacobi's method =====
-!bblock
-We can generalize the above equations to
-!bt
-\[
- x_i^{(k+1)}=(b_i-\sum_{j=1, j\ne i}^{n}a_{ij}x_j^{(k)})/a_{ii}
-\]
-!et
-or in an even more compact form as
-!bt
-\[ \mathbf{x}^{(k+1)}= \mathbf{D}^{-1}(\mathbf{b}-(\mathbf{L}+\mathbf{U})\mathbf{x}^{(k)}),
-\]
-!et
-with $\mathbf{A}=\mathbf{D}+\mathbf{U}+\mathbf{L}$ and
-$\mathbf{D}$ being a diagonal matrix, $\mathbf{U}$ an upper triangular matrix and $\mathbf{L}$ a  lower triangular
-matrix.
-!eblock
-
-!split
-===== Iterative methods, Gauss-Seidel's method =====
-!bblock
-Our $4\times 4$ matrix problem 
-!bt
-\begin{align}
- x_1^{(k+1)} =&(b_1-a_{12}x_2^{(k)} -a_{13}x_3^{(k)} - a_{14}x_4^{(k)})/a_{11} \nonumber \\
- x_2^{(k+1)} =&(b_2-a_{21}x_1^{(k)} - a_{23}x_3^{(k)} - a_{24}x_4^{(k)})/a_{22} \nonumber \\
- x_3^{(k+1)} =&(b_3- a_{31}x_1^{(k)} -a_{32}x_2^{(k)} -a_{34}x_4^{(k)})/a_{33} \nonumber \\
- x_4^{(k+1)}=&(b_4-a_{41}x_1^{(k)} -a_{42}x_2^{(k)} - a_{43}x_3^{(k)})/a_{44},  \nonumber
-\end{align}
-!et
-can be rewritten as 
-!bt
-\begin{align}
- x_1^{(k+1)} =&(b_1-a_{12}x_2^{(k)} -a_{13}x_3^{(k)} - a_{14}x_4^{(k)})/a_{11} \nonumber \\
- x_2^{(k+1)} =&(b_2-a_{21}x_1^{(k+1)} - a_{23}x_3^{(k)} - a_{24}x_4^{(k)})/a_{22} \nonumber \\
- x_3^{(k+1)} =&(b_3- a_{31}x_1^{(k+1)} -a_{32}x_2^{(k+1)} -a_{34}x_4^{(k)})/a_{33} \nonumber \\
- x_4^{(k+1)}=&(b_4-a_{41}x_1^{(k+1)} -a_{42}x_2^{(k+1)} - a_{43}x_3^{(k+1)})/a_{44},  \nonumber
-\end{align}
-!et
-which allows us to utilize the preceding solution (forward substitution). This improves normally the convergence
-behavior and leads to the Gauss-Seidel method!
-!eblock
-
-!split
-===== Iterative methods, Gauss-Seidel's method =====
-!bblock
-We can generalize 
-!bt
-\begin{align}
- x_1^{(k+1)} =&(b_1-a_{12}x_2^{(k)} -a_{13}x_3^{(k)} - a_{14}x_4^{(k)})/a_{11} \nonumber \\
- x_2^{(k+1)} =&(b_2-a_{21}x_1^{(k+1)} - a_{23}x_3^{(k)} - a_{24}x_4^{(k)})/a_{22} \nonumber \\
- x_3^{(k+1)} =&(b_3- a_{31}x_1^{(k+1)} -a_{32}x_2^{(k+1)} -a_{34}x_4^{(k)})/a_{33} \nonumber \\
- x_4^{(k+1)}=&(b_4-a_{41}x_1^{(k+1)} -a_{42}x_2^{(k+1)} - a_{43}x_3^{(k+1)})/a_{44},  \nonumber
-\end{align}
-!et
-to the following form
-!bt
-\[
- x^{(k+1)}_i = \frac{1}{a_{ii}} \left(b_i - \sum_{j > i}a_{ij}x^{(k)}_j - \sum_{j < i}a_{ij}x^{(k+1)}_j \right),\quad i=1,2,\ldots,n. 
-\]
-!et
-The procedure is generally continued until the changes made by an iteration are below some tolerance.
-
-The convergence properties of the Jacobi method and the 
-Gauss-Seidel method are dependent on the matrix $\mathbf{A}$. These methods converge when
-the matrix is symmetric positive-definite, or is strictly or irreducibly diagonally dominant.
-Both methods sometimes converge even if these conditions are not satisfied.
-!eblock
-
-!split
-===== Iterative methods, Successive over-relaxation =====
-!bblock
-Given a square system of n linear equations with unknown $\mathbf x$:
-!bt
-\[
-    \mathbf{A}\mathbf x = \mathbf b
-\]
-!et
-where
-!bt
-\[
-    \mathbf{A}=\begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\a_{n1} & a_{n2} & \cdots & a_{nn} \end{bmatrix}, \qquad \mathbf{x} = \begin{bmatrix} x_{1} \\ x_2 \\ \vdots \\ x_n \end{bmatrix} , \qquad \mathbf{b} = \begin{bmatrix} b_{1} \\ b_2 \\ \vdots \\ b_n \end{bmatrix}.
-\]
-!et
-!eblock
-
-
-!split
-===== Iterative methods, Successive over-relaxation =====
-!bblock
-Then A can be decomposed into a diagonal component D, and strictly lower and upper triangular components L and U:
-!bt
-\[
-    \mathbf{A} =\mathbf{D} + \mathbf{L} + \mathbf{U},
-\]
-!et
-where
-!bt
-\[
-    D = \begin{bmatrix} a_{11} & 0 & \cdots & 0 \\ 0 & a_{22} & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\0 & 0 & \cdots & a_{nn} \end{bmatrix}, \quad L = \begin{bmatrix} 0 & 0 & \cdots & 0 \\ a_{21} & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\a_{n1} & a_{n2} & \cdots & 0 \end{bmatrix}, \quad U = \begin{bmatrix} 0 & a_{12} & \cdots & a_{1n} \\ 0 & 0 & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\0 & 0 & \cdots & 0 \end{bmatrix}. 
-\]
-!et
-The system of linear equations may be rewritten as:
-!bt
-\[
-    (D+\omega L) \mathbf{x} = \omega \mathbf{b} - [\omega U + (\omega-1) D ] \mathbf{x} 
-\]
-!et
-for a constant $\omega > 1$.
-!eblock
-
-
-!split
-===== Iterative methods, Successive over-relaxation =====
-!bblock
-The method of successive over-relaxation is an iterative technique that solves the left hand side of this expression for $x$, using previous value for $x$ on the right hand side. Analytically, this may be written as:
-!bt
-\[
-    \mathbf{x}^{(k+1)} = (D+\omega L)^{-1} \big(\omega \mathbf{b} - [\omega U + (\omega-1) D ] \mathbf{x}^{(k)}\big). 
-\]
-!et
-However, by taking advantage of the triangular form of $(D+\omega L)$, the elements of $x^{(k+1)}$ can be computed sequentially using forward substitution:
-!bt
-\[
-    x^{(k+1)}_i = (1-\omega)x^{(k)}_i + \frac{\omega}{a_{ii}} \left(b_i - \sum_{j > i} a_{ij}x^{(k)}_j - \sum_{j < i} a_{ij}x^{(k+1)}_j \right),\quad i=1,2,\ldots,n. 
-\]
-!et
-The choice of relaxation factor is not necessarily easy, and depends upon the properties of the coefficient matrix. For symmetric, positive-definite matrices it can be proven that $0 < \omega < 2$ will lead to convergence, but we are generally interested in faster convergence rather than just convergence.
-!eblock
 
 
 
