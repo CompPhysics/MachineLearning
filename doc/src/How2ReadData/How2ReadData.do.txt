@@ -397,47 +397,39 @@ detail these and other functions in the various lectures.  We conclude this part
 a linear $x$-dependence we study now a cubic polynomial and use the polynomial regression analysis tools of scikit-learn. 
 
 !bc pycod
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import random
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import LinearRegression
 
-def f(x):
-    """ function to approximate by polynomial interpolation"""
-    return x*x*x
+x=np.linspace(0.02,0.98,200)
+noise = np.asarray(random.sample((range(200)),200))
+y=x**3*noise
+yn=x**3*100
+poly3 = PolynomialFeatures(degree=3)
+X = poly3.fit_transform(x[:,np.newaxis])
+clf3 = LinearRegression()
+clf3.fit(X,y)
 
-# generate points used to plot                                                  
-x_plot = np.linspace(0, 10, 100)
-
-# generate points and keep a subset of them                                     
-x = np.linspace(0, 10, 100)
-rng = np.random.RandomState(0)
-rng.shuffle(x)
-x = np.sort(x[:20])
-y = f(x)
-# create matrix versions of these arrays                                        
-X = x[:, np.newaxis]
-X_plot = x_plot[:, np.newaxis]
-
-colors = ['teal', 'yellowgreen', 'gold']
-lw = 2
-plt.plot(x_plot, f(x_plot), color='cornflowerblue', linewidth=lw,
-         label="ground truth")
-plt.scatter(x, y, color='navy', s=30, marker='o', label="training points")
-
-for count, degree in enumerate([3, 4, 5]):
-    model = make_pipeline(PolynomialFeatures(degree), Ridge())
-    model.fit(X, y)
-    y_plot = model.predict(X_plot)
-    plt.plot(x_plot, y_plot, color=colors[count], linewidth=lw,
-             label="degree %d" % degree)
-
-plt.legend(loc='lower left')
-
+Xplot=poly3.fit_transform(x[:,np.newaxis])
+poly3_plot=plt.plot(x, clf3.predict(Xplot), label='Cubic Fit')
+plt.plot(x,yn, color='red', label="True Cubic")
+plt.scatter(x, y, label='Data', color='orange', s=15)
+plt.legend()
 plt.show()
+
+def error(a):
+    for i in y:
+        err=(y-yn)/yn
+    return abs(np.sum(err))/len(err)
+
+print (error(y))
 !ec
 
+Similarly, using _R_, we can perform similar studies. The following _R_ code illustrates this.
 !split
 ===== Non-Linear Least squares in R  =====
 !bblock
@@ -464,6 +456,7 @@ text(0, 0.5, paste("y =x^ (", power, " +/- ", power.se, ")", sep = ""), pos = 4)
 !ec
 !eblock
 
+In our lectures on regression analysis (and other ones as well), we will discuss in more details various _R_ functionalities. 
 
 
 Another useful Python package is
@@ -480,11 +473,135 @@ display(data_pandas)
 !ec
 
 
-
 !split
-===== Predator-Prey model from ecology =====
+===== Examples =====
 
+We present here several examples, with pertinent Python codes that we
+will us to illustrate various machine learning methods and ways to
+analyze, from simple to complex, various data sets. Many of these
+examples allow us to generate the data we want to analyze, following
+much of the same philosophy we discussed above when
+fitting various polynomials.
+
+We start with a simple exponential growth model that is meant to mimick an ecoli lab experiment.
+We can easily model this system and then produce the data used to train various machine learning algorithms.
+Another model from the life sciences is the so-called predator-prey model from ecology. Thereafter we present 
+a simple model for financial transactions before moving to a random walk model and ending with 
+the simulation of velocities of a non-interacting atom or molecule confined to move in  a one-dimensional region.
+
+
+=== Ecoli lab experiment ===
+
+
+A typical pattern seen in population models is that the population grows faster and faster. "Why? Is there an underlying (general) mechanism":"http://www.zo.utexas.edu/courses/Thoc/PopGrowth.html"?
+Here we will construct a model for cell growth based on a simple difference equation for the growth. We make the following assumptions
 !bblock
+ o Cells divide after $T$ seconds on average (one generation)
+ o $2N$ celles divide into twice as many new cells $\Delta N$ in a time
+   interval $\Delta t$ as $N$ cells would: $\Delta N \propto N$
+ o $N$ cells result in twice as many new individuals $\Delta N$ in
+   time $2\Delta t$ as in time $\Delta t$: $\Delta N \propto\Delta t$
+ o Same proportionality wrt death 
+ o Proposed model: $\Delta N = b\Delta t N - d\Delta tN$ for some unknown
+   constants $b$ (births) and $d$ (deaths)
+ o Describe evolution in discrete time: $t_n=n\Delta t$
+ o Program-friendly notation: $N$ at $t_n$ is $N^n$
+ o Math model: $N^{n+1} = N^n + r\Delta t\, N$ (with $\ r=b-d$)
+ o Program model: `N[n+1] = N[n] + r*dt*N[n]`
+!eblock
+
+The difference equation can be programmed in a simple was, and in order to get started we
+set $r=1.5$, $N^0=1$, $\Delta t=0.5$. The program reads
+
+!bc pycod 
+import numpy as np
+
+t = np.linspace(0, 10, 21)  # 20 intervals in [0, 10]
+dt = t[1] - t[0]
+N = np.zeros(t.size)
+
+N[0] = 1
+r = 0.5
+
+for n in range(0, N.size-1, 1):
+    N[n+1] = N[n] + r*dt*N[n]
+    print 'N[%d]=%.1f' % (n+1, N[n+1])
+!ec
+and it generates the following output
+!bc
+N[1]=1.2
+N[2]=1.6
+N[3]=2.0
+N[4]=2.4
+N[5]=3.1
+N[6]=3.8
+N[7]=4.8
+N[8]=6.0
+N[9]=7.5
+N[10]=9.3
+N[11]=11.6
+N[12]=14.6
+N[13]=18.2
+N[14]=22.7
+N[15]=28.4
+N[16]=35.5
+N[17]=44.4
+N[18]=55.5
+N[19]=69.4
+N[20]=86.7
+!ec
+This forms our data which later will define our training set. 
+In this case we defined the value of the parameter $r$. We could alternatively assume that we just received the 
+above data file and where asked to use find $r$. How can we estimate $r$ from data?
+
+We can use the difference equation with the experimental data
+!bt
+\[ N^{n+1} = N^n + r\Delta t N^n\]
+!et
+Suppose now that  $N^{n+1}$ and $N^n$ are known from data. Then we could solve with respect to  $r$ as follows
+!bt
+\[ r = \frac{N^{n+1}-N^n}{N^n\Delta t} \]
+!et
+Suppose we set $t_1=600$, $t_2=1200$,
+$N^1=140$ and $N^2=250$. We obtain then $r=0.0013$. The exact value is $r = 0.000694$
+The following code plot 
+!bc pycod 
+import numpy as np
+
+# Estimate r
+data = np.loadtxt('ecoli.csv', delimiter=',')
+t_e = data[:,0]
+N_e = data[:,1]
+i = 2  # Data point (i,i+1) used to estimate r
+r = (N_e[i+1] - N_e[i])/(N_e[i]*(t_e[i+1] - t_e[i]))
+print 'Estimated r=%.5f' % r
+# Can experiment with r values and see if the model can
+# match the data better
+
+T = 1200     # cell can divide after T sec
+t_max = 5*T  # 5 generations in experiment
+t = np.linspace(0, t_max, 1000)
+dt = t[1] - t[0]
+N = np.zeros(t.size)
+
+N[0] = 100
+for n in range(0, len(t)-1, 1):
+    N[n+1] = N[n] + r*dt*N[n]
+
+import matplotlib.pyplot as plt
+plt.plot(t, N, 'r-', t_e, N_e, 'bo')
+plt.xlabel('time [s]');  plt.ylabel('N')
+plt.legend(['model', 'experiment'], loc='upper left')
+plt.show()
+
+!ec
+We can then change the parameter $r$ in the program and play around to make a better fit. By now we know that this
+'search bythe eye' approach is not the most optimal one. 
+
+
+=== Predator-Prey model from ecology ===
+
+
 The population dynamics of a simple predator-prey system is a
 classical example shown in many biology textbooks when ecological
 systems are discussed. The system contains all elements of the
@@ -495,13 +612,7 @@ scientific method:
  * analyzing and interpreting the data and performing further experiments if needed
  * trying to extract general behaviors and extract eventual laws or patterns
  * develop mathematical relations for the uncovered regularities/laws and test these by per forming new experiments
-!eblock
 
-
-!split
-===== Case study from Hudson bay =====
-
-!bblock
 Lots of data about populations of hares and lynx collected from furs in Hudson Bay, Canada, are available. It is known that the populations oscillate. Why?
 Here we start by
 
@@ -509,13 +620,6 @@ Here we start by
  o derive a simple model for the population dynamics
  o (fitting parameters in the model to the data)
  o using the model predict the evolution other predator-pray systems
-!eblock
-
-!split
-===== Hudson bay data =====
-
-
-!bblock
 
 Most mammalian predators rely on a variety of prey, which complicates mathematical modeling; however, a few predators have become highly specialized and seek almost exclusively a single prey species. An example of this simplified predator-prey interaction is seen in Canadian northern forests, where the populations of the lynx and the snowshoe hare are intertwined in a life and death struggle.
 
@@ -548,27 +652,13 @@ One reason that this particular system has been so extensively studied is that t
 |  1920 | 24.7  | 8.6  |
 |------------------------------------------------------|
 
-!eblock
 
 
-
-!split
-===== Plotting the data =====
-
-!bblock
 @@@CODE src/plot_Hudson.py
-!eblock
-
-!split
-===== Hares and lynx in Hudson bay from 1900 to 1920 =====
 
 FIGURE: [fig/Hudson_Bay_data, width=700 frac=0.9]
 
 
-
-!split
-===== Why now create a computer model for the hare and lynx populations? =====
-!bblock
 We see from the plot that there are indeed fluctuations.
 We would like to create a mathematical model that explains these
 population fluctuations. Ecologists have predicted that in a simple
@@ -588,15 +678,8 @@ climate and other complicating factors. How significant are these?
  * What causes cycles to slow or speed up?
  * What affects the amplitude of the oscillation or do you expect to see the oscillations damp to a stable equilibrium?
  * With a model we can better *understand the data*
- * More important: we can understand the ecology dynamics of
-   predator-pray populations
-!eblock
+ * More important: Can we understand the ecology dynamics of predator-pray populations?
 
-
-!split
-===== The traditional (top-down) approach =====
-
-!bblock
 The classical way (in all books) is to present the Lotka-Volterra equations:
 
 !bt
@@ -612,29 +695,7 @@ Here,
  * $L$ the number of predators
  * $a$, $b$, $d$, $c$ are parameters
 
-Most books quickly establish the model and then use considerable space on
-discussing the qualitative properties of this *nonlinear system of
-ODEs* (which cannot be solved)
-!eblock
 
-
-
-!split
-===== Basic  mathematics notation =====
-!bblock
- * Time points: $t_0,t_1,\ldots,t_m$
- * Uniform distribution of time points: $t_n=n\Delta t$
- * $H^n$: population of hares at time $t_n$
- * $L^n$: population of lynx at time $t_n$
- * We want to model the changes in populations, $\Delta H=H^{n+1}-H^n$
-   and $\Delta L=L^{n+1}-L^n$ during a general time interval $[t_{n+1},t_n]$
-   of length $\Delta t=t_{n+1}-t_n$
-!eblock
-
-!split
-===== Basic dynamics of the population of hares =====
-
-!bblock
 The population of hares evolves due to births and deaths exactly as a bacteria population:
 
 !bt
@@ -654,12 +715,7 @@ loss of hares must be accounted for. Subtracted in the equation for hares:
 !bt
 \[ \Delta H = a\Delta t H^n - b \Delta t H^nL^n\]
 !et
-!eblock
 
-!split
-===== Basic dynamics of the population of lynx =====
-
-!bblock
 We assume that the primary growth for the lynx population depends on sufficient food for raising lynx kittens, which implies an adequate source of nutrients from predation on hares. Thus, the growth of the lynx population does not only depend of how many lynx there are, but on how many hares they can eat.
 In a time interval $\Delta t HL$ hares and lynx can meet, and in a
 fraction $b\Delta t HL$ the lynx eats the hare. All of this does not
@@ -668,19 +724,11 @@ $b\Delta t HL$ that we write as
 $d\Delta t HL$. In addition, lynx die just as in the population
 dynamics with one isolated animal population, leading to a loss
 $-c\Delta t L$.
-!eblock
-
-!bblock
 The accounting of lynx then looks like
 !bt
 \[ \Delta L = d\Delta t H^nL^n - c\Delta t L^n\]
 !et
-!eblock
 
-!split
-===== Evolution equations =====
-
-!bblock
 By writing up the definition of $\Delta H$ and $\Delta L$, and putting
 all assumed known terms $H^n$ and $L^n$ on the right-hand side, we have
 
@@ -695,43 +743,31 @@ all assumed known terms $H^n$ and $L^n$ on the right-hand side, we have
 Note:
 
  * These equations are ready to be implemented!
- * But to start, we need $H^0$ and $L^0$ <linebreak>
-   (which we can get from the data)
+ * But to start, we need $H^0$ and $L^0$ (which we can get from the data)
  * We also need values for $a$, $b$, $d$, $c$
-!eblock
 
-!split
-===== Adapt the model to the Hudson Bay case =====
-
-!bblock
  * As always, models tend to be general - as here, applicable
    to ``all'' predator-pray systems
  * The critical issue is whether the *interaction* between hares and lynx
    is sufficiently well modeled by $\hbox{const}HL$
  * The parameters $a$, $b$, $d$, and $c$ must be
    estimated from data
- * Measure time in years
- * $t_0=1900$, $t_m=1920$
-!eblock
-
-!split
-===== The program =====
 
 !bblock
 @@@CODE src/Hudson_Bay.py
 !eblock
 
-!split
-===== The plot =====
-
 FIGURE: [fig/Hudson_Bay_sim, width=700 frac=0.9]
 
-If we perform a least-square fitting, we can find optimal values for the parameters $a$, $b$, $d$, $c$. The optimal parameters are $a=0.4807$, $b=0.02482$, $d=0.9272$ and $c=0.02756$. These parameters result in a slightly modified initial conditions, namely $H(0) = 34.91$ and $L(0)=3.857$. With these parameters we are now ready to solve the equations and plot these data together with the experimental values.
+We will later perform a least-square fitting. Then we can find optimal
+values for the parameters $a$, $b$, $d$, $c$. In our calculations here
+we set $a=0.4807$, $b=0.02482$, $d=0.9272$ and $c=0.02756$. These
+parameters result in a slightly modified initial conditions, namely
+$H(0) = 34.91$ and $L(0)=3.857$. 
 
 
-!split
-===== Linear regression in Python  =====
-!bblock
+The following Python demonstrates how we can use linear regression to fit for example the population of lynx.
+Similarly, we have also used a decision tree algorithm to fit the lynx population data. As expected, the linear regression is not exactly impressive 
 !bc pycod
 import numpy as np
 import matplotlib.pyplot as plt
@@ -752,13 +788,10 @@ plt.plot(line, regline.predict(line), label= "Linear Regression")
 plt.plot(x, y, label= "Linear Regression")
 plt.show()
 !ec
-!eblock
 
 
 
-!split
-===== Linear Least squares in R  =====
-!bblock
+The similar code for linear regression in _R_ reads
 !bc r
 HudsonBay = read.csv("src/Hudson_Bay.csv",header=T)
 fix(HudsonBay)
@@ -780,110 +813,8 @@ plot(linearMod)
 confint(linearMod)
 predict(linearMod,data.frame(Year=c(1910,1914,1920)),interval="confidence")
 !ec
-!eblock
 
-
-
-
-!split
-===== Example: ecoli lab experiment =====
-
-
-!bnotice Typical pattern:
-The population grows faster and faster. "Why? Is there an underlying (general) mechanism":"http://www.zo.utexas.edu/courses/Thoc/PopGrowth.html"?
-!enotice
-!bblock
- o Cells divide after $T$ seconds on average (one generation)
- o $2N$ celles divide into twice as many new cells $\Delta N$ in a time
-   interval $\Delta t$ as $N$ cells would: $\Delta N \propto N$
- o $N$ cells result in twice as many new individuals $\Delta N$ in
-   time $2\Delta t$ as in time $\Delta t$: $\Delta N \propto\Delta t$
- o Same proportionality wrt death (repeat reasoning)
- o Proposed model: $\Delta N = b\Delta t N - d\Delta tN$ for some unknown
-   constants $b$ (births) and $d$ (deaths)
- o Describe evolution in discrete time: $t_n=n\Delta t$
- o Program-friendly notation: $N$ at $t_n$ is $N^n$
- o Math model: $N^{n+1} = N^n + r\Delta t\, N$ (with $\ r=b-d$)
- o Program model: `N[n+1] = N[n] + r*dt*N[n]`
-!eblock
-
-!split
-===== The program =====
-
-!bblock
-Let us solve the difference equation in as simple way as possible,
-just to train some programming: $r=1.5$, $N^0=1$, $\Delta t=0.5$
-
-@@@CODE ../../Programs/LifeScience/diffeq.py
-!eblock
-
-% if FORMAT != 'ipynb':
-!split
-===== The output =====
-
-!bc
-N[1]=1.2
-N[2]=1.6
-N[3]=2.0
-N[4]=2.4
-N[5]=3.1
-N[6]=3.8
-N[7]=4.8
-N[8]=6.0
-N[9]=7.5
-N[10]=9.3
-N[11]=11.6
-N[12]=14.6
-N[13]=18.2
-N[14]=22.7
-N[15]=28.4
-N[16]=35.5
-N[17]=44.4
-N[18]=55.5
-N[19]=69.4
-N[20]=86.7
-!ec
-% endif
-
-!split
-===== Parameter estimation =====
-
-!bblock
- * We do not know $r$
- * How can we estimate $r$ from data?
-
-We can use the difference equation with the experimental data
-
-!bt
-\[ N^{n+1} = N^n + r\Delta t N^n\]
-!et
-Say $N^{n+1}$ and $N^n$ are known from data, solve wrt $r$:
-
-!bt
-\[ r = \frac{N^{n+1}-N^n}{N^n\Delta t} \]
-!et
-
-Use experimental data in the fraction, say $t_1=600$, $t_2=1200$,
-$N^1=140$, $N^2=250$: $r=0.0013$.
-!eblock
-
-
-!split
-===== A program relevant for the biological problem =====
-
-# exact r = 0.000694
-
-!bblock
-@@@CODE ../../Programs/LifeScience/ecoli.py
-
-Change `r` in the program and play around to make a better fit!
-!eblock
-
-
-
-
-!split
-===== Simulating financial transactions =====
+=== Simulating financial transactions ===
 
 The aim here is to simulate financial transactions among financial agents
 using Monte Carlo methods. The final goal is to extract a distribution of income  as function
@@ -949,10 +880,6 @@ exponentially decreases with $m'$.
 We assume that we have $N=500$ agents.   In each simulation, we need a sufficiently large number of transactions, say $10^7$. Our aim is find the final equilibrium distribution $w_m$. In order to do that we would need
 several runs of the above simulations, at least $10^3-10^4$ runs (experiments).
 
-
-
-
-=== Simulation of Transactions   ===
 Our task is to first set up an algorithm which simulates the above transactions with an initial
   amount $m_0$.
   The challenge here is to figure out a Monte Carlo  simulation  based on the
@@ -1045,39 +972,11 @@ We can then change our model to allow for a saving criterion, meaning that the a
 !et
   showing how money is conserved during a transaction.
   Select values of $\lambda =0.25,0.5$ and $\lambda=0.9$ and try to extract the corresponding
-  equilibrium distributions and compare these with the Gibbs distribution. Comment your results.
-Extract a parametrization of the above curves, see for example "Patriarca and collaborators":"http://www.sciencedirect.com/science/article/pii/S0378437104004327" and see if you can parametrize the high-end tails of the distributions in terms of power laws. Comment your results.
+  equilibrium distributions and compare these with the Gibbs distribution. We will use this model to 
+extract a parametrization of the above curves, see for example "Patriarca and collaborators":"http://www.sciencedirect.com/science/article/pii/S0378437104004327".
 
-In the studies above the agents were selected randomly, irrespective of whether we allowed for
-saving or not during a transaction. What is often observed is that various agents tend to make preferences for for whom to interact with. We will now study the evolution of the distribution of wealth $w_m$ by assuming that there is a likelihood 
-!bt
-\[
-p_{ij} \propto \vert m_i-m_j\vert^{-\alpha},
-\]
-!et
-for an interaction between agents $i$ and $j$ with respective wealths $m_i$ and $m_j$. The parameter  $\alpha >  0$. For $\alpha=0$ we recover our model from part 5a). 
-Perform the same analysis as previously with $N=500$ as well as with $N=1000$ agents and study the distribution of wealth for $\alpha =0.5$, $\alpha =1.0$, $\alpha =1.5$ and $\alpha =2.0$. 
-You should try to reproduce Figure 1 of "Goswami and Sen":"http://www.sciencedirect.com/science/article/pii/S0378437114006967". 
-Extract the tail of the distribution and see if it follows a Pareto distribution
-!bt
-\[
-w_m\propto m^{-1-\alpha}. 
-\]
-!et
-What happens if $\alpha \gg 1$?
 
-Perform the analysis with and without a saving $\lambda$ on each transaction and comment your results. 
-We add to the previous probability the possibility that two agents who interact have performed similar transactions earlier. That is, in addition to being financially close, we assume that the likelihood for interacting increases if two agents have interacted earlier. 
-We add this feature by modifying the previous likelihood to
-!bt
-\[
-p_{ij} \propto \vert m_i-m_j\vert^{-\alpha}\left(c_{ij}+1\right)^{\gamma},
-\]
-!et
-where $c_{ij}$ represents the number of  previous interactions that have taken place between $i$ and $j$. The factor $1$ is added in order to ensure that if they have not interacted earlier they can still interact.  Perform similar studies as above with $N=1000$, $\alpha=1.0$ and $\alpha=2.0$ using $\gamma = 0.0, 1.0, 2.0, 3.0$ and $4.0$. Plot the wealth distributions for these cases and try to extract eventual power law tails with and without a saving $\lambda$ in each transaction. Comment your results and compare them with figures 5 and 6 of "Goswami and Sen":"http://www.sciencedirect.com/science/article/pii/S0378437114006967".  
-
-!split
-===== Particle in one dimension an velocity distribution =====
+=== Particle in one dimension and velocity distribution ===
 !bc pycod 
 # Program to test the Metropolis algorithm with one particle at given temp in one dimension
 import numpy as np
@@ -1124,3 +1023,6 @@ plt.grid(True)
 plt.show()
 
 !ec
+
+
+
