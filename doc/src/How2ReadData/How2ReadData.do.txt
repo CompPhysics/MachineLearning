@@ -6,8 +6,6 @@ DATE: today
 !split
 ===== Introduction =====
 
-
-
 Our emphasis throughout this series of lectures  
 is on understanding the mathematical aspects of
 different algorithms used in the fields of data analysis and machine learning. 
@@ -28,16 +26,20 @@ models. These are examples where we can easily set up the data and
 then use machine learning algorithms included in for example
 _scikit-learn_. 
 
-These examples will serve us the purpose of getting started. Furthermore, they
-allow us to catch more than two birds with a stone. They will allow us
-to bring in some programming specific topics and tools as well as
-showing the power of various Python (and R) packages for machine
-learning and statistical data analysis. In the lectures on linear
-algebra we cover in more detail various programming features of languages like Python and C++ (and other), we will also look into more specific linear functions which
-are relevant for the various algorithms we will discuss. Here, we will
-mainly focus on two specific Python packages for Machine Learning,
-scikit-learn and tensorflow (see below for links etc).
-Moreover, the examples we introduce will serve as inputs to many of our discussions later, as well as allowing you to set up models and produce your own data and get started with programming. 
+These examples will serve us the purpose of getting
+started. Furthermore, they allow us to catch more than two birds with
+a stone. They will allow us to bring in some programming specific
+topics and tools as well as showing the power of various Python (and
+R) packages for machine learning and statistical data analysis. In the
+lectures on linear algebra we cover in more detail various programming
+features of languages like Python and C++ (and other), we will also
+look into more specific linear functions which are relevant for the
+various algorithms we will discuss. Here, we will mainly focus on two
+specific Python packages for Machine Learning, scikit-learn and
+tensorflow (see below for links etc).  Moreover, the examples we
+introduce will serve as inputs to many of our discussions later, as
+well as allowing you to set up models and produce your own data and
+get started with programming.
 
 
 
@@ -391,7 +393,78 @@ as population counts, average sales of a commodity over a span of
 years etc. 
 
 We will discuss in more
-detail these and more function in the various lectures.
+detail these and other functions in the various lectures.  We conclude this part with another example. Instead of 
+a linear $x$-dependence we study now a cubic polynomial and use the polynomial regression analysis tools of scikit-learn. 
+
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+
+def f(x):
+    """ function to approximate by polynomial interpolation"""
+    return x*x*x
+
+# generate points used to plot                                                  
+x_plot = np.linspace(0, 10, 100)
+
+# generate points and keep a subset of them                                     
+x = np.linspace(0, 10, 100)
+rng = np.random.RandomState(0)
+rng.shuffle(x)
+x = np.sort(x[:20])
+y = f(x)
+# create matrix versions of these arrays                                        
+X = x[:, np.newaxis]
+X_plot = x_plot[:, np.newaxis]
+
+colors = ['teal', 'yellowgreen', 'gold']
+lw = 2
+plt.plot(x_plot, f(x_plot), color='cornflowerblue', linewidth=lw,
+         label="ground truth")
+plt.scatter(x, y, color='navy', s=30, marker='o', label="training points")
+
+for count, degree in enumerate([3, 4, 5]):
+    model = make_pipeline(PolynomialFeatures(degree), Ridge())
+    model.fit(X, y)
+    y_plot = model.predict(X_plot)
+    plt.plot(x_plot, y_plot, color=colors[count], linewidth=lw,
+             label="degree %d" % degree)
+
+plt.legend(loc='lower left')
+
+plt.show()
+!ec
+
+!split
+===== Non-Linear Least squares in R  =====
+!bblock
+!bc r
+set.seed(1485)
+len = 24
+x = runif(len)
+y = x^3+rnorm(len, 0,0.06)
+ds = data.frame(x = x, y = y)
+str(ds)
+plot( y ~ x, main ="Known cubic with noise")
+s  = seq(0,1,length =100)
+lines(s, s^3, lty =2, col ="green")
+m = nls(y ~ I(x^power), data = ds, start = list(power=1), trace = T)
+class(m)
+summary(m)
+power = round(summary(m)$coefficients[1], 3)
+power.se = round(summary(m)$coefficients[2], 3)
+plot(y ~ x, main = "Fitted power model", sub = "Blue: fit; green: known")
+s = seq(0, 1, length = 100)
+lines(s, s^3, lty = 2, col = "green")
+lines(s, predict(m, list(x = s)), lty = 1, col = "blue")
+text(0, 0.5, paste("y =x^ (", power, " +/- ", power.se, ")", sep = ""), pos = 4)
+!ec
+!eblock
+
+
 
 Another useful Python package is
 "pandas":"https://pandas.pydata.org/", which is an open source library
@@ -709,31 +782,6 @@ predict(linearMod,data.frame(Year=c(1910,1914,1920)),interval="confidence")
 !ec
 !eblock
 
-!split
-===== Non-Linear Least squares in R  =====
-!bblock
-!bc r
-set.seed(1485)
-len = 24
-x = runif(len)
-y = x^3+rnorm(len, 0,0.06)
-ds = data.frame(x = x, y = y)
-str(ds)
-plot( y ~ x, main ="Known cubic with noise")
-s  = seq(0,1,length =100)
-lines(s, s^3, lty =2, col ="green")
-m = nls(y ~ I(x^power), data = ds, start = list(power=1), trace = T)
-class(m)
-summary(m)
-power = round(summary(m)$coefficients[1], 3)
-power.se = round(summary(m)$coefficients[2], 3)
-plot(y ~ x, main = "Fitted power model", sub = "Blue: fit; green: known")
-s = seq(0, 1, length = 100)
-lines(s, s^3, lty = 2, col = "green")
-lines(s, predict(m, list(x = s)), lty = 1, col = "blue")
-text(0, 0.5, paste("y =x^ (", power, " +/- ", power.se, ")", sep = ""), pos = 4)
-!ec
-!eblock
 
 
 
