@@ -1,4 +1,4 @@
-TITLE: Data Analysis and Machine Learning: Decision Trees, from simple to randon ones
+TITLE: Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 DATE: today
 
@@ -8,4 +8,158 @@ DATE: today
 !bblock
 
 !eblock
+
+!split
+=====  Nearest Neighbors =====
+!bc pycod 
+import mglearn
+import numpy as np
+from sklearn import linear_model
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
+from sklearn.neighbors import KNeighborsClassifier
+
+# Generate sample data
+X = np.sort(5*np.random.rand(40,1), axis=0)
+y = X**3
+y=y.ravel()
+
+# Add noise to targets
+X[::4] +=(0.5 - np.random.rand(1))
+y[::5] +=(0.5 - np.random.rand(8))
+
+a=np.array(X)
+b=np.array(y)
+
+X_train=a[:19]
+X_test=a[19:]
+y_train=b[:19]
+y_test=b[19:]
+
+model=Pipeline([('poly', PolynomialFeatures(degree=3)),('linear', LinearRegression(fit_intercept=False))])
+model=model.fit(X_train, y_train)
+pred=model.predict(X_test)
+
+
+poly=PolynomialFeatures(degree=3)
+poly.fit_transform(X_train, y_train)
+plt.scatter(X_test, y_test)
+plt.plot(X_test, pred, color='green')
+plt.show()
+
+print (model.score(X_test,y_test))
+
+print ("---------K-Nearest Neighbors-------")
+"""neighbors_settings=range(1,11)
+for n_neighbors in neighbors_settings:
+    clf=KNeighborsClassifier(n_neighbors=n_neighbors)
+    clf.fit(X_train, y_train)
+    training_accuracy.append(clf.score(X_train, y_train))
+    test_accuracy.append(clf.score(X_test, y_test))
+
+
+print (mglearn.plots.plot_knn_regression(n_neighbors=3))"""
+
+from sklearn.neighbors import KNeighborsRegressor
+
+X, y=mglearn.datasets.make_wave(n_samples=40)
+reg = KNeighborsRegressor(n_neighbors=3)
+reg.fit(X_train, y_train)
+!ec
+
+!split
+===== Decision trees and Regression  =====
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
+steps=250
+
+distance=0
+x=0
+distance_list=[]
+steps_list=[]
+while x<steps:
+    distance+=np.random.randint(-1,2)
+    distance_list.append(distance)
+    x+=1
+    steps_list.append(x)
+plt.plot(steps_list,distance_list, color='green', label="Random Walk Data")
+
+steps_list=np.asarray(steps_list)
+distance_list=np.asarray(distance_list)
+
+X=steps_list[:,np.newaxis]
+
+#Polynomial fits
+
+#Degree 2
+poly_features=PolynomialFeatures(degree=2, include_bias=False)
+X_poly=poly_features.fit_transform(X)
+
+lin_reg=LinearRegression()
+poly_fit=lin_reg.fit(X_poly,distance_list)
+b=lin_reg.coef_
+c=lin_reg.intercept_
+print ("2nd degree coefficients:")
+print ("zero power: ",c)
+print ("first power: ", b[0])
+print ("second power: ",b[1])
+
+z = np.arange(0, steps, .01)
+z_mod=b[1]*z**2+b[0]*z+c
+
+fit_mod=b[1]*X**2+b[0]*X+c
+plt.plot(z, z_mod, color='r', label="2nd Degree Fit")
+plt.title("Polynomial Regression")
+
+plt.xlabel("Steps")
+plt.ylabel("Distance")
+
+#Degree 10
+poly_features10=PolynomialFeatures(degree=10, include_bias=False)
+X_poly10=poly_features10.fit_transform(X)
+
+poly_fit10=lin_reg.fit(X_poly10,distance_list)
+
+y_plot=poly_fit10.predict(X_poly10)
+plt.plot(X, y_plot, color='black', label="10th Degree Fit")
+
+plt.legend()
+plt.show()
+
+
+#Decision Tree Regression
+from sklearn.tree import DecisionTreeRegressor
+regr_1=DecisionTreeRegressor(max_depth=2)
+regr_2=DecisionTreeRegressor(max_depth=5)
+regr_3=DecisionTreeRegressor(max_depth=7)
+regr_1.fit(X, distance_list)
+regr_2.fit(X, distance_list)
+regr_3.fit(X, distance_list)
+
+X_test = np.arange(0.0, steps, 0.01)[:, np.newaxis]
+y_1 = regr_1.predict(X_test)
+y_2 = regr_2.predict(X_test)
+y_3=regr_3.predict(X_test)
+
+# Plot the results
+plt.figure()
+plt.scatter(X, distance_list, s=2.5, c="black", label="data")
+plt.plot(X_test, y_1, color="red",
+         label="max_depth=2", linewidth=2)
+plt.plot(X_test, y_2, color="green", label="max_depth=5", linewidth=2)
+plt.plot(X_test, y_3, color="m", label="max_depth=7", linewidth=2)
+
+plt.xlabel("Data")
+plt.ylabel("Darget")
+plt.title("Decision Tree Regression")
+plt.legend()
+plt.show()
+
+!ec
 

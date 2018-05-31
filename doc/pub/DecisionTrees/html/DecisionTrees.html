@@ -6,9 +6,9 @@ Automatically generated HTML file from DocOnce source
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
-<meta name="description" content="Data Analysis and Machine Learning: Decision Trees, from simple to randon ones">
+<meta name="description" content="Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees">
 
-<title>Data Analysis and Machine Learning: Decision Trees, from simple to randon ones</title>
+<title>Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees</title>
 
 
 <style type="text/css">
@@ -65,7 +65,9 @@ div { text-align: justify; text-justify: inter-word; }
 
 <!-- tocinfo
 {'highest level': 2,
- 'sections': [('Decision trees, overarching aims', 2, None, '___sec0')]}
+ 'sections': [('Decision trees, overarching aims', 2, None, '___sec0'),
+              ('Nearest Neighbors', 2, None, '___sec1'),
+              ('Decision trees and Regression', 2, None, '___sec2')]}
 end of tocinfo -->
 
 <body>
@@ -75,7 +77,7 @@ end of tocinfo -->
 
 
 
-<center><h1>Data Analysis and Machine Learning: Decision Trees, from simple to randon ones</h1></center>  <!-- document title -->
+<center><h1>Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees</h1></center>  <!-- document title -->
 
 <p>
 <!-- author(s): Morten Hjorth-Jensen -->
@@ -91,7 +93,7 @@ end of tocinfo -->
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>May 22, 2018</h4></center> <!-- date -->
+<center><h4>May 30, 2018</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -104,6 +106,167 @@ end of tocinfo -->
 
 </div>
 
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec1">Nearest Neighbors </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">mglearn</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> linear_model
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> PolynomialFeatures
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.pipeline</span> <span style="color: #008000; font-weight: bold">import</span> Pipeline
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.neighbors</span> <span style="color: #008000; font-weight: bold">import</span> KNeighborsClassifier
+
+<span style="color: #408080; font-style: italic"># Generate sample data</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>sort(<span style="color: #666666">5*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">40</span>,<span style="color: #666666">1</span>), axis<span style="color: #666666">=0</span>)
+y <span style="color: #666666">=</span> X<span style="color: #666666">**3</span>
+y<span style="color: #666666">=</span>y<span style="color: #666666">.</span>ravel()
+
+<span style="color: #408080; font-style: italic"># Add noise to targets</span>
+X[::<span style="color: #666666">4</span>] <span style="color: #666666">+=</span>(<span style="color: #666666">0.5</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">1</span>))
+y[::<span style="color: #666666">5</span>] <span style="color: #666666">+=</span>(<span style="color: #666666">0.5</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">8</span>))
+
+a<span style="color: #666666">=</span>np<span style="color: #666666">.</span>array(X)
+b<span style="color: #666666">=</span>np<span style="color: #666666">.</span>array(y)
+
+X_train<span style="color: #666666">=</span>a[:<span style="color: #666666">19</span>]
+X_test<span style="color: #666666">=</span>a[<span style="color: #666666">19</span>:]
+y_train<span style="color: #666666">=</span>b[:<span style="color: #666666">19</span>]
+y_test<span style="color: #666666">=</span>b[<span style="color: #666666">19</span>:]
+
+model<span style="color: #666666">=</span>Pipeline([(<span style="color: #BA2121">&#39;poly&#39;</span>, PolynomialFeatures(degree<span style="color: #666666">=3</span>)),(<span style="color: #BA2121">&#39;linear&#39;</span>, LinearRegression(fit_intercept<span style="color: #666666">=</span><span style="color: #008000">False</span>))])
+model<span style="color: #666666">=</span>model<span style="color: #666666">.</span>fit(X_train, y_train)
+pred<span style="color: #666666">=</span>model<span style="color: #666666">.</span>predict(X_test)
+
+
+poly<span style="color: #666666">=</span>PolynomialFeatures(degree<span style="color: #666666">=3</span>)
+poly<span style="color: #666666">.</span>fit_transform(X_train, y_train)
+plt<span style="color: #666666">.</span>scatter(X_test, y_test)
+plt<span style="color: #666666">.</span>plot(X_test, pred, color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;green&#39;</span>)
+plt<span style="color: #666666">.</span>show()
+
+<span style="color: #008000; font-weight: bold">print</span> (model<span style="color: #666666">.</span>score(X_test,y_test))
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;---------K-Nearest Neighbors-------&quot;</span>)
+<span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;neighbors_settings=range(1,11)</span>
+<span style="color: #BA2121; font-style: italic">for n_neighbors in neighbors_settings:</span>
+<span style="color: #BA2121; font-style: italic">    clf=KNeighborsClassifier(n_neighbors=n_neighbors)</span>
+<span style="color: #BA2121; font-style: italic">    clf.fit(X_train, y_train)</span>
+<span style="color: #BA2121; font-style: italic">    training_accuracy.append(clf.score(X_train, y_train))</span>
+<span style="color: #BA2121; font-style: italic">    test_accuracy.append(clf.score(X_test, y_test))</span>
+
+
+<span style="color: #BA2121; font-style: italic">print (mglearn.plots.plot_knn_regression(n_neighbors=3))&quot;&quot;&quot;</span>
+
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.neighbors</span> <span style="color: #008000; font-weight: bold">import</span> KNeighborsRegressor
+
+X, y<span style="color: #666666">=</span>mglearn<span style="color: #666666">.</span>datasets<span style="color: #666666">.</span>make_wave(n_samples<span style="color: #666666">=40</span>)
+reg <span style="color: #666666">=</span> KNeighborsRegressor(n_neighbors<span style="color: #666666">=3</span>)
+reg<span style="color: #666666">.</span>fit(X_train, y_train)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec2">Decision trees and Regression  </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> PolynomialFeatures
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression
+
+steps<span style="color: #666666">=250</span>
+
+distance<span style="color: #666666">=0</span>
+x<span style="color: #666666">=0</span>
+distance_list<span style="color: #666666">=</span>[]
+steps_list<span style="color: #666666">=</span>[]
+<span style="color: #008000; font-weight: bold">while</span> x<span style="color: #666666">&lt;</span>steps:
+    distance<span style="color: #666666">+=</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(<span style="color: #666666">-1</span>,<span style="color: #666666">2</span>)
+    distance_list<span style="color: #666666">.</span>append(distance)
+    x<span style="color: #666666">+=1</span>
+    steps_list<span style="color: #666666">.</span>append(x)
+plt<span style="color: #666666">.</span>plot(steps_list,distance_list, color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;green&#39;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Random Walk Data&quot;</span>)
+
+steps_list<span style="color: #666666">=</span>np<span style="color: #666666">.</span>asarray(steps_list)
+distance_list<span style="color: #666666">=</span>np<span style="color: #666666">.</span>asarray(distance_list)
+
+X<span style="color: #666666">=</span>steps_list[:,np<span style="color: #666666">.</span>newaxis]
+
+<span style="color: #408080; font-style: italic">#Polynomial fits</span>
+
+<span style="color: #408080; font-style: italic">#Degree 2</span>
+poly_features<span style="color: #666666">=</span>PolynomialFeatures(degree<span style="color: #666666">=2</span>, include_bias<span style="color: #666666">=</span><span style="color: #008000">False</span>)
+X_poly<span style="color: #666666">=</span>poly_features<span style="color: #666666">.</span>fit_transform(X)
+
+lin_reg<span style="color: #666666">=</span>LinearRegression()
+poly_fit<span style="color: #666666">=</span>lin_reg<span style="color: #666666">.</span>fit(X_poly,distance_list)
+b<span style="color: #666666">=</span>lin_reg<span style="color: #666666">.</span>coef_
+c<span style="color: #666666">=</span>lin_reg<span style="color: #666666">.</span>intercept_
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;2nd degree coefficients:&quot;</span>)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;zero power: &quot;</span>,c)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;first power: &quot;</span>, b[<span style="color: #666666">0</span>])
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;second power: &quot;</span>,b[<span style="color: #666666">1</span>])
+
+z <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">0</span>, steps, <span style="color: #666666">.01</span>)
+z_mod<span style="color: #666666">=</span>b[<span style="color: #666666">1</span>]<span style="color: #666666">*</span>z<span style="color: #666666">**2+</span>b[<span style="color: #666666">0</span>]<span style="color: #666666">*</span>z<span style="color: #666666">+</span>c
+
+fit_mod<span style="color: #666666">=</span>b[<span style="color: #666666">1</span>]<span style="color: #666666">*</span>X<span style="color: #666666">**2+</span>b[<span style="color: #666666">0</span>]<span style="color: #666666">*</span>X<span style="color: #666666">+</span>c
+plt<span style="color: #666666">.</span>plot(z, z_mod, color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;r&#39;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;2nd Degree Fit&quot;</span>)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Polynomial Regression&quot;</span>)
+
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Steps&quot;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;Distance&quot;</span>)
+
+<span style="color: #408080; font-style: italic">#Degree 10</span>
+poly_features10<span style="color: #666666">=</span>PolynomialFeatures(degree<span style="color: #666666">=10</span>, include_bias<span style="color: #666666">=</span><span style="color: #008000">False</span>)
+X_poly10<span style="color: #666666">=</span>poly_features10<span style="color: #666666">.</span>fit_transform(X)
+
+poly_fit10<span style="color: #666666">=</span>lin_reg<span style="color: #666666">.</span>fit(X_poly10,distance_list)
+
+y_plot<span style="color: #666666">=</span>poly_fit10<span style="color: #666666">.</span>predict(X_poly10)
+plt<span style="color: #666666">.</span>plot(X, y_plot, color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;black&#39;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;10th Degree Fit&quot;</span>)
+
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+
+
+<span style="color: #408080; font-style: italic">#Decision Tree Regression</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> DecisionTreeRegressor
+regr_1<span style="color: #666666">=</span>DecisionTreeRegressor(max_depth<span style="color: #666666">=2</span>)
+regr_2<span style="color: #666666">=</span>DecisionTreeRegressor(max_depth<span style="color: #666666">=5</span>)
+regr_3<span style="color: #666666">=</span>DecisionTreeRegressor(max_depth<span style="color: #666666">=7</span>)
+regr_1<span style="color: #666666">.</span>fit(X, distance_list)
+regr_2<span style="color: #666666">.</span>fit(X, distance_list)
+regr_3<span style="color: #666666">.</span>fit(X, distance_list)
+
+X_test <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">0.0</span>, steps, <span style="color: #666666">0.01</span>)[:, np<span style="color: #666666">.</span>newaxis]
+y_1 <span style="color: #666666">=</span> regr_1<span style="color: #666666">.</span>predict(X_test)
+y_2 <span style="color: #666666">=</span> regr_2<span style="color: #666666">.</span>predict(X_test)
+y_3<span style="color: #666666">=</span>regr_3<span style="color: #666666">.</span>predict(X_test)
+
+<span style="color: #408080; font-style: italic"># Plot the results</span>
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>scatter(X, distance_list, s<span style="color: #666666">=2.5</span>, c<span style="color: #666666">=</span><span style="color: #BA2121">&quot;black&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;data&quot;</span>)
+plt<span style="color: #666666">.</span>plot(X_test, y_1, color<span style="color: #666666">=</span><span style="color: #BA2121">&quot;red&quot;</span>,
+         label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;max_depth=2&quot;</span>, linewidth<span style="color: #666666">=2</span>)
+plt<span style="color: #666666">.</span>plot(X_test, y_2, color<span style="color: #666666">=</span><span style="color: #BA2121">&quot;green&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;max_depth=5&quot;</span>, linewidth<span style="color: #666666">=2</span>)
+plt<span style="color: #666666">.</span>plot(X_test, y_3, color<span style="color: #666666">=</span><span style="color: #BA2121">&quot;m&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;max_depth=7&quot;</span>, linewidth<span style="color: #666666">=2</span>)
+
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Data&quot;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;Darget&quot;</span>)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Decision Tree Regression&quot;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
 
 <!-- ------------------- end of main content --------------- -->
 

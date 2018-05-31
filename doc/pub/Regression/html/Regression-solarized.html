@@ -118,7 +118,8 @@ div { text-align: justify; text-justify: inter-word; }
                None,
                '___sec22'),
               ('Polynomial Regression', 2, None, '___sec23'),
-              ('The singular value decompostion', 2, None, '___sec24')]}
+              ('Ridge and Lasso Regression', 2, None, '___sec24'),
+              ('The singular value decompostion', 2, None, '___sec25')]}
 end of tocinfo -->
 
 <body>
@@ -160,7 +161,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>May 22, 2018</h4></center> <!-- date -->
+<center><h4>May 30, 2018</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -827,7 +828,88 @@ plt.show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec24">The singular value decompostion  </h2>
+<h2 id="___sec24">Ridge and Lasso Regression </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> mean_squared_error, r2_score
+
+<span style="color: #228B22">#creating data with random noise</span>
+x=np.arange(<span style="color: #B452CD">50</span>)
+
+delta=np.random.uniform(-<span style="color: #B452CD">2.5</span>,<span style="color: #B452CD">2.5</span>, size=(<span style="color: #B452CD">50</span>))
+np.random.shuffle(delta)
+y =<span style="color: #B452CD">0.5</span>*x+<span style="color: #B452CD">5</span>+delta
+
+<span style="color: #228B22">#arranging data into 2x50 matrix</span>
+a=np.array(x) <span style="color: #228B22">#inputs</span>
+b=np.array(y) <span style="color: #228B22">#outputs</span>
+
+<span style="color: #228B22">#Split into training and test</span>
+X_train=a[:<span style="color: #B452CD">37</span>, np.newaxis]
+X_test=a[<span style="color: #B452CD">37</span>:, np.newaxis]
+y_train=b[:<span style="color: #B452CD">37</span>]
+y_test=b[<span style="color: #B452CD">37</span>:]
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;X_train: &quot;</span>, X_train.shape)
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;y_train: &quot;</span>, y_train.shape)
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;X_test: &quot;</span>, X_test.shape)
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;y_test: &quot;</span>, y_test.shape)
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;------------------------------------&quot;</span>)
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Ordinary Least Squares&quot;</span>)
+<span style="color: #228B22">#Add Ordinary Least Squares fit</span>
+reg=LinearRegression()
+reg.fit(X_train, y_train)
+pred=reg.predict(X_test)
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Prediction Shape: &quot;</span>, pred.shape)
+
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Coefficients: \n&#39;</span>, reg.coef_)
+<span style="color: #228B22"># The mean squared error</span>
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Mean squared error: %.2f&quot;</span>
+      % mean_squared_error(y_test, pred))
+<span style="color: #228B22"># Explained variance score: 1 is perfect prediction</span>
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Variance score: %.2f&#39;</span> % r2_score(y_test, pred))
+
+<span style="color: #228B22">#plot</span>
+plt.scatter(X_test,y_test,color=<span style="color: #CD5555">&#39;green&#39;</span>, label=<span style="color: #CD5555">&quot;Training Data&quot;</span>)
+plt.plot(X_test, pred, color=<span style="color: #CD5555">&#39;black&#39;</span>, label=<span style="color: #CD5555">&quot;Fit Line&quot;</span>)
+plt.legend()
+plt.show()
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;------------------------------------&quot;</span>)
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Ridge Regression&quot;</span>)
+
+ridge=linear_model.RidgeCV(alphas=[<span style="color: #B452CD">0.1</span>,<span style="color: #B452CD">1.0</span>,<span style="color: #B452CD">10.0</span>])
+ridge.fit(X_train,y_train)
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Ridge Coefficient: &quot;</span>,ridge.coef_)
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Ridge Intercept: &quot;</span>, ridge.intercept_)
+<span style="color: #228B22">#Look into graphing with Ridge fit</span>
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;------------------------------------&quot;</span>)
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Lasso&quot;</span>)
+lasso=linear_model.Lasso(alpha=<span style="color: #B452CD">0.1</span>)
+lasso.fit(X_train,y_train)
+predl=lasso.predict(X_test)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Lasso Coefficient: &quot;</span>, lasso.coef_)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Lasso Intercept: &quot;</span>, lasso.intercept_)
+plt.scatter(X_test,y_test,color=<span style="color: #CD5555">&#39;green&#39;</span>, label=<span style="color: #CD5555">&quot;Training Data&quot;</span>)
+plt.plot(X_test, predl, color=<span style="color: #CD5555">&#39;blue&#39;</span>, label=<span style="color: #CD5555">&quot;Lasso&quot;</span>)
+plt.legend()
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec25">The singular value decompostion  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>

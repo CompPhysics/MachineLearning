@@ -123,7 +123,8 @@ div { text-align: justify; text-justify: inter-word; }
                None,
                '___sec22'),
               ('Polynomial Regression', 2, None, '___sec23'),
-              ('The singular value decompostion', 2, None, '___sec24')]}
+              ('Ridge and Lasso Regression', 2, None, '___sec24'),
+              ('The singular value decompostion', 2, None, '___sec25')]}
 end of tocinfo -->
 
 <body>
@@ -165,7 +166,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>May 22, 2018</h4></center> <!-- date -->
+<center><h4>May 30, 2018</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -832,7 +833,88 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec24">The singular value decompostion  </h2>
+<h2 id="___sec24">Ridge and Lasso Regression </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> linear_model
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.metrics</span> <span style="color: #008000; font-weight: bold">import</span> mean_squared_error, r2_score
+
+<span style="color: #408080; font-style: italic">#creating data with random noise</span>
+x<span style="color: #666666">=</span>np<span style="color: #666666">.</span>arange(<span style="color: #666666">50</span>)
+
+delta<span style="color: #666666">=</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>uniform(<span style="color: #666666">-2.5</span>,<span style="color: #666666">2.5</span>, size<span style="color: #666666">=</span>(<span style="color: #666666">50</span>))
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>shuffle(delta)
+y <span style="color: #666666">=0.5*</span>x<span style="color: #666666">+5+</span>delta
+
+<span style="color: #408080; font-style: italic">#arranging data into 2x50 matrix</span>
+a<span style="color: #666666">=</span>np<span style="color: #666666">.</span>array(x) <span style="color: #408080; font-style: italic">#inputs</span>
+b<span style="color: #666666">=</span>np<span style="color: #666666">.</span>array(y) <span style="color: #408080; font-style: italic">#outputs</span>
+
+<span style="color: #408080; font-style: italic">#Split into training and test</span>
+X_train<span style="color: #666666">=</span>a[:<span style="color: #666666">37</span>, np<span style="color: #666666">.</span>newaxis]
+X_test<span style="color: #666666">=</span>a[<span style="color: #666666">37</span>:, np<span style="color: #666666">.</span>newaxis]
+y_train<span style="color: #666666">=</span>b[:<span style="color: #666666">37</span>]
+y_test<span style="color: #666666">=</span>b[<span style="color: #666666">37</span>:]
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;X_train: &quot;</span>, X_train<span style="color: #666666">.</span>shape)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;y_train: &quot;</span>, y_train<span style="color: #666666">.</span>shape)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;X_test: &quot;</span>, X_test<span style="color: #666666">.</span>shape)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;y_test: &quot;</span>, y_test<span style="color: #666666">.</span>shape)
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;------------------------------------&quot;</span>)
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;Ordinary Least Squares&quot;</span>)
+<span style="color: #408080; font-style: italic">#Add Ordinary Least Squares fit</span>
+reg<span style="color: #666666">=</span>LinearRegression()
+reg<span style="color: #666666">.</span>fit(X_train, y_train)
+pred<span style="color: #666666">=</span>reg<span style="color: #666666">.</span>predict(X_test)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;Prediction Shape: &quot;</span>, pred<span style="color: #666666">.</span>shape)
+
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Coefficients: </span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&#39;</span>, reg<span style="color: #666666">.</span>coef_)
+<span style="color: #408080; font-style: italic"># The mean squared error</span>
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Mean squared error: </span><span style="color: #BB6688; font-weight: bold">%.2f</span><span style="color: #BA2121">&quot;</span>
+      <span style="color: #666666">%</span> mean_squared_error(y_test, pred))
+<span style="color: #408080; font-style: italic"># Explained variance score: 1 is perfect prediction</span>
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Variance score: </span><span style="color: #BB6688; font-weight: bold">%.2f</span><span style="color: #BA2121">&#39;</span> <span style="color: #666666">%</span> r2_score(y_test, pred))
+
+<span style="color: #408080; font-style: italic">#plot</span>
+plt<span style="color: #666666">.</span>scatter(X_test,y_test,color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;green&#39;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Training Data&quot;</span>)
+plt<span style="color: #666666">.</span>plot(X_test, pred, color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;black&#39;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Fit Line&quot;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;------------------------------------&quot;</span>)
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;Ridge Regression&quot;</span>)
+
+ridge<span style="color: #666666">=</span>linear_model<span style="color: #666666">.</span>RidgeCV(alphas<span style="color: #666666">=</span>[<span style="color: #666666">0.1</span>,<span style="color: #666666">1.0</span>,<span style="color: #666666">10.0</span>])
+ridge<span style="color: #666666">.</span>fit(X_train,y_train)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;Ridge Coefficient: &quot;</span>,ridge<span style="color: #666666">.</span>coef_)
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;Ridge Intercept: &quot;</span>, ridge<span style="color: #666666">.</span>intercept_)
+<span style="color: #408080; font-style: italic">#Look into graphing with Ridge fit</span>
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;------------------------------------&quot;</span>)
+
+<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;Lasso&quot;</span>)
+lasso<span style="color: #666666">=</span>linear_model<span style="color: #666666">.</span>Lasso(alpha<span style="color: #666666">=0.1</span>)
+lasso<span style="color: #666666">.</span>fit(X_train,y_train)
+predl<span style="color: #666666">=</span>lasso<span style="color: #666666">.</span>predict(X_test)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Lasso Coefficient: &quot;</span>, lasso<span style="color: #666666">.</span>coef_)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Lasso Intercept: &quot;</span>, lasso<span style="color: #666666">.</span>intercept_)
+plt<span style="color: #666666">.</span>scatter(X_test,y_test,color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;green&#39;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Training Data&quot;</span>)
+plt<span style="color: #666666">.</span>plot(X_test, predl, color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;blue&#39;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Lasso&quot;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec25">The singular value decompostion  </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
