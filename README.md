@@ -18,7 +18,7 @@ automatically detect patterns in data, and then use the uncovered patterns to pr
 data, or to perform other kinds of decision making under uncertainty. Since many of these problems can be studied using
 tools of probability theory, the aim of this course is to expose you to central methods in probability theory linked with machine learning.
 
-This course covers thus topics like Monte Carlo methods and Markov chains, Bayesian statistics, error estimates, various linear methods, optimization of data and error analysis and central algorithms in machine learning.
+This course covers thus topics like Monte Carlo methods and Markov chains, Bayesian statistics, error estimates, various regression methods, optimization of data and error analysis and central algorithms in machine learning.
 The course has several numerical projects and numerical exercises that are meant to illustrate the theory.
 
 
