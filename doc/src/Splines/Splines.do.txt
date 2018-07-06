@@ -3,251 +3,491 @@ AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of
 DATE: today
 
 
+    We will explain the general approach for minimizing a multi-variate
+    function and set the terminology in this section. 
 
-!split
-===== Cubic Splines  =====
-!bblock
-Cubic spline interpolation is among one of the most used 
-methods for interpolating between data points where the arguments
-are organized as ascending series. In the library program we supply
-such a function, based on the so-called cubic spline method to be 
-described below. 
-
-A spline function consists of polynomial pieces defined on
-subintervals. The different subintervals are connected via
-various continuity relations.
-
-Assume we have at our disposal $n+1$ points $x_0, x_1, \dots x_n$ 
-arranged so that $x_0 < x_1 < x_2 < \dots x_{n-1} < x_n$ (such points are called
-knots). A spline function $s$ of degree $k$ with $n+1$ knots is defined
-as follows
- * On every subinterval $[x_{i-1},x_i)$ *s* is a polynomial of degree $\le k$.
- * $s$ has $k-1$ continuous derivatives in the whole interval $[x_0,x_n]$.
-!eblock
-
-
-
-!split
-===== Splines =====
-!bblock
-As an example, consider a spline function of degree $k=1$ defined as follows
-!bt
-\[
-    s(x)=\begin{bmatrix} s_0(x)=a_0x+b_0 & x\in [x_0, x_1) \\   
-                             s_1(x)=a_1x+b_1 & x\in [x_1, x_2) \\   
-                             \dots & \dots \\
-                             s_{n-1}(x)=a_{n-1}x+b_{n-1} & x\in 
-                             [x_{n-1}, x_n] \end{bmatrix}.
-\]
-!et
-In this case the polynomial consists of series of straight lines 
-connected to each other at every endpoint. The number of continuous
-derivatives is then $k-1=0$, as expected when we deal with straight lines.
-Such a polynomial is quite easy to construct given
-$n+1$ points $x_0, x_1, \dots x_n$ and their corresponding 
-function values. 
-!eblock
+    The problem in question is the following. Given a continuously
+    differentiable function $f:\mathbb{R}^n\rarr\mathbb{R}$, for what set of
+    parameters $\{x\}^{n}_{k=1}$ is 
+        \begin{equation}
+            \nabla_{x} f = \blds{0}
+            \label{eq:mincondition}
+        \end{equation}
+    fulfilled\footnote{$\nabla_{x}=\sum\limits_k\blds{e}_k\prd{x_k}$ with
+    $\blds{e}_k\in\mathbb{R}^n$ a unit vector along direction $k$.}. This means
+    we seek a point $\blds{x}_m$ in real space were the variation of the value
+    of $f$ is zero. In reality the condition in \Arf{eq:mincondition} is only
+    approximate, that is we terminate the search for a minimum if we reached a
+    point where the absolute value of $f$ is within a threshold
+    $\epsilon$
+        \begin{equation}
+            \abs{\nabla_{x} f} \leq \epsilon.
+            \label{eq:minconditionapprox}
+        \end{equation}
+    One might at this point ask the question, wouldn't the condition presented
+    in \Arf{eq:minconditionapprox} (and \Arf{eq:mincondition} be valid for a
+    maximum as well? The answer is yes, it would. The simple fix to this is to
+    define the \txtit{search direction}, more precisely the sign of the search
+    direction. The next section explains this in better detail.
 
 
-!split
-===== Splines =====
-!bblock
-The most commonly used spline function is the one with $k=3$, the so-called
-cubic spline function. 
-Assume that we have in adddition to the $n+1$ knots a series of
-functions values $y_0=f(x_0), y_1=f(x_1), \dots y_n=f(x_n)$.
-By definition, the polynomials $s_{i-1}$ and $s_i$ 
-are thence supposed to interpolate the same point $i$, that is
-!bt
-\[
-    s_{i-1}(x_i)= y_i = s_i(x_i),
-\]
-!et
-with $1 \le i \le n-1$. In total we have $n$ polynomials of the 
-type
-!bt
-\[
-    s_i(x)=a_{i0}+a_{i1}x+a_{i2}x^2+a_{i2}x^3,
-\]
-!et
-yielding $4n$ coefficients to determine.
-!eblock
+    We defined the optimization problem and defined a simple condition for the
+    extremal and mentioned a search direction in the previous section. A search
+    direction in our context is a direction $\blds{p}\in\mathbb{R}^n$ which
+    points towards $\blds{x}_m$. To find $\blds{p}$ we use the well known
+    \txtit{second derivative test} to determine the curvature of $f$. This,
+    mentioned qualitatively, means that the gradient of $f$ at any point
+    $\blds{x}_i$ points towards an extremal and that the negative
+    gradient(negative sign) points towards the minimum and the positive
+    gradient points towards the maximum. This observation gives a simple rule
+    for finding $\blds{x}_m$. Start out with blindly guessing a point
+    $\blds{x}_0$ and keep updating the parameters according to the recursive
+    rule
+        \begin{equation}
+            \blds{x}_n = \blds{x_{n-1}} - \gamma\nabla_{x} f
+            \label{eq:gdupdate}
+        \end{equation}
+    and terminate the search when 
+    
+    This method of finding the minimum is known as the method of
+    \txtit{Gradient Descent} and its power lies in its simplicity. The problem
+    however is stability, the termination condition is firstly not optimal and
+    the step-size $\gamma$ is a constant which can give a lot of oscillations
+    around the minimum as the algorithm might get close to the minimum and then
+    \txtit{over-shoot} and go past the minimum point, turn around (because the
+    sign changes) and over-shoot again and then keep going.  Many methods have
+    been devised to account for these problems and other. We will contain
+    ourselves with the methods we presented in the introduction of this chapter.
+
+    As an illustration of the method here are a couple of figures of the method
+    applied to two test-functions(\Arf{fig:sf,fig:rb}). The first function is
+    sphere-function
+        \begin{equation}
+            f(\blds{x}) = \suml{d=1}{D} x^2_d,
+        \end{equation}
+    and the second is the so-called Rosenbrock function
+        \begin{equation}
+            f(\blds{x}) = \suml{d=1}{D-1} 100\left(x_{d+1} - x^2_d\right)^2 +
+            \left(x_d - 1\right)^2.
+        \end{equation}
+    From \Arf{tab:sphericalconv,tab:rosenbrockconv} it is apparent that with
+    the gradient descent method the step-size is of great importance. With the
+    spherical function one needs a sweet-spot value to reach the minimum while
+    for the more complex Rosenbrock function the number of iterations needed is
+    very high and with a lower step-size the minimum was actually not even
+    reached with $100000$ iterations. In conclusion, the gradient descent
+    method is great for its simplicity, but it does not incorporate the
+    curvature of the function when minimizing meaning the choice for the
+    step-size greatly determines the outcome of the minimization, and for
+    functions where the minimium lies in a fairly flat valley, as with the
+    Rosenbrock function, the computational cost increases since the number of
+    iterations needed for convergence is high.
+
+    Along with the limitations of the method of gradient descent, the
+    \txtit{Adaptive Stochastic Gradient Descent} tries to account for those,
+    but also takes into account the variance introduced by the stochastic
+    nature of the probability distribution. As such, many variations of the
+    method have been proven to be popular among problems in which the function
+    to be minimized is an expectation value. The method used in this thesis is
+    the one described in \cite{ASGD}. We will give a summary of the method
+    here, for a more detailed outline and description see \cite{ASGD}. \\
+
+    Like the gradient descent method the adaptive stochastic gradient descent
+    method updates the parameters in the same manner as in \Arf{eq:gdupdate},
+    the difference however is that the step $\gamma$ is changed for each
+    iteration as follows
+        \begin{equation}
+            \begin{aligned}
+                \gamma_{n+1} &= \frac{a}{t_{n+1} + A} \\
+                t_{n+1} &= \text{max}(t_n + g(X_n), 0) \\
+                X_n &= - \nabla f_n \cdot \nabla f_{n+1} \\
+                g(x) &= g_{\text{min}} + \frac{g_{\text{max}} -
+                g_{\text{min}}}{1 - \frac{g_{\text{max}}}{g_{\text{min}}}
+                \me^{-\frac{x}{\omega}}}
+            \end{aligned}
+            \label{eq:ASGDDEF}
+        \end{equation}
+    The whole idea of the method is that the form of $g$ and the accumulative
+    combination of gradient estimations for each step, the total error would
+    tend quickly to zero, meaning the central element (namely the gradient) in
+    the minimization is well behaving. \\
+
+    The main concern with the method is convergence, although the error in the
+    gradient estimations tend towards zero, the step-sizes themselves will also
+    be quite small after some iterations. For this reason we use the adaptive
+    method with a quasi-Newton method. This means that we start with a random
+    guess at the parameters and keep iterating with the quasi-Newton method
+    until the norm of the gradient is below some threshold, at which the
+    adaptive method is applied from that point and onward till convergence is
+    reached.
 
 
-!split
-===== Splines =====
-!bblock
-Every subinterval provides in addition the $2n$ conditions 
-!bt
-\[
-    y_i = s(x_i),
-\]
-!et
-and 
-!bt
-\[
-    s(x_{i+1})= y_{i+1},
-\]
-!et
-to be fulfilled. If we also assume that $s'$ and $s''$ are continuous,
-then
-!bt
-\[
-       s'_{i-1}(x_i)= s'_i(x_i),
-\]
-!et
-yields $n-1$ conditions. Similarly,
-!bt
-\[
-       s''_{i-1}(x_i)= s''_i(x_i),
-\]
-!et
-results in additional $n-1$ conditions. In total we have $4n$ coefficients
-and $4n-2$ equations to determine them, leaving us with $2$ degrees of 
-freedom to be determined. 
-!eblock
+    We will here explain briefly \txtit{Newton's method} and
+    \txtit{Quasi-Newton} methods as the ideas presented will be used in the
+    next section. \\
 
-!split
-===== Splines =====
-!bblock
-Using the last equation we define two values for the second derivative, namely
-!bt
-\[
-       s''_{i}(x_i)= f_i,
-\]
-!et
-and
-!bt 
-\[
-       s''_{i}(x_{i+1})= f_{i+1},
-\]
-!et
-and setting up a straight line between $f_i$ and $f_{i+1}$ we have
-!bt
-\[
-   s_i''(x) = \frac{f_i}{x_{i+1}-x_i}(x_{i+1}-x)+
-               \frac{f_{i+1}}{x_{i+1}-x_i}(x-x_i),
-\]
-!et
-and integrating twice one obtains
-!bt
-\[
-   s_i(x) = \frac{f_i}{6(x_{i+1}-x_i)}(x_{i+1}-x)^3+
-               \frac{f_{i+1}}{6(x_{i+1}-x_i)}(x-x_i)^3
-             +c(x-x_i)+d(x_{i+1}-x).
-\]
-!et
-!eblock
+    Newton's method \cite{linalgDavid} (or Newton-Raphson method) is originally a
+    method for finding the zeros of a function. The rule states that given a
+    real-valued function $f:\mathbb{R}\rarr\mathbb{R}$ and an initial guess
+    $x\in\mathbb{R}$ for the zero-point, recursively find better
+    approximations for the zero by setting
+        \begin{equation}
+            x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}.
+        \end{equation}
+    This method would then within a number iterations find the zero that is
+    closest to $x_0$.
 
+    For the optimization problem the condition for a point to be an extremal is
+    \Arf{eq:mincondition} meaning, again, that one needs to find the zero of
+    the derivative. Newton's method in this case would be
+        \begin{equation}
+            x_{n+1} = x_n - \frac{f'(x_n)}{f''(x_n)},\indent n\geq 0.
+        \end{equation}
+    Of course in the real world one might work with multi-variate function, not
+    to worry as Newton's method for optimization problems in the multi-variate
+    case with $f:\mathbb{R}^n\rarr\mathbb{R}$ (still real-valued) is
+        \begin{equation}
+            \blds{x}_{n+1} = \blds{x}_n -
+            \abs{\blds{H}f(\blds{x}_n)}^{-1}\dot\nabla f(\blds{x}_n),\indent
+            n\geq 0,
+        \end{equation}
+    where $\blds{H}$ is the Hessian matrix. One might also introduce a
+    step-length multiplied to the Hessian part in order to induce
+    conditions \cite{numOptNocWrig} which ensure some stability of the method.
 
+    Newton's method, in most cases, converges faster(less iterations) towards
+    the minimum than gradient descent making it favorable, however the full
+    Hessian has to be known. This matrix(or its inverse) is in many cases too
+    expensive to compute or difficult to express in closed-form. In these cases
+    the class of methods knows as Quasi-Newton methods can be utilized. \\
 
-!split
-===== Splines =====
-!bblock
-Using the conditions $s_i(x_i)=y_i$ and $s_i(x_{i+1})=y_{i+1}$ 
-we can in turn determine the constants $c$ and $d$ resulting in
-!bt
-\begin{align}
-   s_i(x) =&\frac{f_i}{6(x_{i+1}-x_i)}(x_{i+1}-x)^3+
-               \frac{f_{i+1}}{6(x_{i+1}-x_i)}(x-x_i)^3 \nonumber  \\ 
-            +&(\frac{y_{i+1}}{x_{i+1}-x_i}-\frac{f_{i+1}(x_{i+1}-x_i)}{6})
-              (x-x_i)+
-             (\frac{y_{i}}{x_{i+1}-x_i}-\frac{f_{i}(x_{i+1}-x_i)}{6})
-             (x_{i+1}-x).
-\end{align}
-!et
-!eblock
+    Quasi-Newton methods give an estimate of the inverse Hessian by using the
+    first derivatives. Introduce the Taylor approximation of $f$ around an
+    iteration point $\blds{x}_n$
+        \begin{equation}
+            f(\blds{x}_k + \blds{s}) \approx f(\blds{x}_k) + \left(\nabla
+            f(\blds{x}_k)\right)^T\blds{s} + \frac{1}{2}\blds{s}^T \blds{H}
+            \blds{s},
+        \end{equation}
+    differentiate with respect to the change $\blds{s}$
+        \begin{equation}
+            \nabla_s f(\blds{x}_k + \blds{s}) \approx \nabla f(\blds{x}_k) +
+            \blds{H}\blds{s}
+            \label{eq:secantEquationNewton}
+        \end{equation}
+    and introduce the condition in \Arf{eq:mincondition} and set this
+    gradient to zero to find the change $\blds{s}$
+        \begin{equation}
+            \blds{s} = -\blds{H}^{-1} \nabla f(\blds{x}_k).
+        \end{equation}
+    Another way to determine this particular form for $\blds{s}$ is to say that
+    the approximation to the Hessian must satisfy the \txtit{secant equation}
+    which is \Arf{eq:secantEquationNewton}. The updating rule for $\blds{x}_n$
+    is then given by
+        \begin{equation}
+            \blds{x}_{n+1} = \blds{x}_n - \gamma_k\blds{H}^{-1}_n\nabla
+            f(\blds{x}_n).
+        \end{equation}
+    The factor $\gamma_k$ is again introduced to give some stability
+    conditions. The important part of this equation is the index on the inverse
+    Hessian. This is essentially just a relabeling at the change $\blds{s}$ is
+    technically applied for each iterate $\blds{x}_n$. Note also that
+    $\blds{s}$ takes the role of the search direction in this case. The
+    algorithm is then to make an initial guess on the Hessian(usually just the
+    identity matrix) and then use a type of updating formula that finds a new
+    approximation for the Hessian at each step $n$. There are a number of these
+    updating formulas, just to mention some we have DFP, SR1, McCormick,
+    Broyden, BFGS and more. The one we will mention in more detail is the BFGS
+    method, but a main formula that shows up in all of the updating methods is
+    the \txtit{Sherman-Morrison formula} for the inverse. This basically means
+    that the need for calculation of the inverse matrix is completely removed.
+    \\
 
+    With the mentioned expression we can devise an algorithm similar to
+    Newton's method for finding the minimum $\blds{x}_m$. Starting with an
+    initial guess for the inverse Hessian $\blds{H}^{-1}_0$ and minimum
+    $\blds{x}_0$ with the condition that $\blds{H}^{-1}_0$ is positive-definite
+    (identity matrix is a nice start if nothing else is known) proceed with the
+    algorithm outlined in \Arf{fig:QNalgflow}.
+    Comparing \Arf{tab:sphericalconvBFGS, tab:rosenbrockconvBFGS} with
+    \Arf{tab:sphericalconv, tab:sphericalconvBFGS} we can see that the BFGS
+    scheme outperforms the gradient descent method by a stupendous and almost
+    comical amount with the number of iterations in mind. However one still has
+    to keep in mind that each iterations of the BFGS method is far more
+    computationally extensive meaning the gradient descent method can be more
+    favorable in the case where the function to be minimized is expensive to
+    compute. 
 
-!split
-===== Splines =====
-!bblock
-How to determine the values of the second
-derivatives $f_{i}$ and $f_{i+1}$? We use the continuity assumption 
-of the first derivatives 
-!bt
-\[
-    s'_{i-1}(x_i)= s'_i(x_i),
-\]
-!et
-and set $x=x_i$. Defining $h_i=x_{i+1}-x_i$ we obtain finally
-the following expression
-!bt
-\[
-   h_{i-1}f_{i-1}+2(h_{i}+h_{i-1})f_i+h_if_{i+1}=
-   \frac{6}{h_i}(y_{i+1}-y_i)-\frac{6}{h_{i-1}}(y_{i}-y_{i-1}),
-\]
-!et
-and introducing the shorthands $u_i=2(h_{i}+h_{i-1})$, 
-$v_i=\frac{6}{h_i}(y_{i+1}-y_i)-\frac{6}{h_{i-1}}(y_{i}-y_{i-1})$,
-we can reformulate the problem as a set of linear equations to be 
-solved  through e.g., Gaussian elemination
-!eblock
+    For our case, the latter sentiment is true. The expectation value to the
+    energy still has a large complexity, however with the optimizations
+    mentioned in \Arf{susec:slateropt, susec:jastopt} the time it takes to
+    calculate the expectation value is not too large and the BFGS scheme can
+    still be used.
 
 
-!split
-===== Splines =====
-!bblock
-Gaussian elimination
-!bt
-\[
-   \begin{bmatrix} u_1 & h_1 &0 &\dots & & & & \\
-                                 h_1 & u_2 & h_2 &0 &\dots & & & \\
-                                  0   & h_2 & u_3 & h_3 &0 &\dots & & \\
-                               \dots& & \dots &\dots &\dots &\dots &\dots & \\
-                                 &\dots & & &0 &h_{n-3} &u_{n-2} &h_{n-2} \\
-                                 & && & &0 &h_{n-2} &u_{n-1} \end{bmatrix}
-   \begin{bmatrix} f_1 \\ 
-                          f_2 \\
-                          f_3\\
-                          \dots \\
-                          f_{n-2} \\ 
-                          f_{n-1} \end{bmatrix} =
-   \begin{bmatrix} v_1 \\ 
-                          v_2 \\
-                          v_3\\
-                          \dots \\
-                          v_{n-2}\\
-                          v_{n-1} \end{bmatrix}.
-\]
-!et
-Note that this is a set of tridiagonal equations and can be solved 
-through only $O(n)$ operations.
-!eblock
+    In the previous section(also mentioned in \Arf{fig:QNalgflow}) we gave an
+    outline for Newton's method and the class known as Quasi-Newton methods.
+    The latter used an approximation for the inverse of the Hessian matrix,
+    which was updated at each step in the algorithm. For the sake of brevity
+    only conditions employed to arrive at the expression for the updating
+    formula and the formula itself is given here, for more see \cite{BFGSB,
+    BFGSF, BFGSG, BFGSS, numOptNocWrig}. The conditions enforced is
+        \begin{itemize}
+            \item Secant condition: $\blds{H}_{n+1} \blds{s}_n = \nabla
+                f(\blds{x}_{n+1}) - \nabla f(\blds{x}_n)$
+            \item Strong curvature: $\blds{s}^T_k\cdot (f(\blds{x}_{n+1}) -
+                \nabla f(\blds{x}_n)) > 0$
+        \end{itemize}
+    and the resulting formula states with $\blds{y}_k = f(\blds{x}_{n+1}) -
+    \nabla f(\blds{x}_n)$
+        \begin{equation}
+            \blds{H}_{n+1} = \blds{H}_n +
+            \frac{\blds{y}_n\blds{y}^T_n}{\blds{y}^T_n \blds{s}_n} -
+            \frac{\blds{H}_n\blds{s}_n\blds{s}^T_n\blds{H}_n}
+            {\blds{s}^T_n\blds{H}_k\blds{s}_n}.
+            \label{eq:BFGSdef}
+        \end{equation}
+    With the Sherman-Morrison formula\cite{shermorInv} the inverse is updated
+    with
+        \begin{equation}
+            \blds{H}^{-1}_{n+1} = \blds{H}^{-1}_n +
+            \frac{\left(\blds{s}^T_n\blds{y}_n +
+            \blds{y}^T_n\blds{H}^{-1}_n\blds{y}_n\right)
+            \left(\blds{s}_n\blds{s}^T_n\right)}
+            {\left(\blds{s}^T_n\blds{y}_n\right)^2} -
+            \frac{\blds{H}^{-1}_n\blds{y}_n\blds{s}^T_n +
+            \blds{s}_n\blds{y}^T_n\blds{H}^{-1}_n}{\blds{s}^T_n\blds{y}_n}.
+            \label{eq:shermanmorrisondef}
+        \end{equation}
 
-!split
-===== Splines =====
-!bblock
-The functions supplied in the program library are *spline* and *splint*.
-In order to use cubic spline interpolation you need first to call  
-!bc cppcod
-spline(double x[], double y[], int n, double yp1,  double yp2, double y2[])
-!ec
-This function takes as
-input $x[0,..,n - 1]$ and $y[0,..,n - 1]$ containing a tabulation
-$y_i = f(x_i)$ with $x_0 < x_1 < .. < x_{n - 1}$ 
-together with the 
-first derivatives  of $f(x)$ at $x_0$ and $x_{n-1}$, respectively. Then the
-function returns $y2[0,..,n-1]$ which contains the second derivatives of
-$f(x_i)$ at each point $x_i$. $n$ is the number of points.
-This function provides the cubic spline interpolation for all subintervals
-and is called only once.
-!eblock
+\section{Line Search methods\label{sec:linesearch_methods}}
+    In the optimization methods described in
+    \Arf{sec:newtons-method_and_quasi-newton_methods} there was one important
+    part neglected, namely how to find the step-length $\gamma_n$ introduced in
+    the updating formula. As it is, one can choose it in any manner desired,
+    however a class of one-dimensional minimization methods knows as
+    \txtit{lineasearch methods} are often used to get an (usually rough)
+    estimate for the step length at each iteration in the optimization. These
+    methods all have some conditions for stability and convergence as an innate
+    property, meaning the validity of the step length is better\footnote{It's
+    actually present...}. Some popular line search methods are backtracking
+    line search, Hager-Zhang method, Strong Wolfe conditions and the
+    More-Thuente line search method. The one used here is the latter.  For an
+    exact derivation and explanation of line search methods in general see
+    \cite{numOptNocWrig}. See also the article by Jorge J.  Mor{\'e}
+    and David J. Thuente \cite{moreThuenteArticle}. \\
+    The basic idea of line search methods is to solve a one-dimensional problem
+    of minimizing
+        \begin{equation}
+            \phi(\alpha) = f(\alpha \blds{p}_k + \blds{x}_k),
+        \end{equation}
+    with $f:\mathbb{R}^n\rarr\mathbb{R}$ and $\blds{p}_k$ is a search direction
+    as described with the quasi-Newton methods and $\blds{x}_k$ is the current
+    iterate(point) in the minimization. Notice also that
+        \begin{equation}
+            \prd{\alpha}[\phi] = \blds{p}_k \cdot \nabla f(\alpha \blds{p}_k +
+            \blds{x}_k)
+        \end{equation}
+    by the chain-rule and the gradient on the right hand side is over the
+    parameters $\blds{x}_k$. One usually perform this line search loosely since
+    the search direction is not necessarily directly pointing towards the
+    minimum, meaning we only search for a step length that gives a
+    \txtit{sufficient decrease} in the function value $f$. The basic procedure
+    is then to use one of these line search methods to find $\gamma_n$ at each
+    iteration in the minimization and then use the step-length outputted by the
+    line search algorithm to update the parameters.
 
+\section{Stochastic-Adaptive-BFGS\label{sec:stochastic_adaptive_bfgs}}
+    In \Arf{sec:BFGS} we mentioned the popular BFGS method for updating the
+    Hessian matrix and its inverse. A more resent method which uses that method
+    with the stochastic nature of a functional expectation value is a method
+    called SABFGS \cite{SABFGS} described by Zhou C., Gao W. and Goldfarb D.
+    This method uses the BFGS update for the Hessian, but uses an adaptive step
+    instead of the deterministic line search for the step-size. \\ 
+    There one problem however, the method itself is only valid for
+    \txtit{self-concordant} functions. The energy-functional is by-far not
+    within this criteria. This problem can be accounted for by using the
+    Wolfe conditions. That is to check that the step-size satisfies the
+    Wolfe conditions at each iteration before actually making an update. The
+    algorithm presented takes this into account as well.
+        \begin{algorithm}[H]
+            \caption{SA-BFGS\label{alg:sabfgs}}
+            \begin{algorithmic}[H]
+                \State Input: $\blds{x}_0$, $\blds{H}_0$, $\blds{G}_0$, $\beta
+                < 1$
+                \For{$k=0$ to $M_{\text{max}}$}
+                    \State $\blds{g}_k = \nabla F_k(\blds{x}_k)$
+                    \Comment{Gradient in current step}
+                    \State $\blds{d}_k = -\blds{H}_k\blds{g}_k$ \Comment{Search
+                    direction}
+                    \State $\delta_k =
+                    \sqrt{\blds{d}^T_k\blds{G}_k(\blds{x}_k)\blds{d}_k}$
+                    \State $\alpha_k =
+                    \frac{\blds{g}^T_k\blds{H}_k\blds{g}_k}{\delta^2_k}$
+                    \State $t_k = \frac{\alpha_k}{1 + \alpha_k\delta_k}$
+                    \Comment{Step size}
+                    \State $\blds{g}_{k+1} = \nabla F_k(\blds{x}_k +
+                    t_k\blds{d}_k)$ \Comment{Propose new set of parameters}
+                    \If{$\blds{g}^T_{k+1}\blds{d}_k <
+                    \beta\blds{g}^T_k\blds{d}_k$} \Comment{Wolfe-Conditions}
+                    \State Set $\blds{d}_k = -\blds{g}_k$
+                    \State Recompute $\delta_k$, $\alpha_k$ and $t_k$
+                    \State Set $\blds{H}_{k+1} = \blds{H}_{k}$ and
+                    $\blds{G}_{k+1} = \blds{G}_{k}$
+                    \Else
+                    \State Set $\blds{H}_{k+1}$ with BFGS inverse update
+                    \Comment{\Arf{eq:shermanmorrisondef}}
+                    \State Set $\blds{G}_{k+1}$ with BFGS update
+                    \Comment{\Arf{eq:BFGSdef}}
+                    \EndIf
+                    \State $\blds{x}_{k+1} = \blds{x}_k + t_k\blds{d}_k$
+                    \Comment{Update parameters}
+                \EndFor
+            \end{algorithmic}
+        \end{algorithm}
 
-!split
-===== Splines =====
-!bblock
-Thereafter, if you wish to make  various interpolations, you need to call the function 
-!bc cppcod
-splint(double x[], double y[], double y2a[], int n, double x, double *y)
-!ec
-which takes as input
-the tabulated values $x[0,..,n - 1]$ and $y[0,..,n - 1]$ and the output 
-y2a[0,..,n - 1] from *spline*. It returns the value $y$ corresponding
-to the point $x$.
-!eblock
+\section{Simulated Annealing\label{sec:simulated_annealing}}
+    A huge problem with the mentioned methods is the fact that they only
+    converge towards a \txtit{local minimum} which is not necessarily the
+    \txtit{global minimum} which of desire. Many methods already exists to
+    account for this, the one used in this thesis and to be described in this
+    section is the method known as \txtit{simulated annealing}. Simulated
+    annealing follows a simple algorithm, see \Arf{alg:simulated_annealing}.
+        \begin{algorithm}[H]
+            \caption{Simulated Annealing\label{alg:simulated_annealing}}
+            \begin{algorithmic}[H]
+                \State Initialize a solution $s=s_0$. \Comment{I.e a set of
+                parameters $\{\alpha\}_{k=1}^N$}
+                \For{$j=1$ to $M_{\text{max}}$}
+                    \State Set temperature $T$ with specific function for
+                    $\frac{j}{M_{\text{max}}}$
+                    \State Pick a new state $s_{\text{new}}$ within some
+                    neighbour of $s$
+                    \If{$P(f(s), f(s_{\text{new}}), T) \geq \xi$}
+                    \Comment{Metropolis-Test.}
+                        \State $s = s_{\text{new}}$
+                    \EndIf
+                \EndFor
+            \end{algorithmic}
+        \end{algorithm}
+    The idea is to start with searching a large part of the solution space,
+    since a high temperature increases the search-range, and hope that as $j$
+    reaches $M_{\text{max}}$ the probability function $P$ is such that the
+    solution is trapped within the down-hill of the global minimum. \\ 
+    The specific form of $P, T$ and how to choose a neighbour is specific from
+    problem to problem however an effective and simple way to define these is
+    by using the Metropolis-algorithm with
+        \begin{equation}
+            P = \exp(-\frac{f(s_{\text{new}}) - f(s)}{T}),
+        \end{equation}
+    and define the temperature as
+        \begin{equation}
+            T_j = \frac{T_{\text{max}}}{j}.
+        \end{equation}
+    And $T_{\text{max}}$ is the initial temperature. One then chooses new
+    neighbours within some min/max range from the current $s$ \cite{simaneal}.
+    After the annealing is done a Quasi-Newton method is used and then one of
+    the adaptive methods is used to converge to the minimum. In order to test
+    this scheme we apply it to more complex functions with many local minima.
+    Two such functions are the \txtit{Ackley function} \cite{simulationlib}
+    defined as
+        \begin{equation}
+            f(\blds{x}) = -a\exp(-b\sqrt{\frac{1}{D}\suml{d=1}{D}x^2_d}) -
+            \exp(-\frac{1}{D}\suml{d=1}{D}\text{cos}(cx_d)) + a + \exp(1)
+        \end{equation}
+    and the \txtit{Rastrigin function} \cite{simulationlib}
+        \begin{equation}
+            f(\blds{x}) = 10D + \suml{d=1}{D}\left(x^2_d - 10\text{cos}(2\pi
+            x_i)\right).
+        \end{equation}
+    Where $D$ is the number of parameters and $a$, $b$ and $c$ being parameters
+    to be tweaked. Figures are shown below in \Arf{fig:ack, fig:rastr}
+        \onefigure{Ackley Function}{text/figs/ackley.pdf}{Illustration of
+        Ackley function \cite{simulationlib} with global minimum
+        $\blds{x}_m=(0,0)$ of value $f(\blds{x}_m)=0$.}{ack}
+        \onefigure{Rastrigin Function}{text/figs/rastrigin.pdf}{Illustration of
+        Rastrigin function \cite{simulationlib} with global minimum
+        $\blds{x}_m=(0,0)$ of value $f(\blds{x}_m)=0$.}{rastr}
+    As for convergence, we again employ the same procedure as with the
+    spherical and Rosenbrock functions as previously, but with the Ackelyn and
+    Rastrigin functions and present the tables here.
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{23.2pt}
+            \renewcommand*{\arraystretch}{0.68}
+            \caption{Table showing convergence of the simulated annealing
+            method with the Ackelyn function. $\blds{x}_0$ is the initial
+            starting point, $T_{\text{max}}$ is the initial temperature,
+            $\blds{x}_m$ is the minimum after the given iterations and
+            $f(\blds{x}_m)$ is the function value at said minimum point. The
+            neighbouring function used is a simple gaussian applied to all
+            parameters with mean being the current value of the parameter and
+            variance $1.0$.}
+            \label{tab:ackelynconv}
+            \begin{tabular}{ccccc} \hline\hline
+                $\blds{x}_0$ & $T_{\text{max}}$ & Iterations & $\blds{x}_m$ & $f(\blds{x}_m)$ \vsp \\
+                $(-10.0,0.40)$ & $100.0$ & $10^2$ & $(0.130,0.096)$ & $1.046$ \\
+                $(-10.0,0.40)$ & $100.0$ & $10^3$ & $(0.007,-0.026)$ & $0.097$ \\
+                $(-10.0,0.40)$ & $100.0$ & $10^4$ & $(0.002,-0.004)$ & $0.011$ \\
+                $(-10.0,0.40)$ & $100.0$ & $10^5$ & $(-0.003,-0.003)$ & $0.013$ \\
+                $(-0.01,0.01)$ & $100.0$ & $10^2$ & $(-0.101,0.036)$ & $0.584$ \\
+                $(-0.01,0.01)$ & $100.0$ & $10^3$ & $(-0.012,-0.006)$ & $0.044$ \\
+                $(-0.01,0.01)$ & $100.0$ & $10^4$ & $(-0.004,0.001)$ & $0.013$ \\
+                $(-0.01,0.01)$ & $100.0$ & $10^5$ & $(-0.001,-0.001)$ & $0.003$ \\
+                $(-10.0,0.40)$ & $50.0$ & $10^2$ & $(0.012,-0.122)$ & $0.702$ \\
+                $(-10.0,0.40)$ & $50.0$ & $10^3$ & $(-0.021,0.023)$ & $0.113$ \\
+                $(-10.0,0.40)$ & $50.0$ & $10^4$ & $(0.008,-0.016)$ & $0.061$ \\
+                $(-10.0,0.40)$ & $50.0$ & $10^5$ & $(0.002,-0.003)$ & $0.009$ \\
+                $(-0.01,0.01)$ & $50.0$ & $10^2$ & $(0.141,0.059)$ & $0.959$ \\
+                $(-0.01,0.01)$ & $50.0$ & $10^3$ & $(-0.007,-0.041)$ & $0.162$ \\
+                $(-0.01,0.01)$ & $50.0$ & $10^4$ & $(-0.013,0.003)$ & $0.043$ \\
+                $(-0.01,0.01)$ & $50.0$ & $10^5$ & $(0.001,0.002)$ & $0.005$ \\ \hline\hline
+            \end{tabular}
+        \end{table}
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{22.8pt}
+            \renewcommand*{\arraystretch}{0.68}
+            \caption{Table showing convergence of the simulated annealing
+            method with the Rastrigin function. $\blds{x}_0$ is the initial
+            starting point, $T_{\text{max}}$ is the initial temperature,
+            $\blds{x}_m$ is the minimum after the given iterations and
+            $f(\blds{x}_m)$ is the function value at said minimum point. The
+            neighbouring function used is a simple gaussian applied to all
+            parameters with mean being the current value of the parameter and
+            variance $1.0$.}
+            \label{tab:rastriginconv}
+            \begin{tabular}{ccccc} \hline\hline
+                $\blds{x}_0$ & $T_{\text{max}}$ & Iterations & $\blds{x}_m$ & $f(\blds{x}_m)$ \vsp \\
+                $(-5.0,1.0)$ & $100.0$ & $10^2$ & $(-0.988,0.967)$ & $2.152$ \\
+                $(-5.0,1.0)$ & $100.0$ & $10^3$ & $(0.045,-0.038)$ & $0.684$ \\
+                $(-5.0,1.0)$ & $100.0$ & $10^4$ & $(0.007,-0.002)$ & $0.009$ \\
+                $(-5.0,1.0)$ & $100.0$ & $10^5$ & $(0.001,-0.002)$ & $0.001$ \\
+                $(-0.01,0.001)$ & $100.0$ & $10^2$ & $(-0.873,0.016)$ & $3.844$ \\
+                $(-0.01,0.001)$ & $100.0$ & $10^3$ & $(-0.011,-0.010)$ & $0.043$ \\
+                $(-0.01,0.001)$ & $100.0$ & $10^4$ & $(0.001,0.010)$ & $0.021$ \\
+                $(-0.01,0.001)$ & $100.0$ & $10^5$ & $(-0.002,-0.002)$ & $0.001$ \\
+                $(-5.0,1.0)$ & $50.0$ & $10^2$ & $(-0.936,-0.016)$ & $1.731$ \\
+                $(-5.0,1.0)$ & $50.0$ & $10^3$ & $(0.063,0.020)$ & $0.864$ \\
+                $(-5.0,1.0)$ & $50.0$ & $10^4$ & $(0.014,-0.004)$ & $0.045$ \\
+                $(-5.0,1.0)$ & $50.0$ & $10^5$ & $(0.002,0.000)$ & $0.001$ \\
+                $(-0.01,0.001)$ & $50.0$ & $10^2$ & $(0.977,-0.024)$ & $1.168$ \\
+                $(-0.01,0.001)$ & $50.0$ & $10^3$ & $(-0.012,-0.017)$ & $0.085$ \\
+                $(-0.01,0.001)$ & $50.0$ & $10^4$ & $(0.002,0.004)$ & $0.004$ \\
+                $(-0.01,0.001)$ & $50.0$ & $10^5$ & $(-0.001,-0.003)$ & $0.001$ \\ \hline\hline
+            \end{tabular}
+        \end{table}
 
+        We can see from \Arf{tab:ackelynconv, tab:rastriginconv} that the
+        simulated annealing method does get close to the actual minimum,
+        however a great number of iterations is needed and even as we reach
+        $10^5$ iterations the method still doesn't converge towards the
+        minimum. This seems quite dissappointing, but one has to remember that
+        the method is to be used as a way to reach an area were deterministic
+        methods such as gradient descent method or the BFGS scheme is
+        guaranteed to converge towards the minimum. As long as we control the
+        temperature properly such a point can be found with simulated
+        annealing.
 
 
 !split
