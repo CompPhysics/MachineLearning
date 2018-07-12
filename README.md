@@ -1,6 +1,5 @@
 # FYS-STK3155/4155 Applied Data Analysis and Machine Learning, http://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/index-eng.html
 
-[![Build Status](https://travis-ci.org/CompPhysics/MachineLearning.svg?branch=master)](https://travis-ci.org/CompPhysics/MachineLearning)
 
 This site contains all material relevant for the course on Data Analysis and Machine Learning at the University of Oslo. The material is developed in a modular fashion and can thus be reused for other courses at other universities or as material for intensive courses on data analysis and machine learning.
 
@@ -91,6 +90,9 @@ the theory and methods. Some of the projects can be coordinated with the high-pe
 
 ## Possible textbooks
 
+_Recommended textbooks_:
+- Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer
+- Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly
 
 _General learning book on statistical analysis_:
 - Christian Robert and George Casella, Monte Carlo Statistical Methods, Springer
@@ -100,7 +102,6 @@ _General Machine Learning Books_:
 - Kevin Murphy, Machine Learning: A Probabilistic Perspective, MIT Press
 - Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer
 - David J.C. MacKay, Information Theory, Inference, and Learning Algorithms, Cambridge University Press
-- Trevor Hastie, Robert Tibshirani, and Jerome Friedman, The Elements of Statistical Learning, Springer
 - David Barber, Bayesian Reasoning and Machine Learning, Cambridge University Press 
 
 
