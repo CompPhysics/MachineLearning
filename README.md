@@ -81,9 +81,8 @@ the theory and methods. Some of the projects can be coordinated with the high-pe
 
 1. Four lectures per week, Fall semester, 10 ECTS;
 2. Four hours of laboratory sessions for work on computational projects;
-3. Three projects which are graded and count $60\%$ of the final grade;
-4. A selected number of weekly assignments which count  $10\%$ of the final grade;
-5. Final written exam which counts $30\%$ of the final grade;
+3. Three projects which are graded and count 1/3 each of the final grade;
+4. A selected number of weekly assignments;
 6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
 7. Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail;
 8. The course will be offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course.
