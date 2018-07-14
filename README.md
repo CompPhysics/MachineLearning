@@ -1,7 +1,7 @@
 # FYS-STK3155/4155 Applied Data Analysis and Machine Learning, http://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/index-eng.html
 
 
-This site contains all material relevant for the course on Data Analysis and Machine Learning at the University of Oslo. The material is developed in a modular fashion and can thus be reused for other courses at other universities or as material for intensive courses on data analysis and machine learning.
+This site contains all material relevant for the course on Data Analysis and Machine Learning FYS-STK4155.
 
 ## Course content
 
