@@ -1,838 +1,1021 @@
-TITLE: Data Analysis and Machine Learning: Unsupervised Learning and Boltzmann Machines
-AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
-DATE: today
+TITLE: Solving quantum mechanical problems with Machine Learning and Boltzmann machines
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University and Department of Physics, University of Oslo, Norway
+DATE: today 
+
 
 !split
-===== What is Unsupervised Learning? =====
+===== What is this talk about? =====
+!bblock
+The main aim is to give you a short and pedestrian introduction to  how we can use Machine Learning methods
+to solve quantum mechanical many-body problems. And why this could be of interest. 
+
+The hope is that after this talk you have gotten the basic ideas to get you started. Peeping into URL:"https://github.com/mhjensenseminars/MachineLearningTalk", you'll find a Jupyter notebook, slides, codes etc that will allow you to reproduce the simulations discussed here, and perhaps run your own very first calculations.
+
+Furthermore, since we will also talk about Monte Carlo simulations, the exciting idea of Monte Carlo optimization and Machine Learning can be used to mesh strategies for reducing the curse of dimensionality.
+
+!eblock
 
 
-The idea of representing the wave function in quantum mechanics with
-a restricted Boltzmann machine (RBM) was presented recently by "G. Carleo and M. Troyer, Science _355_, Issue 6325, pp. 602-606 (2017)":"http://science.sciencemag.org/content/355/6325/602". They
-named such a wave function/network a \textit{neural network quantum
-state} (NQS). In their article they apply it to the quantum mechanical
+!split
+===== Why? =====
+
+How can we avoid the dimensionality curse? Many possibilities
+o smarter basis functions
+o resummation of specific correlations
+o stochastic sampling of high-lying states (stochastic FCI, CC and soon SRG)
+o many more
+
+Machine Learning and Quantum Computing hold also great promise in tackling the 
+ever increasing dimensionalities. Here we will focus on Machine Learning.
+
+
+!split
+===== Overview =====
+!bblock
+* Short intro to Machine Learning
+* Variational Monte Carlo (Markov Chain Monte Carlo, $\mathrm{MC}^2$) and two-electron quantum dots, solving quantum mechanical problems in a stochastic way. It  will serve as  our motivation for switching to Machine Learning. 
+* From Variational Monte Carlo to Boltzmann Machines and Machine Learning
+!eblock
+
+!split
+===== What are the Machine Learning calculations here based on? =====
+
+This work is inspired by the idea of representing the wave function with
+a restricted Boltzmann machine (RBM), presented recently by "G. Carleo and M. Troyer, Science _355_, Issue 6325, pp. 602-606 (2017)":"http://science.sciencemag.org/content/355/6325/602". They
+named such a wave function/network a *neural network quantum state* (NQS). In their article they apply it to the quantum mechanical
 spin lattice systems of the Ising model and Heisenberg model, with
-encouraging results. 
+encouraging results.
 
-=== Representing the wave function with a neural network ===
+Thanks to Vilde Flugsrud and Alfred Alocias Mariadason for many discussions and interpretations of the above paper.
 
-Our neural network of choice is the restricted Boltzmann machine. It
-is a two layer net where one is called the layer of visible nodes and
-the other the layer of hidden nodes. It is called restricted because
-there are no connections between nodes in the same layer. Meaning
-there's only a connection between two nodes if one is visible and the
-other hidden. These type of networks constitute the building blocks of
-the deep belief networks. The RBM is a
-generative network, meaning that the idea is for it to learn a
-\textit{probability distribution}. Thus the network does not produce
-an output directly, but a probability distribution from which we can
-generate an output. In our case this distribution corresponds to the
-wave function and the output we wish to generate are the positions
-taken by the particles in our system.
 
-Neural networks are referred to as falling
-under either supervised or unsupervised learning. Here we are not
-working with training data, thus it is not supervised. It's rather
-called reinforcement learning. From the variational principle we know
-that the NQS wave fucntion represents the ground state once the
-quantum mechanical energy is minimized. This information is used to
-optimize the weights and biases of the network.
+!split
+===== A new world =====
+!bblock
+Machine learning (ML) is an extremely rich field, in spite of its young age. The
+increases we have seen during the last three decades in computational
+capabilities have been followed by developments of methods and
+techniques for analyzing and handling large date sets, relying heavily
+on statistics, computer science and mathematics.  The field is rather
+new and developing rapidly. 
 
-For more information and practical guides to the RBM, check out the links in the literature section.
+Popular software packages written in Python for ML are
 
-When working with the restricted Boltzmann machine we are given the joint probability distribution between the hidden and visible nodes.
+* "Scikit-learn":"http://scikit-learn.org/stable/", 
+* "Tensorflow":"https://www.tensorflow.org/",
+* "PyTorch":"http://pytorch.org/" and 
+* "Keras":"https://keras.io/".
+These are all freely available at their respective GitHub sites. They 
+encompass communities of developers in the thousands or more. And the number
+of code developers and contributors keeps increasing.
+!eblock
 
-=== Restricted Boltzmann Machine (RBM) ===
+!split
+===== Lots of room for creativity =====
+!bblock
+Not all the
+algorithms and methods can be given a rigorous mathematical
+justification, opening up thereby for experimenting
+and trial and error and thereby exciting new developments. 
+!eblock
 
-The joint probability distribution is defined as 
+!bblock
+A solid command of linear algebra, multivariate theory, 
+probability theory, statistical data analysis,
+understanding errors and Monte Carlo methods is important in order to understand many of the 
+various algorithms and methods. 
+!eblock
+
+!bblock _Job market, a personal statement_
+A familiarity with ML is almost becoming a prerequisite for many of the most exciting employment 
+opportunities. Add quantum computing and there you are.
+!eblock
+
+!split 
+===== Some members of the ML family =====
+
+!bblock
+o Linear regression and its variants, in essence polynomial regression
+o Decision tree algorithms, from simpler to more complex ones like random forests
+o Nearest neighbors models
+o Bayesian statistics and regression
+o Support vector machines and finally various variants of
+o Artifical neural networks and deep learning
+o ....
+!eblock
+
+!split
+===== What are the basic ingredients? =====
+!bblock
+Almost every problem in ML and data science starts with the same ingredients:
+* The dataset $\mathbf{x}$ (could be some observable quantity of the system we are studying)
+* A model which is a function of a set of parameters $\mathbf{\alpha}$ that relates to the dataset, say a likelihood  function $p(\mathbf{x}\vert \mathbf{\alpha})$ or just a simple model $f(\mathbf{\alpha})$
+* A so-called _cost_ function $\mathcal{C} (\mathbf{x}, f(\mathbf{\alpha}))$ which allows us to decide how well our model represents the dataset. 
+
+We seek to minimize the function $\mathcal{C} (\mathbf{x}, f(\mathbf{\alpha}))$ by finding the parameter values which minimize $\mathcal{C}$. This leads to  various minimization algorithms. 
+!eblock
+
+!split
+===== What is Machine Learning? =====
+!bblock
+Machine learning is the science of giving computers the ability to
+learn without being explicitly programmed.  The idea is that there
+exist generic algorithms which can be used to find patterns in a broad
+class of data sets without having to write code specifically for each
+problem. The algorithm will build its own logic based on the data.
+
+Machine learning is a subfield of computer science, and is closely
+related to computational statistics.  It evolved from the study of
+pattern recognition in artificial intelligence (AI) research, and has
+made contributions to AI tasks like computer vision, natural language
+processing and speech recognition. It has also, especially in later
+years, found applications in a wide variety of other areas, including
+bioinformatics, economy, physics, finance and marketing.
+
+You will notice however that many of the basic ideas discussed do come from Physics!
+!eblock
+
+!split
+===== Types of Machine Learning =====
+
+!bblock
+The approaches to machine learning are many, but are often split into two main categories. 
+In *supervised learning* we know the answer to a problem,
+and let the computer deduce the logic behind it. On the other hand, *unsupervised learning*
+is a method for finding patterns and relationship in data sets without any prior knowledge of the system.
+Some authours also operate with a third category, namely *reinforcement learning*. This is a paradigm 
+of learning inspired by behavioural psychology, where learning is achieved by trial-and-error, 
+solely from rewards and punishment.
+
+Another way to categorize machine learning tasks is to consider the desired output of a system.
+Some of the most common tasks are:
+
+  * Classification: Outputs are divided into two or more classes. The goal is to   produce a model that assigns inputs into one of these classes. An example is to identify  digits based on pictures of hand-written ones. Classification is typically supervised learning.
+
+  * Regression: Finding a functional relationship between an input data set and a reference data set.   The goal is to construct a function that maps input data to continuous output values.
+
+  * Clustering: Data are divided into groups with certain common traits, without knowing the different groups beforehand.  It is thus a form of unsupervised learning.
+!eblock
+
+
+!split
+===== References =====
+!bblock
+* An excellent reference, "Mehta *et al.*, arXiv:1803.08823 and Physics Reports in press (2018)":"https://arxiv.org/abs/1803.08823"
+* A cute paper by "Utama and Piekarewicz, Validating neural-network refinements of nuclear mass models, Phys. Rev. C 97, 014306 ":"https://journals.aps.org/prc/abstract/10.1103/PhysRevC.97.014306"
+* "Every issue of Physical Review Letters has now one or more articles on ML":"https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.156001"
+* "Books and lectures notes":"https://github.com/CompPhysics/MachineLearning"
+* See also Metha and Schwab, arXiv.1410.3831, how to link Variational renormalization group theory with deep learning (recommended read)
+!eblock
+
+
+!split
+===== Another interesting article =====
+
+Here we will use so-called _reduced Boltzmann Machines_ to simulate quantum many-body problems. For Monte Carlo aficionados, there is a very close similarity with what are called _shadow wave functions_, see the work of "Pederiva and Kalos and collaborators, Phys Rev. E 90, 053304 (2014)":"https://journals.aps.org/pre/abstract/10.1103/PhysRevE.90.053304".
+
+!split
+===== Just for fun illustration of scikit-learn: Hudson bay data =====
+!bblock
+Most mammalian predators rely on a variety of prey, which complicates mathematical modeling; however, a few predators have become highly specialized and seek almost exclusively a single prey species. An example of this simplified predator-prey interaction is seen in Canadian northern forests, where the populations of the lynx and the snowshoe hare are intertwined in a life and death struggle.
+
+One reason that this particular system has been so extensively studied is that the Hudson Bay company kept careful records of all furs from the early 1800s into the 1900s. The records for the furs collected by the Hudson Bay company showed distinct oscillations (approximately 12 year periods), suggesting that these species caused almost periodic fluctuations of each other's populations. The table here shows data from 1900 to 1920.
+
+!eblock
+
+
+!split
+===== Hares and lynx in Hudson bay from 1900 to 1920 =====
+
+FIGURE: [figures/Hudson_Bay_data, width=700 frac=0.9]
+
+
+!split
+===== Linear regression in Python  =====
+!bblock
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import display
+import sklearn
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+
+
+data = np.loadtxt('src/Hudson_Bay.csv', delimiter=',', skiprows=1)
+x = data[:,0]
+y = data[:,1]
+line = np.linspace(1900,1920,1000,endpoint=False).reshape(-1,1)
+reg = DecisionTreeRegressor(min_samples_split=3).fit(x.reshape(-1,1),y.reshape(-1,1))
+plt.plot(line, reg.predict(line), label="decision tree")
+regline = LinearRegression().fit(x.reshape(-1,1),y.reshape(-1,1))
+plt.plot(line, regline.predict(line), label= "Linear Regression")
+plt.plot(x, y, label= "Linear Regression")
+plt.show()
+!ec
+!eblock
+
+
+
+!split
+===== Artificial neurons  =====
+!bblock
+
+The field of artificial neural networks has a long history of
+development, and is closely connected with the advancement of computer
+science and computers in general. A model of artificial neurons was
+first developed by McCulloch and Pitts in 1943 to study signal
+processing in the brain and has later been refined by others. The
+general idea is to mimic neural networks in the human brain, which is
+composed of billions of neurons that communicate with each other by
+sending electrical signals.  Each neuron accumulates its incoming
+signals, which must exceed an activation threshold to yield an
+output. If the threshold is not overcome, the neuron remains inactive,
+i.e. has zero output.
+
+This behaviour has inspired a simple mathematical model for an artificial neuron.
+
 !bt
-\begin{align}
-	F_{rbm}(\mathbf{X},\mathbf{H}) = \frac{1}{Z} e^{-\frac{1}{T_0}E(\mathbf{X},\mathbf{H})}
-\end{align}
-!et
-where $Z$ is the partition function/normalization constant
-!bt
-\begin{align}
-	Z = \int \int \frac{1}{Z} e^{-\frac{1}{T_0}E(\mathbf{x},\mathbf{h})} d\mathbf{x} d\mathbf{h}
-\end{align}
-!et
-
-It is common to ignore $T_0$ by setting it to one. Here $E$ is known
-as the energy of a configuration of the nodes. Do not confuse this
-with the energy of the quantum mechanical system. Here it is a
-function which gives the specifics of the relation between the hidden
-and visible nodes. Different versions of RBMs will implement the
-energy function differently.
-
-=== Gaussian-Binary RBM ===
-
-The original and most common version of an RBM is called "binary-binary", meaning both visible and hidden nodes only take on binary values. In our case we wish to model continuous values (positions), thus the visible nodes should be continuous. We therefore choose an RBM called "Gaussian-binary". 
-!bt
-\begin{align}
-	E(\mathbf{X}, \mathbf{H}) = \sum_i^M \frac{(X_i - a_i)^2}{2\sigma_i^2} - \sum_j^N b_j H_j - \sum_{i,j}^{M,N} \frac{X_i w_{ij} H_j}{\sigma_i^2} 
-\end{align}
-!et
-If $\sigma_i = \sigma$ then
-!bt
-\begin{align}
-	E(\mathbf{X}, \mathbf{H})= \frac{||\mathbf{X} - \mathbf{a}||^2}{2\sigma^2} - \mathbf{b}^T \mathbf{H} - \frac{\mathbf{X}^T \mathbf{W} \mathbf{H}}{\sigma^2}
-\end{align}
-!et
-Here $\mathbf{X}$ are the visible nodes (the position coordinates), $\mathbf{H}$ are the hidden nodes, $\mathbf{a}$ are the visible biases, $\mathbf{b}$ are the hidden biases and $\mathbf{W}$ is a matrix containing the weights characterizing the connection of each visible node to a hidden node.
-
-=== The Wave Function ===
-To find the marginal probability $F_{rbm}(X)$ we set:
-!bt
-\begin{align}
-	F_{rbm}(\mathbf{X}) &= \sum_\mathbf{h} F_{rbm}(\mathbf{X}, \mathbf{h}) \\
-				&= \frac{1}{Z}\sum_\mathbf{h} e^{-E(\mathbf{X}, \mathbf{h})}
-\end{align}
-!et
-This is used to represent the wave function:
-!bt
-\begin{align}
-\Psi (\mathbf{X}) &= F_{rbm}(\mathbf{X}) \\
-&= \frac{1}{Z}\sum_{\{h_j\}} e^{-E(\mathbf{X}, \mathbf{h})} \\
-&= \frac{1}{Z} \sum_{\{h_j\}} e^{-\sum_i^M \frac{(X_i - a_i)^2}{2\sigma^2} + \sum_j^N b_j h_j + \sum_{i,j}^{M,N} \frac{X_i w_{ij} h_j}{\sigma^2}} \\
-&= \frac{1}{Z} e^{-\sum_i^M \frac{(X_i - a_i)^2}{2\sigma^2}} \prod_j^N (1 + e^{b_j + \sum_i^M \frac{X_i w_{ij}}{\sigma^2}}) \\
-\end{align}
-!et
-
-=== The Monte Carlo procedure ===
-
-In many aspects, the procedure of optimizing the NQS wave function
-will be very similar to the VMC method in project one. However, it
-requires a heavier emphasis on the minimization process. Whereas in
-project one you only had one or two parameters to optimize and could
-even determine them analytically, in this situation the biases and
-weights quickly add up to a high number of parameters to optimize, and
-it's hard, if possible at all, to determine them analytically. Thus
-minimizing the quantum mechanical energy and optimizing the parameters
-is important from the beginning. Still, the structure of the process
-is similar. You set up an initial guess of the NQS wave function by
-giving the weights and biases random, preferably small values. The
-process then follows the same structure as the VMC method.
-
-
-
-
-
-
-
-
-A common thread in many unsupervised learning tasks is accurately
-representing the underlying probability distribution from which a
-dataset is drawn.  Unsupervised learning of high-dimensional, complex
-distributions presents a new set of technical and computational
-challenges that are different from those we encountered in a
-supervised learning setting. When dealing with complicated probability
-distributions, it is often much easier to learn the \emph{relative
-weights} of different states or data points (ratio of probabilities),
-than \emph{absolute} probabilities. In physics, this is the familiar
-statement that the weights of a Boltzmann distribution are much easier
-to calculate than the partition function. The relative probability of
-two configurations, $\bd{x}_1$ and $\bd{x}_2$, are proportional to the
-difference between their Boltzmann weights \be {p(\mathbf{x}_1) \over
-p(\mathbf{x}_2)} =e^{-\beta
-\left(E(\mathbf{x}_1)-E(\mathbf{x}_2)\right)}, \ee where as is usual
-in statistical mechanics $\beta$ is the inverse temperature and
-$E(\mathbf{x}; \theta)$ is the energy of state $\mathbf{x}$ given some
-parameters (couplings) $\theta$ . However, calculating the absolute
-weight of a configuration requires knowledge of the partition function
-\be Z_p =\mathrm{Tr}_{\mathbf{x} }e^{-\beta E(\mathbf{x})}, \ee (where
-the trace is taken over all possible configurations $\mathbf{x}$)
-since \be p(\mathbf{x}) ={ e^{-\beta E(\mathbf{x}_1)} \over Z_p}.  \ee
-In general, calculating the partition function $Z_p$ is analytically
-and computationally intractable.
-
-For example, for the Ising model with $N$ binary spins, the trace involves calculating a sum over $2^N$ terms, which is a difficult task for most energy functions. For this reason, physicists (and machine learning scientists) have developed various numerical and computational methods for evaluating such partition functions. One approach is to use Monte-Carlo based methods to draw samples from the underlying distribution (this can be done knowing only the relative probabilities) and then use these samples to numerically estimate the partition function. This is the philosophy behind powerful methods such as Markov Chain Monte Carlo (MCMC) \cite{andrieu2003introduction} and annealed importance sampling \cite{neal1998view} which are widely used in both the statistical physics and machine learning communities. An alternative approach -- which we focus on here  -- is to approximate the the probability distribution $p(\mathbf{x})$ and partition function using a ``variational distribution'' $q(\mathbf{x}; \theta_q)$ whose partition function we can calculate exactly. The variational parameters $\theta_q$ are chosen to make the variational distribution as close to the true distribution as possible (how this is done is the focus of much of this section). 
-
-One of the most-widely applied examples of a variational method in statistical physics is Mean-Field Theory (MFT). MFT can be naturally understood as a procedure for approximating the true distribution of the system by a factorized distribution. The deep connection between MFT and variational methods is discussed below.  These variational MFT methods have been extended to understand more complicated spin models (also called graphical models in the ML literature) and form the basis of powerful set of techniques that go under the name of Belief Propagation and Survey Propagation  \cite{yedidia2003understanding, mackay2003information, wainwright2008graphical}. 
-
-Variational methods are also widely used in ML to approximate complex probabilistic models. For example, below we show how the Expectation Maximization (EM) procedure, which we discussed in the context of Gaussian Mixture Models for clustering, is actually a general method that can be derived for any latent (hidden) variable model using a variational procedure \cite{neal1998view}. This section serves as an introduction to this powerful class of variational techniques.  For readers interested in an in-depth discussion on variational inference for probabilistic graphical models, we recommend the great treatise written by Michael I. Jordan and others\cite{jordan1999introduction}, the more physics oriented discussion in \cite{yedidia2001idiosyncratic, yedidia2003understanding}, as well as David MacKay's outstanding book \cite{mackay2003information}. 
-
-%
-%In applying variational methods, one often approximate the complex model of interest with a proxy that depends on some ``variational parameters". One then optimize an objective function with respect to these parameters to improve the accuracy of approximation. For example, in both physics and machine learning we usually have to deal with probability distributions of the form
-%\begin{equation}
-%p(\bd{s}|\beta,\bd{J}) = \frac{1}{Z(\bd{J}|\beta)}\mathrm e^{-\beta E(\bd{s},\bd{J})}
-%\end{equation}
-%where $E(\bd{s},\bd{J})$ is the ``energy'' of a configuration $\bd{s}$, and the normalization constant, or partition function, is given by $Z(\bd{J}|\beta) = \sum_{\bd{s}}\mathrm e^{-\beta E(\bd{s},\bd{J})}$. In this case, $\bd{J}$ is interpreted as the parameters while $\bd{s}$ as the data.
-%
-%It is not difficult to see that in many cases the partition function could be difficult to compute. This is problematic because in the physics context, it allows us to derive all thermodynamic quantities of interest, and in the machine learning context, normalization is important for inference on, say, posterior distribution . As we stressed, one can tackle this problem with approaches based on random sampling such as MCMC or more refined algorithm such as annealed importance sampling\cite{neal1998view}, here we'll rather be concerned with variational methods that bear a close resemblance to the variational free energy approach of Feynmann and Bogoliubov.
-%Therefore, the goal is to find approximate probability distributions $q(\bd{s},\bd{\theta})$ which attempts to capture the relevant features of the true distribution $p(\bd{s}|\beta,\bd{J})$ and, at the same time, are simple enough to allow the calculation of the corresponding partition function. To this end, we first recall variational mean-field theory using the Ising model as an illustrative example.
-
-\subsection{\label{subsec:MFT_Ising}Variational mean-field theory for the Ising model}
-
-Ising models are a major paradigm in statistical physics. Historically introduced to study magnetism, it was quickly realized that their predictive power applies to a variety of interacting many-particle systems. Ising models are now understood to serve as minimal models for complex phenomena such as certain classes of phase transitions. In the Ising model, degrees of freedom called spins assume discrete, binary values, e.g.~$s_i=\pm 1$. Each spin variable $s_i$ lives on a lattice (or, in general, a graph), the sites of which are labeled by $i=1,2\dots, N$. Despite the extreme simplicity relative to real-world systems, Ising models exhibit a high level of intrinsic complexity, and the degrees of freedom can become correlated in sophisticated ways. Often, spins interact spatially locally, and respond to externally applied magnetic fields. 
-
-A spin configuration $\bd{s}$ specifies the values $s_i$ of the spins at every lattice site. We can assign an ``energy'' to every such configuration
-\begin{equation}
-E(\bd{s},\bd{J}) = -\frac{1}{2}\sum_{i,j}J_{ij}s_i s_j - \sum_i h_i s_i,
-\end{equation}
-where $h_i$ is a local magnetic field acting on the spin $s_i$, and $J_{ij}$ is the interaction strength between the spins $s_i$ and $s_j$. In textbook examples, the coupling parameters $\bd{J}=(J,h)$ are typically uniform or, in studies of disordered systems, drawn from some probability distribution (i.e. quenched disorder).  
-
-The probability of finding the system in a given spin configuration at temperature $\beta^{-1}$ is given by
-\begin{eqnarray}
-p(\bd{s}|\bd{J}) &=& \frac{1}{Z_p(\bd{J})}\mathrm e^{-\beta E(\bd{s},\bd{J})},\nonumber\\
-Z_p(\bd{J})&=&\sum_{\{s_i=\pm 1\}} \mathrm e^{-\beta E(\bd{s},\bd{J})},
-\end{eqnarray}
-with $\sum_{\{s_i=\pm 1\}}$ denoting the sum over all possible configurations of the spin variables. We write $Z_p$ to emphasize that this is the partition function corresponding to the probability distribution $p(\bd{s})$, which will become important later. For a fixed number of lattice sites $N$, there are $2^N$ possible configurations, a number that grows exponentially with the system size. Therefore, it is not in general feasible to evaluate the partition function $Z_p(\bd{J})$ in closed form. This represents a major practical obstacle for extracting predictions from physical theories since the partition function is directly related to the free-energy through the expression
-\begin{eqnarray}
-\label{eq:exact_F}
-\beta F_p(\bd{J})&=&-\log Z_p(\bd{J})= \beta \langle E(\bd{s},\bd{J})\rangle_p - H_p,
-\end{eqnarray}
-with 
-\begin{equation}
-\label{eq:entropy}
-H_p = -\sum_{\{s_i=\pm 1\}}p(\bd{s}|\bd{J})\log p(\bd{s}|\bd{J})
-\end{equation}
-the entropy of the probability distribution $p(\bd{s}|\bd{J})$. 
-
-
-Even though the true probability distribution $p(\bd{s}|\beta,\bd{J})$ may be a very complicated object, we can still make progress by approximating $p(\bd{s}|\beta,\bd{J})$ by a \emph{variational  distribution} $q(\bd{s},\bd{\theta})$ which captures the essential features of interest, with $\theta$ some parameters that define our variational ansatz. The name variational distribution comes from the fact that we are going to vary the parameters $\bd{\theta}$ to make $q(\bd{s},\bd{\theta})$ as close to $p(\bd{s}|\beta,\bd{J})$ as possible. The functional form of $q(\bd{s},\bd{\theta})$ is based on an ``educated guess'', which oftentimes comes from our intuition about the problem. We can also define a variational free-energy
-\be
-\beta F_q(\bd{\theta}, \bd{J}) = \beta \langle E(\bd{s},\bd{J})\rangle_q - H_q,
-\label{eq:main_var_eq}
-\ee
-where $ \langle E(\bd{s},\bd{J})\rangle_q$ is the expectation value of the energy corresponding to the distribution $p(\bd{s})$ with respect to the distribution $q(\bd{s},\bd{\theta})$, and $H_q$ is the entropy of $q(\bd{s},\bd{\theta})$.
-
-Before proceeding further, it is helpful to introduce a new quantity: the Kullback-Leibler divergence (KL-divergence or relative entropy) between two distributions $p(\mathbf{x})$ and $q(\mathbf{x})$. The KL-divergence measures the dissimilarity between the two distributions and is given by
- \be
-D_{KL}(q\| p)=\mathrm{Tr}_{\mathbf{x}} q(\mathbf{x})\log{q(\mathbf{x}) \over p(\mathbf{x})},
-\ee
-which is the expectation w.r.t.~$q$ of the logarithmic difference between the two distributions $p$ and $q$. Two important properties of the KL-divergence are (i) positivity: $D_{KL}(p\| q)\geq 0$ with equality if and only if $p=q$ (in the sense of probability distributions), and (ii) $D_{KL}(p\| q)\neq D_{KL}(q\| p)$, that is the KL-divergence is not symmetric in its arguments. 
- 
-
-Variational mean-field theory is a systematic way for constructing such an approximate distribution $q(\bd{s},\bd{\theta})$.
-The main idea is to choose parameters that minimize the difference between the variational free-energy $F_q(\bd{J},\bd{\theta})$ and the true free-energy $F_p(\bd{J}|\beta)$. We will show in Section \ref{subsubsec:EM} below that the difference between these two free-energies is actually the KL-divergence:
-\be
-F_q(\bd{J},\bd{\theta})=  F_p(\bd{J},\beta) + D_{KL}(q\|p).
-\ee
-This equality, when combined with the non-negativity of the KL-divergence has important consequences. First, it shows the variational free-energy is always larger than the true free-energy, $F_q(\bd{J},\bd{\theta})\geq F_p(\bd{J})$, with equality if and only if  $q=p$ (the latter inequality is found in many physics textbooks and is known as the Gibbs inequality). Second, finding the best variational free-energy is equivalent to minimizing the KL divergence $D_{KL}(q\| p)$.
-
-Armed with these observations, let us now derive a MFT of the Ising model using variational methods. In the simplest MFT of the Ising model, the variational distribution is chosen so that all spins are independent:
-\begin{equation}
-q(\bd{s},\bd{\theta}) = \frac{1}{Z_q}\exp\left(\sum_i \theta_i s_i\right) = \prod_i \frac{\mathrm e^{\theta_i s_i}}{2\cosh \theta_i}.
-\end{equation}
-In other words,  we have chosen a distribution $q$ which factorizes on every lattice site. An important property of this functional form is that we can analytically find a closed-form expression for  the variational partition function $Z_q$. This simplicity also comes at a cost:  ignoring correlations between spins. These correlations become less and less important in higher dimensions and the MFT ansatz becomes more accurate.
-
-
-To evaluate the variational free-energy, we make use of Eq.~\eqref{eq:main_var_eq}. First, we need the entropy $H_q$ of the distribution $q$. Since $q$ factorizes over the lattice sites, the entropy separates into a sum of one-body terms
-\begin{eqnarray}
-H_q(\bd{\theta}) &=& -\sum_{\{s_i=\pm 1\}}q(\bd{s},\bd{\theta})\log q(\bd{s},\bd{\theta})\nonumber\\
-&=& -\sum_i q_i\log q_i +(1-q_i)\log(1-q_i), 
-\end{eqnarray}
-where $q_i = \frac{\mathrm e^{\theta_i}}{2\cosh \theta_i}$ is the probability that spin $s_i$ is in the $+1$ state. Next, we need to evaluate the average of the Ising energy $E(\bd{s},\bd{J})$ with respect to the variational distribution $q$. Although the energy contains bilinear terms, we can still evaluate this average easily, because the spins are independent (uncorrelated) in the $q$ distribution. The mean value of spin $s_i$ in the $q$ distribution, or the on-site magnetization, is given by 
-\begin{equation}
-\label{eq:MF_self_consistency}
-m_i = \langle s_i\rangle_q = \sum_{s_i=\pm 1 }s_i \frac{\mathrm e^{\theta_i s_i}}{2\cosh \theta_i} = \tanh(\theta_i).
-\end{equation}
-Since the spins are independent, we have
-\begin{equation}
-\langle E(\bd{s},\bd{J})\rangle_q =  -\frac{1}{2}\sum_{i,j}J_{ij}m_i m_j - \sum_i h_i m_i.
-\end{equation}
-The total variational free-energy is
-\begin{equation*}
-\beta F_q(\bd{J},\bd{\theta})  = \beta \langle E(\bd{s},\bd{J})\rangle_q - H_q,
-\end{equation*}
-and minimizing with respect to the variational parameters ${\bd \theta}$, we obtain
-\begin{equation}
-\frac{\partial}{\partial \theta_i} \beta F_q({\bd{J},\bd{\theta}}) = 2\frac{d q_i}{d\theta_i}\left(-\beta\left[\sum_j J_{ij} m_j + h_i\right] + \theta_i \right).
-\end{equation}
-Setting this equation to zero, we arrive at 
-\begin{equation}
-\label{eq:MF_Ising}
-\theta_i = \beta\sum_j J_{ij}m_j(\theta_j) + h_i. 
-\end{equation}
-For the special case of a uniform field $h_i = h$ and uniform nearest neighbor couplings $J_{ij} = J$, by symmetry the variational parameters for all the spins are identical, with $\theta_i = \theta$ for all $i$. Then, the mean-field equations reduce to their familiar textbook form, $m = \tanh(\theta)$ and $\theta = \beta(z J m(\theta) + h)$, where $z$ is the coordination number of the lattice (i.e. the number of nearest neighbors). 
-
-Equations~\eqref{eq:MF_self_consistency} and~\eqref{eq:MF_Ising} form a closed system, known as the mean-field equations for the Ising model. To find a solution to these equations, one method is to iterate through and update each $\theta_i$, once at a time, in an asynchronous fashion. To see the relationship of this approach to solving the MFT equations to Expectation Maximization (EM), it is helpful to explicitly spell out the iterative procedure to find the solutions to Eq. ~\eqref{eq:MF_Ising}. We start by initializing our variational parameters to some $\bd{\theta}^{(0)}$ and repeat the following until convergence:
-\begin{enumerate}
-\item \emph{Expectation}: Given a set of assignments at iteration $t$, $\bd{\theta}^{(t)}$, calculate the corresponding magnetizations $\bd{m}^{(t)}$ using Eq.~\eqref{eq:MF_self_consistency}
-\item \emph{Maximization}: Given a set of magnetizations $m_t$, find new assignments $\theta^{(t+1)}$ which minimize the variational free energy $F_q$. From, Eq.~\eqref{eq:MF_Ising}
-this is just
-\be
-\theta_i^{(t+1)}= \beta\sum_j J_{ij}m_j^{(t)} + h_i. 
-\ee
-\end{enumerate}
-From these equations, it is clear that we can think of the MFT of the Ising model as an EM-like procedure similar to the one we used for k-means clustering and Gaussian Mixture Models in Sec.~\ref{sec:clustering}.
-
-
-As if well known in statistical physics, even though MFT is not exact, it can often yield qualitatively and even quantitatively precise predictions (especially in high dimensions). The discrepancy between the true physics and MFT predictions stems from the fact that the variational distribution $q$ we chose does not model the correlations between spins. For instance, it predicts the wrong value for the critical temperature for the $2D$ Ising model. It even erroneously predicts the existence of a phase transition in one dimension at a non-zero temperature. We refer the interested reader to standard textbooks on statistical physics for a detailed analysis of applicability of MFT to the Ising model. However, we emphasize that the failure of any particular variational ansatz does not compromise the power of the approach. In some cases, one can consider changing the variational ansatz to improve the predictive properties of the corresponding variational MFT \cite{yedidia2001idiosyncratic, yedidia2003understanding}. The take-home message is that variational MFT is a powerful tool but one that must be applied and interpreted with care.
-
-
-
-\subsection{\label{subsubsec:EM}Expectation Maximization (EM)}
-Ideas along the lines of variational MFT have been independently developed in statistics and imported into machine learning to perform maximum likelihood (ML) estimates. In this section, we explicitly derive the Expectation Maximization (EM) algorithm and demonstrate further its close relation to variational MFT \cite{neal1998view}. We will focus on latent variable models where some of the variables are hidden and cannot be directly observed. This often makes maximum likelihood estimation difficult to implement. EM gets around this difficulty by using an iterative two-step procedure, closely related to variational  free-energy based approximation schemes in statistical physics. 
-
-To set the stage for the following discussion, let $\bd{x}$ be the set of visible variables we can directly observe and $\bd{z}$ be the set of latent or hidden variables that we cannot directly observe. Denote the underlying probability distribution from which $\bd{x}$ and $\bd{z}$ are drawn by $p(\bd{z},\bd{x}|\bd{\theta})$, with $\bd{\theta}$ representing all relevant parameters. Given a dataset $\bd{x}$, we wish to find the maximum likelihood estimate of the parameters $\bd{\theta}$ that maximizes the probability of the observed data. 
-
-As in variational MFT, we view $\bd{\theta}$ as variational parameters chosen to maximize the log-likelihood $L(\bd{\theta})=\log p(\bd{x}|\bd{\theta})$. Algorithmically, this can be done by iterating the variational parameters $\bd{\theta}^{(t)}$ in a series of steps ($t=1,2, \dots$) starting from some arbitrary initial value $\bd{\theta}^{(0)}$:
-\begin{enumerate}
-	\item {\bf Expectation step (E step): }{ Given the known values of observed variable $\bd{x}$ and the current estimate of parameter $\bd\theta_{t-1}$, find the probability distribution of the latent variable $\bd{z}$:}
-	\begin{equation}\label{eq:Estep}
-	q_{t-1}(\bd{z})=p(\bd{z}|\bd{\theta}^{(t-1)},\bd{x})
-	\end{equation}
-	\item {\bf Maximization step (M step):} { Re-estimate the parameter $\bd{\theta}^{(t)}$ to be those with maximum likelihood, assuming $q_{t-1}(\bd z)$ found in the previous step is the true distribution of hidden variable $\bd z$:}
-	\begin{equation}\label{eq:Mstep}
-	\bd{\theta}_{t}=\argmax_{\bd{\theta}}\langle \log p(\bd{z},\bd{x}|\bd{\theta})\rangle_{q_{t-1}}
-	\end{equation}
-\end{enumerate}
-It was shown \cite{dempster1977maximum} that {each EM iteration increases the true log-likelihood $L(\bd{\theta})$}, or at worst leaves it unchanged. { In most models, this iteration procedure converges to a  \emph{local maximum} of $L(\bd \theta)$. 
-
-
-\begin{figure}[h!]
-	\includegraphics[width=1.0\columnwidth]{variational/EMalg.pdf}
-	\caption{Convergence of EM algorithm. Starting from $\bd{\theta}_t$, E-step (blue) establishes $F_{q}(\bd{\theta}^{(t)})$ which is always a lower bound of $F_p:=\log p(\bd x|\bd \theta)$ (green). M-step (red) is then applied to update the parameter, yielding $\bd{\theta}^{(t+1)}$. The updated parameter $\bd{\theta}^{(t+1)}$ is then used to construct $F_{q}(\bd{\theta}^{(t+1)})$  in the subsequent E-step. M-step is performed again to update the parameter, etc. }
-	\label{fig:EM}
-\end{figure} 
-
-
-
-To see how EM is actually performed and related to variational MFT, we make use of KL-divergence between two distributions introduced in the last section. Recall that our goal is to maximize the log-likelihood $L(\bd{\theta})=\log p(\bd{x}|\bd{\theta})$. With data $\bd{z}$ missing, we surely cannot just maximize $L(\bd{\theta})$ directly since parameter $\bd\theta$ might couple both $\bd z$ and $\bd x$. EM circumvents this by optimizing another objective function, $F_{q}(\bd{\theta})$, constructed based on estimates of the hidden variable distribution $q(\bd{z}|\bd{x})$. Indeed, the function optimized is none other than the {\it variational free energy} we encountered in the previous section:
-\begin{eqnarray}
-F_{q}(\bd\theta) := -  \langle \log p(\bd{z},\bd{x}|\bd{\theta})\rangle_{q} -H_q \label{eq:Fptilde},
-\end{eqnarray}
-where $H_q$ is the Shannon entropy (defined in Eq.~\eqref{eq:entropy}) of $q(\bd z)$. Once can define the true free-energy $F_p(\bd\theta)$ as the negative log-likelihood of the observed data:
-\be
--F_p(\bd\theta) = L(\bd{\theta}) = \log p(\bd{x}|\bd{\theta}).
-\ee
-In the language of statistical physics, $F_p(\bd \theta)$ is the {\it true} free-energy while $F_{q}(\bd\theta)$ is the variational free-energy we would like to minimize (see Table \ref{tbl:vMFT_EM}). Note that we have chosen to employ a physics sign convention here of defining the free-energy as minus log of the partition function. In the ML literature, this minus sign is often omitted \cite{neal1998view} and this can lead to some confusion. 
-Our goal is to  choose $\bd{\theta}$ so that our variational free-energy  $F_{q}(\bd{\theta})$ is as close to the true free-energy  $F_p(\bd{\theta})$ as possible. The difference between these free-energies can be written as
-\begin{eqnarray}
-&& F_{q}(\bd\theta) - F_{p}(\bd\theta) \nonumber\\
-&=& \log p(\bd{x}|\bd{\theta}) -\sum_{\bd z}q(\bd{z}|\bd{x}) \log  p(\bd{z},\bd{x}|\bd{\theta}) \nonumber \\
-+ &&\sum_{\bd z}q(\bd{z}|\bd{x}) \log q(\bd{z}|\bd{x}) \nonumber\\
-&=&\sum_{\bd z}q(\bd{z}|\bd{x})  \log p(\bd{x}|\bd{\theta}) -\sum_{\bd z}q(\bd{z}|\bd{x}) \log  p(\bd{z},\bd{x}|\bd{\theta}) \nonumber\\
-&& + \sum_{\bd z}q(\bd{z}|\bd{x}) \log q(\bd{z}|\bd{x}) \nonumber\\
-&=&\! -\sum_{\bd z}q(\bd{z}|\bd{x}) \log \frac{p(\bd{z},\bd{x}|\bd{\theta})}{p(\bd{x}|\bd{\theta})}
-\!+\!\sum_{\bd z}q(\bd{z}|\bd{x}) \log\tilde  p(\bd{z}) \nonumber\\
-&=& \sum_{\bd z}q(\bd{z}|\bd{x}) \log \frac{q(\bd{z}|\bd{x})}{ p(\bd{z}|\bd{x},\bd{\theta})} \nonumber \\
-&=& D_{KL}(q(\bd{z}|\bd{x}) \| p(\bd{z}|\bd{x},\bd{\theta}))\ge 0 \nonumber
-\end{eqnarray} 
-where we have used Bayes' theorem $ p(\bd z| \bd{x},\bd{\theta}) =  p (\bd z, \bd x|\bd \theta)/ p (\bd x|\bd \theta)$. Since the KL-divergence is always positive, this shows that the variational free-energy {$F_{q}$ is always an upper bound of the true free-energy $F_p$}. In physics, this result is known as Gibbs' inequality. 
-
-From Eq.~\eqref{eq:Fptilde} and the fact that the the entropy term in Eq.~\eqref{eq:Fptilde} does not depend on $\bd\theta$, we can immediately see that the maximization step (M-step) in Eq.~\eqref{eq:Mstep} is equivalent to minimizing  the variational free-energy $F_{q}(\bd\theta)$. Surprisingly, the expectation step (E-step) can also viewed as the optimization of this variational free-energy. Concretely, one can show that the  distribution of hidden variables $\bd{z}$ given the observed variable $\bd x$ and the current estimate of parameter $\bd\theta$, Eq.~(\ref{eq:Estep}), is the \emph{unique} probability $q(\bd z)$ that minimizes $F_{q}(\bd\theta)$ (now seen as a functional of $q$). This can be proved by taking the functional derivative of Eq.~\eqref{eq:Fptilde}, plus a Lagrange multiplier that encodes $\sum_{\bd{z}} q(\bd z)=1$, with respect to $q(\bd z)$. Summing things up, we can re-write EM in the following form \cite{neal1998view}:
-\begin{enumerate}
-	\item \emph{Expectation step:} Construct the approximating probability distribution {of unobserved $\bd z$ given the values of observed variable $\bd x$ and parameter estimate $\bd\theta^{(t-1)}$}:
-	\begin{equation}\label{eq:EM_Estep}
-	q_{t-1}(\bd{z})=\argmin_{q}F_{q}(\bd{\theta}^{(t-1)})
-	\end{equation}
-	\item \emph{Maximization step:} {Fix $q$, }update the variational parameters:
-	\begin{equation}\label{eq:EM_Mstep}
-	\bd{\theta}^{(t)}=\argmax_{\bd{\theta}} -F_{q_{t-1}}(\bd{\theta}).
-	\end{equation}
-\end{enumerate}
-
-
-To recapitulate, EM  implements ML estimation even with missing or hidden variables through optimizing a lower bound of the true log-likelihood. In statistical physics, this is reminiscent of optimizing a variational free-energy which is a lower bound of true free-energy due to Gibbs inequality. In Fig.~\ref{fig:EM}, we show pictorially how EM works. The E-step can be seen as representing the unobserved variable $\bd z$ by a probability distribution $q(\bd z)$. This probability is used to construct an alternative objective function $-F_{q}(\bd\theta)$, which is then maximized with respect to $\bd\theta$ in the M-step. By construction, maximizing the negative variational free-energy is equivalent to doing ML estimation on the joint data (i.e.~both observed and unobserved). The name ``M-step'' is intuitive since the parameters $\bd\theta$ are found by maximizing $-F_{q}(\bd\theta)$. The name ``E-step'' comes from the fact that one usually doesn't need to construct the probability of missing datas explicitly, but rather need only compute the ``expected" sufficient statistics over these data, cf.~Fig.~\ref{fig:EM}. 
-
-
-
-On the practical side, EM has been demonstrated to be extremely useful in parameter estimation, particularly in hidden Markov models and Bayesian networks (see, for example, \cite{wainwright2008graphical,barber2012bayesian}). One of the striking advantages of EM is that it is conceptually simple and easy to implement (see \href{https://physics.bu.edu/~pankajm/MLnotebooks.html}{Notebook 16}). In many cases, implementation of EM is guaranteed to increase the likelihood monotonically, which could be a perk during debugging. For readers interested in an overview on applications of EM, we recommend \cite{do2008expectation}.
-
-Finally for advanced readers familiar with the physics of disordered systems, we note that it is possible to construct a one-to-one dictionary between EM for latent variable models and the MFT of spin systems with quenched disorder.  In a disordered spin systems, the Ising couplings $\bd{J}$ are commonly taken to be quenched random variables drawn from some underlying probability distribution. In the EM procedure, the quenched disorder is provided by the observed data points $\bd{x}$ which are drawn from some underlying probability distribution that characterizes the data. The spins $\bd{s}$ are like the hidden or latent variables $\bd{z}$. Similar analogues can be found for all the variational MFT quantities (see Table \ref{tbl:vMFT_EM}). This striking correspondence offers a glimpse into the deep connection between statistical mechanics and unsupervised latent variable models  -- a connection that we will repeatedly exploit to gain more intuition for the energy-based unsupervised models considered in the next few chapters.
-
-\begin{table}[t!]
-	\begin{tabular}{*{3}{|p{0.5\columnwidth}}}
-		\hline
-		\emph{\bf{statistical physics}}	&  \emph{\bf{Variational EM}} \\
-		\hline
-		spins/d.o.f.: $\bd{s}$	& hidden/latent variables $\bd{z}$  \\
-		\hline
-		couplings /quenched disorder: $\bd{J}$	& data observations: $\bd{x}$ \\
-		\hline
-		 Boltzmann factor $e^{-\beta E(\bd{s},\bd{J})}$	& Complete probability: $p({\bd x},{\bd z}|\bd{\theta})$ \\
-		\hline
-		partition function: $Z(\bd{J})$  &  marginal likelihood $p(\bd{x}|\theta)$ \\
-		\hline
-		energy: $\beta E(\bd{s},\bd{J})$  & negative log-complete data likelihood: $-\log p({\bd x},{\bd z}|\bd{\theta},m)$ \\
-		\hline
-		free energy: $\beta F_p(\bd{J}|\beta)$  & negative log-marginal likelihood:  $-\log p(\bd{x}|m)$ \\
-		\hline
-
-		variational distribution: $q(\bd{s})$  & variational distribution: $q(\bd{z}|\bd{x})$ \\
-		\hline
-		variational free-energy: $F_q(\bd{J}, \bd{\theta}) $  & variational free-energy:
-		$F_{q}(\bd{x}, \bd\theta)$ \\
-		\hline
-	\end{tabular}
-	\caption{Analogy between quantities in statistical physics and variational EM.}
-	\label{tbl:vMFT_EM}
-\end{table}
-
-
-%\subsection{Graphical Models, Bp, and variational methods}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\section{Energy Based Models: Maximum Entropy (MaxEnt) Principle, Generative models, and Boltzmann Learning}
-\label{sec:EnergyI}
-
-Most of the models discussed in the previous sections (e.g. linear and logistic regression, ensemble models, and supervised neural networks) are \emph{discriminative} -- they are designed to perceive differences between groups or categories of data. For example, recognizing differences between images of cats and images of dogs allows a discriminative model to label an image as ``cat'' or ``dog''. Discriminative models form the core techniques of most supervised learning methods. However, discriminative methods have several limitations. First, like all supervised learning methods, they require labeled data. Second, there are tasks that discriminative approaches simply cannot accomplish, such as drawing new examples from an unknown probability distribution. A model that can learn to represent and sample from a probability distribution is called \emph{generative}. For example, a generative model for images would learn to draw new examples of cats and dogs given a dataset of images of cat and dog. Similarly, given samples generated from one phase of an Ising model we may want to generate new samples from that phase. Such tasks are clearly beyond the scope of discriminative models like the ensemble models and DNNs discussed so far in the review. Instead, we must turn to a new class of machine learning methods.
-
-The goal of this section is to introduce the reader to \emph{energy-based} generative models. As we will see, energy-based models are closely related to the kinds of models commonly encountered in statistical physics. For this reason, we will draw upon many techniques that have their origin in statistical mechanics (e.g. Monte-Carlo methods). The section starts with a brief overview of generative models, highlighting the similarities and differences with the supervised learning methods encountered in earlier sections. Next, we introduce perhaps the simplest kind of generative model -- Maximum Entropy (MaxEnt) models. MaxEnt models have no latent (or hidden) variables, making them ideal for introducing the key concepts and tools that underlie energy-based generative models. We then present an extended discussion of how to train energy-based models. Much of this discussion will be also be applicable to more complicated energy-based models such as Restricted Boltzmann Machines (RBMs) and the deep models discussed in the next section.
-\subsection{An overview of energy-based generative models}
-
-Generative models are machine learning methods that learn to generate new examples similar to those found in a training dataset. The core idea of most generative models is to learn a parametric model for the probability distribution from which the data was drawn. Once we have learned a model, we can generate new examples by sampling from the learned generative model (see Figure~\ref{fig:MNIST-generative}). As in statistical physics, this sampling is often done using Markov Chain Monte Carlo (MCMC) methods. A review of MCMC methods is beyond the scope of this discussion: for a concise and beautiful introduction to MCMC-inspired methods that bridges both statistical physics and ML the reader is encouraged to consult Chapters 29-32 of David MacKay's book \cite{mackay2003information} as well as the review by Michael I. Jordan and others~\cite{andrieu2003introduction}. 
-
-
-The added complexity of learning models directly from samples introduces many of the same fundamental tensions we encountered when discussing discriminative models. The ability to generate new examples requires models to be able to ``generalize'' beyond the examples they have been trained on, that is to generate new samples that are not samples of the training set. The models must be expressive enough to capture the complex correlations present in the underlying data distribution, but the amount of data we have is finite which can give rise to overfitting.
-
-
-
-In practice, most generative models that are used in machine learning flexible enough that, with a sufficient number of parameters, they can approximate any probability distribution. For this reason, there are three axes on which we can differentiate classes of generative models:
-\begin{itemize}
-\item The first axis is how easy the model is to train -- both in terms of computational time and the complexity of writing code for the algorithm.
-\item  The second axis is how well the model generalizes from the training set to the test set. 
-\item The third axis is which characteristics of the data distribution the model is capable of and focuses on capturing. 
-\end{itemize}
-All generative models must balance these competing requirements and generative models differ in the tradeoffs they choose. Simpler models capture less structure about the underlying distributions but are often easier to train. More complicated models can capture this structure but may overfit to the training data. 
-
-
-
-One of the fundamental reasons that energy-based models have been less widely-employed than their discriminative counterparts is that the training procedure for these models differs significantly from those for supervised neural networks models. Though both employ gradient-descent based procedures for minimizing a cost function (one common choice for generative models is the negative log-likelihood function), energy-based models do not use backpropagation (see Sec.~\ref{subsec:backprop}) and automatic differentiation for computing gradients. Rather, one must turn to ideas inspired by MCMC based methods in physics and statistics that sometimes go under the name ``Boltzmann Learning'' (discussed below). As a result, training energy-based models requires additional tools that are not immediately available in packages such as PyTorch and TensorFlow.
-
-
-A new open-source package -- {\it Paysage} -- that is built on top of PyTorch bridges this gap by providing the toolset for training energy-based models (Paysage is maintained by Unlearn.AI -- a company affiliated with two of the authors (CKF and PM)). Paysage makes it easy to quickly code and deploy energy-based models such as Restricted Boltzmann Machines (RBMs) and Stacked RBMs-- a ``deep'' unsupervised model. The package includes unpublished training methods that significantly improve the training performance, can be used for various datatypes, and can be employed on GPUs. We make use of this package extensively in the next two sections and the accompanying Python notebooks. For example, Figure \ref{fig:MNIST-generative} (and the accompanying \href{https://physics.bu.edu/~pankajm/MLnotebooks.html}{notebook}) show how the Paysage package can be used to quickly code and train a variety of energy-based models on the MNIST handwritten digit dataset.
-
-
- 
- 
-Finally, we note that generative models at their most basic level are complex parameterizations of the probability distribution the data is drawn from. For this reason, generative models can do much more than just generate new examples. They can be used to perform a multitude of other tasks that require sampling from a complex probability distribution including ``de-noising'', filling in missing data, and even discrimination \cite{hinton2012practical}. The versatility of generative models is one of the major appeals of these unsupervised learning methods.
-
-\begin{figure}[t]
-\includegraphics[width=0.9\columnwidth]{Energy/mnist-RBM.png}
-\caption{Examples of handwritten digits (``reconstructions'') generated using various energy-based models using the powerful \emph{Paysage} package for unsupervised learning. Examples from top to bottom are: the original MNIST database,   an RBM with Gaussian units which is equivalent to a Hopfield Model, a Restricted Boltzmann Machine (RBM), a RBM with an $L_1$ penalty for regularization, and a Deep Boltzmann Machine (DBM) with $3$ layers. All models have $200$ hidden units. See Sec. \ref{sec:EnergyII} and corresponding notebook for details}
-\label{fig:MNIST-generative}
-\end{figure}
-
-
-\subsection{Maximum entropy models: the simplest energy-based generative models}
-
-Maximum Entropy (MaxEnt) models are one of the simplest classes of energy-based generative models.  MaxEnt models have their origin in a series of beautiful papers by Jaynes that reformulated statistical mechanics in information theoretic terms \cite{jaynes1957information, jaynes1957informationII}. Recently, the flood of new, large scale datasets has resulted in a resurgence of interest in MaxEnt models in many fields including physics (especially biological physics), computational neuroscience, and ecology \cite{schneidman2006weak, weigt2009identification, elith2011statistical}. MaxEnt models are often presented as the class of generative models that make the least assumptions about the underlying data. However, as we have tried to emphasize throughout the review, all ML and statistical models require assumptions, and MaxEnt models are no different. Overlooking this can sometimes lead to misleading conclusions, and it is important to be cognizant of these implicit assumptions \cite{schwab2014zipf, aitchison2016zipf}.
-
-
-
-\subsubsection{MaxEnt models in statistical mechanics}
-
-MaxEnt models were introduced by E.~T.~Jaynes in a two-part paper in 1957 entitled ``Information theory and statistical mechanics'' \cite{jaynes1957information, jaynes1957informationII}. In these incredible papers, Jaynes showed that it was possible to re-derive the Boltzmann distribution (and the idea of generalized ensembles) entirely from information theoretic arguments. Quoting from the abstract, Jaynes considered ``statistical mechanics as a form of statistical inference rather than as a physical theory'' (portending the close connection between statistical physics and machine learning). Jaynes showed that the Boltzmann distribution could be viewed as resulting from a statistical inference procedure for learning probability distributions describing physical systems where one only has partial information about the system (usually the average energy).
-
-
-The key quantity in MaxEnt models is the information theoretic, or Shannon, entropy, a concept introduced by Shannon in his landmark treatise on information theory \cite{shannon1949communication}. The Shannon entropy quantifies the statistical uncertainty one has about the value of a random variable ${\bf x}$  drawn from a probability distribution $p({\bf x})$. The Shannon entropy of the distribution is defined as 
-\be
-S_p = - \mathrm{Tr}_{\bf x} p({\bf x}) \log p({\bf x})
-\ee
-where the trace is a sum/integral over all possible values a variable can take. Jaynes showed that the Boltzmann distribution follows from the Principle of Maximum Entropy. A physical system should be described by the probability distribution with the largest entropy subject to certain constraints (often provided by measuring the average value of conserved, extensive quantities such as the energy, particle number, etc.) The principle uniquely specifies a procedure for parameterizing the functional form of the probability distribution. Once we have specified and learned this form we can, of course, generate new examples by sampling this distribution.
-
-
-Let us illustrate how this works in more detail. Suppose that we have chosen a set of functions $\{f_i({\bf x})\}$ whose average value we want to fix to some observed values $\langle f_i \rangle_\mathrm{obs}$. The Principle of Maximum Entropy states that we should choose the distribution $p({\bf x})$ with the largest uncertainty (i.e.~largest Shannon entropy $S_p$), subject to the constraints that the model averages match the observed averages:
-\be
-\langle f_i \rangle_\mathrm{model} := \int \mathrm{d} {\bf x} f_i({\bf x}) p({\bf x}) = \langle f_i \rangle_\mathrm{obs}
-\ee
-
-We can formulate the Principle of Maximum Entropy as an optimization problem using the method of Lagrange multipliers by minimizing:
-\begin{align}
-\mathcal{L}[p] &=  -S_p + \sum_i \lambda_i \left(\langle f_i \rangle_\mathrm{obs} - \int d {\bf x} f_i({\bf x}) p({\bf x})\right) \nonumber \\
-&+ \gamma \left(1 - \int \mathrm{d} {\bf x} p({\bf x}) \right) \nonumber,
-\end{align}
-where the first set of constraints enforce the requirement for the averages and the last constraint enforces the normalization that the trace over the probability distribution equals one. We can solve for $p({\bf x})$ by taking the functional derivative and setting it to zero
-\begin{align}
-0=\frac{\delta \mathcal{L}}{ \delta p} = (\log p({\bf x})) + 1) -\sum_i \lambda_i f_i({\bf x}) - \gamma \nonumber.
-\end{align}
-The general form of the maximum entropy distribution is then given by
-\begin{equation}
-p({\bf x}) = \frac{1}{Z}\;  \mathrm e^{\;\sum_i \lambda_i f_i({\bf x})}
-\label{eq:boltzmann-dist}
-\end{equation}
-where $Z({\lambda_i}) = \int \mathrm{d} {\bf x}\mathrm  e^{\sum_i \lambda_i f_i({\bf x})}$ is the partition function. 
-
-The maximum entropy distribution is clearly just the usual Boltzmann distribution with energy $E({\bf x}) = - \sum_i \lambda_i f_i({\bf x})$.  The values of the Lagrange multipliers are chosen to match the observed averages for the set of functions  $\{f_i({\bf x})\}$ whose average value is being fixed:
-\begin{equation}
-\langle f_i \rangle_\mathrm{model} =  \int \mathrm{d} {\bf x} p({\bf x}) f_i({\bf x})= \frac{\partial \log Z}{\partial \lambda_i} =  \langle f_i \rangle_\mathrm{obs}.
-\label{eq:moment-constraint}
-\end{equation}
-In other words, the parameters of the distribution can be chosen such that 
-\be
-\partial_{\lambda_i} \log Z = \langle f_i \rangle_\mathrm{data}.
-\ee 
-
-To gain more intuition for the MaxEnt distribution, it is helpful to relate the Lagrange multipliers to the familiar thermodynamic quantities we use to describe physical systems  \cite{jaynes1957information}.  Our $\mathbf{x}$ denotes the microscopic state of the system, i.e. the MaxEnt distribution is a probability distribution over microscopic states. However, in thermodynamics we only have access to average quantities. If we know only the average energy $ \langle E(\mathbf{x}) \rangle_\mathrm{obs}$, the MaxEnt procedure tells us to maximize the entropy subject to the average energy constraint. This yields
-\be
-p({\mathbf x})=  \frac{1}{Z}\; \mathrm e^{- \beta  E(\mathbf x)}.
-\ee
-where we have identified the Lagrange multiplier conjugate to the energy $\lambda_1=-\beta= 1/k_BT$ with the (negative) inverse temperature. Now, suppose we also constrain the particle number $\langle N(x) \rangle_\mathrm{obs}$. Then, an almost identical calculation yields a MaxEnt distribution of the functional form
-\be
-p({\mathbf x})=  \frac{1}{Z}\; \mathrm e^{-\beta( E({\mathbf x}) -\mu N(\mathbf{x}))},
-\ee
-where we have rewritten our Lagrange multipliers in the familiar thermodynamic notation $\lambda_1= -\beta$ and $\lambda_2 =  \mu/\beta$. Since this is just the Boltzmann distribution, we can also relate the partition function in our MaxEnt model to the thermodynamic free-energy via $F= -\beta^{-1} \log Z$. The choice of which quantities to constrain is equivalent to working in different thermodynamic ensembles.
-
-
-
-\subsubsection{From statistical mechanics to machine learning}
-
-
-The MaxEnt idea also provides a general procedure for learning a generative model from data. The key difference between MaxEnt models in (theoretical) physics and ML is that in ML we have no direct access to observed values $\langle f_i \rangle_\mathrm{obs}$. Instead, these averaged must be directly estimated from data (samples). To denote this difference, we will call empirical averages calculated from data as $\langle f_i \rangle_\mathrm{data}$. We can think of MaxEnt as a statistical inference procedure simply by replacing $\langle f_i \rangle_\mathrm{obs}$ by  $\langle f_i \rangle_\mathrm{data}$ above. 
-
-This subtle change has important implications for training MaxEnt models. First, since we do not know these averages exactly, but must estimate from the data, our training procedures must be careful not to overfit to the observations (our samples might not be reflective of the true values of these statistics). Second, the averages of certain functions $f_i$ are easier to estimate from limited data than others. This is often an important consideration when formulating which MaxEnt model to fit to the data. Finally, we note that unlike in physics where conservation laws often guide the functions $f_i$  whose averages we hold fix, ML offers no comparable guide for how to choose the $f_i$ we care about. For these reasons, choosing the $\{ f_i \}$ is often far from straightforward.
-As a final point, we note that here we have presented a physics-based perspective for justifying the MaxEnt procedure. We mention in passing that the MaxEnt in ML is also closely related to ideas from Bayesian inference \cite{jaynes1968prior, jaynes2003probability} and this latter point of view is more common in discussion of MaxEnt in the statistics and ML literature.
-
-
-
-\subsubsection{Generalized Ising Models from MaxEnt}
-
-The form of a MaxEnt model is completely specified once we choose the averages $\{f_i\}$ we wish to constrain. One common choice often used in MaxEnt modeling is to constrain the first two moments of a distribution. When our random variables $\bf{x}$ are continuous, the corresponding MaxEnt distribution is a multi-dimensional Gaussian. If the  $\bf{x}$ are binary (discrete), then the corresponding MaxEnt distribution is a generalized Ising (Potts) model with all-to-all couplings. 
-
-
-To see this, consider a random variable $\bf{x}$ with first and second moments $\langle x_i \rangle_\mathrm{data}$ and $\langle x_i x_j \rangle_\mathrm{data}$, respectively. According to the Principle of Maximum Entropy, we should choose to model this variable using a Boltzmann distribution with constraints on the first and second moments. Let $a_i$ be the Lagrange multiplier associated with $\langle x_i \rangle_\mathrm{data}$ and $J_{ij} / 2$ be the Lagrange multiplier associated with $\langle x_i x_j \rangle_\mathrm{data}$. Using Eq.~\eqref{eq:moment-constraint}, it is easy to verify that the energy function
-\begin{equation}
-E({\bf x}) = -\sum_i a_i x_i - \frac{1}{2} \sum_{ij} J_{ij} x_i x_j
-\label{eq:pairwise-maxent}
-\end{equation}
-satisfies the above constraints.
-
-
-
-Partition functions for maximum entropy models are often intractable to compute. Therefore, it is helpful to consider two special cases where ${\bf x}$ has different support (different kinds of data). First, consider the case that the random variables ${\bf x} \in \mathbb{R}^n$ are real numbers. In this case we can compute the partition function directly:
-\begin{align}
-Z 
-&= \int \mathrm{d} {\bf x} \mathrm e^{{\bf a}^T {\bf x} + \frac{1}{2} {\bf x}^T J {\bf x} }
-= \sqrt{(2 \pi)^n \text{det} J^{-1}} \mathrm e^{-\frac{1}{2} {\bf a}^T J^{-1} {\bf a}}.
-\end{align}
-The resulting probability density function is,
-\begin{align}
-p({\bf x}) &= Z^{-1} \mathrm e^{ -E({\bf x})} \nonumber \\
-&=  \frac{1}{ \sqrt{(2 \pi)^n \text{det} J^{-1}}} \mathrm e^{\frac{1}{2} {\bf a}^T J^{-1} {\bf a} + {\bf a}^T {\bf x} + \frac{1}{2} {\bf x}^T J {\bf x} } \nonumber \\
-&=  \frac{1}{ \sqrt{(2 \pi)^n \text{det} \Sigma }} \mathrm e^{-\frac{1}{2} ({\bf x} - {\bf \mu})^T \Sigma^{-1} ( {\bf x} - {\bf \mu}) },
-\label{eq:gaussian-pdf}
-\end{align}
-where ${\bf \mu} = -J^{-1} {\bf a}$ and $\Sigma = -J^{-1}$. This, of course, is the normalized, multi-dimensional Gaussian distribution. 
-
-Second, consider the case that the random variable ${\bf x}$ is binary with $x_i \in \{-1, +1\}$. The energy function takes the same form as Eq.~\eqref{eq:pairwise-maxent}, but the partition function can no longer be computed in a closed form. This model is known as the Ising model in the physics literature, and is often called a Markov Random Field in the machine learning literature. It is well known to physicists that calculating the partition function for the Ising Model is intractable. For this reason, the best we can do is estimate it using numerical techniques such MCMC methods or approximate methods like variational MFT methods, see Sec.~\ref{sec:varl_MFT}. Finally, we note that in ML it is common to use  binary variables which take on values in $x_i \in \{0,1\}$ rather than $\{\pm 1\}$. This can sometimes be a source of confusion when translating between ML and physics literatures and can lead to confusion when using ML packages for physics problems. 
-
-\subsection{Cost functions for training energy-based models}
-
-The MaxEnt procedure gives us a way of parameterizing an energy-based generative model. For any energy-based generative model, the energy function $E({\bf x}, \{\theta_i\})$ depends on some parameters $\theta_i$ -- couplings in the language of statistical physics -- that must be inferred directly from the data. For example, for the MaxEnt models the $\{ \theta_i\}$ are just the Lagrange multipliers $\{ \lambda_i\}$ introduced in the last section. The goal of the training procedures is to use the available training data to fit these parameters.
-
-Like in many other ML techniques, the way we will fit these couplings is by minimizing a cost function using stochastic gradient descent (cf.~Sec.~\ref{sec:gradient_descent}). Such a procedure naturally separates into two parts: choosing an appropriate cost function and calculating the gradient of the cost function with respect to the model parameters. Formulating a cost function for generative models is a little bit trickier than for supervised, discriminative models. The objective of discriminative models is straightforward -- predict the label from the features. However, what we mean by a ``good'' generative model is much harder to define using a cost function. We would like the model to generate examples similar to those we find in the training dataset. However, we would also like the model to be able to generalize -- we do not want the model to reproduce ``spurious details'' that are particular to the training dataset. Unlike for discriminative models, there is no straightforward idea like cross-validation on the data labels that neatly addresses this issue. For this reason, formulating cost functions for generative models is subtle and an important and interesting open area of research. 
-
-Calculating the gradients of energy-based models also turns out to be different than for discriminative models such as deep neural networks. Rather than rely on automatic differentiation techniques and backpropagation (see Sec.~\ref{subsec:backprop}), calculating the gradient requires drawing on intuitions from MCMC based methods. Below, we provide an in-depth discussion of Boltzmann learning for energy-based generative models, focusing on MaxEnt models. We put the emphasis on training procedures that generalize to more complicated generative models with latent variables such as RBMs discussed in the next section. Therefore, we largely ignore the incredibly rich physics-based literature on fitting Ising-like MaxEnt models (see the recent reviews  \cite{nguyen2017inverse,baldassi2018inverse} and references therein).
-
-
-
-
-\subsubsection{Maximum likelihood }
-
-
-By far the most common approach used for training a generative model is to maximize the log-likelihood of the training data set. Recall, that the log-likelihood characterizes the log-probability of generating the observed data using our generative model. By choosing the negative log-likelihood as the cost function, the learning procedure tries to find parameters that maximize the probability of the data. This cost function is intuitive and, for this reason, has been the work-horse of most generative modeling. However, we note that the Maximum Likelihood estimation (MLE) procedure has some important limitations that we will return to in Section \ref{sec:vae}. 
-
-In what follows, we employ a general notation that is applicable to all energy-based models, not just the MaxEnt models introduced above. The reason for this is that much of this discussion does not rely on the specific form of the energy function but only on the fact that our generative model takes a Boltzmann form. We denote the generative model by the probability distribution $p_\theta( {\bf x})$ and its corresponding partition function by $\log{Z(\{\theta_i\})}$. In MLE, the parameters of the model are fit by maximizing the log-likelihood:
-\bea
-\mathcal{L}(\{ \theta_i \}) &:=& \langle \log \left( p_\theta( {\bf x}) \right) \rangle_\mathrm{data}  \nonumber \\
-&=& -\langle E({\bf x}; \{ \theta_i\}) \rangle_\mathrm{data} - \log{Z(\{\theta_i\})},
-\label{Eq:E1_likelihood}
-\eea
-where we have set $\beta=1$. In writing this expression we made use of the fact that our generative distribution is of the Boltzmann form and the fact that our partition function does not depend on the data:
-\be
- \langle \log Z(\{\theta_i\}) \rangle_\mathrm{data}=\log{Z(\{\theta_i\})}.
-\ee
-
-
-
-\subsubsection{Regularization}
-
-Just as for discriminative models like a linear and logistic regression, it is common to supplement the log-likelihood with additional regularization terms that prevent overfitting (see Secs.~\ref{sec:lin_reg} and \ref{sec:log_reg}). Instead of minimizing the negative log-likelihood, one minimizes a cost function of the form
-\be
--\mathcal{L}(\{ \theta_i \}) + {E}_\mathrm{reg}(\{\theta_i\}),
-\ee
-where ${E}_\mathrm{reg}(\{\theta_i\})$ is an additional regularization term that prevents overfitting. From a Bayesian perspective, this new term can be viewed as encoding a (negative) log-prior on model parameters and performing a maximum-a-posteriori (MAP) estimate instead of a MLE (see corresponding discussion in Sec.~\ref{sec:lin_reg}). 
-
-
-
-As we saw with regression, different forms of regularization give rise to different kinds of properties. A common choice for the regularization function are the sums of the $L_1$ or $L_2$ norms of the parameters
-\be
-E_\mathrm{reg}(\{\theta_i\})= \Lambda \sum_i |\theta_i|^\alpha, \, \alpha=1,2 
-\ee
-with $\Lambda$ denoting parameters that control the regularization strength. For $\Lambda=0$, there is no regularization and we are simply performing MLE. In contrast, a choice of large $\Lambda$ will force many parameters to be close to or exactly zero. Just as in regression, an $L1$ penalty enforces sparsity, with many of the $\theta_i$ are set to zero, and $L2$ regularization shrinks the size of the parameters towards zero. 
- 
- 
-One challenge of generative models is that it is often difficult to choose the regularization strength $\Lambda$.  Recall, that for linear and logistic regression $\Lambda$ is chosen to maximize the out-of-sample performance on a validation dataset (i.e.~cross-validation). However, for generative models our data are usually unlabeled. For this reason, choosing a regularization strength is more subtle and there exists no universal procedure for choosing $\Lambda$. One common strategy is to divide the data into a training set and a validation set and monitor a summary statistic such as the log-likelihood, energy distance \cite{szekely2003statistics}, or variational free-energy of the generative model on the training and validation sets  (the variational free-energy was discussed extensively in Sec.~\ref{sec:varl_MFT} ) \cite{hinton2012practical}. If the gap between the training and validation datasets starts growing, one is probably overfitting the model even if the log-likelihood of the training dataset is still increasing. This also gives a procedure for ``early stopping'' -- a regularization procedure we introduced in the context of discriminative models. In practice, when using such regularizers it is important to try many different values of $\Lambda$ and then try to use a proxy statistic for overfitting to evaluate the optimal choice of $\Lambda$. 
-
-
-
-
-\subsection{Computing gradients }
-\label{subsec:energy_gradients}
-
-We still need to specify a procedure for minimizing the cost function. One powerful and common choice that is widely employed when training energy-based models is stochastic gradient descent (SGD)  (see Sec.~\ref{sec:gradient_descent}).  Performing MLE using SGD requires calculating the gradient of the log-likelihood Eq.~\eqref{Eq:E1_likelihood}  with respect to the parameters $\theta_i$. To simplify notation and gain intuition, it is helpful to define ``operators'' $O_i(\mathbf{x})$, conjugate to the parameters $\theta_i$ 
-\be
-O_i(\mathbf{x}) := {\partial  E({\bf x}; \theta_i)  \over \partial \theta_i}.
-\ee
-Since the partition function is just the cumulant generative function for the Boltzmann distribution, we know that the usual statistical mechanics relationships between
-expectation values and derivatives of the log-partition function hold:
-\be
- \langle O_i (\mathbf{x}) \rangle_\mathrm{model}= \mathrm{Tr}_{\mathbf x} p_\theta(\mathbf{x}) O_i (\mathbf{x}) = -{ \partial \log{Z(\{\theta_i\})} \over \partial \theta_i}.
-\ee
-In terms of the operators $\{ O_i(\mathbf{x})\}$, the gradient of Eq.~\eqref{Eq:E1_likelihood}  takes the form \cite{ackley1987learning}
-\bea
--{\partial \mathcal{L}(\{\theta_i \}) \over \partial \theta_i}&=& \Big\langle { \partial E({\bf x}; \theta_i) \over \partial \theta_i} \Big\rangle_\mathrm{data}+ {\partial \log{Z(\{\theta_i\})} \over \partial \theta_i} \nonumber \\
-&=&  \langle O_i (\mathbf{x})  \rangle_\mathrm{data}-\langle O_i (\mathbf{x})  \rangle_\mathrm{model}.
-\label{eq:Pos-neg-energy}
-\eea
-
-
-
-These equations have a simple and beautiful interpretation. The gradient of the log-likelihood with respect to a model parameter is a difference of moments -- one calculated directly from the data and one calculated from our model using the current model parameters. The data-dependent term is known as the \emph{positive phase} of the gradient and the model-dependent term is known as the \emph{negative phase} of the gradient. This derivation also gives an intuitive explanation for likelihood-based training procedures.  The gradient acts on the model to lower the energy of configurations that are near observed data points while raising the energy of configurations that are far from observed data points. Finally, we note that all information about the data only enters the training procedure through the expectations $\langle O_i (\mathbf{x})  \rangle_\mathrm{data}$ and our generative model is blind to information beyond what is contained in these expectations.
-
-
-To use SGD, we must still calculate the expectation values that appear in Eq.~\eqref{eq:Pos-neg-energy}. The positive phase of the gradient -- the expectation values with respect to the data -- can be easily calculated using samples from the training dataset. However, the negative phase  -- the expectation values with respect to the model -- are generally much more difficult to compute. We will see that in almost all cases, we will have to resort to either numerical or approximate methods. The fundamental reason for this is that it is impossible to calculate the partition function exactly for most interesting models in both physics and ML.
-
-
-There are exceptional cases in which we can calculate expectation values analytically. When this happens, the generative model is said to have a \emph{Tractable Likelihood}. One example of a generative model with a Tractable Likelihood is the Gaussian MaxEnt model for real valued data discussed in Eq.~\eqref{eq:gaussian-pdf}. The parameters/Lagrange multipliers for this model are the local fields $\mathbf{a}$ and the pairwise coupling matrix $J$. In this case, the usual manipulations involving Gaussian integrals allow us to exactly find the parameters $\mu=-J^{-1}\mathbf{a}$ and $\Sigma=-J^{-1}$, yielding the familiar expressions  ${\bf \mu} = \langle {\bf x} \rangle_\mathrm{data}$ and $\Sigma = \langle ({\bf x} -  \langle {\bf x} \rangle_\mathrm{data}) ({\bf x} -  \langle {\bf x} \rangle_\mathrm{data})^T \rangle_\mathrm{data}$. These are the standard estimates for the sample mean and covariance matrix. Converting back to the Lagrange multipliers yields 
-\be
-J = - \langle ({\bf x} -  \langle {\bf x} \rangle_\mathrm{data}) ({\bf x} -  \langle {\bf x} \rangle_\mathrm{data})^T \rangle_\mathrm{data}^{-1}.
-\ee 
-
-Returning to the generic case where most energy-based models have \emph{intractable likelihoods}, we must estimate expectation values numerically. One way to do this is draw  samples  $\mathcal{S}_\mathrm{model}=\{ \mathbf{x}_i ' \}$ from the model $p_\theta(\mathbf{x})$ and evaluate expectation values using these samples:
-\be
-\langle h(\mathbf{x}) \rangle_\mathrm{model} = \int \mathrm{d}\mathbf{x} p_\theta(\mathbf{x}) h(\mathbf{x}) \approx \sum_{\mathbf{x}_i '\in \mathcal{S}_\mathrm{model}} g(\mathbf{x}_i').
-\ee
-The samples from the model $\mathbf{x}_i ' \in \mathcal{S}_\mathrm{model}$ are often referred to as \emph{fantasy particles} in the ML literature and can be generated using simple MCMC algorithms such as Metropolis-Hasting which are covered in most modern statistical physics classes. However, if the reader is unfamiliar with MCMC methods or wants a quick refresher, we recommend the concise and beautiful discussion of MCMC methods from both the physics and ML point-of-view in Chapters 29-32 of David MacKay's masterful book \cite{mackay2003information}.
-
-
-Finally, we note that once we have the fantasy particles (samples) from the model, we can also easily calculate the gradient of an arbitrary expectation value $\langle g(\mathbf{x}) \rangle_\mathrm{model}$ using what is commonly called the ``log-derivative trick'' in ML \cite{kleijnen1996optimization,fu2006gradient}:
-\bea
-{\partial \over \partial \theta_i}\langle g(\mathbf{x}) \rangle_\mathrm{model} &=& \int \mathrm{d}\mathbf{x} { \partial p_\theta(\mathbf{x}) \over \partial \theta_i} g(\mathbf{x}) \nonumber\\
-&=& \Big \langle {\partial \log{ p_\theta(\mathbf{x})} \over \partial \theta_i}  g(\mathbf{x}) \Big \rangle_\mathrm{model} \nonumber \\
-&=& \langle O_i(\mathbf{x})g(\mathbf{x})\rangle_\mathrm{model}\nonumber \\
-&\approx& \sum_{\mathbf{x}_i' \in \mathcal{S}_\mathrm{model}} O_i(\mathbf{x})g(\mathbf{x}_i').
-\eea
-This expression allows us to take gradients of more complex cost functions beyond the MLE procedure discussed here.
-
-
-\subsection{Summary of the training procedure}
-
-We now summarize the discussion above and present a general procedure for training an energy based model using SGD on the cost function (see Sec.~\ref{sec:gradient_descent}). Our goal is to fit the parameters of a model $p_{{\bf \lambda}}( \{\theta_i\} ) = Z^{-1} \mathrm e^{-E({\bf x}, \{\theta_i\})}$. Training the model involves the following steps:
-\begin{enumerate}
-\item Read a minibatch of data, $\{ {\bf x} \}$.
-\item Generate a random samplea (fantasy partscles) $\{ {\bf x}' \}  \sim p_{{\bf \lambda}}$ using an MCMC algorithm (e.g., Metropolis-Hastings).  
-\item Compute the gradient of log-likelihood using these samples and Eq.~\eqref{eq:Pos-neg-energy}, where the averages are taken over the minibatch of data and the fantasy particles/samples from the model, respectively. 
-\item Use the gradient as input to one of the gradient based optimizers discussed in section Sec.~\ref{sec:gradient_descent}.
-\end{enumerate}
-In practice, it is helpful to supplement this basic procedure with some practical tricks that help training. As with discriminative neural networks, it is important to initialize the parameters properly and print summary statistics during the training procedure on the training and validation sets to prevent overfitting. These and many other little practical tricks have been nicely summarized in a short note from the Hinton group \cite{hinton2012practical}.
-
-A major computational and practical limitation of these methods is that it is often hard to draw samples from generative models. MCMC methods often have long mixing-times (the time you have to run the Markov chain to get uncorrelated samples) and this can result in biased sampling. Luckily, we often do not need to know the gradients exactly for training ML models (recall that noisy gradient estimates often help the convergence of gradient descent algorithms) and we can significantly reduce the computational expense by running MCMC for a reasonable time window. We will exploit this observation extensively in the next section when we discuss how to train more complex energy-based models with hidden variables.
-
-
-\section{Deep Generative Models: Latent Variables and Restricted Boltzmann Machines (RBMs)}
-\label{sec:EnergyII}
-
-The last section introduced many of the core ideas behind energy-based generative models.  Here, we extend this discussion to energy-based models that include latent or hidden variables. 
-
-Including latent variables in generative models greatly enhances their expressive power -- allowing the model to represent sophisticated correlations between visible features without sacrificing trainability. By having multiple layers of latent variables, we can even construct powerful deep generative models that possess many of the same desirable properties as the deep, discriminative neural networks.
-
-We begin with a discussion that tries to provide a simple intuition for why latent variables are such a powerful tool for generative models. Next, we introduce a powerful class of latent variable models called Restricted Boltzmann Machines (RBMs) and discuss techniques for training these models. After that, we discuss Deep Boltzmann Machines (DBMs), which have multiple layers of latent variables. We then introduce the new Paysage package for training energy-based models and demonstrate how to use it on the MNIST dataset and samples from the Ising model. We conclude by discussing recent physics literature related to energy-based generative models.
-
-
-\subsection{Why hidden (latent) variables?}
-
-Latent or hidden variables are a powerful yet elegant way to encode sophisticated correlations between observable features. The underlying reason for this is that marginalizing over a subset of variables  -- ``integrating out'' degrees of freedom in the language of physics -- induces complex interactions between the remaining variables. The idea that integrating out variables can lead to complex correlations is a familiar component of many physical theories. For example, when considering free electrons living on a lattice, integrating out phonons gives rise to higher-order electron-electron interactions (e.g.~superconducting or magnetic correlations). More generally, in the Wilsonian renormalization group paradigm, all effective field theories can be thought of as arising from integrating out high-energy degrees of freedom \cite{wilson1974renormalization}.
-
-
-Generative models with latent variables run this logic in reverse -- encode complex interactions between visible variables by introducing additional, hidden variables that interact with visible degrees of freedom in a simple manner, yet still reproduce the complex correlations between visible degrees in the data once marginalized over (integrated out). This allows us to encode complex higher-order interactions between the visible variables using simpler interactions at the cost of introducing new latent variables/degrees of freedom. This trick is also widely exploited in physics  (e.g.~in the Hubbard-Stratonovich transformation \cite{hubbard1959calculation,stratonovich1957method} or the introduction of ghost fields in gauge theory \cite{faddeev1967feynman}).
-
-To make these ideas more concrete, let us revisit the pairwise Ising model introduced in our discussion of MaxEnt models (see Eq.~\eqref{eq:pairwise-maxent}). The model is described
-by a Boltzmann distribution with energy 
-\be
-E({\bf v}) = - \sum_i a_i v_i - \frac{1}{2}  \sum_{ij} v_i J_{ij}v_j,
-\ee
-where $J_{ij}$ is a symmetric coupling matrix that encodes the pairwise constraints and $a_i$ enforce the single-variable constraint.
-
-Our goal is to replace the complicated interactions between the visible variables $v_i$, encoded by $J_{ij}$, by interactions with a new set of latent variables $h_\mu$. In order to do this, it is helpful to rewrite the coupling matrix in a slightly different form. Using SVD, we can always express the coupling matrix in the form $J_{ij} = \sum_{\mu=1}^N  W_{i \mu} W_{j \mu}$, where $\{W_{i\mu}\}_i$ are appropriately normalized singular vectors. In terms of $W_{i \mu}$, the energy takes the form
-\begin{equation}
-E_\mathrm{Hop}({\bf v}) =  - \sum_i a_i v_i - \frac{1}{2}  \sum_{ij\mu} v_i W_{i \mu} W_{j \mu} v_j.
-\label{eq:hopfield-energy}
-\end{equation}
-
-We note that in the special case when both the  $v_i \in \{-1, +1\}$ and $W_{i \mu} \in \{-1, +1 \}$ are binary variables, a model with this form of the energy function is known as the \emph{Hopfield model} \cite{hopfield1982neural, amit1985spin}. The Hopfield model has played an extremely important role in statistical physics, computational neuroscience, and machine learning, and a full discussion of its properties is well beyond the scope of this review (see \cite{amit1992modeling} for a beautiful discussion that combines all these perspectives). Therefore, here we refer to all energy functions of the form Eq.~\eqref{eq:hopfield-energy} as (generalized) Hopfield models, even for the case when the $W_{i \mu}$ are continuous variables.
-
-We now ``decouple'' the $v_i$ by introducing a set of normally, distributed continuous latent variables $h_{\mu}$ (in condensed matter physics this is called a Hubbard-Stratonovich transformation). Using the usual identity for Gaussian integrals, we can rewrite the Boltzmann distribution for the generalized Hopfield model as 
-\bea
-p(\mathbf{v}) &=& {\mathrm e^{ \sum_i a_i v_i  + \frac{1}{2} \sum_{ij\mu} v_i W_{i \mu} W_{j \mu} v_j} \over Z} \nonumber \\
-&=& { \mathrm e^{\sum_{i} a_i v_i }\prod_\mu \int \mathrm{d}h_\mu \mathrm e^{- \frac{1}{2} \sum_{\mu} h_{\mu}^2 - \sum_{i} v_i W_{i \mu} h_{\mu}} \over Z} \nonumber \\
-&= &\int \mathrm{d}\mathbf{h} \mathrm e^{-E({\mathbf v}, {\mathbf h})} \over Z
-\label{eq:HS-hopfield}
-\eea
-where $E( {\bf v}, {\bf h} )$ is a joint energy functional of both the latent and visible variables of the form
-\be
-E( {\bf v}, {\bf h} ) = - \sum_{i} a_i v_i + \frac{1}{2} \sum_{\mu} h_{\mu}^2 - \sum_{i \mu} v_i W_{i \mu} h_{\mu}.
-\label{eq:hopfield-rbm}
-\ee
-We can also use the energy function $E({\mathbf v}, {\mathbf h})$ to define a new energy-based model $p({\bf v}, {\bf h})$ on both the latent and visible variables
-\be
-p({\bf v}, {\bf h})={\mathrm e^{-E({\mathbf v}, {\mathbf h})} \over Z'}.
-\ee
-Marginalizing over latent variables of course gives us back the generalized Hopfield model \cite{barra2012equivalence}
-\be
-p(\mathbf{v})= \int d{\bf h} p({\bf v}, {\bf h})={\mathrm e^{-E_\mathrm{Hop}({\bf v})} \over Z}.
-\ee
-
-
-Notice that $E( {\bf v}, {\bf h} )$ contains no direct interactions between visible degrees of freedom (or between hidden degree of freedom). Instead, the complex correlations between the $v_i$ are encoded in the interaction between the visible $v_i$ and latent variables $h_\mu$. It turns out that the model presented here is a special case of a more general class of powerful energy-based models called Restricted Boltzmann Machines (RBMs). 
-
-
-\subsection{Restricted Boltzmann Machines (RBMs)}
-\label{sec:RBMs}
-
-\begin{figure}[t]
-\includegraphics[width=1.0\columnwidth]{Energy/RBM.pdf}
-\caption{A Restricted Boltzmann Machine (RBM) consists of visible units $v_i$ and hidden units $h_\mu$ that interact
-with each other through interactions of the form $W_{i\mu}v_i h_\mu$. Importantly, there are no interactions between visible units themselves or hidden units themselves. }
-\label{fig:RBM-architecture}
-\end{figure}
-
-A Restricted Boltzmann Machine (RBM) is an energy-based model with both visible and hidden units where the visible and hidden units interact with each other but do not interact among themselves. The energy function of an RBM takes the general functional form
-\begin{equation}
-E({\bf v}, {\bf h}) = -\sum_i a_i( v_i) - \sum_{\mu} b_{\mu}(h_{\mu}) - \sum_{i \mu} W_{i \mu} v_i h_{\mu}
-\label{eq:rbm}
-\end{equation}
-where $a_i(\cdot)$ and $b_{\mu}(\cdot)$ are functions that we are free to choose. The most common choice is:
 \[
-    a_i( v_i):= 
-\begin{cases}
-    a_i v_i,& \text{if } v_i \in \{ 0, 1\} \text{ is binary} \\
-   {v_i^2 \over 2 \sigma_i^2}, & \text{if } v_i \in \mathbb{R} \text{ is continuous},
-\end{cases}
+ y = f\left(\sum_{i=1}^n w_ix_i\right) = f(u)
 \]
+!et
+Here, the output $y$ of the neuron is the value of its activation function, which have as input
+a weighted sum of signals $x_i, \dots ,x_n$ received by $n$ other neurons.
+!eblock
+
+!split
+===== A simple perceptron model =====
+
+FIGURE: [figures/perceptron.png, width=700 frac=0.9]
+
+
+!split
+===== Neural network types =====
+!bblock
+An artificial neural network (NN), is a computational model that consists of layers of connected neurons, or *nodes*. 
+It is supposed to mimic a biological nervous system by letting each neuron interact with other neurons
+by sending signals in the form of mathematical functions between layers. 
+A wide variety of different NNs have
+been developed, but most of them consist of an input layer, an output layer and eventual layers in-between, called
+*hidden layers*. All layers can contain an arbitrary number of nodes, and each connection between two nodes
+is associated with a weight variable. 
+
+FIGURE: [figures/dnn.png, width=500 frac=0.6]
+!eblock
+
+
+
+!split
+===== The system: two electrons in a harmonic oscillator trap in two dimensions =====
+
+The Hamiltonian of the quantum dot is given by
+!bt
+\[ \hat{H} = \hat{H}_0 + \hat{V}, 
+\]
+!et
+where $\hat{H}_0$ is the many-body HO Hamiltonian, and $\hat{V}$ is the
+inter-electron Coulomb interactions. In dimensionless units,
+!bt
+\[ \hat{V}= \sum_{i<j}^N \frac{1}{r_{ij}},
+\]
+!et
+with $r_{ij}=\sqrt{\mathbf{r}_i^2 - \mathbf{r}_j^2}$.
+
+This leads to the  separable Hamiltonian, with the relative motion part given by ($r_{ij}=r$)
+!bt
+\[ 
+\hat{H}_r=-\nabla^2_r + \frac{1}{4}\omega^2r^2+ \frac{1}{r},
+\]
+!et
+plus a standard Harmonic Oscillator problem  for the center-of-mass motion.
+This system has analytical solutions in two and three dimensions ("M. Taut 1993 and 1994":"https://journals.aps.org/pra/abstract/10.1103/PhysRevA.48.3561"). 
+
+!split
+===== Quantum Monte Carlo Motivation =====
+!bblock
+Given a hamiltonian $H$ and a trial wave function $\Psi_T$, the variational principle states that the expectation value of $\langle H \rangle$, defined through 
+!bt
+\[
+   \langle E \rangle =
+   \frac{\int d\bm{R}\Psi^{\ast}_T(\bm{R})H(\bm{R})\Psi_T(\bm{R})}
+        {\int d\bm{R}\Psi^{\ast}_T(\bm{R})\Psi_T(\bm{R})},
+\]
+!et
+is an upper bound to the ground state energy $E_0$ of the hamiltonian $H$, that is 
+!bt
+\[
+    E_0 \le \langle H \rangle .
+\]
+!et
+In general, the integrals involved in the calculation of various  expectation values  are multi-dimensional ones. Traditional integration methods such as the Gauss-Legendre will not be adequate for say the  computation of the energy of a many-body system.
+!eblock
+
+
+!split
+===== Quantum Monte Carlo Motivation =====
+!bblock Basic steps
+Choose a trial wave function
+$\psi_T(\bm{R})$.
+!bt
+\[
+   P(\bm{R},\bm{\alpha})= \frac{\left|\psi_T(\bm{R},\bm{\alpha})\right|^2}{\int \left|\psi_T(\bm{R},\bm{\alpha})\right|^2d\bm{R}}.
+\]
+!et
+This is our model, or likelihood/probability distribution function  (PDF). It depends on some variational parameters $\bm{\alpha}$.
+The approximation to the expectation value of the Hamiltonian is now 
+!bt
+\[
+   \langle E[\bm{\alpha}] \rangle = 
+   \frac{\int d\bm{R}\Psi^{\ast}_T(\bm{R},\bm{\alpha})H(\bm{R})\Psi_T(\bm{R},\bm{\alpha})}
+        {\int d\bm{R}\Psi^{\ast}_T(\bm{R},\bm{\alpha})\Psi_T(\bm{R},\bm{\alpha})}.
+\]
+!et
+!eblock
+
+
+!split
+===== Quantum Monte Carlo Motivation =====
+!bblock Define a new quantity
+!bt
+\[
+   E_L(\bm{R},\bm{\alpha})=\frac{1}{\psi_T(\bm{R},\bm{\alpha})}H\psi_T(\bm{R},\bm{\alpha}),
+\]
+!et
+called the local energy, which, together with our trial PDF yields
+!bt
+\[
+  E[\bm{\alpha}]=\int P(\bm{R})E_L(\bm{R},\bm{\alpha}) d\bm{R}\approx \frac{1}{N}\sum_{i=1}^NE_L(\bm{R_i},\bm{\alpha})
+\]
+!et
+with $N$ being the number of Monte Carlo samples.
+!eblock
+
+
+!split
+===== Quantum Monte Carlo =====
+!bblock
+The Algorithm for performing a variational Monte Carlo calculations runs thus as this
+       
+  *  Initialisation: Fix the number of Monte Carlo steps. Choose an initial $\bm{R}$ and variational parameters $\alpha$ and calculate $\left|\psi_T(\bm{R},\bm{\alpha})\right|^2$. 
+  *  Initialise the energy and the variance and start the Monte Carlo calculation by looping over trials.
+     *  Calculate  a trial position  $\bm{R}_p=\bm{R}+r*step$ where $r$ is a random variable $r \in [0,1]$.
+     *  Metropolis algorithm to accept or reject this move  $w = P(\bm{R}_p,\bm{\alpha})/P(\bm{R},\bm{\alpha})$.
+     *  If the step is accepted, then we set $\bm{R}=\bm{R}_p$. 
+     *  Update averages
+  *  Finish and compute final averages.
+      
+Observe that the jumping in space is governed by the variable *step*. This is often called brute-force sampling.
+Need importance sampling to get more relevant sampling. 
+!eblock
+
+!split
+===== The trial wave function =====
+!bblock
+We want to perform  a Variational Monte Carlo calculation of the ground state of two electrons in a quantum dot well with different oscillator energies, assuming total spin $S=0$.
+Our trial wave function has the following form
+!bt
+\begin{equation}
+   \psi_{T}(\bm{r}_1,\bm{r}_2) = 
+   C\exp{\left(-\alpha_1\omega(r_1^2+r_2^2)/2\right)}
+   \exp{\left(\frac{r_{12}}{(1+\alpha_2 r_{12})}\right)}, 
+label{eq:trial}
+\end{equation}
+!et
+where the $\alpha$s represent our variational parameters, two in this case.
+
+Why does the trial function look like this? How did we get there? _This will be our main motivation_ for switching to
+Machine Learning.
+
+!eblock
+
+!split
+===== The correlation part of the wave function =====
+
+To find an ansatz for the correlated part of the wave function, it is useful to rewrite the two-particle
+local energy in terms of the relative and center-of-mass motion.
+Let us denote the distance between the two electrons as
+$r_{12}$. We omit the center-of-mass motion since we are only interested in the case when
+$r_{12} \rightarrow 0$. The contribution from the center-of-mass (CoM) variable ${\bf R}_{\mathrm{CoM}}$
+gives only a finite contribution.
+We focus only on the terms that are relevant for $r_{12}$ and for three dimensions. The relevant local energy becomes then
+!bt
+\[
+\lim_{r_{12} \rightarrow 0}E_L(R)=
+    \frac{1}{{\cal R}_T(r_{12})}\left(2\frac{d^2}{dr_{ij}^2}+\frac{4}{r_{ij}}\frac{d}{dr_{ij}}+
+\frac{2}{r_{ij}}-\frac{l(l+1)}{r_{ij}^2}+2E
+\right){\cal R}_T(r_{12}) = 0.
+\]
+!et
+Set $l=0$ and we have the so-called _cusp_ condition
+!bt
+\[
+\frac{d {\cal R}_T(r_{12})}{dr_{12}} = -\frac{1}{2(l+1)}
+{\cal R}_T(r_{12})\qquad r_{12}\to 0
+\]
+!et
+
+!split
+===== Resulting ansatz =====
+The above  results in
+!bt
+\[
+{\cal R}_T  \propto \exp{(r_{ij}/2)}, 
+\]
+!et 
+for anti-parallel spins and 
+!bt
+\[
+{\cal R}_T  \propto \exp{(r_{ij}/4)}, 
+\]
+!et
+for anti-parallel spins. 
+This is the so-called cusp condition for the relative motion, resulting in a minimal requirement
+for the correlation part of the wave fuction.
+For general systems containing more than say two electrons, we have this
+condition for each electron pair $ij$.
+
+
+
+
+
+!split
+===== The VMC code =====
+
+!bc pycod
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import sys
+
+#Trial wave function for quantum dots in two dims
+def WaveFunction(r,alpha,beta):
+    r1 = r[0,0]**2 + r[0,1]**2
+    r2 = r[1,0]**2 + r[1,1]**2
+    r12 = sqrt((r[0,0]-r[1,0])**2 + (r[0,1]-r[1,1])**2)
+    deno = r12/(1+beta*r12)
+    return exp(-0.5*alpha*(r1+r2)+deno)
+
+#Local energy  for quantum dots in two dims, using analytical local energy
+def LocalEnergy(r,alpha,beta):
+    
+    r1 = (r[0,0]**2 + r[0,1]**2)
+    r2 = (r[1,0]**2 + r[1,1]**2)
+    r12 = sqrt((r[0,0]-r[1,0])**2 + (r[0,1]-r[1,1])**2)
+    deno = 1.0/(1+beta*r12)
+    deno2 = deno*deno
+    return 0.5*(1-alpha*alpha)*(r1 + r2) +2.0*alpha + 1.0/r12+deno2*(alpha*r12-deno2+2*beta*deno-1.0/r12)
+
+# The Monte Carlo sampling with the Metropolis algo
+def MonteCarloSampling():
+
+    NumberMCcycles= 100000
+    StepSize = 1.0
+    # positions
+    PositionOld = np.zeros((NumberParticles,Dimension), np.double)
+    PositionNew = np.zeros((NumberParticles,Dimension), np.double)
+    # seed for rng generator
+    seed()
+    # start variational parameter
+    alpha = 0.9
+    for ia in range(MaxVariations):
+        alpha += .025
+        AlphaValues[ia] = alpha
+        beta = 0.2 
+        for jb in range(MaxVariations):
+            beta += .01
+            BetaValues[jb] = beta
+            energy = energy2 = 0.0
+            DeltaE = 0.0
+            #Initial position
+            for i in range(NumberParticles):
+                for j in range(Dimension):
+                    PositionOld[i,j] = StepSize * (random() - .5)
+            wfold = WaveFunction(PositionOld,alpha,beta)
+
+            #Loop over MC MCcycles
+            for MCcycle in range(NumberMCcycles):
+                #Trial position
+                for i in range(NumberParticles):
+                    for j in range(Dimension):
+                        PositionNew[i,j] = PositionOld[i,j] + StepSize * (random() - .5)
+                wfnew = WaveFunction(PositionNew,alpha,beta)
+
+                #Metropolis test to see whether we accept the move
+                if random() < wfnew**2 / wfold**2:
+                   PositionOld = PositionNew.copy()
+                   wfold = wfnew
+                   DeltaE = LocalEnergy(PositionOld,alpha,beta)
+                energy += DeltaE
+                energy2 += DeltaE**2
+
+            #We calculate mean, variance and error ...
+            energy /= NumberMCcycles
+            energy2 /= NumberMCcycles
+            variance = energy2 - energy**2
+            error = sqrt(variance/NumberMCcycles)
+            Energies[ia,jb] = energy    
+    return Energies, AlphaValues, BetaValues
+
+
+#Here starts the main program with variable declarations
+NumberParticles = 2
+Dimension = 2
+MaxVariations = 10
+Energies = np.zeros((MaxVariations,MaxVariations))
+AlphaValues = np.zeros(MaxVariations)
+BetaValues = np.zeros(MaxVariations)
+(Energies, AlphaValues, BetaValues) = MonteCarloSampling()
+
+# Prepare for plots
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+# Plot the surface.
+X, Y = np.meshgrid(AlphaValues, BetaValues)
+surf = ax.plot_surface(X, Y, Energies,cmap=cm.coolwarm,linewidth=0, antialiased=False)
+# Customize the z axis.
+zmin = np.matrix(Energies).min()
+zmax = np.matrix(Energies).max()
+ax.set_zlim(zmin, zmax)
+ax.set_xlabel(r'$\alpha$')
+ax.set_ylabel(r'$\beta$')
+ax.set_zlabel(r'$\langle E \rangle$')
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
+plt.show()
+
+!ec
+
+
+!split
+===== Technical aspect, improvements and how to define the cost function ===== 
+!bblock
+
+_The above procedure is not the smartest one_. Looping over all variational parameters becomes expensive.
+Also, we don't use importance sampling and optimizations of the standard deviation (blocking, bootstrap, jackknife). 
+Such codes are included in the above Github address.
+
+
+We can also be smarter and use minimization methods to find the _optimal_ variational parameters with fewer Monte Carlo cycles and then 
+fire up our heavy artillery. 
+
+One way to achieve this is to minimize the energy as function of the variational parameters.
+
+!eblock
+
+!split
+===== Energy derivatives =====
+!bblock
+To find the derivatives of the local energy expectation value as function of the variational parameters, we can use the chain rule and the hermiticity of the Hamiltonian.  
+
+Let us define 
+!bt
+\[
+\bar{E}_{\alpha_i}=\frac{d\langle  E_L\rangle}{d\alpha_i}.
+\]
+!et
+as the derivative of the energy with respect to the variational parameter $\alpha_i$
+We define also the derivative of the trial function (skipping the subindex $T$) as 
+!bt
+\[
+\bar{\Psi}_{i}=\frac{d\Psi}{d\alpha_i}.
+\]
+!et  
+!eblock
+
+
+!split
+===== Derivatives of the local energy ===== 
+!bblock
+The elements of the gradient of the local energy are then (using the chain rule and the hermiticity of the Hamiltonian)
+!bt
+\[
+\bar{E}_{i}= 2\left( \langle \frac{\bar{\Psi}_{i}}{\Psi}E_L\rangle -\langle \frac{\bar{\Psi}_{i}}{\Psi}\rangle\langle E_L \rangle\right).
+\]
+!et
+From a computational point of view it means that you need to compute the expectation values of 
+!bt
+\[
+\langle \frac{\bar{\Psi}_{i}}{\Psi}E_L\rangle,
+\]
+!et
 and
+!bt
 \[
-    b_\mu( h_\mu):= 
-\begin{cases}
-    b_\mu h_\mu ,& \text{if } h_\mu \in \{ 0, 1\} \text{ is binary} \\
-   {h_\mu^2 \over 2 \sigma_\mu^2}, & \text{if } h_\mu \in \mathbb{R} \text{ is continuous}.
-\end{cases}
+\langle \frac{\bar{\Psi}_{i}}{\Psi}\rangle\langle E_L\rangle
 \]
-For this choice of $a_i(\cdot)$ and $b_{\mu}(\cdot)$, layers consisting of discrete binary units are often called Bernoulli layers and layers consisting of continuous variables
-are often called Gaussian layers. The basic bipartite structure of an RBM -- i.e., a visible and hidden layer that interact with each other but not among themselves -- is often depicted using a graph of the form shown in Fig. \ref{fig:RBM-architecture}.
+!et
+These integrals are evaluted using MC intergration (with all its possible error sources). 
+We can then use methods like stochastic gradient or other minimization methods to find the optimal variational parameters (I don't discuss this topic here, but these methods are very important in ML). 
+!eblock
+
+!split
+===== How do we define our cost function? =====
+!bblock
+We have a model, our likelihood function. 
+
+How should we define the cost function?
+
+!eblock
+
+!split
+===== Meet the variance and its derivatives  =====
+!bblock Why the variance?
+Suppose the trial function (our model) is the exact wave function. The action of the hamiltionan
+on the wave function
+!bt
+\[
+   H\Psi = \mathrm{constant}\times \Psi,
+\]
+!et
+The integral which defines various 
+expectation values involving moments of the hamiltonian becomes then
+!bt
+\[
+   \langle E^n \rangle =   \langle H^n \rangle =
+   \frac{\int d\bm{R}\Psi^{\ast}(\bm{R})H^n(\bm{R})\Psi(\bm{R})}
+        {\int d\bm{R}\Psi^{\ast}(\bm{R})\Psi(\bm{R})}=
+\mathrm{constant}\times\frac{\int d\bm{R}\Psi^{\ast}(\bm{R})\Psi(\bm{R})}
+        {\int d\bm{R}\Psi^{\ast}(\bm{R})\Psi(\bm{R})}=\mathrm{constant}.
+\]
+!et
+_This gives an important information: If I want the variance, the exact wave function leads to zero variance!_
+The variance is defined as 
+!bt
+\[
+\sigma_E = \langle E^2\rangle - \langle E\rangle^2.
+\]
+!et
+Variation is then performed by minimizing both the energy and the variance.
+
+!eblock
 
 
-An RBM can have different properties depending on whether the hidden and visible layers are taken to be Bernoulli or Gaussian. The most common choice is to have both the visible and hidden units be Bernoulli. This is what is typically meant by an RBM. However, other combinations are also possible and used in the ML literature. When all the units are continuous, the RBM reduces to a multi-dimensional Gaussian with a very particular correlation structure. When the hidden units are continuous and the visible units are discrete, the RBM is equivalent to a generalized Hopfield model (see discussion above). When the the visible units are continuous and the hidden units are discrete, the RBM is often called a Gaussian Bernoulli Restricted Boltzmann Machine \cite{dahl2010phone, hinton2006reducing}. It is even possible to perform multi-modal learning with a mixture of continuous and discrete variables. For all these architectures, the important point is that all interactions occur only between the  visible and hidden units and there are no interactions between units within the hidden or visible layers (see Fig. ~\ref{fig:RBM-architecture}). This is analogous to Quantum Electrodynamics, where a free fermion and a free photon interact with one another but not among themselves.
+!split
+===== The variance defines the cost function  =====
+!bblock 
+We can then take the derivatives of 
+!bt
+\[
+\sigma_E = \langle E^2\rangle - \langle E\rangle^2,
+\]
+!et
+with respect to the variational parameters. The derivatives of the variance can then be used to defined the
+so-called Hessian matrix, which in turn allows us to use minimization methods like Newton's method or 
+standard gradient methods. 
 
-Specifying a generative model with this bipartite interaction structure has two major advantages: (i) it enables capturing both pairwise {\it and higher-order} correlations between the visible units and (ii) it makes it easier to sample from the model using an MCMC method known as block Gibbs sampling, which in turn makes the model easier to train.  
- 
-Before discussing training, it is worth better understanding the kind of correlations that can be captured using an RBM. To do so, we can marginalize over the hidden units and ask about the resulting distribution over just the visible units 
-\be
-p({\bf v})=\int \mathrm{d}{\bf h} p(\mathbf{v}, \mathbf{h}) =\int  \mathrm{d}{\bf h} {e^{-E({\bf v}, {\bf h})} \over Z} 
-\ee
-(where the integral should be replaced by a trace in all expressions for discrete units). 
+This leads to however a more complicated expression, with obvious errors when evaluating integrals by Monte Carlo integration. Less used, see however "Filippi and Umrigar":"https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.94.150201". The expression becomes complicated
+!bt
+\[
+\bar{E}_{ij} = 2\left[ \langle (\frac{\bar{\Psi}_{ij}}{\Psi}+\frac{\bar{\Psi}_{j}}{\Psi}\frac{\bar{\Psi}_{i}}{\Psi})(E_L-\langle E\rangle)\rangle -\langle \frac{\bar{\Psi}_{i}}{\Psi}\rangle\bar{E}_j-\langle \frac{\bar{\Psi}_{j}}{\Psi}\rangle\bar{E}_i\right] +\langle \frac{\bar{\Psi}_{i}}{\Psi}E_L{_j}\rangle +\langle \frac{\bar{\Psi}_{j}}{\Psi}E_L{_i}\rangle -\langle \frac{\bar{\Psi}_{i}}{\Psi}\rangle\langle E_L{_j}\rangle \langle \frac{\bar{\Psi}_{j}}{\Psi}\rangle\langle E_L{_i}\rangle.  
+\]
+!et
 
-We can also define a marginal energy using the expression
-\be
-p({\bf v}):={\mathrm e^{-E({\bf v})} \over Z}.
-\ee
-Combining these equations,
+Evaluating the cost function means having to evaluate the above second derivative of the energy. 
+
+!eblock
+
+
+
+
+
+!split
+===== Boltzmann Machines =====
+
+Why use a generative model rather than the more well known discriminative deep neural networks (DNN)? 
+
+* Discriminitave methods have several limitations: They are mainly supervised learning methods, thus requiring labeled data. And there are tasks they cannot accomplish, like drawing new examples from an unknown probability distribution.
+
+* A generative model can learn to represent and sample from a probability distribution. The core idea is to learn a parametric model of the probability distribution from which the training data was drawn. As an example
+
+  o A model for images could learn to draw new examples of cats and dogs, given a training dataset of images of cats and dogs.
+  o Generate a sample of an ordered or disordered Ising model phase, having been given samples of such phases.
+  o Model the trial wave function for Monte Carlo calculations
+
+
+!split
+===== Some similarities and differences from DNNs =====
+
+ o Both use gradient-descent based learning procedures for minimizing cost functions
+ o Energy based models don't use backpropagation and automatic differentiation for computing gradients, instead turning to Markov Chain Monte Carlo methods.
+ o DNNs often have several hidden layers. A restricted Boltzmann machine has only one hidden layer, however several RBMs can be stacked to make up Deep Belief Networks, of which they constitute the building blocks.
+
+History: The RBM was developed by amongst others Geoffrey Hinton, called by some the "Godfather of Deep Learning", working with the University of Toronto and Google.
+
+
+!split
+===== The structure of the RBM network =====
+
+FIGURE: [figures/RBM.pdf, width=800 frac=1.0]
+
+
+
+!split
+===== The network =====
+
+_The network layers_:
+  o A function $\mathbf{x}$ that represents the visible layer, a vector of $M$ elements (nodes). This layer represents both what the RBM might be given as training input, and what we want it to be able to reconstruct. This might for example be the pixels of an image, the spin values of the Ising model, or coefficients representing speech.
+  o The function $\mathbf{h}$ represents the hidden, or latent, layer. A vector of $N$ elements (nodes). Also called "feature detectors".
+
+!split
+===== Goals =====
+
+The goal of the hidden layer is to increase the model's expressive power. We encode complex interactions between visible variables by introducing additional, hidden variables that interact with visible degrees of freedom in a simple manner, yet still reproduce the complex correlations between visible degrees in the data once marginalized over (integrated out).
+
+Examples of this trick being employed in physics: 
+  o The Hubbard-Stratonovich transformation
+  o The introduction of ghost fields in gauge theory
+  o Shadow wave functions in Quantum Monte Carlo simulations
+_The network parameters, to be optimized/learned_:
+  o $\mathbf{a}$ represents the visible bias, a vector of same length as $\mathbf{x}$.
+  o $\mathbf{b}$ represents the hidden bias, a vector of same lenght as $\mathbf{h}$.
+  o $W$ represents the interaction weights, a matrix of size $M\times N$.
+
+!split
+===== Joint distribution and the Energy function =====
+The restricted Boltzmann machine is described by a Bolztmann distribution
+!bt
 \begin{align}
-&E({\bf v}) = - \log \int \mathrm d {\bf h} \mathrm e^{-E({\bf v}, {\bf h})} \nonumber \\
-&= - \sum_i a_i (v_i) - \sum_{\mu} \log \int \mathrm d h_{\mu} \mathrm e^{ b_{\mu} (h_{\mu}) + \sum_i v_i W_{i \mu} h_{\mu}} \nonumber 
+	P_{rbm}(\mathbf{x},\mathbf{h}) = \frac{1}{Z} e^{-\frac{1}{T_0}E(\mathbf{x},\mathbf{h})},
 \end{align}
-To understand what correlations are captured by $p({\bf v})$ it is helpful to  introduce the distribution 
-\be
-q_{\mu}(h_{\mu}) = { \mathrm e^{ b_{\mu}(h_{\mu})} \over Z}
-\ee
-of hidden units $h_{\mu}$, ignoring the interactions between ${\bf v}$ and ${\bf h}$, and the cumulant generating function
-\begin{equation}
-K_{\mu}(t) := \log \int \mathrm d h_{\mu} q_{\mu}(h_{\mu}) \mathrm e^{t h_{\mu}} = \sum_{n} \kappa_{\mu}^{(n)} \frac{t^n}{n!}.
-\end{equation}
-$K_{\mu}(t)$ is defined such that the $n^{th}$ cumulant is $\kappa_{\mu}^{(n)} = \partial_t^{n} K_{\mu}\vert_{t=0}$. 
-
-The cumulant generating function appears in the marginal free-energy of the visible units, which can be rewritten (up to a constant term) as:
+!et
+where $Z$ is the normalization constant or partition function, defined as 
+!bt
 \begin{align}
-&E({\bf v}) = - \sum_i a_i (v_i) - \sum_{\mu} K_{\mu}\left(\sum_i W_{i \mu} v_i\right) \nonumber \\
-&= - \sum_i a_i (v_i) - \sum_{\mu} \sum_{n} \kappa_{\mu}^{(n)} \frac{(\sum_i W_{i \mu} v_i)^n}{n!} \nonumber \\
-&= - \sum_i a_i (v_i) - \sum_i \left( \sum_{\mu} \kappa_{\mu}^{(1)}  W_{i \mu} \right) v_i \nonumber \\
-&- \frac{1}{2}  \sum_{ij}  \left(\sum_{\mu} \kappa_{\mu}^{(2)}W_{i \mu} W_{j \mu} \right) v_i v_j + \ldots
-\label{eq:cumulant-rbm}
+	Z = \int \int e^{-\frac{1}{T_0}E(\mathbf{x},\mathbf{h})} d\mathbf{x} d\mathbf{h}.
 \end{align}
-We see that the marginal energy includes all orders of interactions between the visible units, with the $n$-th order cumulants of $q_{\mu}(h_{\mu})$ weighting the $n$-th order interactions between the visible units. In the case of the Hopfield model we discussed previously, $q_{\mu}(h_{\mu})$ is a standard Gaussian distribution where the mean is $\kappa_{\mu}^{(1)} = 0$, the variance is $\kappa_{\mu}^{(2)} = 1$, and all higher order cumulants are zero. Plugging these cumulants into Eq.~\eqref{eq:cumulant-rbm} recovers Eq.~\eqref{eq:hopfield-rbm}.
+!et
+It is common to ignore $T_0$ by setting it to one. 
 
-These calculations make clear the underlying reason for the incredible representational power of RBMs with a Bernoulli hidden layer. Each hidden unit can encode interactions of arbitrarily high order. By combining many different hidden units, we can encode very complex interactions at all orders. Moreover, we can learn which order of correlations/interactions are important directly from the data instead of having to specify them ahead of time as we did in the MaxEnt models. This highlights the power of  generative models with even the simplest interactions between visible and latent variables to encode, learn, and represent complex correlations present in the data.
+!split
+===== Network Elements =====
 
-\subsection{Training RBMs}
+The function $E(\mathbf{x},\mathbf{h})$ gives the _energy_ of a
+configuration (pair of vectors) $(\mathbf{x}, \mathbf{h})$. The lower
+the energy of a configuration, the higher the probability of it. This
+function also depends on the parameters $\mathbf{a}$, $\mathbf{b}$ and
+$W$. Thus, when we adjust them during the learning procedure, we are
+adjusting the energy function to best fit our problem.
 
+!split
+===== Defining different types of RBMs =====
+There are different variants of RBMs, and the differences lie in the types of visible and hidden units we choose as well as in the implementation of the energy function $E(\mathbf{x},\mathbf{h})$. 
 
-RBMs are a special class of energy-based generative models, which can be trained using the Maximum Likelihood Estimation (MLE) procedure described in detail in Sec.~\ref{sec:EnergyI}. To briefly recap, first, we must choose a cost function -- for MLE this is just the negative log-likelihood with or without an additional regularization term to prevent overfitting. We then minimize this cost function using one of the Stochastic Gradient Descent (SGD) methods described in Sec.~\ref{sec:gradient_descent}. 
+!bblock Binary-Binary RBM:
 
+RBMs were first developed using binary units in both the visible and hidden layer. The corresponding energy function is defined as follows:
+!bt
+\begin{align}
+	E(\mathbf{x}, \mathbf{h}) = - \sum_i^M x_i a_i- \sum_j^N b_j h_j - \sum_{i,j}^{M,N} x_i w_{ij} h_j,
+\end{align}
+!et
+where the binary values taken on by the nodes are most commonly 0 and 1.
+!eblock
+!bblock Gaussian-Binary RBM:
 
-The gradient itself can be calculated using Eq.~\eqref{eq:Pos-neg-energy}. For example, for the Bernoulli-Bernoulli RBM in Eq.~\eqref{eq:rbm} we have
-\bea
-{\partial \mathcal{L}(\{W_{i \mu}, a_i, b_\mu \}) \over \partial  W_{i \mu}}  &=&  \langle v_i h_{\mu} \rangle_\mathrm{data} - \langle v_i h_{\mu} \rangle_\mathrm{model} \\
-{\partial \mathcal{L}(\{W_{i \mu}, a_i, b_\mu \}) \over \partial  a_i}  &=& \langle v_i \rangle_\mathrm{data} - \langle v_i  \rangle_\mathrm{model} \nonumber \\
-{\partial \mathcal{L}(\{W_{i \mu}, a_i, b_\mu \}) \over \partial  b_\mu}  &=& \langle h_\mu \rangle_\mathrm{data} - \langle h_\mu  \rangle_\mathrm{model},\nonumber 
-\eea
-where the positive expectation with respect to data is understood to mean sampling from the model while clamping the visible units to their observed values in the data. As before, calculating the negative phase of the gradient (the expectation value with respect to the model) requires that we draw samples from the model. Luckily, the bipartite form of the interactions in RBMs were specifically chosen with this in mind.
+Another varient is the RBM where the visible units are Gaussian while the hidden units remain binary:
+!bt
+\begin{align}
+	E(\mathbf{x}, \mathbf{h}) = \sum_i^M \frac{(x_i - a_i)^2}{2\sigma_i^2} - \sum_j^N b_j h_j - \sum_{i,j}^{M,N} \frac{x_i w_{ij} h_j}{\sigma_i^2}. 
+\end{align}
+!et
+!eblock
 
-\subsubsection{Gibbs sampling and contrastive divergence (CD)}
+!split
+===== More about RBMs =====
+o Useful when we model continuous data (i.e., we wish $\mathbf{x}$ to be continuous)
+o Requires a smaller learning rate, since there's no upper bound to the value a component might take in the reconstruction
 
-\begin{figure}[t]
-\includegraphics[width=1.0\columnwidth]{Energy/ContrastiveDivergence.pdf}
-\caption{ (Top) To draw fantasy particles (samples from model) we can perform alternating (block) Gibbs sampling between the visible and hidden layers starting
-with a sample from the data using the marginal distributions $p(\mathbf{h}|\mathbf{v})$ and $p(\mathbf{v}| \mathbf{h})$. The ``time'' $t$ corresponds to the time in the
-Markov chain for the Monte Carlo and measures the number of passes between the visible and hidden states. (Middle) In Contrastive Divergence (CD), we approximately
-sample the model by terminating the Gibbs sampling after $n$ steps (CD-n) starting from the data. (C) In Persistent Contrastive Divergence (PCD), instead of restarting
-our sample from the data, we initialize the sampler with the fantasy particles calculated from the model at the last SGD step.}
-\label{fig:CD-PCD}
-\end{figure}
-
-
-
-
-The bipartite interaction structure of an RBM makes it possible to calculate expectation values using a  Markov Chain Monte Carlo (MCMC) method known as Gibbs sampling. The key reason for this is that since there are no interactions of visible units with themselves or hidden units with themselves; the visible and hidden units of an RBM are conditionally independent:
- \begin{align}
- p({\bf v} | {\bf h}) &=  \prod_i p(v_i |{\bf h}) \nonumber \\
-p({\bf h} | {\bf v}) &=  \prod_\mu p(h_\mu|{\bf v}),
- \end{align}
-with
-\begin{eqnarray}
-\label{eq:RBM-conditional}
-p(v_i = 1 | {\bf h}) &=& \sigma(a_i + \sum_{\mu} W_{i \mu} h_{\mu}) \\
-p(h_{\mu} = 1 | {\bf v}) &=& \sigma(b_{\mu}+ \sum_{i} W_{i \mu} v_{i}) \nonumber
-\end{eqnarray}
-and where $\sigma(x) = 1 / (1 + \mathrm e^{-x})$ is the sigmoid function. 
-
-Using these expressions it is easy to compute expectation values with respect to the data. The input to gradient descent is a minibatch of observed data. For each sample in the minibatch, we simply clamp the visible units to the observed values and apply Eq.~\eqref{eq:RBM-conditional} using the probability for the hidden variables. We then average over all samples in the minibatch to calculate expectation values with respect to the data. To calculate expectation values with respect to the model, we use (block) Gibbs sampling. The idea behind (block) Gibbs sampling is to iteratively sample from the conditional distributions ${\bf h}_{t+1} \sim p({\bf h} | {\bf v}_{t})$ and ${\bf v}_{t+1} \sim p({\bf v} | {\bf h}_{t+1})$ (see Figure \ref{fig:CD-PCD}, top). Since the units are conditionally independent, each step of this iteration can be performed by simply drawing random numbers.  The samples are guaranteed to converge to the equilibrium distribution of the model in the limit that $t \rightarrow \infty$. At the end of the Gibbs sampling procedure, one ends up with a minibatch of samples (fantasy particles).
-
-One drawback of Gibbs sampling is that it may take many back and forth iterations to draw an independent sample. For this reason, the Hinton group introduced an approximate Gibbs sampling technique called Contrastive Divergence (CD) \cite{hinton2002training, hinton2006fast}. In CD-$n$, we just perform $n$ iterations of (block) Gibbs sampling, with $n$ often taken to be as small as 1 (see Figure \ref{fig:CD-PCD})! The price for this truncation is, of course, that we are not drawing samples from the true model distribution. But for our purpose -- using the expectations to estimate the gradient for SGD -- CD-$n$ has been proven to work reasonably well. As long as the approximate gradients are reasonably correlated with the true gradient, SGD will move in a reasonable direction. CD-$n$ of course does come at a price.  Truncating the Gibbs sampler prevents sampling far away from the starting point, which for CD-$n$ are the data points in the minibatch.  Therefore, our generative model will be much more accurate around regions of feature space close to our training data. Thus, as is often the case in ML, CD-$n$ sacrifices the ability to generalize to some extent in order to make the model easier to train.
-
-Some of these undesirable features can be tempered by using a slightly different variant of CD called Persistent Contrastive Divergence (PCD) \cite{tieleman2009using}. In PCD, rather than restarting the Gibbs sampler from the data at each gradient descent step, we start the Gibbs sampling at the fantasy particles (samples from the model) in the last gradient descent step (see Figure \ref{fig:CD-PCD}). Since parameters change slowly compared to the Gibbs sampling, samples that are high probability at one step of the SGD are also likely to be high probability at the next step. This ensures that PCD does not introduce large errors in the estimation of the gradients. The advantage of using fantasy particles to initialize the Gibbs sampler is to allow PCD to explore parts of the feature space that are much further from the training dataset than once could reach with ordinary CD. 
-
- 
-
-\subsection{Deep Boltzmann Machine}
-
-In this section, we introduce Deep Boltzmann Machines (DBMs). Unlike RBMs, DBMs possess multiple hidden layers and were the first  models rebranded as ``deep learning'' \cite{hinton2006fast,hinton2006reducing} \footnote{Technically, these were Deep Belief Networks (DBNs) where only the top layer was undirected}. Many of the advantages that are thought to stem from having deep layers were already discussed in Sec.~\ref{sec:DNN-III} in the context of discriminative DNNs. Here, we revisit many of the same themes with emphasis on energy-based models.
-
-An RBM is composed of two layers of neurons that are connected via an undirected graph, see Fig.~\ref{fig:RBM-architecture}. As a result, it is possible to perform sampling ${\bf v} \sim p({\bf v} | {\bf h})$ and inference ${\bf h} \sim p({\bf h} |{\bf v})$ with the same model. As with the Hopfield model, we can view each of the hidden units as representative of a pattern, or feature, that could be present in the data. (In general, one should think of activity patterns of hidden units representing features in the data.) The inference step involves assigning a probability to each of these features that expresses the degree to which each feature is present in a given data sample. In an RBM, hidden units do not influence each other during the inference step, i.e.~hidden units are conditionally independent given the visible units. There are a number of reasons why this is unsatisfactory. One reason is the desire for sparse, distributed representations, where each observed visible vector will strongly activate a few (i.e.~more than one but only a very small fraction) of the hidden units. In the brain, this is thought to be achieved by inhibitory lateral connections between neurons. However, adding lateral intra-layer connections  between the hidden units  makes the distribution difficult to sample from, so we need to come up with another way of creating connections between the hidden units. 
-
-With the Hopfield model, we saw that pairwise linear connections between neurons can be mediated through another layer. Therefore, a simple way to allow for effective connections between the hidden units is to add another layer of hidden units. Rather than just having two layers, one visible and one hidden, we can add additional layers of latent variables to account for the correlations between hidden units. Ideally, as one adds more and more layers, one might hope that the correlations between hidden variables become smaller and smaller deeper into the network. This basic logic is reminiscent of renormalization procedures that seek to decorrelate layers at each step \cite{mehta2014exact, vidal2007entanglement, li2018neural}. The price of adding additional layers is that the models become harder to train.
+Other types of units include:
+ o Softmax and multinomial units
+ o Gaussian visible and hidden units
+ o Binomial units
+ o Rectified linear units
 
 
-Training DBMs is more subtle than RBMs due to the difficulty of propagating information from visible to hidden units.  However, Hinton and collaborators realized that some of these problems could be alleviated via a layerwise procedure. Rather than attempting to the train the whole DBM at once, we can think of the DBM as a stack of RBMs (see Fig.~\ref{fig:DBM}). One first trains the bottom two layers of the DBM  -- treating it as if it is a stand-alone RBM. Once this bottom RBM is trained, we can  generate ``samples'' from the hidden layer and use these samples as an input to the next RBM (consisting of the first and second hidden layer -- purple hexagons and green squares in Fig. \ref{fig:DBM}). This procedure can then be repeated to pretrain all layers of the DBM.  
+!split
+===== Sampling: Metropolis sampling =====
+In order to sample from the RBM probability distribution it is common to use Markov Chain Monte Carlo (MCMC) algorithms such as Metropolis-Hastings or Gibbs sampling.
 
 
-This pretraining initializes the weights so that SGD can be used effectively when the network is trained in a supervised fashion. In particular, the pretraining helps the gradients to stay well behaved rather than vanish or blow up -- a problem that we discussed extensively in the earlier sections of DNNs. It is worth noting that once pretrained, we can use the usual Boltzmann learning rules (Eq.~\eqref{eq:Pos-neg-energy}) to fine-tune the weights and improve the performance of the DBM \cite{ hinton2006fast,hinton2006reducing}.  As we demonstrate in the next section, the Paysage package presented here can be used to both construct and train DBNs using such a pretraining procedure.
 
+Metropolis sampling starts by suggesting a new configuration $\bm{x}^{k+1}$. In the brute force method this is done by some random change of the visible units. The new configuration is then accepted with the acceptance probability
+!bt
+\begin{align}
+	A(\bm{x}^k \rightarrow \bm{x}^{k+1}) = \text{min} (1, \frac{P(\bm{x}^{k+1})}{P(\bm{x}^k)}),
+\end{align} 
+!et
+where we need the marginalized probability
+!bt
+\begin{align}
+	P(\bm{x})  &= \sum_\mathbf{h} P_{rbm}(\mathbf{x}, \mathbf{h}) \\
+				&= \frac{1}{Z}\sum_\mathbf{h} e^{-E(\mathbf{x}, \mathbf{h})}.
+\end{align}
+!et
+
+!split
+===== Sampling: Gibbs sampling =====
+
+In this method we sample from the joint probability $P_{rbm} (\mathbf{x}, \mathbf{h})$ by way of a two step sampling process. We alternately update the visible and hidden units.
+New samples are generated according to the conditional probabilities $P(x_i|\mathbf{h})$ and $P(h_j|\mathbf{x})$ respectively and accepted with the probability of $1$. While the the visible nodes are dependent on the hidden nodes and vice versa, the nodes are independent of other nodes within the same layer. This is due to there being no intra layer interactions in the restricted Boltzmann machine.
+
+The conditional probabilities are often referred to as the activitation functions in the neural networks context due to their role in determining the node outputs. For the binary-binary RBM they are
+!bt
+\begin{align}
+	P(h_j = 1 | \bm{x}) &= \frac{1}{1 + e^{-b_j - \sum_i x_i w_{ij}}} \\
+	P(x_i = 1 | \bm{h}) &= \frac{1}{1 + e^{-a_j - \sum_j h_j w_{ij}}},
+\end{align}
+!et
+where we recognize the logistic sigmoid function $\sigma (x) = 1/(1+exp(-x))$.
+
+!split
+===== Gaussian RBM =====
+For the Gaussian-Binary RBM the conditional probabilities are
+!bt
+\begin{align}
+	P(x_i|\mathbf{h}) &= \mathcal{N}(x_i; a_i+ \sum_j h_j w_{ij}, \sigma^2) \\
+	P(h_j=1|\mathbf{x}) &=  \frac{1}{1+e^{-b_j-\frac{1}{\sigma^2} \sum_i x_i w_{ij}}},
+\end{align}
+!et
+while the visible units now follow a normal distribution, we see the hidden units again follow the logistic sigmoid function.
+
+!split
+===== Cost function =====
+
+When working with a training dataset, the most common training approach is maximizing the log-likelihood of the training data. The log likelihood characterizes the log-probability of generating the observed data using our generative model. Using this method our cost function is chosen as the negative log-likelihood. The learning then consists of trying to find parameters that maximize the probability of the dataset, and is known as Maximum Likelihood Estimation (MLE).
+Denoting the parameters as $\bm{\theta} = a_1,...,a_M,b_1,...,b_N,w_{11},...,w_{MN}$, the log-likelihood is given by
+!bt
+\begin{align}
+	\mathcal{L}(\{ \theta_i \}) &= \langle \text{log} P_\theta(\bm{x}) \rangle_{data} \\
+	&= - \langle E(\bm{x}; \{ \theta_i\}) \rangle_{data} - \text{log} Z(\{ \theta_i\}),
+\end{align}
+!et
+where we used that the normalization constant does not depend on the data, $\langle \text{log} Z(\{ \theta_i\}) \rangle = \text{log} Z(\{ \theta_i\})$
+Our cost function is the negative log-likelihood, $\mathcal{C}(\{ \theta_i \}) = - \mathcal{L}(\{ \theta_i \})$
+
+!split
+===== Optimization / Training =====
+The training procedure of choice often is Stochastic Gradient Descent (SGD). It consists of a series of iterations where we update the parameters according to the equation
+!bt
+\begin{align}
+	\bm{\theta}_{k+1} = \bm{\theta}_k - \eta \nabla \mathcal{C} (\bm{\theta}_k)
+\end{align}
+!et
+at each $k$-th iteration. There are a range of variants of the algorithm which aim at making the learning rate $\eta$ more adaptive so the method might be more efficient while remaining stable.
+
+We now need the gradient of the cost function in order to minimize it. We find that
+!bt
+\begin{align}
+	\frac{\partial \mathcal{C}(\{ \theta_i\})}{\partial \theta_i}
+	&= \langle \frac{\partial E(\bm{x}; \theta_i)}{\partial \theta_i} \rangle_{data}
+	+ \frac{\partial \text{log} Z(\{ \theta_i\})}{\partial \theta_i} \\
+	&= \langle O_i(\bm{x}) \rangle_{data} - \langle O_i(\bm{x}) \rangle_{model},
+\end{align}
+!et
+where in order to simplify notation we defined the "operator"
+!bt
+\begin{align}
+	O_i(\bm{x}) = \frac{\partial E(\bm{x}; \theta_i)}{\partial \theta_i}, 
+\end{align}
+!et
+and used the statistical mechanics relationship between expectation values and the log-partition function:
+!bt
+\begin{align}
+	\langle O_i(\bm{x}) \rangle_{model} = \text{Tr} P_\theta(\bm{x})O_i(\bm{x}) = - \frac{\partial \text{log} Z(\{ \theta_i\})}{\partial \theta_i}.
+\end{align}
+!et
+
+!split 
+=====  More on RBMs =====
+
+The data-dependent term in the gradient is known as the positive phase of the gradient, while the model-dependent term is known as the negative phase of the gradient. The aim of the training is to lower the energy of configurations that are near observed data points (increasing their probability), and raising the energy of configurations that are far from observed data points (decreasing their probability).
+
+The gradient of the negative log-likelihood cost function of a Binary-Binary RBM is then
+!bt
+\begin{align}
+	\frac{\partial \mathcal{C} (w_{ij}, a_i, b_j)}{\partial w_{ij}} =& \langle x_i h_j \rangle_{data} - \langle x_i h_j \rangle_{model} \\
+	\frac{\partial \mathcal{C} (w_{ij}, a_i, b_j)}{\partial a_{ij}} =& \langle x_i \rangle_{data} - \langle x_i \rangle_{model} \\
+	\frac{\partial \mathcal{C} (w_{ij}, a_i, b_j)}{\partial b_{ij}} =& \langle h_i \rangle_{data} - \langle h_i \rangle_{model}. \\
+\end{align}
+!et
+To get the expecation values with respect to the *data*, we set the visible units to each of the observed samples in the training data, then update the hidden units according to the conditional probability found before. We then average over all samples in the training data to calculate expectation values with respect to the data. 
+
+!split
+===== Which sampling to use =====
+
+To get the expectation values with respect to the *model*, we use Gibbs sampling. We can either initialize the $\bm{x}$ randomly or with a training sample. While we ideally want a large number of Gibbs iterations $n\rightarrow n$, one might decide to truncate it earlier for efficiency. Doing this while having intialized $\bm{x}$ with a training data vector is referred to as contrastive divergence (CD), because one is then closer to approximating the gradient of this function than the negative log-likelihood. The contrastive divergence function is the difference between two Kullback-Leibler divergences (also called relative entropy), which measure how one probability distribution diverges from a second, expected probability distribution (in this case the estimated one from the ground truth one).
+
+!split
+===== RBMs for the quantum many body problem =====
+
+The idea of applying RBMs to quantum many body problems was presented by G. Carleo and M. Troyer, working with ETH Zurich and Microsoft Research.
+
+Some of their motivation included
+
+* "The wave function $\Psi$ is a monolithic mathematical quantity that contains all the information on a quantum state, be it a single particle or a complex molecule. In principle, an exponential amount of information is needed to fully encode a generic many-body quantum state."
+* There are still interesting open problems, including fundamental questions ranging from the dynamical properties of high-dimensional systems to the exact ground-state properties of strongly interacting fermions.
+* The difficulty lies in finding a general strategy to reduce the exponential complexity of the full many-body wave function down to its most essential features. That is
+ o $\rightarrow$ Dimensional reduction
+ o $\rightarrow$ Feature extraction
+* Among the most successful techniques to attack these challenges, artifical neural networks play a prominent role.
+* Want to understand whether an artifical neural network may adapt to describe a quantum system.
+
+!split
+===== Choose the right RBM ===== 
+
+Carleo and Troyer applied the RBM to the quantum mechanical spin lattice systems of the Ising model and Heisenberg model, with encouraging results. Our goal is to test the method on systems of moving particles. For the spin lattice systems it was natural to use a binary-binary RBM, with the nodes taking values of 1 and -1. For moving particles, on the other hand, we want the visible nodes to be continuous, representing position coordinates. Thus, we start by choosing a Gaussian-binary RBM, where the visible nodes are continuous and hidden nodes take on values of 0 or 1. If eventually we would like the hidden nodes to be continuous as well the rectified linear units seem like the most relevant choice.
+
+!split
+===== Representing the wave function =====
+The wavefunction should be a probability amplitude depending on $\bm{x}$. The RBM model is given by the joint distribution of $\bm{x}$ and $\bm{h}$
+!bt
+\begin{align}
+	F_{rbm}(\mathbf{x},\mathbf{h}) = \frac{1}{Z} e^{-\frac{1}{T_0}E(\mathbf{x},\mathbf{h})}.
+\end{align}
+!et
+To find the marginal distribution of $\bm{x}$ we set:
+!bt
+\begin{align}
+	F_{rbm}(\mathbf{x}) &= \sum_\mathbf{h} F_{rbm}(\mathbf{x}, \mathbf{h}) \\
+				&= \frac{1}{Z}\sum_\mathbf{h} e^{-E(\mathbf{x}, \mathbf{h})}.
+\end{align}
+!et
+Now this is what we use to represent the wave function, calling it a neural-network quantum state (NQS)
+!bt
+\begin{align}
+	\Psi (\mathbf{X}) &= F_{rbm}(\mathbf{x}) \\
+	&= \frac{1}{Z}\sum_{\bm{h}} e^{-E(\mathbf{x}, \mathbf{h})} \\
+	&= \frac{1}{Z} \sum_{\{h_j\}} e^{-\sum_i^M \frac{(x_i - a_i)^2}{2\sigma^2} + \sum_j^N b_j h_j + \sum_{i,j}^{M,N} \frac{x_i w_{ij} h_j}{\sigma^2}} \\
+	&= \frac{1}{Z} e^{-\sum_i^M \frac{(x_i - a_i)^2}{2\sigma^2}} \prod_j^N (1 + e^{b_j + \sum_i^M \frac{x_i w_{ij}}{\sigma^2}}). \\
+\end{align}
+!et
+
+!split
+===== Choose the cost function =====
+Now we don't necessarily have training data (unless we generate it by using some other method). However, what we do have is the variational principle which allows us to obtain the ground state wave function by minimizing the expectation value of the energy of a trial wavefunction (corresponding to the untrained NQS). Similarly to the traditional variational Monte Carlo method then, it is the local energy we wish to minimize. The gradient to use for the stochastic gradient descent procedure is
+!bt
+\begin{align}
+	G_i = \frac{\partial \langle E_L \rangle}{\partial \theta_i}
+	= 2(\langle E_L \frac{1}{\Psi}\frac{\partial \Psi}{\partial \theta_i} \rangle - \langle E_L \rangle \langle \frac{1}{\Psi}\frac{\partial \Psi}{\partial \theta_i} \rangle ),
+\end{align}
+!et
+where the local energy is given by
+!bt
+\begin{align}
+	E_L = \frac{1}{\Psi} \hat{\mathbf{H}} \Psi.
+\end{align}
+!et
+
+
+!split
+===== Running the codes =====
+!bblock
+You can find the codes for the simple two-electron case at the Github repository URL:"https://github.com/mhjensenseminars/MachineLearningTalk/tree/master/doc/Programs/MLcpp/src". Python codes to come, only c++ as of now. 
+
+The trial wave function is based on the product of a Slater determinant with Gaussian orbitals, a simple Jastrow factor $\exp{(r_{ij})}$ and the reduced Boltzmann machines. 
+
+The Broyden-Fletcher-Goldfarb-Shanno algorithm was used to perform the minimization. We used $14$ hidden nodes in the calculations below.
+
+!eblock
+
+
+
+
+!split
+===== Energy as function of iterations, $N=2$ electrons  =====
+!bblock
+FIGURE: [figures/figN2.pdf, width=700 frac=0.9]
+!eblock
+
+
+!split
+===== Energy as function of iterations, $N=6$ electrons  =====
+!bblock
+FIGURE: [figures/figN6.pdf, width=700 frac=0.9]
+!eblock
+
+
+
+!split
+===== Conclusions and where do we stand =====
+!bblock
+* A simple extension of the work of "G. Carleo and M. Troyer, Science _355_, Issue 6325, pp. 602-606 (2017)":"http://science.sciencemag.org/content/355/6325/602" gives excellent results for two-electron systems as well as good agreement with standard VMC calculations for $N=6$ and $N=12$ electrons.
+* Minimization problem can be tricky.
+* Anti-symmetry dealt with multiplying the trail wave function with an optimized Slater determinant.
+* To come: Analysis of wave function from ML and compare with diffusion and Variational Monte Carlo calculations as well as the analytical results of Taut for the two-electron case.
+* Extend to more fermions. How do we deal with the antisymmetry of the multi-fermion wave function?
+  o Here we used standard Hartree-Fock theory to define an optimal Slater determinant. Takes care of the antisymmetry. What about constructing an anti-symmetrized network function?
+  o Use thereafter ML to determine the correlated part of the wafe function (including a standard Jastrow factor).
+  o Test this for multi-fermion systems and compare with other many-body methods.
+* Can we use ML to find out which correlations are relevant and thereby diminish the dimensionality problem in say CC or SRG theories?
+
+!eblock
 
 
