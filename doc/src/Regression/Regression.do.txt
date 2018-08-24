@@ -59,11 +59,13 @@ Defining the vectors
 \hat{y} = [y_0,y_1, y_2,\dots, y_{n-1}]^T,
 \]
 !et
+and
 !bt
 \[
 \hat{\beta} = [\beta_0,\beta_1, \beta_2,\dots, \beta_{n-1}]^T,
 \]
 !et
+and
 !bt
 \[
 \hat{\epsilon} = [\epsilon_0,\epsilon_1, \epsilon_2,\dots, \epsilon_{n-1}]^T,
@@ -267,89 +269,6 @@ meaning that the solution for $\hat{\beta}$ is the one which minimizes the resid
 
 !eblock
 
-!split
-===== Simple regression model =====
-We are now ready to write our first program which aims at solving the above linear regression equations. We start with data we have produced ourselves, in this case normally distributed random numbers along the $x$-axis. These numbers define then the value of a function $y(x)=4+3x+N(0,1)$. Thereafter we order the $x$ values and employ our linear regression algorithm to set up the best fit. Here we find it useful to use the numpy function $c\_$ arrays where arrays are stacked along their last axis after being upgraded to at least two dimensions with ones post-pended to the shape. The following examples help in understanding what happens 
-!bc pycod 
-import numpy as np
-print(np.c_[np.array([1,2,3]), np.array([4,5,6])])
-print(np.c_[np.array([[1,2,3]]), 0, 0, np.array([[4,5,6]])])
-!ec
-
-!bc pycod
-# Importing various packages
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-
-x = 2*np.random.rand(100,1)
-y = 4+3*x+np.random.randn(100,1)
-
-xb = np.c_[np.ones((100,1)), x]
-theta = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
-xnew = np.array([[0],[2]])
-xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(theta)
-
-plt.plot(xnew, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Linear Regression')
-plt.show()
-
-!ec
-
-We see that, as expected, a linear fit gives a seemingly (from the graph) good representation of the data.
-
-
-
-
-!split
-===== Simple regression model, now using _scikit-learn_ =====
-
-
-We can repeat the above algorithm using _scikit-learn_ as follows
-!bc pycod
-# Importing various packages
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-
-x = 2*np.random.rand(100,1)
-y = 4+3*x+np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-xnew = np.array([[0],[2]])
-ypredict = linreg.predict(xnew)
-
-plt.plot(xnew, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Random numbers ')
-plt.show()
-!ec
-
-
-!split
-===== Correlations and the quality of our results =====
-In order to test the quality of our fit, there are several measures which can be implemented. One is the so-called
-correlation function defined as
-!bt
-\[
-\mathrm{Corr}(X,Y) = \frac{\sum_{i=1}^n(x_i-\overline{x})(y_i-\overline{y})}{\sqrt{\sum_{i=1}^n(x_i-\overline{x})^2}\sqrt{\sum_{i=1}^n(y_i-\overline{y})^2} }
-\]
-!et
-
-Another quantity is the autocorrelation function we discussed in our chapter on statistical analysis. 
-Let us now try to assess the quality of our fit by studying various measures.
-
-!split
-=====  Estimate of the error =====
 
 !split
 ===== The $\chi^2$ function  =====
@@ -423,7 +342,7 @@ and if the matrix $\hat{A}^T\hat{A}$ is invertible we have the solution
 If we then introduce the matrix
 !bt
 \[
-\hat{H} =  \hat{A}^T\hat{A},
+\hat{H} =  \left(\hat{A}^T\hat{A}\right)^{-1},
 \]
 !et
 we have then the following expression for the parameters $\beta_j$ (the matrix elements of $\hat{H}$ are $h_{ij}$)
@@ -432,7 +351,7 @@ we have then the following expression for the parameters $\beta_j$ (the matrix e
 \beta_j = \sum_{k=0}^{p-1}h_{jk}\sum_{i=0}^{n-1}\frac{y_i}{\sigma_i}\frac{x_{ik}}{\sigma_i} = \sum_{k=0}^{p-1}h_{jk}\sum_{i=0}^{n-1}b_ia_{ik}
 \]
 !et
-We state without proof the expression for the uncertainty  in the parameters $\beta_j$ as
+We state without proof the expression for the uncertainty  in the parameters $\beta_j$ as (we leave this as an exercise)
 !bt
 \[
 \sigma^2(\beta_j) = \sum_{i=0}^{n-1}\sigma_i^2\left( \frac{\partial \beta_j}{\partial y_i}\right)^2, 
@@ -458,13 +377,13 @@ y=y(x) \rightarrow y(x_i) \approx \beta_0+\beta_1 x_i.
 By computing the derivatives of $\chi^2$ with respect to $\beta_0$ and $\beta_1$ show that these are given by
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{1}\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0,
+\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{n-1}\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0,
 \]
 !et
 and
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{1}x_i\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0.
+\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{n-1}x_i\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0.
 \]
 !et
 !eblock
@@ -473,34 +392,35 @@ and
 ===== The $\chi^2$ function  =====
 !bblock
 
-We define then
+For a linear fit we don't need to invert a matrix!!  
+Defining
 !bt
 \[
-\gamma =  \sum_{i=0}^{1}\frac{1}{\sigma_i^2},
+\gamma =  \sum_{i=0}^{n-1}\frac{1}{\sigma_i^2},
 \]
 !et
 
 !bt
 \[
-\gamma_x =  \sum_{i=0}^{1}\frac{x_{i}}{\sigma_i^2},
+\gamma_x =  \sum_{i=0}^{n-1}\frac{x_{i}}{\sigma_i^2},
 \]
 !et
 !bt
 \[
-\gamma_y = \sum_{i=0}^{1}\left(\frac{y_i}{\sigma_i^2}\right),
+\gamma_y = \sum_{i=0}^{n-1}\left(\frac{y_i}{\sigma_i^2}\right),
 \]
 !et
 !bt
 \[
-\gamma_{xx} =  \sum_{i=0}^{1}\frac{x_ix_{i}}{\sigma_i^2},
+\gamma_{xx} =  \sum_{i=0}^{n-1}\frac{x_ix_{i}}{\sigma_i^2},
 \]
 !et
 !bt
 \[
-\gamma_{xy} = \sum_{i=0}^{1}\frac{y_ix_{i}}{\sigma_i^2},
+\gamma_{xy} = \sum_{i=0}^{n-1}\frac{y_ix_{i}}{\sigma_i^2},
 \]
 !et
-and show that
+we obtain
 !bt
 \[
 \beta_0 = \frac{\gamma_{xx}\gamma_y-\gamma_x\gamma_y}{\gamma\gamma_{xx}-\gamma_x^2},
@@ -512,8 +432,400 @@ and show that
 \]
 !et
 
-The LSM suffers often from both being underdetermined and overdetermined in the unknown coefficients $\beta_i$.  A better approach is to use the Singular Value Decomposition (SVD) method discussed below. 
+This approach (different linear and non-linear regression) suffers often from both being underdetermined and overdetermined in the unknown coefficients $\beta_i$.  A better approach is to use the Singular Value Decomposition (SVD) method discussed below. Or using Lasso and Ridge regression. See below.
 !eblock
+
+
+
+
+!split
+===== Simple regression model =====
+We are now ready to write our first program which aims at solving the above linear regression equations. We start with data we have produced ourselves, in this case normally distributed random numbers along the $x$-axis. These numbers define then the value of a function $y(x)=4+3x+N(0,1)$. Thereafter we order the $x$ values and employ our linear regression algorithm to set up the best fit. Here we find it useful to use the numpy function $c\_$ arrays where arrays are stacked along their last axis after being upgraded to at least two dimensions with ones post-pended to the shape. The following examples help in understanding what happens 
+!bc pycod 
+import numpy as np
+print(np.c_[np.array([1,2,3]), np.array([4,5,6])])
+print(np.c_[np.array([[1,2,3]]), 0, 0, np.array([[4,5,6]])])
+!ec
+
+!bc pycod
+# Importing various packages
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = 2*np.random.rand(100,1)
+y = 4+3*x+np.random.randn(100,1)
+
+xb = np.c_[np.ones((100,1)), x]
+beta = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+xnew = np.array([[0],[2]])
+xbnew = np.c_[np.ones((2,1)), xnew]
+ypredict = xbnew.dot(beta)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Linear Regression')
+plt.show()
+
+!ec
+
+We see that, as expected, a linear fit gives a seemingly (from the graph) good representation of the data.
+
+
+
+
+!split
+===== Simple regression model, now using _scikit-learn_ =====
+
+
+We can repeat the above algorithm using _scikit-learn_ as follows
+!bc pycod
+# Importing various packages
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+x = 2*np.random.rand(100,1)
+y = 4+3*x+np.random.randn(100,1)
+linreg = LinearRegression()
+linreg.fit(x,y)
+xnew = np.array([[0],[2]])
+ypredict = linreg.predict(xnew)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Random numbers ')
+plt.show()
+!ec
+
+
+!split
+===== Simple linear regression model using _scikit-learn_ =====
+
+We start with perhaps our simplest possible example, using _scikit-learn_ to perform linear regression analysis on a data set produced by us. 
+What follows is a simple Python code where we have defined  function $y$ in terms of the variable $x$. Both are defined as vectors of dimension $1\times 100$. The entries to the vector $\hat{x}$  are given by random numbers generated with a uniform distribution with entries $x_i \in [0,1]$ (more about probability distribution functions later). These values are then used to define a function $y(x)$ (tabulated again as a vector) with a linear dependence on $x$ plus a random noise added via the normal distribution.
+
+
+The Numpy functions are imported used the _import numpy as np_
+statement and the random number generator for the uniform distribution
+is called using the function _np.random.rand()_, where we specificy
+that we want $100$ random variables.  Using Numpy we define
+automatically an array with the specified number of elements, $100$ in
+our case.  With the Numpy function _randn()_ we can compute random
+numbers with the normal distribution (mean value $\mu$ equal to zero and
+variance $\sigma^2$ set to one) and produce the values of $y$ assuming a linear
+dependence as function of $x$
+
+!bt
+\[
+y = 2x+N(0,1),
+\]
+!et
+
+where $N(0,1)$ represents random numbers generated by the normal
+distribution.  From _scikit-learn_ we import then the
+_LinearRegression_ functionality and make a prediction $\tilde{y} =
+\alpha + \beta x$ using the function _fit(x,y)_. We call the set of
+data $(\hat{x},\hat{y})$ for our training data. The Python package
+_scikit-learn_ has also a functionality which extracts the above
+fitting parameters $\alpha$ and $\beta$ (see below). Later we will
+distinguish between training data and test data.
+
+For plotting we use the Python package
+"matplotlib":"https://matplotlib.org/" which produces publication
+quality figures. Feel free to explore the extensive
+"gallery":"https://matplotlib.org/gallery/index.html" of examples. In
+this example we plot our original values of $x$ and $y$ as well as the
+prediction _ypredict_ ($\tilde{y}$), which attempts at fitting our
+data with a straight line.
+
+The Python code follows here.
+!bc pycod
+# Importing various packages
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+x = np.random.rand(100,1)
+y = 2*x+np.random.randn(100,1)
+linreg = LinearRegression()
+linreg.fit(x,y)
+xnew = np.array([[0],[1]])
+ypredict = linreg.predict(xnew)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(x, y ,'ro')
+plt.axis([0,1.0,0, 5.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Simple Linear Regression')
+plt.show()
+!ec
+
+
+!split
+===== Simple linear regression model  =====
+
+This example serves several aims. It allows us to demonstrate several
+aspects of data analysis and later machine learning algorithms. The
+immediate visualization shows that our linear fit is not
+impressive. It goes through the data points, but there are many
+outliers which are not reproduced by our linear regression.  We could
+now play around with this small program and change for example the
+factor in front of $x$ and the normal distribution.  Try to change the
+function $y$ to
+
+!bt
+\[
+y = 10x+0.01 \times N(0,1),
+\]
+!et
+
+where $x$ is defined as before.  
+
+
+!split
+===== Less noise =====
+
+Does the fit look better? Indeed, by
+reducing the role of the normal distribution we see immediately that
+our linear prediction seemingly reproduces better the training
+set. However, this testing 'by the eye' is obviouly not satisfactory in the
+long run. Here we have only defined the training data and our model, and 
+have not discussed a more rigorous approach to the _cost_ function.
+
+
+!split
+===== How to study our fits =====
+
+We need more rigorous criteria in defining whether we have succeeded or
+not in modeling our training data.  You will be surprised to see that
+many scientists seldomly venture beyond this 'by the eye' approach. A
+standard approach for the *cost* function is the so-called $\chi^2$
+function 
+
+!bt 
+\[ \chi^2 = \frac{1}{n}
+\sum_{i=0}^{n-1}\frac{(y_i-\tilde{y}_i)^2}{\sigma_i^2}, 
+\] 
+!et 
+
+where $\sigma_i^2$ is the variance (to be defined later) of the entry
+$y_i$.  We may not know the explicit value of $\sigma_i^2$, it serves
+however the aim of scaling the equations and make the cost function
+dimensionless.  
+
+
+!split
+===== Minimizing the cost function =====
+
+Minimizing the cost function is a central aspect of
+our discussions to come. Finding its minima as function of the model
+parameters ($\alpha$ and $\beta$ in our case) will be a recurring
+theme in these series of lectures. Essentially all machine learning
+algorithms we will discuss center around the minimization of the
+chosen cost function. This depends in turn on our specific
+model for describing the data, a typical situation in supervised
+learning. Automatizing the search for the minima of the cost function is a
+central ingredient in all algorithms. Typical methods which are
+employed are various variants of _gradient_ methods. These will be
+discussed in more detail later. Again, you'll be surprised to hear that
+many practitioners minimize the above function ''by the eye', popularly dubbed as 
+'chi by the eye'. That is, change a parameter and see (visually and numerically) that 
+the  $\chi^2$ function becomes smaller. 
+
+!split
+===== Relative error =====
+
+There are many ways to define the cost function. A simpler approach is to look at the relative difference between the training data and the predicted data, that is we define 
+the relative error as
+
+!bt
+\[
+\epsilon_{\mathrm{relative}}= \frac{\vert \hat{y} -\hat{\tilde{y}}\vert}{\vert \hat{y}\vert}.
+\]
+!et
+We can modify easily the above Python code and plot the relative error instead
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+x = np.random.rand(100,1)
+y = 5*x+0.01*np.random.randn(100,1)
+linreg = LinearRegression()
+linreg.fit(x,y)
+ypredict = linreg.predict(x)
+
+plt.plot(x, np.abs(ypredict-y)/abs(y), "ro")
+plt.axis([0,1.0,0.0, 0.5])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$\epsilon_{\mathrm{relative}}$')
+plt.title(r'Relative error')
+plt.show()
+!ec
+
+Depending on the parameter in front of the normal distribution, we may
+have a small or larger relative error. Try to play around with
+different training data sets and study (graphically) the value of the
+relative error.
+
+
+!split
+===== The richness of _scikit-learn_ =====
+
+As mentioned above, _scikit-learn_ has an impressive functionality.
+We can for example extract the values of $\alpha$ and $\beta$ and
+their error estimates, or the variance and standard deviation and many
+other properties from the statistical data analysis. 
+
+Here we show an
+example of the functionality of scikit-learn.
+!bc pycod 
+import numpy as np 
+import matplotlib.pyplot as plt 
+from sklearn.linear_model import LinearRegression 
+from sklearn.metrics import mean_squared_error, r2_score, mean_squared_log_error, mean_absolute_error
+
+x = np.random.rand(100,1)
+y = 2.0+ 5*x+0.5*np.random.randn(100,1)
+linreg = LinearRegression()
+linreg.fit(x,y)
+ypredict = linreg.predict(x)
+print('The intercept alpha: \n', linreg.intercept_)
+print('Coefficient beta : \n', linreg.coef_)
+# The mean squared error                               
+print("Mean squared error: %.2f" % mean_squared_error(y, ypredict))
+# Explained variance score: 1 is perfect prediction                                 
+print('Variance score: %.2f' % r2_score(y, ypredict))
+# Mean squared log error                                                        
+print('Mean squared log error: %.2f' % mean_squared_log_error(y, ypredict) )
+# Mean absolute error                                                           
+print('Mean absolute error: %.2f' % mean_absolute_error(y, ypredict))
+plt.plot(x, ypredict, "r-")
+plt.plot(x, y ,'ro')
+plt.axis([0.0,1.0,1.5, 7.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Linear Regression fit ')
+plt.show()
+
+!ec
+
+
+!split
+===== Functions in _scikit-learn_ =====
+
+The function _coef_ gives us the parameter $\beta$ of our fit while _intercept_ yields 
+$\alpha$. Depending on the constant in front of the normal distribution, we get values near or far from $alpha =2$ and $\beta =5$. Try to play around with different parameters in front of the normal distribution. The function _meansquarederror_ gives us the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error or loss defined as
+!bt 
+\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+\] 
+!et 
+
+The smaller the value, the better the fit. Ideally we would like to
+have an MSE equal zero.  The attentive reader has probably recognized
+this function as being similar to the $\chi^2$ function defined above.
+
+!split
+===== Other functions in  _scikit-learn_ =====
+
+The _r2score_ function computes $R^2$, the coefficient of
+determination. It provides a measure of how well future samples are
+likely to be predicted by the model. Best possible score is 1.0 and it
+can be negative (because the model can be arbitrarily worse). A
+constant model that always predicts the expected value of $\hat{y}$,
+disregarding the input features, would get a $R^2$ score of $0.0$.
+
+If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+!bt
+\[
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\]
+!et
+where we have defined the mean value  of $\hat{y}$ as
+!bt
+\[
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\]
+!et
+
+!split
+===== The mean absolute error and other functions in  _scikit-learn_ =====
+
+Another quantity will meet again in our discussions of regression analysis is 
+ mean absolute error (MAE), a risk metric corresponding to the expected value of the absolute error loss or what we call the $l1$-norm loss. In our discussion above we presented the relative error.
+The MAE is defined as follows
+!bt
+\[
+\text{MAE}(\hat{y}, \hat{\tilde{y}}) = \frac{1}{n} \sum_{i=0}^{n-1} \left| y_i - \tilde{y}_i \right|.
+\]
+!et
+Finally we present the 
+squared logarithmic (quadratic) error
+!bt
+\[
+\text{MSLE}(\hat{y}, \hat{\tilde{y}}) = \frac{1}{n} \sum_{i=0}^{n - 1} (\log_e (1 + y_i) - \log_e (1 + \tilde{y}_i) )^2,
+\]
+!et
+
+where $\log_e (x)$ stands for the natural logarithm of $x$. This error
+estimate is best to use when targets having exponential growth, such
+as population counts, average sales of a commodity over a span of
+years etc. 
+
+
+!split
+===== Cubic polynomial in  _scikit-learn_ =====
+
+We will discuss in more
+detail these and other functions in the various lectures.  We conclude this part with another example. Instead of 
+a linear $x$-dependence we study now a cubic polynomial and use the polynomial regression analysis tools of scikit-learn. 
+
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import LinearRegression
+
+x=np.linspace(0.02,0.98,200)
+noise = np.asarray(random.sample((range(200)),200))
+y=x**3*noise
+yn=x**3*100
+poly3 = PolynomialFeatures(degree=3)
+X = poly3.fit_transform(x[:,np.newaxis])
+clf3 = LinearRegression()
+clf3.fit(X,y)
+
+Xplot=poly3.fit_transform(x[:,np.newaxis])
+poly3_plot=plt.plot(x, clf3.predict(Xplot), label='Cubic Fit')
+plt.plot(x,yn, color='red', label="True Cubic")
+plt.scatter(x, y, label='Data', color='orange', s=15)
+plt.legend()
+plt.show()
+
+def error(a):
+    for i in y:
+        err=(y-yn)/yn
+    return abs(np.sum(err))/len(err)
+
+print (error(y))
+!ec
+
+Similarly, using _R_, we can perform similar studies. 
+(more details on _R_ will be inserted later).
+
 
 
 
@@ -725,6 +1037,8 @@ Discuss the mathematics here
 Add discussion about classification versus regression, show examples of more than two cases and why regression is not the best approach. Motivate for k-nearest neighbors
 
 Add examples on classification problems
+
+
 
 
 
