@@ -964,85 +964,6 @@ We have then
 
 
 
-!split
-===== Code examples for Ridge and Lasso Regression =====
-
-!bc pycod
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn import linear_model
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-
-#creating data with random noise
-x=np.arange(50)
-
-delta=np.random.uniform(-2.5,2.5, size=(50))
-np.random.shuffle(delta)
-y =0.5*x+5+delta
-
-#arranging data into 2x50 matrix
-a=np.array(x) #inputs
-b=np.array(y) #outputs
-
-#Split into training and test
-X_train=a[:37, np.newaxis]
-X_test=a[37:, np.newaxis]
-y_train=b[:37]
-y_test=b[37:]
-
-print ("X_train: ", X_train.shape)
-print ("y_train: ", y_train.shape)
-print ("X_test: ", X_test.shape)
-print ("y_test: ", y_test.shape)
-
-print ("------------------------------------")
-
-print ("Ordinary Least Squares")
-#Add Ordinary Least Squares fit
-reg=LinearRegression()
-reg.fit(X_train, y_train)
-pred=reg.predict(X_test)
-print ("Prediction Shape: ", pred.shape)
-
-print('Coefficients: \n', reg.coef_)
-# The mean squared error
-print("Mean squared error: %.2f"
-      % mean_squared_error(y_test, pred))
-# Explained variance score: 1 is perfect prediction
-print('Variance score: %.2f' % r2_score(y_test, pred))
-
-#plot
-plt.scatter(X_test,y_test,color='green', label="Training Data")
-plt.plot(X_test, pred, color='black', label="Fit Line")
-plt.legend()
-plt.show()
-
-print ("------------------------------------")
-
-print ("Ridge Regression")
-
-ridge=linear_model.RidgeCV(alphas=[0.1,1.0,10.0])
-ridge.fit(X_train,y_train)
-print ("Ridge Coefficient: ",ridge.coef_)
-print ("Ridge Intercept: ", ridge.intercept_)
-#Look into graphing with Ridge fit
-
-print ("------------------------------------")
-
-print ("Lasso")
-lasso=linear_model.Lasso(alpha=0.1)
-lasso.fit(X_train,y_train)
-predl=lasso.predict(X_test)
-print("Lasso Coefficient: ", lasso.coef_)
-print("Lasso Intercept: ", lasso.intercept_)
-plt.scatter(X_test,y_test,color='green', label="Training Data")
-plt.plot(X_test, predl, color='blue', label="Lasso")
-plt.legend()
-plt.show()
-!ec
-
-
 
 
 
@@ -1121,118 +1042,6 @@ where $\hat{I}$ is the identity matrix.
 
 
 
-!split
-===== A second-order polynomial with Ridge and Lasso =====
-!bc pycod
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import Ridge
-from sklearn.metrics import r2_score
-
-np.random.seed(4155)
-
-n_samples = 100
-
-x = np.random.rand(n_samples,1)
-y = 5*x*x + 0.1*np.random.rand(n_samples,1)
-
-# Centering  x and y.
-x_ = x - np.mean(x)
-y_ = y - np.mean(y) # beta_0 = mean(y)
-
-X = np.c_[np.ones((n_samples,1)), x, x**2]
-X_ = np.c_[x_, x_**2]
-
-
-### 1.
-lmb_values = [1e-4, 1e-3, 1e-2, 10, 1e2, 1e4]
-num_values = len(lmb_values)
-
-## Ridge-regression of centered and not centered data
-beta_ridge = np.zeros((3,num_values))
-beta_ridge_centered = np.zeros((3,num_values))
-
-I3 = np.eye(3)
-I2 = np.eye(2)
-
-for i,lmb in enumerate(lmb_values):
-    beta_ridge[:,i] = (np.linalg.inv( X.T @ X + lmb*I3) @ X.T @ y).flatten()
-    beta_ridge_centered[1:,i] = (np.linalg.inv( X_.T @ X_ + lmb*I2) @ X_.T @ y_).flatten()
-
-# sett beta_0 = np.mean(y)
-beta_ridge_centered[0,:] = np.mean(y)
-
-## OLS (ordinary least squares) solution 
-beta_ls = np.linalg.inv( X.T @ X ) @ X.T @ y
-
-## Evaluate the models
-pred_ls = X @ beta_ls
-pred_ridge =  X @ beta_ridge
-pred_ridge_centered =  X_ @ beta_ridge_centered[1:] + beta_ridge_centered[0,:]
-
-## Plot the results
-
-# Sorting
-sort_ind = np.argsort(x[:,0])
-
-x_plot = x[sort_ind,0]
-x_centered_plot = x_[sort_ind,0]
-
-pred_ls_plot = pred_ls[sort_ind,0]
-pred_ridge_plot = pred_ridge[sort_ind,:]
-pred_ridge_centered_plot = pred_ridge_centered[sort_ind,:]
-
-# Plott not centered
-plt.plot(x_plot,pred_ls_plot,label='ls')
-
-for i in range(num_values):
-    plt.plot(x_plot,pred_ridge_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
-
-plt.plot(x,y,'ro')
-
-plt.title('linear regression on un-centered data')
-plt.legend()
-
-# Plott centered
-plt.figure()
-
-for i in range(num_values):
-    plt.plot(x_centered_plot,pred_ridge_centered_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
-
-plt.plot(x_,y,'ro')
-
-plt.title('linear regression on centered data')
-plt.legend()
-
-
-# 2.
-
-pred_ridge_scikit =  np.zeros((n_samples,num_values))
-for i,lmb in enumerate(lmb_values):
-    pred_ridge_scikit[:,i] = (Ridge(alpha=lmb,fit_intercept=False).fit(X,y).predict(X)).flatten() # fit_intercept=False fordi bias er allerede i X
-
-plt.figure()
-
-plt.plot(x_plot,pred_ls_plot,label='ls')
-
-for i in range(num_values):
-    plt.plot(x_plot,pred_ridge_scikit[sort_ind,i],label='scikit-ridge, lmb=%g'%lmb_values[i])
-
-plt.plot(x,y,'ro')
-plt.legend()
-plt.title('linear regression using scikit')
-
-plt.show()
-
-### R2-score of the results
-for i in range(num_values):
-    print('lambda = %g'%lmb_values[i])
-    print('r2 for scikit: %g'%r2_score(y,pred_ridge_scikit[:,i]))
-    print('r2 for own code, not centered: %g'%r2_score(y,pred_ridge[:,i]))
-    print('r2 for own, centered: %g\n'%r2_score(y,pred_ridge_centered[:,i]))
-
-
-!ec
 
 
 !split
@@ -1265,7 +1074,7 @@ o What is the relationship between the true model for generating the data and th
 Summarize what you think you learned about the relationship of knowing the true model class and predictive power.
 
 !split
-===== The code =====
+===== An example code without the model assessment part =====
 
 !bc pycod
 import numpy as np
@@ -1394,18 +1203,396 @@ plt.title(Title+" (pred.)")
 plt.tight_layout()
 plt.show()
 
-#Linear Filename
-#filename_test=Title+"pred-linear.pdf"
-#Tenth Order Filename
-#filename_test=Title+"pred-o10.pdf"
-#plt.savefig(filename_test)
-#plt.ylim((-6,12))
 
 !ec
 
 !split
-===== Lasso regression =====
+===== How can we effectively evaluate the various models? =====
+
+In Ridge regression and the subsequent discussion of its properties
+the bias or penalty parameter is considered known or `given'. In
+practice, it is unknown and the user needs to make an informed
+decision on its value. How do we do that?  Much of the same considerations apply to the Lasso method. 
+
+!split
+===== Code examples for Ridge and Lasso Regression =====
+
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import linear_model
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+#creating data with random noise
+x=np.arange(50)
+
+delta=np.random.uniform(-2.5,2.5, size=(50))
+np.random.shuffle(delta)
+y =0.5*x+5+delta
+
+#arranging data into 2x50 matrix
+a=np.array(x) #inputs
+b=np.array(y) #outputs
+
+#Split into training and test
+X_train=a[:37, np.newaxis]
+X_test=a[37:, np.newaxis]
+y_train=b[:37]
+y_test=b[37:]
+
+print ("X_train: ", X_train.shape)
+print ("y_train: ", y_train.shape)
+print ("X_test: ", X_test.shape)
+print ("y_test: ", y_test.shape)
+
+print ("------------------------------------")
+
+print ("Ordinary Least Squares")
+#Add Ordinary Least Squares fit
+reg=LinearRegression()
+reg.fit(X_train, y_train)
+pred=reg.predict(X_test)
+print ("Prediction Shape: ", pred.shape)
+
+print('Coefficients: \n', reg.coef_)
+# The mean squared error
+print("Mean squared error: %.2f"
+      % mean_squared_error(y_test, pred))
+# Explained variance score: 1 is perfect prediction
+print('Variance score: %.2f' % r2_score(y_test, pred))
+
+#plot
+plt.scatter(X_test,y_test,color='green', label="Training Data")
+plt.plot(X_test, pred, color='black', label="Fit Line")
+plt.legend()
+plt.show()
+
+print ("------------------------------------")
+
+print ("Ridge Regression")
+
+ridge=linear_model.RidgeCV(alphas=[0.1,1.0,10.0])
+ridge.fit(X_train,y_train)
+print ("Ridge Coefficient: ",ridge.coef_)
+print ("Ridge Intercept: ", ridge.intercept_)
+#Look into graphing with Ridge fit
+
+print ("------------------------------------")
+
+print ("Lasso")
+lasso=linear_model.Lasso(alpha=0.1)
+lasso.fit(X_train,y_train)
+predl=lasso.predict(X_test)
+print("Lasso Coefficient: ", lasso.coef_)
+print("Lasso Intercept: ", lasso.intercept_)
+plt.scatter(X_test,y_test,color='green', label="Training Data")
+plt.plot(X_test, predl, color='blue', label="Lasso")
+plt.legend()
+plt.show()
+!ec
+
+
+
 
 
 !split
-=====  Logistic regression =====
+===== A second-order polynomial with Ridge and Lasso =====
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge
+from sklearn.metrics import r2_score
+
+np.random.seed(4155)
+
+n_samples = 100
+
+x = np.random.rand(n_samples,1)
+y = 5*x*x + 0.1*np.random.rand(n_samples,1)
+
+# Centering  x and y.
+x_ = x - np.mean(x)
+y_ = y - np.mean(y) # beta_0 = mean(y)
+
+X = np.c_[np.ones((n_samples,1)), x, x**2]
+X_ = np.c_[x_, x_**2]
+
+
+### 1.
+lmb_values = [1e-4, 1e-3, 1e-2, 10, 1e2, 1e4]
+num_values = len(lmb_values)
+
+## Ridge-regression of centered and not centered data
+beta_ridge = np.zeros((3,num_values))
+beta_ridge_centered = np.zeros((3,num_values))
+
+I3 = np.eye(3)
+I2 = np.eye(2)
+
+for i,lmb in enumerate(lmb_values):
+    beta_ridge[:,i] = (np.linalg.inv( X.T @ X + lmb*I3) @ X.T @ y).flatten()
+    beta_ridge_centered[1:,i] = (np.linalg.inv( X_.T @ X_ + lmb*I2) @ X_.T @ y_).flatten()
+
+# sett beta_0 = np.mean(y)
+beta_ridge_centered[0,:] = np.mean(y)
+
+## OLS (ordinary least squares) solution 
+beta_ls = np.linalg.inv( X.T @ X ) @ X.T @ y
+
+## Evaluate the models
+pred_ls = X @ beta_ls
+pred_ridge =  X @ beta_ridge
+pred_ridge_centered =  X_ @ beta_ridge_centered[1:] + beta_ridge_centered[0,:]
+
+## Plot the results
+
+# Sorting
+sort_ind = np.argsort(x[:,0])
+
+x_plot = x[sort_ind,0]
+x_centered_plot = x_[sort_ind,0]
+
+pred_ls_plot = pred_ls[sort_ind,0]
+pred_ridge_plot = pred_ridge[sort_ind,:]
+pred_ridge_centered_plot = pred_ridge_centered[sort_ind,:]
+
+# Plott not centered
+plt.plot(x_plot,pred_ls_plot,label='ls')
+
+for i in range(num_values):
+    plt.plot(x_plot,pred_ridge_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
+
+plt.plot(x,y,'ro')
+
+plt.title('linear regression on un-centered data')
+plt.legend()
+
+# Plott centered
+plt.figure()
+
+for i in range(num_values):
+    plt.plot(x_centered_plot,pred_ridge_centered_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
+
+plt.plot(x_,y,'ro')
+
+plt.title('linear regression on centered data')
+plt.legend()
+
+
+# 2.
+
+pred_ridge_scikit =  np.zeros((n_samples,num_values))
+for i,lmb in enumerate(lmb_values):
+    pred_ridge_scikit[:,i] = (Ridge(alpha=lmb,fit_intercept=False).fit(X,y).predict(X)).flatten() # fit_intercept=False fordi bias er allerede i X
+
+plt.figure()
+
+plt.plot(x_plot,pred_ls_plot,label='ls')
+
+for i in range(num_values):
+    plt.plot(x_plot,pred_ridge_scikit[sort_ind,i],label='scikit-ridge, lmb=%g'%lmb_values[i])
+
+plt.plot(x,y,'ro')
+plt.legend()
+plt.title('linear regression using scikit')
+
+plt.show()
+
+### R2-score of the results
+for i in range(num_values):
+    print('lambda = %g'%lmb_values[i])
+    print('r2 for scikit: %g'%r2_score(y,pred_ridge_scikit[:,i]))
+    print('r2 for own code, not centered: %g'%r2_score(y,pred_ridge[:,i]))
+    print('r2 for own, centered: %g\n'%r2_score(y,pred_ridge_centered[:,i]))
+
+
+!ec
+
+
+
+!split
+===== Resampling methods =====
+!bblock
+Resampling methods are an indispensable tool in modern
+statistics. They involve repeatedly drawing samples from a training
+set and refitting a model of interest on each sample in order to
+obtain additional information about the fitted model. For example, in
+order to estimate the variability of a linear regression fit, we can
+repeatedly draw different samples from the training data, fit a linear
+regression to each new sample, and then examine the extent to which
+the resulting fits differ. Such an approach may allow us to obtain
+information that would not be available from fitting the model only
+once using the original training sample.
+!eblock
+
+!split
+===== Resampling approaches can be computationally expensive =====
+!bblock
+Resampling approaches can be computationally expensive, because they
+involve fitting the same statistical method multiple times using
+different subsets of the training data. However, due to recent
+advances in computing power, the computational requirements of
+resampling methods generally are not prohibitive. In this chapter, we
+discuss two of the most commonly used resampling methods,
+cross-validation and the bootstrap. Both methods are important tools
+in the practical application of many statistical learning
+procedures. For example, cross-validation can be used to estimate the
+test error associated with a given statistical learning method in
+order to evaluate its performance, or to select the appropriate level
+of flexibility. The process of evaluating a model’s performance is
+known as model assessment, whereas the process of selecting the proper
+level of flexibility for a model is known as model selection. The
+bootstrap is widely used.
+!eblock
+
+
+!split
+===== Log-likelihood =====
+
+A popular strategy is to choose a penalty parameter that yields a good
+but parsimonious model. Information criteria measure the balance
+between model fit and model complexity. One possibility is  Aikaike's
+information criterion (AIC).
+The AIC measures model fit by the log-likelihood
+and model complexity is measured by the number of parameters used by
+the model. The number of model parameters in regular regression simply
+corresponds to the number of covariates in the model. Or, by the
+degrees of freedom consumed by the model, which is equivalent to the
+trace of the hat matrix. For ridge regression it thus seems natural to
+define model complexity analogously by the trace of the ridge hat
+matrix. This yields the AIC for the linear regression model with ridge
+estimates:
+
+
+!bt
+\begin{align*}
+\mbox{AIC}(\lambda) & =  2 \, p - 2 \log(\hat{L})
+\\
+& =  2 \, \mbox{tr} [\mathbf{H}(\lambda)] - 2 \log\{L[\hat{\beta}(\lambda), \hat{\sigma}^2(\lambda)]\}
+\\
+& =  2 \, \sum_{j=1}^p \frac{d_{jj}^2}{d_{jj}^2 + \lambda}
++ 2 n \, \log[\sqrt{2 \, \pi} \, \hat{\sigma}(\lambda)] +  \frac{1}{\hat{\sigma}^2(\lambda)} \sum_{i=1}^n [y_i - \mathbf{X}_{i, \ast} \, \hat{\beta}(\lambda)]^2.
+\end{align*}
+!et
+The value of $\lambda$ which minimizes $\mbox{AIC}(\lambda)$ corresponds to the `optimal' balance of model complexity and overfitting.
+
+
+!split 
+===== Cross-validation =====
+
+Instead of choosing the penalty parameter to balance model fit with
+model complexity, cross-validation requires it (i.e. the penalty
+parameter) to yield a model with good prediction
+performance. Commonly, this performance is evaluated on novel
+data. Novel data need not be easy to come by and one has to make do
+with the data at hand. The setting of `original' and novel data is
+then mimicked by sample splitting: the data set is divided into two
+(groups of samples). One of these two data sets, called the *training
+set*, plays the role of `original' data on which the model is
+built. The second of these data sets, called the *test set*, plays the
+role of the `novel' data and is used to evaluate the prediction
+performance (often operationalized as the log-likelihood or the
+prediction error or its square or the R2 score) of the model built on the training data set. This
+procedure (model building and prediction evaluation on training and
+test set, respectively) is done for a collection of possible penalty
+parameter choices. The penalty parameter that yields the model with
+the best prediction performance is to be preferred. The thus obtained
+performance evaluation depends on the actual split of the data set. To
+remove this dependence the data set is split many times into a
+training and test set. For each split the model parameters are
+estimated for all choices of $\lambda$ using the training data and
+estimated parameters are evaluated on the corresponding test set. The
+penalty parameter that on average over the test sets performs best (in
+some sense) is then selected.
+
+
+!split
+===== Computationally expensive =====
+
+The validation set approach is conceptually simple and is easy to implement. But it has two potential drawbacks:
+
+* The validation estimate of the test error rate can be highly variable, depending on precisely which observations are included in the training set and which observations are included in the validation set.
+
+* In the validation approach, only a subset of the observations, those that are included in the training set rather than in the validation set are used to fit the model. Since statistical methods tend to perform worse when trained on fewer observations, this suggests that the validation set error rate may tend to overestimate the test error rate for the model fit on the entire data set.
+
+
+
+!split 
+===== Various steps in cross-validation =====
+
+When the repetitive splitting of the data set is done randomly,
+samples may accidently end up in a fast majority of the splits in
+either training or test set. Such samples may have an unbalanced
+influence on either model building or prediction evaluation. To avoid
+this $k$-fold cross-validation structures the data splitting. The
+samples are divided into $k$ more or less equally sized exhaustive and
+mutually exclusive subsets. In turn (at each split) one of these
+subsets plays the role of the test set while the union of the
+remaining subsets constitutes the training set. Such a splitting
+warrants a balanced representation of each sample in both training and
+test set over the splits. Still the division into the $k$ subsets
+involves a degree of randomness. This may be fully excluded when
+choosing $k=n$. This particular case is referred to as leave-one-out
+cross-validation (LOOCV). 
+
+!split 
+===== How to set up the cross-validation for Ridge and/or Lasso =====
+
+o Define a range of interest for the penalty parameter.
+
+o Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
+
+o Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set as
+!bt
+\begin{align*}
+\hat{\beta}_{-i}(\lambda) & =  ( \hat{X}_{-i, \ast}^{\top}
+\hat{X}_{-i, \ast} + \lambda \hat{I}_{pp})^{-1}
+\hat{X}_{-i, \ast}^{\top} \hat{y}_{-i}
+\end{align*}
+!et
+and the corresponding estimate of the error variance $\hat{\sigma}_{-i}^2(\lambda)$.
+
+o Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \hat{X}_{i, \ast}; \hat{\beta}_{-i}(\lambda), \hat{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \hat{X}_{i, \ast} \hat{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
+
+o Repeat steps 1) to 3) such that each sample plays the role of the test set once.
+
+o Average the prediction performances of the test sets at each grid point of the penalty bias/parameter
+!bt
+\begin{align*}
+\frac{1}{n} \sum_{i = 1}^n \log\{L[Y_i, \mathbf{X}_{i, \ast}; \hat{\beta}_{-i}(\lambda), \hat{\sigma}_{-i}^2(\lambda)]\}.
+\end{align*}
+!et
+The quantity above is called the *cross-validated log-likelihood*. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data.
+
+o The value of the penalty parameter that maximizes the cross-validated log-likelihood is the value of choice. Or we can use the MSE or the R2 score functions.
+
+!split
+===== Predicted Residual Error Sum of Squares =====
+!bblock
+Another approach in the LOOCV scheme is to the use the so-called Predicted Residual Error Sum of Squares (PRESS). 
+
+We can define the optimal penalty parameter to minimize
+!bt
+\begin{align*}
+\lambda_{\mbox{{\tiny opt}}} = \arg \min_{\lambda} \frac{1}{n} \sum_{i=1}^n [y_i - \hat{X}_{i, \ast} \hat{\beta}_{-i}(\lambda)]^2.
+\end{align*}
+!et
+
+The LOOCV prediction performance can be
+expressed analytically in terms of the known quantities derived from
+the design matrix and the parameters $\beta$.
+!eblock
+
+!split
+===== Bootstrap =====
+!bblock
+Bootstrapping is a nonparametric approach to statistical inference
+that substitutes computation for more traditional distributional
+assumptions and asymptotic results. Bootstrapping offers a number of
+advantages: 
+o The bootstrap is quite general, although there are some cases in which it fails.  
+o Because it does not require distributional assumptions (such as normally distributed errors), the bootstrap can provide more accurate inferences when the data are not well behaved or when the sample size is small.  
+o It is possible to apply the bootstrap to statistics with sampling distributions that are difficult to derive, even asymptotically. 
+o It is relatively simple to apply the bootstrap to complex data-collection plans (such as stratified and clustered samples).
+!eblock
