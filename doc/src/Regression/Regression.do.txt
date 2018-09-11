@@ -17,6 +17,30 @@ A regression model aims at finding a likelihood function $p(y\vert \hat{x})$, th
  The goal of the regression analysis is to extract/exploit relationship between $y_i$ and $\hat{x}_i$ in or to infer causal dependencies, approximations to the likelihood functions, functional relationships and to make predictions .
 !eblock
 
+!split
+===== Regression analysis, overarching aims II =====
+!bblock
+
+
+Consider an experiment in which $p$ characteristics of $n$ samples are
+measured. The data from this experiment are denoted $\mathbf{X}$, with
+$\mathbf{X}$ as above. The matrix $\mathbf{X}$ is called the *design
+matrix*. Additional information of the samples is available in the
+form of $\mathbf{Y}$ (also as above). The variable $\mathbf{Y}$ is
+generally referred to as the *response variable*. The aim of
+regression analysis is to explain $\mathbf{Y}$ in terms of
+$\mathbf{X}$ through a functional relationship like $Y_i =
+f(\mathbf{X}_{i,\ast})$. When no prior knowledge on the form of
+$f(\cdot)$ is available, it is common to assume a linear relationship
+between $\mathbf{X}$ and $\mathbf{Y}$. This assumption gives rise to
+the *linear regression model* where $\beta = (\beta_1, \ldots,
+\beta_p)^{\top}$ is the *regression parameter*. The parameter
+$\beta_j$, $j=1, \ldots, p$, represents the effect size of covariate
+$j$ on the response. That is, for each unit change in covariate $j$
+(while keeping the other covariates fixed) the observed change in the
+response is equal to $\beta_j$.  
+
+!eblock
 
 !split
 ===== General linear models  =====
@@ -824,84 +848,10 @@ def error(a):
 print (error(y))
 !ec
 
-Similarly, using _R_, we can perform similar studies. 
-(more details on _R_ will be inserted later).
+Using _R_, we can perform similar studies. 
 
 
 
-
-
-
-
-
-
-
-
-
-!split
-===== Simple regression model with gradient descent  =====
-Add info about the equations, play around with different learning rates
-!bc pycod
-# Importing various packages
-from math import exp, sqrt
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-
-x = 2*np.random.rand(100,1)
-y = 4+3*x+np.random.randn(100,1)
-
-xb = np.c_[np.ones((100,1)), x]
-theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
-print(theta_linreg)
-theta = np.random.randn(2,1)
-
-eta = 0.1
-Niterations = 1000
-m = 100
-
-for iter in range(Niterations):
-    gradients = 2.0/m*xb.T.dot(xb.dot(theta)-y)
-    theta -= eta*gradients
-
-print(theta)
-xnew = np.array([[0],[2]])
-xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(theta)
-ypredict2 = xbnew.dot(theta_linreg)
-plt.plot(xnew, ypredict, "r-")
-plt.plot(xnew, ypredict2, "b-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Random numbers ')
-plt.show()
-!ec
-
-
-!split
-===== Simple regression model with stochastic gradient descent  =====
-Add info about the equations, play around with different learning rates
-!bc pycod
-# Importing various packages
-from math import exp, sqrt
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import SGDRegressor
-
-x = 2*np.random.rand(100,1)
-y = 4+3*x+np.random.randn(100,1)
-
-xb = np.c_[np.ones((100,1)), x]
-theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
-print(theta_linreg)
-sgdreg = SGDRegressor(n_iter = 50, penalty=None, eta0=0.1)
-sgdreg.fit(x,y.ravel())
-print(sgdreg.intercept_, sgdreg.coef_)
-
-!ec
 
 
 
@@ -934,6 +884,61 @@ plt.show()
 
 !ec
 
+!split 
+===== Linking the regression analysis with a statistical interpretation =====
+
+Before we proceed, and to link with our discussions of Bayesian statistics to come, it is useful the derive the standard regression analysis equations using a statistical interpretation. This allows us also to derive quantities like the variance and other expectation values in a rather straightforward way. 
+
+It is assumed that $\varepsilon_i
+\sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
+independent, i.e.: 
+!bt
+\begin{align*} 
+\mbox{Cov}(\varepsilon_{i_1},
+\varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
+& i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
+\end{align*} 
+!et
+The randomness of $\varepsilon_i$ implies that
+$\mathbf{Y}_i$ is also a random variable. In particular,
+$\mathbf{Y}_i$ is normally distributed, because $\varepsilon_i \sim
+\mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \beta$ is a
+non-random scalar. To specify the parameters of the distribution of
+$\mathbf{Y}_i$ we need to calculate its first two moments. 
+
+!split
+===== Expectation value and variance =====
+
+Its expectation equals: 
+!bt
+\begin{align*} 
+\mathbb{E}(Y_i) & =
+\mathbb{E}(\mathbf{X}_{i, \ast} \, \beta) + \mathbb{E}(\varepsilon_i)
+\, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
+\end{align*} 
+!et
+while
+its variance is 
+!bt
+\begin{align*} \mbox{Var}(Y_i) & = \mathbb{E} \{ [Y_i
+- \mathbb{E}(Y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( Y_i^2 ) -
+[\mathbb{E}(Y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
+\beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \beta)^2 \\ &
+= \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \beta)^2 + 2 \varepsilon_i
+\mathbf{X}_{i, \ast} \, \beta + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
+\ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \beta)^2 + 2
+\mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \beta +
+\mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \beta)^2 
+\\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
+\mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
+\end{align*}
+!et
+Hence, $Y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \beta, \sigma^2)$. 
+
+
+
+
+
 
 !split
 ===== The singular value decompostion  =====
@@ -954,11 +959,260 @@ We have then
 !eblock
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 !split
-===== Lasso and Ridge regression =====
+===== From standard regression to Ridge regressions =====
 
-Discuss the mathematics here
+One of the typical problems we encounter with linear regression, in particular 
+when the matrix $\hat{X}$ (our so-called design matrix) is high-dimensional, 
+are problems with near singular or singular matrices. The column vectors of $\hat{X}$ 
+may be linearly dependent, normally referred to as super-collinearity.  
+This means that the matrix may be rank deficient and it is basically impossible to 
+to model the data using linear regression. As an example, consider the matrix
+!bt
+\begin{align*}
+\mathbf{X} & =  \left[
+\begin{array}{rrr}
+1 & -1 & 2
+\\
+1 & 0 & 1
+\\
+1 & 2  & -1
+\\
+1 & 1  & 0
+\end{array} \right]
+\end{align*}
+!et
 
+The columns of $\hat{X}$ are linearly dependent. We se this easily since the 
+the first column is the row-wise sum of the other two columns. The rank (more correct,
+the column rank) of a matrix is the dimension of the space spanned by the
+column vectors. Hence, the rank of $\mathbf{X}$ is equal to the number
+of linearly independent columns. In this particular case the matrix has rank 2.
+
+Super-collinearity of an $(n \times p)$-dimensional design matrix $\mathbf{X}$ implies
+that the inverse of the matrix $\hat{X}^T\hat{x}$ (the matrix we needto invert to solve the linear regression equations) is non-invertible. If we have a square matrix that does not have an inverse, we say this matrix singular. The example here demonstrates this
+!bt
+\begin{align*}
+\hat{X} & =  \left[
+\begin{array}{rr}
+1 & -1
+\\
+1 & -1
+\end{array} \right].
+\end{align*}
+!et
+We see easily that  $\mbox{det}(\hat{X}) = x_{11} x_{22} - x_{12} x_{21} = 1 \times (-1) - 1 \times (-1) = 0$. Hence, $\mathbf{X}$ is singular and its inverse is undefined.
+This is equivalent to saying that the matrix $\hat{X}$ has at least an eigenvalue which is zero.
+
+!split
+===== Fixing the singularity =====
+
+If our design matrix $\hat{X}$ which enters the linear regression problem
+!bt
+\begin{align}
+\hat{\beta} & =  (\hat{X}^{T} \hat{X})^{-1} \hat{X}^{T} \hat{y},
+\end{align}
+!et
+has linearly dependent column vectors, we will not be able to compute the inverse
+of $\hat{X}^T\hat{X}$ and we cannot find the parameters (estimators) $\beta_i$. 
+The estimators are only well-defined if $(\hat{X}^{T}\hat{X})^{-1}$ exits. 
+This is more likely to happen when the matrix $\hat{X}$ is high-dimensional. In this case it is likely to encounter a situation where 
+the regression parameters $\beta_i$ cannot be estimated.
+
+The *ad hoc* approach which was introduced in the 70s was simply to add a diagonal component to the matrix to invert, that is we change
+!bt
+\[
+\hat{X}^{T} \hat{X} \rightarrow \hat{X}^{T} \hat{X}+\lambda \hat{I},
+\]
+!et 
+where $\hat{I}$ is the identity matrix.
+
+
+
+
+
+!split
+===== Fitting vs. predicting when data is in the model class =====
+
+We start by considering the case
+$f(x)=2x$.
+ 
+Then the data is clearly generated by a model that is contained within
+all three model classes we are using to make predictions (linear
+models, third order polynomials, and tenth order polynomials).
+
+Run the code for the following cases:
+
+o For  $f(x)=2x$ ,  $Ntrain=10$  and $\sigma =0$  (noiseless case), train the three classes of models (linear, third-order polynomial, and tenth order polynomial) for a training set when  $x \in [0,1]$ . Make graphs comparing fits for different order of polynomials. Which model fits the data the best?
+o Do you think that the data that has the least error on the training set will also make the best predictions? Why or why not? Can you try to discuss and formalize your intuition? What can go right and what can go wrong?
+o Check your answer by seeing how well your fits predict newly generated test data (including on data outside the range you fit on, for example  $x \in [0,1.2]$ ) using the code below. How well do you do on points in the range of  x  where you trained the model? How about points outside the original training data set?
+o Repeat the above for  $f(x)=2x$ ,  $Ntrain=10$ , and  $\sigma=1$ . What changes?
+Repeat the exercises above for  $f(x)=2x$ ,  $Ntrain=100$ , and  $\sigma=1$ . What changes?
+Summarize what you have learned about the relationship between model complexity (number of parameters), goodness of fit on training data, and the ability to predict well.
+
+
+!split
+=====  Fitting versus predicting when data is not in the model class =====
+
+Thus far, we have considered the case where the data is generated using a model contained in the model class. Now consider $f(x)=2x-10x^5+15x^{10}$ . Notice that the for linear and third-order polynomial the true model  $f(x)$  is not contained in model class.
+
+o Do better fits lead to better predictions?
+o What is the relationship between the true model for generating the data and the model class that has the most predictive power? How is this related to the model complexity? How does this depend on the number of data points  $Ntrain$  and  $\sigma$?
+Summarize what you think you learned about the relationship of knowing the true model class and predictive power.
+
+!split
+===== An example code without the model assessment part =====
+
+!bc pycod
+import numpy as np
+import sklearn as sk
+from sklearn import datasets, linear_model
+from sklearn.preprocessing import PolynomialFeatures
+
+import matplotlib as mpl
+from matplotlib import pyplot as plt
+
+%matplotlib notebook
+
+# The Training Data
+
+N_train=100
+
+sigma_train=1;
+
+# Train on integers
+x=np.linspace(0.05,0.95,N_train)
+# Draw random noise
+s = sigma_train*np.random.randn(N_train)
+
+#linear
+y=2*x+s
+
+#Tenth Order
+#y=2*x-10*x**5+15*x**10+s
+
+p1=plt.plot(x,y, "o",ms=15, label='Training')
+
+#Linear Regression
+# Create linear regression object
+clf = linear_model.LinearRegression()
+
+# Train the model using the training sets
+clf.fit(x[:, np.newaxis], y)
+# The coefficients
+
+xplot=np.linspace(0.02,0.98,200)
+linear_plot=plt.plot(xplot, clf.predict(xplot[:, np.newaxis]),label='Linear')
+
+#Polynomial Regression
+
+
+poly3 = PolynomialFeatures(degree=3)
+X = poly3.fit_transform(x[:,np.newaxis])
+clf3 = linear_model.LinearRegression()
+clf3.fit(X,y)
+
+
+Xplot=poly3.fit_transform(xplot[:,np.newaxis])
+poly3_plot=plt.plot(xplot, clf3.predict(Xplot), label='Poly 3')
+
+
+
+#poly5 = PolynomialFeatures(degree=5)
+#X = poly5.fit_transform(x[:,np.newaxis])
+#clf5 = linear_model.LinearRegression()
+#clf5.fit(X,y)
+
+#Xplot=poly5.fit_transform(xplot[:,np.newaxis])
+#plt.plot(xplot, clf5.predict(Xplot), 'r--',linewidth=1)
+
+poly10 = PolynomialFeatures(degree=10)
+X = poly10.fit_transform(x[:,np.newaxis])
+clf10 = linear_model.LinearRegression()
+clf10.fit(X,y)
+
+Xplot=poly10.fit_transform(xplot[:,np.newaxis])
+poly10_plot=plt.plot(xplot, clf10.predict(Xplot), label='Poly 10')
+
+axes = plt.gca()
+axes.set_ylim([-7,7])
+
+handles, labels=axes.get_legend_handles_labels()
+plt.legend(handles,labels, loc='lower center')
+plt.xlabel("$x$")
+plt.ylabel("$y$")
+Title="$N=$"+str(N_train)+", $\sigma=$"+str(sigma_train)
+plt.title(Title+" (train)")
+plt.tight_layout()
+plt.show()
+
+!ec
+
+!split 
+===== Generating test data =====
+!bc pycod
+# Generate Test Data
+
+#Number of test data
+N_test=20
+
+sigma_test=sigma_train
+
+max_x=1.2
+x_test=max_x*np.random.random(N_test)
+# Draw random noise
+s_test = sigma_test*np.random.randn(N_test)
+
+#Linear
+y_test=2*x_test+s_test
+#Tenth order
+#y_test=2*x_test-10*x_test**5+15*x_test**10+s_test
+
+#Make design matrices for prediction
+x_plot=np.linspace(0,max_x, 200)
+X3 = poly3.fit_transform(x_plot[:,np.newaxis])
+X10 = poly10.fit_transform(x_plot[:,np.newaxis])
+
+%matplotlib notebook
+
+fig = plt.figure() 
+p1=plt.plot(x_test,y_test.transpose(), 'o', ms=12, label='data')
+p2=plt.plot(x_plot,clf.predict(x_plot[:,np.newaxis]), label='linear')
+p3=plt.plot(x_plot,clf3.predict(X3), label='3rd order')
+p10=plt.plot(x_plot,clf10.predict(X10), label='10th order')
+
+
+plt.legend(loc=2)
+plt.xlabel('$x$')
+plt.ylabel('$y$')
+plt.legend(loc='best')
+plt.title(Title+" (pred.)")
+plt.tight_layout()
+plt.show()
+
+
+!ec
+
+!split
+===== How can we effectively evaluate the various models? =====
+
+In Ridge regression and the subsequent discussion of its properties
+the bias or penalty parameter is considered known or `given'. In
+practice, it is unknown and the user needs to make an informed
+decision on its value. How do we do that?  Much of the same considerations apply to the Lasso method. 
 
 !split
 ===== Code examples for Ridge and Lasso Regression =====
@@ -1043,12 +1297,622 @@ plt.show()
 
 
 !split
-=====  Logistic regression =====
-Add discussion about classification versus regression, show examples of more than two cases and why regression is not the best approach. Motivate for k-nearest neighbors
+===== A second-order polynomial with Ridge and Lasso =====
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge
+from sklearn.metrics import r2_score
 
-Add examples on classification problems
+np.random.seed(4155)
+
+n_samples = 100
+
+x = np.random.rand(n_samples,1)
+y = 5*x*x + 0.1*np.random.rand(n_samples,1)
+
+# Centering  x and y.
+x_ = x - np.mean(x)
+y_ = y - np.mean(y) # beta_0 = mean(y)
+
+X = np.c_[np.ones((n_samples,1)), x, x**2]
+X_ = np.c_[x_, x_**2]
+
+
+### 1.
+lmb_values = [1e-4, 1e-3, 1e-2, 10, 1e2, 1e4]
+num_values = len(lmb_values)
+
+## Ridge-regression of centered and not centered data
+beta_ridge = np.zeros((3,num_values))
+beta_ridge_centered = np.zeros((3,num_values))
+
+I3 = np.eye(3)
+I2 = np.eye(2)
+
+for i,lmb in enumerate(lmb_values):
+    beta_ridge[:,i] = (np.linalg.inv( X.T @ X + lmb*I3) @ X.T @ y).flatten()
+    beta_ridge_centered[1:,i] = (np.linalg.inv( X_.T @ X_ + lmb*I2) @ X_.T @ y_).flatten()
+
+# sett beta_0 = np.mean(y)
+beta_ridge_centered[0,:] = np.mean(y)
+
+## OLS (ordinary least squares) solution 
+beta_ls = np.linalg.inv( X.T @ X ) @ X.T @ y
+
+## Evaluate the models
+pred_ls = X @ beta_ls
+pred_ridge =  X @ beta_ridge
+pred_ridge_centered =  X_ @ beta_ridge_centered[1:] + beta_ridge_centered[0,:]
+
+## Plot the results
+
+# Sorting
+sort_ind = np.argsort(x[:,0])
+
+x_plot = x[sort_ind,0]
+x_centered_plot = x_[sort_ind,0]
+
+pred_ls_plot = pred_ls[sort_ind,0]
+pred_ridge_plot = pred_ridge[sort_ind,:]
+pred_ridge_centered_plot = pred_ridge_centered[sort_ind,:]
+
+# Plott not centered
+plt.plot(x_plot,pred_ls_plot,label='ls')
+
+for i in range(num_values):
+    plt.plot(x_plot,pred_ridge_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
+
+plt.plot(x,y,'ro')
+
+plt.title('linear regression on un-centered data')
+plt.legend()
+
+# Plott centered
+plt.figure()
+
+for i in range(num_values):
+    plt.plot(x_centered_plot,pred_ridge_centered_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
+
+plt.plot(x_,y,'ro')
+
+plt.title('linear regression on centered data')
+plt.legend()
+
+
+# 2.
+
+pred_ridge_scikit =  np.zeros((n_samples,num_values))
+for i,lmb in enumerate(lmb_values):
+    pred_ridge_scikit[:,i] = (Ridge(alpha=lmb,fit_intercept=False).fit(X,y).predict(X)).flatten() # fit_intercept=False fordi bias er allerede i X
+
+plt.figure()
+
+plt.plot(x_plot,pred_ls_plot,label='ls')
+
+for i in range(num_values):
+    plt.plot(x_plot,pred_ridge_scikit[sort_ind,i],label='scikit-ridge, lmb=%g'%lmb_values[i])
+
+plt.plot(x,y,'ro')
+plt.legend()
+plt.title('linear regression using scikit')
+
+plt.show()
+
+### R2-score of the results
+for i in range(num_values):
+    print('lambda = %g'%lmb_values[i])
+    print('r2 for scikit: %g'%r2_score(y,pred_ridge_scikit[:,i]))
+    print('r2 for own code, not centered: %g'%r2_score(y,pred_ridge[:,i]))
+    print('r2 for own, centered: %g\n'%r2_score(y,pred_ridge_centered[:,i]))
+
+
+!ec
+
+
+
+!split
+===== Resampling methods =====
+!bblock
+Resampling methods are an indispensable tool in modern
+statistics. They involve repeatedly drawing samples from a training
+set and refitting a model of interest on each sample in order to
+obtain additional information about the fitted model. For example, in
+order to estimate the variability of a linear regression fit, we can
+repeatedly draw different samples from the training data, fit a linear
+regression to each new sample, and then examine the extent to which
+the resulting fits differ. Such an approach may allow us to obtain
+information that would not be available from fitting the model only
+once using the original training sample.
+!eblock
+
+!split
+===== Resampling approaches can be computationally expensive =====
+!bblock
+Resampling approaches can be computationally expensive, because they
+involve fitting the same statistical method multiple times using
+different subsets of the training data. However, due to recent
+advances in computing power, the computational requirements of
+resampling methods generally are not prohibitive. In this chapter, we
+discuss two of the most commonly used resampling methods,
+cross-validation and the bootstrap. Both methods are important tools
+in the practical application of many statistical learning
+procedures. For example, cross-validation can be used to estimate the
+test error associated with a given statistical learning method in
+order to evaluate its performance, or to select the appropriate level
+of flexibility. The process of evaluating a model’s performance is
+known as model assessment, whereas the process of selecting the proper
+level of flexibility for a model is known as model selection. The
+bootstrap is widely used.
+!eblock
+
+
+!split
+===== Log-likelihood =====
+
+A popular strategy is to choose a penalty parameter that yields a good
+but parsimonious model. Information criteria measure the balance
+between model fit and model complexity. One possibility is  Aikaike's
+information criterion (AIC).
+The AIC measures model fit by the log-likelihood
+and model complexity is measured by the number of parameters used by
+the model. The number of model parameters in regular regression simply
+corresponds to the number of covariates in the model. Or, by the
+degrees of freedom consumed by the model, which is equivalent to the
+trace of the hat matrix. For ridge regression it thus seems natural to
+define model complexity analogously by the trace of the ridge hat
+matrix. This yields the AIC for the linear regression model with ridge
+estimates:
+
+
+!bt
+\begin{align*}
+\mbox{AIC}(\lambda) & =  2 \, p - 2 \log(\hat{L})
+\\
+& =  2 \, \mbox{tr} [\mathbf{H}(\lambda)] - 2 \log\{L[\hat{\beta}(\lambda), \hat{\sigma}^2(\lambda)]\}
+\\
+& =  2 \, \sum_{j=1}^p \frac{d_{jj}^2}{d_{jj}^2 + \lambda}
++ 2 n \, \log[\sqrt{2 \, \pi} \, \hat{\sigma}(\lambda)] +  \frac{1}{\hat{\sigma}^2(\lambda)} \sum_{i=1}^n [y_i - \mathbf{X}_{i, \ast} \, \hat{\beta}(\lambda)]^2.
+\end{align*}
+!et
+The value of $\lambda$ which minimizes $\mbox{AIC}(\lambda)$ corresponds to the `optimal' balance of model complexity and overfitting.
+
+
+!split 
+===== Cross-validation =====
+
+Instead of choosing the penalty parameter to balance model fit with
+model complexity, cross-validation requires it (i.e. the penalty
+parameter) to yield a model with good prediction
+performance. Commonly, this performance is evaluated on novel
+data. Novel data need not be easy to come by and one has to make do
+with the data at hand. The setting of `original' and novel data is
+then mimicked by sample splitting: the data set is divided into two
+(groups of samples). One of these two data sets, called the *training
+set*, plays the role of `original' data on which the model is
+built. The second of these data sets, called the *test set*, plays the
+role of the `novel' data and is used to evaluate the prediction
+performance (often operationalized as the log-likelihood or the
+prediction error or its square or the R2 score) of the model built on the training data set. This
+procedure (model building and prediction evaluation on training and
+test set, respectively) is done for a collection of possible penalty
+parameter choices. The penalty parameter that yields the model with
+the best prediction performance is to be preferred. The thus obtained
+performance evaluation depends on the actual split of the data set. To
+remove this dependence the data set is split many times into a
+training and test set. For each split the model parameters are
+estimated for all choices of $\lambda$ using the training data and
+estimated parameters are evaluated on the corresponding test set. The
+penalty parameter that on average over the test sets performs best (in
+some sense) is then selected.
+
+
+!split
+===== Computationally expensive =====
+
+The validation set approach is conceptually simple and is easy to implement. But it has two potential drawbacks:
+
+* The validation estimate of the test error rate can be highly variable, depending on precisely which observations are included in the training set and which observations are included in the validation set.
+
+* In the validation approach, only a subset of the observations, those that are included in the training set rather than in the validation set are used to fit the model. Since statistical methods tend to perform worse when trained on fewer observations, this suggests that the validation set error rate may tend to overestimate the test error rate for the model fit on the entire data set.
+
+
+
+!split 
+===== Various steps in cross-validation =====
+
+When the repetitive splitting of the data set is done randomly,
+samples may accidently end up in a fast majority of the splits in
+either training or test set. Such samples may have an unbalanced
+influence on either model building or prediction evaluation. To avoid
+this $k$-fold cross-validation structures the data splitting. The
+samples are divided into $k$ more or less equally sized exhaustive and
+mutually exclusive subsets. In turn (at each split) one of these
+subsets plays the role of the test set while the union of the
+remaining subsets constitutes the training set. Such a splitting
+warrants a balanced representation of each sample in both training and
+test set over the splits. Still the division into the $k$ subsets
+involves a degree of randomness. This may be fully excluded when
+choosing $k=n$. This particular case is referred to as leave-one-out
+cross-validation (LOOCV). 
+
+!split 
+===== How to set up the cross-validation for Ridge and/or Lasso =====
+
+* Define a range of interest for the penalty parameter.
+
+* Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
+
+* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\hat{\sigma}_{-i}^2(\lambda)$, as
+!bt
+\begin{align*}
+\hat{\beta}_{-i}(\lambda) & =  ( \hat{X}_{-i, \ast}^{\top}
+\hat{X}_{-i, \ast} + \lambda \hat{I}_{pp})^{-1}
+\hat{X}_{-i, \ast}^{\top} \hat{y}_{-i}
+\end{align*}
+!et 
+
+* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \hat{X}_{i, \ast}; \hat{\beta}_{-i}(\lambda), \hat{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \hat{X}_{i, \ast} \hat{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
+
+* Repeat the first three steps  such that each sample plays the role of the test set once.
+
+* Average the prediction performances of the test sets at each grid point of the penalty bias/parameter by computing the *cross-validated log-likelihood*. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as
+!bt
+\begin{align*}
+\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \hat{\beta}_{-i}(\lambda), \hat{\sigma}_{-i}^2(\lambda)]\}.
+\end{align*}
+!et
+
+* The value of the penalty parameter that maximizes the cross-validated log-likelihood is the value of choice. Or we can use the MSE or the R2 score functions.
+
+!split
+===== Predicted Residual Error Sum of Squares =====
+!bblock
+Another approach in the LOOCV scheme is to the use the so-called Predicted Residual Error Sum of Squares (PRESS). 
+
+We can define the optimal penalty parameter to minimize
+!bt
+\begin{align*}
+\lambda_{\mbox{{\tiny opt}}} = \arg \min_{\lambda} \frac{1}{n} \sum_{i=1}^n [y_i - \hat{X}_{i, \ast} \hat{\beta}_{-i}(\lambda)]^2.
+\end{align*}
+!et
+
+The LOOCV prediction performance can be
+expressed analytically in terms of the known quantities derived from
+the design matrix and the parameters $\beta$.
+!eblock
+
+
+!split
+===== Resampling methods: Jackknife =====
+
+
+
+!split
+===== Resampling methods: Bootstrap =====
+!bblock
+Bootstrapping is a nonparametric approach to statistical inference
+that substitutes computation for more traditional distributional
+assumptions and asymptotic results. Bootstrapping offers a number of
+advantages: 
+o The bootstrap is quite general, although there are some cases in which it fails.  
+o Because it does not require distributional assumptions (such as normally distributed errors), the bootstrap can provide more accurate inferences when the data are not well behaved or when the sample size is small.  
+o It is possible to apply the bootstrap to statistics with sampling distributions that are difficult to derive, even asymptotically. 
+o It is relatively simple to apply the bootstrap to complex data-collection plans (such as stratified and clustered samples).
+!eblock
 
 
 
 
 
+\textcite{efron_jackknife_1987} 
+explains that resampling methods
+'scramble' the observations which describe the parameter
+$\vec{\theta}$ in some way. The purpose of scrambling the data is to
+obtain useful estimates of the probability distribution of the
+estimator $\widehat{\vec{\theta}}$. This is often done if deriving the
+distribution of $\widehat{\vec{\theta}}$ by analytical means is
+impossible or inconvenient. The significance of this is reflected in
+that Efron's original paper has more than 16 000 citations by early
+spring 2018. Although these citations have come from all the sciences,
+a lot of work has been done by statisticians and mathematicians. On
+'Web of Science', a search for the topic \textit{bootstrap} returns
+nearly 6 500 papers in journals on statistics and probability theory
+alone. A similar search on 'Scopus' returns more than 7 000 papers in
+the field of mathematics. In addition, there has been a renaissance in
+the study of resampling methods in the 21st century, with more than 6
+000 papers in just 18 years in mathematics. Part of the reason is
+that, even though the ideas which will be presented here seem innocent
+and simple, the required mathematics is deep. In fact, there exists
+conjectures too deep for present mathematics
+\parencite{efron_jackknife_1987}. This will become apparent to us
+because often we will only give intuitive explanations for why the
+methods are valid. We could have done substantially more with measure
+theory in place, but this is not economical in light of the present
+results. However, using our introduction to real analysis, it is
+possible to state and understand a few results in some detail. See for
+example theorem \ref{thm:independent_strap_frechet}.\\ \\ Two famous
+resampling methods are \textit{the independent bootstrap} and
+\textit{the jackknife}. It would make most sense to start by
+discussing the independent bootstrap, because the jackknife method
+follows by making a linearization of the parameters of interest
+\parencite{efron_jackknife_1987,efron_bootstrap_1979}. As such, the
+jackknife is a special case of the independent bootstrap
+\parencite{efron_jackknife_1987}. Still, the jackknife was made
+popular prior to the independent bootstrap. And as the popularity of
+the independent bootstrap soared, new variants, such as \textit{the
+  dependent bootstrap}\footnote{We will only consider non-parametric
+  bootstrap, but there exists a popular variant called parametric
+  bootstrap, which assumes knowledge of the probability distribution
+  of the observations} or stationary bootstrap were introduced, see
+for example \textcite{politis_stationary_1994} or
+\textcite{politis_automatic_2006}. There also exists textbooks on the
+subject. The mathematical complexity of the latter variants is also
+greater, and consequently it is pedagogical to introduce the methods
+in this order.\\ \\ The Jackknife and independent bootstrap work for
+independent, identically distributed random variables
+\parencite{efron_jackknife_1987}. If these conditions are not
+satisfied, the methods will fail. This is important for the results of
+the thesis, because here the variables are dependent, and we will need
+the dependent bootstrap. Yet, it should be said that if the data are
+independent, identically distributed, and we only want to estimate the
+variance of $\overline{X}$ (which often is the case), then there is no
+need for bootstrapping. For if $X_1,X_2,\cdots,X_n$ are independent
+identically distributed and come from an unknown distribution $F$,
+then the standard error is easily computed by taking the square root
+of the following expression: \eqref{eq:sigma2n}
+\[
+V(\overline{X}) \stackrel{\eqref{eq:sigma2n} }{=} \frac{\sigma^2}{n} \approx \frac{\widehat{\sigma}^2}{n} \stackrel{ \eqref{eq:defn_var} }{=} \frac{1}{n^2} \sum_{i=1}^{n} (X_i - \overline{X})^2.
+\]
+And consequently, these methods are most useful when the data are dependent or the estimator is not the sample mean.
+\subsubsection{The Jackknife}
+The Jackknife works by making many replicas of the estimator $\widehat{\vec{\theta}}$. Since the jackknife is a resampling method, we explained that this happens by scrambling the data in some way. When using the jackknife, this is done by systematically leaving out one observation from the vector of observed values $\vec{X} = (X_1,X_2,\cdots,X_n)$ \parencite{tukey_abstracts_1958}. Let $\vec{X}_i$ denote the vector
+\[
+\vec{X}_i = (X_1,X_2,\cdots,X_{i-1},X_{i+1},\cdots,X_n),
+\]
+which equals the vector $\vec{X}$ with the exception that observation number $i$ is left out. Using this notation, define $\widehat{\vec{\theta}}_i$ to be the estimator $\widehat{\vec{\theta}}$ computed using $\vec{X}_i$. According to \textcite{efron_jackknife_1987}, to get an estimate for the bias and standard error of $\widehat{\vec{\theta}}$, use the following estimators for each component of $\widehat{\vec{\theta}}$:
+\[
+\widehat{\mathrm{Bias}}(\widehat \theta,\theta) = (n-1)\left( - \widehat{\theta} + \frac{1}{n}\sum_{i=1}^{n} \widehat \theta_i \right) \qquad \text{and} \qquad \widehat{\sigma}^2_{\widehat{\theta} } = \frac{n-1}{n}\sum_{i=1}^{n}( \widehat{\theta}_i - \frac{1}{n}\sum_{j=1}^{n}\widehat \theta_j )^2.
+\]
+Sample code is contained in figure \ref{fig:jack_code} and is available for download from the url \texttt{github.com/computative/resample} .
+\begin{figure}
+\begin{center}
+\begin{lstlisting}[language=python]
+        # jack.py
+        
+        def jack(data, stat):
+            n = len(data);t = zeros(n); inds = arange(n); t0 = time()
+            # 'jackknifing' by leaving out an observation for each i
+            for i in range(n):
+                t[i] = stat(delete(data,i) )
+
+            return t
+
+        # define a function which returns your chosen estimator theta-hat
+        def stat(data):
+            theta-hat = mean(data)
+            return theta-hat
+
+        # boot returns the bootstrap sample
+        t = jack(X, stat)
+
+\end{lstlisting} \caption{The code follows the algorithm outlined in the text. Consider first the function \texttt{jack()}. In the \texttt{for}-loop, this function repeatedly estimates the function called \texttt{statistic()} under the resampled data by systematically leaving out one observation from the data. The function \texttt{stat()} is passed as an argument to \texttt{jack()}. The array \texttt{t} is eventually returned, which contains all the estimates $\widehat{\vec{\theta}}$, and can be plotted or analysed in other ways, such as by calling \texttt{std(t)} from \texttt{numpy} to estimate the standard error of $\widehat{\vec{\theta}}$. The function \texttt{std(t)} is just the estimator $\widehat{\sigma}^2$.}\label{fig:jack_code}
+\end{center}
+\end{figure}
+\subsubsection{The independent bootstrap}\label{sec:ind_boot}
+Many authors explain the bootstrap in an algebraic manner, similar to the way it was originally proposed by \textcite{efron_jackknife_1987}. In this thesis, I give a different view of the method; building our intuition upon \textcite{parr_bootstrap_1985}: Since $\widehat{\vec{\theta}} = \widehat{\vec{\theta}}(\vec{X})$ is a function of random variables, $\widehat{\vec{\theta}}$ itself must be a random variable. Thus it has a pdf, call this function $p(\vec{t})$. The aim of the bootstrap is to estimate $p(\vec{t})$ by the relative frequency of $\widehat{\vec{\theta}}$. You can think of this as using a histogram in the place of $p(\vec{t})$. If the relative frequency closely resembles $p(\vec{t})$, then using numerics, it is straight forward to estimate all the interesting parameters of $p(\vec{t})$ using point estimators. 
+%In the case that $\widehat{\vec{\theta}}$ has exactly one component, use for example the sample mean or the sample variance, as previously defined. In the case that $\widehat{\vec{\theta}}$ has more than one component, and the components are independent, use the same estimator on each component separately.
+If the probability density function of $X_i$, $p(x)$, had been known, then it would have been straight forward to do this by: (1) Drawing lots of numbers from $p(x)$, suppose we call one such set of numbers $(X_1^*, X_2^*, \cdots, X_n^*)$. (2) Then using these numbers, we could compute a replica of $\widehat{\vec{\theta}}$ called $\widehat{\vec{\theta}}^*$. By repeated use of (1) and (2), many estimates of $\widehat{\vec{\theta}}$ could have been obtained. The idea is to use the relative frequency of $\widehat{\vec{\theta}}^*$ (think of a histogram again) as an estimate of $p(\vec{t})$.\\
+\\
+But unless there is enough information available about the process that generated $X_1,X_2,\cdots,X_n$, $p(x)$ is in general unknown. Therefore, Bradley \textcite{efron_bootstrap_1979} asked the natural question: What if we replace $p(x)$ by the relative frequency of the observation $X_i$; if we draw observations in accordance with the relative frequency of the observations, will we obtain the same result in some asymptotic sense? The answer is yes. The paper of \textcite{efron_bootstrap_1979} gave little in the way of general theory \parencite{efron_bootstrap_1979}. In contrast, he gave computational examples showing that in many cases, it was reasonable. It is standard to make a tweak that also speeds up computation: Instead of generating the histogram for the relative frequency of the observation $X_i$, just draw the values $(X_1^*,X_2^*,\cdots,X_n^*)$ with replacement from the vector $\vec{X}$. The end result is exactly the same, as bootstrapping is a demonstration of. \\
+\\
+See figure \ref{fig:distr_boot} for a pictorial explanation and figure \ref{fig:rithm_boot} for a concise summary and the final algorithm. Sample code for python is contained in figure \ref{fig:boot_code} and is available for download at \texttt{github.com/computative/resample} .
+\begin{figure}
+\begin{center}
+\begin{lstlisting}[language=python]
+        # boot.py
+        
+        def boot(data, statistic, R):
+            t = zeros(R); n = len(data); inds = arange(n); t0 = time()
+    
+            # non-parametric bootstrap
+            for i in range(R):
+                t[i] = statistic(data[randint(0,n,n)])
+                
+            return t
+
+        # define a function which returns your chosen estimator theta-hat
+        def stat(data):
+            theta-hat = mean(data)
+            return theta-hat
+            
+        t = boot(X, stat, 2**9)
+\end{lstlisting} \caption{The code follows the algorithm \ref{fig:rithm_boot}. Consider first the function \texttt{boot()}. In the \texttt{for}-loop, this function repeatedly estimates the function called \texttt{statistic()} under the resampled data \texttt{data[randint(0,n,n)]}. The function \texttt{statistic()} is passed as an argument to \texttt{boot()}. The array \texttt{t} is eventually returned, which contains all the estimates $\widehat{\vec{\theta}}$, and can be plotted or analysed in other ways, such as by calling \texttt{std(t)} from \texttt{numpy} to estimate the standard error of $\widehat{\vec{\theta}}$. The function \texttt{std(t)} is just the estimator $\widehat{\sigma}^2$.}\label{fig:boot_code}
+\end{center}
+\end{figure}
+\begin{figure}[!htbp]
+\center
+Philosophy of the independent bootstrap \\
+\hspace{100px}
+\hbox{\hspace{-1.5cm}
+\input{/home/marius/Dokumenter/master/figures/bootdistr.tex}
+}
+\vspace{0px}
+\caption{Suppose you wanted to estimate the probability distribution $p(t)$ of the estimator $\widehat{\theta}$. The obvious way to do this is to compute many replicas of some $\widehat \theta = \widehat \theta(\vec{X})$ by drawing lots of numbers from some pdf $p(x)$, such as the one of fig \ref{fig:distr_boot}(a). Then by plotting the histogram of the replicas $\widehat \theta$, you obtain the estimate of the pdf $p(t)$, namely (b). Bradley Efron asked the question: What happens if we replace the exact distribution $p(x)$ by an estimate, namely the histogram of the relative frequency (b)? It turns out that in an asymptotical sense, we still obtain the same estimate, (c). This is the philosophy of the independent bootstrap. After the estimate (c) has been obtained we can estimate any statistic thereof, for example $V(\widehat \theta)$ using $\widehat{S^2}$.}\label{fig:distr_boot}
+\end{figure}
+\begin{figure}[!htbp]
+\center
+Flow chart of the independent bootstrap \\
+\hspace{100px}
+%\tikzstyle{decision} = [diamond, draw, text width=8em, text badly centered, node distance=3cm, inner sep=0pt, aspect=3]
+%\tikzstyle{block} = [rectangle, draw, text width=8em, text centered, minimum height=2em]
+%\tikzstyle{terminal} = [rectangle, draw, text width=8em, text centered, rounded corners, minimum height=2em]
+%\tikzstyle{line} = [draw, -latex]
+%\usetikzlibrary{shapes,arrows}
+
+\begin{tikzpicture}[node distance = 1cm, auto]
+    \node [terminal] (init) {\footnotesize Estimate $p(t)$};
+    \node [block, below of=init, node distance=1.2cm] (index) {\footnotesize Set $i=1$};
+    \node [block, below of=index, node distance=1.8cm] (pick) {\footnotesize Draw with replacement $n$ numbers from $\vec{X}$ called $\vec{X}^*$};
+    \node [block, below of=pick, node distance=1.8cm] (estimator) {\footnotesize Compute $\widehat \theta^* = \widehat \theta (\vec{x}^*)$};
+        \node [block, right of=estimator, node distance=4cm] (iterate) {\footnotesize Set $i = i+1$};
+    \node [decision, below of=estimator, node distance=1.5cm] (decide) {\footnotesize Is $i\leq k$?};
+    \node [terminal, below of=decide, node distance=1.65cm] (final) {\footnotesize Return histogram of $\widehat{\theta}^*$};
+    % Draw edges
+    \path [line] (init) -- (index);
+    \path [line] (index) -- (pick);
+    \path [line] (pick) -- (estimator);
+    \path [line] (estimator) -- (decide);
+    \path [line] (decide) -- (final)node [near start] {no};
+    \path [line] (decide) -| node [near start] {yes} (iterate);
+    \path [line] (iterate) |- (pick);
+\end{tikzpicture}
+\vspace{0px}
+\caption{The independent bootstrap works like this: (1) Draw with replacement $n$ numbers for the observed variables $\vec{x} = (x_1,x_2,\cdots,x_n)$. (2) Define a vector $\vec{x}^*$ containing the values which were drawn from $\vec{x}$. (3) Using the vector $\vec{x}^*$ compute $\widehat{\theta}^*$ by evaluating $\widehat \theta$ under the observations $\vec{x}^*$. Repeat this process $k$ times. When you are done, you can draw a histogram of the relative frequency of $\widehat \theta^*$. This is your estimate of the probability distribution $p(t)$. Using this probability distribution you can estimate any statistic thereof. In principle you never draw the histogram of the relative frequency of $\widehat{\theta}^*$. Instead you use the estimators corresponding to the statistic of interest. For example, if you are interested in estimating the variance of $\widehat \theta$, apply the esimator $\widehat \sigma^2$ to the values $\widehat \theta ^*$.}\label{fig:rithm_boot}
+\end{figure}\\
+\\
+As we explained, much theoretical work has gone into making the mathematics of the various types of bootstrap rigorous. However, some of the most important results were published relatively soon after. Only two years after \textcite{efron_bootstrap_1979}, proof in the case that $(\theta,\widehat{\theta}) = (\E{X}, \overline{X})$ came from \textcite{bickel_asymptotic_1981}. Despite the importance of these quantities, we will not be fully satisfied with this result. This is because bootstrapping is most useful when $\widehat{\vec{\theta}}$ is not the sample mean, as we discussed. Before formulating the theorem, some convenient notation is introduced. In ordinary real analysis, we are often interested in convergence of sequences of real numbers $\{a_n\}_{n=1}^\infty$ with limit $a \in \mathbb{R}$. In the case that the sequence $\{A_n\}_{n=1}^\infty$ is comprised of random variables, it is clearly nonsense to say that the limit is a real number. One could argue that it makes more sense to say that the limit is a random variable. However, due to amount of additional structure that comes with measure theory, there are many interesting ways of defining such limits. And \textcite{van_der_vaart_asymptotic_1998} covers some of the most useful modes of convergence:
+\begin{itemize}
+\item If $F_{A_n}$ is the cdf of $A_n$ and $F_A$ is the cdf of $A$, and $F_{A_n}$ converges pointwise to $F_{A}$ then we say that there is \defn{convergence in distribution}\index{convergence!{in distribution}} and denoted by $A_n \stackrel{\diff}{\to} A$.\index[s]{Ed@$\stackrel{\mathrm{d}}{\to} $ convergence in distribution}
+\item If for every $\varepsilon >0$, the sequence of real numbers $a_n = P(\| A_n - A\| > \varepsilon)$ converge to zero, then we say that there is \defn{convergence in probability}\index{convergence!{in probability}}, denoted by $A_n \stackrel{P}{\to} A$\index[s]{EdP@$\stackrel{P}{\to} $ convergence in probability}. 
+\item If for every $\varepsilon>0$, there is an $N \in \mathbb{N}$ such that for all $n \geq N$ we have $\|A_n - A\|< \varepsilon$ with probability 1, then we say that there is \defn{almost sure convergence}\index{convergence!{almost surely}} denoted by $A_n \stackrel{\mathrm{a.s.}}{\to} A$.\index[s]{EAs@$\stackrel{\mathrm{a.s.}}{\to} $ almost sure convergence}
+\end{itemize}
+More generally, we will say that an event $B$ happens \defn{almost surely}\index{almost surely} if $P(B) = 1$ \parencite{oksendal_stochastic_2014,mcdonald_course_2012}. On that note we are ready for the theorem due to \textcite{bickel_asymptotic_1981}:
+\begin{theorem}[Bickel-Freedman theorem]
+Assume $X_1,X_2,\cdots$ are independent identically distributed random variables with variance $\sigma^2$, and assume $X \sim \mathrm{N}(0,\sigma^2)$, then given $X_1,X_2,\cdots,X_n$,
+\begin{itemize}
+\item $n^{1/2}(\overline{X}^* - \overline{X}) \stackrel{\diff}{\to} X $ as $n \to \infty$ almost surely.
+\item $\widehat \sigma^* \stackrel{P}{\to} \sigma$ as $n \to \infty$  almost surely.
+\end{itemize}
+\end{theorem}
+\noindent For more a general $\vec{\widehat \theta}$ the problem is harder because the assumptions are weaker. \textcite{parr_bootstrap_1985} established the result under relaxed conditions on $\widehat{\vec{\theta}}$. We will consider the case that $\vec{\widehat \theta} = {\widehat \theta}$ is one-dimensional and require the strong type of differentiability which was defined in section \ref{sec:real}; namely Fréchet differentiability. All estimators encountered thus far were expressed in terms of $\vec{X}$. However, \textcite{huber_robust_2009} explains that many estimators with practical use can also be expressed in terms of their cumulative distribution function. This area of estimation contains \defn{M-estimation}\index{estimate!estimator!M@$M$}, and is not economical to discuss in full generality. However, using our experience with real analysis, it is possible to tackle the theory relevant to maximum likelihood estimation on compact intervals $[a,b]$. Going back to the way justification was given for maximum likelihood estimators in section \ref{sec:Fisherians} it is clear that the maximum likelihood estimator is
+\begin{equation}
+\widehat{{\theta}} = \mathrm{argmin}_{{\theta}} \sum_{i=1}^{n} - \log(f(x_i; {\theta})) = \sum_{i=1}^{n} - \log\left( \frac{\partial F}{\partial x}(x_i; {\theta} )\right) = \widehat{{\theta}}(F). \label{eq:robust}
+\end{equation}
+This shows that the Maximum likelihood estimators are $M$-estimators. In fact $M$ estimation was motivated by maximum likelihood and is a generalization thereof \parencite{huber_robust_2009}. These estimators suffices for this thesis, since the maximum likelihood estimators are MVUE according to section \ref{sec:Fisherians} and is the best we can do with our present tools. We introduce the Fréchet derivative for this space of estimators. Let $H([a,b])$ be the largest open set of cdfs on $[a,b]$. It is well known that $[a,b]$ is compact \parencite{munkres_topology_2000}. Therefore, example \ref{ex:linearbounded} shows that $H([a,b])$ is contained in the Banach space $C([a,b],\mathbb{R})$ under the sup-norm, $\| \cdot \|_\infty$ from example \ref{ex:sup-norm}. Example \ref{ex:linearbounded} also shows that by letting $\psi$ be a continuous function on $X \equiv [a,b]$ such that (1) $\int_X \psi \ \diff F = 0$, (2) $\int_X \psi^2 \ \diff F < \infty$ and (3) $F \in H$ be the cdf of $X_i$ with pdf $f$, then 
+\[
+(A(F))({\theta}) = \Big(\int_X \psi  \ \diff F\Big)({\theta}) = \int_X \psi(x;{\theta}) f(x;{\theta}) \ \diff x
+\]
+is a bounded linear functional on $H$. So if $T$ is any $H([a,b]) \to \mathbb{R}$ function, we say that $T$ is Fréchet differentiable at $F$ if
+\[
+\lim_{C \to \textit{0}} \frac{|T(F) - T(F+C) - (A(C))(T)| }{\|C\|_\infty} = 0 \qquad\qquad \text{\parencite{parr_bootstrap_1985}}.
+\]
+You may wonder what the function $\psi$ is. According to \textcite{huber_robust_2009}, it defines the type of estimation equation used. In the case of maximum likelihood estimation with $F$ is twice continuously differentiable,
+\[
+\psi(x;T) = - \frac{\partial \log f}{\partial {\theta}}(x;T) = - \Big(\frac{1}{\partial F / \partial x} \frac{\partial^2 F}{\partial x \partial \theta} \Big)(x;T) \quad \text{\parencite{huber_robust_2009}}.
+\]
+Using this definition, we are finally ready for a theorem due to \textcite{parr_bootstrap_1985} which explains consistency of the bootstrap estimator more generally. It says that if the Fréchet derivative of $\widehat{{\theta}}$ exists at $F \in H$, then the bootstrap estimator is consistent:
+\begin{theorem}[Parr theorem]\label{thm:independent_strap_frechet}
+Assume $X_1,X_2,\cdots,X_n$ are independent identically distributed with support $X=[a,b]$, $\widehat{{\theta}}$ is Fréchet differentiable at $F$, $\sigma^2 = V(n^{1/2}[\widehat{{\theta}}^* - \widehat{{\theta}} ])$ and $Z \sim \mathrm{N}(0,1)$, then given $X_1,X_2,\cdots,X_n$ we have $n^{1/2}(\widehat{{\theta}}^* - \widehat{{\theta}} ) \stackrel{P}{\to} \sigma Z$ as $n \to \infty$.
+\end{theorem}
+\subsubsection{The dependent bootstrap}
+In the case that the variables $X_1,X_2,\cdots,X_n$ are dependent, the above procedure breaks down. At least one of the problems are: Independent bootstrapping assumes that $X_1,X_2,\cdots,X_n$ all come from the same marginal probability distribution, $p(x) = p(x_i)$ for all $1 \leq i \leq n$. This is clear because variables are independent, so it follows from the definitions of independence and conditional probability that $p(x_i) = p(x_i|x_j \neq x_i)$. Also the second definition given of independence says that the joint probability distribution of all the $X_i$ is $p(x_1,x_2,\cdots, x_n) = p(x)^n$ by the product rule. Since this does not carry over in the case that the variables are dependent, there are at least two problems: 
+\begin{enumerate}
+\item Since there is dependence between the observation, observing $x_j$ reveal information about $x_i$ for some $1 \leq i \leq n$. The extra information supplied by observing $x_j$ means that $p(x_i) \neq p(x_i|x_j \neq x_i)$ as explained above. That means if we treated the variables as independent (i.e. let $p(x_i) = p(x_i|x_j \neq x_i)$), then all estimators which are sensitive to the difference between $p(x_i)$ and $p(x_i|x_j \neq x_i)$ estimate wrong systematically. Consider for example the case that $\{X_i\}$, is a time series where we wrongly assumed that the $X_i$ were independent, then the autocovariance estimator $\widehat{\gamma}(1) = \widehat{\cov}(X_i,X_{i+1}) = \widehat{0} = 0$ would estimate zero. In independent bootstrapping is induced by pick single observations with replacement as we explained. We explained above that this is equivalent to constructing the histogram for $X_i$ and drawing observations from the histogram. But by hypothesis, that is precisely the estimate of the marginal distribution $p(x)$.
+\item If we do not assume that $p(x_i) = p(x_i|x_j \neq x_i)$, but instead assume that $p(x_i) \neq p(x_i|x_j \neq x_i)$, then the natural way to proceed is to treat the whole set $\{X_i\}$ as one observation $\vec{X} = (X_1,X_2,\cdots,x_n)$ and give it a multivariate probability distribution with covariance $\Sigma$ which encodes the dependence. But there is at least one problem, in this case we only have one observation, namely $\vec{X}$! This problem is however fixable in the case that the dependent data are a stationary time series, as explained by \textcite{politis_stationary_1994} and adapted here.
+\end{enumerate}
+That is to assume that the dependence in the data set can be related to the linear dependence, which is the covariance. In the case that the data are a stationary time series and the autocovariance $\gamma(h) \to 0$ as $h \to 0$. Since the autocovariance measures linear dependence, we assume that when the linear dependence is zero, the variables can be treated as independent. If $H \in \mathbb{N}$ a number such that $\gamma(h) \approx 0$ for all $h \geq H$, then we treat $X_{i}$ and $X_{i+h}$ as independent for all $h \geq H$ and all $1 \leq i \leq n-h$. If we split the observation and make the following definitions: 
+\[
+\vec{X} = (\underbrace{X_1,X_2,\cdots ,X_{H}}_{\equiv \vec{X}'_1},X_{H+1},\cdots,X_{2H},\underbrace{X_{2H+1},\cdots,X_{3H}}_{\equiv \vec{X}'_3},X_{3H+1},\cdots,X_{n}  ).
+\]
+Then the components of $\vec{X}_1'$ and $\vec{X}_3'$ are almost independent, moreover section \ref{sec:time_series} explains that a stationary time series is identically distributed. So to these vectors can be treated as independent and identically distributed, so we can use the usual machinery of independent bootstrapping. But since the size of each vector $\vec{X}'_i$ is larger than one, we require to draw less than $n$ such vectors with replacement to compute $\widehat \theta^*$. Instead we concatenate the drawn observations $\vec{X}'_i$ into one long vector $\vec{X}^*$ of length $n$, and discard any observations left over. This procedure has the advantage that the vector $\vec{X}^*$ has the same autocovariance as $\vec{X}$, so it can be used to estimate $\gamma$ and consequently $V(\widehat \theta)$ according to chapter \ref{sec:time_series}. See figure \ref{fig:tsboot_code} for sample code which follows the description given above. The code is also available for download from \texttt{github.com/computative/resample} .
+%Les mer på https://epubs.siam.org/doi/abs/10.1137/1.9781611970319.ch1
+\begin{figure}
+\begin{center}
+\begin{lstlisting}[language=python]
+        # tsboot.py 
+
+        def tsboot(data,statistic,R,l):
+            t = zeros(R); n = len(data); k = ceil(float(n)/l);
+            inds = arange(n); t0 = time()
+    
+            # time series bootstrap
+            for i in range(R):
+                # construct bootstrap sample from
+                # k chunks of data. The chunksize is l
+                _data = concatenate([data[j:j+l] for j in randint(0,n-l,k)])[0:n];
+                t[i] = statistic(_data)
+
+            return t
+
+        # define a function which returns your chosen estimator theta-hat
+        def stat(data):
+            theta-hat = mean(data)
+            return theta-hat
+
+        t = tsboot(X, stat, 2**12, 2**10)
+
+
+\end{lstlisting} \caption{The code follows the algorithm outlined in the text. Consider first the function \texttt{tsboot()}. In the \texttt{for}-loop, this function repeatedly estimates the function called \texttt{statistic()} under the resampled data by concatenating chunks of the data which are uncorrelated by \texttt{concatenate([data[j:j+l] for j in randint(0,n-l,k)])[0:n]}. The function \texttt{statistic()} is passed as an argument to \texttt{tsboot()}. The array \texttt{t} is eventually returned, which contains all the estimates $\widehat{\vec{\theta}}$, and can be plotted or analysed in other ways, such as by calling \texttt{std(t)} from \texttt{numpy} to estimate the standard error of $\widehat{\vec{\theta}}$. The function \texttt{std(t)} is just the estimator $\widehat{\sigma}^2$.}\label{fig:tsboot_code}
+\end{center}
+\end{figure}
+%\subsubsection{Cross validation}
+\subsection{Manual blocking method}
+The manual blocking method was made popular by Flyvbjerg and Pedersen (1989) and has become one of the standard ways to estimate $V(\widehat{\theta})$ for exactly one $\widehat{\theta}$, namely $\widehat{\theta} = \overline{X}$. Their paper has become a citation classic (cited more than 1000 times according to Google scholar). But the proof given by Flyvbjerg and Pedersen (1989) is not rigorous. I corresponded with Associate professor Flyvbjerg in the summer of 2017 and it became clear to me that a paper on the blocking method with rigorous modern mathematics and numerics could be useful. Thus the missing proof of the manual blocking method is one of the main results of this thesis, and contained in the results, see theorem \ref{thm:blocking}. But this begs the question: What can then be said about the blocking method in the methods of this thesis? I think it is appropriate to give the idea of the blocking method, analogous to the treatment given for bootstrapping, as well as an overview of the mathematics of \textcite{flyvbjerg_error_1989}.
+\begin{figure}[!htbp]
+\hbox{\hspace{-1.7cm}\input{/home/marius/Dokumenter/master/figures/block_cov.tex} }
+        %\vspace{-40px}
+\caption{In the left panel: A typical autocovariance function $\gamma(h)$ plotted against $h$. The dashed lines illustrate how $\gamma_{k}(h) \leq \gamma_{k-1}(h)$ for all $1 \leq k \leq d-1$ in the case of applying blocking transformation. In fact, the results show that $\gamma_k$ converges to the zero-function of $\mathbb{N}$.\\
+\\
+In the right panel: It is a consequence of the behavior $\gamma_{k}(h) \leq \gamma_{k-1}(h)$ that for all $1 \leq k \leq d-1$ we have $\sigma_{k}^2/n_{k} \geq \sigma_{k-1}^2/n_{k-1}$ for all $1 \leq k \leq d-1$. The solid line is the "unestimated estimate", ${\sigma}^2_k/n_k$. That is, the estimate of $V(\overline{X})$ where the only source of error is the truncation error $e_k$. It is clear that this estimate initially is too optimistic (too small), and then as we apply blocking transformations, the estimate rises up to the correct value. By equation \eqref{eq:stationary}, it is clear that this means that ${\sigma}^2_k/n_k$ becomes constant, as we clearly see in the plot. \\
+\\
+The dashed line is the estimat\textit{or} $\widehat{\sigma}^2_k/n_k$ which contains an extra error since ${\sigma}^2_k$ itself is unknown and has to be estimated. As $k \to d$ (here $d=20$), we have $n_k\to 1$, and so the \textit{standard error} of $V(\widehat \sigma_k^2/n_k)$ becomes very large according to equation \eqref{eq:departure}. We see this in the figure, because the estimate starts to depart from the value ${\sigma}^2_k/n_k$. This is the reason it is important to stop the algorithm at the right time. This can done with a plot, like the one above, or using the automated scheme proposed here which takes care of everything for you. \\
+\\
+In this case it is relatively clear from the plot of $\widehat \sigma_k^2/n_k$ for which $k$ we have that $\sigma_k^2/n_k$ becomes constant. However if the amount of data is smaller, i.e. $n_k$ is small, this becomes more difficult to determine, because then the estimator $\widehat{\sigma}^2_k/n_k$ diverges sooner. Perhaps even before the graph of $\sigma_k^2/n_k$ becomes constant.} \label{fig:block_cov}
+\end{figure}\\
+\\
+Assume $n = 2^d$ for some integer $d>1$ and $X_1,X_2,\cdots, X_n$ is a stationary time series to begin with. This guarantees that $\gamma(h)$ exists according to section \ref{sec:time_series}. Moreover, assume that the time series is asymptotically uncorrelated. We switch to vector notation by arranging $X_1,X_2,\cdots,X_n$ in an $n$-tuple. Define:
+\begin{align*}
+\vec{X} = (X_1,X_2,\cdots,X_n).
+\end{align*}
+The strength of the blocking method is evident when the number of observations, $n$ is large. For large $n$, the complexity of dependent bootstrapping scales poorly, but the blocking method does not, moreover, it becomes more accurate the larger $n$ is, as the results will show. As such the method is relatively ad-hoc. We now define blocking transformations. The idea is to take the mean of subsequent pair of elements from $\vec{X}$ and form a new vector $\vec{X}_1$. Continuing in the same way by taking the mean of subsequent pairs of elements of $\vec{X}_1$ we obtain $\vec{X}_2$, and so on. In accordance with \textcite{flyvbjerg_error_1989} define $\vec{X}_i$ recursively by:
+\begin{align}
+(\vec{X}_0)_k &\equiv (\vec{X})_k \nonumber \\
+(\vec{X}_{i+1})_k &\equiv \frac{1}{2}\Big( (\vec{X}_i)_{2k-1} + (\vec{X}_i)_{2k} \Big) \qquad \text{for all} \qquad 1 \leq i \leq d-1 \label{eq:blocking}
+\end{align}
+In this way, we say that $\vec{X}_k$ is subject to $k$ \defn{blocking transformations}\index{blocking transformation}. We now have $d$ vectors $\vec{X}_0, \vec{X}_1,\cdots,\vec X_{d-1}$ containing the subsequent averages of observations. It turns out that if the components of $\vec{X}$ is a stationary time series, then the components of $\vec{X}_i$ is a stationary time series for all $0 \leq i \leq d-1$ (see lemma \ref{lem:init} or \textcite{flyvbjerg_error_1989} ). And so we can compute the autocovariance, the variance, sample mean, and number of observations for each $i$. Let $\gamma_i, \sigma_i^2, \overline{X}_i$ denote the autocovariance, variance and average of the elements of $\vec{X}_i$ and let $n_i$ be the number of elements of $\vec{X}_i$. It follows by induction that $n_i = n/2^i$. Using the definition of the blocking transformation and the distributive property of the covariance, it is clear that since $h = |i-j|$\index[s]{gammak@$\gamma_k(h) $ autocovariance of $\vec{X}_k$}\index[s]{sigmak@$\sigma_k^2$ variance of elements in $\vec{X}_k$}\index[s]{Xk@$\overline{X}_k$ mean of elements of $\vec{X}_k$}\index[s]{Xk@$\vec{X}_k$ time series subject to $k$ blocking transformations}\index[s]{n@$n$ usually size of $\vec{X}$}\index[s]{nk@$n_k$ size of $\vec{X}_k$}
+\begin{align}
+\gamma_{k+1}(h) &= \cov\left( ({X}_{k+1})_{i}, ({X}_{k+1})_{j} \right) \nonumber \\
+&=  \frac{1}{4}\cov\left( ({X}_{k})_{2i-1} + ({X}_{k})_{2i}, ({X}_{k})_{2j-1} + ({X}_{k})_{2j} \right) \nonumber \\
+&= 
+\begin{cases}
+\frac{1}{2}\gamma_{k}(2h) + \frac{1}{2}\gamma_k(2h+1) \qquad\qquad\quad \ \ \text{if $h = 0$} \\
+\frac{1}{4}\gamma_k(2h-1) + \frac{1}{2}\gamma_k(2h) + \frac{1}{4}\gamma_k(2h+1) \quad \text{else}
+\end{cases}.
+ \label{eq:gammas}
+\end{align}
+According to lemma \ref{lem:init}, since $\vec{X}$ is asymptotic uncorrelated by assumption, $\vec{X}_k$ is also asymptotic uncorrelated. Let's turn our attention to the variance of the sample mean $V(\overline{X})$. According to equation \eqref{eq:varepsilon} we have
+\begin{align}
+V(\overline{X}_k) = \frac{\sigma_k^2}{n_k} + \underbrace{\frac{2}{n_k} \sum_{h=1}^{n_k-1}\left( 1 - \frac{h}{n_k} \right)\gamma_k(h)}_{\equiv e_k} = \frac{\sigma^2_k}{n_k} + e_k \quad \text{if} \quad \gamma_k(0) = \sigma_k^2. \label{eq:varepsilon}
+\end{align}
+The term $e_k$ is called the \defn{truncation error}\index{truncation error}: 
+\begin{equation}
+e_k = \frac{2}{n_k} \sum_{h=1}^{n_k-1}\left( 1 - \frac{h}{n_k} \right)\gamma_k(h). \label{eq:error}
+\end{equation}
+We show that $V(\overline{X}_i) = V(\overline{X}_j)$ for all $0 \leq i \leq d-1$ and $0 \leq j \leq d-1$. This follows by induction. For the induction step write:
+\begin{align}
+n_{j+1} \overline{X}_{j+1}  &= \sum_{i=1}^{n_{j+1}} (\vec{X}_{j+1})_i \stackrel{ \eqref{eq:blocking} }{=}  \frac{1}{2}\sum_{i=1}^{n_{j}/2} (\vec{X}_{j})_{2i-1} + (\vec{X}_{j})_{2i} \nonumber \\
+&= \frac{1}{2}\left[ (\vec{X}_j)_1 + (\vec{X}_j)_2 + \cdots + (\vec{X}_j)_{n_j} \right] = \underbrace{\frac{n_j}{2}}_{=n_{j+1}} \overline{X}_j = n_{j+1}\overline{X}_j. 
+\label{eq:means}
+\end{align}
+And so by repeated use of this equation we get $V(\overline{X}_i) = V(\overline{X}_0) = V(\overline{X})$ for all $0 \leq i \leq d-1$. This has the consequence that
+\begin{align}
+V(\overline{X}) = \frac{\sigma_k^2}{n_k} + e_k \qquad \text{for all} \qquad 0 \leq k \leq d-1. \label{eq:convergence}
+\end{align}
+\textcite{flyvbjerg_error_1989} claims that the sequence $\{e_k\}_{k=0}^{d-1}$ is decreasing, and conjecture that the term $e_k$ can be made as small as we would like by making $k$ (and hence $d$) sufficiently large. The sequence is decreasing because it is possible to show (as we will in proposition \ref{prop:uniform}) that $\gamma_k$ converges uniformly to the zero-function on $\mathbb{N}$. That means we can apply blocking transformations until $e_k$ is sufficiently small, and then estimate $V(\overline{X})$ by $\widehat{\sigma}^2_k/n_k$. Moreover, since $\gamma_k$ converges uniformly to the zero function on $\mathbb{N}$, see figure \ref{fig:block_cov} for an illustration.\\
+\\
+It is natural then to think the best estimate we could then make is $\widehat{\sigma}^2_{d-1}/n_{d-1}$. One could expect this because if $k = d-1$, then the truncation error $e_{d-1} \leq e_k$ for all $k \geq d-1$. But there is a problem with this, as we shall see next: If $k \to d-1$, then $V(\widehat{\sigma}^2_{d-1}/n_{d-1})$ grows to an appreciable size, and so the standard error of $\widehat{\sigma}^2_{d-1}/n_{d-1}$ can become unacceptably large. In that case, $\widehat{\sigma}^2_{d-1}/n_{d-1}$ is not very useful \parencite{flyvbjerg_error_1989}.\\
+\\
+The idea of \textcite{flyvbjerg_error_1989} is that if the conditions of the central limit theorem for dependent random variables are satisfied, see theorem \ref{thm:clt2}, then the components of $\vec{X}_k$ are asymptotically independent identically normal distributed as $k$ grows. The asymptotic independence follows by theorem \ref{thm:independent_iff_uncorrelated} because each elements of $\vec{X}_k$ is the mean of random variables which are asymptotic uncorrelated, as we explained above. In this case, it is immediate by theorem \ref{thm:S2chi} that
+\begin{align}
+V\left( \frac{\widehat{\sigma}_k^2}{n_k} \right) &= 2 \frac{\sigma_k^4}{n_k^4}(n-1) = \underbrace{\left(\frac{\sigma^2}{n_k} \right)^2}_{(V(\overline{X})- e_k)^2} 2\frac{n_k-1}{n_k^2} = \Big(V(\overline{X}) - e_k\Big)^2\frac{2}{n_k}\underbrace{\left( 1 - \frac{1}{n_k} \right)}_{\geq 1/n_k} \nonumber \\
+&\geq \Big(V(\overline{X}) - e_k\Big)^2\frac{2}{n_k^2}, \label{eq:departure}
+\end{align}
+since the truncation error $e_k$ is decreasing toward zero, this shows that the standard error of $\widehat \sigma_k^2/n_k$ grows as $n_k$ decreases. This may seem as bad news, because then the estimate of $V(\overline{X})$ has a relatively large error due to the standard error of $\widehat{\sigma}_k^2/n_k$ even though the truncation error $e_k$ is small. The question then is, how can we find the ideal $k$ such that essentially $e_k = 0$, but simultaneously ensure that the standard error of $\widehat{\sigma}^2_k/n_k$ is as small as possible? Assume $j \geq k$, and $e_k = 0$, then also $e_j$ must be zero and so it is possible to interpret from \textcite{flyvbjerg_error_1989} that
+\begin{align}
+0 &= |0| = |V(\overline{X}) - V(\overline{X})| = |V(\overline{X}_0) - V(\overline{X}_0)| \stackrel{ \eqref{eq:means} }{=} |V(\overline{X}_j) - V(\overline{X}_k)| \nonumber \\
+&\stackrel{ \eqref{eq:varepsilon} }{=}  \Big|\frac{\sigma_j^2}{n_j} + \underbrace{e_k}_{=0} - \frac{\sigma_k^2}{n_k} - e_k \Big| = \Big|\frac{\sigma_j^2}{n_j} - \frac{\sigma_k^2}{n_k} \Big|. \label{eq:stationary}
+\end{align}
+That means that there could be some point on the graph of $\sigma_k^2/n_k$ where $\sigma_k^2/n_k$ become constant. See figure \ref{fig:block_cov} for a demonstration of what this looks like in practice. Manual blocking is exactly this, to plot the graph of $\sigma_k^2/n_k$ against $k$, and hope to find a stationary point where $\sigma_k^2/n_k$ becomes constant. The stationary point on this graph is where you stop increasing $k$. \\
+\\
+Despite using a few results from the present thesis to justify the claims, the above is my interpretation of \textcite{flyvbjerg_error_1989}. As you can see, it is not at all mathematically precise, but the results of this thesis will fix this and proposes an automated way to estimate $V(\overline{X})$.
