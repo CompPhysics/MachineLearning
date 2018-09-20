@@ -7,11 +7,11 @@ DATE: today
 ===== Optimization, the central part of any Machine Learning algortithm =====
 
 Almost every problem in machine learning and data science starts with
-a dataset $X$, a model $g(\theta)$, which is a function of the
-parameters $\theta$ and a cost function $C(X, g(\theta))$ that allows
-us to judge how well the model $g(\theta)$ explains the observations
-$X$. The model is fit by finding the values of $\theta$ that minimize
-the cost function. Ideally we would be able to solve for $\theta$
+a dataset $X$, a model $g(\beta)$, which is a function of the
+parameters $\beta$ and a cost function $C(X, g(\beta))$ that allows
+us to judge how well the model $g(\beta)$ explains the observations
+$X$. The model is fit by finding the values of $\beta$ that minimize
+the cost function. Ideally we would be able to solve for $\beta$
 analytically, however this is not possible in general and we must use
 some approximative/numerical method to compute the minimum.
 
@@ -40,7 +40,7 @@ we are always moving towards smaller function values, i.e a minimum.
 The previous observation is the basis of the method of steepest
 descent, which is also referred to as just gradient descent (GD). One
 starts with an initial guess $\mathbf{x}_0$ for a minimum of $F$ and
-compute new approximations according to
+computes new approximations according to
 
 !bt
 \[
@@ -49,14 +49,25 @@ compute new approximations according to
 !et
 
 The parameter $\gamma_k$ is often referred to as the step length or
-the learning rate in the context of Machine Learning.
+the learning rate within the context of Machine Learning.
 
 !split 
 ===== The ideal =====
 
-Ideally the sequence $\{ \mathbf{x}_k \}_{k=0}$ converges to a global minimum of the function $F$. In general we do not know if we are in a global or local minimum. In the special case when $F$ is a convex function, all local minima are also global minima, so in this case gradient descent can converge to the global solution. The advantage of this scheme is that it is conceptually simple and straightforward to implement. However the method in this form has some severe limitations:
+Ideally the sequence $\{ \mathbf{x}_k \}_{k=0}$ converges to a global
+minimum of the function $F$. In general we do not know if we are in a
+global or local minimum. In the special case when $F$ is a convex
+function, all local minima are also global minima, so in this case
+gradient descent can converge to the global solution. The advantage of
+this scheme is that it is conceptually simple and straightforward to
+implement. However the method in this form has some severe
+limitations:
 
-In machine learing we are often faced with non-convex high dimensional cost functions with many local minimum. Since GD is deterministic we will get stuck in a local minimum, if the method converges, unless we have a very good intial guess. This also implies that the scheme is sensitive to the chosen initial condition.
+In machine learing we are often faced with non-convex high dimensional
+cost functions with many local minima. Since GD is deterministic we
+will get stuck in a local minimum, if the method converges, unless we
+have a very good intial guess. This also implies that the scheme is
+sensitive to the chosen initial condition.
 
 Note that the gradient is a function of $\mathbf{x} =
 (x_1,\cdots,x_n)$ which makes it expensive to compute numerically.
@@ -68,16 +79,17 @@ Note that the gradient is a function of $\mathbf{x} =
 GD is sensitive to the choice of learning rate $\gamma_k$. This is due
 to the fact that we are only guaranteed that $F(\mathbf{x}_{k+1}) \leq
 F(\mathbf{x}_k)$ for sufficiently small $\gamma_k$. The problem is to
-determine an optimal learning rate. If the learning rate is chosen to
-small the method will take a long to converge and if it is to large we
-can experience erratic behavior.
+determine an optimal learning rate. If the learning rate is chosen too
+small the method will take a long time to converge and if it is too
+large we can experience erratic behavior.
 
 Many of these shortcomings can be alleviated by introducing
 randomness. One such method is that of Stochastic Gradient Descent
-(SGD), see below
+(SGD), see below.
 
 !split
 ===== Gradient Descent Example =====
+
 We revisit now our simple linear regression example with a linear polynomial.
 !bc pycod
 
@@ -94,30 +106,30 @@ x = 2*np.random.rand(100,1)
 y = 4+3*x+np.random.randn(100,1)
 
 xb = np.c_[np.ones((100,1)), x]
-theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
-print(theta_linreg)
-theta = np.random.randn(2,1)
+beta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+print(beta_linreg)
+beta = np.random.randn(2,1)
 
 eta = 0.1
 Niterations = 1000
 m = 100
 
 for iter in range(Niterations):
-    gradients = 2.0/m*xb.T.dot(xb.dot(theta)-y)
-    theta -= eta*gradients
+    gradients = 2.0/m*xb.T.dot(xb.dot(beta)-y)
+    beta -= eta*gradients
 
-print(theta)
+print(beta)
 xnew = np.array([[0],[2]])
 xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(theta)
-ypredict2 = xbnew.dot(theta_linreg)
+ypredict = xbnew.dot(beta)
+ypredict2 = xbnew.dot(beta_linreg)
 plt.plot(xnew, ypredict, "r-")
 plt.plot(xnew, ypredict2, "b-")
 plt.plot(x, y ,'ro')
 plt.axis([0,2.0,0, 15.0])
 plt.xlabel(r'$x$')
 plt.ylabel(r'$y$')
-plt.title(r'Random numbers ')
+plt.title(r'Gradient descent example')
 plt.show()
 
 !ec
@@ -136,8 +148,8 @@ x = 2*np.random.rand(100,1)
 y = 4+3*x+np.random.randn(100,1)
 
 xb = np.c_[np.ones((100,1)), x]
-theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
-print(theta_linreg)
+beta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+print(beta_linreg)
 sgdreg = SGDRegressor(n_iter = 50, penalty=None, eta0=0.1)
 sgdreg.fit(x,y.ravel())
 print(sgdreg.intercept_, sgdreg.coef_)
@@ -146,6 +158,7 @@ print(sgdreg.intercept_, sgdreg.coef_)
 
 !split 
 ===== Convex functions ===== 
+
 Ideally we want our cost/loss function to be convex(concave).
 
 First we give the definition of a convex set: A set $C$ in
@@ -161,7 +174,7 @@ regular polygons (triangles, rectangles, pentagons, etc...).
 !split
 ===== Convex function =====
 
-Convex function: Let $X \subset \mathbb{R}^n$ be a convex set. Assume that the function $f: X \rightarrow \mathbb{R}$ is continuous, then $f$ is said to be convex if $$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$ for all $x_1, x_2 \in X$ and for all $t \in [0,1]$. If $\leq$ is replaced with a strict inequaltiy in the definition, we demand $x_1 \neq x_2$ and $t\in(0,1)$ then $f$ is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting $f(x_1)$ and $f(x_2)$, the value of the function on the interval $[x_1,x_2]$ is always below the line as illustrated below.
+_Convex function_: Let $X \subset \mathbb{R}^n$ be a convex set. Assume that the function $f: X \rightarrow \mathbb{R}$ is continuous, then $f$ is said to be convex if $$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$ for all $x_1, x_2 \in X$ and for all $t \in [0,1]$. If $\leq$ is replaced with a strict inequaltiy in the definition, we demand $x_1 \neq x_2$ and $t\in(0,1)$ then $f$ is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting $f(x_1)$ and $f(x_2)$, the value of the function on the interval $[x_1,x_2]$ is always below the line as illustrated below.
 
 !split
 ===== Conditions on convex functions =====
@@ -169,9 +182,7 @@ Convex function: Let $X \subset \mathbb{R}^n$ be a convex set. Assume that the f
 In the following we state first and second-order conditions which
 ensures convexity of a function $f$. We write $D_f$ to denote the
 domain of $f$, i.e the subset of $R^n$ where $f$ is defined. For more
-details and proofs we refer to: S. Boyd and L. Vandenberghe. Convex
-Optimization. Cambridge University Press, http://stanford.edu/
-boyd/cvxbook/, 2004.
+details and proofs we refer to: "S. Boyd and L. Vandenberghe. Convex Optimization. Cambridge University Press":"http://stanford.edu/boyd/cvxbook/, 2004".
 
 !bblock First order condition
 Suppose $f$ is differentiable (i.e $\nabla f(x)$ is well defined for
@@ -202,9 +213,11 @@ This condition is particularly useful since it gives us an procedure for determi
 The next result is of great importance to us and the reason why we are
 going on about convex functions. In machine learning we frequently
 have to minimize a loss/cost function in order to find the best
-parameters for the model we are considering. Ideally we want the
-global minimum, however for high-dimensional models it is hard to know
-if we have local or global minimum. However, if the cost/loss function
+parameters for the model we are considering. 
+
+Ideally we want the
+global minimum (for high-dimensional models it is hard to know
+if we have local or global minimum). However, if the cost/loss function
 is convex the following result provides invaluable information:
 
 !bblock Any minimum is global for convex functions
@@ -212,30 +225,33 @@ Consider the problem of finding $x \in \mathbb{R}^n$ such that $f(x)$
 is minimal, where $f$ is convex and differentiable. Then, any point
 $x^*$ that satisfies $\nabla f(x^*) = 0$ is a global minimum.
 !eblock
+
 This result means that if we know that the cost/loss function is convex and we are able to find a minimum, we are guaranteed that it is a global minimum.
 
 !split
 ===== Some simple problems =====
-o Show that $f(x)=x^2$ is convex for $x \in \mathbb{R}$ using the definition of convexity.
-Hint: If you re-write the definition, $f$ is convex if the following holds for all $x,y \in D_f$ and any $\lambda \in [0,1] $ $$\lambda f(x) + (1-\lambda)f(y) - f(\lambda x + (1-\lambda) y ) \geq 0. $$
+
+o Show that $f(x)=x^2$ is convex for $x \in \mathbb{R}$ using the definition of convexity. Hint: If you re-write the definition, $f$ is convex if the following holds for all $x,y \in D_f$ and any $\lambda \in [0,1] $ $\lambda f(x) + (1-\lambda)f(y) - f(\lambda x + (1-\lambda) y ) \geq 0. $
 
 o Using the second order condition show that the following functions are convex on the specified domain.
-
-$f(x) = e^x$ is convex for $x \in \mathbb{R}$.
-$g(x) = -\ln(x)$ is convex for $x \in (0,\infty)$.
+ * $f(x) = e^x$ is convex for $x \in \mathbb{R}$.
+ * $g(x) = -\ln(x)$ is convex for $x \in (0,\infty)$.
 o Let $f(x) = x^2$ and $g(x) = e^x$. Show that $f(g(x))$ and $g(f(x))$ is convex for $x \in \mathbb{R}$. Also show that if $f(x)$ is any convex function than $h(x) = e^{f(x)}$ is convex.
 
 o A norm is any function that satisfy the following properties
+ * $f(\alpha x) = |\alpha| f(x)$ for all $\alpha \in \mathbb{R}$.
+ * $f(x+y) \leq f(x) + f(y)$
+ * $f(x) \leq 0$ for all $x \in \mathbb{R}^n$ with equality if and only if $x = 0$
 
-$f(\alpha x) = |\alpha| f(x)$ for all $\alpha \in \mathbb{R}$.
-$f(x+y) \leq f(x) + f(y)$
-$f(x) \leq 0$ for all $x \in \mathbb{R}^n$ with equality if and only if $x = 0$
-Using the definition of convexity, show that a function satisfying the properties above is convex (the third condition is not needed to show this).
+Using the definition of convexity, try to show that a function satisfying the properties above is convex (the third condition is not needed to show this).
 
 !split 
 ===== Revisiting our first homework =====
 
-We will use linear regression as a case study for the gradient descent methods. Linear regression is a great test case for the gradient descent methods discussed in the lectures since it has several desirable properties such as:
+We will use linear regression as a case study for the gradient descent
+methods. Linear regression is a great test case for the gradient
+descent methods discussed in the lectures since it has several
+desirable properties such as:
 
 o An analytical solution (recall homework set 1).
 o The gradient can be computed analytically.
@@ -251,22 +267,22 @@ with $x_i \in [0,1] $ chosen randomly with a uniform distribution. Additionally 
 The linear regression model is given by 
 !bt
 \[
-h_\theta(x) = \hat{y} = \theta_0 + \theta_1 x,
+h_\beta(x) = \hat{y} = \beta_0 + \beta_1 x,
 \] 
 !et
 such that 
 !bt
 \[
-\hat{y}_i = \theta_0 + \theta_1 x_i.
+\hat{y}_i = \beta_0 + \beta_1 x_i.
 \]
 !et
 
 !split 
 ===== Gradient descent example =====
 
-Let $\mathbf{y} = (y_1,\cdots,y_n)^T$, $\mathbf{\hat{y}} = (\hat{y}_1,\cdots,\hat{y}_n)^T$ and $\theta = (\theta_0, \theta_1)^T$
+Let $\mathbf{y} = (y_1,\cdots,y_n)^T$, $\mathbf{\hat{y}} = (\hat{y}_1,\cdots,\hat{y}_n)^T$ and $\beta = (\beta_0, \beta_1)^T$
 
-t is convenient to write $\mathbf{\hat{y}} = X\theta$ where $X \in \mathbb{R}^{100 \times 2} $ is the design matrix given by
+t is convenient to write $\mathbf{\hat{y}} = X\beta$ where $X \in \mathbb{R}^{100 \times 2} $ is the design matrix given by
 !bt
 \[
 \begin{equation}
@@ -281,53 +297,53 @@ X \equiv \begin{bmatrix}
 The loss function is given by 
 !bt
 \[
-C(\theta) = ||X\theta-\mathbf{y}||^2 = ||X\theta||^2 - 2 \mathbf{y}^T X\theta + ||\mathbf{y}||^2 = \sum_{i=1}^{100} (\theta_0 + \theta_1 x_i)^2 - 2 y_i (\theta_0 + \theta_1 x_i) + y_i^2 
+C(\beta) = ||X\beta-\mathbf{y}||^2 = ||X\beta||^2 - 2 \mathbf{y}^T X\beta + ||\mathbf{y}||^2 = \sum_{i=1}^{100} (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2 
 \]
 !et
-and we want to find $\theta$ such that $C(\theta)$ is minimized.
+and we want to find $\beta$ such that $C(\beta)$ is minimized.
 
 !split
 ===== The derivative of the cost/loss function =====
 
-Computing $\partial C(\theta) / \partial \theta_0$ and $\partial C(\theta) / \partial \theta_1$ we can show  that the gradient can be written as
+Computing $\partial C(\beta) / \partial \beta_0$ and $\partial C(\beta) / \partial \beta_1$ we can show  that the gradient can be written as
 !bt
 \[
-\nabla_\theta C(\theta) = (\partial C(\theta) / \partial \theta_0, \partial C(\theta) / \partial \theta_1)^T = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\theta_0+\theta_1x_i-y_i\right) \\
-\sum_{i=1}^{100}\left( x_i (\theta_0+\theta_1x_i)-y_ix_i\right) \\
-\end{bmatrix} = 2X^T(X\theta - \mathbf{y}), 
+\nabla_\beta C(\beta) = (\partial C(\beta) / \partial \beta_0, \partial C(\beta) / \partial \beta_1)^T = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} = 2X^T(X\beta - \mathbf{y}), 
 \]
 !et
 where $X$ is the design matrix defined above.
 
 !split
 ===== The Hessian matrix =====
-The Hessian matrix of $C(\theta)$ is given by 
+The Hessian matrix of $C(\beta)$ is given by 
 !bt
 \[
 \hat{H} \equiv \begin{bmatrix}
-\frac{\partial^2 C(\theta)}{\partial \theta_0^2} &amp; \frac{\partial^2 C(\theta)}{\partial \theta_0 \partial \theta_1}  \\
-\frac{\partial^2 C(\theta)}{\partial \theta_0 \partial \theta_1} &amp; \frac{\partial^2 C(\theta)}{\partial \theta_1^2} &amp;  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} &amp; \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} &amp; \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &amp;  \\
 \end{bmatrix} = 2X^T X.
 \]
 !et
-This result implies that $C(\theta)$ is a convex function since the matrix $X^T X$ always is positive semi-definite.
+This result implies that $C(\beta)$ is a convex function since the matrix $X^T X$ always is positive semi-definite.
 
 !split
 ===== Simple program =====
 
-We can now write a program that minimizes $C(\theta)$ using the gradient descent method with a constant learning rate $\gamma$ according to 
+We can now write a program that minimizes $C(\beta)$ using the gradient descent method with a constant learning rate $\gamma$ according to 
 !bt
 \[
-\theta_{k+1} = \theta_k - \gamma \nabla_\theta C(\theta_k), \ k=0,1,\cdots 
+\beta_{k+1} = \beta_k - \gamma \nabla_\beta C(\beta_k), \ k=0,1,\cdots 
 \]
 !et
 
 We can use the expression we computed for the gradient and let use a
-$\theta_0$ be chosen randomly and let $\gamma = 0.001$. Stop iterating
-when $||\nabla_\theta C(\theta_k) || &lt; \epsilon = 10^{-8}$. 
+$\beta_0$ be chosen randomly and let $\gamma = 0.001$. Stop iterating
+when $||\nabla_\beta C(\beta_k) || &lt; \epsilon = 10^{-8}$. 
 
-And finally we can compare our solution for $\theta$ with the analytic result given by 
-$\theta= (X^TX)^{-1} X^T \mathbf{y}$.
+And finally we can compare our solution for $\beta$ with the analytic result given by 
+$\beta= (X^TX)^{-1} X^T \mathbf{y}$.
 !bc pycod 
 import numpy as np
 
@@ -342,40 +358,40 @@ x  = np.random.rand(N) #Uniformly generated x-values in [0,1]
 y  = 5*x**2 + 0.1*np.random.randn(N)
 X  = np.c_[np.ones(N),x] #Construct design matrix
 
-#Compute theta according to normal equations to compare with GD solution
+#Compute beta according to normal equations to compare with GD solution
 Xt_X_inv = np.linalg.inv(np.dot(X.T,X))
 Xt_y     = np.dot(X.transpose(),y)
-theta_NE = np.dot(Xt_X_inv,Xt_y)
-print(theta_NE)
+beta_NE = np.dot(Xt_X_inv,Xt_y)
+print(beta_NE)
 !ec
 
 !split 
 ===== Gradient descent and Ridge =====
 
-We have also discussed Ridge regression where the loss function contains a regularized given by the $L_2$ norm of $\theta$, 
+We have also discussed Ridge regression where the loss function contains a regularized given by the $L_2$ norm of $\beta$, 
 !bt
 \[
-C_{\text{ridge}}(\theta) = ||X\theta -\mathbf{y}||^2 + \lambda ||\theta||^2, \ \lambda \geq 0.
+C_{\text{ridge}}(\beta) = ||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
 \]
 !et
 
-In order to minimize $C_{\text{ridge}}(\theta)$ using GD we only have adjust the gradient as follows 
+In order to minimize $C_{\text{ridge}}(\beta)$ using GD we only have adjust the gradient as follows 
 !bt
 \[
-\nabla_\theta C_{\text{ridge}}(\theta)  = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\theta_0+\theta_1x_i-y_i\right) \\
-\sum_{i=1}^{100}\left( x_i (\theta_0+\theta_1x_i)-y_ix_i\right) \\
-\end{bmatrix} + 2\lambda\begin{bmatrix} \theta_0 \\ \theta_1\end{bmatrix} = 2 (X^T(X\theta - \mathbf{y})+\lambda \theta).
+\nabla_\beta C_{\text{ridge}}(\beta)  = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} + 2\lambda\begin{bmatrix} \beta_0 \\ \beta_1\end{bmatrix} = 2 (X^T(X\beta - \mathbf{y})+\lambda \beta).
 \]
 !et
 
-We can now extend our program to minimize $C_{\text{ridge}}(\theta)$ using gradient descent and compare with the analytical solution given by 
+We can now extend our program to minimize $C_{\text{ridge}}(\beta)$ using gradient descent and compare with the analytical solution given by 
 !bt
 \[
-\theta_{\text{ridge}} = \left(X^T X + \lambda I_{2 \times 2} \right)^{-1} X^T \mathbf{y},
+\beta_{\text{ridge}} = \left(X^T X + \lambda I_{2 \times 2} \right)^{-1} X^T \mathbf{y},
 \]
 !et
 for $\lambda = {0,1,10,50,100}$ ($\lambda = 0$ corresponds to ordinary least squares). 
-We can then compute $||\theta_{\text{ridge}}||$ for each $\lambda$. 
+We can then compute $||\beta_{\text{ridge}}||$ for each $\lambda$. 
 
 !bc pycod 
 import numpy as np
@@ -391,7 +407,7 @@ x  = np.random.rand(N)
 y  = 5*x**2 + 0.1*np.random.randn(N)
 
 
-#Compute analytic theta for Ridge regression 
+#Compute analytic beta for Ridge regression 
 X    = np.c_[np.ones(N),x]
 XT_X = np.dot(X.T,X)
 
@@ -399,10 +415,10 @@ l  = 0.1 #Ridge parameter lambda
 Id = np.eye(XT_X.shape[0])
 
 Z = np.linalg.inv(XT_X+l*Id)
-theta_ridge = np.dot(Z,np.dot(X.T,y))
+beta_ridge = np.dot(Z,np.dot(X.T,y))
 
-print(theta_ridge)
-print(np.linalg.norm(theta_ridge)) #||theta||
+print(beta_ridge)
+print(np.linalg.norm(beta_ridge)) #||beta||
 !ec
 
 
@@ -419,8 +435,8 @@ function, which we want to minimize, can almost always be written as a
 sum over $n$ datapoints $\{\mathbf{x}_i\}_{i=1}^n$,
 !bt
 \[
-C(\mathbf{\theta}) = \sum_{i=1}^n c_i(\mathbf{x}_i,
-\mathbf{\theta}). 
+C(\mathbf{\beta}) = \sum_{i=1}^n c_i(\mathbf{x}_i,
+\mathbf{\beta}). 
 \]
 !et
 
@@ -431,8 +447,8 @@ This in turn means that the gradient can be
 computed as a sum over $i$-gradients 
 !bt
 \[
-\nabla_\theta C(\mathbf{\theta}) = \sum_i^n \nabla_\theta c_i(\mathbf{x}_i,
-\mathbf{\theta}).
+\nabla_\beta C(\mathbf{\beta}) = \sum_i^n \nabla_\beta c_i(\mathbf{x}_i,
+\mathbf{\beta}).
 \]
 !et
 
@@ -458,10 +474,10 @@ all datapoints with a sum over the datapoints in one the minibatches
 picked at random in each gradient descent step 
 !bt
 \[
-\nabla_\theta
-C(\mathbf{\theta}) = \sum_{i=1}^n \nabla_\theta c_i(\mathbf{x}_i,
-\mathbf{\theta}) \rightarrow \sum_{i \in B_k}^n \nabla_\theta
-c_i(\mathbf{x}_i, \mathbf{\theta}).
+\nabla_\beta
+C(\mathbf{\beta}) = \sum_{i=1}^n \nabla_\beta c_i(\mathbf{x}_i,
+\mathbf{\beta}) \rightarrow \sum_{i \in B_k}^n \nabla_\beta
+c_i(\mathbf{x}_i, \mathbf{\beta}).
 \]
 !et
 
@@ -471,8 +487,8 @@ c_i(\mathbf{x}_i, \mathbf{\theta}).
 Thus a gradient descent step now looks like 
 !bt
 \[
-\theta_{j+1} = \theta_j - \gamma_j \sum_{i \in B_k}^n \nabla_\theta c_i(\mathbf{x}_i,
-\mathbf{\theta})
+\beta_{j+1} = \beta_j - \gamma_j \sum_{i \in B_k}^n \nabla_\beta c_i(\mathbf{x}_i,
+\mathbf{\beta})
 \]
 !et
 
@@ -498,7 +514,7 @@ for epoch in range(1,n_epochs+1):
     for i in range(m):
         k = np.random.randint(m) #Pick the k-th minibatch at random
         #Compute the gradient using the data in minibatch Bk
-        #Compute new suggestion for theta
+        #Compute new suggestion for 
         j += 1
 !ec
 
@@ -521,7 +537,7 @@ is zero is valid also for local minima, so this would only tell us
 that we are close to a local/global minimum. However, we could also
 evaluate the cost function at this point, store the result and
 continue the search. If the test kicks in at a later stage we can
-compare the values of the cost function and keep the $\theta$ that
+compare the values of the cost function and keep the $\beta$ that
 gave the lowest value.
 
 !split
@@ -533,10 +549,10 @@ reasonable time such that we do not move at all.
 
 As an example, let $e = 0,1,2,3,\cdots$ denote the current epoch and let $t_0, t_1 &gt; 0$ be two fixed numbers. Furthermore, let $t = e \cdot m + i$ where $m$ is the number of minibatches and $i=0,\cdots,m-1$. Then the function $$\gamma_j(t; t_0, t_1) = \frac{t_0}{t+t_1} $$ goes to zero as the number of epochs gets large. I.e. we start with a step length $\gamma_j (0; t_0, t_1) = t_0/t_1$ which decays in *time* $t$.
 
-In this way we can fix the number of epochs, compute $\theta$ and
+In this way we can fix the number of epochs, compute $\beta$ and
 evaluate the cost function at the end. Repeating the computation will
 give a different result since the scheme is random by design. Then we
-pick the final $\theta$ that gives the lowest value of the cost
+pick the final $\beta$ that gives the lowest value of the cost
 function.
 
 !bc pycod
@@ -558,7 +574,7 @@ for epoch in range(1,n_epochs+1):
     for i in range(m):
         k = np.random.randint(m) #Pick the k-th minibatch at random
         #Compute the gradient using the data in minibatch Bk
-        #Compute new suggestion for theta
+        #Compute new suggestion for beta
         t = epoch*m+i
         gamma_j = step_length(t,t0,t1)
         j += 1
