@@ -44,7 +44,7 @@ equation in the parameters $\hat{\beta}$. The optmization of the problem calls t
 
 We note also that many of the topics discussed here 
 regression are also commonly used in modern supervised Deep Learning
-models_, as we will see later.
+models, as we will see later.
 
 
 !split 
@@ -90,7 +90,9 @@ $n\times p$ design matrix and $\hat{\beta}$ represents our estimators.
 The main problem with our  function is that it 
 takes values on the entire real axis. In the case of
 logistic regression, however, the labels $y_i$ are discrete
-variables. One simple way to get a discrete output is to have sign
+variables. 
+
+One simple way to get a discrete output is to have sign
 functions that map the output of a linear regressor to values $\{0,1\}$,
 $f(s_i)=sign(s_i)=1$ if $s_i\ge 0$ and 0 if otherwise. 
 We will encounter this model in our first demonstration of neural networks. Historically it is called the ``perceptron" model in the machine learning
@@ -110,82 +112,124 @@ p(t) = \frac{1}{1+\mathrm \exp{-t}}=\frac{\exp{t}}{1+\mathrm \exp{t}}.
 Note that $1-p(t)= p(-t)$.
 
 !split
-===== The cross-entropy as a cost function for logistic regression =====
+===== Probabilistic classifiers =====
 
-The perceptron is an example of a ``hard classification'': each datapoint is deterministically assigned to a category (i.e $y_i=0$ or $y_i=1$). In many cases, it is favorable to have a ``soft'' classifier that outputs the probability of a given category rather than a single value. For example, given $\mathbf{x}_i$, the classifier outputs the probability of being in category $m$. 
-Logistic regression is the most canonical example of a soft classifier. In logistic regression, the probability that a data point $\boldsymbol{x}_i$ belongs to a category $y_i=\{0,1\}$ is  is given by
+The perceptron is an example of a ``hard classification'' model. We
+will encounter this model when we discuss neural networks as
+well. Each datapoint is deterministically assigned to a category (i.e
+$y_i=0$ or $y_i=1$). In many cases, it is favorable to have a ``soft''
+classifier that outputs the probability of a given category rather
+than a single value. For example, given $x_i$, the classifier
+outputs the probability of being in a category $k$.  Logistic regression
+is the most common example of a so-called soft classifier. In logistic
+regression, the probability that a data point $x_i$
+belongs to a category $y_i=\{0,1\}$ is given by the so-called logit function (or Sigmoid)
+
+
+!split
+=====  Two parameters =====
+
+We assume now that we have two classes with $y_i$ either $0$ or $1$. Furthermore we assume also that we have only two parameters $\beta$ in our fitting of the Sigmoid function, that is we define probabilities 
 !bt
-\begin{eqnarray}
-P(y_i=1|\boldsymbol{x}_i,\boldsymbol{\theta)} &=& \frac{1}{1+\mathrm{e}^{-\mathbf{x}^T_i\mathbf{w}}},\nonumber\\
-P(y_i=0|\boldsymbol{x}_i,\boldsymbol{\theta)} &=& 1 - P(y_i=1|\boldsymbol{x}_i,\boldsymbol{\theta)},
-\end{eqnarray}
+\begin{align*}
+p(y_i=1|x_i,\hat{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
+p(y_i=0|x_i,\hat{\beta}) &= 1 - p(y_i=1|x_i,\hat{\beta}),
+\end{align*}
 !et
-where $\boldsymbol{\theta}=\mathbf{w}$ are the weights we wish to learn from the data. 
+where $\hat{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
 
-
-Notice that in terms of the logistic function, we can write
+Note that we used
 !bt
 \[
-P(y_i=1) =f(\mathbf{x}_i^T\mathbf{w})=1-P(y_i=0).
+p(y_i=1) = 1-p(y_i=0).
 \]
 !et
 
 !split 
 ===== Maximum likelihood =====
 
-We now define the cost function for logistic regression using Maximum
-Likelihood Estimation (MLE). Recall, that in MLE we choose parameters
-to maximize the probability of seeing the observed data. Consider a
-dataset $\mathcal{D}=\{(y_i,\boldsymbol{x}_i)\}$ with binary labels
-$y_i\in\{0,1\}$ where the data points are drawn independently.  The
-likelihood of the seeing the data under our model is just:
+In order to define the total likelihood for all possible outcomes from a  
+dataset $\mathcal{D}=\{(y_i,x_i)\}$, with the binary labels
+$y_i\in\{0,1\}$ and where the data points are drawn independently, we use the so-called Maximum Likelihood Estimation (MLE) principle. 
+We aim thus at maximizing 
+the probability of seeing the observed data. We can then approximate the 
+likelihood in terms of the product of the individual probabilities of a specific outcome $y_i$, that is 
 !bt
-\begin{align}
-P(\mathcal{D}|\mathbf{w})& = \prod_{i=1}^n \left[f(\mathbf{x}_i^T\mathbf{w})\right]^{y_i}\left[1-f(\mathbf{x}_i^T\mathbf{w})\right]^{1-y_i}\nonumber \\
-\end{align}
+\begin{align*}
+P(\mathcal{D}|\hat{\beta})& = \prod_{i=1}^n \left[p(y_i=1|x_i,\hat{\beta})\right]^{y_i}\left[1-p(y_i=1|x_i,\hat{\beta}))\right]^{1-y_i}\nonumber \\
+\end{align*}
 !et
-from which we can readily compute the log-likelihood:
+from which we obtain the log-likelihood and our _cost/loss_ function
 !bt
-\begin{equation}
-l(\mathbf{w}) = \sum_{i=1}^n  y_i\log f(\mathbf{x}_i^T\mathbf{w}) + (1-y_i)\log\left[1-f(\mathbf{x}_i^T\mathbf{w})\right].
-\end{equation}
+\[
+\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n  y_i\log{p(y_i=1|x_i,\hat{\beta})} + (1-y_i)\log\left[1-p(y_i=1|x_i,\hat{\beta}))\right].
+\]
 !et
 
 !split
-The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to $\theta$
+===== The cost function rewritten =====
+
+Reordering the logarithms, we can rewrite the _cost/loss_ function as
 !bt
 \[
-\hat{\mathbf{w}} = \sum_{i=1}^n y_i\log f(\mathbf{x}_i^T\mathbf{w}) + (1-y_i)\log\left[1-f(\mathbf{x}_i^T\mathbf{w})\right]. 
+\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{1+\exp{(\beta_0+\beta_1x_i)}}\right).
 \]
 !et
+!split
+The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to $\beta$.
 Since the cost (error) function is just the negative log-likelihood, for logistic regression we have that
 !bt
-\begin{eqnarray}
-\mathcal{C}(\mathbf{w}) &=& - l(\mathbf{w}) \\
-&=& \sum_{i=1}^n  -y_i\log f(\mathbf{x}_i^T\mathbf{w}) - (1-y_i)\log\left[1-f(\mathbf{x}_i^T\mathbf{w})\right].\nonumber
-\end{eqnarray}
+\[
+\mathcal{C}(\hat{\beta})=-\sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{1+\exp{(\beta_0+\beta_1x_i)}}\right).
+\]
 !et
-This equation is known in statistics as the \emph{cross entropy}. Finally, we note that just as in linear regression, 
-in practice we usually supplement the cross-entropy with additional regularization terms, usually $L_1$ and $L_2$ regularization as we did for Ridge and Lasso regression.
+This equation is known in statistics as the _cross entropy_. Finally, we note that just as in linear regression, 
+in practice we often supplement the cross-entropy with additional regularization terms, usually $L_1$ and $L_2$ regularization as we did for Ridge and Lasso regression.
 
 !split
 =====  Minimizing the cross entropy =====
 
-The cross entropy is a convex function of the weights $\mathbf{w}$ and,
-therefore, any local minimizer is a global minimizer. Minimizing this
-cost function leads to the following equation
+The cross entropy is a convex function of the weights $\hat{\beta}$ and,
+therefore, any local minimizer is a global minimizer. 
+
+
+Minimizing this
+cost function with respect to the two parameters $\beta_0$ and $\beta_1$ we obtain
 
 !bt
-\begin{equation}
-\boldsymbol{0}=\boldsymbol{\nabla} \mathcal{C}(\mathbf{w}) = \sum_{i=1}^n\left[f(\mathbf{x}_i^T\mathbf{w})-y_i\right]\mathbf{x}_i,
-\end{equation} 
+\[
+\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \beta_0} = -\sum_{i=1}^n  \left(y_i -\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right),
+\]
+!et
+and 
+!bt
+\[
+\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \beta_1} = -\sum_{i=1}^n  \left(y_ix_i -x_i\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right).
+\]
 !et
 
-where we made use of the logistic function identity $\partial_z f(z) =
-f(z)[1-f(z)]$.  This equation defines a transcendental equation for
-$\mathbf{w}$, the solution of which, unlike linear regression, cannot
-be written in a closed form. 
-Here we need gradient descent methods!
+!split
+=====  A more compact expression =====
+
+Let us now define a vector $\hat{y}$ with $n$ elements $y_i$, an
+$n\times p$ matrix $\hat{X}$ which contains the $x_i$ values and a
+vector $\hat{p}$ of fitted probabilities $p(y_i\vert x_i,\hat{\beta})$. We can rewrite in a more compact form the first
+derivative of cost function as
+
+!bt
+\[
+\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \hat{\beta}} = -\hat{X}^T\left(\hat{y}-\hat{p}\right). 
+\]
+!et
+
+If we in addition define a diagonal matrix $\hat{W}$ with elements 
+$p(y_i\vert x_i,\hat{\beta})(1-p(y_i\vert x_i,\hat{\beta})$, we can obtain a compact expression of the second derivative as 
+
+!bt
+\[
+\frac{\partial^2 \mathcal{C}(\hat{\beta})}{\partial \hat{\beta}\partial \hat{\beta}^T} = \hat{X}^T\hat{W}\hat{X}. 
+\]
+!et
 
 
 !split
@@ -211,4 +255,59 @@ plt.plot(X_new, y_proba[:, 1], "g-", label="Iris-Virginica")
 plt.plot(X_new, y_proba[:, 0], "b--", label="Not Iris-Virginica")
 plt.show()
 
+!ec
+
+
+!split
+===== A simple classification problem =====
+!bc pycod
+import numpy as np
+from sklearn import datasets, linear_model
+import matplotlib.pyplot as plt
+
+
+def generate_data():
+    np.random.seed(0)
+    X, y = datasets.make_moons(200, noise=0.20)
+    return X, y
+
+
+def visualize(X, y, clf):
+    # plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
+    # plt.show()
+    plot_decision_boundary(lambda x: clf.predict(x), X, y)
+    plt.title("Logistic Regression")
+
+
+def plot_decision_boundary(pred_func, X, y):
+    # Set min and max values and give it some padding
+    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+    h = 0.01
+    # Generate a grid of points with distance h between them
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    # Predict the function value for the whole gid
+    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    # Plot the contour and training examples
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
+    plt.show()
+
+
+def classify(X, y):
+    clf = linear_model.LogisticRegressionCV()
+    clf.fit(X, y)
+    return clf
+
+
+def main():
+    X, y = generate_data()
+    # visualize(X, y)
+    clf = classify(X, y)
+    visualize(X, y, clf)
+
+
+if __name__ == "__main__":
+    main()
 !ec

@@ -35,16 +35,19 @@ div { text-align: justify; text-justify: inter-word; }
 <!-- tocinfo
 {'highest level': 2,
  'sections': [('Logistic Regression', 2, None, '___sec0'),
-              ('Basics', 2, None, '___sec1'),
-              ('Linear classifier', 2, None, '___sec2'),
-              ('Some selected properties', 2, None, '___sec3'),
-              ('The cross-entropy as a cost function for logistic regression',
-               2,
-               None,
-               '___sec4'),
-              ('Maximum likelihood', 2, None, '___sec5'),
-              ('Minimizing the cross entropy', 2, None, '___sec6'),
-              ('A _scikit-learn_ example', 2, None, '___sec7')]}
+              ('Optimization and Deep learning', 2, None, '___sec1'),
+              ('Basics', 2, None, '___sec2'),
+              ('Linear classifier', 2, None, '___sec3'),
+              ('Some selected properties', 2, None, '___sec4'),
+              ('The logistic function', 2, None, '___sec5'),
+              ('Probabilistic classifiers', 2, None, '___sec6'),
+              ('Two parameters', 2, None, '___sec7'),
+              ('Maximum likelihood', 2, None, '___sec8'),
+              ('The cost function rewritten', 2, None, '___sec9'),
+              ('Minimizing the cross entropy', 2, None, '___sec10'),
+              ('A more compact expression', 2, None, '___sec11'),
+              ('A _scikit-learn_ example', 2, None, '___sec12'),
+              ('A simple classification problem', 2, None, '___sec13')]}
 end of tocinfo -->
 
 <body>
@@ -86,7 +89,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Sep 20, 2018</h4></center> <!-- date -->
+<center><h4>Sep 25, 2018</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split  -->
@@ -94,183 +97,260 @@ MathJax.Hub.Config({
 <h2 id="___sec0">Logistic Regression </h2>
 
 <p>
-So far we have focused on learning from datasets for which there is a
-<b>continuous</b> output. In linear regression we have been 
-concerned with learning the coefficients of a polynomial to predict
-the response of a continuous variable \( y_i \) on unseen data based on
-its independent variables \( {\bf x}_i \).
+In linear regression our main interest was centered on learning the
+coefficients of a functional fit (say a polynomial) in order to be
+able to predict the response of a continuous variable on some unseen
+data. The fit to the continuous variable \( y_i \) is based on some
+independent variables \( \hat{x}_i \). Linear regression resulted in
+analytical expressions (in terms of matrices to invert) for several
+quantities, ranging from the variance and thereby the confidence
+intervals of the parameters \( \hat{\beta} \) to the mean squared
+error. If we can invert the product of the design matrices, linear
+regression gives then a simple recipe for fitting our data.
 
 <p>
-Classification problems,
-however, are concerned with outcomes taking the form of discrete
-variables (i.e. categories). For example, we may want to detect if
-there's a cat or a dog in an image. Or given a specific system,
-we'd like to identify its state, say whether it is an ordered or disordered system (typical situation in solid state physics).
-(e.g. ordered/disordered).
+Classification problems, however, are concerned with outcomes taking
+the form of discrete variables (i.e. categories). We may for example,
+on the basis of DNA sequencing for a number of patients, like to find
+out which mutations are important for a certain disease; or based on
+scans of various patients' brains, figure out if there is a tumor or
+not; or given a specific physical system, we'd like to identify its
+state, say whether it is an ordered or disordered system (typical
+situation in solid state physics); or classify the status of a
+patient, whether she/he has a stroke or not and many other similar
+situations.
 
 <p>
-<b>Logistic regression deals with binary, dichotomous outcomes (e.g. True or
-False, Success or Failure, etc.). It is worth noting that logistic
-regression is also commonly used in modern supervised Deep Learning
-models</b>, as we will see later.
+The most common situation we encounter when we apply logistic
+regression is that of two possible outcomes, normally denoted as a
+binary outcome, true or false, positive or negative, success or
+failure etc.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec1">Optimization and Deep learning </h2>
+
+<p>
+Logistic regression will also serve as our stepping towards neural
+network algorithms and supervised deep learning. For logistic
+learning, the minimization of the cost function leads to a non-linear
+equation in the parameters \( \hat{\beta} \). The optmization of the problem calls therefore for minimization algorithms. This forms the bottle neck of all machine learning algorithms, namely how to find reliable minima of a multi-variable function. This leads us to the family of gradient descent methods. The latter are the working horses of basically all modern machine learning algorithms.
+
+<p>
+We note also that many of the topics discussed here 
+regression are also commonly used in modern supervised Deep Learning
+models, as we will see later.
 
 <p>
 <!-- !split  -->
 
-<h2 id="___sec1">Basics </h2>
+<h2 id="___sec2">Basics </h2>
 
 <p>
-We consider the case where the dependent variables \( y_i\in\mathbb{Z} \)
-are discrete and only take values from \( m=0,\dots,M-1 \) (i.e. \( M \)
-classes).
+We consider the case where the dependent variables, also called the
+responses or the outcomes) \( y_i \) are discrete and only take values
+from \( k=0,\dots,K-1 \) (i.e. \( K \) classes).
 
 <p>
 The goal is to predict the
 output classes from the design matrix \( X\in\mathbb{R}^{n\times p} \)
-made of \( n \) samples, each of which bears \( p \) features. The
+made of \( n \) samples, each of which carries \( p \) features. The
 primary goal is to identify the classes to which new unseen samples
 belong.
 
 <p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec2">Linear classifier </h2>
+Let us specialize to the case of two classes only, with outputs \( y_i=0 \) and \( y_i=1 \). Our outcomes could represent the status of a credit card use who could default or not on her/his debt. That is
+$$
+y_i = \begin{bmatrix} 0 & \mathrm{no default}\\  1 & \mathrm{default} \end{bmatrix}.
+$$
 
 <p>
-Let us start by considering a slightly simpler classifier: a linear classifier that categorizes examples using a weighted linear-combination of the features and an additive offset
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec3">Linear classifier </h2>
+
+<p>
+Before moving to the logistic model, let us try to use our linear regression model to classify these two outcomes. We could for example fit a linear model to the default case if \( y_i > 0.5 \) and the no default case \( y_i \leq 0.5 \).
+
+<p>
+We would then have our 
+weighted linear combination, namely 
 $$
 \begin{equation}
-s_i = \boldsymbol{x}_i^T\boldsymbol{w} + b_0 \equiv  \mathbf{x}_i^T\mathbf{w},
+\hat{y} = \hat{X}_i^T\hat{\beta} +  \hat{\epsilon},
 \label{_auto1}
 \end{equation}
 $$
 
-where we use the short-hand notation 
-\( \mathbf{x}_i = (1,\boldsymbol{x}_i) \) and \( \mathbf{w}_i = (b_0,\boldsymbol{w}_i) \).
+where \( \hat{y} \) is a vector representing the possible outcomes, \( \hat{X} \) is our
+\( n\times p \) design matrix and \( \hat{\beta} \) represents our estimators.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec3">Some selected properties </h2>
+<h2 id="___sec4">Some selected properties </h2>
 
 <p>
-This function takes values on the entire real axis. In the case of
+The main problem with our  function is that it 
+takes values on the entire real axis. In the case of
 logistic regression, however, the labels \( y_i \) are discrete
-variables. One simple way to get a discrete output is to have sign
-functions that map the output of a linear regressor to \( \{0,1\} \),
-\( f(s_i)=sign(s_i)=1 \) if \( s_i\ge 0 \) and 0 if otherwise. Indeed,
-this is commonly known as the &quot;perceptron" in the machine learning
-literature. This model is extremely simple, and it is favorable in
-many cases (e.g. noisy data) to have a ``soft" classifier that outputs
-the probability of a given category. For example, given
-\( \mathbf{x}_i \), the classifier outputs the probability of being in
-category \( m \). One such function is the logistic (or sigmoid) function:
+variables.
 
-$$
-\begin{equation}
-f(s) = \frac{1}{1+\mathrm e^{-s}}.
-\label{eq:log_fun}
-\end{equation} 
-$$
-
-Note that \( 1-f(s)= f(-s) \), which will be useful shortly.
+<p>
+One simple way to get a discrete output is to have sign
+functions that map the output of a linear regressor to values \( \{0,1\} \),
+\( f(s_i)=sign(s_i)=1 \) if \( s_i\ge 0 \) and 0 if otherwise. 
+We will encounter this model in our first demonstration of neural networks. Historically it is called the &quot;perceptron" model in the machine learning
+literature. This model is extremely simple. However, in many cases it is more
+favorable to use a ``soft" classifier that outputs
+the probability of a given category. This leads us to the logistic function.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec4">The cross-entropy as a cost function for logistic regression </h2>
+<h2 id="___sec5">The logistic function </h2>
 
 <p>
-The perceptron is an example of a ``hard classification&quot;: each datapoint is deterministically assigned to a category (i.e \( y_i=0 \) or \( y_i=1 \)). In many cases, it is favorable to have a &quot;soft&quot; classifier that outputs the probability of a given category rather than a single value. For example, given \( \mathbf{x}_i \), the classifier outputs the probability of being in category \( m \). 
-Logistic regression is the most canonical example of a soft classifier. In logistic regression, the probability that a data point \( \boldsymbol{x}_i \) belongs to a category \( y_i=\{0,1\} \) is  is given by
+A widely used model is the so-called  logistic (or sigmoid) function which ranges from \( 0 \) to \( 1 \), 
 $$
-\begin{eqnarray}
-P(y_i=1|\boldsymbol{x}_i,\boldsymbol{\theta)} &=& \frac{1}{1+\mathrm{e}^{-\mathbf{x}^T_i\mathbf{w}}},\nonumber\\
-P(y_i=0|\boldsymbol{x}_i,\boldsymbol{\theta)} &=& 1 - P(y_i=1|\boldsymbol{x}_i,\boldsymbol{\theta)},
-\end{eqnarray}
+p(t) = \frac{1}{1+\mathrm \exp{-t}}=\frac{\exp{t}}{1+\mathrm \exp{t}}.
 $$
 
-where \( \boldsymbol{\theta}=\mathbf{w} \) are the weights we wish to learn from the data.
+Note that \( 1-p(t)= p(-t) \).
 
 <p>
-Notice that in terms of the logistic function, we can write
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec6">Probabilistic classifiers </h2>
+
+<p>
+The perceptron is an example of a ``hard classification&quot; model. We
+will encounter this model when we discuss neural networks as
+well. Each datapoint is deterministically assigned to a category (i.e
+\( y_i=0 \) or \( y_i=1 \)). In many cases, it is favorable to have a &quot;soft&quot;
+classifier that outputs the probability of a given category rather
+than a single value. For example, given \( x_i \), the classifier
+outputs the probability of being in a category \( k \).  Logistic regression
+is the most common example of a so-called soft classifier. In logistic
+regression, the probability that a data point \( x_i \)
+belongs to a category \( y_i=\{0,1\} \) is given by the so-called logit function (or Sigmoid)
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec7">Two parameters </h2>
+
+<p>
+We assume now that we have two classes with \( y_i \) either \( 0 \) or \( 1 \). Furthermore we assume also that we have only two parameters \( \beta \) in our fitting of the Sigmoid function, that is we define probabilities 
 $$
-P(y_i=1) =f(\mathbf{x}_i^T\mathbf{w})=1-P(y_i=0).
+\begin{align*}
+p(y_i=1|x_i,\hat{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
+p(y_i=0|x_i,\hat{\beta}) &= 1 - p(y_i=1|x_i,\hat{\beta}),
+\end{align*}
+$$
+
+where \( \hat{\beta} \) are the weights we wish to extract from data, in our case \( \beta_0 \) and \( \beta_1 \).
+
+<p>
+Note that we used
+$$
+p(y_i=1) = 1-p(y_i=0).
 $$
 
 <p>
 <!-- !split  -->
 
-<h2 id="___sec5">Maximum likelihood </h2>
+<h2 id="___sec8">Maximum likelihood </h2>
 
 <p>
-We now define the cost function for logistic regression using Maximum
-Likelihood Estimation (MLE). Recall, that in MLE we choose parameters
-to maximize the probability of seeing the observed data. Consider a
-dataset \( \mathcal{D}=\{(y_i,\boldsymbol{x}_i)\} \) with binary labels
-\( y_i\in\{0,1\} \) where the data points are drawn independently.  The
-likelihood of the seeing the data under our model is just:
+In order to define the total likelihood for all possible outcomes from a  
+dataset \( \mathcal{D}=\{(y_i,x_i)\} \), with the binary labels
+\( y_i\in\{0,1\} \) and where the data points are drawn independently, we use the so-called Maximum Likelihood Estimation (MLE) principle. 
+We aim thus at maximizing 
+the probability of seeing the observed data. We can then approximate the 
+likelihood in terms of the product of the individual probabilities of a specific outcome \( y_i \), that is 
 $$
-\begin{align}
-P(\mathcal{D}|\mathbf{w})& = \prod_{i=1}^n \left[f(\mathbf{x}_i^T\mathbf{w})\right]^{y_i}\left[1-f(\mathbf{x}_i^T\mathbf{w})\right]^{1-y_i}\nonumber \\
-\label{_auto2}
-\end{align}
+\begin{align*}
+P(\mathcal{D}|\hat{\beta})& = \prod_{i=1}^n \left[p(y_i=1|x_i,\hat{\beta})\right]^{y_i}\left[1-p(y_i=1|x_i,\hat{\beta}))\right]^{1-y_i}\nonumber \\
+\end{align*}
 $$
 
-from which we can readily compute the log-likelihood:
+from which we obtain the log-likelihood and our <b>cost/loss</b> function
 $$
-\begin{equation}
-l(\mathbf{w}) = \sum_{i=1}^n  y_i\log f(\mathbf{x}_i^T\mathbf{w}) + (1-y_i)\log\left[1-f(\mathbf{x}_i^T\mathbf{w})\right].
-\label{_auto3}
-\end{equation}
+\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n  y_i\log{p(y_i=1|x_i,\hat{\beta})} + (1-y_i)\log\left[1-p(y_i=1|x_i,\hat{\beta}))\right].
 $$
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
-The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to \( \theta \)
+
+<h2 id="___sec9">The cost function rewritten </h2>
+
+<p>
+Reordering the logarithms, we can rewrite the <b>cost/loss</b> function as
 $$
-\hat{\mathbf{w}} = \sum_{i=1}^n y_i\log f(\mathbf{x}_i^T\mathbf{w}) + (1-y_i)\log\left[1-f(\mathbf{x}_i^T\mathbf{w})\right]. 
+\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{1+\exp{(\beta_0+\beta_1x_i)}}\right).
 $$
 
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to \( \beta \).
 Since the cost (error) function is just the negative log-likelihood, for logistic regression we have that
 $$
-\begin{eqnarray}
-\mathcal{C}(\mathbf{w}) &=& - l(\mathbf{w}) \\
-&=& \sum_{i=1}^n  -y_i\log f(\mathbf{x}_i^T\mathbf{w}) - (1-y_i)\log\left[1-f(\mathbf{x}_i^T\mathbf{w})\right].\nonumber
-\end{eqnarray}
+\mathcal{C}(\hat{\beta})=-\sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{1+\exp{(\beta_0+\beta_1x_i)}}\right).
 $$
 
-This equation is known in statistics as the \emph{cross entropy}. Finally, we note that just as in linear regression, 
-in practice we usually supplement the cross-entropy with additional regularization terms, usually \( L_1 \) and \( L_2 \) regularization as we did for Ridge and Lasso regression.
+This equation is known in statistics as the <b>cross entropy</b>. Finally, we note that just as in linear regression, 
+in practice we often supplement the cross-entropy with additional regularization terms, usually \( L_1 \) and \( L_2 \) regularization as we did for Ridge and Lasso regression.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec6">Minimizing the cross entropy </h2>
+<h2 id="___sec10">Minimizing the cross entropy </h2>
 
 <p>
-The cross entropy is a convex function of the weights \( \mathbf{w} \) and,
-therefore, any local minimizer is a global minimizer. Minimizing this
-cost function leads to the following equation
-
-$$
-\begin{equation}
-\boldsymbol{0}=\boldsymbol{\nabla} \mathcal{C}(\mathbf{w}) = \sum_{i=1}^n\left[f(\mathbf{x}_i^T\mathbf{w})-y_i\right]\mathbf{x}_i,
-\label{_auto4}
-\end{equation} 
-$$
+The cross entropy is a convex function of the weights \( \hat{\beta} \) and,
+therefore, any local minimizer is a global minimizer.
 
 <p>
-where we made use of the logistic function identity \( \partial_z f(z) =
-f(z)[1-f(z)] \).  This equation defines a transcendental equation for
-\( \mathbf{w} \), the solution of which, unlike linear regression, cannot
-be written in a closed form. 
-Here we need gradient descent methods!
+Minimizing this
+cost function with respect to the two parameters \( \beta_0 \) and \( \beta_1 \) we obtain
+
+$$
+\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \beta_0} = -\sum_{i=1}^n  \left(y_i -\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right),
+$$
+
+and 
+$$
+\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \beta_1} = -\sum_{i=1}^n  \left(y_ix_i -x_i\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right).
+$$
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec7">A <b>scikit-learn</b> example </h2>
+<h2 id="___sec11">A more compact expression </h2>
+
+<p>
+Let us now define a vector \( \hat{y} \) with \( n \) elements \( y_i \), an
+\( n\times p \) matrix \( \hat{X} \) which contains the \( x_i \) values and a
+vector \( \hat{p} \) of fitted probabilities \( p(y_i\vert x_i,\hat{\beta}) \). We can rewrite in a more compact form the first
+derivative of cost function as
+
+$$
+\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \hat{\beta}} = -\hat{X}^T\left(\hat{y}-\hat{p}\right). 
+$$
+
+<p>
+If we in addition define a diagonal matrix \( \hat{W} \) with elements 
+\( p(y_i\vert x_i,\hat{\beta})(1-p(y_i\vert x_i,\hat{\beta}) \), we can obtain a compact expression of the second derivative as 
+
+$$
+\frac{\partial^2 \mathcal{C}(\hat{\beta})}{\partial \hat{\beta}\partial \hat{\beta}^T} = \hat{X}^T\hat{W}\hat{X}. 
+$$
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec12">A <b>scikit-learn</b> example </h2>
 
 <p>
 
@@ -293,6 +373,63 @@ y_proba = log_reg.predict_proba(X_new)
 plt.plot(X_new, y_proba[:, <span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;g-&quot;</span>, label=<span style="color: #CD5555">&quot;Iris-Virginica&quot;</span>)
 plt.plot(X_new, y_proba[:, <span style="color: #B452CD">0</span>], <span style="color: #CD5555">&quot;b--&quot;</span>, label=<span style="color: #CD5555">&quot;Not Iris-Virginica&quot;</span>)
 plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec13">A simple classification problem </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets, linear_model
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">generate_data</span>():
+    np.random.seed(<span style="color: #B452CD">0</span>)
+    X, y = datasets.make_moons(<span style="color: #B452CD">200</span>, noise=<span style="color: #B452CD">0.20</span>)
+    <span style="color: #8B008B; font-weight: bold">return</span> X, y
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">visualize</span>(X, y, clf):
+    <span style="color: #228B22"># plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)</span>
+    <span style="color: #228B22"># plt.show()</span>
+    plot_decision_boundary(<span style="color: #8B008B; font-weight: bold">lambda</span> x: clf.predict(x), X, y)
+    plt.title(<span style="color: #CD5555">&quot;Logistic Regression&quot;</span>)
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">plot_decision_boundary</span>(pred_func, X, y):
+    <span style="color: #228B22"># Set min and max values and give it some padding</span>
+    x_min, x_max = X[:, <span style="color: #B452CD">0</span>].min() - .<span style="color: #B452CD">5</span>, X[:, <span style="color: #B452CD">0</span>].max() + .<span style="color: #B452CD">5</span>
+    y_min, y_max = X[:, <span style="color: #B452CD">1</span>].min() - .<span style="color: #B452CD">5</span>, X[:, <span style="color: #B452CD">1</span>].max() + .<span style="color: #B452CD">5</span>
+    h = <span style="color: #B452CD">0.01</span>
+    <span style="color: #228B22"># Generate a grid of points with distance h between them</span>
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    <span style="color: #228B22"># Predict the function value for the whole gid</span>
+    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    <span style="color: #228B22"># Plot the contour and training examples</span>
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+    plt.scatter(X[:, <span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>], c=y, cmap=plt.cm.Spectral)
+    plt.show()
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">classify</span>(X, y):
+    clf = linear_model.LogisticRegressionCV()
+    clf.fit(X, y)
+    <span style="color: #8B008B; font-weight: bold">return</span> clf
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">main</span>():
+    X, y = generate_data()
+    <span style="color: #228B22"># visualize(X, y)</span>
+    clf = classify(X, y)
+    visualize(X, y, clf)
+
+
+<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #00688B">__name__</span> == <span style="color: #CD5555">&quot;__main__&quot;</span>:
+    main()
 </pre></div>
 <p>
 
