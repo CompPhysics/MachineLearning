@@ -470,9 +470,138 @@ plt.show()
 
 
 !split 
-===== Setting up a Multi-layer perceptron model =====
+===== Setting up a Multi-layer perceptron model, classification  =====
 
 
+  
+In binary classification with two classes (0, 1) we define the logistic/sigmoid function as the probability that a
+particular input is in class 0. This is possible because the logistic function takes any input from the real numbers and inputs a number between 0 and 1, and can therefore be interpreted as a probability. It also has other nice
+properties, such as a derivative that is simple to calculate.  
+  
+For an input $\boldsymbol{a}$ from the hidden layer, the probability that the input $\boldsymbol{x}$
+is in class 0 or 1 is just:  
+  
+$$ P(y = 0 \mid \boldsymbol{x}, \boldsymbol{\theta}) = \frac{1}{1 + \exp (- \boldsymbol{a}^T \boldsymbol{w}_{out})} ,$$  
+$$ P(y = 1 \mid \boldsymbol{x}, \boldsymbol{\theta}) = 1 - P(y = 0 \mid \boldsymbol{x}, \boldsymbol{\theta}) ,$$  
+  
+where $y \in \{0, 1\}$  and $\boldsymbol{\theta}$ represents the weights and biases
+of our network.
+  
+  
+$$ \mathcal{C}(\boldsymbol{\theta}) = - \ln P(\mathcal{D} \mid \boldsymbol{\theta}) = - \sum_{i=1}^n
+y_i \ln[P(y_i = 0)] + (1 - y_i) \ln [1 - P(y_i = 0)] = \sum_{i=1}^n \mathcal{L}_i(\boldsymbol{\theta}) .$$  
+  
+This last equality means that we can interpret our **cost** function as a sum over the **loss** function
+for each point in the dataset $\mathcal{L}_i(\boldsymbol{\theta})$.  
+The negative sign is just so that we can think about our algorithm as minimizing a positive number, rather
+than maximizing a negative number.  
+  
+In **multiclass** classification it is common to treat each integer label as a so called **one-hot** vector:  
+  
+$$ y = 5 \quad \rightarrow \quad \boldsymbol{y} = (0, 0, 0, 0, 0, 1, 0, 0, 0, 0) ,$$  
+
+  
+$$ y = 1 \quad \rightarrow \quad \boldsymbol{y} = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0) ,$$  
+  
+  
+i.e. a binary bit string of length $C$, where $C = 10$ is the number of classes in the MNIST dataset.  
+  
+If $\boldsymbol{x}_i$ is the $i$-th input (image), $y_{ic}$ refers to the $c$-th component of the $i$-th
+output vector $\boldsymbol{y}_i$.  
+The probability of $\boldsymbol{x}_i$ being in class $c$ will be given by the softmax function:  
+  
+$$ P(y_{ic} = 1 \mid \boldsymbol{x}_i, \boldsymbol{\theta}) = \frac{\exp{((\boldsymbol{a}_i^{hidden})^T \boldsymbol{w}_c)}}
+{\sum_{c'=0}^{C-1} \exp{((\boldsymbol{a}_i^{hidden})^T \boldsymbol{w}_{c'})}} ,$$  
+  
+which reduces to the logistic function in the binary case.  
+The likelihood of this $C$-class classifier
+is now given as:  
+  
+$$ P(\mathcal{D} \mid \boldsymbol{\theta}) = \prod_{i=1}^n \prod_{c=0}^{C-1} [P(y_{ic} = 1)]^{y_{ic}} .$$  
+  
+Again we take the negative log-likelihood to define our cost function:  
+  
+$$ \mathcal{C}(\boldsymbol{\theta}) = - \ln P(\mathcal{D} \mid \boldsymbol{\theta}) = - \sum_{i=1}^n \sum_{c=0}^{C-1}
+y_{ic} \ln[P(y_{ic} = 1)] = \sum_{i=1}^n
+\mathcal{L}_i(\boldsymbol{\theta}) .$$  
+
+# Deriving the backpropagation equations
+  
+  
+Assume that there are $L$ layers in our network with $l = 1,2,...,L$ indexing the layers, including
+the output layer and all the hidden layers.  
+Let $w_{ij}^l$ denote the weight for the connection
+from the $i$-th neuron in layer $l - 1$ to the $j$-th neuron in layer $l$. Let $b_{j}^l$ denote the bias of this $j$-th neuron.  
+  
+The activation $a_{j}^l$ of the $j$-th neuron in the $l$-th layer is related to the activities of the neurons in the layer $l - 1$ by:  
+  
+$$ a_{j}^l = f \left( \sum_i w_{ij}^l a_i^{l-1} + b_j^l \right) = f \left( z_j^l \right) ,$$
+  
+where $f$ is some activation function.  
+  
+The cost function $\mathcal{C}$ depends directly on the activations in the output layer, and indirectly on the activations
+in all the lower layers.  
+Define the error $\Delta_j^L$ of the $j$-th neuron in the $L$-th (final) layer as the change in cost function
+with respect to the weighted input $z_j^L$:  
+  
+$$ \Delta_j^L = \frac{\partial \mathcal{C}}{\partial z_j^L} .$$  
+  
+Define analogously the error $\Delta_j^l$ of neuron $j$ in the $l$-th layer as the change in cost function with respect to the weighted input
+$z_j^l$:  
+  
+$$ \Delta_j^l = \frac{\partial \mathcal{C}}{\partial z_j^l} .$$
+  
+This can also be interpreted as the change in cost function with respect to the bias $b_j^l$:  
+  
+$$ \Delta_j^l = \frac{\partial \mathcal{C}}{\partial z_j^l} = \frac{\partial \mathcal{C}}{\partial b_j^l} \frac{\partial b_j^l}{\partial z_j^l} = \frac{\partial \mathcal{C}}{\partial b_j^l} ,$$
+  
+since $ \partial b_l^j / \partial z_j^l = 1$.  
+  
+The error depends on neurons in layer $l$ only through the activation of neurons in layer $l + 1$, so using the chain rule we can write:  
+  
+$$ \begin{split}
+\Delta_j^l &= \frac{\partial \mathcal{C}}{\partial z_j^l} = \sum_i \frac{\partial \mathcal{C}}{\partial z_i^{l+1}}
+\frac{\partial z_i^{l+1}}{\partial z_j^l} \\
+           &= \sum_i \Delta_i^{l+1} \frac{\partial z_i^{l+1}}{\partial z_j^l} \\
+           &= \sum_i \Delta_i^{l+1} w_{ij}^{l+1} f'(z_j^l) \\
+           &= \left( \sum_i \Delta_i^{l+1} w_{ij}^{l+1} \right) f'(z_j^l) \\
+\end{split} \label{1} \tag{1} .$$  
+  
+The sum comes from the fact that any error in neuron $j$ in the $l$-th layer propagates to all the neurons
+in the layer $l + 1$,  
+so we have to sum up these errors.  
+  
+This gives us the equations we need to update the weights and biases of our network:  
+  
+$$ \frac{\partial \mathcal{C}}{\partial w_{ij}^l} = \frac{\partial \mathcal{C}}{\partial z_j^l} \frac{\partial z_j^l}{\partial w_{ij}^l}
+= \Delta_j^l a_i^{l-1} \tag{2} .$$
+  
+$$ \frac{\partial \mathcal{C}}{\partial b_{j}^l} = \Delta_j^l \tag{3} .$$  
+  
+Now, if we have the error of every neuron $j$ at the output layer, $\Delta_j^L$, equation \ref{1} gives us the recipe for calculating the error in the preceding layer until we reach the first hidden layer, and we are done. All we are missing is the error at the output layer:  
+  
+$$ \Delta_j^L = \frac{\partial \mathcal{C}}{\partial z_j^L} = \frac{\partial}{\partial z_j^L} \left( - \sum_c y_{c} \log f(z_{c}^L) \right) ,$$  
+  
+where $f$ is the softmax function.  
+Taking the derivative of each term:  
+  
+$$ \frac{\partial \log f(z_c^L)}{\partial z_j^L} = \frac{\partial}{\partial z_j^L} \left( z_c^L - \log \left( \sum_c \exp
+\left( z_c^L \right) \right) \right) = \delta_{jc} - f(z_j^L) ,$$
+  
+where $\delta_{jc}$ is the Kronecker-Delta.  
+This gives us the final expression we need:  
+  
+$$ \begin{split}
+\Delta_j^L &= -\sum_c y_c \left( \delta_{jc} - f(z_j^L) \right) \\
+           &= -\sum_c y_c \delta_{jc} + \sum_c y_c f(z_j^L) \\
+           &= -y_j + f(z_j^L) \sum_c y_c \\
+           &= f(z_j^L) - y_j \\
+           &= \hat{y}_j - y_j \\
+\end{split} \tag{4} .$$  
+
+
+!split
+===== Building a code =====
 
 !bc pycod
 from scipy import optimize
