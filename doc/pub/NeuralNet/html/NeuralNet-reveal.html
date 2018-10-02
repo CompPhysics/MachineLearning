@@ -2334,7 +2334,456 @@ plt.show()
 
 
 <section>
-<h2 id="___sec49">And then with Tensorflow </h2>
+<h2 id="___sec49">Building neural networks in Tensorflow and Keras </h2>
+
+<p>
+Now we want  to build on the experience gained from our neural network implementation in NumPy and scikit-learn
+and use it to construct a neural network in Tensorflow. Once we have constructed a neural network in NumPy
+and Tensorflow, building one in Keras is really quite trivial, though the performance may suffer.
+
+<p>
+In our previous example we used only one hidden layer, and in this we will use two. From this it should be quite
+clear how to build one using an arbitrary number of hidden layers, using data structures such as Python lists or
+NumPy arrays.
+</section>
+
+
+<section>
+<h2 id="___sec50">Tensorflow </h2>
+
+<p>
+Tensorflow is an open source library machine learning library
+developed by the Google Brain team for internal use. It was released
+under the Apache 2.0 open source license in November 9, 2015.
+
+<p>
+Tensorflow is a computational framework that allows you to construct
+machine learning models at different levels of abstraction, from
+high-level, object-oriented APIs like Keras, down to the C++ kernels
+that Tensorflow is built upon. The higher levels of abstraction are
+simpler to use, but less flexible, and our choice of implementation
+should reflect the problems we are trying to solve.
+
+<p>
+<a href="https://www.tensorflow.org/guide/graphs" target="_blank">Tensorflow uses</a> so-called graphs to represent your computation
+in terms of the dependencies between individual operations, such that you first build a Tensorflow <em>graph</em>
+to represent your model, and then create a Tensorflow <em>session</em> to run the graph.
+
+<p>
+In this guide we will analyze the same data as we did in our NumPy and
+scikit-learn tutorial, gathered from the MNIST database of images. We
+will give an introduction to the lower level Python Application
+Program Interfaces (APIs), and see how we use them to build our graph.
+Then we will build (effectively) the same graph in Keras, to see just
+how simple solving a machine learning problem can be.
+
+<p>
+To install tensorflow on Unix/Linux systems, use pip as
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>pip3 install tensorflow
+</pre></div>
+<p>
+and/or if you use <b>anaconda</b>, just write (or install from the graphical user interface)
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>conda install tensorflow
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec51">Collect and pre-process data </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># import necessary packages</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets
+
+
+<span style="color: #228B22"># ensure the same random numbers appear every time</span>
+np.random.seed(<span style="color: #B452CD">0</span>)
+
+<span style="color: #228B22"># display images in notebook</span>
+%matplotlib inline
+plt.rcParams[<span style="color: #CD5555">&#39;figure.figsize&#39;</span>] = (<span style="color: #B452CD">12</span>,<span style="color: #B452CD">12</span>)
+
+
+<span style="color: #228B22"># download MNIST dataset</span>
+digits = datasets.load_digits()
+
+<span style="color: #228B22"># define inputs and labels</span>
+inputs = digits.images
+labels = digits.target
+
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;inputs = (n_inputs, pixel_width, pixel_height) = &quot;</span> + <span style="color: #658b00">str</span>(inputs.shape))
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;labels = (n_inputs) = &quot;</span> + <span style="color: #658b00">str</span>(labels.shape))
+
+
+<span style="color: #228B22"># flatten the image</span>
+<span style="color: #228B22"># the value -1 means dimension is inferred from the remaining dimensions: 8x8 = 64</span>
+n_inputs = <span style="color: #658b00">len</span>(inputs)
+inputs = inputs.reshape(n_inputs, -<span style="color: #B452CD">1</span>)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;X = (n_inputs, n_features) = &quot;</span> + <span style="color: #658b00">str</span>(inputs.shape))
+
+
+<span style="color: #228B22"># choose some random images to display</span>
+indices = np.arange(n_inputs)
+random_indices = np.random.choice(indices, size=<span style="color: #B452CD">5</span>)
+
+<span style="color: #8B008B; font-weight: bold">for</span> i, image <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(digits.images[random_indices]):
+    plt.subplot(<span style="color: #B452CD">1</span>, <span style="color: #B452CD">5</span>, i+<span style="color: #B452CD">1</span>)
+    plt.axis(<span style="color: #CD5555">&#39;off&#39;</span>)
+    plt.imshow(image, cmap=plt.cm.gray_r, interpolation=<span style="color: #CD5555">&#39;nearest&#39;</span>)
+    plt.title(<span style="color: #CD5555">&quot;Label: %d&quot;</span> % digits.target[random_indices[i]])
+plt.show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">keras.utils</span> <span style="color: #8B008B; font-weight: bold">import</span> to_categorical
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+
+<span style="color: #228B22"># one-hot representation of labels</span>
+labels = to_categorical(labels)
+
+<span style="color: #228B22"># split into train and test data</span>
+train_size = <span style="color: #B452CD">0.8</span>
+test_size = <span style="color: #B452CD">1</span> - train_size
+X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
+                                                    test_size=test_size)
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec52">Using TensorFlow backend </h2>
+
+<ol>
+<p><li> Define model and architecture</li>
+<p><li> Choose cost function and optimizer</li>
+</ol>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tensorflow</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">tf</span>
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">NeuralNetworkTensorflow</span>:
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(
+        <span style="color: #658b00">self</span>,
+        X_train,
+        Y_train,
+        X_test,
+        Y_test,
+        n_neurons_layer1=<span style="color: #B452CD">100</span>,
+        n_neurons_layer2=<span style="color: #B452CD">50</span>,
+        n_categories=<span style="color: #B452CD">2</span>,
+        epochs=<span style="color: #B452CD">10</span>,
+        batch_size=<span style="color: #B452CD">100</span>,
+        eta=<span style="color: #B452CD">0.1</span>,
+        lmbd=<span style="color: #B452CD">0.0</span>,
+    ):
+        
+        <span style="color: #228B22"># keep track of number of steps</span>
+        <span style="color: #658b00">self</span>.global_step = tf.Variable(<span style="color: #B452CD">0</span>, dtype=tf.int32, trainable=<span style="color: #658b00">False</span>, name=<span style="color: #CD5555">&#39;global_step&#39;</span>)
+        
+        <span style="color: #658b00">self</span>.X_train = X_train
+        <span style="color: #658b00">self</span>.Y_train = Y_train
+        <span style="color: #658b00">self</span>.X_test = X_test
+        <span style="color: #658b00">self</span>.Y_test = Y_test
+        
+        <span style="color: #658b00">self</span>.n_inputs = X_train.shape[<span style="color: #B452CD">0</span>]
+        <span style="color: #658b00">self</span>.n_features = X_train.shape[<span style="color: #B452CD">1</span>]
+        <span style="color: #658b00">self</span>.n_neurons_layer1 = n_neurons_layer1
+        <span style="color: #658b00">self</span>.n_neurons_layer2 = n_neurons_layer2
+        <span style="color: #658b00">self</span>.n_categories = n_categories
+        
+        <span style="color: #658b00">self</span>.epochs = epochs
+        <span style="color: #658b00">self</span>.batch_size = batch_size
+        <span style="color: #658b00">self</span>.iterations = <span style="color: #658b00">self</span>.n_inputs // <span style="color: #658b00">self</span>.batch_size
+        <span style="color: #658b00">self</span>.eta = eta
+        <span style="color: #658b00">self</span>.lmbd = lmbd
+        
+        <span style="color: #228B22"># build network piece by piece</span>
+        <span style="color: #228B22"># name scopes (with) are used to enforce creation of new variables</span>
+        <span style="color: #228B22"># https://www.tensorflow.org/guide/variables</span>
+        <span style="color: #658b00">self</span>.create_placeholders()
+        <span style="color: #658b00">self</span>.create_DNN()
+        <span style="color: #658b00">self</span>.create_loss()
+        <span style="color: #658b00">self</span>.create_optimiser()
+        <span style="color: #658b00">self</span>.create_accuracy()
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_placeholders</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #228B22"># placeholders are fine here, but &quot;Datasets&quot; are the preferred method</span>
+        <span style="color: #228B22"># of streaming data into a model</span>
+        <span style="color: #8B008B; font-weight: bold">with</span> tf.name_scope(<span style="color: #CD5555">&#39;data&#39;</span>):
+            <span style="color: #658b00">self</span>.X = tf.placeholder(tf.float32, shape=(<span style="color: #658b00">None</span>, <span style="color: #658b00">self</span>.n_features), name=<span style="color: #CD5555">&#39;X_data&#39;</span>)
+            <span style="color: #658b00">self</span>.Y = tf.placeholder(tf.float32, shape=(<span style="color: #658b00">None</span>, <span style="color: #658b00">self</span>.n_categories), name=<span style="color: #CD5555">&#39;Y_data&#39;</span>)
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_DNN</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #8B008B; font-weight: bold">with</span> tf.name_scope(<span style="color: #CD5555">&#39;DNN&#39;</span>):
+            <span style="color: #228B22"># the weights are stored to calculate regularization loss later</span>
+            
+            <span style="color: #228B22"># Fully connected layer 1</span>
+            <span style="color: #658b00">self</span>.W_fc1 = <span style="color: #658b00">self</span>.weight_variable([<span style="color: #658b00">self</span>.n_features, <span style="color: #658b00">self</span>.n_neurons_layer1], name=<span style="color: #CD5555">&#39;fc1&#39;</span>, dtype=tf.float32)
+            b_fc1 = <span style="color: #658b00">self</span>.bias_variable([<span style="color: #658b00">self</span>.n_neurons_layer1], name=<span style="color: #CD5555">&#39;fc1&#39;</span>, dtype=tf.float32)
+            a_fc1 = tf.nn.sigmoid(tf.matmul(<span style="color: #658b00">self</span>.X, <span style="color: #658b00">self</span>.W_fc1) + b_fc1)
+            
+            <span style="color: #228B22"># Fully connected layer 2</span>
+            <span style="color: #658b00">self</span>.W_fc2 = <span style="color: #658b00">self</span>.weight_variable([<span style="color: #658b00">self</span>.n_neurons_layer1, <span style="color: #658b00">self</span>.n_neurons_layer2], name=<span style="color: #CD5555">&#39;fc2&#39;</span>, dtype=tf.float32)
+            b_fc2 = <span style="color: #658b00">self</span>.bias_variable([<span style="color: #658b00">self</span>.n_neurons_layer2], name=<span style="color: #CD5555">&#39;fc2&#39;</span>, dtype=tf.float32)
+            a_fc2 = tf.nn.sigmoid(tf.matmul(a_fc1, <span style="color: #658b00">self</span>.W_fc2) + b_fc2)
+            
+            <span style="color: #228B22"># Output layer</span>
+            <span style="color: #658b00">self</span>.W_out = <span style="color: #658b00">self</span>.weight_variable([<span style="color: #658b00">self</span>.n_neurons_layer2, <span style="color: #658b00">self</span>.n_categories], name=<span style="color: #CD5555">&#39;out&#39;</span>, dtype=tf.float32)
+            b_out = <span style="color: #658b00">self</span>.bias_variable([<span style="color: #658b00">self</span>.n_categories], name=<span style="color: #CD5555">&#39;out&#39;</span>, dtype=tf.float32)
+            <span style="color: #658b00">self</span>.z_out = tf.matmul(a_fc2, <span style="color: #658b00">self</span>.W_out) + b_out
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_loss</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #8B008B; font-weight: bold">with</span> tf.name_scope(<span style="color: #CD5555">&#39;loss&#39;</span>):
+            softmax_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=<span style="color: #658b00">self</span>.Y, logits=<span style="color: #658b00">self</span>.z_out))
+            
+            regularizer_loss_fc1 = tf.nn.l2_loss(<span style="color: #658b00">self</span>.W_fc1)
+            regularizer_loss_fc2 = tf.nn.l2_loss(<span style="color: #658b00">self</span>.W_fc2)
+            regularizer_loss_out = tf.nn.l2_loss(<span style="color: #658b00">self</span>.W_out)
+            regularizer_loss = <span style="color: #658b00">self</span>.lmbd*(regularizer_loss_fc1 + regularizer_loss_fc2 + regularizer_loss_out)
+            
+            <span style="color: #658b00">self</span>.loss = softmax_loss + regularizer_loss
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_accuracy</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #8B008B; font-weight: bold">with</span> tf.name_scope(<span style="color: #CD5555">&#39;accuracy&#39;</span>):
+            probabilities = tf.nn.softmax(<span style="color: #658b00">self</span>.z_out)
+            predictions = tf.argmax(probabilities, axis=<span style="color: #B452CD">1</span>)
+            labels = tf.argmax(<span style="color: #658b00">self</span>.Y, axis=<span style="color: #B452CD">1</span>)
+            
+            correct_predictions = tf.equal(predictions, labels)
+            correct_predictions = tf.cast(correct_predictions, tf.float32)
+            <span style="color: #658b00">self</span>.accuracy = tf.reduce_mean(correct_predictions)
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_optimiser</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #8B008B; font-weight: bold">with</span> tf.name_scope(<span style="color: #CD5555">&#39;optimizer&#39;</span>):
+            <span style="color: #658b00">self</span>.optimizer = tf.train.GradientDescentOptimizer(learning_rate=<span style="color: #658b00">self</span>.eta).minimize(<span style="color: #658b00">self</span>.loss, global_step=<span style="color: #658b00">self</span>.global_step)
+            
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">weight_variable</span>(<span style="color: #658b00">self</span>, shape, name=<span style="color: #CD5555">&#39;&#39;</span>, dtype=tf.float32):
+        initial = tf.truncated_normal(shape, stddev=<span style="color: #B452CD">0.1</span>)
+        <span style="color: #8B008B; font-weight: bold">return</span> tf.Variable(initial, name=name, dtype=dtype)
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">bias_variable</span>(<span style="color: #658b00">self</span>, shape, name=<span style="color: #CD5555">&#39;&#39;</span>, dtype=tf.float32):
+        initial = tf.constant(<span style="color: #B452CD">0.1</span>, shape=shape)
+        <span style="color: #8B008B; font-weight: bold">return</span> tf.Variable(initial, name=name, dtype=dtype)
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">fit</span>(<span style="color: #658b00">self</span>):
+        data_indices = np.arange(<span style="color: #658b00">self</span>.n_inputs)
+
+        <span style="color: #8B008B; font-weight: bold">with</span> tf.Session() <span style="color: #8B008B; font-weight: bold">as</span> sess:
+            sess.run(tf.global_variables_initializer())
+            <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">self</span>.epochs):
+                <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">self</span>.iterations):
+                    chosen_datapoints = np.random.choice(data_indices, size=<span style="color: #658b00">self</span>.batch_size, replace=<span style="color: #658b00">False</span>)
+                    batch_X, batch_Y = <span style="color: #658b00">self</span>.X_train[chosen_datapoints], <span style="color: #658b00">self</span>.Y_train[chosen_datapoints]
+            
+                    sess.run([DNN.loss, DNN.optimizer],
+                        feed_dict={DNN.X: batch_X,
+                                   DNN.Y: batch_Y})
+                    accuracy = sess.run(DNN.accuracy,
+                        feed_dict={DNN.X: batch_X,
+                                   DNN.Y: batch_Y})
+                    step = sess.run(DNN.global_step)
+    
+            <span style="color: #658b00">self</span>.train_loss, <span style="color: #658b00">self</span>.train_accuracy = sess.run([DNN.loss, DNN.accuracy],
+                feed_dict={DNN.X: <span style="color: #658b00">self</span>.X_train,
+                           DNN.Y: <span style="color: #658b00">self</span>.Y_train})
+        
+            <span style="color: #658b00">self</span>.test_loss, <span style="color: #658b00">self</span>.test_accuracy = sess.run([DNN.loss, DNN.accuracy],
+                feed_dict={DNN.X: <span style="color: #658b00">self</span>.X_test,
+                           DNN.Y: <span style="color: #658b00">self</span>.Y_test})
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec53">Optimizing and using gradient descent </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>epochs = <span style="color: #B452CD">100</span>
+batch_size = <span style="color: #B452CD">100</span>
+n_neurons_layer1 = <span style="color: #B452CD">100</span>
+n_neurons_layer2 = <span style="color: #B452CD">50</span>
+n_categories = <span style="color: #B452CD">10</span>
+
+eta_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
+lmbd_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>DNN_tf = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)), dtype=<span style="color: #658b00">object</span>)
+        
+<span style="color: #8B008B; font-weight: bold">for</span> i, eta <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(eta_vals):
+    <span style="color: #8B008B; font-weight: bold">for</span> j, lmbd <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(lmbd_vals):
+        DNN = NeuralNetworkTensorflow(X_train, Y_train, X_test, Y_test,
+                                      n_neurons_layer1, n_neurons_layer2, n_categories,
+                                      epochs=epochs, batch_size=batch_size, eta=eta, lmbd=lmbd)
+        DNN.fit()
+        
+        DNN_tf[i][j] = DNN
+        
+        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Learning rate = &quot;</span>, eta)
+        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Test accuracy: %.3f&quot;</span> % DNN.test_accuracy)
+        <span style="color: #8B008B; font-weight: bold">print</span>()
+        
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># optional</span>
+<span style="color: #228B22"># visual representation of grid search</span>
+<span style="color: #228B22"># uses seaborn heatmap, could probably do this in matplotlib</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
+
+sns.set()
+
+train_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+test_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(eta_vals)):
+    <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(lmbd_vals)):
+        DNN = DNN_tf[i][j]
+
+        train_accuracy[i][j] = DNN.train_accuracy
+        test_accuracy[i][j] = DNN.test_accuracy
+
+        
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(train_accuracy, annot=<span style="color: #658b00">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Training Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(test_accuracy, annot=<span style="color: #658b00">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Test Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># optional</span>
+<span style="color: #228B22"># we can use log files to visualize our graph in Tensorboard</span>
+writer = tf.summary.FileWriter(<span style="color: #CD5555">&#39;logs/&#39;</span>)
+writer.add_graph(tf.get_default_graph())
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec54">Using Keras </h2>
+
+<p>
+Keras is a high level <a href="https://en.wikipedia.org/wiki/Application_programming_interface" target="_blank">neural network</a>
+that supports Tensorflow, CTNK and Theano as backends.  
+If you have Tensorflow installed Keras is available through the <em>tf.keras</em> module.  
+If you have Anaconda installed you may run the following command
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>conda install keras
+</pre></div>
+<p>
+Alternatively, if you have Tensorflow or one of the other supported backends install you may use the pip package manager:
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>pip3 install keras
+</pre></div>
+<p>
+or look up the <a href="https://keras.io/" target="_blank">instructions here</a>.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">keras.models</span> <span style="color: #8B008B; font-weight: bold">import</span> Sequential
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">keras.layers</span> <span style="color: #8B008B; font-weight: bold">import</span> Dense
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">keras.regularizers</span> <span style="color: #8B008B; font-weight: bold">import</span> l2
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">keras.optimizers</span> <span style="color: #8B008B; font-weight: bold">import</span> SGD
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_neural_network_keras</span>(n_neurons_layer1, n_neurons_layer2, n_categories, eta, lmbd):
+    model = Sequential()
+    model.add(Dense(n_neurons_layer1, activation=<span style="color: #CD5555">&#39;sigmoid&#39;</span>, kernel_regularizer=l2(lmbd)))
+    model.add(Dense(n_neurons_layer2, activation=<span style="color: #CD5555">&#39;sigmoid&#39;</span>, kernel_regularizer=l2(lmbd)))
+    model.add(Dense(n_categories, activation=<span style="color: #CD5555">&#39;softmax&#39;</span>))
+    
+    sgd = SGD(lr=eta)
+    model.compile(loss=<span style="color: #CD5555">&#39;categorical_crossentropy&#39;</span>, optimizer=sgd, metrics=[<span style="color: #CD5555">&#39;accuracy&#39;</span>])
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> model
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>DNN_keras = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)), dtype=<span style="color: #658b00">object</span>)
+        
+<span style="color: #8B008B; font-weight: bold">for</span> i, eta <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(eta_vals):
+    <span style="color: #8B008B; font-weight: bold">for</span> j, lmbd <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(lmbd_vals):
+        DNN = create_neural_network_keras(n_neurons_layer1, n_neurons_layer2, n_categories,
+                                         eta=eta, lmbd=lmbd)
+        DNN.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, verbose=<span style="color: #B452CD">0</span>)
+        scores = DNN.evaluate(X_test, Y_test)
+        
+        DNN_keras[i][j] = DNN
+        
+        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Learning rate = &quot;</span>, eta)
+        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Test accuracy: %.3f&quot;</span> % scores[<span style="color: #B452CD">1</span>])
+        <span style="color: #8B008B; font-weight: bold">print</span>()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># optional</span>
+<span style="color: #228B22"># visual representation of grid search</span>
+<span style="color: #228B22"># uses seaborn heatmap, could probably do this in matplotlib</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
+
+sns.set()
+
+train_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+test_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(eta_vals)):
+    <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(lmbd_vals)):
+        DNN = DNN_keras[i][j]
+
+        train_accuracy[i][j] = DNN.evaluate(X_train, Y_train)[<span style="color: #B452CD">1</span>]
+        test_accuracy[i][j] = DNN.evaluate(X_test, Y_test)[<span style="color: #B452CD">1</span>]
+
+        
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(train_accuracy, annot=<span style="color: #658b00">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Training Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(test_accuracy, annot=<span style="color: #658b00">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Test Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+</pre></div>
 </section>
 
 

@@ -198,7 +198,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs035.html#___sec34" style="font-size: 80%;"><b>Train and test datasets</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs036.html#___sec35" style="font-size: 80%;"><b>Define model and architecture</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs037.html#___sec36" style="font-size: 80%;"><b>Layers</b></a></li>
-     <!-- navigation toc: --> <li><a href="#___sec37" style="font-size: 80%;"><b>Weights and biases</b></a></li>
+     <!-- navigation toc: --> <li><a href="._NeuralNet-bs038.html#___sec37" style="font-size: 80%;"><b>Weights and biases</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs039.html#___sec38" style="font-size: 80%;"><b>Feed-forward pass</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs040.html#___sec39" style="font-size: 80%;"><b>Matrix multiplication</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs041.html#___sec40" style="font-size: 80%;"><b>Choose cost function and optimizer</b></a></li>
@@ -214,7 +214,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs051.html#___sec50" style="font-size: 80%;"><b>Tensorflow</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs052.html#___sec51" style="font-size: 80%;"><b>Collect and pre-process data</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs053.html#___sec52" style="font-size: 80%;"><b>Using TensorFlow backend</b></a></li>
-     <!-- navigation toc: --> <li><a href="._NeuralNet-bs054.html#___sec53" style="font-size: 80%;"><b>Optimizing and using gradient descent</b></a></li>
+     <!-- navigation toc: --> <li><a href="#___sec53" style="font-size: 80%;"><b>Optimizing and using gradient descent</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs055.html#___sec54" style="font-size: 80%;"><b>Using Keras</b></a></li>
 
         </ul>
@@ -228,70 +228,104 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0038"></a>
-<!-- !split   -->
+<a name="part0054"></a>
+<!-- !split -->
 
-<h2 id="___sec37" class="anchor">Weights and biases </h2>
+<h2 id="___sec53" class="anchor">Optimizing and using gradient descent </h2>
 
-<p>
-Typically weights are initialized with small values distributed around zero, drawn from a uniform
-or normal distribution. Setting all weights to zero means all neurons give the same output, making the network useless.
-
-<p>
-Adding a bias value to the weighted sum of inputs allows the neural network to represent a greater range
-of values. Without it, any input with the value 0 will be mapped to zero (before being passed through the activation). The bias unit has an output of 1, and a weight to each neuron \( j \), \( b_j \):  
-
-$$ z_j = \sum_{i=1}^n w_ {ij} a_i + 1\cdot b_j = \boldsymbol{a}^T \boldsymbol{w}_j + b_j .$$
-
-<p>
-The bias weights \( \boldsymbol{b} \) are often initialized to zero, but a small value like \( 0.01 \) ensures all neurons have some output which can be backpropagated in the first training cycle.
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># building our neural network</span>
-
-n_inputs, n_features <span style="color: #666666">=</span> X_train<span style="color: #666666">.</span>shape
-n_hidden_neurons <span style="color: #666666">=</span> <span style="color: #666666">50</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>epochs <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+batch_size <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+n_neurons_layer1 <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+n_neurons_layer2 <span style="color: #666666">=</span> <span style="color: #666666">50</span>
 n_categories <span style="color: #666666">=</span> <span style="color: #666666">10</span>
 
-<span style="color: #408080; font-style: italic"># we make the weights normally distributed using numpy.random.randn</span>
+eta_vals <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-5</span>, <span style="color: #666666">1</span>, <span style="color: #666666">7</span>)
+lmbd_vals <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-5</span>, <span style="color: #666666">1</span>, <span style="color: #666666">7</span>)
+</pre></div>
+<p>
 
-<span style="color: #408080; font-style: italic"># weights and bias in the hidden layer</span>
-hidden_weights <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n_features, n_hidden_neurons)
-hidden_bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n_hidden_neurons) <span style="color: #666666">+</span> <span style="color: #666666">0.01</span>
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>DNN_tf <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)), dtype<span style="color: #666666">=</span><span style="color: #008000">object</span>)
+        
+<span style="color: #008000; font-weight: bold">for</span> i, eta <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(eta_vals):
+    <span style="color: #008000; font-weight: bold">for</span> j, lmbd <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(lmbd_vals):
+        DNN <span style="color: #666666">=</span> NeuralNetworkTensorflow(X_train, Y_train, X_test, Y_test,
+                                      n_neurons_layer1, n_neurons_layer2, n_categories,
+                                      epochs<span style="color: #666666">=</span>epochs, batch_size<span style="color: #666666">=</span>batch_size, eta<span style="color: #666666">=</span>eta, lmbd<span style="color: #666666">=</span>lmbd)
+        DNN<span style="color: #666666">.</span>fit()
+        
+        DNN_tf[i][j] <span style="color: #666666">=</span> DNN
+        
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Learning rate = &quot;</span>, eta)
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test accuracy: </span><span style="color: #BB6688; font-weight: bold">%.3f</span><span style="color: #BA2121">&quot;</span> <span style="color: #666666">%</span> DNN<span style="color: #666666">.</span>test_accuracy)
+        <span style="color: #008000; font-weight: bold">print</span>()
+        
+</pre></div>
+<p>
 
-<span style="color: #408080; font-style: italic"># weights and bias in the output layer</span>
-output_weights <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n_hidden_neurons, n_categories)
-output_bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n_categories) <span style="color: #666666">+</span> <span style="color: #666666">0.01</span>
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># optional</span>
+<span style="color: #408080; font-style: italic"># visual representation of grid search</span>
+<span style="color: #408080; font-style: italic"># uses seaborn heatmap, could probably do this in matplotlib</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">seaborn</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">sns</span>
+
+sns<span style="color: #666666">.</span>set()
+
+train_accuracy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)))
+test_accuracy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)))
+
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(eta_vals)):
+    <span style="color: #008000; font-weight: bold">for</span> j <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(lmbd_vals)):
+        DNN <span style="color: #666666">=</span> DNN_tf[i][j]
+
+        train_accuracy[i][j] <span style="color: #666666">=</span> DNN<span style="color: #666666">.</span>train_accuracy
+        test_accuracy[i][j] <span style="color: #666666">=</span> DNN<span style="color: #666666">.</span>test_accuracy
+
+        
+fig, ax <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots(figsize <span style="color: #666666">=</span> (<span style="color: #666666">10</span>, <span style="color: #666666">10</span>))
+sns<span style="color: #666666">.</span>heatmap(train_accuracy, annot<span style="color: #666666">=</span><span style="color: #008000">True</span>, ax<span style="color: #666666">=</span>ax, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&quot;viridis&quot;</span>)
+ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&quot;Training Accuracy&quot;</span>)
+ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;$\eta$&quot;</span>)
+ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;$\lambda$&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+
+fig, ax <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots(figsize <span style="color: #666666">=</span> (<span style="color: #666666">10</span>, <span style="color: #666666">10</span>))
+sns<span style="color: #666666">.</span>heatmap(test_accuracy, annot<span style="color: #666666">=</span><span style="color: #008000">True</span>, ax<span style="color: #666666">=</span>ax, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&quot;viridis&quot;</span>)
+ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&quot;Test Accuracy&quot;</span>)
+ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;$\eta$&quot;</span>)
+ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;$\lambda$&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># optional</span>
+<span style="color: #408080; font-style: italic"># we can use log files to visualize our graph in Tensorboard</span>
+writer <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>summary<span style="color: #666666">.</span>FileWriter(<span style="color: #BA2121">&#39;logs/&#39;</span>)
+writer<span style="color: #666666">.</span>add_graph(tf<span style="color: #666666">.</span>get_default_graph())
 </pre></div>
 <p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._NeuralNet-bs037.html">&laquo;</a></li>
+<li><a href="._NeuralNet-bs053.html">&laquo;</a></li>
   <li><a href="._NeuralNet-bs000.html">1</a></li>
   <li><a href="">...</a></li>
-  <li><a href="._NeuralNet-bs030.html">31</a></li>
-  <li><a href="._NeuralNet-bs031.html">32</a></li>
-  <li><a href="._NeuralNet-bs032.html">33</a></li>
-  <li><a href="._NeuralNet-bs033.html">34</a></li>
-  <li><a href="._NeuralNet-bs034.html">35</a></li>
-  <li><a href="._NeuralNet-bs035.html">36</a></li>
-  <li><a href="._NeuralNet-bs036.html">37</a></li>
-  <li><a href="._NeuralNet-bs037.html">38</a></li>
-  <li class="active"><a href="._NeuralNet-bs038.html">39</a></li>
-  <li><a href="._NeuralNet-bs039.html">40</a></li>
-  <li><a href="._NeuralNet-bs040.html">41</a></li>
-  <li><a href="._NeuralNet-bs041.html">42</a></li>
-  <li><a href="._NeuralNet-bs042.html">43</a></li>
-  <li><a href="._NeuralNet-bs043.html">44</a></li>
-  <li><a href="._NeuralNet-bs044.html">45</a></li>
-  <li><a href="._NeuralNet-bs045.html">46</a></li>
   <li><a href="._NeuralNet-bs046.html">47</a></li>
   <li><a href="._NeuralNet-bs047.html">48</a></li>
-  <li><a href="">...</a></li>
+  <li><a href="._NeuralNet-bs048.html">49</a></li>
+  <li><a href="._NeuralNet-bs049.html">50</a></li>
+  <li><a href="._NeuralNet-bs050.html">51</a></li>
+  <li><a href="._NeuralNet-bs051.html">52</a></li>
+  <li><a href="._NeuralNet-bs052.html">53</a></li>
+  <li><a href="._NeuralNet-bs053.html">54</a></li>
+  <li class="active"><a href="._NeuralNet-bs054.html">55</a></li>
   <li><a href="._NeuralNet-bs055.html">56</a></li>
-  <li><a href="._NeuralNet-bs039.html">&raquo;</a></li>
+  <li><a href="._NeuralNet-bs055.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 

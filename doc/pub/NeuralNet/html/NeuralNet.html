@@ -140,7 +140,15 @@ div { text-align: justify; text-justify: inter-word; }
                None,
                '___sec47'),
               ('scikit-learn implementation', 2, None, '___sec48'),
-              ('And then with Tensorflow', 2, None, '___sec49')]}
+              ('Building neural networks in Tensorflow and Keras',
+               2,
+               None,
+               '___sec49'),
+              ('Tensorflow', 2, None, '___sec50'),
+              ('Collect and pre-process data', 2, None, '___sec51'),
+              ('Using TensorFlow backend', 2, None, '___sec52'),
+              ('Optimizing and using gradient descent', 2, None, '___sec53'),
+              ('Using Keras', 2, None, '___sec54')]}
 end of tocinfo -->
 
 <body>
@@ -2180,8 +2188,453 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec49">And then with Tensorflow </h2>
+<h2 id="___sec49">Building neural networks in Tensorflow and Keras </h2>
 
+<p>
+Now we want  to build on the experience gained from our neural network implementation in NumPy and scikit-learn
+and use it to construct a neural network in Tensorflow. Once we have constructed a neural network in NumPy
+and Tensorflow, building one in Keras is really quite trivial, though the performance may suffer.
+
+<p>
+In our previous example we used only one hidden layer, and in this we will use two. From this it should be quite
+clear how to build one using an arbitrary number of hidden layers, using data structures such as Python lists or
+NumPy arrays.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec50">Tensorflow </h2>
+
+<p>
+Tensorflow is an open source library machine learning library
+developed by the Google Brain team for internal use. It was released
+under the Apache 2.0 open source license in November 9, 2015.
+
+<p>
+Tensorflow is a computational framework that allows you to construct
+machine learning models at different levels of abstraction, from
+high-level, object-oriented APIs like Keras, down to the C++ kernels
+that Tensorflow is built upon. The higher levels of abstraction are
+simpler to use, but less flexible, and our choice of implementation
+should reflect the problems we are trying to solve.
+
+<p>
+<a href="https://www.tensorflow.org/guide/graphs" target="_blank">Tensorflow uses</a> so-called graphs to represent your computation
+in terms of the dependencies between individual operations, such that you first build a Tensorflow <em>graph</em>
+to represent your model, and then create a Tensorflow <em>session</em> to run the graph.
+
+<p>
+In this guide we will analyze the same data as we did in our NumPy and
+scikit-learn tutorial, gathered from the MNIST database of images. We
+will give an introduction to the lower level Python Application
+Program Interfaces (APIs), and see how we use them to build our graph.
+Then we will build (effectively) the same graph in Keras, to see just
+how simple solving a machine learning problem can be.
+
+<p>
+To install tensorflow on Unix/Linux systems, use pip as
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>pip3 install tensorflow
+</pre></div>
+<p>
+and/or if you use <b>anaconda</b>, just write (or install from the graphical user interface)
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>conda install tensorflow
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec51">Collect and pre-process data </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># import necessary packages</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> datasets
+
+
+<span style="color: #408080; font-style: italic"># ensure the same random numbers appear every time</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">0</span>)
+
+<span style="color: #408080; font-style: italic"># display images in notebook</span>
+<span style="color: #666666">%</span>matplotlib inline
+plt<span style="color: #666666">.</span>rcParams[<span style="color: #BA2121">&#39;figure.figsize&#39;</span>] <span style="color: #666666">=</span> (<span style="color: #666666">12</span>,<span style="color: #666666">12</span>)
+
+
+<span style="color: #408080; font-style: italic"># download MNIST dataset</span>
+digits <span style="color: #666666">=</span> datasets<span style="color: #666666">.</span>load_digits()
+
+<span style="color: #408080; font-style: italic"># define inputs and labels</span>
+inputs <span style="color: #666666">=</span> digits<span style="color: #666666">.</span>images
+labels <span style="color: #666666">=</span> digits<span style="color: #666666">.</span>target
+
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;inputs = (n_inputs, pixel_width, pixel_height) = &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(inputs<span style="color: #666666">.</span>shape))
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;labels = (n_inputs) = &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(labels<span style="color: #666666">.</span>shape))
+
+
+<span style="color: #408080; font-style: italic"># flatten the image</span>
+<span style="color: #408080; font-style: italic"># the value -1 means dimension is inferred from the remaining dimensions: 8x8 = 64</span>
+n_inputs <span style="color: #666666">=</span> <span style="color: #008000">len</span>(inputs)
+inputs <span style="color: #666666">=</span> inputs<span style="color: #666666">.</span>reshape(n_inputs, <span style="color: #666666">-1</span>)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;X = (n_inputs, n_features) = &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(inputs<span style="color: #666666">.</span>shape))
+
+
+<span style="color: #408080; font-style: italic"># choose some random images to display</span>
+indices <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(n_inputs)
+random_indices <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>choice(indices, size<span style="color: #666666">=5</span>)
+
+<span style="color: #008000; font-weight: bold">for</span> i, image <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(digits<span style="color: #666666">.</span>images[random_indices]):
+    plt<span style="color: #666666">.</span>subplot(<span style="color: #666666">1</span>, <span style="color: #666666">5</span>, i<span style="color: #666666">+1</span>)
+    plt<span style="color: #666666">.</span>axis(<span style="color: #BA2121">&#39;off&#39;</span>)
+    plt<span style="color: #666666">.</span>imshow(image, cmap<span style="color: #666666">=</span>plt<span style="color: #666666">.</span>cm<span style="color: #666666">.</span>gray_r, interpolation<span style="color: #666666">=</span><span style="color: #BA2121">&#39;nearest&#39;</span>)
+    plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Label: </span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BA2121">&quot;</span> <span style="color: #666666">%</span> digits<span style="color: #666666">.</span>target[random_indices[i]])
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">keras.utils</span> <span style="color: #008000; font-weight: bold">import</span> to_categorical
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+
+<span style="color: #408080; font-style: italic"># one-hot representation of labels</span>
+labels <span style="color: #666666">=</span> to_categorical(labels)
+
+<span style="color: #408080; font-style: italic"># split into train and test data</span>
+train_size <span style="color: #666666">=</span> <span style="color: #666666">0.8</span>
+test_size <span style="color: #666666">=</span> <span style="color: #666666">1</span> <span style="color: #666666">-</span> train_size
+X_train, X_test, Y_train, Y_test <span style="color: #666666">=</span> train_test_split(inputs, labels, train_size<span style="color: #666666">=</span>train_size,
+                                                    test_size<span style="color: #666666">=</span>test_size)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec52">Using TensorFlow backend </h2>
+
+<ol>
+<li> Define model and architecture</li>
+<li> Choose cost function and optimizer</li>
+</ol>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">tensorflow</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">tf</span>
+
+<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">NeuralNetworkTensorflow</span>:
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(
+        <span style="color: #008000">self</span>,
+        X_train,
+        Y_train,
+        X_test,
+        Y_test,
+        n_neurons_layer1<span style="color: #666666">=100</span>,
+        n_neurons_layer2<span style="color: #666666">=50</span>,
+        n_categories<span style="color: #666666">=2</span>,
+        epochs<span style="color: #666666">=10</span>,
+        batch_size<span style="color: #666666">=100</span>,
+        eta<span style="color: #666666">=0.1</span>,
+        lmbd<span style="color: #666666">=0.0</span>,
+    ):
+        
+        <span style="color: #408080; font-style: italic"># keep track of number of steps</span>
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>global_step <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>Variable(<span style="color: #666666">0</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>int32, trainable<span style="color: #666666">=</span><span style="color: #008000">False</span>, name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;global_step&#39;</span>)
+        
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>X_train <span style="color: #666666">=</span> X_train
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>Y_train <span style="color: #666666">=</span> Y_train
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>X_test <span style="color: #666666">=</span> X_test
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>Y_test <span style="color: #666666">=</span> Y_test
+        
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>n_inputs <span style="color: #666666">=</span> X_train<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>]
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>n_features <span style="color: #666666">=</span> X_train<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>]
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer1 <span style="color: #666666">=</span> n_neurons_layer1
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer2 <span style="color: #666666">=</span> n_neurons_layer2
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>n_categories <span style="color: #666666">=</span> n_categories
+        
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>epochs <span style="color: #666666">=</span> epochs
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>batch_size <span style="color: #666666">=</span> batch_size
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>iterations <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>n_inputs <span style="color: #666666">//</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>batch_size
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>eta <span style="color: #666666">=</span> eta
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>lmbd <span style="color: #666666">=</span> lmbd
+        
+        <span style="color: #408080; font-style: italic"># build network piece by piece</span>
+        <span style="color: #408080; font-style: italic"># name scopes (with) are used to enforce creation of new variables</span>
+        <span style="color: #408080; font-style: italic"># https://www.tensorflow.org/guide/variables</span>
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>create_placeholders()
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>create_DNN()
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>create_loss()
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>create_optimiser()
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>create_accuracy()
+    
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_placeholders</span>(<span style="color: #008000">self</span>):
+        <span style="color: #408080; font-style: italic"># placeholders are fine here, but &quot;Datasets&quot; are the preferred method</span>
+        <span style="color: #408080; font-style: italic"># of streaming data into a model</span>
+        <span style="color: #008000; font-weight: bold">with</span> tf<span style="color: #666666">.</span>name_scope(<span style="color: #BA2121">&#39;data&#39;</span>):
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>X <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>placeholder(tf<span style="color: #666666">.</span>float32, shape<span style="color: #666666">=</span>(<span style="color: #008000">None</span>, <span style="color: #008000">self</span><span style="color: #666666">.</span>n_features), name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;X_data&#39;</span>)
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>Y <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>placeholder(tf<span style="color: #666666">.</span>float32, shape<span style="color: #666666">=</span>(<span style="color: #008000">None</span>, <span style="color: #008000">self</span><span style="color: #666666">.</span>n_categories), name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Y_data&#39;</span>)
+    
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_DNN</span>(<span style="color: #008000">self</span>):
+        <span style="color: #008000; font-weight: bold">with</span> tf<span style="color: #666666">.</span>name_scope(<span style="color: #BA2121">&#39;DNN&#39;</span>):
+            <span style="color: #408080; font-style: italic"># the weights are stored to calculate regularization loss later</span>
+            
+            <span style="color: #408080; font-style: italic"># Fully connected layer 1</span>
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>W_fc1 <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>weight_variable([<span style="color: #008000">self</span><span style="color: #666666">.</span>n_features, <span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer1], name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;fc1&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32)
+            b_fc1 <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>bias_variable([<span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer1], name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;fc1&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32)
+            a_fc1 <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>nn<span style="color: #666666">.</span>sigmoid(tf<span style="color: #666666">.</span>matmul(<span style="color: #008000">self</span><span style="color: #666666">.</span>X, <span style="color: #008000">self</span><span style="color: #666666">.</span>W_fc1) <span style="color: #666666">+</span> b_fc1)
+            
+            <span style="color: #408080; font-style: italic"># Fully connected layer 2</span>
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>W_fc2 <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>weight_variable([<span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer1, <span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer2], name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;fc2&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32)
+            b_fc2 <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>bias_variable([<span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer2], name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;fc2&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32)
+            a_fc2 <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>nn<span style="color: #666666">.</span>sigmoid(tf<span style="color: #666666">.</span>matmul(a_fc1, <span style="color: #008000">self</span><span style="color: #666666">.</span>W_fc2) <span style="color: #666666">+</span> b_fc2)
+            
+            <span style="color: #408080; font-style: italic"># Output layer</span>
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>W_out <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>weight_variable([<span style="color: #008000">self</span><span style="color: #666666">.</span>n_neurons_layer2, <span style="color: #008000">self</span><span style="color: #666666">.</span>n_categories], name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;out&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32)
+            b_out <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>bias_variable([<span style="color: #008000">self</span><span style="color: #666666">.</span>n_categories], name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;out&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32)
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>z_out <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>matmul(a_fc2, <span style="color: #008000">self</span><span style="color: #666666">.</span>W_out) <span style="color: #666666">+</span> b_out
+    
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_loss</span>(<span style="color: #008000">self</span>):
+        <span style="color: #008000; font-weight: bold">with</span> tf<span style="color: #666666">.</span>name_scope(<span style="color: #BA2121">&#39;loss&#39;</span>):
+            softmax_loss <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>reduce_mean(tf<span style="color: #666666">.</span>nn<span style="color: #666666">.</span>softmax_cross_entropy_with_logits_v2(labels<span style="color: #666666">=</span><span style="color: #008000">self</span><span style="color: #666666">.</span>Y, logits<span style="color: #666666">=</span><span style="color: #008000">self</span><span style="color: #666666">.</span>z_out))
+            
+            regularizer_loss_fc1 <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>nn<span style="color: #666666">.</span>l2_loss(<span style="color: #008000">self</span><span style="color: #666666">.</span>W_fc1)
+            regularizer_loss_fc2 <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>nn<span style="color: #666666">.</span>l2_loss(<span style="color: #008000">self</span><span style="color: #666666">.</span>W_fc2)
+            regularizer_loss_out <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>nn<span style="color: #666666">.</span>l2_loss(<span style="color: #008000">self</span><span style="color: #666666">.</span>W_out)
+            regularizer_loss <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>lmbd<span style="color: #666666">*</span>(regularizer_loss_fc1 <span style="color: #666666">+</span> regularizer_loss_fc2 <span style="color: #666666">+</span> regularizer_loss_out)
+            
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>loss <span style="color: #666666">=</span> softmax_loss <span style="color: #666666">+</span> regularizer_loss
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_accuracy</span>(<span style="color: #008000">self</span>):
+        <span style="color: #008000; font-weight: bold">with</span> tf<span style="color: #666666">.</span>name_scope(<span style="color: #BA2121">&#39;accuracy&#39;</span>):
+            probabilities <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>nn<span style="color: #666666">.</span>softmax(<span style="color: #008000">self</span><span style="color: #666666">.</span>z_out)
+            predictions <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>argmax(probabilities, axis<span style="color: #666666">=1</span>)
+            labels <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>argmax(<span style="color: #008000">self</span><span style="color: #666666">.</span>Y, axis<span style="color: #666666">=1</span>)
+            
+            correct_predictions <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>equal(predictions, labels)
+            correct_predictions <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>cast(correct_predictions, tf<span style="color: #666666">.</span>float32)
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>accuracy <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>reduce_mean(correct_predictions)
+    
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_optimiser</span>(<span style="color: #008000">self</span>):
+        <span style="color: #008000; font-weight: bold">with</span> tf<span style="color: #666666">.</span>name_scope(<span style="color: #BA2121">&#39;optimizer&#39;</span>):
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>optimizer <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>train<span style="color: #666666">.</span>GradientDescentOptimizer(learning_rate<span style="color: #666666">=</span><span style="color: #008000">self</span><span style="color: #666666">.</span>eta)<span style="color: #666666">.</span>minimize(<span style="color: #008000">self</span><span style="color: #666666">.</span>loss, global_step<span style="color: #666666">=</span><span style="color: #008000">self</span><span style="color: #666666">.</span>global_step)
+            
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">weight_variable</span>(<span style="color: #008000">self</span>, shape, name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32):
+        initial <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>truncated_normal(shape, stddev<span style="color: #666666">=0.1</span>)
+        <span style="color: #008000; font-weight: bold">return</span> tf<span style="color: #666666">.</span>Variable(initial, name<span style="color: #666666">=</span>name, dtype<span style="color: #666666">=</span>dtype)
+    
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">bias_variable</span>(<span style="color: #008000">self</span>, shape, name<span style="color: #666666">=</span><span style="color: #BA2121">&#39;&#39;</span>, dtype<span style="color: #666666">=</span>tf<span style="color: #666666">.</span>float32):
+        initial <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>constant(<span style="color: #666666">0.1</span>, shape<span style="color: #666666">=</span>shape)
+        <span style="color: #008000; font-weight: bold">return</span> tf<span style="color: #666666">.</span>Variable(initial, name<span style="color: #666666">=</span>name, dtype<span style="color: #666666">=</span>dtype)
+    
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">fit</span>(<span style="color: #008000">self</span>):
+        data_indices <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #008000">self</span><span style="color: #666666">.</span>n_inputs)
+
+        <span style="color: #008000; font-weight: bold">with</span> tf<span style="color: #666666">.</span>Session() <span style="color: #008000; font-weight: bold">as</span> sess:
+            sess<span style="color: #666666">.</span>run(tf<span style="color: #666666">.</span>global_variables_initializer())
+            <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>epochs):
+                <span style="color: #008000; font-weight: bold">for</span> j <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>iterations):
+                    chosen_datapoints <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>choice(data_indices, size<span style="color: #666666">=</span><span style="color: #008000">self</span><span style="color: #666666">.</span>batch_size, replace<span style="color: #666666">=</span><span style="color: #008000">False</span>)
+                    batch_X, batch_Y <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>X_train[chosen_datapoints], <span style="color: #008000">self</span><span style="color: #666666">.</span>Y_train[chosen_datapoints]
+            
+                    sess<span style="color: #666666">.</span>run([DNN<span style="color: #666666">.</span>loss, DNN<span style="color: #666666">.</span>optimizer],
+                        feed_dict<span style="color: #666666">=</span>{DNN<span style="color: #666666">.</span>X: batch_X,
+                                   DNN<span style="color: #666666">.</span>Y: batch_Y})
+                    accuracy <span style="color: #666666">=</span> sess<span style="color: #666666">.</span>run(DNN<span style="color: #666666">.</span>accuracy,
+                        feed_dict<span style="color: #666666">=</span>{DNN<span style="color: #666666">.</span>X: batch_X,
+                                   DNN<span style="color: #666666">.</span>Y: batch_Y})
+                    step <span style="color: #666666">=</span> sess<span style="color: #666666">.</span>run(DNN<span style="color: #666666">.</span>global_step)
+    
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>train_loss, <span style="color: #008000">self</span><span style="color: #666666">.</span>train_accuracy <span style="color: #666666">=</span> sess<span style="color: #666666">.</span>run([DNN<span style="color: #666666">.</span>loss, DNN<span style="color: #666666">.</span>accuracy],
+                feed_dict<span style="color: #666666">=</span>{DNN<span style="color: #666666">.</span>X: <span style="color: #008000">self</span><span style="color: #666666">.</span>X_train,
+                           DNN<span style="color: #666666">.</span>Y: <span style="color: #008000">self</span><span style="color: #666666">.</span>Y_train})
+        
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>test_loss, <span style="color: #008000">self</span><span style="color: #666666">.</span>test_accuracy <span style="color: #666666">=</span> sess<span style="color: #666666">.</span>run([DNN<span style="color: #666666">.</span>loss, DNN<span style="color: #666666">.</span>accuracy],
+                feed_dict<span style="color: #666666">=</span>{DNN<span style="color: #666666">.</span>X: <span style="color: #008000">self</span><span style="color: #666666">.</span>X_test,
+                           DNN<span style="color: #666666">.</span>Y: <span style="color: #008000">self</span><span style="color: #666666">.</span>Y_test})
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec53">Optimizing and using gradient descent </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>epochs <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+batch_size <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+n_neurons_layer1 <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+n_neurons_layer2 <span style="color: #666666">=</span> <span style="color: #666666">50</span>
+n_categories <span style="color: #666666">=</span> <span style="color: #666666">10</span>
+
+eta_vals <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-5</span>, <span style="color: #666666">1</span>, <span style="color: #666666">7</span>)
+lmbd_vals <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-5</span>, <span style="color: #666666">1</span>, <span style="color: #666666">7</span>)
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>DNN_tf <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)), dtype<span style="color: #666666">=</span><span style="color: #008000">object</span>)
+        
+<span style="color: #008000; font-weight: bold">for</span> i, eta <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(eta_vals):
+    <span style="color: #008000; font-weight: bold">for</span> j, lmbd <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(lmbd_vals):
+        DNN <span style="color: #666666">=</span> NeuralNetworkTensorflow(X_train, Y_train, X_test, Y_test,
+                                      n_neurons_layer1, n_neurons_layer2, n_categories,
+                                      epochs<span style="color: #666666">=</span>epochs, batch_size<span style="color: #666666">=</span>batch_size, eta<span style="color: #666666">=</span>eta, lmbd<span style="color: #666666">=</span>lmbd)
+        DNN<span style="color: #666666">.</span>fit()
+        
+        DNN_tf[i][j] <span style="color: #666666">=</span> DNN
+        
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Learning rate = &quot;</span>, eta)
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test accuracy: </span><span style="color: #BB6688; font-weight: bold">%.3f</span><span style="color: #BA2121">&quot;</span> <span style="color: #666666">%</span> DNN<span style="color: #666666">.</span>test_accuracy)
+        <span style="color: #008000; font-weight: bold">print</span>()
+        
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># optional</span>
+<span style="color: #408080; font-style: italic"># visual representation of grid search</span>
+<span style="color: #408080; font-style: italic"># uses seaborn heatmap, could probably do this in matplotlib</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">seaborn</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">sns</span>
+
+sns<span style="color: #666666">.</span>set()
+
+train_accuracy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)))
+test_accuracy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)))
+
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(eta_vals)):
+    <span style="color: #008000; font-weight: bold">for</span> j <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(lmbd_vals)):
+        DNN <span style="color: #666666">=</span> DNN_tf[i][j]
+
+        train_accuracy[i][j] <span style="color: #666666">=</span> DNN<span style="color: #666666">.</span>train_accuracy
+        test_accuracy[i][j] <span style="color: #666666">=</span> DNN<span style="color: #666666">.</span>test_accuracy
+
+        
+fig, ax <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots(figsize <span style="color: #666666">=</span> (<span style="color: #666666">10</span>, <span style="color: #666666">10</span>))
+sns<span style="color: #666666">.</span>heatmap(train_accuracy, annot<span style="color: #666666">=</span><span style="color: #008000">True</span>, ax<span style="color: #666666">=</span>ax, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&quot;viridis&quot;</span>)
+ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&quot;Training Accuracy&quot;</span>)
+ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;$\eta$&quot;</span>)
+ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;$\lambda$&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+
+fig, ax <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots(figsize <span style="color: #666666">=</span> (<span style="color: #666666">10</span>, <span style="color: #666666">10</span>))
+sns<span style="color: #666666">.</span>heatmap(test_accuracy, annot<span style="color: #666666">=</span><span style="color: #008000">True</span>, ax<span style="color: #666666">=</span>ax, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&quot;viridis&quot;</span>)
+ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&quot;Test Accuracy&quot;</span>)
+ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;$\eta$&quot;</span>)
+ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;$\lambda$&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># optional</span>
+<span style="color: #408080; font-style: italic"># we can use log files to visualize our graph in Tensorboard</span>
+writer <span style="color: #666666">=</span> tf<span style="color: #666666">.</span>summary<span style="color: #666666">.</span>FileWriter(<span style="color: #BA2121">&#39;logs/&#39;</span>)
+writer<span style="color: #666666">.</span>add_graph(tf<span style="color: #666666">.</span>get_default_graph())
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec54">Using Keras </h2>
+
+<p>
+Keras is a high level <a href="https://en.wikipedia.org/wiki/Application_programming_interface" target="_blank">neural network</a>
+that supports Tensorflow, CTNK and Theano as backends.  
+If you have Tensorflow installed Keras is available through the <em>tf.keras</em> module.  
+If you have Anaconda installed you may run the following command
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>conda install keras
+</pre></div>
+<p>
+Alternatively, if you have Tensorflow or one of the other supported backends install you may use the pip package manager:
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>pip3 install keras
+</pre></div>
+<p>
+or look up the <a href="https://keras.io/" target="_blank">instructions here</a>.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">keras.models</span> <span style="color: #008000; font-weight: bold">import</span> Sequential
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">keras.layers</span> <span style="color: #008000; font-weight: bold">import</span> Dense
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">keras.regularizers</span> <span style="color: #008000; font-weight: bold">import</span> l2
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">keras.optimizers</span> <span style="color: #008000; font-weight: bold">import</span> SGD
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_neural_network_keras</span>(n_neurons_layer1, n_neurons_layer2, n_categories, eta, lmbd):
+    model <span style="color: #666666">=</span> Sequential()
+    model<span style="color: #666666">.</span>add(Dense(n_neurons_layer1, activation<span style="color: #666666">=</span><span style="color: #BA2121">&#39;sigmoid&#39;</span>, kernel_regularizer<span style="color: #666666">=</span>l2(lmbd)))
+    model<span style="color: #666666">.</span>add(Dense(n_neurons_layer2, activation<span style="color: #666666">=</span><span style="color: #BA2121">&#39;sigmoid&#39;</span>, kernel_regularizer<span style="color: #666666">=</span>l2(lmbd)))
+    model<span style="color: #666666">.</span>add(Dense(n_categories, activation<span style="color: #666666">=</span><span style="color: #BA2121">&#39;softmax&#39;</span>))
+    
+    sgd <span style="color: #666666">=</span> SGD(lr<span style="color: #666666">=</span>eta)
+    model<span style="color: #666666">.</span>compile(loss<span style="color: #666666">=</span><span style="color: #BA2121">&#39;categorical_crossentropy&#39;</span>, optimizer<span style="color: #666666">=</span>sgd, metrics<span style="color: #666666">=</span>[<span style="color: #BA2121">&#39;accuracy&#39;</span>])
+    
+    <span style="color: #008000; font-weight: bold">return</span> model
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>DNN_keras <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)), dtype<span style="color: #666666">=</span><span style="color: #008000">object</span>)
+        
+<span style="color: #008000; font-weight: bold">for</span> i, eta <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(eta_vals):
+    <span style="color: #008000; font-weight: bold">for</span> j, lmbd <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(lmbd_vals):
+        DNN <span style="color: #666666">=</span> create_neural_network_keras(n_neurons_layer1, n_neurons_layer2, n_categories,
+                                         eta<span style="color: #666666">=</span>eta, lmbd<span style="color: #666666">=</span>lmbd)
+        DNN<span style="color: #666666">.</span>fit(X_train, Y_train, epochs<span style="color: #666666">=</span>epochs, batch_size<span style="color: #666666">=</span>batch_size, verbose<span style="color: #666666">=0</span>)
+        scores <span style="color: #666666">=</span> DNN<span style="color: #666666">.</span>evaluate(X_test, Y_test)
+        
+        DNN_keras[i][j] <span style="color: #666666">=</span> DNN
+        
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Learning rate = &quot;</span>, eta)
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test accuracy: </span><span style="color: #BB6688; font-weight: bold">%.3f</span><span style="color: #BA2121">&quot;</span> <span style="color: #666666">%</span> scores[<span style="color: #666666">1</span>])
+        <span style="color: #008000; font-weight: bold">print</span>()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># optional</span>
+<span style="color: #408080; font-style: italic"># visual representation of grid search</span>
+<span style="color: #408080; font-style: italic"># uses seaborn heatmap, could probably do this in matplotlib</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">seaborn</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">sns</span>
+
+sns<span style="color: #666666">.</span>set()
+
+train_accuracy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)))
+test_accuracy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(eta_vals), <span style="color: #008000">len</span>(lmbd_vals)))
+
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(eta_vals)):
+    <span style="color: #008000; font-weight: bold">for</span> j <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(lmbd_vals)):
+        DNN <span style="color: #666666">=</span> DNN_keras[i][j]
+
+        train_accuracy[i][j] <span style="color: #666666">=</span> DNN<span style="color: #666666">.</span>evaluate(X_train, Y_train)[<span style="color: #666666">1</span>]
+        test_accuracy[i][j] <span style="color: #666666">=</span> DNN<span style="color: #666666">.</span>evaluate(X_test, Y_test)[<span style="color: #666666">1</span>]
+
+        
+fig, ax <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots(figsize <span style="color: #666666">=</span> (<span style="color: #666666">10</span>, <span style="color: #666666">10</span>))
+sns<span style="color: #666666">.</span>heatmap(train_accuracy, annot<span style="color: #666666">=</span><span style="color: #008000">True</span>, ax<span style="color: #666666">=</span>ax, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&quot;viridis&quot;</span>)
+ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&quot;Training Accuracy&quot;</span>)
+ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;$\eta$&quot;</span>)
+ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;$\lambda$&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+
+fig, ax <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots(figsize <span style="color: #666666">=</span> (<span style="color: #666666">10</span>, <span style="color: #666666">10</span>))
+sns<span style="color: #666666">.</span>heatmap(test_accuracy, annot<span style="color: #666666">=</span><span style="color: #008000">True</span>, ax<span style="color: #666666">=</span>ax, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&quot;viridis&quot;</span>)
+ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&quot;Test Accuracy&quot;</span>)
+ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;$\eta$&quot;</span>)
+ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;$\lambda$&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
 <p>
 
 <!-- ------------------- end of main content --------------- -->
