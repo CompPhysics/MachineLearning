@@ -171,7 +171,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs016.html#___sec15" style="font-size: 80%;">&nbsp;&nbsp;&nbsp;Matrix-vector notation  and activation</a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs017.html#___sec16" style="font-size: 80%;">&nbsp;&nbsp;&nbsp;Activation functions</a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs018.html#___sec17" style="font-size: 80%;">&nbsp;&nbsp;&nbsp;Activation functions, Logistic and Hyperbolic ones</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec18" style="font-size: 80%;">&nbsp;&nbsp;&nbsp;Relevance</a></li>
+     <!-- navigation toc: --> <li><a href="._NeuralNet-bs019.html#___sec18" style="font-size: 80%;">&nbsp;&nbsp;&nbsp;Relevance</a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs020.html#___sec19" style="font-size: 80%;"><b>The multilayer  perceptron (MLP)</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs021.html#___sec20" style="font-size: 80%;"><b>From one to many layers, the universal approximation theorem</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs022.html#___sec21" style="font-size: 80%;"><b>Deriving the back propagation code for a multilayer perceptron model</b></a></li>
@@ -192,7 +192,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs037.html#___sec36" style="font-size: 80%;"><b>Layers</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs038.html#___sec37" style="font-size: 80%;"><b>Weights and biases</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs039.html#___sec38" style="font-size: 80%;"><b>Feed-forward pass</b></a></li>
-     <!-- navigation toc: --> <li><a href="._NeuralNet-bs040.html#___sec39" style="font-size: 80%;"><b>Matrix multiplication</b></a></li>
+     <!-- navigation toc: --> <li><a href="#___sec39" style="font-size: 80%;"><b>Matrix multiplication</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs041.html#___sec40" style="font-size: 80%;"><b>Choose cost function and optimizer</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs042.html#___sec41" style="font-size: 80%;"><b>Optimizing the cost function</b></a></li>
      <!-- navigation toc: --> <li><a href="._NeuralNet-bs043.html#___sec42" style="font-size: 80%;"><b>Regularization</b></a></li>
@@ -215,121 +215,109 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0019"></a>
-<!-- !split -->
+<a name="part0040"></a>
+<!-- !split    -->
 
-<h3 id="___sec18" class="anchor">Relevance </h3>
+<h2 id="___sec39" class="anchor">Matrix multiplication </h2>
 
 <p>
-The <em>sigmoid</em> function are more biologically plausible because the
-output of inactive neurons are zero. Such activation function are
-called <em>one-sided</em>. However, it has been shown that the hyperbolic
-tangent performs better than the sigmoid for training MLPs.  has
-become the most popular for <em>deep neural networks</em>
+Since our data has the dimensions \( X = (n_{inputs}, n_{features}) \) and our weights to the hidden
+layer have the dimensions  
+\( W_{hidden} = (n_{features}, n_{hidden}) \),
+we can easily feed the network all our training data in one go by taking the matrix product  
+
+$$ X W^{h} = (n_{inputs}, n_{hidden}),$$
+
+<p>
+and obtain a matrix that holds the weighted sum of inputs to the hidden layer
+for each input image and each hidden neuron.    
+We also add the bias to obtain a matrix of weighted sums to the hidden layer \( Z^{h} \):  
+
+$$ Z^{h} = X W^{h} + B^{h} ,$$
+
+<p>
+meaning the same bias (1D array with size equal number of hidden neurons) is added to each input image.  
+This is then passed through the activation:  
+
+$$ A^{h} = f(Z^h) .$$
+
+<p>
+This is fed to the output layer:  
+
+$$ Z^{o} = A^{h} W^{o} + B^{o} .$$
+
+<p>
+Finally we receive our output values for each image and each category by passing it through the softmax function:  
+
+$$ output = softmax (Z^{o}) = (n_{inputs}, n_{categories}) .$$
 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;The sigmoid function (or the logistic curve) is a </span>
-<span style="color: #BA2121; font-style: italic">function that takes any real number, z, and outputs a number (0,1).</span>
-<span style="color: #BA2121; font-style: italic">It is useful in neural networks for assigning weights on a relative scale.</span>
-<span style="color: #BA2121; font-style: italic">The value z is the weighted sum of parameters involved in the learning algorithm.&quot;&quot;&quot;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># setup the feed-forward pass</span>
 
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">math</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">mt</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">sigmoid</span>(x):
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1/</span>(<span style="color: #666666">1</span> <span style="color: #666666">+</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x))
 
-z <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>arange(<span style="color: #666666">-5</span>, <span style="color: #666666">5</span>, <span style="color: #666666">.1</span>)
-sigma_fn <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>vectorize(<span style="color: #008000; font-weight: bold">lambda</span> z: <span style="color: #666666">1/</span>(<span style="color: #666666">1+</span>numpy<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>z)))
-sigma <span style="color: #666666">=</span> sigma_fn(z)
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">feed_forward</span>(X):
+    <span style="color: #408080; font-style: italic"># weighted sum of inputs to the hidden layer</span>
+    z_h <span style="color: #666666">=</span> np<span style="color: #666666">.</span>matmul(X, hidden_weights) <span style="color: #666666">+</span> hidden_bias
+    <span style="color: #408080; font-style: italic"># activation in the hidden layer</span>
+    a_h <span style="color: #666666">=</span> sigmoid(z_h)
+    
+    <span style="color: #408080; font-style: italic"># weighted sum of inputs to the output layer</span>
+    z_o <span style="color: #666666">=</span> np<span style="color: #666666">.</span>matmul(a_h, output_weights) <span style="color: #666666">+</span> output_bias
+    <span style="color: #408080; font-style: italic"># softmax output</span>
+    <span style="color: #408080; font-style: italic"># axis 0 holds each input and axis 1 the probabilities of each category</span>
+    exp_term <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(z_o)
+    probabilities <span style="color: #666666">=</span> exp_term <span style="color: #666666">/</span> np<span style="color: #666666">.</span>sum(exp_term, axis<span style="color: #666666">=1</span>, keepdims<span style="color: #666666">=</span><span style="color: #008000">True</span>)
+    
+    <span style="color: #008000; font-weight: bold">return</span> probabilities
 
-fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
-ax <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>add_subplot(<span style="color: #666666">111</span>)
-ax<span style="color: #666666">.</span>plot(z, sigma)
-ax<span style="color: #666666">.</span>set_ylim([<span style="color: #666666">-0.1</span>, <span style="color: #666666">1.1</span>])
-ax<span style="color: #666666">.</span>set_xlim([<span style="color: #666666">-5</span>,<span style="color: #666666">5</span>])
-ax<span style="color: #666666">.</span>grid(<span style="color: #008000">True</span>)
-ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&#39;z&#39;</span>)
-ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&#39;sigmoid function&#39;</span>)
+probabilities <span style="color: #666666">=</span> feed_forward(X_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;probabilities = (n_inputs, n_categories) = &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(probabilities<span style="color: #666666">.</span>shape))
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;probability that image 0 is in category 0,1,2,...,9 = </span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(probabilities[<span style="color: #666666">0</span>]))
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;probabilities sum up to: &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(probabilities[<span style="color: #666666">0</span>]<span style="color: #666666">.</span>sum()))
+<span style="color: #008000; font-weight: bold">print</span>()
 
-plt<span style="color: #666666">.</span>show()
+<span style="color: #408080; font-style: italic"># we obtain a prediction by taking the class with the highest likelihood</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">predict</span>(X):
+    probabilities <span style="color: #666666">=</span> feed_forward(X)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>argmax(probabilities, axis<span style="color: #666666">=1</span>)
 
-<span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;Step Function&quot;&quot;&quot;</span>
-z <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>arange(<span style="color: #666666">-5</span>, <span style="color: #666666">5</span>, <span style="color: #666666">.02</span>)
-step_fn <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>vectorize(<span style="color: #008000; font-weight: bold">lambda</span> z: <span style="color: #666666">1.0</span> <span style="color: #008000; font-weight: bold">if</span> z <span style="color: #666666">&gt;=</span> <span style="color: #666666">0.0</span> <span style="color: #008000; font-weight: bold">else</span> <span style="color: #666666">0.0</span>)
-step <span style="color: #666666">=</span> step_fn(z)
-
-fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
-ax <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>add_subplot(<span style="color: #666666">111</span>)
-ax<span style="color: #666666">.</span>plot(z, step)
-ax<span style="color: #666666">.</span>set_ylim([<span style="color: #666666">-0.5</span>, <span style="color: #666666">1.5</span>])
-ax<span style="color: #666666">.</span>set_xlim([<span style="color: #666666">-5</span>,<span style="color: #666666">5</span>])
-ax<span style="color: #666666">.</span>grid(<span style="color: #008000">True</span>)
-ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&#39;z&#39;</span>)
-ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&#39;step function&#39;</span>)
-
-plt<span style="color: #666666">.</span>show()
-
-<span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;Sine Function&quot;&quot;&quot;</span>
-z <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>arange(<span style="color: #666666">-2*</span>mt<span style="color: #666666">.</span>pi, <span style="color: #666666">2*</span>mt<span style="color: #666666">.</span>pi, <span style="color: #666666">0.1</span>)
-t <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>sin(z)
-
-fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
-ax <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>add_subplot(<span style="color: #666666">111</span>)
-ax<span style="color: #666666">.</span>plot(z, t)
-ax<span style="color: #666666">.</span>set_ylim([<span style="color: #666666">-1.0</span>, <span style="color: #666666">1.0</span>])
-ax<span style="color: #666666">.</span>set_xlim([<span style="color: #666666">-2*</span>mt<span style="color: #666666">.</span>pi,<span style="color: #666666">2*</span>mt<span style="color: #666666">.</span>pi])
-ax<span style="color: #666666">.</span>grid(<span style="color: #008000">True</span>)
-ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&#39;z&#39;</span>)
-ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&#39;sine function&#39;</span>)
-
-plt<span style="color: #666666">.</span>show()
-
-<span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;Plots a graph of the squashing function used by a rectified linear</span>
-<span style="color: #BA2121; font-style: italic">unit&quot;&quot;&quot;</span>
-z <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>arange(<span style="color: #666666">-2</span>, <span style="color: #666666">2</span>, <span style="color: #666666">.1</span>)
-zero <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>zeros(<span style="color: #008000">len</span>(z))
-y <span style="color: #666666">=</span> numpy<span style="color: #666666">.</span>max([zero, z], axis<span style="color: #666666">=0</span>)
-
-fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
-ax <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>add_subplot(<span style="color: #666666">111</span>)
-ax<span style="color: #666666">.</span>plot(z, y)
-ax<span style="color: #666666">.</span>set_ylim([<span style="color: #666666">-2.0</span>, <span style="color: #666666">2.0</span>])
-ax<span style="color: #666666">.</span>set_xlim([<span style="color: #666666">-2.0</span>, <span style="color: #666666">2.0</span>])
-ax<span style="color: #666666">.</span>grid(<span style="color: #008000">True</span>)
-ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&#39;z&#39;</span>)
-ax<span style="color: #666666">.</span>set_title(<span style="color: #BA2121">&#39;Rectified linear unit&#39;</span>)
-
-plt<span style="color: #666666">.</span>show()
+predictions <span style="color: #666666">=</span> predict(X_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;predictions = (n_inputs) = &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(predictions<span style="color: #666666">.</span>shape))
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;prediction for image 0: &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(predictions[<span style="color: #666666">0</span>]))
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;correct label for image 0: &quot;</span> <span style="color: #666666">+</span> <span style="color: #008000">str</span>(Y_train[<span style="color: #666666">0</span>]))
 </pre></div>
 <p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._NeuralNet-bs018.html">&laquo;</a></li>
+<li><a href="._NeuralNet-bs039.html">&laquo;</a></li>
   <li><a href="._NeuralNet-bs000.html">1</a></li>
   <li><a href="">...</a></li>
-  <li><a href="._NeuralNet-bs011.html">12</a></li>
-  <li><a href="._NeuralNet-bs012.html">13</a></li>
-  <li><a href="._NeuralNet-bs013.html">14</a></li>
-  <li><a href="._NeuralNet-bs014.html">15</a></li>
-  <li><a href="._NeuralNet-bs015.html">16</a></li>
-  <li><a href="._NeuralNet-bs016.html">17</a></li>
-  <li><a href="._NeuralNet-bs017.html">18</a></li>
-  <li><a href="._NeuralNet-bs018.html">19</a></li>
-  <li class="active"><a href="._NeuralNet-bs019.html">20</a></li>
-  <li><a href="._NeuralNet-bs020.html">21</a></li>
-  <li><a href="._NeuralNet-bs021.html">22</a></li>
-  <li><a href="._NeuralNet-bs022.html">23</a></li>
-  <li><a href="._NeuralNet-bs023.html">24</a></li>
-  <li><a href="._NeuralNet-bs024.html">25</a></li>
-  <li><a href="._NeuralNet-bs025.html">26</a></li>
-  <li><a href="._NeuralNet-bs026.html">27</a></li>
-  <li><a href="._NeuralNet-bs027.html">28</a></li>
-  <li><a href="._NeuralNet-bs028.html">29</a></li>
+  <li><a href="._NeuralNet-bs032.html">33</a></li>
+  <li><a href="._NeuralNet-bs033.html">34</a></li>
+  <li><a href="._NeuralNet-bs034.html">35</a></li>
+  <li><a href="._NeuralNet-bs035.html">36</a></li>
+  <li><a href="._NeuralNet-bs036.html">37</a></li>
+  <li><a href="._NeuralNet-bs037.html">38</a></li>
+  <li><a href="._NeuralNet-bs038.html">39</a></li>
+  <li><a href="._NeuralNet-bs039.html">40</a></li>
+  <li class="active"><a href="._NeuralNet-bs040.html">41</a></li>
+  <li><a href="._NeuralNet-bs041.html">42</a></li>
+  <li><a href="._NeuralNet-bs042.html">43</a></li>
+  <li><a href="._NeuralNet-bs043.html">44</a></li>
+  <li><a href="._NeuralNet-bs044.html">45</a></li>
+  <li><a href="._NeuralNet-bs045.html">46</a></li>
+  <li><a href="._NeuralNet-bs046.html">47</a></li>
+  <li><a href="._NeuralNet-bs047.html">48</a></li>
+  <li><a href="._NeuralNet-bs048.html">49</a></li>
+  <li><a href="._NeuralNet-bs049.html">50</a></li>
   <li><a href="">...</a></li>
   <li><a href="._NeuralNet-bs050.html">51</a></li>
-  <li><a href="._NeuralNet-bs020.html">&raquo;</a></li>
+  <li><a href="._NeuralNet-bs041.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
