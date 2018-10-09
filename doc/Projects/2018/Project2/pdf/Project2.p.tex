@@ -45,6 +45,12 @@ final,                   % draft: marks overfull hboxes, figures with paths
 
 \usepackage[pdftex]{graphicx}
 
+\usepackage{ptex2tex}
+% #ifdef MINTED
+\usepackage{minted}
+\usemintedstyle{default}
+% #endif
+
 \usepackage[T1]{fontenc}
 %\usepackage[latin1]{inputenc}
 \usepackage{ucs}
@@ -149,28 +155,17 @@ Project 2 on Machine Learning, deadline November 5
 
 % --- begin date ---
 \begin{center}
-Oct 8, 2018
+Oct 9, 2018
 \end{center}
 % --- end date ---
 
 \vspace{1cm}
 
 
-\begin{enumerate}
-\item add about ising model
-
-\item link to where we have the data
-
-\item explain how to fit the model
-
-\item link to mehta's article
-\end{enumerate}
-
-\noindent
 \subsection{Classification and Regression, from linear and logistic regression to neural networks}
 
 The main aim of this project is to study both classification and
-regression problems, starting with the regression algortihms studied
+regression problems, starting with the regression algorithms studied
 in project 1. We will include logistic regresion for classification
 problems and write our own multilayer perceptron code for studying
 both regression and classification problems.  The codes developed in
@@ -179,19 +174,20 @@ computation of the mean-squared error and the R2 score function can
 also be utilized (and included in logistic regression and the neural
 network codes) in the present analysis.
 
-We will use the Ising model to generate our training data and will
-focus mainly on supervised training. We will follow closely the recent
+We will use the so-called Ising model for  our training data and will
+focus on supervised training. We will follow closely the recent
 article of \href{{https://arxiv.org/abs/1803.08823}}{Mehta et al, arXiv
 1803.08823}. This article stands
-out as an excellent review on machine learning (ML) algorithms applied
-to typical physics problems. The added benefit is that each figure and
+out as an excellent review on machine learning (ML) algorithms.
+The added benefit is that each figure and
 model presented in \href{{https://physics.bu.edu/~pankajm/MLnotebooks.html}}{this article is accompanied by its jupyter
 notebook}. This
-means that we can start using these and compare with our own
-results. In case you wish to use their data for the Ising model, their
-data can be downloaded from the same link which lists to the jupyter
-notebooks. See also at the end of the project description for more
-information on how to install various Python packages.
+means that we can start using these and compare with our own results.
+They provide also the data set for the regression and classification
+analysis that we will explore.  In this sense, with their available
+notebooks, it makes life easier since we can compare our own codes
+with their codes.
+
 
 
 
@@ -208,69 +204,243 @@ that is the two-dimensional Ising model, will be studied using
 logistic regression and deep neural networks.  The aim is to develop
 your own logistic regression code for the classification of the phases
 (this is a binary model) and your multilayer perceptron code for the
-classification and regression case.
+classification and regression case. You can compare your own results with those obtained
+using \textbf{scikit-learn} or \textbf{tensorflow} or other Python packages such as \textbf{keras} or other.
 
 
 Feel free to use the notebooks to benchmark your code.  If you wish to
-write your own C++ or Fortran program for say a simple neural network
-model and a logistic regression model, please feel free to do so.  You can then benchmark your results
-against the above jupyter notebooks.
+write your own C++ or Fortran program for say a multilayer neural network
+model and a logistic regression model, please feel free to do so.  
 
 
-\paragraph{Part a): Producing the data.}
-You can use the Ising model data from the article of Mehta \emph{et al.},
-or generate your own data.  If you opt for using your own Ising model
-code, you need to generate $10000$ energy configurations with their
-spin orientations after the system has reached its most likely
-state. These energies and their corresponding spin orientations
-represent then your data.  We will use a fixed lattice of $L\times L =
-40 \times 40$ spins in two dimensions and $L=40$ spins in one
-dimension.  Make sure the calculations have been equilibrated. For the
-two-dimensional system, compute the configurations for three values of
-the temperature, namely $T=0.75$ (ordered phase), $T=2.3$ (near the
-critical point) and $T=4.0$ (disordered phase).  For the
-one-dimensional system it suffices to compute the various
-configurations for one temperature only, say $T=2.0$.  These are the
-data you will use to study different ML algorithms.  We generate our
-data with $J=1$.
+\paragraph{Part a): Producing the data for the one-dimensional Ising model.}
+The model we will employ in our studies is the so-called \href{{https://en.wikipedia.org/wiki/Ising_model}}{Ising
+model}.  Together with
+models like the \href{{https://en.wikipedia.org/wiki/Potts_model}}{Potts
+model} and similar
+so-called lattice models, the Ising model has been widely studied in
+mathematics (in statistics in particular), physics, \href{{https://journals.aps.org/pre/abstract/10.1103/PhysRevE.93.062402}}{life
+science},
+chemistry and even in the \href{{https://www.springer.com/gp/book/9781461420316}}{social sciences in order to model social
+behavior}. It is a
+simple binary value system where the variables of the model (spins often in
+physics) can take two values only, for example $\pm 1$ or $0$ and $1$.
+The system exhibits a phase transition in two or higher dimensions and
+the first person to find the analytical expressions for various
+expectation values was the Norwegian chemist \href{{https://en.wikipedia.org/wiki/Lars_Onsager}}{Lars
+Onsager} (Nobel prize in
+chemistry) after a tour de force mathematics exercise.
 
-\paragraph{Part b): Estimating the coupling constant of the one-dimensional Ising model.}
+In our discussions here we will stay with a physicist's approach and
+call the variables for spin. You could replace this with any other
+type of binary variables, ranging from a two political parties to blue
+and red spheres.  In its simplest form we define the energy of the
+system as
+
+\begin{equation*}
+  E=-J\sum_{<kl>}^{N}s_ks_l,
+\end{equation*}
+with  $s_k=\pm 1$, $N$ is the total number of spins,
+$J$ is a coupling constant expressing the strength of the interaction
+between neighboring spins.
+
+The symbol $<kl>$ indicates that we sum over nearest
+neighbors only.
+Notice that for $J>0$ it is energetically favorable for neighboring spins
+to be aligned. This feature leads to, at low enough temperatures,
+a cooperative phenomenon called spontaneous magnetization. That is,
+through interactions between nearest neighbors, a given magnetic
+moment can influence the alignment of spins  that are separated
+from the given spin by a macroscopic distance. These long range correlations
+between spins are associated with a long-range order in which
+the lattice has a net magnetization in the absence of a magnetic field.
+
+
+
+We start by considering the one-dimensional Ising model with nearest neighbor interactions. This model does not exhibit any phase transition.
+
+Consider the 1D Ising model with nearest-neighbor interactions 
+
+\begin{equation*}
+  E[\hat{s}]=-J\sum_{j=1}^{N}s_{j}s_{j+1},
+\end{equation*}
+
+on a chain of length $N$ with so-called periodic boundary conditions and $S_j=\pm 1$ Ising spin variables.
+In one dimension, this model has no phase transition at finite temperature.
+
+In the Python code below we generate, with a coupling coefficient set to $J=1$, a large number of spin configurations say $10000$ as shown in the code below.
+It means that our data will be a set of $i=1\ldots n$ points of the form
+$\{(E[\boldsymbol{s}^i],\boldsymbol{s}^i)\}$.
+Our task is to find the value of $J$ from the data set using linear regression.
+
+Here is the Python code you need to generate the training data, see
+also the \href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CVI-linreg_ising.html}}{notebook of Mehta et
+al}.
+
+\bpycod
+import numpy as np
+import scipy.sparse as sp
+np.random.seed(12)
+
+import warnings
+#Comment this to turn on warnings
+warnings.filterwarnings('ignore')
+
+### define Ising model aprams
+# system size
+L=40
+
+# create 10000 random Ising states
+states=np.random.choice([-1, 1], size=(10000,L))
+
+def ising_energies(states,L):
+    """
+    This function calculates the energies of the states in the nn Ising Hamiltonian
+    """
+    J=np.zeros((L,L),)
+    for i in range(L):
+        J[i,(i+1)%L]-=1.0
+    # compute energies
+    E = np.einsum('...i,ij,...j->...',states,J,states)
+
+    return E
+# calculate Ising energies
+energies=ising_energies(states,L)
+\epycod
+
+We can now recast the problem as a linear regression model using our codes from project 1.
+The way we are going to build our model mimicks the way we could think of finding say the gravitional constant for the graviational force between two planets.
+In the absence of any prior knowledge, one sensible choice is the all-to-all Ising model
+
+\[
+E_\mathrm{model}[\boldsymbol{s}^i] = - \sum_{j=1}^N \sum_{k=1}^N J_{j,k}s_{j}^is_{k}^i.
+\]
+
+Here $i$ represents a particular spin configuration (one of the possible $n$ configurations we generated with the code above).
+
+This model is uniquely defined by the non-local coupling strengths $J_{jk}$ which we want to learn.
+The model is linear in $\mathbf{J}$ which makes it possible to use linear regression.
+
+To apply linear regression, we recast this model in the form
+\[
+E_\mathrm{model}^i \equiv \mathbf{X}^i \cdot \mathbf{J},
+\]
+
+where the vectors $\mathbf{X}^i$ represent all two-body interactions
+$\{s_{j}^is_{k}^i \}_{j,k=1}^N$, and the index $i$ runs over the
+samples in the data set.  To make the analogy complete, we can also
+represent the dot product by a single index $p = \{j,k\}$,
+i.e.~$\mathbf{X}^i \cdot \mathbf{J}=X^i_pJ_p$.  Note that the
+regression model does not include the minus sign, so we expect to
+learn negative $J$'s.
+
+With these preliminaries, we are now ready to  reutilize our codes from project 1. 
+
+
+\paragraph{Part b): Estimating the coupling constant of the one-dimensional Ising model using linear regression.}
 We start with the one-dimensional Ising model and use the data we have
-generated with $J=1$. Use linear regression, Lasso and Ridge
-regression as described section 6 and in Notebook 4 of \href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CVI-linreg_ising.html}}{Mehta *et
-al.*}. Discuss
-the methods and how they perform in computing the coupling constant
-$J$. Give a critical analysis and discuss how to evaluate the \emph{cost
-function}. You should feel free to write your own code, see also the
-lecture notes of
-\href{{https://compphysics.github.io/MachineLearning/doc/web/course.html}}{FYS-STK4155},
-in particular te material on least square methods.  You can use
-scikit-learn to perform these analyses. See below for instruction on
-how to install scikit-learn.
+generated with $J=1$ in the previous point. Use linear regression,
+Lasso and Ridge regression as done in project 1. You can compare your
+results with those of \href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CVI-linreg_ising.html}}{Mehta
+et al.}.
+Make sure it is the 1D data which is used.
+
+Discuss the methods and how they perform in computing the coupling
+constant $J$ and include a bias-variance analysis using either
+cross-validation or bootstrap. Discuss also the mean squared error and
+the $R2$ score as measures to assess your model.
+
+Give a critical analysis of your results.
+
 
 \paragraph{Part c): Determine the phase of the two-dimensional Ising model.}
 We switch now to binary classification methods and use logistic
-regression to define the phases of the Ising model.  Use described
-section 7 and in Notebook 6 of \href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CVII-logreg_ising.html}}{Mehta *et
-al.*}. Discuss
-the methods and how they perform. Give a critical analysis and discuss
-how to evaluate the \emph{cost function}. You should feel free to write
-your own code. 
+regression to define the phases of the Ising model. This means that we switch to the two-dimensional Ising model
+and use the data sets generated by \href{{https://physics.bu.edu/~pankajm/ML-Review-Datasets/isingMC/}}{Mehta et al}
+These energies and their corresponding spin orientation configurations 
+represent then your data.  We will use a fixed lattice of $L\times L =
+40 \times 40$ spins in two dimensions. The link above contains data for several temperatures.
+The theoretical critical temperature for a phase transition is $T_C\approx 2.269$ in units of energy.
+However, for a finite lattice the results representing the critical temperature are slightly higher ($T_C \approx 2.3$). 
+
+Our goal here, using logistic regression, is to train our model to
+predict the phase of a sample given the spin configuration, whether it
+represents a state above the critical temperature or below.  The
+configurations representing states below the critical temperature are
+called ordered states (the spins tend to point in one direction,
+resulting in a net magnetic moment) while those above the critical
+temperature are called disordered. Since a finite lattice like this
+does not exhibit a clear sign of a phase transition we will mainly
+stay with either orderer or disoredered phases. You could include the
+critical phase if you want.
 
 
-\paragraph{Part d): Classifying the Ising model phase using neural networks.}
-We end the classification problem of the phases of the Ising model by
-employing the algorithm for so-called feed-forward deep neural
-networks (see section 9 of Mehta \emph{et al.}). The method is described in
-\href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CIX-DNN_ising_TFlow.html}}{notebook
-12}.
+Your aim here is thus to read in these data (use the examples from
+\href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CVII-logreg_ising.html}}{Mehta et
+al})
+and write your own code for doing logistic regression, see the lecture
+notes on \href{{https://compphysics.github.io/MachineLearning/doc/pub/LogReg/html/LogReg-bs.html}}{logistic
+regression}.
 
-You can use tensorflow  to perform these analyses. See below for instruction on how to install tensorflow.
+You should include either bootstrap or cross-validation in setting up
+your model (as done in project 1) and compute the $R2$ score and the
+mean-square error.
+We will use both ordered and disordered states to train
+the logistic regressor and, once the supervised training procedure is
+complete, you should  evaluate the performance of your classification model on
+unseen ordered, disordered and possibly critical states.  
+
+
+
+In order to find the optimal parameters of your logistic regressor you should
+include a gradient descent solver, as discussed in the \href{{https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html}}{gradient
+descent
+lectures}.
+Since we don't have so many data points, you may just code the
+standard gradient descent with a given learning rate, or even attempt
+to use the Newton-Raphson method.  Alternatively, it may be useful for
+the next part on neural networks to implement a stochastic gradient
+descent. For all  gradient methods, you can use \textbf{scikit-learn}'s toolbox for
+optimization methods instead of writing your own code.
+
+
+The notebook of \href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CVII-logreg_ising.html}}{Mehta et al} is highly recommended in order to benchmark your code and results.
+
+\paragraph{Part d): Regression analysis of the one-dimensional Ising model using neural networks.}
+Your aim now, and this is the central part of this project, is to
+write to your own multilayer perceptron model implementing the back
+propagation algorithm discussed in the \href{{https://compphysics.github.io/MachineLearning/doc/pub/NeuralNet/html/NeuralNet-bs.html}}{lecture
+slides}. We
+start with the regression case discussed in parts a) and b) but train
+now the network to find the optimal weights and biases. You are free
+to use the codes in the above lecture slides as starting points.
+
+Train your network and compare the results with those from your linear regression code. 
+You can test your results against a similar code using _scikit_learn_ (see the examples in teh above lecture notes) or \textbf{tensorflow/keras}. 
+
+You should have the same elements as in the regression examples, including the $R2$ score, the MSE, and bootstrap or cross-validation.
+
+
+A useful reference on the back progagation algorithm is \href{{http://neuralnetworksanddeeplearning.com/}}{Nielsen's book}. It is an excellent read.
+
+\paragraph{Part e): Classifying the Ising model phase using neural networks.}
+Finally, change now your cost function to the $log$ cross-entropy classification cost function for the case discussed in part c). Train your network again and
+compare the results with those from your logistic  regression code i c). 
+Here again you can compare your results with those of \href{{https://physics.bu.edu/~pankajm/ML-Notebooks/HTML/NB_CIX-DNN_ising_TFlow.html}}{Mehta et al}. There they used \textbf{tensorflow} to classify the phases. 
+
+
+
+\paragraph{Part f) Critical evaluation of the various algorithms.}
+After all these glorious calculations, you should now summarize the various algorithms and come with a critical evaluation of their pros and cons. Which algorithm works best for the regression case and which is best for the classification case. These codes will also be part of your final project 3, but now applied to other data sets.
+
+
+
 
 \subsection{Background literature}
 
-
 \begin{enumerate}
+\item The text of Michael Nielsen is highly recommended, see \href{{http://neuralnetworksanddeeplearning.com/}}{Nielsen's book}. It is an excellent read.
+
 \item The textbook of \href{{https://www.springer.com/gp/book/9780387848570}}{Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer}, chapters 3 and 7 are the most relevant ones for the analysis here. 
 
 \item \href{{https://arxiv.org/abs/1803.08823}}{Mehta et al, arXiv 1803.08823}, \emph{A high-bias, low-variance introduction to Machine Learning for physicists}, ArXiv:1803.08823.
