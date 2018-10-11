@@ -250,7 +250,34 @@ div { text-align: justify; text-justify: inter-word; }
               ('Elaborating a little bit more', 2, None, '___sec98'),
               ('The bias', 2, None, '___sec99'),
               ('The variance', 2, None, '___sec100'),
-              ('Summing up', 2, None, '___sec101')]}
+              ('Summing up', 2, None, '___sec101'),
+              ('The one-dimensional Ising model, project 2',
+               2,
+               None,
+               '___sec102'),
+              ('Example: The one-dimensional Ising model',
+               2,
+               None,
+               '___sec103'),
+              ('Reformulating the problem to suit regression',
+               2,
+               None,
+               '___sec104'),
+              ('Linear regression', 2, None, '___sec105'),
+              ('Ordinary least squares', 2, None, '___sec106'),
+              ('Singular Value decomposition', 2, None, '___sec107'),
+              ('Fitting with scikit-learn', 2, None, '___sec108'),
+              ('Ridge regression', 2, None, '___sec109'),
+              ('LASSO regression', 2, None, '___sec110'),
+              ('Performance of the different models', 2, None, '___sec111'),
+              ('Performance as  function of the regularization parameter',
+               2,
+               None,
+               '___sec112'),
+              ('Finding the optimal value of $\\lambda$',
+               2,
+               None,
+               '___sec113')]}
 end of tocinfo -->
 
 <body>
@@ -292,7 +319,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Sep 25, 2018</h4></center> <!-- date -->
+<center><h4>Oct 11, 2018</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -3476,6 +3503,585 @@ estimate for our model should not vary too much between training
 sets. However, if a method has high variance  then small changes in
 the training data can result in large changes in the model. In general, more
 flexible statistical methods have higher variance.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec102">The one-dimensional Ising model, project 2 </h2>
+
+<p>
+The one-dimensional Ising model with nearest neighbor interaction, no external field and a constant coupling constant \( J \) is given by
+
+$$
+\begin{align}
+    H = -J \sum_{k}^L s_k s_{k + 1},
+\label{_auto19}
+\end{align}
+$$
+
+where \( s_i \in \{-1, 1\} \) and \( s_{N + 1} = s_1 \). The number of spins in the system is determined by \( L \). For the low temperature limit there is no phase transition.
+
+<p>
+We will look at a system of \( L = 40 \) spins with a coupling constant of \( J = 1 \). To get enough training data we will generate 10000 states with their respective energies.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>L <span style="color: #666666">=</span> <span style="color: #666666">40</span>
+n <span style="color: #666666">=</span> <span style="color: #008000">int</span>(<span style="color: #666666">1e4</span>)
+
+spins <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>choice([<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>], size<span style="color: #666666">=</span>(n, L))
+J <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>
+
+energies <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n)
+
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
+    energies[i] <span style="color: #666666">=</span> <span style="color: #666666">-</span> J <span style="color: #666666">*</span> np<span style="color: #666666">.</span>dot(spins[i], np<span style="color: #666666">.</span>roll(spins[i], <span style="color: #666666">1</span>))
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec103">Example: The one-dimensional Ising model </h2>
+
+<p>
+Here we use linear (ordinary least squares), ridge and LASSO
+regression to predict the energy in the nearest neighbor
+one-dimensional Ising model on a ring, i.e., the endpoints wrap
+around. We will use the linear regression models to fit a value for
+the coupling constant to achieve this.
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">mpl_toolkits.axes_grid1</span> <span style="color: #008000; font-weight: bold">import</span> make_axes_locatable
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">seaborn</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">sns</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">scipy.linalg</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">scl</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skl</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">tqdm</span>
+sns<span style="color: #666666">.</span>set(color_codes<span style="color: #666666">=</span><span style="color: #008000">True</span>)
+cmap_args<span style="color: #666666">=</span><span style="color: #008000">dict</span>(vmin<span style="color: #666666">=-1.</span>, vmax<span style="color: #666666">=1.</span>, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&#39;seismic&#39;</span>)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec104">Reformulating the problem to suit regression </h2>
+
+<p>
+A more general form for the one-dimensional Ising model is
+
+$$
+\begin{align}
+    H = - \sum_j^L \sum_k^L s_j s_k J_{jk}.
+\label{_auto20}
+\end{align}
+$$
+
+<p>
+Here we allow for interactions beyond the nearest neighbors and a more
+adaptive coupling matrix. This latter expression can be formulated as
+a matrix-product on the form
+$$
+\begin{align}
+    H = X J,
+\label{_auto21}
+\end{align}
+$$
+
+<p>
+where \( X_{jk} = s_j s_k \) and \( J \) is the matrix consisting of the
+elements \( -J_{jk} \). This form of writing the energy fits perfectly
+with the form utilized in linear regression, viz.
+$$
+\begin{align}
+    y = X\omega + \epsilon,
+\label{_auto22}
+\end{align}
+$$
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((n, L <span style="color: #666666">**</span> <span style="color: #666666">2</span>))
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
+    X[i] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>outer(spins[i], spins[i])<span style="color: #666666">.</span>ravel()
+y <span style="color: #666666">=</span> energies
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.96</span>)
+
+X_train_own <span style="color: #666666">=</span> np<span style="color: #666666">.</span>concatenate(
+    (np<span style="color: #666666">.</span>ones(<span style="color: #008000">len</span>(X_train))[:, np<span style="color: #666666">.</span>newaxis], X_train),
+    axis<span style="color: #666666">=1</span>
+)
+
+X_test_own <span style="color: #666666">=</span> np<span style="color: #666666">.</span>concatenate(
+    (np<span style="color: #666666">.</span>ones(<span style="color: #008000">len</span>(X_test))[:, np<span style="color: #666666">.</span>newaxis], X_test),
+    axis<span style="color: #666666">=1</span>
+)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec105">Linear regression </h2>
+
+<p>
+The problem at hand is to try to fit the equation
+$$
+\begin{align}
+    y = f(x) + \epsilon,
+\label{_auto23}
+\end{align}
+$$
+
+<p>
+where \( f(x) \) is some unknown function of the data \( x \) and \( \epsilon \)
+is normally distributed with mean zero noise with standard deviation
+\( \sigma_{\epsilon} \). Our job is to try to find a predictor which
+estimates the function \( f(x) \). In linear regression we assume that we
+can formulate the problem as
+
+$$
+\begin{align}
+    y = X\omega + \epsilon,
+\label{_auto24}
+\end{align}
+$$
+
+<p>
+where \( X \) and \( \omega \) are now matrices. Our job at hand is now to
+find a <b>cost function</b> \( C \), which we wish to minimize in order to find
+the best estimate of \( \omega \).
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec106">Ordinary least squares </h2>
+
+<p>
+In the ordinary least squares method we choose the cost function
+$$
+\begin{align}
+    C(X, \omega) = ||X\omega - y||^2
+    = (X\omega - y)^T(X\omega - y)
+\label{_auto25}
+\end{align}
+$$
+
+We then find the extremal point of \( C \) by taking the derivative with respect to \( \omega \) and setting it to zero, i.e.,
+
+$$
+\begin{align}
+    \dfrac{\mathrm{d}C}{\mathrm{d}\omega}
+    = 0.
+\label{_auto26}
+\end{align}
+$$
+
+This yields the expression for \( \omega \) to be
+$$
+\begin{align}
+    \omega = \frac{X^T y}{X^T X},
+\label{_auto27}
+\end{align}
+$$
+
+<p>
+which immediately imposes some requirements on \( X \) as there must exist
+an inverse of \( X^T X \). If the expression we are modelling contains an
+intercept, i.e., a constant expression we must make sure that the
+first column of \( X \) consists of \( 1 \).
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">get_ols_weights_naive</span>(x: np<span style="color: #666666">.</span>ndarray, y: np<span style="color: #666666">.</span>ndarray) <span style="color: #666666">-&gt;</span> np<span style="color: #666666">.</span>ndarray:
+    <span style="color: #008000; font-weight: bold">return</span> scl<span style="color: #666666">.</span>inv(x<span style="color: #666666">.</span>T @ x) @ (x<span style="color: #666666">.</span>T @ y)
+omega <span style="color: #666666">=</span> get_ols_weights_naive(X_train_own, y_train)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec107">Singular Value decomposition </h2>
+Doing the inversion directly turns out to be a bad idea as the matrix
+\( X^TX \) is singular. An alternative approach is to use the <b>singular
+value decomposition</b>. Using the definition of the Moore-Penrose
+pseudoinverse we can write the equation for \( \omega \) as
+
+$$
+\begin{align}
+    \omega = X^{+}y,
+\label{_auto28}
+\end{align}
+$$
+
+where the pseudoinverse of \( X \) is given by
+$$
+\begin{align}
+    X^{+} = \frac{X^T}{X^T X}.
+\label{_auto29}
+\end{align}
+$$
+
+<p>
+Using singular value decomposition we have that \( X = U\Sigma V^T \),
+where \( X^{+} = V\Sigma^{+} U^T \). This reduces the equation for
+\( \omega \) to
+$$
+\begin{align}
+    \omega = V\Sigma^{+} U^T y.
+\label{_auto30}
+\end{align}
+$$
+
+<p>
+Note that solving this equation by actually doing the pseudoinverse
+(which is what we will do) is not a good idea as this operation scales
+as \( \mathcal{O}(n^3) \), where \( n \) is the number of elements in a
+general matrix. Instead, doing \( QR \)-factorization and solving the
+linear system as an equation would reduce this down to
+\( \mathcal{O}(n^2) \) operations.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">get_ols_weights</span>(x: np<span style="color: #666666">.</span>ndarray, y: np<span style="color: #666666">.</span>ndarray) <span style="color: #666666">-&gt;</span> np<span style="color: #666666">.</span>ndarray:
+    u, s, v <span style="color: #666666">=</span> scl<span style="color: #666666">.</span>svd(x)
+    <span style="color: #008000; font-weight: bold">return</span> v<span style="color: #666666">.</span>T @ scl<span style="color: #666666">.</span>pinv(scl<span style="color: #666666">.</span>diagsvd(s, u<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>], v<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>])) @ u<span style="color: #666666">.</span>T @ y
+</pre></div>
+<p>
+Before passing in the data to the function we append a column with ones to the training data.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>omega <span style="color: #666666">=</span> get_ols_weights(X_train_own,y_train)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec108">Fitting with scikit-learn </h2>
+
+<p>
+Next we fit a <code>LinearRegression</code>-model from Scikit-learn for comparison.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>clf <span style="color: #666666">=</span> skl<span style="color: #666666">.</span>LinearRegression()<span style="color: #666666">.</span>fit(X_train, y_train)
+</pre></div>
+<p>
+Extracting the \( J \)-matrix from both our own method and the Scikit-learn model where we make sure to remove the intercept.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>J_own <span style="color: #666666">=</span> omega[<span style="color: #666666">1</span>:]<span style="color: #666666">.</span>reshape(L, L)
+J_sk <span style="color: #666666">=</span> clf<span style="color: #666666">.</span>coef_<span style="color: #666666">.</span>reshape(L, L)
+</pre></div>
+<p>
+A way of looking at the coefficients in \( J \) is to plot the matrices as images.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+im <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>imshow(J_own, <span style="color: #666666">**</span>cmap_args)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Home-made OLS&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xticks(fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>yticks(fontsize<span style="color: #666666">=18</span>)
+cb <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>colorbar(im)
+cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>set_yticklabels(cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>get_yticklabels(), fontsize<span style="color: #666666">=18</span>)
+
+fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+im <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>imshow(J_sk, <span style="color: #666666">**</span>cmap_args)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;LinearRegression from Scikit-learn&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xticks(fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>yticks(fontsize<span style="color: #666666">=18</span>)
+cb <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>colorbar(im)
+cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>set_yticklabels(cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>get_yticklabels(), fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+We can see that our model for the least squares method performes close
+to the benchmark from Scikit-learn. It is interesting to note that OLS
+considers both \( J_{j, j + 1} = -0.5 \) and \( J_{j, j - 1} = -0.5 \) as
+valid matrix elements for \( J \).
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec109">Ridge regression </h2>
+
+<p>
+Having explored the ordinary least squares we move on to ridge
+regression. In ridge regression we include a <b>regularizer</b>. This
+involves a new cost function which leads to a new estimate for the
+weights \( \omega \). This results in a penalized regression problem. The
+cost function is given by
+
+$$
+\begin{align}
+    C(X, \omega; \lambda) = ||X\omega - y||^2 + \lambda ||\omega||^2
+    = (X\omega - y)^T(X\omega - y) + \lambda \omega^T\omega.
+\label{_auto31}
+\end{align}
+$$
+
+Finding the extremum of this function yields the weights
+
+$$
+\begin{align}
+    \omega(\lambda) = \frac{X^Ty}{X^TX + \lambda} \to \frac{\omega_{\text{LS}}}{1 + \lambda},
+\label{_auto32}
+\end{align}
+$$
+
+<p>
+where \( \omega_{\text{LS}} \) is the weights from ordinary least
+squares. The last assumption assumes that \( X \) is orthogonal, which it
+is not. We will therefore resort to solving the equation as it stands
+on the left hand side.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">get_ridge_weights</span>(x: np<span style="color: #666666">.</span>ndarray, y: np<span style="color: #666666">.</span>ndarray, _lambda: <span style="color: #008000">float</span>) <span style="color: #666666">-&gt;</span> np<span style="color: #666666">.</span>ndarray:
+    <span style="color: #008000; font-weight: bold">return</span> x<span style="color: #666666">.</span>T @ y @ scl<span style="color: #666666">.</span>inv(
+        x<span style="color: #666666">.</span>T @ x <span style="color: #666666">+</span> np<span style="color: #666666">.</span>eye(x<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>], x<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>]) <span style="color: #666666">*</span> _lambda
+    )
+<span style="color: #008000; font-weight: bold">lambda</span> <span style="color: #666666">=</span> <span style="color: #666666">0.1</span>
+omega_ridge <span style="color: #666666">=</span> get_ridge_weights(X_train_own, y_train, np<span style="color: #666666">.</span>array([_lambda]))
+clf_ridge <span style="color: #666666">=</span> skl<span style="color: #666666">.</span>Ridge(alpha<span style="color: #666666">=</span>_lambda)<span style="color: #666666">.</span>fit(X_train, y_train)
+J_ridge_own <span style="color: #666666">=</span> omega_ridge[<span style="color: #666666">1</span>:]<span style="color: #666666">.</span>reshape(L, L)
+J_ridge_sk <span style="color: #666666">=</span> clf_ridge<span style="color: #666666">.</span>coef_<span style="color: #666666">.</span>reshape(L, L)
+fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+im <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>imshow(J_ridge_own, <span style="color: #666666">**</span>cmap_args)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Home-made ridge regression&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xticks(fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>yticks(fontsize<span style="color: #666666">=18</span>)
+cb <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>colorbar(im)
+cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>set_yticklabels(cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>get_yticklabels(), fontsize<span style="color: #666666">=18</span>)
+
+fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+im <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>imshow(J_ridge_sk, <span style="color: #666666">**</span>cmap_args)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Ridge from Scikit-learn&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xticks(fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>yticks(fontsize<span style="color: #666666">=18</span>)
+cb <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>colorbar(im)
+cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>set_yticklabels(cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>get_yticklabels(), fontsize<span style="color: #666666">=18</span>)
+
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec110">LASSO regression </h2>
+
+<p>
+In the <b>Least Absolute Shrinkage and Selection Operator</b> (LASSO)-method we get a third cost function.
+$$
+\begin{align}
+    C(X, \omega; \lambda) =
+    ||X\omega - y||^2 + \lambda ||\omega||
+    = (X\omega - y)^T(X\omega - y) + \lambda \sqrt{\omega^T\omega}.
+\label{_auto33}
+\end{align}
+$$
+
+Finding the extremal point of this cost function is not so straight-forward as in least squares and ridge. We will therefore rely solely on the function ``Lasso`` from Scikit-learn.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>clf_lasso <span style="color: #666666">=</span> skl<span style="color: #666666">.</span>Lasso(alpha<span style="color: #666666">=</span>_lambda)<span style="color: #666666">.</span>fit(X_train, y_train)
+J_lasso_sk <span style="color: #666666">=</span> clf_lasso<span style="color: #666666">.</span>coef_<span style="color: #666666">.</span>reshape(L, L)
+fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+im <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>imshow(J_lasso_sk, <span style="color: #666666">**</span>cmap_args)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Lasso from Scikit-learn&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xticks(fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>yticks(fontsize<span style="color: #666666">=18</span>)
+cb <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>colorbar(im)
+cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>set_yticklabels(cb<span style="color: #666666">.</span>ax<span style="color: #666666">.</span>get_yticklabels(), fontsize<span style="color: #666666">=18</span>)
+
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+It is quite striking how LASSO breaks the symmetry of the coupling
+constant as opposed to ridge and OLS. We get a sparse solution with
+\( J_{j, j + 1} = -1 \).
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec111">Performance of the different models </h2>
+
+<p>
+In order to judge which model performs best at varying values of \( \lambda \) (for ridge and LASSO) we compute \( R^2 \) which is given by
+
+$$
+\begin{align}
+    R^2 = 1 - \frac{(y - \hat{y})^2}{(y - \bar{y})^2},
+\label{_auto34}
+\end{align}
+$$
+
+where \( y \) is a vector with the true values of the energy, \( \hat{y} \) is the predicted values of \( y \) from the models and \( \bar{y} \) is the mean of \( \hat{y} \).
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">r_squared</span>(y, y_hat):
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>sum((y <span style="color: #666666">-</span> y_hat) <span style="color: #666666">**</span> <span style="color: #666666">2</span>) <span style="color: #666666">/</span> np<span style="color: #666666">.</span>sum((y <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_hat)) <span style="color: #666666">**</span> <span style="color: #666666">2</span>)
+</pre></div>
+<p>
+This is the same metric used by Scikit-learn for their regression models when scoring.
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>y_hat <span style="color: #666666">=</span> clf<span style="color: #666666">.</span>predict(X_test)
+r_test <span style="color: #666666">=</span> r_squared(y_test, y_hat)
+sk_r_test <span style="color: #666666">=</span> clf<span style="color: #666666">.</span>score(X_test, y_test)
+
+<span style="color: #008000; font-weight: bold">assert</span> <span style="color: #008000">abs</span>(r_test <span style="color: #666666">-</span> sk_r_test) <span style="color: #666666">&lt;</span> <span style="color: #666666">1e-2</span>
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec112">Performance as  function of the regularization parameter </h2>
+
+<p>
+We see how the different models perform for a different set of values for \( \lambda \).
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-4</span>, <span style="color: #666666">5</span>, <span style="color: #666666">10</span>)
+
+train_errors <span style="color: #666666">=</span> {
+    <span style="color: #BA2121">&quot;ols_own&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;ols_sk&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;ridge_own&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;ridge_sk&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;lasso_sk&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size)
+}
+
+test_errors <span style="color: #666666">=</span> {
+    <span style="color: #BA2121">&quot;ols_own&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;ols_sk&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;ridge_own&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;ridge_sk&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size),
+    <span style="color: #BA2121">&quot;lasso_sk&quot;</span>: np<span style="color: #666666">.</span>zeros(lambdas<span style="color: #666666">.</span>size)
+}
+
+plot_counter <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+
+fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">32</span>, <span style="color: #666666">54</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> i, _lambda <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(tqdm<span style="color: #666666">.</span>tqdm(lambdas)):
+    omega <span style="color: #666666">=</span> get_ols_weights(X_train_own, y_train)
+    y_hat_train <span style="color: #666666">=</span> X_train_own @ omega
+    y_hat_test <span style="color: #666666">=</span> X_test_own @ omega
+
+    train_errors[<span style="color: #BA2121">&quot;ols_own&quot;</span>][i] <span style="color: #666666">=</span> r_squared(y_train, y_hat_train)
+    test_errors[<span style="color: #BA2121">&quot;ols_own&quot;</span>][i] <span style="color: #666666">=</span> r_squared(y_test, y_hat_test)
+
+    plt<span style="color: #666666">.</span>subplot(<span style="color: #666666">10</span>, <span style="color: #666666">5</span>, plot_counter)
+    plt<span style="color: #666666">.</span>imshow(omega[<span style="color: #666666">1</span>:]<span style="color: #666666">.</span>reshape(L, L), <span style="color: #666666">**</span>cmap_args)
+    plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Home made OLS&quot;</span>)
+    plot_counter <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+
+    omega <span style="color: #666666">=</span> get_ridge_weights(X_train_own, y_train, _lambda)
+    y_hat_train <span style="color: #666666">=</span> X_train_own @ omega
+    y_hat_test <span style="color: #666666">=</span> X_test_own @ omega
+
+    train_errors[<span style="color: #BA2121">&quot;ridge_own&quot;</span>][i] <span style="color: #666666">=</span> r_squared(y_train, y_hat_train)
+    test_errors[<span style="color: #BA2121">&quot;ridge_own&quot;</span>][i] <span style="color: #666666">=</span> r_squared(y_test, y_hat_test)
+
+    plt<span style="color: #666666">.</span>subplot(<span style="color: #666666">10</span>, <span style="color: #666666">5</span>, plot_counter)
+    plt<span style="color: #666666">.</span>imshow(omega[<span style="color: #666666">1</span>:]<span style="color: #666666">.</span>reshape(L, L), <span style="color: #666666">**</span>cmap_args)
+    plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&quot;Home made ridge, $\lambda = </span><span style="color: #BB6688; font-weight: bold">%.4f</span><span style="color: #BA2121">$&quot;</span> <span style="color: #666666">%</span> _lambda)
+    plot_counter <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+
+    <span style="color: #008000; font-weight: bold">for</span> key, method <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">zip</span>(
+        [<span style="color: #BA2121">&quot;ols_sk&quot;</span>, <span style="color: #BA2121">&quot;ridge_sk&quot;</span>, <span style="color: #BA2121">&quot;lasso_sk&quot;</span>],
+        [skl<span style="color: #666666">.</span>LinearRegression(), skl<span style="color: #666666">.</span>Ridge(alpha<span style="color: #666666">=</span>_lambda), skl<span style="color: #666666">.</span>Lasso(alpha<span style="color: #666666">=</span>_lambda)]
+    ):
+        method <span style="color: #666666">=</span> method<span style="color: #666666">.</span>fit(X_train, y_train)
+
+        train_errors[key][i] <span style="color: #666666">=</span> method<span style="color: #666666">.</span>score(X_train, y_train)
+        test_errors[key][i] <span style="color: #666666">=</span> method<span style="color: #666666">.</span>score(X_test, y_test)
+
+        omega <span style="color: #666666">=</span> method<span style="color: #666666">.</span>coef_<span style="color: #666666">.</span>reshape(L, L)
+
+        plt<span style="color: #666666">.</span>subplot(<span style="color: #666666">10</span>, <span style="color: #666666">5</span>, plot_counter)
+        plt<span style="color: #666666">.</span>imshow(omega, <span style="color: #666666">**</span>cmap_args)
+        plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&quot;</span><span style="color: #BB6688; font-weight: bold">%s</span><span style="color: #BA2121">, $\lambda = </span><span style="color: #BB6688; font-weight: bold">%.4f</span><span style="color: #BA2121">$&quot;</span> <span style="color: #666666">%</span> (key, _lambda))
+        plot_counter <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+We can see that LASSO quite fast reaches a good solution for low
+values of \( \lambda \), but will "wither" when we increase \( \lambda \) too
+much. Ridge is more stable over a larger range of values for
+\( \lambda \), but eventually also fades away.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec113">Finding the optimal value of \( \lambda \) </h2>
+
+<p>
+To determine which value of \( \lambda \) is best we plot the accuracy of
+the models when predicting the training and the testing set. We expect
+the accuracy of the training set to be quite good, but if the accuracy
+of the testing set is much lower this tells us that we might be
+subject to an overfit model. The ideal scenario is an accuracy on the
+testing set that is close to the accuracy of the training set.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+
+colors <span style="color: #666666">=</span> {
+    <span style="color: #BA2121">&quot;ols_own&quot;</span>: <span style="color: #BA2121">&quot;b&quot;</span>,
+    <span style="color: #BA2121">&quot;ridge_own&quot;</span>: <span style="color: #BA2121">&quot;g&quot;</span>,
+    <span style="color: #BA2121">&quot;ols_sk&quot;</span>: <span style="color: #BA2121">&quot;r&quot;</span>,
+    <span style="color: #BA2121">&quot;ridge_sk&quot;</span>: <span style="color: #BA2121">&quot;y&quot;</span>,
+    <span style="color: #BA2121">&quot;lasso_sk&quot;</span>: <span style="color: #BA2121">&quot;c&quot;</span>
+}
+
+<span style="color: #008000; font-weight: bold">for</span> key <span style="color: #AA22FF; font-weight: bold">in</span> train_errors:
+    plt<span style="color: #666666">.</span>semilogx(
+        lambdas,
+        train_errors[key],
+        colors[key],
+        label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Train {0}&quot;</span><span style="color: #666666">.</span>format(key),
+        linewidth<span style="color: #666666">=4.0</span>
+    )
+
+<span style="color: #008000; font-weight: bold">for</span> key <span style="color: #AA22FF; font-weight: bold">in</span> test_errors:
+    plt<span style="color: #666666">.</span>semilogx(
+        lambdas,
+        test_errors[key],
+        colors[key] <span style="color: #666666">+</span> <span style="color: #BA2121">&quot;--&quot;</span>,
+        label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Test {0}&quot;</span><span style="color: #666666">.</span>format(key),
+        linewidth<span style="color: #666666">=4.0</span>
+    )
+<span style="color: #408080; font-style: italic">#plt.semilogx(lambdas, train_errors[&quot;ols_own&quot;], label=&quot;Train (OLS own)&quot;)</span>
+<span style="color: #408080; font-style: italic">#plt.semilogx(lambdas, test_errors[&quot;ols_own&quot;], label=&quot;Test (OLS own)&quot;)</span>
+
+plt<span style="color: #666666">.</span>legend(loc<span style="color: #666666">=</span><span style="color: #BA2121">&quot;best&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&quot;$\lambda$&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&quot;$R^2$&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>tick_params(labelsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+From the above figure we can see that LASSO with \( \lambda = 10^{-2} \)
+achieve a very good accuracy on the test set. This by far surpases the
+other models for all values of \( \lambda \).
 
 <!-- ------------------- end of main content --------------- -->
 

@@ -313,7 +313,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._Regression-bs021.html#___sec20" style="font-size: 80%;">Simple linear regression model using <b>scikit-learn</b></a></li>
      <!-- navigation toc: --> <li><a href="._Regression-bs022.html#___sec21" style="font-size: 80%;">Simple linear regression model</a></li>
      <!-- navigation toc: --> <li><a href="._Regression-bs023.html#___sec22" style="font-size: 80%;">Less noise</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec23" style="font-size: 80%;">How to study our fits</a></li>
+     <!-- navigation toc: --> <li><a href="._Regression-bs024.html#___sec23" style="font-size: 80%;">How to study our fits</a></li>
      <!-- navigation toc: --> <li><a href="._Regression-bs025.html#___sec24" style="font-size: 80%;">Minimizing the cost function</a></li>
      <!-- navigation toc: --> <li><a href="._Regression-bs026.html#___sec25" style="font-size: 80%;">Relative error</a></li>
      <!-- navigation toc: --> <li><a href="._Regression-bs027.html#___sec26" style="font-size: 80%;">The richness of <b>scikit-learn</b></a></li>
@@ -403,7 +403,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._Regression-bs111.html#___sec110" style="font-size: 80%;">LASSO regression</a></li>
      <!-- navigation toc: --> <li><a href="._Regression-bs112.html#___sec111" style="font-size: 80%;">Performance of the different models</a></li>
      <!-- navigation toc: --> <li><a href="._Regression-bs113.html#___sec112" style="font-size: 80%;">Performance as  function of the regularization parameter</a></li>
-     <!-- navigation toc: --> <li><a href="._Regression-bs114.html#___sec113" style="font-size: 80%;">Finding the optimal value of \( \lambda \)</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec113" style="font-size: 80%;">Finding the optimal value of \( \lambda \)</a></li>
 
         </ul>
       </li>
@@ -416,56 +416,78 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0024"></a>
+<a name="part0114"></a>
 <!-- !split -->
 
-<h2 id="___sec23" class="anchor">How to study our fits </h2>
+<h2 id="___sec113" class="anchor">Finding the optimal value of \( \lambda \) </h2>
 
 <p>
-We need more rigorous criteria in defining whether we have succeeded or
-not in modeling our training data.  You will be surprised to see that
-many scientists seldomly venture beyond this 'by the eye' approach. A
-standard approach for the <em>cost</em> function is the so-called \( \chi^2 \)
-function 
-
-$$ \chi^2 = \frac{1}{n}
-\sum_{i=0}^{n-1}\frac{(y_i-\tilde{y}_i)^2}{\sigma_i^2}, 
-$$
+To determine which value of \( \lambda \) is best we plot the accuracy of
+the models when predicting the training and the testing set. We expect
+the accuracy of the training set to be quite good, but if the accuracy
+of the testing set is much lower this tells us that we might be
+subject to an overfit model. The ideal scenario is an accuracy on the
+testing set that is close to the accuracy of the training set.
 
 <p>
-where \( \sigma_i^2 \) is the variance (to be defined later) of the entry
-\( y_i \).  We may not know the explicit value of \( \sigma_i^2 \), it serves
-however the aim of scaling the equations and make the cost function
-dimensionless.
 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+
+colors <span style="color: #666666">=</span> {
+    <span style="color: #BA2121">&quot;ols_own&quot;</span>: <span style="color: #BA2121">&quot;b&quot;</span>,
+    <span style="color: #BA2121">&quot;ridge_own&quot;</span>: <span style="color: #BA2121">&quot;g&quot;</span>,
+    <span style="color: #BA2121">&quot;ols_sk&quot;</span>: <span style="color: #BA2121">&quot;r&quot;</span>,
+    <span style="color: #BA2121">&quot;ridge_sk&quot;</span>: <span style="color: #BA2121">&quot;y&quot;</span>,
+    <span style="color: #BA2121">&quot;lasso_sk&quot;</span>: <span style="color: #BA2121">&quot;c&quot;</span>
+}
+
+<span style="color: #008000; font-weight: bold">for</span> key <span style="color: #AA22FF; font-weight: bold">in</span> train_errors:
+    plt<span style="color: #666666">.</span>semilogx(
+        lambdas,
+        train_errors[key],
+        colors[key],
+        label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Train {0}&quot;</span><span style="color: #666666">.</span>format(key),
+        linewidth<span style="color: #666666">=4.0</span>
+    )
+
+<span style="color: #008000; font-weight: bold">for</span> key <span style="color: #AA22FF; font-weight: bold">in</span> test_errors:
+    plt<span style="color: #666666">.</span>semilogx(
+        lambdas,
+        test_errors[key],
+        colors[key] <span style="color: #666666">+</span> <span style="color: #BA2121">&quot;--&quot;</span>,
+        label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Test {0}&quot;</span><span style="color: #666666">.</span>format(key),
+        linewidth<span style="color: #666666">=4.0</span>
+    )
+<span style="color: #408080; font-style: italic">#plt.semilogx(lambdas, train_errors[&quot;ols_own&quot;], label=&quot;Train (OLS own)&quot;)</span>
+<span style="color: #408080; font-style: italic">#plt.semilogx(lambdas, test_errors[&quot;ols_own&quot;], label=&quot;Test (OLS own)&quot;)</span>
+
+plt<span style="color: #666666">.</span>legend(loc<span style="color: #666666">=</span><span style="color: #BA2121">&quot;best&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&quot;$\lambda$&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&quot;$R^2$&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>tick_params(labelsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
 <p>
+From the above figure we can see that LASSO with \( \lambda = 10^{-2} \)
+achieve a very good accuracy on the test set. This by far surpases the
+other models for all values of \( \lambda \).
+
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._Regression-bs023.html">&laquo;</a></li>
+<li><a href="._Regression-bs113.html">&laquo;</a></li>
   <li><a href="._Regression-bs000.html">1</a></li>
   <li><a href="">...</a></li>
-  <li><a href="._Regression-bs016.html">17</a></li>
-  <li><a href="._Regression-bs017.html">18</a></li>
-  <li><a href="._Regression-bs018.html">19</a></li>
-  <li><a href="._Regression-bs019.html">20</a></li>
-  <li><a href="._Regression-bs020.html">21</a></li>
-  <li><a href="._Regression-bs021.html">22</a></li>
-  <li><a href="._Regression-bs022.html">23</a></li>
-  <li><a href="._Regression-bs023.html">24</a></li>
-  <li class="active"><a href="._Regression-bs024.html">25</a></li>
-  <li><a href="._Regression-bs025.html">26</a></li>
-  <li><a href="._Regression-bs026.html">27</a></li>
-  <li><a href="._Regression-bs027.html">28</a></li>
-  <li><a href="._Regression-bs028.html">29</a></li>
-  <li><a href="._Regression-bs029.html">30</a></li>
-  <li><a href="._Regression-bs030.html">31</a></li>
-  <li><a href="._Regression-bs031.html">32</a></li>
-  <li><a href="._Regression-bs032.html">33</a></li>
-  <li><a href="._Regression-bs033.html">34</a></li>
-  <li><a href="">...</a></li>
-  <li><a href="._Regression-bs114.html">115</a></li>
-  <li><a href="._Regression-bs025.html">&raquo;</a></li>
+  <li><a href="._Regression-bs106.html">107</a></li>
+  <li><a href="._Regression-bs107.html">108</a></li>
+  <li><a href="._Regression-bs108.html">109</a></li>
+  <li><a href="._Regression-bs109.html">110</a></li>
+  <li><a href="._Regression-bs110.html">111</a></li>
+  <li><a href="._Regression-bs111.html">112</a></li>
+  <li><a href="._Regression-bs112.html">113</a></li>
+  <li><a href="._Regression-bs113.html">114</a></li>
+  <li class="active"><a href="._Regression-bs114.html">115</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
