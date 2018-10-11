@@ -95,7 +95,7 @@ MathJax.Hub.Config({
         <ul class="dropdown-menu">
      <!-- navigation toc: --> <li><a href="._LogReg-bs001.html#___sec0" style="font-size: 80%;">Logistic Regression</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs002.html#___sec1" style="font-size: 80%;">Optimization and Deep learning</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec2" style="font-size: 80%;">Basics</a></li>
+     <!-- navigation toc: --> <li><a href="._LogReg-bs003.html#___sec2" style="font-size: 80%;">Basics</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs004.html#___sec3" style="font-size: 80%;">Linear classifier</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs005.html#___sec4" style="font-size: 80%;">Some selected properties</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs006.html#___sec5" style="font-size: 80%;">The logistic function</a></li>
@@ -108,7 +108,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._LogReg-bs013.html#___sec12" style="font-size: 80%;">Including more classes</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs014.html#___sec13" style="font-size: 80%;">The Softmax function</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs015.html#___sec14" style="font-size: 80%;">A <b>scikit-learn</b> example</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs016.html#___sec15" style="font-size: 80%;">A simple classification problem</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec15" style="font-size: 80%;">A simple classification problem</a></li>
 
         </ul>
       </li>
@@ -121,50 +121,80 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0003"></a>
-<!-- !split  -->
+<a name="part0016"></a>
+<!-- !split -->
 
-<h2 id="___sec2" class="anchor">Basics </h2>
-
+<h2 id="___sec15" class="anchor">A simple classification problem </h2>
 <p>
-We consider the case where the dependent variables, also called the
-responses or the outcomes, \( y_i \) are discrete and only take values
-from \( k=0,\dots,K-1 \) (i.e. \( K \) classes).
 
-<p>
-The goal is to predict the
-output classes from the design matrix \( \hat{X}\in\mathbb{R}^{n\times p} \)
-made of \( n \) samples, each of which carries \( p \) features or predictors. The
-primary goal is to identify the classes to which new unseen samples
-belong.
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> datasets, linear_model
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
 
-<p>
-Let us specialize to the case of two classes only, with outputs \( y_i=0 \) and \( y_i=1 \). Our outcomes could represent the status of a credit card user who could default or not on her/his credit card debt. That is
-$$
-y_i = \begin{bmatrix} 0 & \mathrm{no}\\  1 & \mathrm{yes} \end{bmatrix}.
-$$
 
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">generate_data</span>():
+    np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">0</span>)
+    X, y <span style="color: #666666">=</span> datasets<span style="color: #666666">.</span>make_moons(<span style="color: #666666">200</span>, noise<span style="color: #666666">=0.20</span>)
+    <span style="color: #008000; font-weight: bold">return</span> X, y
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">visualize</span>(X, y, clf):
+    <span style="color: #408080; font-style: italic"># plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)</span>
+    <span style="color: #408080; font-style: italic"># plt.show()</span>
+    plot_decision_boundary(<span style="color: #008000; font-weight: bold">lambda</span> x: clf<span style="color: #666666">.</span>predict(x), X, y)
+    plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Logistic Regression&quot;</span>)
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">plot_decision_boundary</span>(pred_func, X, y):
+    <span style="color: #408080; font-style: italic"># Set min and max values and give it some padding</span>
+    x_min, x_max <span style="color: #666666">=</span> X[:, <span style="color: #666666">0</span>]<span style="color: #666666">.</span>min() <span style="color: #666666">-</span> <span style="color: #666666">.5</span>, X[:, <span style="color: #666666">0</span>]<span style="color: #666666">.</span>max() <span style="color: #666666">+</span> <span style="color: #666666">.5</span>
+    y_min, y_max <span style="color: #666666">=</span> X[:, <span style="color: #666666">1</span>]<span style="color: #666666">.</span>min() <span style="color: #666666">-</span> <span style="color: #666666">.5</span>, X[:, <span style="color: #666666">1</span>]<span style="color: #666666">.</span>max() <span style="color: #666666">+</span> <span style="color: #666666">.5</span>
+    h <span style="color: #666666">=</span> <span style="color: #666666">0.01</span>
+    <span style="color: #408080; font-style: italic"># Generate a grid of points with distance h between them</span>
+    xx, yy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>meshgrid(np<span style="color: #666666">.</span>arange(x_min, x_max, h), np<span style="color: #666666">.</span>arange(y_min, y_max, h))
+    <span style="color: #408080; font-style: italic"># Predict the function value for the whole gid</span>
+    Z <span style="color: #666666">=</span> pred_func(np<span style="color: #666666">.</span>c_[xx<span style="color: #666666">.</span>ravel(), yy<span style="color: #666666">.</span>ravel()])
+    Z <span style="color: #666666">=</span> Z<span style="color: #666666">.</span>reshape(xx<span style="color: #666666">.</span>shape)
+    <span style="color: #408080; font-style: italic"># Plot the contour and training examples</span>
+    plt<span style="color: #666666">.</span>contourf(xx, yy, Z, cmap<span style="color: #666666">=</span>plt<span style="color: #666666">.</span>cm<span style="color: #666666">.</span>Spectral)
+    plt<span style="color: #666666">.</span>scatter(X[:, <span style="color: #666666">0</span>], X[:, <span style="color: #666666">1</span>], c<span style="color: #666666">=</span>y, cmap<span style="color: #666666">=</span>plt<span style="color: #666666">.</span>cm<span style="color: #666666">.</span>Spectral)
+    plt<span style="color: #666666">.</span>show()
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">classify</span>(X, y):
+    clf <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>LogisticRegressionCV()
+    clf<span style="color: #666666">.</span>fit(X, y)
+    <span style="color: #008000; font-weight: bold">return</span> clf
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">main</span>():
+    X, y <span style="color: #666666">=</span> generate_data()
+    <span style="color: #408080; font-style: italic"># visualize(X, y)</span>
+    clf <span style="color: #666666">=</span> classify(X, y)
+    visualize(X, y, clf)
+
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #19177C">__name__</span> <span style="color: #666666">==</span> <span style="color: #BA2121">&quot;__main__&quot;</span>:
+    main()
+</pre></div>
 <p>
+
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._LogReg-bs002.html">&laquo;</a></li>
+<li><a href="._LogReg-bs015.html">&laquo;</a></li>
   <li><a href="._LogReg-bs000.html">1</a></li>
-  <li><a href="._LogReg-bs001.html">2</a></li>
-  <li><a href="._LogReg-bs002.html">3</a></li>
-  <li class="active"><a href="._LogReg-bs003.html">4</a></li>
-  <li><a href="._LogReg-bs004.html">5</a></li>
-  <li><a href="._LogReg-bs005.html">6</a></li>
-  <li><a href="._LogReg-bs006.html">7</a></li>
-  <li><a href="._LogReg-bs007.html">8</a></li>
+  <li><a href="">...</a></li>
   <li><a href="._LogReg-bs008.html">9</a></li>
   <li><a href="._LogReg-bs009.html">10</a></li>
   <li><a href="._LogReg-bs010.html">11</a></li>
   <li><a href="._LogReg-bs011.html">12</a></li>
   <li><a href="._LogReg-bs012.html">13</a></li>
-  <li><a href="">...</a></li>
-  <li><a href="._LogReg-bs016.html">17</a></li>
-  <li><a href="._LogReg-bs004.html">&raquo;</a></li>
+  <li><a href="._LogReg-bs013.html">14</a></li>
+  <li><a href="._LogReg-bs014.html">15</a></li>
+  <li><a href="._LogReg-bs015.html">16</a></li>
+  <li class="active"><a href="._LogReg-bs016.html">17</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
