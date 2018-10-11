@@ -111,7 +111,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._LogReg-bs006.html#___sec5" style="font-size: 80%;">The logistic function</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs007.html#___sec6" style="font-size: 80%;">Two parameters</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs008.html#___sec7" style="font-size: 80%;">Maximum likelihood</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec8" style="font-size: 80%;">The cost function rewritten</a></li>
+     <!-- navigation toc: --> <li><a href="._LogReg-bs009.html#___sec8" style="font-size: 80%;">The cost function rewritten</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs010.html#___sec9" style="font-size: 80%;">Minimizing the cross entropy</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs011.html#___sec10" style="font-size: 80%;">A more compact expression</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs012.html#___sec11" style="font-size: 80%;">Extending to more predictors</a></li>
@@ -119,7 +119,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._LogReg-bs014.html#___sec13" style="font-size: 80%;">The Softmax function</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs015.html#___sec14" style="font-size: 80%;">A <b>scikit-learn</b> example</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs016.html#___sec15" style="font-size: 80%;">A simple classification problem</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs017.html#___sec16" style="font-size: 80%;">The two-dimensional Ising model, Predicting phase transition of the two-dimensional Ising model</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec16" style="font-size: 80%;">The two-dimensional Ising model, Predicting phase transition of the two-dimensional Ising model</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs018.html#___sec17" style="font-size: 80%;">Reading in the data</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs019.html#___sec18" style="font-size: 80%;">Logistic regression</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs020.html#___sec19" style="font-size: 80%;">Exploring the logistic regression</a></li>
@@ -137,42 +137,76 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0009"></a>
-<!-- !split -->
+<a name="part0017"></a>
+<!-- !split  -->
 
-<h2 id="___sec8" class="anchor">The cost function rewritten </h2>
-
-<p>
-Reordering the logarithms, we can rewrite the <b>cost/loss</b> function as
-$$
-\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
-$$
+<h2 id="___sec16" class="anchor">The two-dimensional Ising model, Predicting phase transition of the two-dimensional Ising model </h2>
 
 <p>
-The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to \( \beta \).
-Since the cost (error) function is just the negative log-likelihood, for logistic regression we have that
+The Hamiltonian of the two-dimensional Ising model without an external field for a constant coupling constant \( J \) is given by
 $$
-\mathcal{C}(\hat{\beta})=-\sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
+\begin{align}
+    H = -J \sum_{\langle ij\rangle} S_i S_j,
+\tag{2}
+\end{align}
 $$
 
-This equation is known in statistics as the <b>cross entropy</b>. Finally, we note that just as in linear regression, 
-in practice we often supplement the cross-entropy with additional regularization terms, usually \( L_1 \) and \( L_2 \) regularization as we did for Ridge and Lasso regression.
+where \( S_i \in \{-1, 1\} \) and \( \langle ij \rangle \) signifies that we only iterate over the nearest neighbors in the lattice. We will be looking at a system of \( L = 40 \) spins in each dimension, i.e., \( L^2 = 1600 \) spins in total. Opposed to the one-dimensional Ising model we will get a phase transition from an <b>ordered</b> phase to a <b>disordered</b> phase at the critical temperature
 
+$$
+\begin{align}
+    \frac{T_c}{J} = \frac{2}{\log\left(1 + \sqrt{2}\right)} \approx 2.26,
+\tag{3}
+\end{align}
+$$
+
+as shown by Lars Onsager.
+
+<p>
+Here we use <b>logistic regression</b> to predict when a phase transition
+occurs. The data we will look at is a set of spin configurations,
+i.e., individual lattices with spins, labeled <b>ordered</b> <code>1</code> or
+<b>disordered</b> <code>0</code>. Our job is to build a model which will take in a
+spin configuration and predict whether or not the spin configuration
+constitutes an ordered or a disordered phase. To achieve this we will
+represent the lattices as flattened arrays with \( 1600 \) elements
+instead of a matrix of \( 40 \times 40 \) elements. As an extra test of
+the performance of the algorithms we will divide the dataset into
+three pieces. We will do a conventional train-test-split on a
+combination of totally ordered and totally disordered phases. The
+remaining "critical-like" states will be used as test data which we
+hope the model will be able to make good extrapolated predictions on.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pickle</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">os</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">glob</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">seaborn</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">sns</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skms</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skl</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">sklearn.metrics</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skm</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">tqdm</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">copy</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">time</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> display
+
+<span style="color: #666666">%</span>matplotlib inline
+
+sns<span style="color: #666666">.</span>set(color_codes<span style="color: #666666">=</span><span style="color: #008000">True</span>)
+</pre></div>
 <p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._LogReg-bs008.html">&laquo;</a></li>
+<li><a href="._LogReg-bs016.html">&laquo;</a></li>
   <li><a href="._LogReg-bs000.html">1</a></li>
-  <li><a href="._LogReg-bs001.html">2</a></li>
-  <li><a href="._LogReg-bs002.html">3</a></li>
-  <li><a href="._LogReg-bs003.html">4</a></li>
-  <li><a href="._LogReg-bs004.html">5</a></li>
-  <li><a href="._LogReg-bs005.html">6</a></li>
-  <li><a href="._LogReg-bs006.html">7</a></li>
-  <li><a href="._LogReg-bs007.html">8</a></li>
-  <li><a href="._LogReg-bs008.html">9</a></li>
-  <li class="active"><a href="._LogReg-bs009.html">10</a></li>
+  <li><a href="">...</a></li>
+  <li><a href="._LogReg-bs009.html">10</a></li>
   <li><a href="._LogReg-bs010.html">11</a></li>
   <li><a href="._LogReg-bs011.html">12</a></li>
   <li><a href="._LogReg-bs012.html">13</a></li>
@@ -180,11 +214,13 @@ in practice we often supplement the cross-entropy with additional regularization
   <li><a href="._LogReg-bs014.html">15</a></li>
   <li><a href="._LogReg-bs015.html">16</a></li>
   <li><a href="._LogReg-bs016.html">17</a></li>
-  <li><a href="._LogReg-bs017.html">18</a></li>
+  <li class="active"><a href="._LogReg-bs017.html">18</a></li>
   <li><a href="._LogReg-bs018.html">19</a></li>
-  <li><a href="">...</a></li>
+  <li><a href="._LogReg-bs019.html">20</a></li>
+  <li><a href="._LogReg-bs020.html">21</a></li>
+  <li><a href="._LogReg-bs021.html">22</a></li>
   <li><a href="._LogReg-bs022.html">23</a></li>
-  <li><a href="._LogReg-bs010.html">&raquo;</a></li>
+  <li><a href="._LogReg-bs018.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 

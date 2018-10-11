@@ -618,6 +618,351 @@ plt.show()
 </section>
 
 
+<section>
+<h2 id="___sec16">The two-dimensional Ising model, Predicting phase transition of the two-dimensional Ising model </h2>
+
+<p>
+The Hamiltonian of the two-dimensional Ising model without an external field for a constant coupling constant \( J \) is given by
+<p>&nbsp;<br>
+$$
+\begin{align}
+    H = -J \sum_{\langle ij\rangle} S_i S_j,
+\tag{2}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+where \( S_i \in \{-1, 1\} \) and \( \langle ij \rangle \) signifies that we only iterate over the nearest neighbors in the lattice. We will be looking at a system of \( L = 40 \) spins in each dimension, i.e., \( L^2 = 1600 \) spins in total. Opposed to the one-dimensional Ising model we will get a phase transition from an <b>ordered</b> phase to a <b>disordered</b> phase at the critical temperature
+
+<p>&nbsp;<br>
+$$
+\begin{align}
+    \frac{T_c}{J} = \frac{2}{\log\left(1 + \sqrt{2}\right)} \approx 2.26,
+\tag{3}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+as shown by Lars Onsager.
+
+<p>
+Here we use <b>logistic regression</b> to predict when a phase transition
+occurs. The data we will look at is a set of spin configurations,
+i.e., individual lattices with spins, labeled <b>ordered</b> <code>1</code> or
+<b>disordered</b> <code>0</code>. Our job is to build a model which will take in a
+spin configuration and predict whether or not the spin configuration
+constitutes an ordered or a disordered phase. To achieve this we will
+represent the lattices as flattened arrays with \( 1600 \) elements
+instead of a matrix of \( 40 \times 40 \) elements. As an extra test of
+the performance of the algorithms we will divide the dataset into
+three pieces. We will do a conventional train-test-split on a
+combination of totally ordered and totally disordered phases. The
+remaining "critical-like" states will be used as test data which we
+hope the model will be able to make good extrapolated predictions on.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pickle</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">glob</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skms</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skl</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skm</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tqdm</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">copy</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">time</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">IPython.display</span> <span style="color: #8B008B; font-weight: bold">import</span> display
+
+%matplotlib inline
+
+sns.set(color_codes=<span style="color: #658b00">True</span>)
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec17">Reading in the data </h2>
+
+<p>
+Using the data from <a href="https://physics.bu.edu/~pankajm/ML-Review-Datasets/isingMC/" target="_blank">Mehta et al.</a> (specifically the two datasets named <code>Ising2DFM_reSample_L40_T=All.pkl</code> and <code>Ising2DFM_reSample_L40_T=All_labels.pkl</code>) we have to unpack the data into numpy arrays.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>filenames = glob.glob(os.path.join(<span style="color: #CD5555">&quot;..&quot;</span>, <span style="color: #CD5555">&quot;dat&quot;</span>, <span style="color: #CD5555">&quot;*&quot;</span>))
+label_filename = <span style="color: #658b00">list</span>(<span style="color: #658b00">filter</span>(<span style="color: #8B008B; font-weight: bold">lambda</span> x: <span style="color: #CD5555">&quot;label&quot;</span> <span style="color: #8B008B">in</span> x, filenames))[<span style="color: #B452CD">0</span>]
+dat_filename = <span style="color: #658b00">list</span>(<span style="color: #658b00">filter</span>(<span style="color: #8B008B; font-weight: bold">lambda</span> x: <span style="color: #CD5555">&quot;label&quot;</span> <span style="color: #8B008B">not</span> <span style="color: #8B008B">in</span> x, filenames))[<span style="color: #B452CD">0</span>]
+
+<span style="color: #228B22"># Read in the labels</span>
+<span style="color: #8B008B; font-weight: bold">with</span> <span style="color: #658b00">open</span>(label_filename, <span style="color: #CD5555">&quot;rb&quot;</span>) <span style="color: #8B008B; font-weight: bold">as</span> f:
+    labels = pickle.load(f)
+
+<span style="color: #228B22"># Read in the corresponding configurations</span>
+<span style="color: #8B008B; font-weight: bold">with</span> <span style="color: #658b00">open</span>(dat_filename, <span style="color: #CD5555">&quot;rb&quot;</span>) <span style="color: #8B008B; font-weight: bold">as</span> f:
+    data = np.unpackbits(pickle.load(f)).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1600</span>).astype(<span style="color: #CD5555">&quot;int&quot;</span>)
+
+<span style="color: #228B22"># Set spin-down to -1</span>
+data[data == <span style="color: #B452CD">0</span>] = -<span style="color: #B452CD">1</span>
+</pre></div>
+<p>
+This dataset consists of \( 10000 \) samples, i.e., \( 10000 \) spin
+configurations with \( 40 \times 40 \) spins each, for \( 16 \) temperatures
+between \( 0.25 \) to \( 4.0 \). Next we create a train/test-split and keep
+the data in the critical phase as a separate dataset for
+extrapolation-testing.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Set up slices of the dataset</span>
+ordered = <span style="color: #658b00">slice</span>(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">70000</span>)
+critical = <span style="color: #658b00">slice</span>(<span style="color: #B452CD">70000</span>, <span style="color: #B452CD">100000</span>)
+disordered = <span style="color: #658b00">slice</span>(<span style="color: #B452CD">100000</span>, <span style="color: #B452CD">160000</span>)
+
+X_train, X_test, y_train, y_test = skms.train_test_split(
+    np.concatenate((data[ordered], data[disordered])),
+    np.concatenate((labels[ordered], labels[disordered])),
+    test_size=<span style="color: #B452CD">0.95</span>
+)
+</pre></div>
+<p>
+Using a small training set yields a better accuracy. This will be discussed in the end.
+</section>
+
+
+<section>
+<h2 id="___sec18">Logistic regression </h2>
+
+<p>
+Logistic regression is a linear model for classification. Recalling
+the cost function for ordinary least squares with both L2 (ridge) and
+L1 (LASSO) penalties we will see that the logistic cost function is
+very similar. In OLS we wish to predict a continuous variable
+\( \hat{y} \) using
+<p>&nbsp;<br>
+$$
+\begin{align}
+    \hat{y} = X\omega,
+\tag{4}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+<p>
+where \( X \in \mathbb{R}^{n \times p} \) is the input data and \( \omega^{p
+\times d} \) are the weights of the regression. In a classification
+setting (binary classification in our situation) we are interested in
+a positive or negative answer. We can thus define either answer to be
+above or below some threshold. But, in order to limit the size of the
+answer and also to get a probability interpretation on how sure we are
+for either answer we can compute the sigmoid function of OLS. That is,
+
+<p>&nbsp;<br>
+$$
+\begin{align}
+    f(X\omega) = \frac{1}{1 + \exp(-X\omega)}.
+\tag{5}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+We are thus interested in minizming the following cost function
+<p>&nbsp;<br>
+$$
+\begin{align}
+    C(X, \omega) = \sum_{i = 1}^n \left\{
+        - y_i\log\left( f(x_i^T\omega) \right)
+        - (1 - y_i)\log\left[1 - f(x_i^T\omega)\right]
+    \right\},
+\tag{6}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+<p>
+where we will restrict ourselves to a value for \( f(z) \) as the sigmoid
+described above. We can also tack on a L2 (Ridge) or L1 (LASSO)
+penalization to this cost function in the same manner we did for
+linear regression.
+</section>
+
+
+<section>
+<h2 id="___sec19">Exploring the logistic regression </h2>
+
+<p>
+The penalization factor \( \lambda \) is inverted in the case of the
+logistic regression model we use. We will explore several values of
+\( \lambda \) using both L1 and L2 penalization. We do this using a grid
+search over different parameters and run a 3-fold cross validation for
+each configuration. In other words, we fit a model 3 times for each
+configuration of the hyper parameters.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>lambdas = np.logspace(-<span style="color: #B452CD">7</span>, -<span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
+
+param_grid = {
+    <span style="color: #CD5555">&quot;C&quot;</span>: <span style="color: #658b00">list</span>(<span style="color: #B452CD">1.0</span>/lambdas),
+    <span style="color: #CD5555">&quot;penalty&quot;</span>: [<span style="color: #CD5555">&quot;l1&quot;</span>, <span style="color: #CD5555">&quot;l2&quot;</span>]
+}
+clf = skms.GridSearchCV(
+    skl.LogisticRegression(),
+    param_grid=param_grid,
+    n_jobs=-<span style="color: #B452CD">1</span>,
+    return_train_score=<span style="color: #658b00">True</span>
+)
+t0 = time.time()
+clf.fit(X_train, y_train)
+t1 = time.time()
+
+<span style="color: #8B008B; font-weight: bold">print</span> (
+    <span style="color: #CD5555">&quot;Time spent fitting GridSearchCV(LogisticRegression): {0:.3f} sec&quot;</span>.format(
+        t1 - t0
+    )
+)
+</pre></div>
+<p>
+We can see that logistic regression is quite slow and using the grid
+search and cross validation results in quite a heavy
+computation. Below we show the results of the different
+configurations.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>logreg_df = pd.DataFrame(clf.cv_results_)
+
+display(logreg_df)
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec20">Accuracy of a classification model </h2>
+
+<p>
+To determine how well a classification model is performing we count
+the number of correctly labeled classes and divide by the number of
+classes in total. The accuracy is thus given by
+
+<p>&nbsp;<br>
+$$
+\begin{align}
+    a(y, \hat{y}) = \frac{1}{n}\sum_{i = 1}^{n} I(y_i = \hat{y}_i),
+\tag{7}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+<p>
+where \( I(y_i = \hat{y}_i) \) is the indicator function given by
+
+<p>&nbsp;<br>
+$$
+\begin{align}
+    I(x = y) = \begin{cases}
+    1 & x = y, 
+\tag{8}\\
+    0 & x \neq y.
+    \end{cases}
+\tag{9}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+<p>
+This is the accuracy provided by Scikit-learn when using <b>sklearn.metrics.accuracyscore</b>.
+
+<p>
+Below we compute the accuracy of the best fit model on the training data (which should give a good accuracy), the test data (which has not been shown to the model) and the critical data (completely new data that needs to be extrapolated).
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>train_accuracy = skm.accuracy_score(y_train, clf.predict(X_train))
+test_accuracy = skm.accuracy_score(y_test, clf.predict(X_test))
+critical_accuracy = skm.accuracy_score(labels[critical], clf.predict(data[critical]))
+
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Accuracy on train data: {0}&quot;</span>.format(train_accuracy))
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Accuracy on test data: {0}&quot;</span>.format(test_accuracy))
+<span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;Accuracy on critical data: {0}&quot;</span>.format(critical_accuracy))
+</pre></div>
+<p>
+We can see that we get quite good accuracy on the training data, but gradually worsening accuracy on the test and critical data.
+</section>
+
+
+<section>
+<h2 id="___sec21">Analyzing the results </h2>
+
+<p>
+Below we show a different metric for determining the quality of our
+model, namely the <b>reciever operating characteristic</b> (ROC). The ROC
+curve tells us how well the model correctly classifies the different
+labels. We plot the <b>true positive rate</b> (the rate of predicted
+positive classes that are positive) versus the <b>false positive rate</b>
+(the rate of predicted positive classes that are negative). The ROC
+curve is built by computing the true positive rate and the false
+positive rate for varying <b>thresholds</b>, i.e, which probability we
+should acredit a certain class.
+
+<p>
+By computing the <b>area under the curve</b> (AUC) of the ROC curve we get an estimate of how well our model is performing. Pure guessing will get an AUC of \( 0.5 \). A perfect score will get an AUC of \( 1.0 \).
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>fig = plt.figure(figsize=(<span style="color: #B452CD">20</span>, <span style="color: #B452CD">14</span>))
+
+<span style="color: #8B008B; font-weight: bold">for</span> (_X, _y), label <span style="color: #8B008B">in</span> <span style="color: #658b00">zip</span>(
+    [
+        (X_train, y_train),
+        (X_test, y_test),
+        (data[critical], labels[critical])
+    ],
+    [<span style="color: #CD5555">&quot;Train&quot;</span>, <span style="color: #CD5555">&quot;Test&quot;</span>, <span style="color: #CD5555">&quot;Critical&quot;</span>]
+):
+    proba = clf.predict_proba(_X)
+    fpr, tpr, _ = skm.roc_curve(_y, proba[:, <span style="color: #B452CD">1</span>])
+    roc_auc = skm.auc(fpr, tpr)
+
+    <span style="color: #8B008B; font-weight: bold">print</span> (<span style="color: #CD5555">&quot;LogisticRegression AUC ({0}): {1}&quot;</span>.format(label, roc_auc))
+
+    plt.plot(fpr, tpr, label=<span style="color: #CD5555">&quot;{0} (AUC = {1})&quot;</span>.format(label, roc_auc), linewidth=<span style="color: #B452CD">4.0</span>)
+
+plt.plot([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;--&quot;</span>, label=<span style="color: #CD5555">&quot;Guessing (AUC = 0.5)&quot;</span>, linewidth=<span style="color: #B452CD">4.0</span>)
+
+plt.title(<span style="color: #CD5555">r&quot;The ROC curve for LogisticRegression&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.xlabel(<span style="color: #CD5555">r&quot;False positive rate&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.ylabel(<span style="color: #CD5555">r&quot;True positive rate&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.axis([-<span style="color: #B452CD">0.01</span>, <span style="color: #B452CD">1.01</span>, -<span style="color: #B452CD">0.01</span>, <span style="color: #B452CD">1.01</span>])
+plt.xticks(fontsize=<span style="color: #B452CD">18</span>)
+plt.yticks(fontsize=<span style="color: #B452CD">18</span>)
+plt.legend(loc=<span style="color: #CD5555">&quot;best&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.show()
+</pre></div>
+<p>
+We can see that this plot of the ROC looks very strange. This tells us
+that logistic regression is quite inept at predicting the Ising model
+transition and is therefore highly non-linear. The ROC curve for the
+training data looks quite good, but as the testing data is so far off
+we see that we are dealing with an overfit model.
+
+<p>
+A previous run with \( 50\% \) of the data used for training yielded a
+worse performance than using a smaller training set. This again gives
+confidence to the fact that logistic regression is not able to
+correctly fit the Ising model as it is not a linear model.
+</section>
+
+
 
 </div> <!-- class="slides" -->
 </div> <!-- class="reveal" -->

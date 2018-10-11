@@ -111,7 +111,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._LogReg-bs006.html#___sec5" style="font-size: 80%;">The logistic function</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs007.html#___sec6" style="font-size: 80%;">Two parameters</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs008.html#___sec7" style="font-size: 80%;">Maximum likelihood</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec8" style="font-size: 80%;">The cost function rewritten</a></li>
+     <!-- navigation toc: --> <li><a href="._LogReg-bs009.html#___sec8" style="font-size: 80%;">The cost function rewritten</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs010.html#___sec9" style="font-size: 80%;">Minimizing the cross entropy</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs011.html#___sec10" style="font-size: 80%;">A more compact expression</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs012.html#___sec11" style="font-size: 80%;">Extending to more predictors</a></li>
@@ -124,7 +124,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._LogReg-bs019.html#___sec18" style="font-size: 80%;">Logistic regression</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs020.html#___sec19" style="font-size: 80%;">Exploring the logistic regression</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs021.html#___sec20" style="font-size: 80%;">Accuracy of a classification model</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs022.html#___sec21" style="font-size: 80%;">Analyzing the results</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec21" style="font-size: 80%;">Analyzing the results</a></li>
 
         </ul>
       </li>
@@ -137,54 +137,85 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0009"></a>
+<a name="part0022"></a>
 <!-- !split -->
 
-<h2 id="___sec8" class="anchor">The cost function rewritten </h2>
+<h2 id="___sec21" class="anchor">Analyzing the results </h2>
 
 <p>
-Reordering the logarithms, we can rewrite the <b>cost/loss</b> function as
-$$
-\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
-$$
+Below we show a different metric for determining the quality of our
+model, namely the <b>reciever operating characteristic</b> (ROC). The ROC
+curve tells us how well the model correctly classifies the different
+labels. We plot the <b>true positive rate</b> (the rate of predicted
+positive classes that are positive) versus the <b>false positive rate</b>
+(the rate of predicted positive classes that are negative). The ROC
+curve is built by computing the true positive rate and the false
+positive rate for varying <b>thresholds</b>, i.e, which probability we
+should acredit a certain class.
 
 <p>
-The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to \( \beta \).
-Since the cost (error) function is just the negative log-likelihood, for logistic regression we have that
-$$
-\mathcal{C}(\hat{\beta})=-\sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
-$$
-
-This equation is known in statistics as the <b>cross entropy</b>. Finally, we note that just as in linear regression, 
-in practice we often supplement the cross-entropy with additional regularization terms, usually \( L_1 \) and \( L_2 \) regularization as we did for Ridge and Lasso regression.
+By computing the <b>area under the curve</b> (AUC) of the ROC curve we get an estimate of how well our model is performing. Pure guessing will get an AUC of \( 0.5 \). A perfect score will get an AUC of \( 1.0 \).
 
 <p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">20</span>, <span style="color: #666666">14</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> (_X, _y), label <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">zip</span>(
+    [
+        (X_train, y_train),
+        (X_test, y_test),
+        (data[critical], labels[critical])
+    ],
+    [<span style="color: #BA2121">&quot;Train&quot;</span>, <span style="color: #BA2121">&quot;Test&quot;</span>, <span style="color: #BA2121">&quot;Critical&quot;</span>]
+):
+    proba <span style="color: #666666">=</span> clf<span style="color: #666666">.</span>predict_proba(_X)
+    fpr, tpr, _ <span style="color: #666666">=</span> skm<span style="color: #666666">.</span>roc_curve(_y, proba[:, <span style="color: #666666">1</span>])
+    roc_auc <span style="color: #666666">=</span> skm<span style="color: #666666">.</span>auc(fpr, tpr)
+
+    <span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;LogisticRegression AUC ({0}): {1}&quot;</span><span style="color: #666666">.</span>format(label, roc_auc))
+
+    plt<span style="color: #666666">.</span>plot(fpr, tpr, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;{0} (AUC = {1})&quot;</span><span style="color: #666666">.</span>format(label, roc_auc), linewidth<span style="color: #666666">=4.0</span>)
+
+plt<span style="color: #666666">.</span>plot([<span style="color: #666666">0</span>, <span style="color: #666666">1</span>], [<span style="color: #666666">0</span>, <span style="color: #666666">1</span>], <span style="color: #BA2121">&quot;--&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Guessing (AUC = 0.5)&quot;</span>, linewidth<span style="color: #666666">=4.0</span>)
+
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&quot;The ROC curve for LogisticRegression&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&quot;False positive rate&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&quot;True positive rate&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>axis([<span style="color: #666666">-0.01</span>, <span style="color: #666666">1.01</span>, <span style="color: #666666">-0.01</span>, <span style="color: #666666">1.01</span>])
+plt<span style="color: #666666">.</span>xticks(fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>yticks(fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>legend(loc<span style="color: #666666">=</span><span style="color: #BA2121">&quot;best&quot;</span>, fontsize<span style="color: #666666">=18</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+We can see that this plot of the ROC looks very strange. This tells us
+that logistic regression is quite inept at predicting the Ising model
+transition and is therefore highly non-linear. The ROC curve for the
+training data looks quite good, but as the testing data is so far off
+we see that we are dealing with an overfit model.
+
+<p>
+A previous run with \( 50\% \) of the data used for training yielded a
+worse performance than using a smaller training set. This again gives
+confidence to the fact that logistic regression is not able to
+correctly fit the Ising model as it is not a linear model.
+
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._LogReg-bs008.html">&laquo;</a></li>
+<li><a href="._LogReg-bs021.html">&laquo;</a></li>
   <li><a href="._LogReg-bs000.html">1</a></li>
-  <li><a href="._LogReg-bs001.html">2</a></li>
-  <li><a href="._LogReg-bs002.html">3</a></li>
-  <li><a href="._LogReg-bs003.html">4</a></li>
-  <li><a href="._LogReg-bs004.html">5</a></li>
-  <li><a href="._LogReg-bs005.html">6</a></li>
-  <li><a href="._LogReg-bs006.html">7</a></li>
-  <li><a href="._LogReg-bs007.html">8</a></li>
-  <li><a href="._LogReg-bs008.html">9</a></li>
-  <li class="active"><a href="._LogReg-bs009.html">10</a></li>
-  <li><a href="._LogReg-bs010.html">11</a></li>
-  <li><a href="._LogReg-bs011.html">12</a></li>
-  <li><a href="._LogReg-bs012.html">13</a></li>
-  <li><a href="._LogReg-bs013.html">14</a></li>
+  <li><a href="">...</a></li>
   <li><a href="._LogReg-bs014.html">15</a></li>
   <li><a href="._LogReg-bs015.html">16</a></li>
   <li><a href="._LogReg-bs016.html">17</a></li>
   <li><a href="._LogReg-bs017.html">18</a></li>
   <li><a href="._LogReg-bs018.html">19</a></li>
-  <li><a href="">...</a></li>
-  <li><a href="._LogReg-bs022.html">23</a></li>
-  <li><a href="._LogReg-bs010.html">&raquo;</a></li>
+  <li><a href="._LogReg-bs019.html">20</a></li>
+  <li><a href="._LogReg-bs020.html">21</a></li>
+  <li><a href="._LogReg-bs021.html">22</a></li>
+  <li class="active"><a href="._LogReg-bs022.html">23</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
