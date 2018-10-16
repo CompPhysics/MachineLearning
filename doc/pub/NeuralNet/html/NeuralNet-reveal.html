@@ -148,7 +148,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Oct 12, 2018</h4></center> <!-- date -->
+<center><h4>Oct 16, 2018</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -1123,7 +1123,7 @@ z_j^{l+1} = \sum_{i=1}^{M_{l}}w_{ij}^{l+1}a_j^{l}+b_j^{l+1},
 $$
 <p>&nbsp;<br>
 
-we obtain
+with \( M_l \) being the number of nodes in layer \( l \), we obtain
 <p>&nbsp;<br>
 $$
 \delta_j^l =\sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l),
@@ -1181,7 +1181,7 @@ $$
 Then we compute the back propagate error for each \( l=L-1,L-2,\dots,2 \) as
 <p>&nbsp;<br>
 $$
-\delta_j^l =\sum_k \sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l).
+\delta_j^l = \sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l).
 $$
 <p>&nbsp;<br>
 </div>
@@ -1190,7 +1190,7 @@ $$
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
-Finally, we update the weights and the biases using gradient descent for each \( l=L-1,L-2,dots,2 \) and update the weights and biases according to the rules
+Finally, we update the weights and the biases using gradient descent for each \( l=L-1,L-2,\dots,2 \) and update the weights and biases according to the rules
 <p>&nbsp;<br>
 $$
 w_{jk}^l\leftarrow  = w_{jk}^l- \eta \delta_j^la_k^{l-1},
@@ -1199,7 +1199,7 @@ $$
 
 <p>&nbsp;<br>
 $$
-b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^L},
+b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta \delta_j^l,
 $$
 <p>&nbsp;<br>
 </div>
@@ -1309,7 +1309,7 @@ Again we take the negative log-likelihood to define our cost function:
 
 <p>&nbsp;<br>
 $$
-\mathcal{C}(\hat{\theta}) = - \ln P(\mathcal{D} \mid \hat{\theta}).
+\mathcal{C}(\hat{\theta}) = - \log{P(\mathcal{D} \mid \hat{\theta})}.
 $$
 <p>&nbsp;<br>
 
@@ -1317,12 +1317,73 @@ See the logistic regression lectures for a full definition of the cost function.
 
 <p>
 The back propagation equations need now only a small change, namely the definition of a new cost function. We are thus ready to use the same equations as before!
-We leave it as an exercise in project 2 to derive these equations.
 </section>
 
 
 <section>
-<h2 id="___sec32">Developing a code for doing neural networks with back propagation </h2>
+<h2 id="___sec32">Example: binary classification problem </h2>
+
+<p>
+As an example of the above, relevant for project 2 as well, let us consider a binary class. As discussed in our logistic regression lectures, we defined a cost function in terms of the parameters \( \beta \) as
+<p>&nbsp;<br>
+$$
+\mathcal{C}(\hat{\beta}) = - \sum_{i=1}^n \left(y_i\log{p(y_i \vert x_i,\hat{\beta})}+(i-y_i)\log{1-p(y_i \vert x_i,\hat{\beta})}\right),
+$$
+<p>&nbsp;<br>
+
+where we had defined the logistic (sigmoid) function
+<p>&nbsp;<br>
+$$
+p(y_i =1\vert x_i,\hat{\beta})=\frac{\exp{(\beta_0+\beta_1 x_i)}}{1+\exp{(\beta_0+\beta_1 x_i)}},
+$$
+<p>&nbsp;<br>
+
+and
+<p>&nbsp;<br>
+$$
+p(y_i =0\vert x_i,\hat{\beta})=1-p(y_i =1\vert x_i,\hat{\beta}).
+$$
+<p>&nbsp;<br>
+
+The parameters \( \hat{\beta} \) were defined using a minimization method like gradient descent or Newton-Raphson's method.
+
+<p>
+Now we replace \( x_i \) with the activation \( z_i^l \) for a given layer \( l \) and the outputs as \( y_i=a_i^l=f(z_i^l) \), with \( z_i^l \) now being a function of the weights \( w_{ij}^l \) and biases \( b_i^l \). 
+We have then
+<p>&nbsp;<br>
+$$
+a_i^l = y_i = \frac{\exp{(z_i^l)}}{1+\exp{(z_i^l)}},
+$$
+<p>&nbsp;<br>
+
+with 
+<p>&nbsp;<br>
+$$
+z_i^l = \sum_{j}w_{ij}^l a_j^{l-1}+b_i^l,
+$$
+<p>&nbsp;<br>
+
+where the superscript \( l-1 \) indicates that these are the outputs from layer \( l-1 \).
+Our cost function at the final layer \( l=L \) is now
+<p>&nbsp;<br>
+$$
+\mathcal{C}(\hat{W}) = - \sum_{i=1}^n \left(t_i\log{a_i^L}+(i-t_i)\log{(1-a_i^L)}\right),
+$$
+<p>&nbsp;<br>
+
+where we have defined the targets \( t_i \). The derivatives of the cost function with respect to the output \( a_i^L \) are then easily calculated and we get
+<p>&nbsp;<br>
+$$
+\frac{\partial \mathcal{C}(\hat{W})}{\partial a_i^L} = \frac{a_i^L-t_i}{a_i^L(1-a_i^L)}. 
+$$
+<p>&nbsp;<br>
+
+In case we use another activation function than the logistic one, we need to evaluate other derivatives.
+</section>
+
+
+<section>
+<h2 id="___sec33">Developing a code for doing neural networks with back propagation </h2>
 
 <p>
 One can identify a set of key steps when using neural networks to solve supervised learning problems:  
@@ -1344,7 +1405,7 @@ One can identify a set of key steps when using neural networks to solve supervis
 
 
 <section>
-<h2 id="___sec33">Collect and pre-process data </h2>
+<h2 id="___sec34">Collect and pre-process data </h2>
 
 <p>
 Here we will be using the MNIST dataset, which is readily available through the <b>scikit-learn</b>
@@ -1444,7 +1505,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec34">Train and test datasets </h2>
+<h2 id="___sec35">Train and test datasets </h2>
 
 <p>
 Performing analysis before partitioning the dataset is a major error, that can lead to incorrect conclusions.
@@ -1494,7 +1555,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=t
 
 
 <section>
-<h2 id="___sec35">Define model and architecture </h2>
+<h2 id="___sec36">Define model and architecture </h2>
 
 <p>
 Our simple feed-forward neural network will consist of an <em>input</em> layer, a single <em>hidden</em> layer and an <em>output</em> layer. The activation \( y \) of each neuron is a weighted sum of inputs, passed through an activation function. In case of the simple perceptron model we have
@@ -1543,12 +1604,12 @@ $$ f(x) = \sigma(x) = \frac{1}{1 + e^{-x}} ,$$
 <p>&nbsp;<br>
 
 <p>
-which is inspired by probability theory (see logistic regression) and was most commonly used until about 2011.
+which is inspired by probability theory (see logistic regression) and was most commonly used until about 2011. See the discussion below concerning other activation functions.
 </section>
 
 
 <section>
-<h2 id="___sec36">Layers </h2>
+<h2 id="___sec37">Layers </h2>
 
 <ul>
 <p><li> Input</li> 
@@ -1600,7 +1661,7 @@ weights to the output layer.
 
 
 <section>
-<h2 id="___sec37">Weights and biases </h2>
+<h2 id="___sec38">Weights and biases </h2>
 
 <p>
 Typically weights are initialized with small values distributed around zero, drawn from a uniform
@@ -1639,7 +1700,7 @@ output_bias = np.zeros(n_categories) + <span style="color: #B452CD">0.01</span>
 
 
 <section>
-<h2 id="___sec38">Feed-forward pass </h2>
+<h2 id="___sec39">Feed-forward pass </h2>
 
 <p>
 Denote \( F \) the number of features, \( H \) the number of hidden neurons and \( C \) the number of categories.  
@@ -1674,7 +1735,7 @@ $$ a_{j}^{L} = \frac{\exp{(z_j^{L})}}
 
 
 <section>
-<h2 id="___sec39">Matrix multiplications </h2>
+<h2 id="___sec40">Matrix multiplications </h2>
 
 <p>
 Since our data has the dimensions \( X = (n_{inputs}, n_{features}) \) and our weights to the hidden
@@ -1760,7 +1821,7 @@ predictions = predict(X_train)
 
 
 <section>
-<h2 id="___sec40">Choose cost function and optimizer </h2>
+<h2 id="___sec41">Choose cost function and optimizer </h2>
 
 <p>
 To measure how well our neural network is doing we need to introduce a cost function.  
@@ -1795,7 +1856,7 @@ you got the correct label. The probability of category \( c \) is given by the s
 
 
 <section>
-<h2 id="___sec41">Optimizing the cost function </h2>
+<h2 id="___sec42">Optimizing the cost function </h2>
 
 <p>
 The network is trained by finding the weights and biases that minimize the cost function. One of the most widely used classes of methods is <em>gradient descent</em> and its generalizations. The idea behind gradient descent
@@ -1834,11 +1895,14 @@ This has two important benefits:
 
 <p><li> It significantly speeds up the calculation, since we do not have to use the entire dataset to calculate the gradient.</li>  
 </ol>
+<p>
+
+The various optmization  methods, with codes and algorithms,  are discussed in our lectures on <a href="https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html" target="_blank">Gradient descent approaches</a>.
 </section>
 
 
 <section>
-<h2 id="___sec42">Regularization </h2>
+<h2 id="___sec43">Regularization </h2>
 
 <p>
 It is common to add an extra term to the cost function, proportional
@@ -1873,14 +1937,14 @@ calculate the gradient efficently.
 
 
 <section>
-<h2 id="___sec43">Matrix  multiplication </h2>
+<h2 id="___sec44">Matrix  multiplication </h2>
 
 <p>
 To more efficently train our network these equations are implemented using matrix operations.  
-The error in the output layer is calculated simply as
+The error in the output layer is calculated simply as, with \( \hat{t} \) being our targets,
 
 <p>&nbsp;<br>
-$$ \delta_L = \hat{y} - y = (n_{inputs}, n_{categories}) .$$
+$$ \delta_L = \hat{t} - \hat{y} = (n_{inputs}, n_{categories}) .$$
 <p>&nbsp;<br>
 
 <p>
@@ -1928,9 +1992,6 @@ $$ \nabla b_{h} = \sum_{i=1}^{n_{inputs}} \delta_h = (n_{hidden}) .$$
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
 <div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># to categorical turns our integer vector into a onehot representation</span>
-<span style="color: #228B22">#from keras.utils import to_categorical</span>
-
-<span style="color: #228B22"># calculate the accuracy score of our model</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> accuracy_score
 
 <span style="color: #228B22"># one-hot in numpy</span>
@@ -2003,7 +2064,7 @@ lmbd = <span style="color: #B452CD">0.01</span>
 
 
 <section>
-<h2 id="___sec44">Improving performance </h2>
+<h2 id="___sec45">Improving performance </h2>
 
 <p>
 As we can see the network does not seem to be learning at all. It seems to be just guessing the label for each image.  
@@ -2023,7 +2084,7 @@ Andrew Ng goes through some of these considerations in this <a href="https://you
 
 
 <section>
-<h2 id="___sec45">Full object-oriented implementation </h2>
+<h2 id="___sec46">Full object-oriented implementation </h2>
 
 <p>
 It is very natural to think of the network as an object, with specific instances of the network
@@ -2137,7 +2198,7 @@ being realizations of this object with different hyperparameters. An implementat
 
 
 <section>
-<h2 id="___sec46">Evaluate model performance on test data </h2>
+<h2 id="___sec47">Evaluate model performance on test data </h2>
 
 <p>
 To measure the performance of our network we evaluate how well it does it data it has never seen before, i.e. the test data.  
@@ -2175,7 +2236,7 @@ test_predict = dnn.predict(X_test)
 
 
 <section>
-<h2 id="___sec47">Adjust hyperparameters </h2>
+<h2 id="___sec48">Adjust hyperparameters </h2>
 
 <p>
 We now perform a grid search to find the optimal hyperparameters for the network.  
@@ -2209,7 +2270,7 @@ DNN_numpy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span s
 
 
 <section>
-<h2 id="___sec48">Visualization </h2>
+<h2 id="___sec49">Visualization </h2>
 
 <p>
 
@@ -2252,7 +2313,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec49">scikit-learn implementation </h2>
+<h2 id="___sec50">scikit-learn implementation </h2>
 
 <p>
 <b>scikit-learn</b> focuses more
@@ -2292,7 +2353,7 @@ DNN_scikit = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span 
 
 
 <section>
-<h2 id="___sec50">Visualization </h2>
+<h2 id="___sec51">Visualization </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -2335,7 +2396,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec51">Building neural networks in Tensorflow and Keras </h2>
+<h2 id="___sec52">Building neural networks in Tensorflow and Keras </h2>
 
 <p>
 Now we want  to build on the experience gained from our neural network implementation in NumPy and scikit-learn
@@ -2350,7 +2411,7 @@ NumPy arrays.
 
 
 <section>
-<h2 id="___sec52">Tensorflow </h2>
+<h2 id="___sec53">Tensorflow </h2>
 
 <p>
 Tensorflow is an open source library machine learning library
@@ -2396,7 +2457,7 @@ and/or if you use <b>anaconda</b>, just write (or install from the graphical use
 
 
 <section>
-<h2 id="___sec53">Collect and pre-process data </h2>
+<h2 id="___sec54">Collect and pre-process data </h2>
 
 <p>
 
@@ -2463,7 +2524,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=t
 
 
 <section>
-<h2 id="___sec54">Using TensorFlow backend </h2>
+<h2 id="___sec55">Using TensorFlow backend </h2>
 
 <ol>
 <p><li> Define model and architecture</li>
@@ -2608,7 +2669,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=t
 
 
 <section>
-<h2 id="___sec55">Optimizing and using gradient descent </h2>
+<h2 id="___sec56">Optimizing and using gradient descent </h2>
 
 <p>
 
@@ -2687,7 +2748,7 @@ writer.add_graph(tf.get_default_graph())
 
 
 <section>
-<h2 id="___sec56">Using Keras </h2>
+<h2 id="___sec57">Using Keras </h2>
 
 <p>
 Keras is a high level <a href="https://en.wikipedia.org/wiki/Application_programming_interface" target="_blank">neural network</a>
@@ -2787,108 +2848,151 @@ plt.show()
 
 
 <section>
-<h2 id="___sec57">Which activation function should I use? </h2>
+<h2 id="___sec58">Which activation function should I use? </h2>
 
 <p>
-Backpropagation algorithm works by going from the output layer to the
-input layer, propagating the error gradient on the way. Once the algorithm has computed the gradient of the
-cost function with regards to each parameter in the network, it uses these gradients to update each
-parameter with a Gradient Descent step.
+The Back propagation algorithm we derived above works by going from
+the output layer to the input layer, propagating the error gradient on
+the way. Once the algorithm has computed the gradient of the cost
+function with regards to each parameter in the network, it uses these
+gradients to update each parameter with a Gradient Descent (GD) step.
 
 <p>
-Unfortunately, gradients often get smaller and smaller as the algorithm progresses down to the lower
-layers. As a result, the Gradient Descent update leaves the lower layer connection weights virtually
-unchanged, and training never converges to a good solution. This is called the vanishing gradients
-problem. In some cases, the opposite can happen: the gradients can grow bigger and bigger, so many
-layers get insanely large weight updates and the algorithm diverges. This is the exploding gradients
-problem, which is mostly encountered in recurrent neural networks. More generally,
-deep neural networks suffer from unstable gradients, different layers may learn at widely different speeds
+Unfortunately for us, the gradients often get smaller and smaller as the
+algorithm progresses down to the first hidden layers. As a result, the
+GD update leaves the lower layer connection weights
+virtually unchanged, and training never converges to a good
+solution. This is known in the literature as 
+<b>the vanishing gradients problem</b>.
+
+<p>
+In other cases, the opposite can happen, namely the the gradients can grow bigger and
+bigger. The result is that many of the layers get large updates of the 
+weights the
+algorithm diverges. This is the <b>exploding gradients problem</b>, which is
+mostly encountered in recurrent neural networks. More generally, deep
+neural networks suffer from unstable gradients, different layers may
+learn at widely different speeds
 </section>
 
 
 <section>
-<h2 id="___sec58">Is the Logistic activation function (Sigmoid)  our choice? </h2>
+<h2 id="___sec59">Is the Logistic activation function (Sigmoid)  our choice? </h2>
 
 <p>
-Although this unfortunate behavior has been empirically observed for quite a while (it was one of the
-reasons why deep neural networks were mostly abandoned for a long time), it is only around 2010 that
+Although this unfortunate behavior has been empirically observed for
+quite a while (it was one of the reasons why deep neural networks were
+mostly abandoned for a long time), it is only around 2010 that
 significant progress was made in understanding it.
 
 <p>
-A paper titled <b>Understanding the Difficulty of Training Deep Feedforward Neural Networks</b> by Xavier Glorot and Yoshua Bengio1 found a few suspects,
-including the combination of the popular logistic sigmoid activation function and the weight initialization
-technique that was most popular at the time, namely random initialization using a normal distribution with
-a mean of 0 and a standard deviation of 1. In short, they showed that with this activation function and this
-initialization scheme, the variance of the outputs of each layer is much greater than the variance of its
-inputs. Going forward in the network, the variance keeps increasing after each layer until the activation
-function saturates at the top layers. This is actually made worse by the fact that the logistic function has a
-mean of 0.5, not 0 (the hyperbolic tangent function has a mean of 0 and behaves slightly better than the
-logistic function in deep networks).
+A paper titled <a href="http://proceedings.mlr.press/v9/glorot10a.html" target="_blank">Understanding the Difficulty of Training Deep
+Feedforward Neural Networks by Xavier Glorot and Yoshua Bengio</a> found that
+the problems with the popular logistic
+sigmoid activation function and the weight initialization technique
+that was most popular at the time, namely random initialization using
+a normal distribution with a mean of 0 and a standard deviation of
+1.
+
+<p>
+They showed that with this activation function and this
+initialization scheme, the variance of the outputs of each layer is
+much greater than the variance of its inputs. Going forward in the
+network, the variance keeps increasing after each layer until the
+activation function saturates at the top layers. This is actually made
+worse by the fact that the logistic function has a mean of 0.5, not 0
+(the hyperbolic tangent function has a mean of 0 and behaves slightly
+better than the logistic function in deep networks).
 </section>
 
 
 <section>
-<h2 id="___sec59">The derivative of the Logistic funtion </h2>
+<h2 id="___sec60">The derivative of the Logistic funtion </h2>
 
 <p>
 Looking at the logistic activation function, when inputs become large
-(negative or positive), the function saturates at 0 or 1, with a derivative extremely close to 0. Thus when
-backpropagation kicks in, it has virtually no gradient to propagate back through the network, and what
-little gradient exists keeps getting diluted as backpropagation progresses down through the top layers, so
-there is really nothing left for the lower layers.
+(negative or positive), the function saturates at 0 or 1, with a
+derivative extremely close to 0. Thus when backpropagation kicks in,
+it has virtually no gradient to propagate back through the network,
+and what little gradient exists keeps getting diluted as
+backpropagation progresses down through the top layers, so there is
+really nothing left for the lower layers.
 
 <p>
-In their paper, Glorot and Bengio propose a way to significantly alleviate this problem. We need the
-signal to flow properly in both directions: in the forward direction when making predictions, and in the
-reverse direction when backpropagating gradients. We don&#8217;t want the signal to die out, nor do we want it
-to explode and saturate. For the signal to flow properly, the authors argue that we need the variance of the
-outputs of each layer to be equal to the variance of its inputs, and we also need the gradients to have
-equal variance before and after flowing through a layer in the reverse direction (please check out the
-paper if you are interested in the mathematical details).
+In their paper, Glorot and Bengio propose a way to significantly
+alleviate this problem. We need the signal to flow properly in both
+directions: in the forward direction when making predictions, and in
+the reverse direction when backpropagating gradients. We don&#8217;t want
+the signal to die out, nor do we want it to explode and saturate. For
+the signal to flow properly, the authors argue that we need the
+variance of the outputs of each layer to be equal to the variance of
+its inputs, and we also need the gradients to have equal variance
+before and after flowing through a layer in the reverse direction.
 
 <p>
-One of the insights in the 2010 paper by Glorot and Bengio was that the vanishing/exploding gradients
-problems were in part due to a poor choice of activation function. Until then most people had assumed
-that if Nature had chosen to use roughly sigmoid activation functions in biological neurons, they
-must be an excellent choice. But it turns out that other activation functions behave much better in deep
-neural networks, in particular the ReLU activation function, mostly because it does not saturate for
-positive values (and also because it is quite fast to compute).
+One of the insights in the 2010 paper by Glorot and Bengio was that
+the vanishing/exploding gradients problems were in part due to a poor
+choice of activation function. Until then most people had assumed that
+if Nature had chosen to use roughly sigmoid activation functions in
+biological neurons, they must be an excellent choice. But it turns out
+that other activation functions behave much better in deep neural
+networks, in particular the ReLU activation function, mostly because
+it does not saturate for positive values (and also because it is quite
+fast to compute).
 </section>
 
 
 <section>
-<h2 id="___sec60">The RELU function family </h2>
+<h2 id="___sec61">The RELU function family </h2>
 
 <p>
 The ReLU activation function suffers from a problem known as the dying
-ReLUs: during training, some neurons effectively die, meaning they stop outputting anything other than 0.
+ReLUs: during training, some neurons effectively die, meaning they
+stop outputting anything other than 0.
 
 <p>
-In some cases, you may find that half of your network&#8217;s neurons are dead, especially if you used a large
-learning rate. During training, if a neuron&#8217;s weights get updated such that the weighted sum of the neuron&#8217;s
-inputs is negative, it will start outputting 0. When this happen, the neuron is unlikely to come back to life
-since the gradient of the ReLU function is 0 when its input is negative.
+In some cases, you may find that half of your network&#8217;s neurons are
+dead, especially if you used a large learning rate. During training,
+if a neuron&#8217;s weights get updated such that the weighted sum of the
+neuron&#8217;s inputs is negative, it will start outputting 0. When this
+happen, the neuron is unlikely to come back to life since the gradient
+of the ReLU function is 0 when its input is negative.
 
 <p>
-To solve this problem, you may want to use a variant of the ReLU function, such as the leaky ReLU discussed before or the so-called exponential linear unit (ELU) function
+To solve this problem, nowadays practitioners use a  variant of the ReLU
+function, such as the leaky ReLU discussed above or the so-called
+exponential linear unit (ELU) function
+
 <p>&nbsp;<br>
 $$
 ELU(z) = \left\{\begin{array}{cc} \alpha\left( \exp{(z)}-1\right) & z < 0,\\  z & z \ge 0.\end{array}\right. 
 $$
 <p>&nbsp;<br>
-
-<p>
-So which activation function should you use for the hidden layers of your deep neural networks? Although your mileage will vary,
-in general ELU is better than leaky ReLU (and its variants), which is better than ReLU. ReLU performs better than \( \tanh \) which in turn performs better than the  logistic function. If you care a lot about runtime performance, then you
-may prefer leaky ReLUs over ELUs. If you don&#8217;t want to tweak yet another hyperparameter, you may just use the default \( \alpha \) of
-\( 0.01 \) for the leaky ReLU, and \( 1 \) for ELU. If you have spare time and computing power, you can use
-cross-validation or bootstrap to evaluate other activation functions.
-huge training set.
 </section>
 
 
 <section>
-<h2 id="___sec61">A top-down perspective on Neural networks </h2>
+<h2 id="___sec62">Which activation function should we use? </h2>
+
+<p>
+In general it seems that the ELU activation function is better than
+the leaky ReLU function (and its variants), which is better than
+ReLU. ReLU performs better than \( \tanh \) which in turn performs better
+than the logistic function.
+
+<p>
+If runtime
+performance is an issue, then you may opt for the  leaky ReLU function  over the 
+ELU function If you don&#8217;t
+want to tweak yet another hyperparameter, you may just use the default
+\( \alpha \) of \( 0.01 \) for the leaky ReLU, and \( 1 \) for ELU. If you have
+spare time and computing power, you can use cross-validation or
+bootstrap to evaluate other activation functions.
+</section>
+
+
+<section>
+<h2 id="___sec63">A top-down perspective on Neural networks </h2>
 
 <p>
 The first thing we would like to do is divide the data into two or three
@@ -2909,8 +3013,10 @@ cardinal sin in ML. Then:
 <p>
 
 If the validation and test sets are drawn from the same distributions,
-then good performance on the validation set should lead to similarly
-good performance on the test set. 
+then a good performance on the validation set should lead to similarly
+good performance on the test set.
+
+<p>
 However, sometimes
 the training data and test data differ in subtle ways because, for
 example, they are collected using slightly different methods, or
@@ -2929,7 +3035,7 @@ supervised learning.
 
 
 <section>
-<h2 id="___sec62">Limitations of supervised learning with deep networks </h2>
+<h2 id="___sec64">Limitations of supervised learning with deep networks </h2>
 
 <p>
 Like all statistical methods, supervised learning using neural

@@ -795,7 +795,7 @@ and recalling that
 z_j^{l+1} = \sum_{i=1}^{M_{l}}w_{ij}^{l+1}a_j^{l}+b_j^{l+1},
 \]
 !et
-we obtain
+with $M_l$ being the number of nodes in layer $l$, we obtain
 !bt
 \[
 \delta_j^l =\sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l),
@@ -838,13 +838,13 @@ Thereafter we compute the ouput error $\hat{\delta}^L$ by computing all
 Then we compute the back propagate error for each $l=L-1,L-2,\dots,2$ as
 !bt
 \[
-\delta_j^l =\sum_k \sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l).
+\delta_j^l = \sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l).
 \]
 !et
 !eblock
 
 !bblock
-Finally, we update the weights and the biases using gradient descent for each $l=L-1,L-2,dots,2$ and update the weights and biases according to the rules
+Finally, we update the weights and the biases using gradient descent for each $l=L-1,L-2,\dots,2$ and update the weights and biases according to the rules
 !bt
 \[
 w_{jk}^l\leftarrow  = w_{jk}^l- \eta \delta_j^la_k^{l-1},
@@ -853,7 +853,7 @@ w_{jk}^l\leftarrow  = w_{jk}^l- \eta \delta_j^la_k^{l-1},
 
 !bt
 \[
-b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^L},
+b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta \delta_j^l,
 \]
 !et
 !eblock
@@ -948,13 +948,63 @@ Again we take the negative log-likelihood to define our cost function:
   
 !bt
 \[
-\mathcal{C}(\hat{\theta}) = - \ln P(\mathcal{D} \mid \hat{\theta}).
+\mathcal{C}(\hat{\theta}) = - \log{P(\mathcal{D} \mid \hat{\theta})}.
 \]
 !et
 See the logistic regression lectures for a full definition of the cost function.
 
 The back propagation equations need now only a small change, namely the definition of a new cost function. We are thus ready to use the same equations as before!
-We leave it as an exercise in project 2 to derive these equations.
+
+!split
+===== Example: binary classification problem =====
+
+As an example of the above, relevant for project 2 as well, let us consider a binary class. As discussed in our logistic regression lectures, we defined a cost function in terms of the parameters $\beta$ as
+!bt
+\[
+\mathcal{C}(\hat{\beta}) = - \sum_{i=1}^n \left(y_i\log{p(y_i \vert x_i,\hat{\beta})}+(i-y_i)\log{1-p(y_i \vert x_i,\hat{\beta})}\right),
+\]
+!et
+where we had defined the logistic (sigmoid) function
+!bt
+\[
+p(y_i =1\vert x_i,\hat{\beta})=\frac{\exp{(\beta_0+\beta_1 x_i)}}{1+\exp{(\beta_0+\beta_1 x_i)}},
+\]
+!et
+and
+!bt
+\[
+p(y_i =0\vert x_i,\hat{\beta})=1-p(y_i =1\vert x_i,\hat{\beta}).
+\]
+!et
+The parameters $\hat{\beta}$ were defined using a minimization method like gradient descent or Newton-Raphson's method. 
+
+Now we replace $x_i$ with the activation $z_i^l$ for a given layer $l$ and the outputs as $y_i=a_i^l=f(z_i^l)$, with $z_i^l$ now being a function of the weights $w_{ij}^l$ and biases $b_i^l$. 
+We have then
+!bt
+\[
+a_i^l = y_i = \frac{\exp{(z_i^l)}}{1+\exp{(z_i^l)}},
+\]
+!et
+with 
+!bt
+\[
+z_i^l = \sum_{j}w_{ij}^l a_j^{l-1}+b_i^l,
+\]
+!et
+where the superscript $l-1$ indicates that these are the outputs from layer $l-1$.
+Our cost function at the final layer $l=L$ is now
+!bt
+\[
+\mathcal{C}(\hat{W}) = - \sum_{i=1}^n \left(t_i\log{a_i^L}+(i-t_i)\log{(1-a_i^L)}\right),
+\]
+!et
+where we have defined the targets $t_i$. The derivatives of the cost function with respect to the output $a_i^L$ are then easily calculated and we get
+!bt
+\[
+\frac{\partial \mathcal{C}(\hat{W})}{\partial a_i^L} = \frac{a_i^L-t_i}{a_i^L(1-a_i^L)}. 
+\]
+!et
+In case we use another activation function than the logistic one, we need to evaluate other derivatives. 
 
 
 !split 
@@ -1137,7 +1187,7 @@ We will be using the sigmoid function $\sigma(x)$:
   
 $$ f(x) = \sigma(x) = \frac{1}{1 + e^{-x}} ,$$
   
-which is inspired by probability theory (see logistic regression) and was most commonly used until about 2011.
+which is inspired by probability theory (see logistic regression) and was most commonly used until about 2011. See the discussion below concerning other activation functions.
 
 !split  
 ===== Layers =====
@@ -1343,6 +1393,8 @@ This has two important benefits:
 o Introducing stochasticity decreases the chance that the algorithm becomes stuck in a local minima.  
 o It significantly speeds up the calculation, since we do not have to use the entire dataset to calculate the gradient.  
 
+The various optmization  methods, with codes and algorithms,  are discussed in our lectures on "Gradient descent approaches":"https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html".
+
 !split  
 =====  Regularization =====
   
@@ -1376,9 +1428,9 @@ calculate the gradient efficently.
 ===== Matrix  multiplication =====
   
 To more efficently train our network these equations are implemented using matrix operations.  
-The error in the output layer is calculated simply as  
+The error in the output layer is calculated simply as, with $\hat{t}$ being our targets,  
   
-$$ \delta_L = \hat{y} - y = (n_{inputs}, n_{categories}) .$$  
+$$ \delta_L = \hat{t} - \hat{y} = (n_{inputs}, n_{categories}) .$$  
   
 The gradient for the output weights is calculated as  
   
@@ -1408,9 +1460,6 @@ $$ \nabla b_{h} = \sum_{i=1}^{n_{inputs}} \delta_h = (n_{hidden}) .$$
 
 !bc pycod
 # to categorical turns our integer vector into a onehot representation
-#from keras.utils import to_categorical
-
-# calculate the accuracy score of our model
 from sklearn.metrics import accuracy_score
 
 # one-hot in numpy
@@ -2189,90 +2238,133 @@ plt.show()
 !ec
 
 
+
+
 !split 
 ===== Which activation function should I use? =====
 
-Backpropagation algorithm works by going from the output layer to the
-input layer, propagating the error gradient on the way. Once the algorithm has computed the gradient of the
-cost function with regards to each parameter in the network, it uses these gradients to update each
-parameter with a Gradient Descent step.
+The Back propagation algorithm we derived above works by going from
+the output layer to the input layer, propagating the error gradient on
+the way. Once the algorithm has computed the gradient of the cost
+function with regards to each parameter in the network, it uses these
+gradients to update each parameter with a Gradient Descent (GD) step.
 
-Unfortunately, gradients often get smaller and smaller as the algorithm progresses down to the lower
-layers. As a result, the Gradient Descent update leaves the lower layer connection weights virtually
-unchanged, and training never converges to a good solution. This is called the vanishing gradients
-problem. In some cases, the opposite can happen: the gradients can grow bigger and bigger, so many
-layers get insanely large weight updates and the algorithm diverges. This is the exploding gradients
-problem, which is mostly encountered in recurrent neural networks. More generally,
-deep neural networks suffer from unstable gradients, different layers may learn at widely different speeds
+
+Unfortunately for us, the gradients often get smaller and smaller as the
+algorithm progresses down to the first hidden layers. As a result, the
+GD update leaves the lower layer connection weights
+virtually unchanged, and training never converges to a good
+solution. This is known in the literature as 
+_the vanishing gradients problem_. 
+
+In other cases, the opposite can happen, namely the the gradients can grow bigger and
+bigger. The result is that many of the layers get large updates of the 
+weights the
+algorithm diverges. This is the _exploding gradients problem_, which is
+mostly encountered in recurrent neural networks. More generally, deep
+neural networks suffer from unstable gradients, different layers may
+learn at widely different speeds
 
 !split 
 ===== Is the Logistic activation function (Sigmoid)  our choice? =====
 
-Although this unfortunate behavior has been empirically observed for quite a while (it was one of the
-reasons why deep neural networks were mostly abandoned for a long time), it is only around 2010 that
-significant progress was made in understanding it. 
+Although this unfortunate behavior has been empirically observed for
+quite a while (it was one of the reasons why deep neural networks were
+mostly abandoned for a long time), it is only around 2010 that
+significant progress was made in understanding it.
 
-A paper titled _Understanding the Difficulty of Training Deep Feedforward Neural Networks_ by Xavier Glorot and Yoshua Bengio1 found a few suspects,
-including the combination of the popular logistic sigmoid activation function and the weight initialization
-technique that was most popular at the time, namely random initialization using a normal distribution with
-a mean of 0 and a standard deviation of 1. In short, they showed that with this activation function and this
-initialization scheme, the variance of the outputs of each layer is much greater than the variance of its
-inputs. Going forward in the network, the variance keeps increasing after each layer until the activation
-function saturates at the top layers. This is actually made worse by the fact that the logistic function has a
-mean of 0.5, not 0 (the hyperbolic tangent function has a mean of 0 and behaves slightly better than the
-logistic function in deep networks).
+A paper titled "Understanding the Difficulty of Training Deep
+Feedforward Neural Networks by Xavier Glorot and Yoshua Bengio":"http://proceedings.mlr.press/v9/glorot10a.html" found that
+the problems with the popular logistic
+sigmoid activation function and the weight initialization technique
+that was most popular at the time, namely random initialization using
+a normal distribution with a mean of 0 and a standard deviation of
+1. 
+
+They showed that with this activation function and this
+initialization scheme, the variance of the outputs of each layer is
+much greater than the variance of its inputs. Going forward in the
+network, the variance keeps increasing after each layer until the
+activation function saturates at the top layers. This is actually made
+worse by the fact that the logistic function has a mean of 0.5, not 0
+(the hyperbolic tangent function has a mean of 0 and behaves slightly
+better than the logistic function in deep networks).
 
 
 !split
 ===== The derivative of the Logistic funtion =====
 
 Looking at the logistic activation function, when inputs become large
-(negative or positive), the function saturates at 0 or 1, with a derivative extremely close to 0. Thus when
-backpropagation kicks in, it has virtually no gradient to propagate back through the network, and what
-little gradient exists keeps getting diluted as backpropagation progresses down through the top layers, so
-there is really nothing left for the lower layers.
+(negative or positive), the function saturates at 0 or 1, with a
+derivative extremely close to 0. Thus when backpropagation kicks in,
+it has virtually no gradient to propagate back through the network,
+and what little gradient exists keeps getting diluted as
+backpropagation progresses down through the top layers, so there is
+really nothing left for the lower layers.
 
-In their paper, Glorot and Bengio propose a way to significantly alleviate this problem. We need the
-signal to flow properly in both directions: in the forward direction when making predictions, and in the
-reverse direction when backpropagating gradients. We don’t want the signal to die out, nor do we want it
-to explode and saturate. For the signal to flow properly, the authors argue that we need the variance of the
-outputs of each layer to be equal to the variance of its inputs, and we also need the gradients to have
-equal variance before and after flowing through a layer in the reverse direction (please check out the
-paper if you are interested in the mathematical details). 
+In their paper, Glorot and Bengio propose a way to significantly
+alleviate this problem. We need the signal to flow properly in both
+directions: in the forward direction when making predictions, and in
+the reverse direction when backpropagating gradients. We don’t want
+the signal to die out, nor do we want it to explode and saturate. For
+the signal to flow properly, the authors argue that we need the
+variance of the outputs of each layer to be equal to the variance of
+its inputs, and we also need the gradients to have equal variance
+before and after flowing through a layer in the reverse direction.
 
 
-One of the insights in the 2010 paper by Glorot and Bengio was that the vanishing/exploding gradients
-problems were in part due to a poor choice of activation function. Until then most people had assumed
-that if Nature had chosen to use roughly sigmoid activation functions in biological neurons, they
-must be an excellent choice. But it turns out that other activation functions behave much better in deep
-neural networks, in particular the ReLU activation function, mostly because it does not saturate for
-positive values (and also because it is quite fast to compute).
+
+One of the insights in the 2010 paper by Glorot and Bengio was that
+the vanishing/exploding gradients problems were in part due to a poor
+choice of activation function. Until then most people had assumed that
+if Nature had chosen to use roughly sigmoid activation functions in
+biological neurons, they must be an excellent choice. But it turns out
+that other activation functions behave much better in deep neural
+networks, in particular the ReLU activation function, mostly because
+it does not saturate for positive values (and also because it is quite
+fast to compute).
 
 
 !split
 ===== The RELU function family =====
 
 The ReLU activation function suffers from a problem known as the dying
-ReLUs: during training, some neurons effectively die, meaning they stop outputting anything other than 0.
+ReLUs: during training, some neurons effectively die, meaning they
+stop outputting anything other than 0.
 
-In some cases, you may find that half of your network’s neurons are dead, especially if you used a large
-learning rate. During training, if a neuron’s weights get updated such that the weighted sum of the neuron’s
-inputs is negative, it will start outputting 0. When this happen, the neuron is unlikely to come back to life
-since the gradient of the ReLU function is 0 when its input is negative.
+In some cases, you may find that half of your network’s neurons are
+dead, especially if you used a large learning rate. During training,
+if a neuron’s weights get updated such that the weighted sum of the
+neuron’s inputs is negative, it will start outputting 0. When this
+happen, the neuron is unlikely to come back to life since the gradient
+of the ReLU function is 0 when its input is negative.
 
-To solve this problem, you may want to use a variant of the ReLU function, such as the leaky ReLU discussed before or the so-called exponential linear unit (ELU) function
+To solve this problem, nowadays practitioners use a  variant of the ReLU
+function, such as the leaky ReLU discussed above or the so-called
+exponential linear unit (ELU) function
+
+
 !bt
 \[
 ELU(z) = \left\{\begin{array}{cc} \alpha\left( \exp{(z)}-1\right) & z < 0,\\  z & z \ge 0.\end{array}\right. 
 \]
 !et
 
-So which activation function should you use for the hidden layers of your deep neural networks? Although your mileage will vary,
-in general ELU is better than leaky ReLU (and its variants), which is better than ReLU. ReLU performs better than $\tanh$ which in turn performs better than the  logistic function. If you care a lot about runtime performance, then you
-may prefer leaky ReLUs over ELUs. If you don’t want to tweak yet another hyperparameter, you may just use the default $\alpha$ of
-$0.01$ for the leaky ReLU, and $1$ for ELU. If you have spare time and computing power, you can use
-cross-validation or bootstrap to evaluate other activation functions.
-huge training set.
+!split
+===== Which activation function should we use? =====
+
+In general it seems that the ELU activation function is better than
+the leaky ReLU function (and its variants), which is better than
+ReLU. ReLU performs better than $\tanh$ which in turn performs better
+than the logistic function. 
+
+If runtime
+performance is an issue, then you may opt for the  leaky ReLU function  over the 
+ELU function If you don’t
+want to tweak yet another hyperparameter, you may just use the default
+$\alpha$ of $0.01$ for the leaky ReLU, and $1$ for ELU. If you have
+spare time and computing power, you can use cross-validation or
+bootstrap to evaluate other activation functions.
 
 
 !split 
@@ -2297,8 +2389,9 @@ cardinal sin in ML. Then:
 * Make sure you are not overfitting.
 
 If the validation and test sets are drawn from the same distributions,
-then good performance on the validation set should lead to similarly
+then a good performance on the validation set should lead to similarly
 good performance on the test set. 
+
 However, sometimes
 the training data and test data differ in subtle ways because, for
 example, they are collected using slightly different methods, or
