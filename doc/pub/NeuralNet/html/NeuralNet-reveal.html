@@ -148,7 +148,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Oct 16, 2018</h4></center> <!-- date -->
+<center><h4>Oct 18, 2018</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -3085,7 +3085,153 @@ Here we list some of the important limitations of supervised neural network base
 </ul>
 <p>
 
-Some of these remarks are particular to DNNs, others are shared by all supervised learning methods. This motivates the use of unsupervised methods which in part circumnavigate these problems.
+Some of these remarks are particular to DNNs, others are shared by all supervised learning methods. This motivates the use of unsupervised methods which in part circumvent these problems.
+</section>
+
+
+<section>
+<h2 id="___sec66">Convolutional Neural Networks (recognizing images) </h2>
+
+<p>
+Convolutional Neural Networks (CNN) are very similar to ordinary Neural Networks.
+
+<p>
+They are made up of neurons that have learnable weights and
+biases. Each neuron receives some inputs, performs a dot product and
+optionally follows it with a non-linearity. The whole network still
+expresses a single differentiable score function: from the raw image
+pixels on one end to class scores at the other. And they still have a
+loss function (for example Softmax) on the last (fully-connected) layer
+and all the tips/tricks we developed for learning regular Neural
+Networks still apply (back propagation, gradient descent etc etc).
+
+<p>
+What is the difference? <b>CNN architectures make the explicit assumption that
+the inputs are images, which allows us to encode certain properties
+into the architecture. These then make the forward function more
+efficient to implement and vastly reduce the amount of parameters in
+the network.</b>
+
+<p>
+Here we provide only a superficial overview, for the more interested, we recommend highly the course
+<a href="https://www.uio.no/studier/emner/matnat/ifi/IN5400/index-eng.html" target="_blank">IN5400 &#8211; Machine Learning for Image Analysis</a>
+and the slides of <a href="http://cs231n.github.io/convolutional-networks/" target="_blank">CS231</a>.
+</section>
+
+
+<section>
+<h2 id="___sec67">Regular NNs don&#8217;t scale well to full images </h2>
+
+<p>
+As an example, consider
+an image of size \( 32\times 32\times 3 \) (32 wide, 32 high, 3 color channels), so a
+single fully-connected neuron in a first hidden layer of a regular
+Neural Network would have \( 32*32*3 = 3072 \) weights. This amount still
+seems manageable, but clearly this fully-connected structure does not
+scale to larger images. For example, an image of more respectable
+size, say \( 200\times 200\times 3 \), would lead to neurons that have 
+\( 200*200*3 =120,000 \) weights. Moreover, we would almost certainly want to have
+several such neurons, so the parameters would add up quickly! Clearly,
+this full connectivity is wasteful and the huge number of parameters
+would quickly lead to overfitting.
+
+<p>
+<center>  <!-- FIGURE -->
+<hr class="figure">
+<center><p class="caption">Figure 1:  A regular 3-layer Neural Network. </p></center>
+<p><img src="figslides/nn.jpeg" align="bottom" width=500></p>
+</center>
+</section>
+
+
+<section>
+<h2 id="___sec68">3D volumes of neurons </h2>
+
+<p>
+Convolutional Neural Networks take advantage of the fact that the
+input consists of images and they constrain the architecture in a more
+sensible way.
+
+<p>
+In particular, unlike a regular Neural Network, the
+layers of a CNN have neurons arranged in 3 dimensions: width,
+height, depth. (Note that the word depth here refers to the third
+dimension of an activation volume, not to the depth of a full Neural
+Network, which can refer to the total number of layers in a network.)
+
+<p>
+To understand it better, the above example of an image 
+with an input volume of
+activations has dimensions \( 32\times 32\times 3 \) (width, height,
+depth respectively).
+
+<p>
+The neurons in a layer will
+only be connected to a small region of the layer before it, instead of
+all of the neurons in a fully-connected manner. Moreover, the final
+output layer could  for this specific image have dimensions \( 1\times 1 times 10 \), 
+because by the
+end of the CNN architecture we will reduce the full image into a
+single vector of class scores, arranged along the depth
+dimension.
+
+<p>
+<center>  <!-- FIGURE -->
+<hr class="figure">
+<center><p class="caption">Figure 2:  A CNN arranges its neurons in three dimensions (width, height, depth), as visualized in one of the layers. Every layer of a CNN transforms the 3D input volume to a 3D output volume of neuron activations. In this example, the red input layer holds the image, so its width and height would be the dimensions of the image, and the depth would be 3 (Red, Green, Blue channels). </p></center>
+<p><img src="figslides/cnn.jpeg" align="bottom" width=500></p>
+</center>
+</section>
+
+
+<section>
+<h2 id="___sec69">Layers used to build CNNs </h2>
+
+<p>
+A simple CNN is a sequence of layers, and every layer of a CNN
+transforms one volume of activations to another through a
+differentiable function. We use three main types of layers to build
+CNN architectures: Convolutional Layer, Pooling Layer, and
+Fully-Connected Layer (exactly as seen in regular Neural Networks). We
+will stack these layers to form a full CNN architecture.
+
+<p>
+A simple CNN for image classification could have the architecture:
+
+<ul>
+<p><li> INPUT (\( 32\times 32 \times 3 \)) will hold the raw pixel values of the image, in this case an image of width 32, height 32, and with three color channels R,G,B.</li>
+<p><li> CONV layer will compute the output of neurons that are connected to local regions in the input, each computing a dot product between their weights and a small region they are connected to in the input volume. This may result in volume such as \( [32\times 32\times 12] \) if we decided to use 12 filters.</li>
+<p><li> RELU layer will apply an elementwise activation function, such as the \( max(0,x) \) thresholding at zero. This leaves the size of the volume unchanged (\( [32\times 32\times 12] \)).</li>
+<p><li> POOL layer will perform a downsampling operation along the spatial dimensions (width, height), resulting in volume such as \( [16\times 16\times 12] \).</li>
+<p><li> FC (i.e. fully-connected) layer will compute the class scores, resulting in volume of size \( [1\times 1\times 10] \), where each of the 10 numbers correspond to a class score, such as among the 10 categories of the MNIST images we considered above . As with ordinary Neural Networks and as the name implies, each neuron in this layer will be connected to all the numbers in the previous volume.</li>
+</ul>
+<p>
+
+In this way, CNNs transform the original image layer by layer from the original pixel values to the final class scores. Note that some layers contain parameters and other don&#8217;t. In particular, the CONV/FC layers perform transformations that are a function of not only the activations in the input volume, but also of the parameters (the weights and biases of the neurons). On the other hand, the RELU/POOL layers will implement a fixed function. The parameters in the CONV/FC layers will be trained with gradient descent so that the class scores that the CNN computes are consistent with the labels in the training set for each image.
+</section>
+
+
+<section>
+<h2 id="___sec70">CNNs in brief </h2>
+
+<p>
+In summary:
+
+<ul>
+<p><li> A CNN architecture is in the simplest case a list of Layers that transform the image volume into an output volume (e.g. holding the class scores)</li>
+<p><li> There are a few distinct types of Layers (e.g. CONV/FC/RELU/POOL are by far the most popular)</li>
+<p><li> Each Layer accepts an input 3D volume and transforms it to an output 3D volume through a differentiable function</li>
+<p><li> Each Layer may or may not have parameters (e.g. CONV/FC do, RELU/POOL don&#8217;t)</li>
+<p><li> Each Layer may or may not have additional hyperparameters (e.g. CONV/FC/POOL do, RELU doesn&#8217;t)</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec71">CNNs in more detail </h2>
+
+<p>
+More material to come with examples.
 </section>
 
 
