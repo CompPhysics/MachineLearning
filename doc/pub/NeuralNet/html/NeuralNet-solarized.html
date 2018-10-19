@@ -194,7 +194,35 @@ div { text-align: justify; text-justify: inter-word; }
               ('Running with Keras', 2, None, '___sec83'),
               ('Final part', 2, None, '___sec84'),
               ('Final visualization', 2, None, '___sec85'),
-              ('Fun links', 2, None, '___sec86')]}
+              ('Fun links', 2, None, '___sec86'),
+              ('Applications: solving ordinary differential equations with '
+               'Neural Networks',
+               2,
+               None,
+               '___sec87'),
+              ('Trial solution', 2, None, '___sec88'),
+              ('More details', 2, None, '___sec89'),
+              ('Reformulating the problem', 2, None, '___sec90'),
+              ('Estimating errors', 2, None, '___sec91'),
+              ('Creating a simple Deep Neural Net', 2, None, '___sec92'),
+              ('Feedforward', 2, None, '___sec93'),
+              ('Result after weighting', 2, None, '___sec94'),
+              ('Output', 2, None, '___sec95'),
+              ('Setting up the code, feed forward part', 2, None, '___sec96'),
+              ('Backpropagation', 2, None, '___sec97'),
+              ('Gradient Descent', 2, None, '___sec98'),
+              ('More on GD and cost function', 2, None, '___sec99'),
+              ('An implementation of a Deep Neural Network',
+               2,
+               None,
+               '___sec100'),
+              ('Feed forward again', 2, None, '___sec101'),
+              ('The final parts of the code', 2, None, '___sec102'),
+              ('And adding Back propagation', 2, None, '___sec103'),
+              ('Solving the ODE', 2, None, '___sec104'),
+              ('Using neural network', 2, None, '___sec105'),
+              ('Using a deep neural network', 2, None, '___sec106'),
+              ('Wrapping it up', 2, None, '___sec107')]}
 end of tocinfo -->
 
 <body>
@@ -3627,6 +3655,824 @@ plt.show()
 <li> <a href="https://deepdreamgenerator.com/" target="_blank">Abstract art using convolutional neural networks</a></li>
 </ol>
 
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec87">Applications: solving ordinary differential equations with Neural Networks </h2>
+
+<p>
+We end our discussion on neural networks with a discussion on how to solve differential equations. Here we focus 
+first on the classical exponential decay in one dimension. Thereafter we switch to the Poisson equation in one dimension.
+
+<p>
+The aim is to see if we can use a neural network to solve
+
+$$
+\begin{equation}
+\label{eq:ode}
+g'(x) = -\gamma g(x) 
+\end{equation}
+$$
+
+<p>
+where \( g(0) = g_0 \) with \( \gamma \) and \( g_0 \) being some chosen
+values. This equation is an ordinary differential equation since the
+function we have to solve for, \( g(x) \), is of one variable.
+
+<p>
+Here we set  \( \gamma = 2 \) and \( g_0 = 10 \) but feel free to change
+them and see how the neural network performs.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec88">Trial solution </h2>
+
+<p>
+To begin with, a trial solution \( g_t(t) \) must be chosen. A general
+trial solution for ordinary differential equations could be
+
+$$
+g_t(x, P) = h_1(x) + h_2(x, N(x, P)),
+$$
+
+<p>
+with \( h_1(x) \) ensuring that \( g_t(x) \) satisfies some conditions and
+\( h_2(x,N(x, P)) \) an expression involving \( x \) and the output from the
+neural network \( N(x,P) \) with \( P  \) being the collection of the weights
+and biases for each layer.
+
+<p>
+It is assumed that there are no weights and
+bias at the input layer, so \( P = \{ P_{\text{hidden}},
+P_{\text{output}} \} \). If there are \( N_{\text{hidden} } \) neurons in
+the hidden layer, then \( P_{\text{hidden}} \) is an \( N_{\text{hidden} }
+\times 2 \) matrix.
+
+<p>
+The first column in \( P_{\text{hidden} } \) represents
+the bias for each neuron in the hidden layer and the second column
+represents the weigths for each neuron. If there are \( N_{\text{output}
+} \) neurons in the output layer, then \( P_{\text{output}}  \) is a
+\( N_{\text{output} } \times (1 + N_{\text{hidden} }) \) matrix. Its first
+column represents the bias of each neuron and the remaining columns
+represents the weights to each neuron.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec89">More details </h2>
+
+<p>
+We have \( g(0) = g_0 \). The trial solution must fulfill this
+condition to be a proper solution of \eqref{eq:ode}.
+
+<p>
+A possible way to
+ensure that \( g_t(0, P) = g_0 \), is to let \( F(N(x,P)) = x\cdot N(x,P) \)
+and \( A(x) = g_0 \). This gives the following trial solution:
+
+$$
+\begin{equation}
+g_t(x, P) = g_0 + x \cdot N(x, P).
+\label{_auto11}
+\end{equation}
+$$
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec90">Reformulating the problem  </h2>
+
+<p>
+Often, the role of a neural network is to minimize its parameters with
+respect to some given error criteria. This criteria, the cost or loss
+function, is a measure of how much error the output of the network has
+compared to some given known answers. A reformulation of
+\eqref{eq:ode} must therefore be done, such that it describes the
+problem a neural network can solve.
+
+<p>
+The neural network must find the set of weigths and biases \( P \) such
+that the trial solution in  satisfies
+\eqref{eq:ode}. The trial solution has been chosen such that it
+already solves the condition \( g(0) = g_0 \). What remains, is to find
+\( P \) such that
+
+$$
+\begin{equation}
+g_t'(x, P) = - \gamma g_t(x, P) 
+\label{_auto12}
+\end{equation}
+$$
+
+<p>
+is fulfilled as <em>best as possible</em>.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec91">Estimating errors </h2>
+
+<p>
+Having two sides of an equation as equal as
+possible, means that the absolute or squared difference between the
+sides must be as close to zero as small. In this case, the difference
+squared is an appropiate measurement of how errorneous the trial
+solution is with respect to \( P \) of the neural network. Therefore, the
+problem our network must solve, is
+
+$$
+\min_{P}\Big\{ \big(g_t'(x, P) - ( -\gamma g_t(x, P) \big)^2 \Big\}
+$$
+
+<p>
+or, in terms of weights and biases for each layer:
+
+$$
+\min_{P_{\text{hidden} }, \ P_{\text{output} }}\Big\{ \big(g_t'(x, \{ P_{\text{hidden} }, P_{\text{output} }\}) - ( -\gamma g_t(x, \{ P_{\text{hidden} }, P_{\text{output} }\}) \big)^2 \Big\}
+$$
+
+<p>
+for an input value \( x \). 
+If the neural network evaluates \( g_t(x, P) \) at more avalues for \( x \),&#160;say \( N \) values \( x_i \) for \( i = 1, \dots, N \), then the <em>total</em> error to minimize is 
+
+$$
+\begin{equation}
+\label{eq:min}
+\min_{P}\Big\{\sum_i  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2 \Big\} 
+\end{equation}
+$$
+
+<p>
+Letting \( c(x, P) = \sum_i \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P)
+\big)^2 \) denote the cost function, the minimization problem of which
+our network must solve, is
+
+$$
+\min_{P} c(x, P)
+$$
+
+<p>
+or in terms of \( P_{\text{hidden} } \) and \( P_{\text{output} } \)
+
+$$
+\min_{P_{\text{hidden} }, \ P_{\text{output} }} c(x, \{P_{\text{hidden} }, P_{\text{output} }\})
+$$
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec92">Creating a simple Deep Neural Net </h2>
+
+<p>
+The next step is to decide how the neural net \( N(x, P) \) 
+should be. In this case, the neural network is made
+from scratch to understand better how a neural network works, gain
+more control over its architecture, and see how Autograd can be used
+to simplify the implementation.
+
+<p>
+Since a deep neural network (DNN) is a neural network with more than
+one hidden layer, we can first look on how to implement a neural
+network. Having an implementation of a neural network at hand, an
+extension of it into a deep neural network would (hopefully) be
+painless.
+
+<p>
+For simplicity, we assume that the input is an array \( \vec x =
+(x_1, \dots, x_N) \) with \( N \) elements. It is at these points the neural
+network should find \( P \) such that it fulfills \eqref{eq:min}.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec93">Feedforward </h2>
+
+<p>
+First, a feedforward of the inputs must be done. This means that \( \vec
+ x \) must be passed through an input layer, a hidden layer and a output
+ layer. The input layer in this case, does not need to process the
+ data any further. The input layer will consist of \( N_{\text{input} } \)
+ neurons, passing its element to each neuron in the hidden layer.  The
+ number of neurons in the hidden layer will be \( N_{\text{hidden} } \).
+
+<p>
+For the \( i \)-th in the hidden layer with weight \( w_i^{\text{hidden} } \)
+and bias \( b_i^{\text{hidden} } \), the weighting from the \( j \)-th neuron
+at the input layer is:
+
+$$
+\begin{aligned}
+z_{i,j}^{\text{hidden}} &= b_i^{\text{hidden}} + w_i^{\text{hidden}}x_j \\
+&= 
+\begin{pmatrix}
+b_i^{\text{hidden}} & w_i^{\text{hidden}}
+\end{pmatrix}
+\begin{pmatrix}
+1 \\
+x_j
+\end{pmatrix} 
+\end{aligned}
+$$
+
+<p>
+<!-- !split  -->
+
+<h2 id="___sec94">Result after weighting </h2>
+
+<p>
+The result after weighting the input at the \( i \)-th hidden neuron can be written as a vector:
+$$
+\begin{aligned}
+\vec{z}_{i}^{\text{hidden}} &= \Big( b_i^{\text{hidden}} + w_i^{\text{hidden}}x_1 , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_2, \ \dots \, , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_N\Big)  \\
+&= 
+\begin{pmatrix}
+ b_i^{\text{hidden}}  & w_i^{\text{hidden}}
+\end{pmatrix}
+\begin{pmatrix}
+1  & 1 & \dots & 1 \\
+x_1 & x_2 & \dots & x_N
+\end{pmatrix} \\
+&= \vec{p}_{i, \text{hidden}}^T X
+\end{aligned}
+$$
+
+<p>
+It is the vector \( \vec{p}_{i, \text{hidden}}^T \) that defines each row
+in \( P_{\text{hidden} } \), which contains the weights for the neural
+network to minimize according to \eqref{eq:min}.
+
+<p>
+After having found \( \vec{z}_{i}^{\text{hidden}}  \) for every neuron \( i \)
+in the hidden layer, the vector will be sent to an activation function
+\( a_i(\vec{z}) \).  In this example, the sigmoid function has been used:
+
+$$
+f(z) = \frac{1}{1 + \exp{(-z)}}.
+$$
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec95">Output </h2>
+
+<p>
+The output $\vec{x}_i^{\text{hidden} }$from each \( i \)-th hidden neuron is:
+
+$$
+\vec{x}_i^{\text{hidden} } = f\big(  \vec{z}_{i}^{\text{hidden}} \big).
+$$
+
+<p>
+The outputs \( \vec{x}_i^{\text{hidden} }  \) are then sent to the output layer.
+
+<p>
+The output layer consist of one neuron in this case, and combines the
+output from each of the neurons in the hidden layers. The output layer
+combines the results from the hidden layer using some weights \( 
+w_i^{\text{output}} \) and biases \( b_i^{\text{output}} \). In this case,
+it is assumes that the number of neurons in the output layer is one.
+
+<p>
+The procedure of weigthing the output neuron \( j \) in the hidden layer
+to the \( i \)-th neuron in the output layer is similar as for the hidden
+layer described previously.
+
+$$
+\begin{aligned}
+z_{1,j}^{\text{output}} & = 
+\begin{pmatrix}
+b_1^{\text{output}} & \vec{w}_1^{\text{output}}
+\end{pmatrix}
+\begin{pmatrix}
+1 \\
+\vec{x}_j^{\text{hidden}}
+\end{pmatrix}
+\end{aligned}
+$$
+
+<p>
+Expressing \( z_{1,j}^{\text{output}} \) as a vector gives the following procedure of weighting the inputs from the hidden layer:
+
+$$
+\vec{z}_{1}^{\text{output}} = 
+\begin{pmatrix}
+b_1^{\text{output}} & \vec{w}_1^{\text{output}}
+\end{pmatrix}
+\begin{pmatrix}
+1 &amp; 1 & \dots &amp; 1 \\
+\vec{x}_1^{\text{hidden}} & \vec{x}_2^{\text{hidden}} & \dots & \vec{x}_N^{\text{hidden}}
+\end{pmatrix}
+$$
+
+<p>
+In this case we seek a continous range of values since we are
+approximating a function. This means that after computing
+\( \vec{z}_{1}^{\text{output}} \) the neural network has finished its
+feedforward step, and \( \vec{z}_{1}^{\text{output}} \) is the final
+output of the network.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec96">Setting up the code, feed forward part </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #228B22"># Note that we use the  numpy wrapper for Autograd (see the gradient descent  slides)</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">autograd</span> <span style="color: #8B008B; font-weight: bold">import</span> grad, elementwise_grad
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy.random</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">npr</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> pyplot <span style="color: #8B008B; font-weight: bold">as</span> plt
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">sigmoid</span>(z):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span>/(<span style="color: #B452CD">1</span> + np.exp(-z))
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">neural_network</span>(params, x):
+    
+    <span style="color: #228B22"># Find the weights (including and biases) for the hidden and output layer.</span>
+    <span style="color: #228B22"># Assume that params is a list of parameters for each layer. </span>
+    <span style="color: #228B22"># The biases are the first element for each array in params, </span>
+    <span style="color: #228B22"># and the weights are the remaning elements in each array in params.   </span>
+    
+    w_hidden = params[<span style="color: #B452CD">0</span>]
+    w_output = params[<span style="color: #B452CD">1</span>]
+
+    <span style="color: #228B22"># Assumes input x being an one-dimensional array</span>
+    num_values = np.size(x)
+    x = x.reshape(-<span style="color: #B452CD">1</span>, num_values)
+    
+    <span style="color: #228B22"># Assume that the input layer does nothing to the input x</span>
+    x_input = x
+
+    <span style="color: #228B22">## Hidden layer:</span>
+    
+    <span style="color: #228B22"># Add a row of ones to include bias</span>
+    x_input = np.concatenate((np.ones((<span style="color: #B452CD">1</span>,num_values)), x_input ), axis = <span style="color: #B452CD">0</span>)
+    
+    z_hidden = np.matmul(w_hidden, x_input)
+    x_hidden = sigmoid(z_hidden)
+
+    <span style="color: #228B22">## Output layer:</span>
+    
+    <span style="color: #228B22"># Include bias:</span>
+    x_hidden = np.concatenate((np.ones((<span style="color: #B452CD">1</span>,num_values)), x_hidden ), axis = <span style="color: #B452CD">0</span>)
+
+    z_output = np.matmul(w_output, x_hidden)
+    x_output = z_output
+
+    <span style="color: #8B008B; font-weight: bold">return</span> x_output
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec97">Backpropagation </h2>
+
+<p>
+Now that feedforward can be done, the next step is to decide how the
+parameters should change such that they minimize the cost function.
+
+<p>
+Recall that the chosen cost function for this problem is 
+
+$$
+c(x, P) = \sum_i  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2
+$$
+
+<p>
+In order to minimize it, an optimalization method must be chosen.
+
+<p>
+Here, gradient descent with a constant step size has been chosen.
+
+<p>
+Before looking at the gradient descent method, let us set up the cost
+function along with the right ride of the ODE and trial solution.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #228B22"># The trial solution using the deep neural network:</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">g_trial</span>(x,params, g0 = <span style="color: #B452CD">10</span>):
+    <span style="color: #8B008B; font-weight: bold">return</span> g0 + x*neural_network(params,x)
+
+<span style="color: #228B22"># The right side of the ODE:</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">g</span>(x, g_trial, gamma = <span style="color: #B452CD">2</span>):
+    <span style="color: #8B008B; font-weight: bold">return</span> -gamma*g_trial
+
+<span style="color: #228B22"># The cost function:</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">cost_function</span>(P, x):
+    
+    <span style="color: #228B22"># Evaluate the trial function with the current parameters P</span>
+    g_t = g_trial(x,P)
+    
+    <span style="color: #228B22"># Find the derivative w.r.t x of the neural network</span>
+    d_net_out = elementwise_grad(neural_network,<span style="color: #B452CD">1</span>)(P,x) 
+    
+    <span style="color: #228B22"># Find the derivative w.r.t x of the trial function</span>
+    d_g_t = elementwise_grad(g_trial,<span style="color: #B452CD">0</span>)(x,P)  
+    
+    <span style="color: #228B22"># The right side of the ODE </span>
+    func = g(x, g_t)
+
+    err_sqr = (d_g_t - func)**<span style="color: #B452CD">2</span>
+    cost_sum = np.sum(err_sqr)
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> cost_sum
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec98">Gradient Descent </h2>
+
+<p>
+The idea of the gradient descent algorithm is to update parameters in
+direction where the cost function decreases goes to a minimum.
+
+<p>
+In general, the update of some parameters \( \vec \omega \) given a cost
+function defined by some weights \( \vec \omega \), \( c(x, \vec \omega) \),
+goes as follows:
+
+$$
+\vec \omega_{\text{new} } = \vec \omega - \lambda \nabla_{\vec \omega} c(x, \vec \omega),
+$$
+
+<p>
+for a number of iterations or until $ \big|\big| \vec
+\omega_{\text{new} } - \vec \omega \big|\big|$ is smaller than some
+given tolerance.
+
+<p>
+The value of \( \lambda \) decides how large steps the algorithm must take
+in the direction of $ \nabla_{\vec \omega} c(x, \vec \omega)$. The
+notatation \( \nabla_{\vec \omega} \) denotes the gradient with respect to
+the elements in \( \vec \omega \).
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec99">More on GD and cost function </h2>
+
+<p>
+In our case, we have to minimize the cost function \( c(x, P) \) with
+respect to the two sets of weights and bisases, that is for the hidden
+layer \( P_{\text{hidden} } \) and for the ouput layer \( P_{\text{output}
+} \) .
+
+<p>
+This means that \( P_{\text{hidden} } \) and \( P_{\text{output} } \) is
+updated by
+
+$$
+\begin{aligned}
+P_{\text{hidden},\text{new}} &= P_{\text{hidden}} - \lambda \nabla_{P_{\text{hidden}}} c(x, P)  \\
+P_{\text{output},\text{new}} &= P_{\text{output}} - \lambda \nabla_{P_{\text{output}}} c(x, P)  
+\end{aligned}
+$$
+
+<p>
+This might look like a cumberstone to set up the correct expression
+for finding the gradients. Luckily, Autograd comes to the rescue.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">solve_ode_neural_network</span>(x, num_neurons_hidden, num_iter, lmb):
+    <span style="color: #228B22">## Set up initial weigths and biases </span>
+    
+    <span style="color: #228B22"># For the hidden layer</span>
+    p0 = npr.randn(num_neurons_hidden, <span style="color: #B452CD">2</span> ) 
+
+    <span style="color: #228B22"># For the output layer</span>
+    p1 = npr.randn(<span style="color: #B452CD">1</span>, num_neurons_hidden + <span style="color: #B452CD">1</span> ) <span style="color: #228B22"># +1 since bias is included</span>
+
+    P = [p0, p1]
+
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Initial cost: %g&#39;</span>%cost_function(P, x))
+    
+    <span style="color: #228B22">## Start finding the optimal weigths using gradient descent</span>
+    
+    <span style="color: #228B22"># Find the Python function that represents the gradient of the cost function</span>
+    <span style="color: #228B22"># w.r.t the 0-th input argument -- that is the weights and biases in the hidden and output layer</span>
+    cost_function_grad = grad(cost_function,<span style="color: #B452CD">0</span>)
+    
+    <span style="color: #228B22"># Let the update be done num_iter times</span>
+    <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(num_iter):
+        <span style="color: #228B22"># Evaluate the gradient at the current weights and biases in P. </span>
+        <span style="color: #228B22"># The cost_grad consist now of two arrays; </span>
+        <span style="color: #228B22"># one for the gradient w.r.t P_hidden and </span>
+        <span style="color: #228B22"># one for the gradient w.r.t P_output</span>
+        cost_grad =  cost_function_grad(P, x)
+    
+        P[<span style="color: #B452CD">0</span>] = P[<span style="color: #B452CD">0</span>] - lmb * cost_grad[<span style="color: #B452CD">0</span>]
+        P[<span style="color: #B452CD">1</span>] = P[<span style="color: #B452CD">1</span>] - lmb * cost_grad[<span style="color: #B452CD">1</span>]
+
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Final cost: %g&#39;</span>%cost_function(P, x))
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> P
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec100">An implementation of a Deep Neural Network </h2>
+
+<p>
+As previously stated, a Deep Neural Network (DNN) follows the same
+concept of a neural network, but having more than one hidden
+layer. Suppose that the network has \( N_{\text{hidden}} \) hidden layers
+where the \( l \)-th layer has \( N_{\text{hidden}}^{(l)} \) neurons. The
+input is still assumed to be an array of size \( 1 \times N \). The
+network must now try to optimalize its output with respect to the
+collection of weigths and biases \( P = \big\{P_{\text{input} }, \
+P_{\text{hidden} }^{(1)}, \ P_{\text{hidden} }^{(2)}, \ \dots , \
+P_{\text{hidden} }^{(N_{\text{hidden}})}, \ P_{\text{output} }\big\} \).
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec101">Feed forward again </h2>
+
+<p>
+The feedforward step is similar to as for the neural netowork, but now considering more than one hidden layer.
+
+<p>
+The \( i \)-th neuron at layer \( l \) recieves the result
+\( \vec{x}_j^{(l-1),\text{hidden} } \) from the \( j \)-th neuron at layer
+\( l-1 \). The \( i \)-th neuron at layer \( l \) weights all of the elements in
+\( \vec{x}_j^{(l-1),\text{hidden} } \) with a weight vector \( \vec
+w_{i,j}^{(l), \ \text{hidden} } \) with as many weigths as there are
+elements in$\vec{x}_j^{(l-1),\text{hidden} }$, and adds a bias
+\( b_i^{(l), \ \text{hidden} } \):
+
+$$
+\begin{aligned}
+z_{i,j}^{(l),\ \text{hidden}} &= b_i^{(l), \ \text{hidden}} + \big(\vec{w}_{i}^{(l), \ \text{hidden}}\big)^T\vec{x}_j^{(l-1),\text{hidden} } \\
+&= 
+\begin{pmatrix}
+b_i^{(l), \ \text{hidden}}  & \big(\vec{w}_{i}^{(l), \ \text{hidden}}\big)^T
+\end{pmatrix}
+\begin{pmatrix}
+1  \\
+\vec{x}_j^{(l-1),\text{hidden} }
+\end{pmatrix} 
+\end{aligned}
+$$
+
+<p>
+The output from the \( i \)-th neuron at the hidden layer \( l \) becomes a vector \( \vec{z}_{i}^{(l),\ \text{hidden}} \):
+
+$$
+\begin{aligned}
+\vec{z}_{i}^{(l),\ \text{hidden}} &= \Big(  b_i^{(l), \ \text{hidden}} + \big(\vec{w}_{i}^{(l), \ \text{hidden}}\big)^T\vec{x}_1^{(l-1),\text{hidden} }, \ \dots \ , \  b_i^{(l), \ \text{hidden}} + \big(\vec{w}_{i}^{(l), \ \text{hidden}}\big)^T\vec{x}_{N_{hidden}^{(l-1)}}^{(l-1),\text{hidden} } \Big) \\
+&= 
+\begin{pmatrix}
+b_i^{(l), \ \text{hidden}} & \big(\vec{w}_{i}^{(l), \ \text{hidden}}\big)^T
+\end{pmatrix}
+\begin{pmatrix}
+1 & 1 & \dots & 1 \\
+\vec{x}_{1}^{(l-1),\text{hidden} } & \vec{x}_{2}^{(l-1),\text{hidden} } & \dots & \vec{x}_{N_{hidden}^{(l-1)}}^{(l-1),\text{hidden} }
+\end{pmatrix}
+\end{aligned}
+$$
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec102">The final parts of the code </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">deep_neural_network</span>(deep_params, x):
+    <span style="color: #228B22"># N_hidden is the number of hidden layers  </span>
+    N_hidden = np.size(deep_params) - <span style="color: #B452CD">1</span> <span style="color: #228B22"># -1 since params consist of parameters to all the hidden layers AND the output layer</span>
+        
+    <span style="color: #228B22"># Assumes input x being an one-dimensional array</span>
+    num_values = np.size(x)
+    x = x.reshape(-<span style="color: #B452CD">1</span>, num_values)
+    
+    <span style="color: #228B22"># Assume that the input layer does nothing to the input x</span>
+    x_input = x
+    
+    <span style="color: #228B22"># Due to multiple hidden layers, define a variable referencing to the</span>
+    <span style="color: #228B22"># output of the previous layer:</span>
+    x_prev = x_input 
+    
+    <span style="color: #228B22">## Hidden layers:</span>
+    
+    <span style="color: #8B008B; font-weight: bold">for</span> l <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(N_hidden):
+        <span style="color: #228B22"># From the list of parameters P; find the correct weigths and bias for this layer</span>
+        w_hidden = deep_params[l]
+        
+        <span style="color: #228B22"># Add a row of ones to include bias</span>
+        x_prev = np.concatenate((np.ones((<span style="color: #B452CD">1</span>,num_values)), x_prev ), axis = <span style="color: #B452CD">0</span>)
+
+        z_hidden = np.matmul(w_hidden, x_prev)
+        x_hidden = sigmoid(z_hidden)
+
+        <span style="color: #228B22"># Update x_prev such that next layer can use the output from this layer</span>
+        x_prev = x_hidden 
+
+    <span style="color: #228B22">## Output layer:</span>
+    
+    <span style="color: #228B22"># Get the weights and bias for this layer</span>
+    w_output = deep_params[-<span style="color: #B452CD">1</span>]
+    
+    <span style="color: #228B22"># Include bias:</span>
+    x_prev = np.concatenate((np.ones((<span style="color: #B452CD">1</span>,num_values)), x_prev), axis = <span style="color: #B452CD">0</span>)
+
+    z_output = np.matmul(w_output, x_prev)
+    x_output = z_output
+
+    <span style="color: #8B008B; font-weight: bold">return</span> x_output
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec103">And adding Back propagation </h2>
+
+<p>
+This step is very similar for the neural network. The idea in this
+step is the same as for the neural network, but with more parameters
+to update for. Again there is no need for computing the gradients
+analytically since Autograd does the work for us.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #228B22"># The trial solution using the deep neural network:</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">g_trial_deep</span>(x,params, g0 = <span style="color: #B452CD">10</span>):
+    <span style="color: #8B008B; font-weight: bold">return</span> g0 + x*deep_neural_network(params,x)
+
+<span style="color: #228B22"># The same cost function as for the neural network, but calls deep_neural_network instead.</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">cost_function_deep</span>(P, x):
+    
+    <span style="color: #228B22"># Evaluate the trial function with the current parameters P</span>
+    g_t = g_trial_deep(x,P)
+    
+    <span style="color: #228B22"># Find the derivative w.r.t x of the neural network</span>
+    d_net_out = elementwise_grad(deep_neural_network,<span style="color: #B452CD">1</span>)(P,x) 
+    
+    <span style="color: #228B22"># Find the derivative w.r.t x of the trial function</span>
+    d_g_t = elementwise_grad(g_trial_deep,<span style="color: #B452CD">0</span>)(x,P)  
+    
+    <span style="color: #228B22"># The right side of the ODE </span>
+    func = g(x, g_t)
+
+    err_sqr = (d_g_t - func)**<span style="color: #B452CD">2</span>
+    cost_sum = np.sum(err_sqr)
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> cost_sum
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">solve_ode_deep_neural_network</span>(x, num_neurons, num_iter, lmb):
+    <span style="color: #228B22"># num_hidden_neurons is now a list of number of neurons within each hidden layer</span>
+
+    <span style="color: #228B22"># Find the number of hidden layers:</span>
+    N_hidden = np.size(num_neurons)
+    
+    <span style="color: #228B22">## Set up initial weigths and biases </span>
+    
+    <span style="color: #228B22"># Initialize the list of parameters:</span>
+    P = [<span style="color: #658b00">None</span>]*(N_hidden + <span style="color: #B452CD">1</span>) <span style="color: #228B22"># + 1 to include the output layer</span>
+
+    P[<span style="color: #B452CD">0</span>] = npr.randn(num_neurons[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">2</span> ) 
+    <span style="color: #8B008B; font-weight: bold">for</span> l <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,N_hidden):
+        P[l] = npr.randn(num_neurons[l], num_neurons[l-<span style="color: #B452CD">1</span>] + <span style="color: #B452CD">1</span>) <span style="color: #228B22"># +1 to include bias </span>
+    
+    <span style="color: #228B22"># For the output layer</span>
+    P[-<span style="color: #B452CD">1</span>] = npr.randn(<span style="color: #B452CD">1</span>, num_neurons[-<span style="color: #B452CD">1</span>] + <span style="color: #B452CD">1</span> ) <span style="color: #228B22"># +1 since bias is included</span>
+
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Initial cost: %g&#39;</span>%cost_function_deep(P, x))
+    
+    <span style="color: #228B22">## Start finding the optimal weigths using gradient descent</span>
+    
+    <span style="color: #228B22"># Find the Python function that represents the gradient of the cost function</span>
+    <span style="color: #228B22"># w.r.t the 0-th input argument -- that is the weights and biases in the hidden and output layer</span>
+    cost_function_deep_grad = grad(cost_function_deep,<span style="color: #B452CD">0</span>)
+    
+    <span style="color: #228B22"># Let the update be done num_iter times</span>
+    <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(num_iter):
+        <span style="color: #228B22"># Evaluate the gradient at the current weights and biases in P. </span>
+        <span style="color: #228B22"># The cost_grad consist now of N_hidden + 1 arrays; the gradient w.r.t the weights and biases</span>
+        <span style="color: #228B22"># in the hidden layers and output layers evaluated at x.</span>
+        cost_deep_grad =  cost_function_deep_grad(P, x)
+        
+        <span style="color: #8B008B; font-weight: bold">for</span> l <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(N_hidden+<span style="color: #B452CD">1</span>):
+            P[l] = P[l] - lmb * cost_deep_grad[l]
+
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Final cost: %g&#39;</span>%cost_function_deep(P, x))
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> P
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec104">Solving the ODE  </h2>
+
+<p>
+Finally, having set up the networks we are ready to use them to solve the ODE problem. 
+We add the analytical solution
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">g_analytic</span>(x, gamma = <span style="color: #B452CD">2</span>, g0 = <span style="color: #B452CD">10</span>):
+    <span style="color: #8B008B; font-weight: bold">return</span> g0*np.exp(-gamma*x)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec105">Using neural network </h2>
+
+<p>
+The code below solves the ODE using a neural network. The number of
+values for the input \( \vec x \) is 10, number of hidden neurons in the
+hidden layer being 10 and th step size used in gradien descent
+\( \lambda = 0.001 \). The program updates the weights and biases in the
+network <em>num_iter</em> times. Finally, it plots the results from using the
+neural network along with the analytical solution.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>npr.seed(<span style="color: #B452CD">15</span>)
+
+<span style="color: #228B22">## Decide the vales of arguments to the function to solve</span>
+N = <span style="color: #B452CD">10</span>
+x = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, N)
+
+<span style="color: #228B22">## Set up the initial parameters</span>
+num_hidden_neurons = <span style="color: #B452CD">10</span>
+num_iter = <span style="color: #B452CD">10000</span>
+lmb = <span style="color: #B452CD">0.001</span>
+
+P = solve_ode_neural_network(x, num_hidden_neurons, num_iter, lmb)
+
+res = g_trial(x,P) 
+res_analytical = g_analytic(x)
+
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Max absolute difference: %g&#39;</span>%np.max(np.abs(res - res_analytical)))
+
+plt.figure(figsize=(<span style="color: #B452CD">10</span>,<span style="color: #B452CD">10</span>))
+
+plt.title(<span style="color: #CD5555">&#39;Performance of neural network solving an ODE compared to the analytical solution&#39;</span>)
+plt.plot(x, res_analytical)
+plt.plot(x, res[<span style="color: #B452CD">0</span>,:])
+plt.legend([<span style="color: #CD5555">&#39;analytical&#39;</span>,<span style="color: #CD5555">&#39;nn&#39;</span>])
+plt.xlabel(<span style="color: #CD5555">&#39;x&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;g(x)&#39;</span>)
+plt.show()
+</pre></div>
+<p>
+<!-- !split  -->
+
+<h2 id="___sec106">Using a deep neural network </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>npr.seed(<span style="color: #B452CD">15</span>)
+
+<span style="color: #228B22">## Decide the vales of arguments to the function to solve</span>
+N = <span style="color: #B452CD">10</span>
+x = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, N)
+
+<span style="color: #228B22">## Set up the initial parameters</span>
+num_hidden_neurons = np.array([<span style="color: #B452CD">10</span>,<span style="color: #B452CD">10</span>])
+num_iter = <span style="color: #B452CD">10000</span>
+lmb = <span style="color: #B452CD">0.001</span>
+
+P = solve_ode_deep_neural_network(x, num_hidden_neurons, num_iter, lmb)
+
+res = g_trial_deep(x,P) 
+res_analytical = g_analytic(x)
+
+plt.figure(figsize=(<span style="color: #B452CD">10</span>,<span style="color: #B452CD">10</span>))
+
+plt.title(<span style="color: #CD5555">&#39;Performance of a deep neural network solving an ODE compared to the analytical solution&#39;</span>)
+plt.plot(x, res_analytical)
+plt.plot(x, res[<span style="color: #B452CD">0</span>,:])
+plt.legend([<span style="color: #CD5555">&#39;analytical&#39;</span>,<span style="color: #CD5555">&#39;dnn&#39;</span>])
+plt.ylabel(<span style="color: #CD5555">&#39;g(x)&#39;</span>)
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec107">Wrapping it up </h2>
+
+<p>
+By rewriting the ODE as a minimization problem, it was possible to
+solve equation using either a neural network (one hidden layer) or a
+deep neural network (more than one hidden layers). How well the
+network performed is measured by a specified cost function, which is
+the function the network tries to minimize. Using a trial solution
+which satisfies the additional condition and being defined by using
+the output from the network in some way, the minimization problem
+could be explicitly defined for out network to solve. The proposed
+solution from the network is then the trial solution with parameters,
+that is weights and biases within each layer in the network, such that
+the solution minimizes the cost function.
 
 <!-- ------------------- end of main content --------------- -->
 
