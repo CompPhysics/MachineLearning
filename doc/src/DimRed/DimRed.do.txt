@@ -13,8 +13,8 @@ solution, as we will see. This problem is often referred to as the curse of dime
 Fortunately, in real-world problems, it is often possible to reduce the number of features considerably,
 turning an intractable problem into a tractable one.
 
-and we will go through three of the most popular dimensionality
-reduction techniques: PCA, Kernel PCA, and LLE.
+Here we will discuss some of the most popular dimensionality
+reduction techniques: the principal component analysis PCA, Kernel PCA, and Locally Linear Embedding (LLE).
 
 !eblock
 
@@ -26,126 +26,86 @@ reduction techniques: PCA, Kernel PCA, and LLE.
 Principal Component Analysis (PCA) is by far the most popular dimensionality reduction algorithm.
 First it identifies the hyperplane that lies closest to the data, and then it projects the data onto it.
 
-The following Python code uses NumPy’s svd() function to obtain all the principal components of the
-training set, then extracts the first two PCs:
+The following Python code uses NumPy’s _svd()_ function to obtain all the principal components of the
+training set, then extracts the first two principal components
+!bc pycod
 X_centered = X - X.mean(axis=0)
 U, s, V = np.linalg.svd(X_centered)
 c1 = V.T[:, 0]
 c2 = V.T[:, 1]
+!ec
 
-
-PCA assumes that the dataset is centered around the origin. As we will see, Scikit-Learn’s PCA classes take care of centering
+PCA assumes that the dataset is centered around the origin. Scikit-Learn’s PCA classes take care of centering
 the data for you. However, if you implement PCA yourself (as in the preceding example), or if you use other libraries, don’t
 forget to center the data first.
 
 Once you have identified all the principal components, you can reduce the dimensionality of the dataset
-down to d dimensions by projecting it onto the hyperplane defined by the first d principal components.
-Selecting this hyperplane ensures that the projection will preserve as much variance as possible. For
-example, in Figure 8-2 the 3D dataset is projected down to the 2D plane defined by the first two principal
-components, preserving a large part of the dataset’s variance. As a result, the 2D projection looks very
-much like the original 3D dataset.
-
+down to $d$ dimensions by projecting it onto the hyperplane defined by the first $d$ principal components.
+Selecting this hyperplane ensures that the projection will preserve as much variance as possible. 
+!bc pycod
 W2 = V.T[:, :2]
 X2D = X_centered.dot(W2)
+!ec
+
+!split 
+===== PCA and scikit-learn =====
 
 Scikit-Learn’s PCA class implements PCA using SVD decomposition just like we did before. The
 following code applies PCA to reduce the dimensionality of the dataset down to two dimensions (note
 that it automatically takes care of centering the data):
+!bc pycod
 from sklearn.decomposition import PCA
 pca = PCA(n_components = 2)
 X2D = pca.fit_transform(X)
+!ec
 After fitting the PCA transformer to the dataset, you can access the principal components using the
-components_ variable (note that it contains the PCs as horizontal vectors, so, for example, the first
-principal component is equal to pca.components_.T[:, 0]).
-
+components variable (note that it contains the PCs as horizontal vectors, so, for example, the first
+principal component is equal to 
+!bc pycod
+pca.components_.T[:, 0]).
+!ec
 Another very useful piece of information is the explained variance ratio of each principal component,
-available via the explained_variance_ratio_ variable. It indicates the proportion of the dataset’s
-variance that lies along the axis of each principal component. For example, let’s look at the explained
-variance ratios of the first two components of the 3D dataset represented in Figure 8-2:
->>> print(pca.explained_variance_ratio_)
-array([ 0.84248607, 0.14631839])
-This tells you that 84.2% of the dataset’s variance lies along the first axis, and 14.6% lies along the
-second axis. This leaves less than 1.2% for the third axis, so it is reasonable to assume that it probably
-carries little information.
+available via the $explained\_variance\_ratio$ variable. It indicates the proportion of the dataset’s
+variance that lies along the axis of each principal component. 
+More material to come here.
 
-
+!split
+===== More on the PCA =====
 Instead of arbitrarily choosing the number of dimensions to reduce down to, it is generally preferable to
 choose the number of dimensions that add up to a sufficiently large portion of the variance (e.g., 95%).
 Unless, of course, you are reducing dimensionality for data visualization — in that case you will
 generally want to reduce the dimensionality down to 2 or 3.
 The following code computes PCA without reducing dimensionality, then computes the minimum number
 of dimensions required to preserve 95% of the training set’s variance:
+!bc pycod
 pca = PCA()
 pca.fit(X)
 cumsum = np.cumsum(pca.explained_variance_ratio_)
 d = np.argmax(cumsum >= 0.95) + 1
-You could then set n_components=d and run PCA again. However, there is a much better option: instead
-of specifying the number of principal components you want to preserve, you can set n_components to be
+!ec
+You could then set $n\_components=d$ and run PCA again. However, there is a much better option: instead
+of specifying the number of principal components you want to preserve, you can set $n\_components$ to be
 a float between 0.0 and 1.0, indicating the ratio of variance you wish to preserve:
+!bc pycod
 pca = PCA(n_components=0.95)
 X_reduced = pca.fit_transform(X)
+!ec
 
-
-
-Obviously after dimensionality reduction, the training set takes up much less space. For example, try
-applying PCA to the MNIST dataset while preserving 95% of its variance. You should find that each
-instance will have just over 150 features, instead of the original 784 features. So while most of the
-variance is preserved, the dataset is now less than 20% of its original size! This is a reasonable
-compression ratio, and you can see how this can speed up a classification algorithm (such as an SVM
-classifier) tremendously.
-It is also possible to decompress the reduced dataset back to 784 dimensions by applying the inverse
-transformation of the PCA projection. Of course this won’t give you back the original data, since the
-projection lost a bit of information (within the 5% variance that was dropped), but it will likely be quite
-close to the original data. The mean squared distance between the original data and the reconstructed data
-(compressed and then decompressed) is called the reconstruction error. For example, the following code
-compresses the MNIST dataset down to 154 dimensions, then uses the inverse_transform() method to
-decompress it back to 784 dimensions. Figure 8-9 shows a few digits from the original training set (on the
-left), and the corresponding digits after compression and decompression. You can see that there is a slight
-image quality loss, but the digits are still mostly intact.
-pca = PCA(n_components = 154)
-X_mnist_reduced = pca.fit_transform(X_mnist)
-X_mnist_recovered = pca.inverse_transform(X_mnist_reduced)
-Figure
-
-
-
-Incremental PCA
+!split
+===== Incremental PCA =====
 One problem with the preceding implementation of PCA is that it requires the whole training set to fit in
 memory in order for the SVD algorithm to run. Fortunately, Incremental PCA (IPCA) algorithms have
 been developed: you can split the training set into mini-batches and feed an IPCA algorithm one minibatch
 at a time. This is useful for large training sets, and also to apply PCA online (i.e., on the fly, as new
 instances arrive).
-The following code splits the MNIST dataset into 100 mini-batches (using NumPy’s array_split()
-function) and feeds them to Scikit-Learn’s IncrementalPCA class5 to reduce the dimensionality of the
-MNIST dataset down to 154 dimensions (just like before). Note that you must call the partial_fit()
-method with each mini-batch rather than the fit() method with the whole training set:
-from sklearn.decomposition import IncrementalPCA
-n_batches = 100
-inc_pca = IncrementalPCA(n_components=154)
-for X_batch in np.array_split(X_mnist, n_batches):
-inc_pca.partial_fit(X_batch)
-X_mnist_reduced = inc_pca.transform(X_mnist)
 
+!split
+===== Randomized PCA =====
 
-
-Alternatively, you can use NumPy’s memmap class, which allows you to manipulate a large array stored in
-a binary file on disk as if it were entirely in memory; the class loads only the data it needs in memory,
-when it needs it. Since the IncrementalPCA class uses only a small part of the array at any given time,
-the memory usage remains under control. This makes it possible to call the usual fit() method, as you
-can see in the following code:
-X_mm = np.memmap(filename, dtype="float32", mode="readonly", shape=(m, n))
-batch_size = m // n_batches
-inc_pca = IncrementalPCA(n_components=154, batch_size=batch_size)
-inc_pca.fit(X_mm)
-
-
-Randomized PCA
 Scikit-Learn offers yet another option to perform PCA, called Randomized PCA. This is a stochastic
 algorithm that quickly finds an approximation of the first d principal components. Its computational
-complexity is O(m × d2) + O(d3), instead of O(m × n2) + O(n3), so it is dramatically faster than the
-previous algorithms when d is much smaller than n.
-rnd_pca = PCA(n_components=154, svd_solver="randomized")
-X_reduced = rnd_pca.fit_transform(X_mnist)
+complexity is $O(m \times d^2)+O(d^3)$, instead of $O(m \times n^2) + O(n^3)$, so it is dramatically faster than the
+previous algorithms when $d$ is much smaller than $n$.
 
 
 !eblock
@@ -155,7 +115,6 @@ X_reduced = rnd_pca.fit_transform(X_mnist)
 ===== Kernel PCA =====
 !bblock
 
-Kernel PCA
 The kernel trick is a mathematical technique that implicitly maps instances into a
 very high-dimensional space (called the feature space), enabling nonlinear classification and regression
 with Support Vector Machines. Recall that a linear decision boundary in the high-dimensional feature
@@ -165,10 +124,11 @@ projections for dimensionality reduction. This is called Kernel PCA (kPCA). It i
 preserving clusters of instances after projection, or sometimes even unrolling datasets that lie close to a
 twisted manifold.
 For example, the following code uses Scikit-Learn’s KernelPCA class to perform kPCA with an
+!bc pycod
 from sklearn.decomposition import KernelPCA
 rbf_pca = KernelPCA(n_components = 2, kernel="rbf", gamma=0.04)
 X_reduced = rbf_pca.fit_transform(X)
-Figure 8-
+!ec
 
 !eblock 
 
@@ -176,12 +136,11 @@ Figure 8-
 !split
 ===== LLE =====
 
-Locally Linear Embedding (LLE)8 is another very powerful nonlinear dimensionality reduction
+Locally Linear Embedding (LLE) is another very powerful nonlinear dimensionality reduction
 (NLDR) technique. It is a Manifold Learning technique that does not rely on projections like the previous
 algorithms. In a nutshell, LLE works by first measuring how each training instance linearly relates to its
 closest neighbors (c.n.), and then looking for a low-dimensional representation of the training set where
-these local relationships are best preserved (more details shortly). This makes it particularly good at
-unrolling twisted manifolds, especially when there is not too much noise.
+these local relationships are best preserved (more details shortly). 
 
 
 
@@ -190,17 +149,9 @@ unrolling twisted manifolds, especially when there is not too much noise.
 
 
 There are many other dimensionality reduction techniques, several of which are available in Scikit-Learn.
+
 Here are some of the most popular:
-Multidimensional Scaling (MDS) reduces dimensionality while trying to preserve the distances
-between the instances (see Figure 8-13).
-Isomap creates a graph by connecting each instance to its nearest neighbors, then reduces
-dimensionality while trying to preserve the geodesic distances9 between the instances.
-t-Distributed Stochastic Neighbor Embedding (t-SNE) reduces dimensionality while trying to keep
-similar instances close and dissimilar instances apart. It is mostly used for visualization, in
-particular to visualize clusters of instances in high-dimensional space (e.g., to visualize the MNIST
-images in 2D).
-Linear Discriminant Analysis (LDA) is actually a classification algorithm, but during training it
-learns the most discriminative axes between the classes, and these axes can then be used to define a
-hyperplane onto which to project the data. The benefit is that the projection will keep classes as far
-apart as possible, so LDA is a good technique to reduce dimensionality before running another
-classification algorithm such as an SVM classifier
+* _Multidimensional Scaling (MDS)_ reduces dimensionality while trying to preserve the distances between the instances.
+* _Isomap_ creates a graph by connecting each instance to its nearest neighbors, then reduces dimensionality while trying to preserve the geodesic distances between the instances.
+* _t-Distributed Stochastic Neighbor Embedding_ (t-SNE) reduces dimensionality while trying to keep similar instances close and dissimilar instances apart. It is mostly used for visualization, in particular to visualize clusters of instances in high-dimensional space (e.g., to visualize the MNIST images in 2D).
+* Linear Discriminant Analysis (LDA) is actually a classification algorithm, but during training it learns the most discriminative axes between the classes, and these axes can then be used to define a hyperplane onto which to project the data. The benefit is that the projection will keep classes as far apart as possible, so LDA is a good technique to reduce dimensionality before running another classification algorithm such as a Support Vector Machine (SVM) classifier discussed in the SVM lectures.
