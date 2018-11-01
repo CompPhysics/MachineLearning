@@ -2,42 +2,106 @@ TITLE: Data Analysis and Machine Learning: Support Vector Machines
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 DATE: today
 
-
 !split
 ===== Support Vector Machines, overarching aims  =====
 
+A Support Vector Machine (SVM) is a very powerful and versatile
+Machine Learning model, capable of performing linear or nonlinear
+classification, regression, and even outlier detection. It is one of
+the most popular models in Machine Learning, and anyone interested in
+Machine Learning should have it in their toolbox. SVMs are
+particularly well suited for classification of complex but small-sized or
+medium-sized datasets.  
+
+The basic mathematics relies on the definition of hyperplanes and the definition of a _margin_ which separates
+classes (in case of classification problems) of variables. It is also used for regression problems.
+
+With SVMs we distinguish between hard margin and soft margins. The latter introduces a so-called softening parameter to be discussed below.
+We distringuish also between linearn and non-linear approaches.
+
+_These notes will be updated shortly with more material_
+
+!split
+===== SVMs, basics with scikit-learn =====
+
+The following Scikit-Learn code loads the iris dataset, scales the features, and then trains a linear SVM
+model (using the LinearSVC class with C = 0.1 and the hinge loss function, described shortly) to detect
+Iris-Virginica flowers. 
 !bc pycod
 import numpy as np
-from sklearn.svm import SVR
-import matplotlib.pyplot as plt
-
-# Generate sample data
-X = np.sort(5*np.random.rand(40,1), axis=0)
-y = X**3
-y=y.ravel()
-
-# Add noise to targets
-X[::4] +=3*(0.5 - np.random.rand(1))
-y[::5] += 50 * (0.5 - np.random.rand(8))
-
-plt.plot(X,y, 'g^')
-
-#SVR Fit
-svr_poly = SVR(kernel='poly', C=1e3, degree=3)
-y_poly = svr_poly.fit(X, y).predict(X)
-
-# Plots
-z = np.arange(0, 5, 0.1)
-t = z**3
-fig = plt.figure()
-ax = fig.add_subplot(111)
-plt.plot(z,z**3, 'r--', label='Cubic Function with No Noise')
-lw = 2
-plt.scatter(X, y, color='darkorange', label='Gaussian Cubic Noise')
-plt.plot(X, y_poly, color='green', lw=lw, label='Polynomial model')
-plt.xlabel('data')
-plt.ylabel('target')
-plt.title('Cubic Gaussian Distribution')
-plt.legend()
-plt.show()
+from sklearn import datasets
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import LinearSVC
+iris = datasets.load_iris()
+X = iris["data"][:, (2, 3)] # petal length, petal width
+y = (iris["target"] == 2).astype(np.float64) # Iris-Virginica
+svm_clf = Pipeline((
+("scaler", StandardScaler()),
+("linear_svc", LinearSVC(C=1, loss="hinge")),
+))
+svm_clf.fit(X_scaled, y)
 !ec
+
+Alternatively, you could use the SVC class, using _SVC(kernel="linear", C=1)_, but it is much slower,
+especially with large training sets, so it is not recommended. Another option is to use the SGDClassifier
+class, with _SGDClassifier(loss="hinge", alpha=1/(m*C))_. This applies regular Stochastic
+Gradient Descentto train a linear SVM classifier. It does not converge as fast as the
+LinearSVC class, but it can be useful to handle huge datasets that do not fit in memory (out-of-core
+training), or to handle online classification tasks.
+
+!split
+===== SVMs, adding polynomial features =====
+
+Although linear SVM classifiers are efficient and work surprisingly well in many cases, many datasets
+are not even close to being linearly separable. One approach to handling nonlinear datasets is to add more
+features, such as polynomial features. In some cases this can result in a linearly
+separable dataset.
+
+!bc pycod
+from sklearn.datasets import make_moons
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures
+polynomial_svm_clf = Pipeline((
+("poly_features", PolynomialFeatures(degree=3)),
+("scaler", StandardScaler()),
+("svm_clf", LinearSVC(C=10, loss="hinge"))
+))
+polynomial_svm_clf.fit(X, y)
+!ec
+
+
+!split
+===== SVMs, polynomials and kernels  =====
+
+Adding polynomial features is simple to implement and can work great with all sorts of Machine Learning
+algorithms (not just SVMs), but at a low polynomial degree it cannot deal with very complex datasets,
+and with a high polynomial degree it creates a huge number of features, making the model too slow.
+Fortunately, when using SVMs you can apply an almost miraculous mathematical technique called the
+kernel trick discussed during the lectures. It makes it possible to get the same result as if you added many
+polynomial features, even with very high-degree polynomials, without actually having to add them. So
+there is no combinatorial explosion of the number of features since you don’t actually add any features.
+This trick is implemented by the SVC class. 
+
+!bc pycod
+from sklearn.svm import SVC
+poly_kernel_svm_clf = Pipeline((
+("scaler", StandardScaler()),
+("svm_clf", SVC(kernel="poly", degree=3, coef0=1, C=5))
+))
+poly_kernel_svm_clf.fit(X, y)
+!ec
+This code trains an SVM classifier using a 3rd-degree polynomial kernel.
+
+
+!split
+===== SVMs, regression =====
+
+You can use Scikit-Learn’s LinearSVR class to perform linear SVM Regression. The following code
+shows how to use the regression option (more material to come)
+!bc pycod
+from sklearn.svm import LinearSVR
+svm_reg = LinearSVR(epsilon=1.5)
+svm_reg.fit(X, y)
+!ec
+To tackle nonlinear regression tasks, you can use a kernelized SVM model

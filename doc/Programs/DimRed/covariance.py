@@ -13,8 +13,8 @@ def covariance(x, y, n):
 n = 10
 
 x = np.random.normal(size=n)
-y = x*np.random.normal(size=n)
-z = x*x+y*np.random.normal(size=n)
+y = np.random.normal(size=n)
+z = x*x*x+y*y +0.5*np.random.normal(size=n)
 covxx = covariance(x,x,n)
 covxy = covariance(x,y,n)
 covxz = covariance(x,z,n)
