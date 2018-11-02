@@ -21,87 +21,117 @@ We distringuish also between linearn and non-linear approaches.
 
 _These notes will be updated shortly with more material_
 
-!split
-===== SVMs, basics with scikit-learn =====
 
-The following Scikit-Learn code loads the iris dataset, scales the features, and then trains a linear SVM
-model (using the LinearSVC class with C = 0.1 and the hinge loss function, described shortly) to detect
-Iris-Virginica flowers. 
+!split
+===== Strength and weakness =====
+When we implement a linear support vector machine, the main parameter is the constant $C$. Small values of $C$ mean simple models.
+These models are fast to train and also fast to predict and scale to very large data sets and work well with sparse data. Linear support vector machines make it easy to understand how a prediction is made, however it is often not easy to understand why coefficients are the way they are.  These models work also well in higer dimensions. 
+
+
+!split
+===== Examples with kernels =====
+
 !bc pycod
+from IPython.display import set_matplotlib_formats, display
+import pandas as pd
 import numpy as np
-from sklearn import datasets
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import mglearn
+from cycler import cycler
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
-iris = datasets.load_iris()
-X = iris["data"][:, (2, 3)] # petal length, petal width
-y = (iris["target"] == 2).astype(np.float64) # Iris-Virginica
-svm_clf = Pipeline((
-("scaler", StandardScaler()),
-("linear_svc", LinearSVC(C=1, loss="hinge")),
-))
-svm_clf.fit(X_scaled, y)
+from sklearn.datasets import make_blobs
+
+
+X, y = make_blobs(centers=4, random_state=8)
+y = y % 2
+
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
+plt.show()
+
+from sklearn.svm import LinearSVC
+linear_svm = LinearSVC().fit(X, y)
+
+mglearn.plots.plot_2d_separator(linear_svm, X)
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
 !ec
-
-Alternatively, you could use the SVC class, using _SVC(kernel="linear", C=1)_, but it is much slower,
-especially with large training sets, so it is not recommended. Another option is to use the SGDClassifier
-class, with _SGDClassifier(loss="hinge", alpha=1/(m*C))_. This applies regular Stochastic
-Gradient Descentto train a linear SVM classifier. It does not converge as fast as the
-LinearSVC class, but it can be useful to handle huge datasets that do not fit in memory (out-of-core
-training), or to handle online classification tasks.
-
-!split
-===== SVMs, adding polynomial features =====
-
-Although linear SVM classifiers are efficient and work surprisingly well in many cases, many datasets
-are not even close to being linearly separable. One approach to handling nonlinear datasets is to add more
-features, such as polynomial features. In some cases this can result in a linearly
-separable dataset.
 
 !bc pycod
-from sklearn.datasets import make_moons
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures
-polynomial_svm_clf = Pipeline((
-("poly_features", PolynomialFeatures(degree=3)),
-("scaler", StandardScaler()),
-("svm_clf", LinearSVC(C=10, loss="hinge"))
-))
-polynomial_svm_clf.fit(X, y)
+# add the squared first feature
+X_new = np.hstack([X, X[:, 1:] ** 2])
+
+
+from mpl_toolkits.mplot3d import Axes3D, axes3d
+figure = plt.figure()
+# visualize in 3D
+ax = Axes3D(figure, elev=-152, azim=-26)
+# plot first all the points with y==0, then all with y == 1
+mask = y == 0
+ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+ax.set_xlabel("feature0")
+ax.set_ylabel("feature1")
+ax.set_zlabel("feature1 ** 2")
 !ec
 
+!bc pycod
+linear_svm_3d = LinearSVC().fit(X_new, y)
+coef, intercept = linear_svm_3d.coef_.ravel(), linear_svm_3d.intercept_
 
-!split
-===== SVMs, polynomials and kernels  =====
+# show linear decision boundary
+figure = plt.figure()
+ax = Axes3D(figure, elev=-152, azim=-26)
+xx = np.linspace(X_new[:, 0].min() - 2, X_new[:, 0].max() + 2, 50)
+yy = np.linspace(X_new[:, 1].min() - 2, X_new[:, 1].max() + 2, 50)
 
-Adding polynomial features is simple to implement and can work great with all sorts of Machine Learning
-algorithms (not just SVMs), but at a low polynomial degree it cannot deal with very complex datasets,
-and with a high polynomial degree it creates a huge number of features, making the model too slow.
-Fortunately, when using SVMs you can apply an almost miraculous mathematical technique called the
-kernel trick discussed during the lectures. It makes it possible to get the same result as if you added many
-polynomial features, even with very high-degree polynomials, without actually having to add them. So
-there is no combinatorial explosion of the number of features since you don’t actually add any features.
-This trick is implemented by the SVC class. 
+XX, YY = np.meshgrid(xx, yy)
+ZZ = (coef[0] * XX + coef[1] * YY + intercept) / -coef[2]
+ax.plot_surface(XX, YY, ZZ, rstride=8, cstride=8, alpha=0.3)
+ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+
+ax.set_xlabel("feature0")
+ax.set_ylabel("feature1")
+ax.set_zlabel("feature1 ** 2")
+
+ZZ = YY ** 2
+dec = linear_svm_3d.decision_function(np.c_[XX.ravel(), YY.ravel(), ZZ.ravel()])
+plt.contourf(XX, YY, dec.reshape(XX.shape), levels=[dec.min(), 0, dec.max()],
+             cmap=mglearn.cm2, alpha=0.5)
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
+!ec
 
 !bc pycod
 from sklearn.svm import SVC
-poly_kernel_svm_clf = Pipeline((
-("scaler", StandardScaler()),
-("svm_clf", SVC(kernel="poly", degree=3, coef0=1, C=5))
-))
-poly_kernel_svm_clf.fit(X, y)
+X, y = mglearn.tools.make_handcrafted_dataset()                                                                  
+svm = SVC(kernel='rbf', C=10, gamma=0.1).fit(X, y)
+mglearn.plots.plot_2d_separator(svm, X, eps=.5)
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+# plot support vectors
+sv = svm.support_vectors_
+# class labels of support vectors are given by the sign of the dual coefficients
+sv_labels = svm.dual_coef_.ravel() > 0
+mglearn.discrete_scatter(sv[:, 0], sv[:, 1], sv_labels, s=15, markeredgewidth=3)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
+
+fig, axes = plt.subplots(3, 3, figsize=(15, 10))
+
+for ax, C in zip(axes, [-1, 0, 3]):
+    for a, gamma in zip(ax, range(-1, 2)):
+        mglearn.plots.plot_svm(log_C=C, log_gamma=gamma, ax=a)
+        
+axes[0, 0].legend(["class 0", "class 1", "sv class 0", "sv class 1"],
+                  ncol=4, loc=(.9, 1.2))
+
 !ec
-This code trains an SVM classifier using a 3rd-degree polynomial kernel.
-
-
-!split
-===== SVMs, regression =====
-
-You can use Scikit-Learn’s LinearSVR class to perform linear SVM Regression. The following code
-shows how to use the regression option (more material to come)
-!bc pycod
-from sklearn.svm import LinearSVR
-svm_reg = LinearSVR(epsilon=1.5)
-svm_reg.fit(X, y)
-!ec
-To tackle nonlinear regression tasks, you can use a kernelized SVM model
