@@ -6,9 +6,9 @@ Automatically generated HTML file from DocOnce source
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
-<meta name="description" content="Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees">
+<meta name="description" content="Data Analysis and Machine Learning: Trees, forests and all that">
 
-<title>Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees</title>
+<title>Data Analysis and Machine Learning: Trees, forests and all that</title>
 
 <!-- Bootstrap style: bootstrap -->
 <link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
@@ -41,8 +41,10 @@ Automatically generated HTML file from DocOnce source
 <!-- tocinfo
 {'highest level': 2,
  'sections': [('Decision trees, overarching aims', 2, None, '___sec0'),
-              ('Nearest Neighbors', 2, None, '___sec1'),
-              ('Decision trees and Regression', 2, None, '___sec2')]}
+              ('Nodes, leafs, roots and branches', 2, None, '___sec1'),
+              ('How do we set it up?', 2, None, '___sec2'),
+              ('Decision trees and Regression', 2, None, '___sec3'),
+              ('Maxwell-Boltzmann velocity distribution', 2, None, '___sec4')]}
 end of tocinfo -->
 
 <body>
@@ -56,7 +58,7 @@ end of tocinfo -->
       <span class="icon-bar"></span>
       <span class="icon-bar"></span>
     </button>
-    <a class="navbar-brand" href="DecisionTrees-bs.html">Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees</a>
+    <a class="navbar-brand" href="DecisionTrees-bs.html">Data Analysis and Machine Learning: Trees, forests and all that</a>
   </div>
 
   <div class="navbar-collapse collapse navbar-responsive-collapse">
@@ -65,8 +67,10 @@ end of tocinfo -->
         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Contents <b class="caret"></b></a>
         <ul class="dropdown-menu">
      <!-- navigation toc: --> <li><a href="#___sec0" style="font-size: 80%;">Decision trees, overarching aims</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec1" style="font-size: 80%;">Nearest Neighbors</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec2" style="font-size: 80%;">Decision trees and Regression</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec1" style="font-size: 80%;">Nodes, leafs, roots and branches</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec2" style="font-size: 80%;">How do we set it up?</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec3" style="font-size: 80%;">Decision trees and Regression</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec4" style="font-size: 80%;">Maxwell-Boltzmann velocity distribution</a></li>
 
         </ul>
       </li>
@@ -84,7 +88,7 @@ end of tocinfo -->
 
 
 <div class="jumbotron">
-<center><h1>Data Analysis and Machine Learning: Nearest Neighbors and Decision Trees</h1></center>  <!-- document title -->
+<center><h1>Data Analysis and Machine Learning: Trees, forests and all that</h1></center>  <!-- document title -->
 
 <p>
 <!-- author(s): Morten Hjorth-Jensen -->
@@ -100,7 +104,7 @@ end of tocinfo -->
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Nov 1, 2018</h4></center> <!-- date -->
+<center><h4>Nov 2, 2018</h4></center> <!-- date -->
 <br>
 <p>
 <!-- potential-jumbotron-button -->
@@ -128,72 +132,57 @@ continuous but also categorical input and target features.
 
 
 <p>
-<!-- !split -->
+<!-- !split  -->
 
-<h2 id="___sec1" class="anchor">Nearest Neighbors </h2>
+<h2 id="___sec1" class="anchor">Nodes, leafs, roots and branches </h2>
+
 <p>
+The main idea of decision trees
+is to find those descriptive features which contain the most
+<b>information</b> regarding the target feature and then split the dataset
+along the values of these features such that the target feature values
+for the resulting sub\_datasets are as pure as possible.
 
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">mglearn</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> linear_model
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> PolynomialFeatures
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.pipeline</span> <span style="color: #008000; font-weight: bold">import</span> Pipeline
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.neighbors</span> <span style="color: #008000; font-weight: bold">import</span> KNeighborsClassifier
+<p>
+The descriptive feature which leaves the target feature most purely is said
+to be the most informative one. This process of finding the <b>most
+informative</b> feature is done until we accomplish a stopping criteria
+where we then finally end up in so called <b>leaf nodes</b>.
 
-<span style="color: #408080; font-style: italic"># Generate sample data</span>
-X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>sort(<span style="color: #666666">5*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">40</span>,<span style="color: #666666">1</span>), axis<span style="color: #666666">=0</span>)
-y <span style="color: #666666">=</span> X<span style="color: #666666">**3</span>
-y<span style="color: #666666">=</span>y<span style="color: #666666">.</span>ravel()
+<p>
+The leaf nodes
+contain the predictions we will make for new query instances presented
+to our trained model. This is possible since the model has kind of
+learned the underlying structure of the training data and hence can,
+given some assumptions, make predictions about the target feature value
+(class) of unseen query instances.
 
-<span style="color: #408080; font-style: italic"># Add noise to targets</span>
-X[::<span style="color: #666666">4</span>] <span style="color: #666666">+=</span>(<span style="color: #666666">0.5</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">1</span>))
-y[::<span style="color: #666666">5</span>] <span style="color: #666666">+=</span>(<span style="color: #666666">0.5</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">8</span>))
+<p>
+A decision tree mainly contains of a <b>root node</b>, <b>interior nodes</b>,
+and <b>leaf nodes</b> which are then connected by <b>branches</b>.
 
-a<span style="color: #666666">=</span>np<span style="color: #666666">.</span>array(X)
-b<span style="color: #666666">=</span>np<span style="color: #666666">.</span>array(y)
-
-X_train<span style="color: #666666">=</span>a[:<span style="color: #666666">19</span>]
-X_test<span style="color: #666666">=</span>a[<span style="color: #666666">19</span>:]
-y_train<span style="color: #666666">=</span>b[:<span style="color: #666666">19</span>]
-y_test<span style="color: #666666">=</span>b[<span style="color: #666666">19</span>:]
-
-model<span style="color: #666666">=</span>Pipeline([(<span style="color: #BA2121">&#39;poly&#39;</span>, PolynomialFeatures(degree<span style="color: #666666">=3</span>)),(<span style="color: #BA2121">&#39;linear&#39;</span>, LinearRegression(fit_intercept<span style="color: #666666">=</span><span style="color: #008000">False</span>))])
-model<span style="color: #666666">=</span>model<span style="color: #666666">.</span>fit(X_train, y_train)
-pred<span style="color: #666666">=</span>model<span style="color: #666666">.</span>predict(X_test)
-
-
-poly<span style="color: #666666">=</span>PolynomialFeatures(degree<span style="color: #666666">=3</span>)
-poly<span style="color: #666666">.</span>fit_transform(X_train, y_train)
-plt<span style="color: #666666">.</span>scatter(X_test, y_test)
-plt<span style="color: #666666">.</span>plot(X_test, pred, color<span style="color: #666666">=</span><span style="color: #BA2121">&#39;green&#39;</span>)
-plt<span style="color: #666666">.</span>show()
-
-<span style="color: #008000; font-weight: bold">print</span> (model<span style="color: #666666">.</span>score(X_test,y_test))
-
-<span style="color: #008000; font-weight: bold">print</span> (<span style="color: #BA2121">&quot;---------K-Nearest Neighbors-------&quot;</span>)
-<span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;neighbors_settings=range(1,11)</span>
-<span style="color: #BA2121; font-style: italic">for n_neighbors in neighbors_settings:</span>
-<span style="color: #BA2121; font-style: italic">    clf=KNeighborsClassifier(n_neighbors=n_neighbors)</span>
-<span style="color: #BA2121; font-style: italic">    clf.fit(X_train, y_train)</span>
-<span style="color: #BA2121; font-style: italic">    training_accuracy.append(clf.score(X_train, y_train))</span>
-<span style="color: #BA2121; font-style: italic">    test_accuracy.append(clf.score(X_test, y_test))</span>
-
-
-<span style="color: #BA2121; font-style: italic">print (mglearn.plots.plot_knn_regression(n_neighbors=3))&quot;&quot;&quot;</span>
-
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.neighbors</span> <span style="color: #008000; font-weight: bold">import</span> KNeighborsRegressor
-
-X, y<span style="color: #666666">=</span>mglearn<span style="color: #666666">.</span>datasets<span style="color: #666666">.</span>make_wave(n_samples<span style="color: #666666">=40</span>)
-reg <span style="color: #666666">=</span> KNeighborsRegressor(n_neighbors<span style="color: #666666">=3</span>)
-reg<span style="color: #666666">.</span>fit(X_train, y_train)
-</pre></div>
 <p>
 <!-- !split -->
 
-<h2 id="___sec2" class="anchor">Decision trees and Regression  </h2>
+<h2 id="___sec2" class="anchor">How do we set it up? </h2>
+
+<p>
+In simplified terms, the process of training a decision tree and
+predicting the target features of query instances is as follows:
+
+<ol>
+<li> Present a dataset containing of a number of training instances characterized by a number of descriptive features and a target feature</li>
+<li> Train the decision tree model by continuously splitting the target feature along the values of the descriptive features using a measure of information gain during the training process</li>
+<li> Grow the tree until we accomplish a stopping criteria create leaf nodes which represent the <em>predictions</em> we want to make for new query instances</li>
+<li> Show query instances to the tree and run down the tree until we arrive at leaf nodes</li>
+</ol>
+
+Then we are essentially done!
+
+<p>
+<!-- !split -->
+
+<h2 id="___sec3" class="anchor">Decision trees and Regression  </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -286,6 +275,11 @@ plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot
 plt<span style="color: #666666">.</span>legend()
 plt<span style="color: #666666">.</span>show()
 </pre></div>
+<p>
+<!-- !split -->
+
+<h2 id="___sec4" class="anchor">Maxwell-Boltzmann velocity distribution </h2>
+
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
