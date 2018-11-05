@@ -110,7 +110,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._svm-bs006.html#___sec5" style="font-size: 80%;">Getting into the details</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs007.html#___sec6" style="font-size: 80%;">First attempt at a minimization approach</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs008.html#___sec7" style="font-size: 80%;">Solving the equations</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec8" style="font-size: 80%;">A better approach</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs009.html#___sec8" style="font-size: 80%;">A better approach</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs010.html#___sec9" style="font-size: 80%;">A quick reminder on Lagrangian multipliers</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs011.html#___sec10" style="font-size: 80%;">Adding the muliplier</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs012.html#___sec11" style="font-size: 80%;">Setting up the problem</a></li>
@@ -123,7 +123,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._svm-bs019.html#___sec18" style="font-size: 80%;">Different kernels</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs020.html#___sec19" style="font-size: 80%;">Quadratic coefficient matrix</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs021.html#___sec20" style="font-size: 80%;">Mercer's theorem</a></li>
-     <!-- navigation toc: --> <li><a href="._svm-bs022.html#___sec21" style="font-size: 80%;">How do we solve these problems</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec21" style="font-size: 80%;">How do we solve these problems</a></li>
 
         </ul>
       </li>
@@ -136,72 +136,78 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0009"></a>
+<a name="part0022"></a>
 <!-- !split -->
 
-<h2 id="___sec8" class="anchor">A better approach </h2>
+<h2 id="___sec21" class="anchor">How do we solve these problems </h2>
 
 <p>
-A better approach is rather to try to define a large margin between
-the two classes (if they are well separated from the beginning).
+If we use Python as programming language and wish to venture beyond
+<b>scikit-learn</b>, <b>tensorflow</b> and similar software which makes our
+lives so much easier, we need to dive into the wonderful world of
+quadratic programming. We can, if we wish, solve the minimization
+problem using say standard gradient methods or conjugate gradient
+methods. However, these methods tend to exhibit a rather slow
+converge. So, welcome to the promised land of quadratic programming.
 
 <p>
-Thus, we wish to find a margin \( M \) with \( \boldsymbol{w} \) normalized to
-\( \vert\vert \boldsymbol{w}\vert\vert =1 \) subject to the condition
-
-$$
-y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, p. 
-$$
-
-All points are thus at a signed distance from the decision boundary defined by the line \( L \). The parameters \( b \) and \( w_1 \) and \( w_2 \) define this line.
-
+The functions we need are contained in the quadratic programming package <b>CVXOPT</b> and we need to import it
 <p>
-We seek thus the largest value \( M \) defined by
-$$
-\frac{1}{\vert \vert \boldsymbol{w}\vert\vert}y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, n, 
-$$
 
-or just 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">cvxopt</span>
+</pre></div>
+<p>
+Let us first set up the standard form the of quadratic programming (QP) equations by defining the problem as
 $$
-y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq M\vert \vert \boldsymbol{w}\vert\vert \hspace{0.1cm}\forall i. 
-$$
-
-If we scale the equation so that \( \vert \vert \boldsymbol{w}\vert\vert = 1/M \), we have to find the minimum of 
-\( \boldsymbol{w}^T\boldsymbol{w}=\vert \vert \boldsymbol{w}\vert\vert \) (the norm) subject to the condition
-$$
-y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq 1 \hspace{0.1cm}\forall i.
+\mathrm{min} 
 $$
 
 <p>
-We have thus defined our margin as the invers of the norm of \( \boldsymbol{w} \). We want to minimize the norm in order to have a as large as possible margin \( M \). Before we proceed, we need to remind ourselves about Lagrangian multipliers.
+subject to Gx  u. Note that x itself is not provided to the solver, since it is an internal
+variable being optimized over. In particular, this means that the solver has no explicit knowledge
+of x itself; everything is implicity defined by the supplied parameters. It is essential
+that the same variable order is maintained for the relevant parameters (e.g., qi
+Non-convexity implies the existence of local optima, making it difficult to find global optima.
 
 <p>
+collapsed all inequality constraints into a single G matrix of the standard form.
+Since there are no equality constraints, we do not need to provide the empty A, b. Note
+that even though y
+2 did not appear in the original objective, we had to include it with zero
+coefficients in P because the solver parameters must be defined using the full set of variables.
+Even if certain variables only appear in constraints, they will still need to be expressed with
+zero coefficients in the objective parameters, and vice versa.
+Let us first define the above parameters in Python. CVXOPT supplies its own matrix
+object; all arguments given to its solvers must be in this matrix type. There are two ways
+to do this. The first is to define the matrix directly with (potentially nested) lists:
+from cvxopt import matrix
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>P <span style="color: #666666">=</span> matrix([[<span style="color: #666666">1.0</span>,<span style="color: #666666">0.0</span>],[<span style="color: #666666">0.0</span>,<span style="color: #666666">0.0</span>]])
+q <span style="color: #666666">=</span> matrix([<span style="color: #666666">3.0</span>,<span style="color: #666666">4.0</span>])
+G <span style="color: #666666">=</span> matrix([[<span style="color: #666666">-1.0</span>,<span style="color: #666666">0.0</span>,<span style="color: #666666">-1.0</span>,<span style="color: #666666">2.0</span>,<span style="color: #666666">3.0</span>],[<span style="color: #666666">0.0</span>,<span style="color: #666666">-1.0</span>,<span style="color: #666666">-3.0</span>,<span style="color: #666666">5.0</span>,<span style="color: #666666">4.0</span>]])
+h <span style="color: #666666">=</span> matrix([<span style="color: #666666">0.0</span>,<span style="color: #666666">0.0</span>,<span style="color: #666666">-15.0</span>,<span style="color: #666666">100.0</span>,<span style="color: #666666">80.0</span>])
+</pre></div>
+<p>
+
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._svm-bs008.html">&laquo;</a></li>
+<li><a href="._svm-bs021.html">&laquo;</a></li>
   <li><a href="._svm-bs000.html">1</a></li>
-  <li><a href="._svm-bs001.html">2</a></li>
-  <li><a href="._svm-bs002.html">3</a></li>
-  <li><a href="._svm-bs003.html">4</a></li>
-  <li><a href="._svm-bs004.html">5</a></li>
-  <li><a href="._svm-bs005.html">6</a></li>
-  <li><a href="._svm-bs006.html">7</a></li>
-  <li><a href="._svm-bs007.html">8</a></li>
-  <li><a href="._svm-bs008.html">9</a></li>
-  <li class="active"><a href="._svm-bs009.html">10</a></li>
-  <li><a href="._svm-bs010.html">11</a></li>
-  <li><a href="._svm-bs011.html">12</a></li>
-  <li><a href="._svm-bs012.html">13</a></li>
-  <li><a href="._svm-bs013.html">14</a></li>
+  <li><a href="">...</a></li>
   <li><a href="._svm-bs014.html">15</a></li>
   <li><a href="._svm-bs015.html">16</a></li>
   <li><a href="._svm-bs016.html">17</a></li>
   <li><a href="._svm-bs017.html">18</a></li>
   <li><a href="._svm-bs018.html">19</a></li>
-  <li><a href="">...</a></li>
-  <li><a href="._svm-bs022.html">23</a></li>
-  <li><a href="._svm-bs010.html">&raquo;</a></li>
+  <li><a href="._svm-bs019.html">20</a></li>
+  <li><a href="._svm-bs020.html">21</a></li>
+  <li><a href="._svm-bs021.html">22</a></li>
+  <li class="active"><a href="._svm-bs022.html">23</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
