@@ -1,0 +1,206 @@
+<!--
+Automatically generated HTML file from DocOnce source
+(https://github.com/hplgit/doconce/)
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
+<meta name="description" content="Data Analysis and Machine Learning: Support Vector Machines">
+
+<title>Data Analysis and Machine Learning: Support Vector Machines</title>
+
+<!-- Bootstrap style: bootstrap -->
+<link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+<!-- not necessary
+<link href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+-->
+
+<style type="text/css">
+
+/* Add scrollbar to dropdown menus in bootstrap navigation bar */
+.dropdown-menu {
+   height: auto;
+   max-height: 400px;
+   overflow-x: hidden;
+}
+
+/* Adds an invisible element before each target to offset for the navigation
+   bar */
+.anchor::before {
+  content:"";
+  display:block;
+  height:50px;      /* fixed header height for style bootstrap */
+  margin:-50px 0 0; /* negative fixed header height */
+}
+</style>
+
+
+</head>
+
+<!-- tocinfo
+{'highest level': 2,
+ 'sections': [('Support Vector Machines, overarching aims', 2, None, '___sec0'),
+              ('Hyperplanes and all that', 2, None, '___sec1'),
+              ('What is a hyperplane?', 2, None, '___sec2'),
+              ('A $p$-dimensional space of features', 2, None, '___sec3'),
+              ('The two-dimensional case', 2, None, '___sec4'),
+              ('Getting into the details', 2, None, '___sec5'),
+              ('First attempt at a minimization approach', 2, None, '___sec6'),
+              ('Solving the equations', 2, None, '___sec7'),
+              ('A better approach', 2, None, '___sec8'),
+              ('A quick reminder on Lagrangian multipliers',
+               2,
+               None,
+               '___sec9'),
+              ('Adding the muliplier', 2, None, '___sec10'),
+              ('Setting up the problem', 2, None, '___sec11'),
+              ('The problem to solve', 2, None, '___sec12'),
+              ('Examples with kernels', 2, None, '___sec13')]}
+end of tocinfo -->
+
+<body>
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: {
+     equationNumbers: {  autoNumber: "none"  },
+     extensions: ["AMSmath.js", "AMSsymbols.js", "autobold.js", "color.js"]
+  }
+});
+</script>
+<script type="text/javascript" async
+ src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+    
+<!-- Bootstrap navigation bar -->
+<div class="navbar navbar-default navbar-fixed-top">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="svm-bs.html">Data Analysis and Machine Learning: Support Vector Machines</a>
+  </div>
+
+  <div class="navbar-collapse collapse navbar-responsive-collapse">
+    <ul class="nav navbar-nav navbar-right">
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Contents <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+     <!-- navigation toc: --> <li><a href="._svm-bs001.html#___sec0" style="font-size: 80%;">Support Vector Machines, overarching aims</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs002.html#___sec1" style="font-size: 80%;">Hyperplanes and all that</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs003.html#___sec2" style="font-size: 80%;">What is a hyperplane?</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs004.html#___sec3" style="font-size: 80%;">A \( p \)-dimensional space of features</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs005.html#___sec4" style="font-size: 80%;">The two-dimensional case</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs006.html#___sec5" style="font-size: 80%;">Getting into the details</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs007.html#___sec6" style="font-size: 80%;">First attempt at a minimization approach</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs008.html#___sec7" style="font-size: 80%;">Solving the equations</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs009.html#___sec8" style="font-size: 80%;">A better approach</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs010.html#___sec9" style="font-size: 80%;">A quick reminder on Lagrangian multipliers</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs011.html#___sec10" style="font-size: 80%;">Adding the muliplier</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec11" style="font-size: 80%;">Setting up the problem</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs013.html#___sec12" style="font-size: 80%;">The problem to solve</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs014.html#___sec13" style="font-size: 80%;">Examples with kernels</a></li>
+
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+</div> <!-- end of navigation bar -->
+
+<div class="container">
+
+<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
+
+<a name="part0012"></a>
+<!-- !split -->
+
+<h2 id="___sec11" class="anchor">Setting up the problem </h2>
+In order to solve the above problem, we define the following Lagrangian function to be minimized 
+$$
+{\cal L}(\lambda,b,\hat{w})=\frac{1}{2}\hat{w}^T\hat{w}-\sum_{i=1}^n\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b)-1\right],
+$$
+
+where \( \lambda_i \) is a so-called Lagrange multiplier subject to the condition \( \lambda_i \geq 0 \).
+
+<p>
+Taking the derivatives  with respect to \( b \) and \( \hat{w} \) we obtain 
+$$
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+$$
+
+and 
+$$
+\frac{\partial {\cal L}}{\partial \hat{w}} = 0 = \hat{w}-\sum_{i} \lambda_iy_i\hat{x}_i.
+$$
+
+Inserting these constraints into the equation for \( {\cal L} \) we obtain
+$$
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\hat{x}_i^T\hat{x}_j,
+$$
+
+subject to the constraints \( \lambda_i\geq 0 \) and \( \sum_i\lambda_iy_i=0 \). 
+We must in addition satisfy the <a href="https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions" target="_self">Karush-Kuhn-Tucker</a> (KKT) condition
+$$
+\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b) -1\right] \forall i.
+$$
+
+
+<ol>
+<li> If \( \lambda_i > 0 \), then \( y_i(\hat{w}^T\hat{x}_i+b)=1 \) and we say that \( x_i \) is on the boundary.</li>
+<li> If \( y_i(\hat{w}^T\hat{x}_i+b)> 1 \), we say \( x_i \) is not on the boundary and we set \( \lambda_i=0 \).</li> 
+</ol>
+
+When \( \lambda_i > 0 \), the vectors \( \hat{x}_i \) are called support vectors. They are the vectors closest to the line (or hyperplane) and define the margin \( M \).
+
+<p>
+<p>
+<!-- navigation buttons at the bottom of the page -->
+<ul class="pagination">
+<li><a href="._svm-bs011.html">&laquo;</a></li>
+  <li><a href="._svm-bs000.html">1</a></li>
+  <li><a href="">...</a></li>
+  <li><a href="._svm-bs004.html">5</a></li>
+  <li><a href="._svm-bs005.html">6</a></li>
+  <li><a href="._svm-bs006.html">7</a></li>
+  <li><a href="._svm-bs007.html">8</a></li>
+  <li><a href="._svm-bs008.html">9</a></li>
+  <li><a href="._svm-bs009.html">10</a></li>
+  <li><a href="._svm-bs010.html">11</a></li>
+  <li><a href="._svm-bs011.html">12</a></li>
+  <li class="active"><a href="._svm-bs012.html">13</a></li>
+  <li><a href="._svm-bs013.html">14</a></li>
+  <li><a href="._svm-bs014.html">15</a></li>
+  <li><a href="._svm-bs013.html">&raquo;</a></li>
+</ul>
+<!-- ------------------- end of main content --------------- -->
+
+</div>  <!-- end container -->
+<!-- include javascript, jQuery *first* -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+<!-- Bootstrap footer
+<footer>
+<a href="http://..."><img width="250" align=right src="http://..."></a>
+</footer>
+-->
+
+
+<center style="font-size:80%">
+<!-- copyright only on the titlepage -->
+</center>
+
+
+</body>
+</html>
+    
+

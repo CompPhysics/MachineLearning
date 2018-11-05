@@ -1,0 +1,598 @@
+
+% LaTeX Beamer file automatically generated from DocOnce
+% https://github.com/hplgit/doconce
+
+%-------------------- begin beamer-specific preamble ----------------------
+
+\documentclass{beamer}
+
+\usetheme{red_plain}
+\usecolortheme{default}
+
+% turn off the almost invisible, yet disturbing, navigation symbols:
+\setbeamertemplate{navigation symbols}{}
+
+% Examples on customization:
+%\usecolortheme[named=RawSienna]{structure}
+%\usetheme[height=7mm]{Rochester}
+%\setbeamerfont{frametitle}{family=\rmfamily,shape=\itshape}
+%\setbeamertemplate{items}[ball]
+%\setbeamertemplate{blocks}[rounded][shadow=true]
+%\useoutertheme{infolines}
+%
+%\usefonttheme{}
+%\useinntertheme{}
+%
+%\setbeameroption{show notes}
+%\setbeameroption{show notes on second screen=right}
+
+% fine for B/W printing:
+%\usecolortheme{seahorse}
+
+\usepackage{pgf}
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{relsize}
+
+\usepackage{fancybox}  % make sure fancybox is loaded before fancyvrb
+
+\usepackage{fancyvrb}
+\usepackage{minted} % requires pygments and latex -shell-escape filename
+%\usepackage{anslistings}
+%\usepackage{listingsutf8}
+
+\usepackage{amsmath,amssymb,bm}
+%\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{colortbl}
+\usepackage[english]{babel}
+\usepackage{tikz}
+\usepackage{framed}
+% Use some nice templates
+\beamertemplatetransparentcovereddynamic
+
+% --- begin table of contents based on sections ---
+% Delete this, if you do not want the table of contents to pop up at
+% the beginning of each section:
+% (Only section headings can enter the table of contents in Beamer
+% slides generated from DocOnce source, while subsections are used
+% for the title in ordinary slides.)
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>[plain]
+  \frametitle{}
+  %\frametitle{Outline}
+  \tableofcontents[currentsection]
+  \end{frame}
+}
+% --- end table of contents based on sections ---
+
+% If you wish to uncover everything in a step-wise fashion, uncomment
+% the following command:
+
+%\beamerdefaultoverlayspecification{<+->}
+
+\newcommand{\shortinlinecomment}[3]{\note{\textbf{#1}: #2}}
+\newcommand{\longinlinecomment}[3]{\shortinlinecomment{#1}{#2}{#3}}
+
+\definecolor{linkcolor}{rgb}{0,0,0.4}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=linkcolor,
+    urlcolor=linkcolor,
+    pdfmenubar=true,
+    pdftoolbar=true,
+    bookmarksdepth=3
+    }
+\setlength{\parskip}{0pt}  % {1em}
+
+\newenvironment{doconceexercise}{}{}
+\newcounter{doconceexercisecounter}
+\newenvironment{doconce:movie}{}{}
+\newcounter{doconce:movie:counter}
+
+\newcommand{\subex}[1]{\noindent\textbf{#1}}  % for subexercises: a), b), etc
+
+\logo{{\tiny \copyright\ 1999-2018, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license}}
+
+%-------------------- end beamer-specific preamble ----------------------
+
+% Add user's preamble
+
+
+
+
+% insert custom LaTeX commands...
+
+\raggedbottom
+\makeindex
+
+%-------------------- end preamble ----------------------
+
+\begin{document}
+
+% matching end for #ifdef PREAMBLE
+
+\newcommand{\exercisesection}[1]{\subsection*{#1}}
+
+
+
+% ------------------- main content ----------------------
+
+
+
+% ----------------- title -------------------------
+
+\title{Data Analysis and Machine Learning: Support Vector Machines}
+
+% ----------------- author(s) -------------------------
+
+\author{Morten Hjorth-Jensen\inst{1,2}}
+\institute{Department of Physics, University of Oslo\inst{1}
+\and
+Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University\inst{2}}
+% ----------------- end author(s) -------------------------
+
+\date{Nov 5, 2018
+% <optional titlepage figure>
+\ \\ 
+{\tiny \copyright\ 1999-2018, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license}
+}
+
+\begin{frame}[plain,fragile]
+\titlepage
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Support Vector Machines, overarching aims}
+
+A Support Vector Machine (SVM) is a very powerful and versatile
+Machine Learning model, capable of performing linear or nonlinear
+classification, regression, and even outlier detection. It is one of
+the most popular models in Machine Learning, and anyone interested in
+Machine Learning should have it in their toolbox. SVMs are
+particularly well suited for classification of complex but small-sized or
+medium-sized datasets.  
+
+The case with two well-separated classes only can be understood in an intuitive way in terms of lines in a two-dimensional space separating the two classes (see figure below).  
+
+The basic mathematics behind the SVM is however less familiar to most of us. 
+It relies on the definition of hyperplanes and the
+definition of a \textbf{margin} which separates classes (in case of
+classification problems) of variables. It is also used for regression
+problems.
+
+With SVMs we distinguish between hard margin and soft margins. The latter introduces a so-called softening parameter to be discussed below.
+We distinguish also between linear and non-linear approaches. The latter are the most frequent ones since it is rather unlikely that we can separate classes easily by say straight lines.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Hyperplanes and all that}
+
+The theory behind support vector machines (SVM hereafter) is based on
+the mathematical description of so-called hyperplanes. Let us start
+with a two-dimensional case. This will also allow us to introduce our
+first SVM examples. These will be tailored to the case of two specific
+classes, as displayed in the figure here.
+
+We assume here that our data set can be well separated into two
+domains, where a straight line does the job in the separating the two
+classes. Here the two classes are represented by either crosses or
+circles.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{What is a hyperplane?}
+
+The aim of the SVM algorithm is to find a hyperplane in an $p$-dimensional space, where $p$ is the number of features  that distinctly classifies the data points.  
+
+In a $p$-dimensional space, a hyperplane is what we call an affine subspace of dimension of $p-1$.
+As an example, in two dimension, a hyperplane is simply as straight line while in three dimensions it is 
+a two-dimensional subspace, or stated simply, a plane. 
+
+In two dimensions, with the variables $x_1$ and $x_2$, the hyperplane is defined as
+\[
+b+w_1x_1+w_2x_2=0,
+\]
+where $b$ is the intercept and $w_1$ and $w_2$ define the elements of a vector orthogonal to the line 
+$b+w_1x_1+w_2x_2=0$. 
+In two dimensions we define the vectors $\hat{x} =[x1,x2]$ and $\hat{w}=[w1,w2]$. 
+We can then rewrite the above equation as 
+\[
+\hat{w}^T\hat{x}+b=0.
+\]
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{A $p$-dimensional space of features}
+
+We limit ourselves to two classes of outputs $y_i$ and assign these classes the values $y_i = \pm 1$. 
+In a $p$-dimensional space of say $p$ features we have a hyperplane defines as 
+\[
+b+wx_1+w_2x_2+\dots +w_px_p=0.
+\]
+If we define a 
+matrix $\hat{X}=\left[\hat{x}_1,\hat{x}_2,\dots, \hat{x}_p\right]$
+of dimension $n\times p$, where $n$ represents the observations for each feature and each vector $x_i$ is a column vector of the matrix $\hat{X}$, 
+\[
+\hat{x}_i = \begin{bmatrix} x_{i1} \\ x_{i2} \\ \dots \\ \dots \\ x_{ip} \end{bmatrix}.
+\]
+If the above condition is not met for a given vector $\hat{x}_i$ we have 
+\[
+b+w_1x_{i1}+w_2x_{i}2+\dots +w_px_{ip} >0,
+\]
+if our output $y_i=1$.
+In this case we say that $\hat{x}_i$ lies on one of the sides of the hyperplane and if 
+\[
+b+w_1x_{i1}+w_2x_{i}2+\dots +w_px_{ip} < 0,
+\]
+for the class of observations $y_i=-1$, 
+then $\hat{x}_i$ lies on the other side. 
+
+Equivalently, for the two classes of observations we have 
+\[
+y_i\left(b+w_1x_{i1}+w_2x_{i}2+\dots +w_px_{ip}\right) > 0. 
+\]
+
+When we try to separate hyperplanes, if it exists, we can use it to construct a natural classifier: a test observation is assigned a given class depending on which side of the hyperplane it is located.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{The two-dimensional case}
+
+Let us try to develop our intuition about SVMs by limiting ourselves to a two-dimensional
+plane.  To separate the two classes of data points, there are many
+possible lines (hyperplanes if you prefer a more strict naming)  
+that could be chosen. Our objective is to find a
+plane that has the maximum margin, i.e the maximum distance between
+data points of both classes. Maximizing the margin distance provides
+some reinforcement so that future data points can be classified with
+more confidence.
+
+What a linear classifier attempts to accomplish is to split the
+feature space into two half spaces by placing a hyperplane between the
+data points.  This hyperplane will be our decision boundary.  All
+points on one side of the plane will belong to class one and all points
+on the other side of the plane will belong to the second class two.
+
+Unfortunately there are many ways in which we can place a hyperplane
+to divide the data.  Below is an example of two candidate hyperplanes
+for our data sample.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Getting into the details}
+
+Let us define the function
+\[
+f(x) = \hat{w}^T\hat{x}+b = 0,
+\]
+as the function that determines the line $L$ that separates two classes (our two features), see the figure here. 
+
+
+Any point defined by $\hat{x}_i$ and $\hat{x}_2$ on the line $L$ will satisfy $\hat{w}^T(\hat{x}_1-\hat{x}_2)=0$. 
+
+The signed distance $\delta$ from any point defined by a vector $\hat{x}$ and a point $\hat{x}_0$ on the line $L$ is then
+\[
+\delta = \frac{1}{\vert\vert \hat{w}\vert\vert}(\hat{w}^T\hat{x}+b).
+\]
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{First attempt at a minimization approach}
+
+How do we find the parameter $b$ and the vector $\hat{w}$? What we could
+do is to define a cost function which now contains the set of all
+misclassified points $M$ and attempt to minimize this function
+
+\[
+C(\hat{w},b) = -\sum_{i\in M} y_i(\hat{w}^T\hat{x}_i+b).
+\]
+
+We could now for example define all values $y_i =1$ as misclassified in case we have $\hat{w}^T\hat{x}_i+b < 0$ and the opposite if we have $y_i=-1$. Taking the derivatives gives us
+\[
+\frac{\partial C}{\partial b} = -\sum_{i\in M} y_i,
+\]
+and 
+\[
+\frac{\partial C}{\partial \hat{w}} = -\sum_{i\in M} y_ix_i.
+\]
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Solving the equations}
+
+We can now use the Newton-Raphson method or gradient descent to solve the equations
+\[
+b \leftarrow b +\eta \frac{\partial C}{\partial b},
+\]
+and
+\[
+\hat{w} \leftarrow \hat{w} +\eta \frac{\partial C}{\partial \hat{w}},
+\]
+where $\eta$ is our by now well-known learning rate. 
+
+There are however problems with this approach, although it looks
+pretty straightforward to implement. In case we separate our data into
+two distinct classes, we may up with many possible lines, as indicated
+in the figure and shown by running the following program. For small
+gaps between the entries, we may also end up needing many iterations
+before the solutions converge and if the data cannot be separated
+properly into two distinct classes, we may not experience a converge
+at all.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{A better approach}
+
+A better approach is rather to try to define a large margin between
+the two classes (if they are well separated from the beginning).
+
+Thus, we wish to find a margin $M$ with $\hat{w}$ normalized to
+$\vert\vert \hat{w}\vert\vert =1$ subject to the condition
+
+\[
+y_i(\hat{w}^T\hat{x}_i+b) \geq M \forall i=1,2,\dots, p. 
+\]
+All points are thus at a signed distance from the decision boundary defined by the line $L$. The parameters $b$ and $w_1$ and $w_2$ define this line. 
+
+We seek thus the largest value $M$ defined by
+\[
+\frac{1}{\vert \vert \hat{w}\vert\vert}y_i(\hat{w}^T\hat{x}_i+b) \geq M \forall i=1,2,\dots, n, 
+\]
+or just 
+\[
+y_i(\hat{w}^T\hat{x}_i+b) \geq M\vert \vert \hat{w}\vert\vert \forall i. 
+\]
+If we scale the equation so that $\vert \vert \hat{w}\vert\vert = 1/M$, we have to find the minimum of 
+$\hat{w}^T\hat{w}=\vert \vert \hat{w}\vert\vert$ (the norm) subject to the condition
+\[
+y_i(\hat{w}^T\hat{x}_i+b) \geq 1 \forall i.
+\]
+
+We have thus defined our margin as the invers of the norm of $\hat{w}$. We want to minimize the norm in order to have a as large as possible margin $M$. Before we proceed, we need to remind ourselves about Lagrangian multipliers.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{A quick reminder on Lagrangian multipliers}
+
+Consider a function of three independent variables $f(x,y,z)$ . For the function $f$ to be an
+extreme we have
+\[
+df=0.
+\]
+A necessary and sufficient condition is
+\[
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+\]
+due to
+\[
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz.
+\]
+In many problems the variables $x,y,z$ are often subject to constraints (such as those above for the margin)
+so that they are no longer all independent. It is possible at least in principle to use each 
+constraint to eliminate one variable
+and to proceed with a new and smaller set of independent varables.
+
+The use of so-called Lagrangian  multipliers is an alternative technique  when the elimination
+of variables is incovenient or undesirable.  Assume that we have an equation of constraint on 
+the variables $x,y,z$
+\[
+\phi(x,y,z) = 0,
+\]
+ resulting in
+\[
+d\phi = \frac{\partial \phi}{\partial x}dx+\frac{\partial \phi}{\partial y}dy+\frac{\partial \phi}{\partial z}dz =0.
+\]
+Now we cannot set anymore
+\[
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+\]
+if $df=0$ is wanted
+because there are now only two independent variables!  Assume $x$ and $y$ are the independent 
+variables.
+Then $dz$ is no longer arbitrary.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Adding the muliplier}
+
+However, we can add to
+\[
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz,
+\]
+a multiplum of $d\phi$, viz. $\lambda d\phi$, resulting  in
+\[
+df+\lambda d\phi = (\frac{\partial f}{\partial z}+\lambda
+\frac{\partial \phi}{\partial x})dx+(\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y})dy+
+(\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z})dz =0.
+\]
+Our multiplier is chosen so that
+\[
+\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z} =0.
+\]
+
+We need to remember that we took $dx$ and $dy$ to be arbitrary and thus we must have
+\[
+\frac{\partial f}{\partial x}+\lambda\frac{\partial \phi}{\partial x} =0,
+\]
+and
+\[
+\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y} =0.
+\]
+When all these equations are satisfied, $df=0$.  We have four unknowns, $x,y,z$ and
+$\lambda$. Actually we want only $x,y,z$, $\lambda$ needs not to be determined, 
+it is therefore often called
+Lagrange's undetermined multiplier.
+If we have a set of constraints $\phi_k$ we have the equations
+\[
+\frac{\partial f}{\partial x_i}+\sum_k\lambda_k\frac{\partial \phi_k}{\partial x_i} =0.
+\]
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Setting up the problem}
+
+In order to solve the above problem, we define the following Lagrangian function to be minimized 
+\[
+{\cal L}(\lambda,b,\hat{w})=\frac{1}{2}\hat{w}^T\hat{w}-\sum_{i=1}^n\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b)-1\right],
+\]
+where $\lambda_i$ is a so-called Lagrange multiplier subject to the condition $\lambda_i \geq 0$.
+
+Taking the derivatives  with respect to $b$ and $\hat{w}$ we obtain 
+\[
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+\]
+and 
+\[
+\frac{\partial {\cal L}}{\partial \hat{w}} = 0 = \hat{w}-\sum_{i} \lambda_iy_i\hat{x}_i.
+\]
+Inserting these constraints into the equation for ${\cal L}$ we obtain
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\hat{x}_i^T\hat{x}_j,
+\]
+subject to the constraints $\lambda_i\geq 0$ and $\sum_i\lambda_iy_i=0$. 
+We must in addition satisfy the \href{{https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions}}{Karush-Kuhn-Tucker} (KKT) condition
+\[
+\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b) -1\right] \forall i.
+\]
+\begin{enumerate}
+\item If $\lambda_i > 0$, then $y_i(\hat{w}^T\hat{x}_i+b)=1$ and we say that $x_i$ is on the boundary.
+
+\item If $y_i(\hat{w}^T\hat{x}_i+b)> 1$, we say $x_i$ is not on the boundary and we set $\lambda_i=0$. 
+\end{enumerate}
+
+\noindent
+When $\lambda_i > 0$, the vectors $\hat{x}_i$ are called support vectors. They are the vectors closest to the line (or hyperplane) and define the margin $M$.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{The problem to solve}
+
+We can rewrite 
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\hat{x}_i^T\hat{x}_j,
+\]
+and its constraints in terms of a matrix-vector problem where we minimize w.r.t. $\lambda$ the following problem
+\[
+\frac{1}{2} \hat{\lambda}^T\begin{bmatrix} y_1y_1\hat{x}_1^T\hat{x}_1 & y_1y_2\hat{x}_1^T\hat{x}_2 & \dots & \dots & y_1y_n\hat{x}_1^T\hat{x}_n \\
+y_2y_1\hat{x}_2^T\hat{x}_1 & y_2y_2\hat{x}_2^T\hat{x}_2 & \dots & \dots & y_1y_n\hat{x}_2^T\hat{x}_n \\
+\dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots \\
+y_ny_1\hat{x}_n^T\hat{x}_1 & y_ny_2\hat{x}_n^T\hat{x}_2 & \dots & \dots & y_ny_n\hat{x}_n^T\hat{x}_n \\
+\end{bmatrix}\hat{\lambda}-\mathbb{1}\hat{\lambda}, 
+\]
+subject to $\hat{y}^T\hat{\lambda}=0$.
+\end{frame}
+
+\begin{frame}[plain,fragile]
+\frametitle{Examples with kernels}
+
+\begin{minted}[fontsize=\fontsize{9pt}{9pt},linenos=false,mathescape,baselinestretch=1.0,fontfamily=tt,xleftmargin=2mm]{python}
+from IPython.display import set_matplotlib_formats, display
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import mglearn
+from cycler import cycler
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from sklearn.datasets import make_blobs
+
+
+X, y = make_blobs(centers=4, random_state=8)
+y = y % 2
+
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
+plt.show()
+
+from sklearn.svm import LinearSVC
+linear_svm = LinearSVC().fit(X, y)
+
+mglearn.plots.plot_2d_separator(linear_svm, X)
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
+\end{minted}
+
+\begin{minted}[fontsize=\fontsize{9pt}{9pt},linenos=false,mathescape,baselinestretch=1.0,fontfamily=tt,xleftmargin=2mm]{python}
+# add the squared first feature
+X_new = np.hstack([X, X[:, 1:] ** 2])
+
+
+from mpl_toolkits.mplot3d import Axes3D, axes3d
+figure = plt.figure()
+# visualize in 3D
+ax = Axes3D(figure, elev=-152, azim=-26)
+# plot first all the points with y==0, then all with y == 1
+mask = y == 0
+ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+ax.set_xlabel("feature0")
+ax.set_ylabel("feature1")
+ax.set_zlabel("feature1 ** 2")
+\end{minted}
+
+\begin{minted}[fontsize=\fontsize{9pt}{9pt},linenos=false,mathescape,baselinestretch=1.0,fontfamily=tt,xleftmargin=2mm]{python}
+linear_svm_3d = LinearSVC().fit(X_new, y)
+coef, intercept = linear_svm_3d.coef_.ravel(), linear_svm_3d.intercept_
+
+# show linear decision boundary
+figure = plt.figure()
+ax = Axes3D(figure, elev=-152, azim=-26)
+xx = np.linspace(X_new[:, 0].min() - 2, X_new[:, 0].max() + 2, 50)
+yy = np.linspace(X_new[:, 1].min() - 2, X_new[:, 1].max() + 2, 50)
+
+XX, YY = np.meshgrid(xx, yy)
+ZZ = (coef[0] * XX + coef[1] * YY + intercept) / -coef[2]
+ax.plot_surface(XX, YY, ZZ, rstride=8, cstride=8, alpha=0.3)
+ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
+           cmap=mglearn.cm2, s=60, edgecolor='k')
+
+ax.set_xlabel("feature0")
+ax.set_ylabel("feature1")
+ax.set_zlabel("feature1 ** 2")
+
+ZZ = YY ** 2
+dec = linear_svm_3d.decision_function(np.c_[XX.ravel(), YY.ravel(), ZZ.ravel()])
+plt.contourf(XX, YY, dec.reshape(XX.shape), levels=[dec.min(), 0, dec.max()],
+             cmap=mglearn.cm2, alpha=0.5)
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
+\end{minted}
+
+\begin{minted}[fontsize=\fontsize{9pt}{9pt},linenos=false,mathescape,baselinestretch=1.0,fontfamily=tt,xleftmargin=2mm]{python}
+from sklearn.svm import SVC
+X, y = mglearn.tools.make_handcrafted_dataset()                                                                  
+svm = SVC(kernel='rbf', C=10, gamma=0.1).fit(X, y)
+mglearn.plots.plot_2d_separator(svm, X, eps=.5)
+mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+# plot support vectors
+sv = svm.support_vectors_
+# class labels of support vectors are given by the sign of the dual coefficients
+sv_labels = svm.dual_coef_.ravel() > 0
+mglearn.discrete_scatter(sv[:, 0], sv[:, 1], sv_labels, s=15, markeredgewidth=3)
+plt.xlabel("Feature 0")
+plt.ylabel("Feature 1")
+
+fig, axes = plt.subplots(3, 3, figsize=(15, 10))
+
+for ax, C in zip(axes, [-1, 0, 3]):
+    for a, gamma in zip(ax, range(-1, 2)):
+        mglearn.plots.plot_svm(log_C=C, log_gamma=gamma, ax=a)
+        
+axes[0, 0].legend(["class 0", "class 1", "sv class 0", "sv class 1"],
+                  ncol=4, loc=(.9, 1.2))
+
+\end{minted}
+\end{frame}
+
+\end{document}

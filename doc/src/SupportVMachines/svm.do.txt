@@ -22,15 +22,9 @@ classification problems) of variables. It is also used for regression
 problems.
 
 With SVMs we distinguish between hard margin and soft margins. The latter introduces a so-called softening parameter to be discussed below.
-We distringuish also between linear and non-linear approaches. The latter are the most frequent ones since it is rather unlikely that we can separate classes easily by say straight lines. 
+We distinguish also between linear and non-linear approaches. The latter are the most frequent ones since it is rather unlikely that we can separate classes easily by say straight lines. 
 
 
-
-!split
-===== Strength and weakness =====
-
-When we implement a linear support vector machine, the main parameter is the constant $C$. Small values of $C$ mean simple models.
-These models are fast to train and also fast to predict and scale to very large data sets and work well with sparse data. Linear support vector machines make it easy to understand how a prediction is made, however it is often not easy to understand why coefficients are the way they are.  These models work also well in higer dimensions. 
 
 
 !split
@@ -48,41 +42,72 @@ classes. Here the two classes are represented by either crosses or
 circles.
 
 !split
-===== What is a hyperplane =====
+===== What is a hyperplane? =====
 
-The aim of the SVM algorithm is to find a hyperplane in an $n$-dimensional space, where $n$ is the number of features  that distinctly classifies the data points.  
+The aim of the SVM algorithm is to find a hyperplane in an $p$-dimensional space, where $p$ is the number of features  that distinctly classifies the data points.  
 
-In an $n$-dimensional space, a hyperplane is what we call an affine subspace of dimension of $n-1$.
+In a $p$-dimensional space, a hyperplane is what we call an affine subspace of dimension of $p-1$.
 As an example, in two dimension, a hyperplane is simply as straight line while in three dimensions it is 
 a two-dimensional subspace, or stated simply, a plane. 
 
 In two dimensions, with the variables $x_1$ and $x_2$, the hyperplane is defined as
 !bt
 \[
-\beta_0+\beta_1x_1+\beta_2x_2=0,
+b+w_1x_1+w_2x_2=0,
+\]
+!et
+where $b$ is the intercept and $w_1$ and $w_2$ define the elements of a vector orthogonal to the line 
+$b+w_1x_1+w_2x_2=0$. 
+In two dimensions we define the vectors $\hat{x} =[x1,x2]$ and $\hat{w}=[w1,w2]$. 
+We can then rewrite the above equation as 
+!bt
+\[
+\hat{w}^T\hat{x}+b=0.
 \]
 !et
 
-In an $n$-dimensional space we have
+!split
+===== A $p$-dimensional space of features =====
+
+We limit ourselves to two classes of outputs $y_i$ and assign these classes the values $y_i = \pm 1$. 
+In a $p$-dimensional space of say $p$ features we have a hyperplane defines as 
 !bt
 \[
-\beta_0+\beta_1x_1+\beta_2x_2+\dots +\beta_nx_n=0,
+b+wx_1+w_2x_2+\dots +w_px_p=0.
+\]
+!et
+If we define a 
+matrix $\hat{X}=\left[\hat{x}_1,\hat{x}_2,\dots, \hat{x}_p\right]$
+of dimension $n\times p$, where $n$ represents the observations for each feature and each vector $x_i$ is a column vector of the matrix $\hat{X}$, 
+!bt
+\[
+\hat{x}_i = \begin{bmatrix} x_{i1} \\ x_{i2} \\ \dots \\ \dots \\ x_{ip} \end{bmatrix}.
+\]
+!et
+If the above condition is not met for a given vector $\hat{x}_i$ we have 
+!bt
+\[
+b+w_1x_{i1}+w_2x_{i}2+\dots +w_px_{ip} >0,
+\]
+!et
+if our output $y_i=1$.
+In this case we say that $\hat{x}_i$ lies on one of the sides of the hyperplane and if 
+!bt
+\[
+b+w_1x_{i1}+w_2x_{i}2+\dots +w_px_{ip} < 0,
+\]
+!et
+for the class of observations $y_i=-1$, 
+then $\hat{x}_i$ lies on the other side. 
+
+Equivalently, for the two classes of observations we have 
+!bt
+\[
+y_i\left(b+w_1x_{i1}+w_2x_{i}2+\dots +w_px_{ip}\right) > 0. 
 \]
 !et
 
-With $\hat{x}=\left[x_1,x_2,\dots, x_n\right]$, if the above condition is not met and
-!bt
-\[
-\beta_0+\beta_1x_1+\beta_2x_2+\dots +\beta_nx_n<0,
-\]
-!et
-we say that $\hat{x}$ lies on one of the sides of the hyperplane and if 
-!bt
-\[
-\beta_0+\beta_1x_1+\beta_2x_2+\dots +\beta_nx_n>0,
-\]
-!et
-then $\hat{x}$ lies on the other side. 
+When we try to separate hyperplanes, if it exists, we can use it to construct a natural classifier: a test observation is assigned a given class depending on which side of the hyperplane it is located.
 
 !split 
 ===== The two-dimensional case ===== 
@@ -112,51 +137,44 @@ for our data sample.
 Let us define the function
 !bt
 \[
-f(x) = \beta_0+\beta_1x = 0,
+f(x) = \hat{w}^T\hat{x}+b = 0,
 \]
 !et
-as the function that determines the line $L$ that separates two classes (our two features), see the figur here. 
+as the function that determines the line $L$ that separates two classes (our two features), see the figure here. 
 
-Define a vector $\hat{\beta}:\left\{\beta_0,\beta_1\right\}$. Let us label the values of $\hat{\beta}$ that satisfy this constraint as $\overline{\beta}$. 
 
-Any two points $x_1$ and $x_2$ on the line $L$ will satisfy $\hat{\beta}(x_1-x_2)=0$. We normalize the solution and define
+Any point defined by $\hat{x}_i$ and $\hat{x}_2$ on the line $L$ will satisfy $\hat{w}^T(\hat{x}_1-\hat{x}_2)=0$. 
+
+The signed distance $\delta$ from any point defined by a vector $\hat{x}$ and a point $\hat{x}_0$ on the line $L$ is then
 !bt
 \[
-\overline{\beta} = \frac{\hat{\beta}}{\vert\vert \hat{\beta}\vert\vert},
-\]
-!et
-which is vector normal to the line $L$. 
-
-The signed distance from a point $x_0$ on $L$ to any point $x$ is then
-!bt
-\[
-\overline{\beta}(x-x_0) = \frac{\beta_1 x + \beta_0}{\vert\vert \hat{\beta}\vert\vert}.
+\delta = \frac{1}{\vert\vert \hat{w}\vert\vert}(\hat{w}^T\hat{x}+b).
 \]
 !et
 
 !split
 ===== First attempt at a minimization approach =====
 
-How do we find the parameters $\beta_0$ and $\beta_0$? What we could
+How do we find the parameter $b$ and the vector $\hat{w}$? What we could
 do is to define a cost function which now contains the set of all
 misclassified points $M$ and attempt to minimize this function
 
 !bt
 \[
-C(\beta_0,\beta_1) = -\sum_{i\in M} y_i(\beta_1x_1+\beta_0).
+C(\hat{w},b) = -\sum_{i\in M} y_i(\hat{w}^T\hat{x}_i+b).
 \]
 !et
 
-We could now for example define all values $y_i =1$ as misclassified in case we have $\beta_1x_i+\beta_0 < 0$ and the opposite if we have $y_i=-1$. Taking the derivatives gives us
+We could now for example define all values $y_i =1$ as misclassified in case we have $\hat{w}^T\hat{x}_i+b < 0$ and the opposite if we have $y_i=-1$. Taking the derivatives gives us
 !bt
 \[
-\frac{\partial C}{\partial \beta_0} = -\sum_{i\in M} y_i,
+\frac{\partial C}{\partial b} = -\sum_{i\in M} y_i,
 \]
 !et
 and 
 !bt
 \[
-\frac{\partial C}{\partial \beta_1} = -\sum_{i\in M} y_ix_i.
+\frac{\partial C}{\partial \hat{w}} = -\sum_{i\in M} y_ix_i.
 \]
 !et
 
@@ -166,91 +184,223 @@ and
 We can now use the Newton-Raphson method or gradient descent to solve the equations
 !bt
 \[
-\beta_0 \leftarrow \beta_0 +\eta \frac{\partial C}{\partial \beta_0},
+b \leftarrow b +\eta \frac{\partial C}{\partial b},
 \]
 !et
 and
 !bt
 \[
-\beta_1 \leftarrow \beta_1 +\eta \frac{\partial C}{\partial \beta_1},
+\hat{w} \leftarrow \hat{w} +\eta \frac{\partial C}{\partial \hat{w}},
 \]
 !et
 where $\eta$ is our by now well-known learning rate. 
-There are however problems with this approach, although it looks pretty straightforward to implement. In case we separate our data into two distinct classes, we may up with many possible lines, as indicated in the figure and shown by running the following program. For small gaps between the entries, we may also end up needing many iterations before the solutions converge and if the data cannot be separated properly into two distinct classes, we may not experience a converge at all.
+
+There are however problems with this approach, although it looks
+pretty straightforward to implement. In case we separate our data into
+two distinct classes, we may up with many possible lines, as indicated
+in the figure and shown by running the following program. For small
+gaps between the entries, we may also end up needing many iterations
+before the solutions converge and if the data cannot be separated
+properly into two distinct classes, we may not experience a converge
+at all.
 
 !split
 ===== A better approach =====
 
-A better approach is rather to try to define a large margin between the two classes (if they are well separated from the beginning). 
+A better approach is rather to try to define a large margin between
+the two classes (if they are well separated from the beginning).
 
-Thus, we wish to find a margin $M$ with $\hat{\beta}$ normalized to $\vert\vert \hat{\beta}\vert\vert =1$ subject to the condition 
+Thus, we wish to find a margin $M$ with $\hat{w}$ normalized to
+$\vert\vert \hat{w}\vert\vert =1$ subject to the condition
+
 !bt
 \[
-y_i(\beta_0+\beta_1 x_i) \geq M \forall i=1,2,\dots, n. 
+y_i(\hat{w}^T\hat{x}_i+b) \geq M \forall i=1,2,\dots, p. 
 \]
 !et
-All points are thus at a signed distance from the decision boundary defined by the line $L$. The parameters $\beta_0$ and $\beta_1$ define this line. 
+All points are thus at a signed distance from the decision boundary defined by the line $L$. The parameters $b$ and $w_1$ and $w_2$ define this line. 
 
 We seek thus the largest value $M$ defined by
 !bt
 \[
-\frac{1}{\vert \vert \hat{\beta}\vert\vert}y_i(\beta_0+\beta_1 x_) \geq M \forall i=1,2,\dots, n, 
+\frac{1}{\vert \vert \hat{w}\vert\vert}y_i(\hat{w}^T\hat{x}_i+b) \geq M \forall i=1,2,\dots, n, 
 \]
 !et
 or just 
 !bt
 \[
-y_i(\beta_0+\beta_1 x_i) \geq M\vert \vert \hat{\beta}\vert\vert \forall i=1,2,\dots, n. 
+y_i(\hat{w}^T\hat{x}_i+b) \geq M\vert \vert \hat{w}\vert\vert \forall i. 
 \]
 !et
-If we scale the equation so that $\vert \vert \hat{\beta}\vert\vert = 1/M$, we have to find the minimum of 
-$\hat{\beta}^T\hat{\beta}$ subject to the condition
+If we scale the equation so that $\vert \vert \hat{w}\vert\vert = 1/M$, we have to find the minimum of 
+$\hat{w}^T\hat{w}=\vert \vert \hat{w}\vert\vert$ (the norm) subject to the condition
 !bt
 \[
-y_i(\beta_0+\beta_1 x_i) \geq 1 \forall i=1,2,\dots, n. 
+y_i(\hat{w}^T\hat{x}_i+b) \geq 1 \forall i.
 \]
 !et
+
+We have thus defined our margin as the invers of the norm of $\hat{w}$. We want to minimize the norm in order to have a as large as possible margin $M$. Before we proceed, we need to remind ourselves about Lagrangian multipliers. 
 
 !split
 ===== A quick reminder on Lagrangian multipliers =====
 
-Withe the above constraint, we introduce now the calculus of Lagrangian multiplier. 
+Consider a function of three independent variables $f(x,y,z)$ . For the function $f$ to be an
+extreme we have
+!bt
+\[
+df=0.
+\]
+!et
+A necessary and sufficient condition is
+!bt
+\[
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+\]
+!et
+due to
+!bt
+\[
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz.
+\]
+!et
+In many problems the variables $x,y,z$ are often subject to constraints (such as those above for the margin)
+so that they are no longer all independent. It is possible at least in principle to use each 
+constraint to eliminate one variable
+and to proceed with a new and smaller set of independent varables.
+
+The use of so-called Lagrangian  multipliers is an alternative technique  when the elimination
+of variables is incovenient or undesirable.  Assume that we have an equation of constraint on 
+the variables $x,y,z$
+!bt
+\[
+\phi(x,y,z) = 0,
+\]
+!et
+ resulting in
+!bt
+\[
+d\phi = \frac{\partial \phi}{\partial x}dx+\frac{\partial \phi}{\partial y}dy+\frac{\partial \phi}{\partial z}dz =0.
+\]
+!et
+Now we cannot set anymore
+!bt
+\[
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+\]
+!et
+if $df=0$ is wanted
+because there are now only two independent variables!  Assume $x$ and $y$ are the independent 
+variables.
+Then $dz$ is no longer arbitrary.
+
+!split
+===== Adding the muliplier =====
+
+However, we can add to
+!bt
+\[
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz,
+\]
+!et
+a multiplum of $d\phi$, viz. $\lambda d\phi$, resulting  in
+!bt
+\[
+df+\lambda d\phi = (\frac{\partial f}{\partial z}+\lambda
+\frac{\partial \phi}{\partial x})dx+(\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y})dy+
+(\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z})dz =0.
+\]
+!et
+Our multiplier is chosen so that
+!bt
+\[
+\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z} =0.
+\]
+!et
+
+We need to remember that we took $dx$ and $dy$ to be arbitrary and thus we must have
+!bt
+\[
+\frac{\partial f}{\partial x}+\lambda\frac{\partial \phi}{\partial x} =0,
+\]
+!et
+and
+!bt
+\[
+\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y} =0.
+\]
+!et
+When all these equations are satisfied, $df=0$.  We have four unknowns, $x,y,z$ and
+$\lambda$. Actually we want only $x,y,z$, $\lambda$ needs not to be determined, 
+it is therefore often called
+Lagrange's undetermined multiplier.
+If we have a set of constraints $\phi_k$ we have the equations
+!bt
+\[
+\frac{\partial f}{\partial x_i}+\sum_k\lambda_k\frac{\partial \phi_k}{\partial x_i} =0.
+\]
+!et
+
+!split
+===== Setting up the problem =====
 In order to solve the above problem, we define the following Lagrangian function to be minimized 
 !bt
 \[
-L(\lambda)=\frac{1}{2}\hat{\beta}^T\hat{\beta}-\sum_{i=1}^n\lambda_i\left[y_i(\beta_0+\beta_1 x_i)-1\right],
+{\cal L}(\lambda,b,\hat{w})=\frac{1}{2}\hat{w}^T\hat{w}-\sum_{i=1}^n\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b)-1\right],
 \]
 !et
 where $\lambda_i$ is a so-called Lagrange multiplier subject to the condition $\lambda_i \geq 0$.
 
-Taking the derivatives  with respect to $\beta_0$ and $\beta_1$ we obtain 
+Taking the derivatives  with respect to $b$ and $\hat{w}$ we obtain 
 !bt
 \[
-\frac{\partial L}{\partial \beta_0} = -\sum_{i} \lambda_iy_i=0,
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
 \]
 !et
 and 
 !bt
 \[
-\frac{\partial L}{\partial \beta_1} = \beta_1-\sum_{i} \lambda_iy_ix_i=0.
+\frac{\partial {\cal L}}{\partial \hat{w}} = 0 = \hat{w}-\sum_{i} \lambda_iy_i\hat{x}_i.
 \]
 !et
-Inserting these constraints into the equation for $L$ we obtain
+Inserting these constraints into the equation for ${\cal L}$ we obtain
 !bt
 \[
-L(\lambda)=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_jx_i^Tx_j,
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\hat{x}_i^T\hat{x}_j,
 \]
 !et
 subject to the constraints $\lambda_i\geq 0$ and $\sum_i\lambda_iy_i=0$. 
-We must in addition satisfy the Koriush-Kuhn-Tucker (KKT) condition
+We must in addition satisfy the "Karush-Kuhn-Tucker":"https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions" (KKT) condition
 !bt
 \[
-\lambda_i\left[y_i(\beta_0+\beta_1 x_i) -1\right] \forall i=1,2,\dots, n. 
+\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b) -1\right] \forall i.
 \]
 !et
-o If $\lambda_i > 0$, then $y_i(\beta_0+\beta_1 x_i)=1$ and we say that $x_i$ is on the boundary of the slab.
-o If $y_i(\beta_0+\beta_1 x_i)> 1$, we say $x_i$ is not on the boundary and we set $\lambda_i=0$. 
+o If $\lambda_i > 0$, then $y_i(\hat{w}^T\hat{x}_i+b)=1$ and we say that $x_i$ is on the boundary.
+o If $y_i(\hat{w}^T\hat{x}_i+b)> 1$, we say $x_i$ is not on the boundary and we set $\lambda_i=0$. 
+When $\lambda_i > 0$, the vectors $\hat{x}_i$ are called support vectors. They are the vectors closest to the line (or hyperplane) and define the margin $M$. 
 
+!split
+===== The problem to solve =====
+
+We can rewrite 
+!bt
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\hat{x}_i^T\hat{x}_j,
+\]
+!et
+and its constraints in terms of a matrix-vector problem where we minimize w.r.t. $\lambda$ the following problem
+!bt
+\[
+\frac{1}{2} \hat{\lambda}^T\begin{bmatrix} y_1y_1\hat{x}_1^T\hat{x}_1 & y_1y_2\hat{x}_1^T\hat{x}_2 & \dots & \dots & y_1y_n\hat{x}_1^T\hat{x}_n \\
+y_2y_1\hat{x}_2^T\hat{x}_1 & y_2y_2\hat{x}_2^T\hat{x}_2 & \dots & \dots & y_1y_n\hat{x}_2^T\hat{x}_n \\
+\dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots \\
+y_ny_1\hat{x}_n^T\hat{x}_1 & y_ny_2\hat{x}_n^T\hat{x}_2 & \dots & \dots & y_ny_n\hat{x}_n^T\hat{x}_n \\
+\end{bmatrix}\hat{\lambda}-\mathbb{1}\hat{\lambda}, 
+\]
+!et
+subject to $\hat{y}^T\hat{\lambda}=0$. 
 
 !split
 ===== Examples with kernels =====
