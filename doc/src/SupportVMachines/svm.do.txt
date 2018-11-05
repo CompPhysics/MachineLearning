@@ -400,112 +400,132 @@ y_ny_1\hat{x}_n^T\hat{x}_1 & y_ny_2\hat{x}_n^T\hat{x}_2 & \dots & \dots & y_ny_n
 \end{bmatrix}\hat{\lambda}-\mathbb{1}\hat{\lambda}, 
 \]
 !et
-subject to $\hat{y}^T\hat{\lambda}=0$. 
+subject to $\hat{y}^T\hat{\lambda}=0$. Here we defined the vectors $\hat{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
+$\hat{y}=[y_1,y_2,\dots,y_n]$. 
+
 
 !split
-===== Examples with kernels =====
+===== The last steps =====
 
-!bc pycod
-from IPython.display import set_matplotlib_formats, display
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import mglearn
-from cycler import cycler
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
-from sklearn.datasets import make_blobs
+Solving the above problem, yields the values of $\lambda_i$.
+To find the coefficients of your hyperplane we need simply to compute 
+!bt
+\[
+\hat{w}=\sum_{i} \lambda_iy_i\hat{x}_i.
+\]
+!et
+With our vector $\hat{w}$ we can in turn find the value of the intercept $b$ (here in two dimensions) via 
+!bt
+\[
+y_i(\hat{w}^T\hat{x}_i+b)=1,
+\]
+!et
+resulting in
+!bt
+\[
+b = \frac{1}{y_i}-\hat{w}^T\hat{x}_i.
+\]
+!et
+With our hyperplane coefficients we can use our classifier to assign any observation by simply using 
+!bt
+\[
+y_i = \mathrm{sign}(\hat{w}^T\hat{x}_i+b).
+\]
+!et
+Below we discuss how to find the optimal values of $\lambda_i$. Before we proceed however, we discuss now the so-called soft classifier. 
+
+!split
+===== A soft classifier =====
+
+Till now, the margin is strictly defined by the support vectors. This defines what is called a hard classifier, that is the margins are well defined.
+
+Suppose now that classes overlap in feature space, as shown in the
+figure here. One way to deal with this problem before we define the
+so-called _kernel approach_, is to allow a kind of slack in the sense
+that we allow some points to be on the wrong side of the margin.
+
+We introduce thus the so-called _slack_ variables $\hat{\xi} =[\xi_1,x_2,\dots,x_n]$ and 
+modify our previous equation
+!bt
+\[
+y_i(\hat{w}^T\hat{x}_i+b)=1,
+\]
+!et
+to 
+!bt
+\[
+y_i(\hat{w}^T\hat{x}_i+b)=1-\xi_i,
+\]
+!et
+with the requirement $\xi_i\geq 0$. The total violation is now $\sum_i\xi$. 
+The value $\xi_i$ in the constraint the last constraint corresponds to the  amount by which the prediction
+$y_i(\hat{w}^T\hat{x}_i+b)=1$ is on the wrong side of its margin. Hence by bounding the sum $\sum_i \xi_i$,
+we bound the total amount by which predictions fall on the wrong side of their margins.
+
+Misclassifications occur when $\xi_i > 1$. Thus bounding the total sum by some value $C$ bounds in turn the total number of
+misclassifications.
+
+!split
+===== Soft optmization problem =====
 
 
-X, y = make_blobs(centers=4, random_state=8)
-y = y % 2
+This has in turn the consequences that we change our optmization problem to finding the minimum of 
+!bt
+\[
+{\cal L}=\frac{1}{2}\hat{w}^T\hat{w}-\sum_{i=1}^n\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b)-(1-\xi_)\right]+C\sum_{i=1}^n\xi_i-\sum_{i=1}^n\gamma_i\xi_i,
+\]
+!et
+subject to 
+!bt
+\[
+y_i(\hat{w}^T\hat{x}_i+b)=1-\xi_i \forall i,
+\]
+!et
+with the requirement $\xi_i\geq 0$.
 
-mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
-plt.xlabel("Feature 0")
-plt.ylabel("Feature 1")
-plt.show()
+Taking the derivatives  with respect to $b$ and $\hat{w}$ we obtain 
+!bt
+\[
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+\]
+!et
+and 
+!bt
+\[
+\frac{\partial {\cal L}}{\partial \hat{w}} = 0 = \hat{w}-\sum_{i} \lambda_iy_i\hat{x}_i, 
+\]
+!et
+and
+!bt
+\[
+\lambda_i = C-\gamma_i \forall i.
+\]
+!et
+Inserting these constraints into the equation for ${\cal L}$ we obtain the same equation as before
+!bt
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\hat{x}_i^T\hat{x}_j,
+\]
+!et
+but now subject to the constraints $\lambda_i\geq 0$, $\sum_i\lambda_iy_i=0$ and $ 0 \leq \lambda_i \leq C$. 
+We must in addition satisfy the Karush-Kuhn-Tucker condition which now reads
+!bt
+\[
+\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b) -(1-\xi_)\right]=0 \forall i,
+\]
+!et
+!bt
+\[
+\gamma_i\xi_i = 0,
+\]
+!et
+and 
+!bt
+\[
+y_i(\hat{w}^T\hat{x}_i+b) -(1-\xi_) \geq 0 \forall i.
+\]
+!et
 
-from sklearn.svm import LinearSVC
-linear_svm = LinearSVC().fit(X, y)
+!split
+===== Kernels and non-linearity =====
 
-mglearn.plots.plot_2d_separator(linear_svm, X)
-mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
-plt.xlabel("Feature 0")
-plt.ylabel("Feature 1")
-!ec
-
-!bc pycod
-# add the squared first feature
-X_new = np.hstack([X, X[:, 1:] ** 2])
-
-
-from mpl_toolkits.mplot3d import Axes3D, axes3d
-figure = plt.figure()
-# visualize in 3D
-ax = Axes3D(figure, elev=-152, azim=-26)
-# plot first all the points with y==0, then all with y == 1
-mask = y == 0
-ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
-           cmap=mglearn.cm2, s=60, edgecolor='k')
-ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
-           cmap=mglearn.cm2, s=60, edgecolor='k')
-ax.set_xlabel("feature0")
-ax.set_ylabel("feature1")
-ax.set_zlabel("feature1 ** 2")
-!ec
-
-!bc pycod
-linear_svm_3d = LinearSVC().fit(X_new, y)
-coef, intercept = linear_svm_3d.coef_.ravel(), linear_svm_3d.intercept_
-
-# show linear decision boundary
-figure = plt.figure()
-ax = Axes3D(figure, elev=-152, azim=-26)
-xx = np.linspace(X_new[:, 0].min() - 2, X_new[:, 0].max() + 2, 50)
-yy = np.linspace(X_new[:, 1].min() - 2, X_new[:, 1].max() + 2, 50)
-
-XX, YY = np.meshgrid(xx, yy)
-ZZ = (coef[0] * XX + coef[1] * YY + intercept) / -coef[2]
-ax.plot_surface(XX, YY, ZZ, rstride=8, cstride=8, alpha=0.3)
-ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
-           cmap=mglearn.cm2, s=60, edgecolor='k')
-ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
-           cmap=mglearn.cm2, s=60, edgecolor='k')
-
-ax.set_xlabel("feature0")
-ax.set_ylabel("feature1")
-ax.set_zlabel("feature1 ** 2")
-
-ZZ = YY ** 2
-dec = linear_svm_3d.decision_function(np.c_[XX.ravel(), YY.ravel(), ZZ.ravel()])
-plt.contourf(XX, YY, dec.reshape(XX.shape), levels=[dec.min(), 0, dec.max()],
-             cmap=mglearn.cm2, alpha=0.5)
-mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
-plt.xlabel("Feature 0")
-plt.ylabel("Feature 1")
-!ec
-
-!bc pycod
-from sklearn.svm import SVC
-X, y = mglearn.tools.make_handcrafted_dataset()                                                                  
-svm = SVC(kernel='rbf', C=10, gamma=0.1).fit(X, y)
-mglearn.plots.plot_2d_separator(svm, X, eps=.5)
-mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
-# plot support vectors
-sv = svm.support_vectors_
-# class labels of support vectors are given by the sign of the dual coefficients
-sv_labels = svm.dual_coef_.ravel() > 0
-mglearn.discrete_scatter(sv[:, 0], sv[:, 1], sv_labels, s=15, markeredgewidth=3)
-plt.xlabel("Feature 0")
-plt.ylabel("Feature 1")
-
-fig, axes = plt.subplots(3, 3, figsize=(15, 10))
-
-for ax, C in zip(axes, [-1, 0, 3]):
-    for a, gamma in zip(ax, range(-1, 2)):
-        mglearn.plots.plot_svm(log_C=C, log_gamma=gamma, ax=a)
-        
-axes[0, 0].legend(["class 0", "class 1", "sv class 0", "sv class 1"],
-                  ncol=4, loc=(.9, 1.2))
-
-!ec

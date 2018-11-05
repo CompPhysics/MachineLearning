@@ -56,7 +56,10 @@ Automatically generated HTML file from DocOnce source
               ('Adding the muliplier', 2, None, '___sec10'),
               ('Setting up the problem', 2, None, '___sec11'),
               ('The problem to solve', 2, None, '___sec12'),
-              ('Examples with kernels', 2, None, '___sec13')]}
+              ('The last steps', 2, None, '___sec13'),
+              ('A soft classifier', 2, None, '___sec14'),
+              ('Soft optmization problem', 2, None, '___sec15'),
+              ('Kernels and non-linearity', 2, None, '___sec16')]}
 end of tocinfo -->
 
 <body>
@@ -107,7 +110,10 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._svm-bs011.html#___sec10" style="font-size: 80%;">Adding the muliplier</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs012.html#___sec11" style="font-size: 80%;">Setting up the problem</a></li>
      <!-- navigation toc: --> <li><a href="._svm-bs013.html#___sec12" style="font-size: 80%;">The problem to solve</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec13" style="font-size: 80%;">Examples with kernels</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec13" style="font-size: 80%;">The last steps</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs015.html#___sec14" style="font-size: 80%;">A soft classifier</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs016.html#___sec15" style="font-size: 80%;">Soft optmization problem</a></li>
+     <!-- navigation toc: --> <li><a href="._svm-bs017.html#___sec16" style="font-size: 80%;">Kernels and non-linearity</a></li>
 
         </ul>
       </li>
@@ -123,118 +129,33 @@ MathJax.Hub.Config({
 <a name="part0014"></a>
 <!-- !split -->
 
-<h2 id="___sec13" class="anchor">Examples with kernels </h2>
+<h2 id="___sec13" class="anchor">The last steps </h2>
 
 <p>
+Solving the above problem, yields the values of \( \lambda_i \).
+To find the coefficients of your hyperplane we need simply to compute 
+$$
+\hat{w}=\sum_{i} \lambda_iy_i\hat{x}_i.
+$$
 
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> set_matplotlib_formats, display
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">mglearn</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">cycler</span> <span style="color: #008000; font-weight: bold">import</span> cycler
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LogisticRegression
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.svm</span> <span style="color: #008000; font-weight: bold">import</span> LinearSVC
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.datasets</span> <span style="color: #008000; font-weight: bold">import</span> make_blobs
+With our vector \( \hat{w} \) we can in turn find the value of the intercept \( b \) (here in two dimensions) via 
+$$
+y_i(\hat{w}^T\hat{x}_i+b)=1,
+$$
 
+resulting in
+$$
+b = \frac{1}{y_i}-\hat{w}^T\hat{x}_i.
+$$
 
-X, y <span style="color: #666666">=</span> make_blobs(centers<span style="color: #666666">=4</span>, random_state<span style="color: #666666">=8</span>)
-y <span style="color: #666666">=</span> y <span style="color: #666666">%</span> <span style="color: #666666">2</span>
+With our hyperplane coefficients we can use our classifier to assign any observation by simply using 
+$$
+y_i = \mathrm{sign}(\hat{w}^T\hat{x}_i+b).
+$$
 
-mglearn<span style="color: #666666">.</span>discrete_scatter(X[:, <span style="color: #666666">0</span>], X[:, <span style="color: #666666">1</span>], y)
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Feature 0&quot;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;Feature 1&quot;</span>)
-plt<span style="color: #666666">.</span>show()
+Below we discuss how to find the optimal values of \( \lambda_i \). Before we proceed however, we discuss now the so-called soft classifier.
 
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.svm</span> <span style="color: #008000; font-weight: bold">import</span> LinearSVC
-linear_svm <span style="color: #666666">=</span> LinearSVC()<span style="color: #666666">.</span>fit(X, y)
-
-mglearn<span style="color: #666666">.</span>plots<span style="color: #666666">.</span>plot_2d_separator(linear_svm, X)
-mglearn<span style="color: #666666">.</span>discrete_scatter(X[:, <span style="color: #666666">0</span>], X[:, <span style="color: #666666">1</span>], y)
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Feature 0&quot;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;Feature 1&quot;</span>)
-</pre></div>
 <p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic"># add the squared first feature</span>
-X_new <span style="color: #666666">=</span> np<span style="color: #666666">.</span>hstack([X, X[:, <span style="color: #666666">1</span>:] <span style="color: #666666">**</span> <span style="color: #666666">2</span>])
-
-
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">mpl_toolkits.mplot3d</span> <span style="color: #008000; font-weight: bold">import</span> Axes3D, axes3d
-figure <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
-<span style="color: #408080; font-style: italic"># visualize in 3D</span>
-ax <span style="color: #666666">=</span> Axes3D(figure, elev<span style="color: #666666">=-152</span>, azim<span style="color: #666666">=-26</span>)
-<span style="color: #408080; font-style: italic"># plot first all the points with y==0, then all with y == 1</span>
-mask <span style="color: #666666">=</span> y <span style="color: #666666">==</span> <span style="color: #666666">0</span>
-ax<span style="color: #666666">.</span>scatter(X_new[mask, <span style="color: #666666">0</span>], X_new[mask, <span style="color: #666666">1</span>], X_new[mask, <span style="color: #666666">2</span>], c<span style="color: #666666">=</span><span style="color: #BA2121">&#39;b&#39;</span>,
-           cmap<span style="color: #666666">=</span>mglearn<span style="color: #666666">.</span>cm2, s<span style="color: #666666">=60</span>, edgecolor<span style="color: #666666">=</span><span style="color: #BA2121">&#39;k&#39;</span>)
-ax<span style="color: #666666">.</span>scatter(X_new[<span style="color: #666666">~</span>mask, <span style="color: #666666">0</span>], X_new[<span style="color: #666666">~</span>mask, <span style="color: #666666">1</span>], X_new[<span style="color: #666666">~</span>mask, <span style="color: #666666">2</span>], c<span style="color: #666666">=</span><span style="color: #BA2121">&#39;r&#39;</span>, marker<span style="color: #666666">=</span><span style="color: #BA2121">&#39;^&#39;</span>,
-           cmap<span style="color: #666666">=</span>mglearn<span style="color: #666666">.</span>cm2, s<span style="color: #666666">=60</span>, edgecolor<span style="color: #666666">=</span><span style="color: #BA2121">&#39;k&#39;</span>)
-ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;feature0&quot;</span>)
-ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;feature1&quot;</span>)
-ax<span style="color: #666666">.</span>set_zlabel(<span style="color: #BA2121">&quot;feature1 ** 2&quot;</span>)
-</pre></div>
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>linear_svm_3d <span style="color: #666666">=</span> LinearSVC()<span style="color: #666666">.</span>fit(X_new, y)
-coef, intercept <span style="color: #666666">=</span> linear_svm_3d<span style="color: #666666">.</span>coef_<span style="color: #666666">.</span>ravel(), linear_svm_3d<span style="color: #666666">.</span>intercept_
-
-<span style="color: #408080; font-style: italic"># show linear decision boundary</span>
-figure <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
-ax <span style="color: #666666">=</span> Axes3D(figure, elev<span style="color: #666666">=-152</span>, azim<span style="color: #666666">=-26</span>)
-xx <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(X_new[:, <span style="color: #666666">0</span>]<span style="color: #666666">.</span>min() <span style="color: #666666">-</span> <span style="color: #666666">2</span>, X_new[:, <span style="color: #666666">0</span>]<span style="color: #666666">.</span>max() <span style="color: #666666">+</span> <span style="color: #666666">2</span>, <span style="color: #666666">50</span>)
-yy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(X_new[:, <span style="color: #666666">1</span>]<span style="color: #666666">.</span>min() <span style="color: #666666">-</span> <span style="color: #666666">2</span>, X_new[:, <span style="color: #666666">1</span>]<span style="color: #666666">.</span>max() <span style="color: #666666">+</span> <span style="color: #666666">2</span>, <span style="color: #666666">50</span>)
-
-XX, YY <span style="color: #666666">=</span> np<span style="color: #666666">.</span>meshgrid(xx, yy)
-ZZ <span style="color: #666666">=</span> (coef[<span style="color: #666666">0</span>] <span style="color: #666666">*</span> XX <span style="color: #666666">+</span> coef[<span style="color: #666666">1</span>] <span style="color: #666666">*</span> YY <span style="color: #666666">+</span> intercept) <span style="color: #666666">/</span> <span style="color: #666666">-</span>coef[<span style="color: #666666">2</span>]
-ax<span style="color: #666666">.</span>plot_surface(XX, YY, ZZ, rstride<span style="color: #666666">=8</span>, cstride<span style="color: #666666">=8</span>, alpha<span style="color: #666666">=0.3</span>)
-ax<span style="color: #666666">.</span>scatter(X_new[mask, <span style="color: #666666">0</span>], X_new[mask, <span style="color: #666666">1</span>], X_new[mask, <span style="color: #666666">2</span>], c<span style="color: #666666">=</span><span style="color: #BA2121">&#39;b&#39;</span>,
-           cmap<span style="color: #666666">=</span>mglearn<span style="color: #666666">.</span>cm2, s<span style="color: #666666">=60</span>, edgecolor<span style="color: #666666">=</span><span style="color: #BA2121">&#39;k&#39;</span>)
-ax<span style="color: #666666">.</span>scatter(X_new[<span style="color: #666666">~</span>mask, <span style="color: #666666">0</span>], X_new[<span style="color: #666666">~</span>mask, <span style="color: #666666">1</span>], X_new[<span style="color: #666666">~</span>mask, <span style="color: #666666">2</span>], c<span style="color: #666666">=</span><span style="color: #BA2121">&#39;r&#39;</span>, marker<span style="color: #666666">=</span><span style="color: #BA2121">&#39;^&#39;</span>,
-           cmap<span style="color: #666666">=</span>mglearn<span style="color: #666666">.</span>cm2, s<span style="color: #666666">=60</span>, edgecolor<span style="color: #666666">=</span><span style="color: #BA2121">&#39;k&#39;</span>)
-
-ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&quot;feature0&quot;</span>)
-ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&quot;feature1&quot;</span>)
-ax<span style="color: #666666">.</span>set_zlabel(<span style="color: #BA2121">&quot;feature1 ** 2&quot;</span>)
-
-ZZ <span style="color: #666666">=</span> YY <span style="color: #666666">**</span> <span style="color: #666666">2</span>
-dec <span style="color: #666666">=</span> linear_svm_3d<span style="color: #666666">.</span>decision_function(np<span style="color: #666666">.</span>c_[XX<span style="color: #666666">.</span>ravel(), YY<span style="color: #666666">.</span>ravel(), ZZ<span style="color: #666666">.</span>ravel()])
-plt<span style="color: #666666">.</span>contourf(XX, YY, dec<span style="color: #666666">.</span>reshape(XX<span style="color: #666666">.</span>shape), levels<span style="color: #666666">=</span>[dec<span style="color: #666666">.</span>min(), <span style="color: #666666">0</span>, dec<span style="color: #666666">.</span>max()],
-             cmap<span style="color: #666666">=</span>mglearn<span style="color: #666666">.</span>cm2, alpha<span style="color: #666666">=0.5</span>)
-mglearn<span style="color: #666666">.</span>discrete_scatter(X[:, <span style="color: #666666">0</span>], X[:, <span style="color: #666666">1</span>], y)
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Feature 0&quot;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;Feature 1&quot;</span>)
-</pre></div>
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.svm</span> <span style="color: #008000; font-weight: bold">import</span> SVC
-X, y <span style="color: #666666">=</span> mglearn<span style="color: #666666">.</span>tools<span style="color: #666666">.</span>make_handcrafted_dataset()                                                                  
-svm <span style="color: #666666">=</span> SVC(kernel<span style="color: #666666">=</span><span style="color: #BA2121">&#39;rbf&#39;</span>, C<span style="color: #666666">=10</span>, gamma<span style="color: #666666">=0.1</span>)<span style="color: #666666">.</span>fit(X, y)
-mglearn<span style="color: #666666">.</span>plots<span style="color: #666666">.</span>plot_2d_separator(svm, X, eps<span style="color: #666666">=.5</span>)
-mglearn<span style="color: #666666">.</span>discrete_scatter(X[:, <span style="color: #666666">0</span>], X[:, <span style="color: #666666">1</span>], y)
-<span style="color: #408080; font-style: italic"># plot support vectors</span>
-sv <span style="color: #666666">=</span> svm<span style="color: #666666">.</span>support_vectors_
-<span style="color: #408080; font-style: italic"># class labels of support vectors are given by the sign of the dual coefficients</span>
-sv_labels <span style="color: #666666">=</span> svm<span style="color: #666666">.</span>dual_coef_<span style="color: #666666">.</span>ravel() <span style="color: #666666">&gt;</span> <span style="color: #666666">0</span>
-mglearn<span style="color: #666666">.</span>discrete_scatter(sv[:, <span style="color: #666666">0</span>], sv[:, <span style="color: #666666">1</span>], sv_labels, s<span style="color: #666666">=15</span>, markeredgewidth<span style="color: #666666">=3</span>)
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Feature 0&quot;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;Feature 1&quot;</span>)
-
-fig, axes <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots(<span style="color: #666666">3</span>, <span style="color: #666666">3</span>, figsize<span style="color: #666666">=</span>(<span style="color: #666666">15</span>, <span style="color: #666666">10</span>))
-
-<span style="color: #008000; font-weight: bold">for</span> ax, C <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">zip</span>(axes, [<span style="color: #666666">-1</span>, <span style="color: #666666">0</span>, <span style="color: #666666">3</span>]):
-    <span style="color: #008000; font-weight: bold">for</span> a, gamma <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">zip</span>(ax, <span style="color: #008000">range</span>(<span style="color: #666666">-1</span>, <span style="color: #666666">2</span>)):
-        mglearn<span style="color: #666666">.</span>plots<span style="color: #666666">.</span>plot_svm(log_C<span style="color: #666666">=</span>C, log_gamma<span style="color: #666666">=</span>gamma, ax<span style="color: #666666">=</span>a)
-        
-axes[<span style="color: #666666">0</span>, <span style="color: #666666">0</span>]<span style="color: #666666">.</span>legend([<span style="color: #BA2121">&quot;class 0&quot;</span>, <span style="color: #BA2121">&quot;class 1&quot;</span>, <span style="color: #BA2121">&quot;sv class 0&quot;</span>, <span style="color: #BA2121">&quot;sv class 1&quot;</span>],
-                  ncol<span style="color: #666666">=4</span>, loc<span style="color: #666666">=</span>(<span style="color: #666666">.9</span>, <span style="color: #666666">1.2</span>))
-</pre></div>
-<p>
-
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
@@ -250,6 +171,10 @@ axes[<span style="color: #666666">0</span>, <span style="color: #666666">0</span
   <li><a href="._svm-bs012.html">13</a></li>
   <li><a href="._svm-bs013.html">14</a></li>
   <li class="active"><a href="._svm-bs014.html">15</a></li>
+  <li><a href="._svm-bs015.html">16</a></li>
+  <li><a href="._svm-bs016.html">17</a></li>
+  <li><a href="._svm-bs017.html">18</a></li>
+  <li><a href="._svm-bs015.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 

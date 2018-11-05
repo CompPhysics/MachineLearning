@@ -642,121 +642,161 @@ y_ny_1\hat{x}_n^T\hat{x}_1 & y_ny_2\hat{x}_n^T\hat{x}_2 & \dots & \dots & y_ny_n
 $$
 <p>&nbsp;<br>
 
-subject to \( \hat{y}^T\hat{\lambda}=0 \).
+subject to \( \hat{y}^T\hat{\lambda}=0 \). Here we defined the vectors \( \hat{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n] \) and 
+\( \hat{y}=[y_1,y_2,\dots,y_n] \).
 </section>
 
 
 <section>
-<h2 id="___sec13">Examples with kernels </h2>
+<h2 id="___sec13">The last steps </h2>
 
 <p>
+Solving the above problem, yields the values of \( \lambda_i \).
+To find the coefficients of your hyperplane we need simply to compute 
+<p>&nbsp;<br>
+$$
+\hat{w}=\sum_{i} \lambda_iy_i\hat{x}_i.
+$$
+<p>&nbsp;<br>
 
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">IPython.display</span> <span style="color: #8B008B; font-weight: bold">import</span> set_matplotlib_formats, display
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">mglearn</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">cycler</span> <span style="color: #8B008B; font-weight: bold">import</span> cycler
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LogisticRegression
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.svm</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearSVC
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> make_blobs
+With our vector \( \hat{w} \) we can in turn find the value of the intercept \( b \) (here in two dimensions) via 
+<p>&nbsp;<br>
+$$
+y_i(\hat{w}^T\hat{x}_i+b)=1,
+$$
+<p>&nbsp;<br>
+
+resulting in
+<p>&nbsp;<br>
+$$
+b = \frac{1}{y_i}-\hat{w}^T\hat{x}_i.
+$$
+<p>&nbsp;<br>
+
+With our hyperplane coefficients we can use our classifier to assign any observation by simply using 
+<p>&nbsp;<br>
+$$
+y_i = \mathrm{sign}(\hat{w}^T\hat{x}_i+b).
+$$
+<p>&nbsp;<br>
+
+Below we discuss how to find the optimal values of \( \lambda_i \). Before we proceed however, we discuss now the so-called soft classifier.
+</section>
 
 
-X, y = make_blobs(centers=<span style="color: #B452CD">4</span>, random_state=<span style="color: #B452CD">8</span>)
-y = y % <span style="color: #B452CD">2</span>
+<section>
+<h2 id="___sec14">A soft classifier </h2>
 
-mglearn.discrete_scatter(X[:, <span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>], y)
-plt.xlabel(<span style="color: #CD5555">&quot;Feature 0&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;Feature 1&quot;</span>)
-plt.show()
-
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.svm</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearSVC
-linear_svm = LinearSVC().fit(X, y)
-
-mglearn.plots.plot_2d_separator(linear_svm, X)
-mglearn.discrete_scatter(X[:, <span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>], y)
-plt.xlabel(<span style="color: #CD5555">&quot;Feature 0&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;Feature 1&quot;</span>)
-</pre></div>
 <p>
+Till now, the margin is strictly defined by the support vectors. This defines what is called a hard classifier, that is the margins are well defined.
 
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># add the squared first feature</span>
-X_new = np.hstack([X, X[:, <span style="color: #B452CD">1</span>:] ** <span style="color: #B452CD">2</span>])
-
-
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">mpl_toolkits.mplot3d</span> <span style="color: #8B008B; font-weight: bold">import</span> Axes3D, axes3d
-figure = plt.figure()
-<span style="color: #228B22"># visualize in 3D</span>
-ax = Axes3D(figure, elev=-<span style="color: #B452CD">152</span>, azim=-<span style="color: #B452CD">26</span>)
-<span style="color: #228B22"># plot first all the points with y==0, then all with y == 1</span>
-mask = y == <span style="color: #B452CD">0</span>
-ax.scatter(X_new[mask, <span style="color: #B452CD">0</span>], X_new[mask, <span style="color: #B452CD">1</span>], X_new[mask, <span style="color: #B452CD">2</span>], c=<span style="color: #CD5555">&#39;b&#39;</span>,
-           cmap=mglearn.cm2, s=<span style="color: #B452CD">60</span>, edgecolor=<span style="color: #CD5555">&#39;k&#39;</span>)
-ax.scatter(X_new[~mask, <span style="color: #B452CD">0</span>], X_new[~mask, <span style="color: #B452CD">1</span>], X_new[~mask, <span style="color: #B452CD">2</span>], c=<span style="color: #CD5555">&#39;r&#39;</span>, marker=<span style="color: #CD5555">&#39;^&#39;</span>,
-           cmap=mglearn.cm2, s=<span style="color: #B452CD">60</span>, edgecolor=<span style="color: #CD5555">&#39;k&#39;</span>)
-ax.set_xlabel(<span style="color: #CD5555">&quot;feature0&quot;</span>)
-ax.set_ylabel(<span style="color: #CD5555">&quot;feature1&quot;</span>)
-ax.set_zlabel(<span style="color: #CD5555">&quot;feature1 ** 2&quot;</span>)
-</pre></div>
 <p>
+Suppose now that classes overlap in feature space, as shown in the
+figure here. One way to deal with this problem before we define the
+so-called <b>kernel approach</b>, is to allow a kind of slack in the sense
+that we allow some points to be on the wrong side of the margin.
 
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>linear_svm_3d = LinearSVC().fit(X_new, y)
-coef, intercept = linear_svm_3d.coef_.ravel(), linear_svm_3d.intercept_
-
-<span style="color: #228B22"># show linear decision boundary</span>
-figure = plt.figure()
-ax = Axes3D(figure, elev=-<span style="color: #B452CD">152</span>, azim=-<span style="color: #B452CD">26</span>)
-xx = np.linspace(X_new[:, <span style="color: #B452CD">0</span>].min() - <span style="color: #B452CD">2</span>, X_new[:, <span style="color: #B452CD">0</span>].max() + <span style="color: #B452CD">2</span>, <span style="color: #B452CD">50</span>)
-yy = np.linspace(X_new[:, <span style="color: #B452CD">1</span>].min() - <span style="color: #B452CD">2</span>, X_new[:, <span style="color: #B452CD">1</span>].max() + <span style="color: #B452CD">2</span>, <span style="color: #B452CD">50</span>)
-
-XX, YY = np.meshgrid(xx, yy)
-ZZ = (coef[<span style="color: #B452CD">0</span>] * XX + coef[<span style="color: #B452CD">1</span>] * YY + intercept) / -coef[<span style="color: #B452CD">2</span>]
-ax.plot_surface(XX, YY, ZZ, rstride=<span style="color: #B452CD">8</span>, cstride=<span style="color: #B452CD">8</span>, alpha=<span style="color: #B452CD">0.3</span>)
-ax.scatter(X_new[mask, <span style="color: #B452CD">0</span>], X_new[mask, <span style="color: #B452CD">1</span>], X_new[mask, <span style="color: #B452CD">2</span>], c=<span style="color: #CD5555">&#39;b&#39;</span>,
-           cmap=mglearn.cm2, s=<span style="color: #B452CD">60</span>, edgecolor=<span style="color: #CD5555">&#39;k&#39;</span>)
-ax.scatter(X_new[~mask, <span style="color: #B452CD">0</span>], X_new[~mask, <span style="color: #B452CD">1</span>], X_new[~mask, <span style="color: #B452CD">2</span>], c=<span style="color: #CD5555">&#39;r&#39;</span>, marker=<span style="color: #CD5555">&#39;^&#39;</span>,
-           cmap=mglearn.cm2, s=<span style="color: #B452CD">60</span>, edgecolor=<span style="color: #CD5555">&#39;k&#39;</span>)
-
-ax.set_xlabel(<span style="color: #CD5555">&quot;feature0&quot;</span>)
-ax.set_ylabel(<span style="color: #CD5555">&quot;feature1&quot;</span>)
-ax.set_zlabel(<span style="color: #CD5555">&quot;feature1 ** 2&quot;</span>)
-
-ZZ = YY ** <span style="color: #B452CD">2</span>
-dec = linear_svm_3d.decision_function(np.c_[XX.ravel(), YY.ravel(), ZZ.ravel()])
-plt.contourf(XX, YY, dec.reshape(XX.shape), levels=[dec.min(), <span style="color: #B452CD">0</span>, dec.max()],
-             cmap=mglearn.cm2, alpha=<span style="color: #B452CD">0.5</span>)
-mglearn.discrete_scatter(X[:, <span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>], y)
-plt.xlabel(<span style="color: #CD5555">&quot;Feature 0&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;Feature 1&quot;</span>)
-</pre></div>
 <p>
+We introduce thus the so-called <b>slack</b> variables \( \hat{\xi} =[\xi_1,x_2,\dots,x_n] \) and 
+modify our previous equation
+<p>&nbsp;<br>
+$$
+y_i(\hat{w}^T\hat{x}_i+b)=1,
+$$
+<p>&nbsp;<br>
 
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.svm</span> <span style="color: #8B008B; font-weight: bold">import</span> SVC
-X, y = mglearn.tools.make_handcrafted_dataset()                                                                  
-svm = SVC(kernel=<span style="color: #CD5555">&#39;rbf&#39;</span>, C=<span style="color: #B452CD">10</span>, gamma=<span style="color: #B452CD">0.1</span>).fit(X, y)
-mglearn.plots.plot_2d_separator(svm, X, eps=.<span style="color: #B452CD">5</span>)
-mglearn.discrete_scatter(X[:, <span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>], y)
-<span style="color: #228B22"># plot support vectors</span>
-sv = svm.support_vectors_
-<span style="color: #228B22"># class labels of support vectors are given by the sign of the dual coefficients</span>
-sv_labels = svm.dual_coef_.ravel() &gt; <span style="color: #B452CD">0</span>
-mglearn.discrete_scatter(sv[:, <span style="color: #B452CD">0</span>], sv[:, <span style="color: #B452CD">1</span>], sv_labels, s=<span style="color: #B452CD">15</span>, markeredgewidth=<span style="color: #B452CD">3</span>)
-plt.xlabel(<span style="color: #CD5555">&quot;Feature 0&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;Feature 1&quot;</span>)
+to 
+<p>&nbsp;<br>
+$$
+y_i(\hat{w}^T\hat{x}_i+b)=1-\xi_i,
+$$
+<p>&nbsp;<br>
 
-fig, axes = plt.subplots(<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, figsize=(<span style="color: #B452CD">15</span>, <span style="color: #B452CD">10</span>))
+with the requirement \( \xi_i\geq 0 \). The total violation is now \( \sum_i\xi \). 
+The value \( \xi_i \) in the constraint the last constraint corresponds to the  amount by which the prediction
+\( y_i(\hat{w}^T\hat{x}_i+b)=1 \) is on the wrong side of its margin. Hence by bounding the sum \( \sum_i \xi_i \),
+we bound the total amount by which predictions fall on the wrong side of their margins.
 
-<span style="color: #8B008B; font-weight: bold">for</span> ax, C <span style="color: #8B008B">in</span> <span style="color: #658b00">zip</span>(axes, [-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">3</span>]):
-    <span style="color: #8B008B; font-weight: bold">for</span> a, gamma <span style="color: #8B008B">in</span> <span style="color: #658b00">zip</span>(ax, <span style="color: #658b00">range</span>(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">2</span>)):
-        mglearn.plots.plot_svm(log_C=C, log_gamma=gamma, ax=a)
-        
-axes[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>].legend([<span style="color: #CD5555">&quot;class 0&quot;</span>, <span style="color: #CD5555">&quot;class 1&quot;</span>, <span style="color: #CD5555">&quot;sv class 0&quot;</span>, <span style="color: #CD5555">&quot;sv class 1&quot;</span>],
-                  ncol=<span style="color: #B452CD">4</span>, loc=(.<span style="color: #B452CD">9</span>, <span style="color: #B452CD">1.2</span>))
-</pre></div>
+<p>
+Misclassifications occur when \( \xi_i > 1 \). Thus bounding the total sum by some value \( C \) bounds in turn the total number of
+misclassifications.
+</section>
+
+
+<section>
+<h2 id="___sec15">Soft optmization problem </h2>
+
+<p>
+This has in turn the consequences that we change our optmization problem to finding the minimum of 
+<p>&nbsp;<br>
+$$
+{\cal L}=\frac{1}{2}\hat{w}^T\hat{w}-\sum_{i=1}^n\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b)-(1-\xi_)\right]+C\sum_{i=1}^n\xi_i-\sum_{i=1}^n\gamma_i\xi_i,
+$$
+<p>&nbsp;<br>
+
+subject to 
+<p>&nbsp;<br>
+$$
+y_i(\hat{w}^T\hat{x}_i+b)=1-\xi_i \forall i,
+$$
+<p>&nbsp;<br>
+
+with the requirement \( \xi_i\geq 0 \).
+
+<p>
+Taking the derivatives  with respect to \( b \) and \( \hat{w} \) we obtain 
+<p>&nbsp;<br>
+$$
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+$$
+<p>&nbsp;<br>
+
+and 
+<p>&nbsp;<br>
+$$
+\frac{\partial {\cal L}}{\partial \hat{w}} = 0 = \hat{w}-\sum_{i} \lambda_iy_i\hat{x}_i, 
+$$
+<p>&nbsp;<br>
+
+and
+<p>&nbsp;<br>
+$$
+\lambda_i = C-\gamma_i \forall i.
+$$
+<p>&nbsp;<br>
+
+Inserting these constraints into the equation for \( {\cal L} \) we obtain the same equation as before
+<p>&nbsp;<br>
+$$
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\hat{x}_i^T\hat{x}_j,
+$$
+<p>&nbsp;<br>
+
+but now subject to the constraints \( \lambda_i\geq 0 \), \( \sum_i\lambda_iy_i=0 \) and $ 0 \leq \lambda_i \leq C$. 
+We must in addition satisfy the Karush-Kuhn-Tucker condition which now reads
+<p>&nbsp;<br>
+$$
+\lambda_i\left[y_i(\hat{w}^T\hat{x}_i+b) -(1-\xi_)\right]=0 \forall i,
+$$
+<p>&nbsp;<br>
+
+<p>&nbsp;<br>
+$$
+\gamma_i\xi_i = 0,
+$$
+<p>&nbsp;<br>
+
+and 
+<p>&nbsp;<br>
+$$
+y_i(\hat{w}^T\hat{x}_i+b) -(1-\xi_) \geq 0 \forall i.
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="___sec16">Kernels and non-linearity </h2>
 </section>
 
 
