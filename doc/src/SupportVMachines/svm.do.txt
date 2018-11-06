@@ -621,7 +621,7 @@ We can rewrite this (see the solutions below) in terms of a convex optimization 
     &\mathrm{subject to} \hspace{0.2cm} \bm{G}\bm{\lambda} \preceq \bm{h} \hspace{0.2cm} \bm{A}\bm{\lambda}=f.
 \end{align*}
 !et
-Below we discuss how to solve these equations. Here we note that the matrix $\bm{P} has matrix elements $p_{ij}=y_iy_jK(\bm{x}_i,\bm{x}_j)$.
+Below we discuss how to solve these equations. Here we note that the matrix $\bm{P}$ has matrix elements $p_{ij}=y_iy_jK(\bm{x}_i,\bm{x}_j)$.
 Given a kernel $K$ and the targets $y_i$ this matrix is easy to set up. The constraint $\bm{y}^T\bm{\lambda}=0$ leads to $f=0$ and $\bm{A}=\bm{y}$. How to set up the matrix $\bm{G}$ is discussed later. Here note that the inequalities $0\leq \lambda_i \leq C$ can be split up into
 $0\leq \lambda_i$ and $\lambda_i \leq C$. These two inequalities define then the matrix $\bm{G}$ and the vector $\bm{h}$.
 
@@ -637,7 +637,7 @@ o Tanh: $K(\bm{x},\bm{y})=\tanh{(\bm{x}^T\bm{y}+\gamma)}$,
 and many other ones.
 
 An important theorem for us is "Mercer's theorem":https://en.wikipedia.org/wiki/Mercer%27s_theorem". 
-The theorem states that if a kernel function $K$ is symmetric, continuous and leads to a positive definite matrix $\bm{P}$ then
+The theorem states that if a kernel function $K$ is symmetric, continuous and leads to a positive semi-definite matrix $\bm{P}$ then
 there exists a function $\phi$ that maps $\bm{x}_i$ and $\bm{x}_j$  into another space
 (possibly with much higher dimensions) such that
 !bt
@@ -673,7 +673,7 @@ Convex optimization problems play a central role in applied mathematics and we r
 
 
 !split
-===== How do we solve these problems =====
+===== How do we solve these problems? =====
 
 If we use Python as programming language and wish to venture beyond
 _scikit-learn_, _tensorflow_ and similar software which makes our
@@ -696,10 +696,18 @@ This will make our life much easier. You don't need t write your own optimizer.
 !split
 ===== A simplex example =====
 
+We remind ourselves about the general problem we want to solve
+!bt
+\begin{align*}
+    &\mathrm{min}_{x}\hspace{0.2cm} \frac{1}{2}\bm{x}^T\bm{P}\bm{x}+\bm{q}^T\bm{x},\\ \nonumber
+    &\mathrm{subject to} \hspace{0.2cm} \bm{G}\bm{x} \preceq \bm{h} \hspace{0.2cm} \bm{A}\bm{x}=f.
+\end{align*}
+!et
+
 Let us show how to perform the optmization using a simple case. Assume we want to optimize the following problem
 !bt
 \begin{align*}
-    &\mathrm{min}_{\lambda}\hspace{0.2cm} \frac{1}{2}x^2+5x+3y \\ \nonumber
+    &\mathrm{min}_{x}\hspace{0.2cm} \frac{1}{2}x^2+5x+3y \\ \nonumber
     &\mathrm{subject to} \\ \nonumber
     &x, y \geq 0 \\ \nonumber
     &x+3y  \geq 15 \\ \nonumber
@@ -713,24 +721,29 @@ The minimization problem can be rewritten in terms of vectors and matrices as (w
 frac{1}{2}\begin{bmatrix} x\\ y \end{bmatrix}^T   \begin{bmatrix} 1 & 0\\ 0 & 0  \end{bmatrix}  \begin{bmatrix} x \\ y \end{bmatrix}  + \begin{bmatrix}3\\ 4  \end{bmatrix}^T \begin{bmatrix}x \\ y  \end{bmatrix}.  
 \]
 !et
-Similarly, we an now 
-subject to Gx  u. Note that x itself is not provided to the solver, since it is an internal
-variable being optimized over. In particular, this means that the solver has no explicit knowledge
-of x itself; everything is implicity defined by the supplied parameters. It is essential
-that the same variable order is maintained for the relevant parameters (e.g., qi
-Non-convexity implies the existence of local optima, making it difficult to find global optima.
+Similarly, we can now set up the inequalities (we need to change $\geq$ to $\leq$ by multiplying with $-1$ on bot sides) as the following matrix-vector equation
+!bt
+\[
+\begin{bmatrix} -1 & 0 \\ 0 & -1 \\ -1 & -3 \\ 2 & 5 \\ 3 & 4\end{matrix}\begin{bmatrix} x \\ y\end{bmatrix} \preceq \begin{bmatrix}0 \\ 0\\ -15 \\ 100 \\ 80\end{bmatrix}.
+\]
+!et
+We have collapsed all the inequalities into a single matrix $\bm{G}$. We see also that our matrix 
+!bt
+\[
+\bm{P} =\begin{bmatrix} 1 & 0\\ 0 & 0  \end{bmatrix}
+\]
+!et
+is clearly positive semi-definite (all eigenvalues larger or equal zero). 
+Finally, the vector $\bm{h}$ is defined as 
+!bt
+\[
+\bm{h} = \begin{bmatrix}0 \\ 0\\ -15 \\ 100 \\ 80\end{bmatrix}.
+\]
+!et
 
-collapsed all inequality constraints into a single G matrix of the standard form.
-Since there are no equality constraints, we do not need to provide the empty A, b. Note
-that even though y
-2 did not appear in the original objective, we had to include it with zero
-coefficients in P because the solver parameters must be defined using the full set of variables.
-Even if certain variables only appear in constraints, they will still need to be expressed with
-zero coefficients in the objective parameters, and vice versa.
-Let us first define the above parameters in Python. CVXOPT supplies its own matrix
-object; all arguments given to its solvers must be in this matrix type. There are two ways
-to do this. The first is to define the matrix directly with (potentially nested) lists:
-from cvxopt import matrix
+
+Since we don't have any equalities the matrix $\bm{A}$ is set to zero
+The following code does this for us
 !bc pycod
 # Import the necessary packages
 import numpy
@@ -749,9 +762,29 @@ h = matrix(numpy.array([0,0,-15,100,80]), tc=’d’)
 # Construct the QP, invoke solver
 sol = solvers.qp(P,q,G,h)
 # Extract optimal value and solution
-sol[’x’] # [7.13e-07, 5.00e+00]
+sol[’x’] 
 sol[’primal objective’]
 !ec
+
+!split
+===== Back to the more realistic cases =====
+
+We are now ready to return to our setup of the optmization problem for a more realistic case. Introducint the _slack_ parameter $C$ we have
+!bt
+\[
+\frac{1}{2} \bm{\lambda}^T\begin{bmatrix} y_1y_1K(\bm{x}_1,\bm{x}_1) & y_1y_2K(\bm{x}_1,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_1,\bm{x}_n) \\
+y_2y_1\bm{x}_2^T\bm{x}_1 & y_2y_2\bm{x}_2^T\bm{x}_2 & \dots & \dots & y_1y_n\bm{x}_2^T\bm{x}_n \\
+\dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots \\
+y_ny_1K(\bm{x}_n,\bm{x}_1) & y_ny_2K(\bm{x}_n\bm{x}_2) & \dots & \dots & y_ny_nK(\bm{x}_n,\bm{x}_n) \\
+\end{bmatrix}\bm{\lambda}-\mathbb{I}\bm{\lambda}, 
+\]
+!et
+subject to $\bm{y}^T\bm{\lambda}=0$. Here we defined the vectors $\bm{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
+$\bm{y}=[y_1,y_2,\dots,y_n]$. 
+With  the slack constants this leads to the additional constraint $0\leq \lambda_i \leq C$.
+
+_code will be added_
 
 
 !split
