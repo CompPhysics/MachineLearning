@@ -37,12 +37,91 @@ The theory behind support vector machines (SVM hereafter) is based on
 the mathematical description of so-called hyperplanes. Let us start
 with a two-dimensional case. This will also allow us to introduce our
 first SVM examples. These will be tailored to the case of two specific
-classes, as displayed in the figure here.
+classes, as displayed in the figure here based on the usage of the petal data.
 
 We assume here that our data set can be well separated into two
 domains, where a straight line does the job in the separating the two
-classes. Here the two classes are represented by either crosses or
+classes. Here the two classes are represented by either squares or
 circles.
+!bc pycod
+from sklearn import datasets
+from sklearn.svm import SVC, LinearSVC
+from sklearn.linear_model import SGDClassifier
+from sklearn.preprocessing import StandardScaler
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+
+
+iris = datasets.load_iris()
+X = iris["data"][:, (2, 3)]  # petal length, petal width
+y = iris["target"]
+
+setosa_or_versicolor = (y == 0) | (y == 1)
+X = X[setosa_or_versicolor]
+y = y[setosa_or_versicolor]
+
+
+
+C = 5
+alpha = 1 / (C * len(X))
+
+lin_clf = LinearSVC(loss="hinge", C=C, random_state=42)
+svm_clf = SVC(kernel="linear", C=C)
+sgd_clf = SGDClassifier(loss="hinge", learning_rate="constant", eta0=0.001, alpha=alpha,
+                        max_iter=100000, random_state=42)
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+lin_clf.fit(X_scaled, y)
+svm_clf.fit(X_scaled, y)
+sgd_clf.fit(X_scaled, y)
+
+print("LinearSVC:                   ", lin_clf.intercept_, lin_clf.coef_)
+print("SVC:                         ", svm_clf.intercept_, svm_clf.coef_)
+print("SGDClassifier(alpha={:.5f}):".format(sgd_clf.alpha), sgd_clf.intercept_, sgd_clf.coef_)
+
+# Compute the slope and bias of each decision boundary
+w1 = -lin_clf.coef_[0, 0]/lin_clf.coef_[0, 1]
+b1 = -lin_clf.intercept_[0]/lin_clf.coef_[0, 1]
+w2 = -svm_clf.coef_[0, 0]/svm_clf.coef_[0, 1]
+b2 = -svm_clf.intercept_[0]/svm_clf.coef_[0, 1]
+w3 = -sgd_clf.coef_[0, 0]/sgd_clf.coef_[0, 1]
+b3 = -sgd_clf.intercept_[0]/sgd_clf.coef_[0, 1]
+
+# Transform the decision boundary lines back to the original scale
+line1 = scaler.inverse_transform([[-10, -10 * w1 + b1], [10, 10 * w1 + b1]])
+line2 = scaler.inverse_transform([[-10, -10 * w2 + b2], [10, 10 * w2 + b2]])
+line3 = scaler.inverse_transform([[-10, -10 * w3 + b3], [10, 10 * w3 + b3]])
+
+# Plot all three decision boundaries
+plt.figure(figsize=(11, 4))
+plt.plot(line1[:, 0], line1[:, 1], "k:", label="LinearSVC")
+plt.plot(line2[:, 0], line2[:, 1], "b--", linewidth=2, label="SVC")
+plt.plot(line3[:, 0], line3[:, 1], "r-", label="SGDClassifier")
+plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs") # label="Iris-Versicolor"
+plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo") # label="Iris-Setosa"
+plt.xlabel("Petal length", fontsize=14)
+plt.ylabel("Petal width", fontsize=14)
+plt.legend(loc="upper center", fontsize=14)
+plt.axis([0, 5.5, 0, 2])
+
+plt.show()
+
+
+
+
+
+
+
+
+!ec
+
+
+
 
 !split
 ===== What is a hyperplane? =====
@@ -553,6 +632,58 @@ obtain a separation between the classes which is almost linear.
 The change of basis, from $x\rightarrow z=\phi(x)$ leads to the same type of equations to be solved, except that
 we need to introduce for example a polynomial transformation to a two-dimensional training set.
 
+!bc pycod
+import numpy as np
+import os
+
+np.random.seed(42)
+
+# To plot pretty figures
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+
+
+from sklearn.svm import SVC
+from sklearn import datasets
+
+
+
+X1D = np.linspace(-4, 4, 9).reshape(-1, 1)
+X2D = np.c_[X1D, X1D**2]
+y = np.array([0, 0, 1, 1, 1, 1, 1, 0, 0])
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.plot(X1D[:, 0][y==0], np.zeros(4), "bs")
+plt.plot(X1D[:, 0][y==1], np.zeros(5), "g^")
+plt.gca().get_yaxis().set_ticks([])
+plt.xlabel(r"$x_1$", fontsize=20)
+plt.axis([-4.5, 4.5, -0.2, 0.2])
+
+plt.subplot(122)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.axvline(x=0, color='k')
+plt.plot(X2D[:, 0][y==0], X2D[:, 1][y==0], "bs")
+plt.plot(X2D[:, 0][y==1], X2D[:, 1][y==1], "g^")
+plt.xlabel(r"$x_1$", fontsize=20)
+plt.ylabel(r"$x_2$", fontsize=20, rotation=0)
+plt.gca().get_yaxis().set_ticks([0, 4, 8, 12, 16])
+plt.plot([-4.5, 4.5], [6.5, 6.5], "r--", linewidth=3)
+plt.axis([-4.5, 4.5, -1, 17])
+plt.subplots_adjust(right=1)
+plt.show()
+
+!ec
+
+
+
 !split
 ===== The equations =====
 
@@ -656,6 +787,202 @@ So you can use $K$ as a kernel since you know $\phi$ exists, even if
 you don’t know what $\phi$ is. 
 Note that some frequently used kernels (such as the Sigmoid kernel) don’t respect all of Mercer’s conditions, yet they generally work
 well in practice.
+
+
+!split
+===== The moons example =====
+!bc pycod
+from __future__ import division, print_function, unicode_literals
+
+import numpy as np
+np.random.seed(42)
+
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+
+
+from sklearn.svm import SVC
+from sklearn import datasets
+
+
+
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import LinearSVC
+
+
+from sklearn.datasets import make_moons
+X, y = make_moons(n_samples=100, noise=0.15, random_state=42)
+
+def plot_dataset(X, y, axes):
+    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "bs")
+    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "g^")
+    plt.axis(axes)
+    plt.grid(True, which='both')
+    plt.xlabel(r"$x_1$", fontsize=20)
+    plt.ylabel(r"$x_2$", fontsize=20, rotation=0)
+
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+plt.show()
+
+from sklearn.datasets import make_moons
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures
+
+polynomial_svm_clf = Pipeline([
+        ("poly_features", PolynomialFeatures(degree=3)),
+        ("scaler", StandardScaler()),
+        ("svm_clf", LinearSVC(C=10, loss="hinge", random_state=42))
+    ])
+
+polynomial_svm_clf.fit(X, y)
+
+def plot_predictions(clf, axes):
+    x0s = np.linspace(axes[0], axes[1], 100)
+    x1s = np.linspace(axes[2], axes[3], 100)
+    x0, x1 = np.meshgrid(x0s, x1s)
+    X = np.c_[x0.ravel(), x1.ravel()]
+    y_pred = clf.predict(X).reshape(x0.shape)
+    y_decision = clf.decision_function(X).reshape(x0.shape)
+    plt.contourf(x0, x1, y_pred, cmap=plt.cm.brg, alpha=0.2)
+    plt.contourf(x0, x1, y_decision, cmap=plt.cm.brg, alpha=0.1)
+
+plot_predictions(polynomial_svm_clf, [-1.5, 2.5, -1, 1.5])
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+
+plt.show()
+
+
+from sklearn.svm import SVC
+
+poly_kernel_svm_clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm_clf", SVC(kernel="poly", degree=3, coef0=1, C=5))
+    ])
+poly_kernel_svm_clf.fit(X, y)
+
+poly100_kernel_svm_clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm_clf", SVC(kernel="poly", degree=10, coef0=100, C=5))
+    ])
+poly100_kernel_svm_clf.fit(X, y)
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plot_predictions(poly_kernel_svm_clf, [-1.5, 2.5, -1, 1.5])
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+plt.title(r"$d=3, r=1, C=5$", fontsize=18)
+
+plt.subplot(122)
+plot_predictions(poly100_kernel_svm_clf, [-1.5, 2.5, -1, 1.5])
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+plt.title(r"$d=10, r=100, C=5$", fontsize=18)
+
+plt.show()
+
+def gaussian_rbf(x, landmark, gamma):
+    return np.exp(-gamma * np.linalg.norm(x - landmark, axis=1)**2)
+
+gamma = 0.3
+
+x1s = np.linspace(-4.5, 4.5, 200).reshape(-1, 1)
+x2s = gaussian_rbf(x1s, -2, gamma)
+x3s = gaussian_rbf(x1s, 1, gamma)
+
+XK = np.c_[gaussian_rbf(X1D, -2, gamma), gaussian_rbf(X1D, 1, gamma)]
+yk = np.array([0, 0, 1, 1, 1, 1, 1, 0, 0])
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.scatter(x=[-2, 1], y=[0, 0], s=150, alpha=0.5, c="red")
+plt.plot(X1D[:, 0][yk==0], np.zeros(4), "bs")
+plt.plot(X1D[:, 0][yk==1], np.zeros(5), "g^")
+plt.plot(x1s, x2s, "g--")
+plt.plot(x1s, x3s, "b:")
+plt.gca().get_yaxis().set_ticks([0, 0.25, 0.5, 0.75, 1])
+plt.xlabel(r"$x_1$", fontsize=20)
+plt.ylabel(r"Similarity", fontsize=14)
+plt.annotate(r'$\mathbf{x}$',
+             xy=(X1D[3, 0], 0),
+             xytext=(-0.5, 0.20),
+             ha="center",
+             arrowprops=dict(facecolor='black', shrink=0.1),
+             fontsize=18,
+            )
+plt.text(-2, 0.9, "$x_2$", ha="center", fontsize=20)
+plt.text(1, 0.9, "$x_3$", ha="center", fontsize=20)
+plt.axis([-4.5, 4.5, -0.1, 1.1])
+
+plt.subplot(122)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.axvline(x=0, color='k')
+plt.plot(XK[:, 0][yk==0], XK[:, 1][yk==0], "bs")
+plt.plot(XK[:, 0][yk==1], XK[:, 1][yk==1], "g^")
+plt.xlabel(r"$x_2$", fontsize=20)
+plt.ylabel(r"$x_3$  ", fontsize=20, rotation=0)
+plt.annotate(r'$\phi\left(\mathbf{x}\right)$',
+             xy=(XK[3, 0], XK[3, 1]),
+             xytext=(0.65, 0.50),
+             ha="center",
+             arrowprops=dict(facecolor='black', shrink=0.1),
+             fontsize=18,
+            )
+plt.plot([-0.1, 1.1], [0.57, -0.1], "r--", linewidth=3)
+plt.axis([-0.1, 1.1, -0.1, 1.1])
+    
+plt.subplots_adjust(right=1)
+
+plt.show()
+
+
+x1_example = X1D[3, 0]
+for landmark in (-2, 1):
+    k = gaussian_rbf(np.array([[x1_example]]), np.array([[landmark]]), gamma)
+    print("Phi({}, {}) = {}".format(x1_example, landmark, k))
+
+rbf_kernel_svm_clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm_clf", SVC(kernel="rbf", gamma=5, C=0.001))
+    ])
+rbf_kernel_svm_clf.fit(X, y)
+
+
+from sklearn.svm import SVC
+
+gamma1, gamma2 = 0.1, 5
+C1, C2 = 0.001, 1000
+hyperparams = (gamma1, C1), (gamma1, C2), (gamma2, C1), (gamma2, C2)
+
+svm_clfs = []
+for gamma, C in hyperparams:
+    rbf_kernel_svm_clf = Pipeline([
+            ("scaler", StandardScaler()),
+            ("svm_clf", SVC(kernel="rbf", gamma=gamma, C=C))
+        ])
+    rbf_kernel_svm_clf.fit(X, y)
+    svm_clfs.append(rbf_kernel_svm_clf)
+
+plt.figure(figsize=(11, 7))
+
+for i, svm_clf in enumerate(svm_clfs):
+    plt.subplot(221 + i)
+    plot_predictions(svm_clf, [-1.5, 2.5, -1, 1.5])
+    plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+    gamma, C = hyperparams[i]
+    plt.title(r"$\gamma = {}, C = {}$".format(gamma, C), fontsize=16)
+
+plt.show()
+
+!ec
+
 
 
 !split
