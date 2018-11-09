@@ -257,9 +257,6 @@ plt.plot(X_test, y_2, color="green", label="max_depth=5", linewidth=2)
 plt.plot(X_test, y_3, color="m", label="max_depth=7", linewidth=2)
 plt.show()
 
-#Separate each frequency not in one specific velocity, but in a range of values,
-#i.e. frequency of all velocities in range -5 to -4.9, -4.9 to -4.8, etc...
-
 !ec
 
 
@@ -440,9 +437,213 @@ entropy are typically used to evaluate the quality of a particular
 split, since these two approaches are more sensitive to node purity
 than is the classification error rate. 
 
+!split
+=====  Back to moons again =====
+!bc pycod
+from __future__ import division, print_function, unicode_literals
+
+# Common imports
+import numpy as np
+import os
+
+# to make this notebook's output stable across runs
+np.random.seed(42)
+
+# To plot pretty figures
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+
+
+from sklearn.svm import SVC
+from sklearn import datasets
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.datasets import make_moons
+from sklearn.tree import export_graphviz
+
+Xm, ym = make_moons(n_samples=100, noise=0.25, random_state=53)
+
+deep_tree_clf1 = DecisionTreeClassifier(random_state=42)
+deep_tree_clf2 = DecisionTreeClassifier(min_samples_leaf=4, random_state=42)
+deep_tree_clf1.fit(Xm, ym)
+deep_tree_clf2.fit(Xm, ym)
+
+
+def plot_decision_boundary(clf, X, y, axes=[0, 7.5, 0, 3], iris=True, legend=False, plot_training=True):
+    x1s = np.linspace(axes[0], axes[1], 100)
+    x2s = np.linspace(axes[2], axes[3], 100)
+    x1, x2 = np.meshgrid(x1s, x2s)
+    X_new = np.c_[x1.ravel(), x2.ravel()]
+    y_pred = clf.predict(X_new).reshape(x1.shape)
+    custom_cmap = ListedColormap(['#fafab0','#9898ff','#a0faa0'])
+    plt.contourf(x1, x2, y_pred, alpha=0.3, cmap=custom_cmap)
+    if not iris:
+        custom_cmap2 = ListedColormap(['#7d7d58','#4c4c7f','#507d50'])
+        plt.contour(x1, x2, y_pred, cmap=custom_cmap2, alpha=0.8)
+    if plot_training:
+        plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo", label="Iris-Setosa")
+        plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs", label="Iris-Versicolor")
+        plt.plot(X[:, 0][y==2], X[:, 1][y==2], "g^", label="Iris-Virginica")
+        plt.axis(axes)
+    if iris:
+        plt.xlabel("Petal length", fontsize=14)
+        plt.ylabel("Petal width", fontsize=14)
+    else:
+        plt.xlabel(r"$x_1$", fontsize=18)
+        plt.ylabel(r"$x_2$", fontsize=18, rotation=0)
+    if legend:
+        plt.legend(loc="lower right", fontsize=14)
+plt.figure(figsize=(11, 4))
+plt.subplot(121)
+plot_decision_boundary(deep_tree_clf1, Xm, ym, axes=[-1.5, 2.5, -1, 1.5], iris=False)
+plt.title("No restrictions", fontsize=16)
+plt.subplot(122)
+plot_decision_boundary(deep_tree_clf2, Xm, ym, axes=[-1.5, 2.5, -1, 1.5], iris=False)
+plt.title("min_samples_leaf = {}".format(deep_tree_clf2.min_samples_leaf), fontsize=14)
+plt.show()
+
+!ec
 
 !split
-===== The zoo data =====
+===== Playing around with regions =====
+
+!bc pycod 
+angle = np.pi / 180 * 20
+rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+Xr = X.dot(rotation_matrix)
+
+tree_clf_r = DecisionTreeClassifier(random_state=42)
+tree_clf_r.fit(Xr, y)
+
+plt.figure(figsize=(8, 3))
+plot_decision_boundary(tree_clf_r, Xr, y, axes=[0.5, 7.5, -1.0, 1], iris=False)
+
+plt.show()
+!ec
+
+
+!bc pycod
+np.random.seed(6)
+Xs = np.random.rand(100, 2) - 0.5
+ys = (Xs[:, 0] > 0).astype(np.float32) * 2
+
+angle = np.pi / 4
+rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+Xsr = Xs.dot(rotation_matrix)
+
+tree_clf_s = DecisionTreeClassifier(random_state=42)
+tree_clf_s.fit(Xs, ys)
+tree_clf_sr = DecisionTreeClassifier(random_state=42)
+tree_clf_sr.fit(Xsr, ys)
+
+plt.figure(figsize=(11, 4))
+plt.subplot(121)
+plot_decision_boundary(tree_clf_s, Xs, ys, axes=[-0.7, 0.7, -0.7, 0.7], iris=False)
+plt.subplot(122)
+plot_decision_boundary(tree_clf_sr, Xsr, ys, axes=[-0.7, 0.7, -0.7, 0.7], iris=False)
+
+plt.show()
+!ec
+
+!split
+===== Regression trees =====
+!bc pycod 
+# Quadratic training set + noise
+np.random.seed(42)
+m = 200
+X = np.random.rand(m, 1)
+y = 4 * (X - 0.5) ** 2
+y = y + np.random.randn(m, 1) / 10
+!ec
+
+!bc pycod 
+from sklearn.tree import DecisionTreeRegressor
+
+tree_reg = DecisionTreeRegressor(max_depth=2, random_state=42)
+tree_reg.fit(X, y)
+!ec
+
+!split
+===== Final regressor code =====
+!bc pycod
+from sklearn.tree import DecisionTreeRegressor
+
+tree_reg1 = DecisionTreeRegressor(random_state=42, max_depth=2)
+tree_reg2 = DecisionTreeRegressor(random_state=42, max_depth=3)
+tree_reg1.fit(X, y)
+tree_reg2.fit(X, y)
+
+def plot_regression_predictions(tree_reg, X, y, axes=[0, 1, -0.2, 1], ylabel="$y$"):
+    x1 = np.linspace(axes[0], axes[1], 500).reshape(-1, 1)
+    y_pred = tree_reg.predict(x1)
+    plt.axis(axes)
+    plt.xlabel("$x_1$", fontsize=18)
+    if ylabel:
+        plt.ylabel(ylabel, fontsize=18, rotation=0)
+    plt.plot(X, y, "b.")
+    plt.plot(x1, y_pred, "r.-", linewidth=2, label=r"$\hat{y}$")
+
+plt.figure(figsize=(11, 4))
+plt.subplot(121)
+plot_regression_predictions(tree_reg1, X, y)
+for split, style in ((0.1973, "k-"), (0.0917, "k--"), (0.7718, "k--")):
+    plt.plot([split, split], [-0.2, 1], style, linewidth=2)
+plt.text(0.21, 0.65, "Depth=0", fontsize=15)
+plt.text(0.01, 0.2, "Depth=1", fontsize=13)
+plt.text(0.65, 0.8, "Depth=1", fontsize=13)
+plt.legend(loc="upper center", fontsize=18)
+plt.title("max_depth=2", fontsize=14)
+
+plt.subplot(122)
+plot_regression_predictions(tree_reg2, X, y, ylabel=None)
+for split, style in ((0.1973, "k-"), (0.0917, "k--"), (0.7718, "k--")):
+    plt.plot([split, split], [-0.2, 1], style, linewidth=2)
+for split in (0.0458, 0.1298, 0.2873, 0.9040):
+    plt.plot([split, split], [-0.2, 1], "k:", linewidth=1)
+plt.text(0.3, 0.5, "Depth=2", fontsize=13)
+plt.title("max_depth=3", fontsize=14)
+
+plt.show()
+!ec
+
+!bc pycod
+tree_reg1 = DecisionTreeRegressor(random_state=42)
+tree_reg2 = DecisionTreeRegressor(random_state=42, min_samples_leaf=10)
+tree_reg1.fit(X, y)
+tree_reg2.fit(X, y)
+
+x1 = np.linspace(0, 1, 500).reshape(-1, 1)
+y_pred1 = tree_reg1.predict(x1)
+y_pred2 = tree_reg2.predict(x1)
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plt.plot(X, y, "b.")
+plt.plot(x1, y_pred1, "r.-", linewidth=2, label=r"$\hat{y}$")
+plt.axis([0, 1, -0.2, 1.1])
+plt.xlabel("$x_1$", fontsize=18)
+plt.ylabel("$y$", fontsize=18, rotation=0)
+plt.legend(loc="upper center", fontsize=18)
+plt.title("No restrictions", fontsize=14)
+
+plt.subplot(122)
+plt.plot(X, y, "b.")
+plt.plot(x1, y_pred2, "r.-", linewidth=2, label=r"$\hat{y}$")
+plt.axis([0, 1, -0.2, 1.1])
+plt.xlabel("$x_1$", fontsize=18)
+plt.title("min_samples_leaf={}".format(tree_reg2.min_samples_leaf), fontsize=14)
+
+save_fig("tree_regression_regularization_plot")
+plt.show()
+!ec
+
+
+!split
+===== Classification again: The zoo data =====
 !bc pycod 
 import pandas as pd
 import numpy as np
@@ -528,6 +729,24 @@ the context of bagging classification trees, we can add up the total
 amount that the Gini index  is decreased by splits over a given
 predictor, averaged over all $B$ trees.
 
+!split
+===== Simple example, head or tail =====
+!bc pycod
+heads_proba = 0.51
+coin_tosses = (np.random.rand(10000, 10) < heads_proba).astype(np.int32)
+cumulative_heads_ratio = np.cumsum(coin_tosses, axis=0) / np.arange(1, 10001).reshape(-1, 1)
+plt.figure(figsize=(8,3.5))
+plt.plot(cumulative_heads_ratio)
+plt.plot([0, 10000], [0.51, 0.51], "k--", linewidth=2, label="51%")
+plt.plot([0, 10000], [0.5, 0.5], "k-", label="50%")
+plt.xlabel("Number of coin tosses")
+plt.ylabel("Heads ratio")
+plt.legend(loc="lower right")
+plt.axis([0, 10000, 0.42, 0.58])
+plt.show()
+
+!ec
+
 
 !split
 ===== Random forests =====
@@ -581,7 +800,135 @@ Random_Forest_model = RandomForestClassifier(n_estimators=100,criterion="entropy
 accuracy = cross_validate(Random_Forest_model,X,Y,cv=10)['test_score']
 !ec
 
+!split
+===== Please, not the moons again! =====
+!bc pycod
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_moons
+
+X, y = make_moons(n_samples=500, noise=0.30, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
+log_clf = LogisticRegression(random_state=42)
+rnd_clf = RandomForestClassifier(random_state=42)
+svm_clf = SVC(random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='hard')
+voting_clf.fit(X_train, y_train)
+!ec
+
+!bc pycod 
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+!ec
+
+!bc pycod 
+log_clf = LogisticRegression(random_state=42)
+rnd_clf = RandomForestClassifier(random_state=42)
+svm_clf = SVC(probability=True, random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='soft')
+voting_clf.fit(X_train, y_train)
+!ec
+
+!bc pycod 
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+!ec
+
+!split
+===== Bagging examples =====
+
+!bc pycod 
+from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+bag_clf = BaggingClassifier(
+    DecisionTreeClassifier(random_state=42), n_estimators=500,
+    max_samples=100, bootstrap=True, n_jobs=-1, random_state=42)
+bag_clf.fit(X_train, y_train)
+y_pred = bag_clf.predict(X_test)
+!ec
+
+
+!bc pycod 
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test, y_pred))
+!ec
+
+!bc pycod 
+tree_clf = DecisionTreeClassifier(random_state=42)
+tree_clf.fit(X_train, y_train)
+y_pred_tree = tree_clf.predict(X_test)
+print(accuracy_score(y_test, y_pred_tree))
+!ec
+
+!bc pycod 
+from matplotlib.colors import ListedColormap
+
+def plot_decision_boundary(clf, X, y, axes=[-1.5, 2.5, -1, 1.5], alpha=0.5, contour=True):
+    x1s = np.linspace(axes[0], axes[1], 100)
+    x2s = np.linspace(axes[2], axes[3], 100)
+    x1, x2 = np.meshgrid(x1s, x2s)
+    X_new = np.c_[x1.ravel(), x2.ravel()]
+    y_pred = clf.predict(X_new).reshape(x1.shape)
+    custom_cmap = ListedColormap(['#fafab0','#9898ff','#a0faa0'])
+    plt.contourf(x1, x2, y_pred, alpha=0.3, cmap=custom_cmap)
+    if contour:
+        custom_cmap2 = ListedColormap(['#7d7d58','#4c4c7f','#507d50'])
+        plt.contour(x1, x2, y_pred, cmap=custom_cmap2, alpha=0.8)
+    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo", alpha=alpha)
+    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs", alpha=alpha)
+    plt.axis(axes)
+    plt.xlabel(r"$x_1$", fontsize=18)
+    plt.ylabel(r"$x_2$", fontsize=18, rotation=0)
+plt.figure(figsize=(11,4))
+plt.subplot(121)
+plot_decision_boundary(tree_clf, X, y)
+plt.title("Decision Tree", fontsize=14)
+plt.subplot(122)
+plot_decision_boundary(bag_clf, X, y)
+plt.title("Decision Trees with Bagging", fontsize=14)
+plt.show()
+!ec
+
+!split
+===== Then random forests =====
+!bc pycod
+bag_clf = BaggingClassifier(
+    DecisionTreeClassifier(splitter="random", max_leaf_nodes=16, random_state=42),
+    n_estimators=500, max_samples=1.0, bootstrap=True, n_jobs=-1, random_state=42)
+!ec
+
+
+
+!bc pycod
+bag_clf.fit(X_train, y_train)
+y_pred = bag_clf.predict(X_test)
+from sklearn.ensemble import RandomForestClassifier
+rnd_clf = RandomForestClassifier(n_estimators=500, max_leaf_nodes=16, n_jobs=-1, random_state=42)
+rnd_clf.fit(X_train, y_train)
+y_pred_rf = rnd_clf.predict(X_test)
+np.sum(y_pred == y_pred_rf) / len(y_pred) 
+!ec
+
 
 !split 
-===== Boosting =====
+===== Boosting and more =====
 More material to come here.

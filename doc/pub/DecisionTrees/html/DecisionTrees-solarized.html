@@ -76,13 +76,21 @@ div { text-align: justify; text-justify: inter-word; }
               ('A schematic procedure', 2, None, '___sec10'),
               ('A classification tree', 2, None, '___sec11'),
               ('Growing a classification tree', 2, None, '___sec12'),
-              ('The zoo data', 2, None, '___sec13'),
-              ('Pros and cons of trees, pros', 2, None, '___sec14'),
-              ('Disadvantages', 2, None, '___sec15'),
-              ('Bagging', 2, None, '___sec16'),
-              ('Random forests', 2, None, '___sec17'),
-              ('A simple scikit-learn example', 2, None, '___sec18'),
-              ('Boosting', 2, None, '___sec19')]}
+              ('Back to moons again', 2, None, '___sec13'),
+              ('Playing around with regions', 2, None, '___sec14'),
+              ('Regression trees', 2, None, '___sec15'),
+              ('Final regressor code', 2, None, '___sec16'),
+              ('Classification again: The zoo data', 2, None, '___sec17'),
+              ('Pros and cons of trees, pros', 2, None, '___sec18'),
+              ('Disadvantages', 2, None, '___sec19'),
+              ('Bagging', 2, None, '___sec20'),
+              ('Simple example, head or tail', 2, None, '___sec21'),
+              ('Random forests', 2, None, '___sec22'),
+              ('A simple scikit-learn example', 2, None, '___sec23'),
+              ('Please, not the moons again!', 2, None, '___sec24'),
+              ('Bagging examples', 2, None, '___sec25'),
+              ('Then random forests', 2, None, '___sec26'),
+              ('Boosting and more', 2, None, '___sec27')]}
 end of tocinfo -->
 
 <body>
@@ -391,9 +399,6 @@ plt.plot(X_test, y_1, color=<span style="color: #CD5555">&quot;red&quot;</span>,
 plt.plot(X_test, y_2, color=<span style="color: #CD5555">&quot;green&quot;</span>, label=<span style="color: #CD5555">&quot;max_depth=5&quot;</span>, linewidth=<span style="color: #B452CD">2</span>)
 plt.plot(X_test, y_3, color=<span style="color: #CD5555">&quot;m&quot;</span>, label=<span style="color: #CD5555">&quot;max_depth=7&quot;</span>, linewidth=<span style="color: #B452CD">2</span>)
 plt.show()
-
-<span style="color: #228B22">#Separate each frequency not in one specific velocity, but in a range of values,</span>
-<span style="color: #228B22">#i.e. frequency of all velocities in range -5 to -4.9, -4.9 to -4.8, etc...</span>
 </pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -615,7 +620,224 @@ than is the classification error rate.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec13">The zoo data </h2>
+<h2 id="___sec13">Back to moons again </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">__future__</span> <span style="color: #8B008B; font-weight: bold">import</span> division, print_function, unicode_literals
+
+<span style="color: #228B22"># Common imports</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+
+<span style="color: #228B22"># to make this notebook&#39;s output stable across runs</span>
+np.random.seed(<span style="color: #B452CD">42</span>)
+
+<span style="color: #228B22"># To plot pretty figures</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib.colors</span> <span style="color: #8B008B; font-weight: bold">import</span> ListedColormap
+plt.rcParams[<span style="color: #CD5555">&#39;axes.labelsize&#39;</span>] = <span style="color: #B452CD">14</span>
+plt.rcParams[<span style="color: #CD5555">&#39;xtick.labelsize&#39;</span>] = <span style="color: #B452CD">12</span>
+plt.rcParams[<span style="color: #CD5555">&#39;ytick.labelsize&#39;</span>] = <span style="color: #B452CD">12</span>
+
+
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.svm</span> <span style="color: #8B008B; font-weight: bold">import</span> SVC
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.tree</span> <span style="color: #8B008B; font-weight: bold">import</span> DecisionTreeClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> make_moons
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.tree</span> <span style="color: #8B008B; font-weight: bold">import</span> export_graphviz
+
+Xm, ym = make_moons(n_samples=<span style="color: #B452CD">100</span>, noise=<span style="color: #B452CD">0.25</span>, random_state=<span style="color: #B452CD">53</span>)
+
+deep_tree_clf1 = DecisionTreeClassifier(random_state=<span style="color: #B452CD">42</span>)
+deep_tree_clf2 = DecisionTreeClassifier(min_samples_leaf=<span style="color: #B452CD">4</span>, random_state=<span style="color: #B452CD">42</span>)
+deep_tree_clf1.fit(Xm, ym)
+deep_tree_clf2.fit(Xm, ym)
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">plot_decision_boundary</span>(clf, X, y, axes=[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">7.5</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">3</span>], iris=<span style="color: #658b00">True</span>, legend=<span style="color: #658b00">False</span>, plot_training=<span style="color: #658b00">True</span>):
+    x1s = np.linspace(axes[<span style="color: #B452CD">0</span>], axes[<span style="color: #B452CD">1</span>], <span style="color: #B452CD">100</span>)
+    x2s = np.linspace(axes[<span style="color: #B452CD">2</span>], axes[<span style="color: #B452CD">3</span>], <span style="color: #B452CD">100</span>)
+    x1, x2 = np.meshgrid(x1s, x2s)
+    X_new = np.c_[x1.ravel(), x2.ravel()]
+    y_pred = clf.predict(X_new).reshape(x1.shape)
+    custom_cmap = ListedColormap([<span style="color: #CD5555">&#39;#fafab0&#39;</span>,<span style="color: #CD5555">&#39;#9898ff&#39;</span>,<span style="color: #CD5555">&#39;#a0faa0&#39;</span>])
+    plt.contourf(x1, x2, y_pred, alpha=<span style="color: #B452CD">0.3</span>, cmap=custom_cmap)
+    <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #8B008B">not</span> iris:
+        custom_cmap2 = ListedColormap([<span style="color: #CD5555">&#39;#7d7d58&#39;</span>,<span style="color: #CD5555">&#39;#4c4c7f&#39;</span>,<span style="color: #CD5555">&#39;#507d50&#39;</span>])
+        plt.contour(x1, x2, y_pred, cmap=custom_cmap2, alpha=<span style="color: #B452CD">0.8</span>)
+    <span style="color: #8B008B; font-weight: bold">if</span> plot_training:
+        plt.plot(X[:, <span style="color: #B452CD">0</span>][y==<span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>][y==<span style="color: #B452CD">0</span>], <span style="color: #CD5555">&quot;yo&quot;</span>, label=<span style="color: #CD5555">&quot;Iris-Setosa&quot;</span>)
+        plt.plot(X[:, <span style="color: #B452CD">0</span>][y==<span style="color: #B452CD">1</span>], X[:, <span style="color: #B452CD">1</span>][y==<span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;bs&quot;</span>, label=<span style="color: #CD5555">&quot;Iris-Versicolor&quot;</span>)
+        plt.plot(X[:, <span style="color: #B452CD">0</span>][y==<span style="color: #B452CD">2</span>], X[:, <span style="color: #B452CD">1</span>][y==<span style="color: #B452CD">2</span>], <span style="color: #CD5555">&quot;g^&quot;</span>, label=<span style="color: #CD5555">&quot;Iris-Virginica&quot;</span>)
+        plt.axis(axes)
+    <span style="color: #8B008B; font-weight: bold">if</span> iris:
+        plt.xlabel(<span style="color: #CD5555">&quot;Petal length&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+        plt.ylabel(<span style="color: #CD5555">&quot;Petal width&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+    <span style="color: #8B008B; font-weight: bold">else</span>:
+        plt.xlabel(<span style="color: #CD5555">r&quot;$x_1$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+        plt.ylabel(<span style="color: #CD5555">r&quot;$x_2$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>, rotation=<span style="color: #B452CD">0</span>)
+    <span style="color: #8B008B; font-weight: bold">if</span> legend:
+        plt.legend(loc=<span style="color: #CD5555">&quot;lower right&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+plt.figure(figsize=(<span style="color: #B452CD">11</span>, <span style="color: #B452CD">4</span>))
+plt.subplot(<span style="color: #B452CD">121</span>)
+plot_decision_boundary(deep_tree_clf1, Xm, ym, axes=[-<span style="color: #B452CD">1.5</span>, <span style="color: #B452CD">2.5</span>, -<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1.5</span>], iris=<span style="color: #658b00">False</span>)
+plt.title(<span style="color: #CD5555">&quot;No restrictions&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
+plt.subplot(<span style="color: #B452CD">122</span>)
+plot_decision_boundary(deep_tree_clf2, Xm, ym, axes=[-<span style="color: #B452CD">1.5</span>, <span style="color: #B452CD">2.5</span>, -<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1.5</span>], iris=<span style="color: #658b00">False</span>)
+plt.title(<span style="color: #CD5555">&quot;min_samples_leaf = {}&quot;</span>.format(deep_tree_clf2.min_samples_leaf), fontsize=<span style="color: #B452CD">14</span>)
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec14">Playing around with regions </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>angle = np.pi / <span style="color: #B452CD">180</span> * <span style="color: #B452CD">20</span>
+rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+Xr = X.dot(rotation_matrix)
+
+tree_clf_r = DecisionTreeClassifier(random_state=<span style="color: #B452CD">42</span>)
+tree_clf_r.fit(Xr, y)
+
+plt.figure(figsize=(<span style="color: #B452CD">8</span>, <span style="color: #B452CD">3</span>))
+plot_decision_boundary(tree_clf_r, Xr, y, axes=[<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">7.5</span>, -<span style="color: #B452CD">1.0</span>, <span style="color: #B452CD">1</span>], iris=<span style="color: #658b00">False</span>)
+
+plt.show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>np.random.seed(<span style="color: #B452CD">6</span>)
+Xs = np.random.rand(<span style="color: #B452CD">100</span>, <span style="color: #B452CD">2</span>) - <span style="color: #B452CD">0.5</span>
+ys = (Xs[:, <span style="color: #B452CD">0</span>] &gt; <span style="color: #B452CD">0</span>).astype(np.float32) * <span style="color: #B452CD">2</span>
+
+angle = np.pi / <span style="color: #B452CD">4</span>
+rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+Xsr = Xs.dot(rotation_matrix)
+
+tree_clf_s = DecisionTreeClassifier(random_state=<span style="color: #B452CD">42</span>)
+tree_clf_s.fit(Xs, ys)
+tree_clf_sr = DecisionTreeClassifier(random_state=<span style="color: #B452CD">42</span>)
+tree_clf_sr.fit(Xsr, ys)
+
+plt.figure(figsize=(<span style="color: #B452CD">11</span>, <span style="color: #B452CD">4</span>))
+plt.subplot(<span style="color: #B452CD">121</span>)
+plot_decision_boundary(tree_clf_s, Xs, ys, axes=[-<span style="color: #B452CD">0.7</span>, <span style="color: #B452CD">0.7</span>, -<span style="color: #B452CD">0.7</span>, <span style="color: #B452CD">0.7</span>], iris=<span style="color: #658b00">False</span>)
+plt.subplot(<span style="color: #B452CD">122</span>)
+plot_decision_boundary(tree_clf_sr, Xsr, ys, axes=[-<span style="color: #B452CD">0.7</span>, <span style="color: #B452CD">0.7</span>, -<span style="color: #B452CD">0.7</span>, <span style="color: #B452CD">0.7</span>], iris=<span style="color: #658b00">False</span>)
+
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec15">Regression trees </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #228B22"># Quadratic training set + noise</span>
+np.random.seed(<span style="color: #B452CD">42</span>)
+m = <span style="color: #B452CD">200</span>
+X = np.random.rand(m, <span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span> * (X - <span style="color: #B452CD">0.5</span>) ** <span style="color: #B452CD">2</span>
+y = y + np.random.randn(m, <span style="color: #B452CD">1</span>) / <span style="color: #B452CD">10</span>
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.tree</span> <span style="color: #8B008B; font-weight: bold">import</span> DecisionTreeRegressor
+
+tree_reg = DecisionTreeRegressor(max_depth=<span style="color: #B452CD">2</span>, random_state=<span style="color: #B452CD">42</span>)
+tree_reg.fit(X, y)
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec16">Final regressor code </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.tree</span> <span style="color: #8B008B; font-weight: bold">import</span> DecisionTreeRegressor
+
+tree_reg1 = DecisionTreeRegressor(random_state=<span style="color: #B452CD">42</span>, max_depth=<span style="color: #B452CD">2</span>)
+tree_reg2 = DecisionTreeRegressor(random_state=<span style="color: #B452CD">42</span>, max_depth=<span style="color: #B452CD">3</span>)
+tree_reg1.fit(X, y)
+tree_reg2.fit(X, y)
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">plot_regression_predictions</span>(tree_reg, X, y, axes=[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, -<span style="color: #B452CD">0.2</span>, <span style="color: #B452CD">1</span>], ylabel=<span style="color: #CD5555">&quot;$y$&quot;</span>):
+    x1 = np.linspace(axes[<span style="color: #B452CD">0</span>], axes[<span style="color: #B452CD">1</span>], <span style="color: #B452CD">500</span>).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+    y_pred = tree_reg.predict(x1)
+    plt.axis(axes)
+    plt.xlabel(<span style="color: #CD5555">&quot;$x_1$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+    <span style="color: #8B008B; font-weight: bold">if</span> ylabel:
+        plt.ylabel(ylabel, fontsize=<span style="color: #B452CD">18</span>, rotation=<span style="color: #B452CD">0</span>)
+    plt.plot(X, y, <span style="color: #CD5555">&quot;b.&quot;</span>)
+    plt.plot(x1, y_pred, <span style="color: #CD5555">&quot;r.-&quot;</span>, linewidth=<span style="color: #B452CD">2</span>, label=<span style="color: #CD5555">r&quot;$\hat{y}$&quot;</span>)
+
+plt.figure(figsize=(<span style="color: #B452CD">11</span>, <span style="color: #B452CD">4</span>))
+plt.subplot(<span style="color: #B452CD">121</span>)
+plot_regression_predictions(tree_reg1, X, y)
+<span style="color: #8B008B; font-weight: bold">for</span> split, style <span style="color: #8B008B">in</span> ((<span style="color: #B452CD">0.1973</span>, <span style="color: #CD5555">&quot;k-&quot;</span>), (<span style="color: #B452CD">0.0917</span>, <span style="color: #CD5555">&quot;k--&quot;</span>), (<span style="color: #B452CD">0.7718</span>, <span style="color: #CD5555">&quot;k--&quot;</span>)):
+    plt.plot([split, split], [-<span style="color: #B452CD">0.2</span>, <span style="color: #B452CD">1</span>], style, linewidth=<span style="color: #B452CD">2</span>)
+plt.text(<span style="color: #B452CD">0.21</span>, <span style="color: #B452CD">0.65</span>, <span style="color: #CD5555">&quot;Depth=0&quot;</span>, fontsize=<span style="color: #B452CD">15</span>)
+plt.text(<span style="color: #B452CD">0.01</span>, <span style="color: #B452CD">0.2</span>, <span style="color: #CD5555">&quot;Depth=1&quot;</span>, fontsize=<span style="color: #B452CD">13</span>)
+plt.text(<span style="color: #B452CD">0.65</span>, <span style="color: #B452CD">0.8</span>, <span style="color: #CD5555">&quot;Depth=1&quot;</span>, fontsize=<span style="color: #B452CD">13</span>)
+plt.legend(loc=<span style="color: #CD5555">&quot;upper center&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.title(<span style="color: #CD5555">&quot;max_depth=2&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+
+plt.subplot(<span style="color: #B452CD">122</span>)
+plot_regression_predictions(tree_reg2, X, y, ylabel=<span style="color: #658b00">None</span>)
+<span style="color: #8B008B; font-weight: bold">for</span> split, style <span style="color: #8B008B">in</span> ((<span style="color: #B452CD">0.1973</span>, <span style="color: #CD5555">&quot;k-&quot;</span>), (<span style="color: #B452CD">0.0917</span>, <span style="color: #CD5555">&quot;k--&quot;</span>), (<span style="color: #B452CD">0.7718</span>, <span style="color: #CD5555">&quot;k--&quot;</span>)):
+    plt.plot([split, split], [-<span style="color: #B452CD">0.2</span>, <span style="color: #B452CD">1</span>], style, linewidth=<span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">for</span> split <span style="color: #8B008B">in</span> (<span style="color: #B452CD">0.0458</span>, <span style="color: #B452CD">0.1298</span>, <span style="color: #B452CD">0.2873</span>, <span style="color: #B452CD">0.9040</span>):
+    plt.plot([split, split], [-<span style="color: #B452CD">0.2</span>, <span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;k:&quot;</span>, linewidth=<span style="color: #B452CD">1</span>)
+plt.text(<span style="color: #B452CD">0.3</span>, <span style="color: #B452CD">0.5</span>, <span style="color: #CD5555">&quot;Depth=2&quot;</span>, fontsize=<span style="color: #B452CD">13</span>)
+plt.title(<span style="color: #CD5555">&quot;max_depth=3&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+
+plt.show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>tree_reg1 = DecisionTreeRegressor(random_state=<span style="color: #B452CD">42</span>)
+tree_reg2 = DecisionTreeRegressor(random_state=<span style="color: #B452CD">42</span>, min_samples_leaf=<span style="color: #B452CD">10</span>)
+tree_reg1.fit(X, y)
+tree_reg2.fit(X, y)
+
+x1 = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">500</span>).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+y_pred1 = tree_reg1.predict(x1)
+y_pred2 = tree_reg2.predict(x1)
+
+plt.figure(figsize=(<span style="color: #B452CD">11</span>, <span style="color: #B452CD">4</span>))
+
+plt.subplot(<span style="color: #B452CD">121</span>)
+plt.plot(X, y, <span style="color: #CD5555">&quot;b.&quot;</span>)
+plt.plot(x1, y_pred1, <span style="color: #CD5555">&quot;r.-&quot;</span>, linewidth=<span style="color: #B452CD">2</span>, label=<span style="color: #CD5555">r&quot;$\hat{y}$&quot;</span>)
+plt.axis([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, -<span style="color: #B452CD">0.2</span>, <span style="color: #B452CD">1.1</span>])
+plt.xlabel(<span style="color: #CD5555">&quot;$x_1$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.ylabel(<span style="color: #CD5555">&quot;$y$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>, rotation=<span style="color: #B452CD">0</span>)
+plt.legend(loc=<span style="color: #CD5555">&quot;upper center&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.title(<span style="color: #CD5555">&quot;No restrictions&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+
+plt.subplot(<span style="color: #B452CD">122</span>)
+plt.plot(X, y, <span style="color: #CD5555">&quot;b.&quot;</span>)
+plt.plot(x1, y_pred2, <span style="color: #CD5555">&quot;r.-&quot;</span>, linewidth=<span style="color: #B452CD">2</span>, label=<span style="color: #CD5555">r&quot;$\hat{y}$&quot;</span>)
+plt.axis([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, -<span style="color: #B452CD">0.2</span>, <span style="color: #B452CD">1.1</span>])
+plt.xlabel(<span style="color: #CD5555">&quot;$x_1$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+plt.title(<span style="color: #CD5555">&quot;min_samples_leaf={}&quot;</span>.format(tree_reg2.min_samples_leaf), fontsize=<span style="color: #B452CD">14</span>)
+
+save_fig(<span style="color: #CD5555">&quot;tree_regression_regularization_plot&quot;</span>)
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec17">Classification again: The zoo data </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -643,7 +865,7 @@ prediction = tree.predict(test_features)
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec14">Pros and cons of trees, pros </h2>
+<h2 id="___sec18">Pros and cons of trees, pros </h2>
 
 <ul>
 <li> White box, easy to interpret model. Some people believe that decision trees more closely mirror human decision-making than do the regression and classification approaches discussed earlier (think of support vector machines)</li>
@@ -657,7 +879,7 @@ prediction = tree.predict(test_features)
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec15">Disadvantages </h2>
+<h2 id="___sec19">Disadvantages </h2>
 
 <ul>
 <li> Unfortunately, trees generally do not have the same level of predictive accuracy as some of the other regression and classification approaches</li>
@@ -674,7 +896,7 @@ However, by aggregating many decision trees, using methods like bagging, random 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec16">Bagging </h2>
+<h2 id="___sec20">Bagging </h2>
 
 <p>
 The <b>plain</b> decision trees suffer from high
@@ -717,7 +939,27 @@ predictor, averaged over all \( B \) trees.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec17">Random forests </h2>
+<h2 id="___sec21">Simple example, head or tail </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>heads_proba = <span style="color: #B452CD">0.51</span>
+coin_tosses = (np.random.rand(<span style="color: #B452CD">10000</span>, <span style="color: #B452CD">10</span>) &lt; heads_proba).astype(np.int32)
+cumulative_heads_ratio = np.cumsum(coin_tosses, axis=<span style="color: #B452CD">0</span>) / np.arange(<span style="color: #B452CD">1</span>, <span style="color: #B452CD">10001</span>).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+plt.figure(figsize=(<span style="color: #B452CD">8</span>,<span style="color: #B452CD">3.5</span>))
+plt.plot(cumulative_heads_ratio)
+plt.plot([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">10000</span>], [<span style="color: #B452CD">0.51</span>, <span style="color: #B452CD">0.51</span>], <span style="color: #CD5555">&quot;k--&quot;</span>, linewidth=<span style="color: #B452CD">2</span>, label=<span style="color: #CD5555">&quot;51%&quot;</span>)
+plt.plot([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">10000</span>], [<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>], <span style="color: #CD5555">&quot;k-&quot;</span>, label=<span style="color: #CD5555">&quot;50%&quot;</span>)
+plt.xlabel(<span style="color: #CD5555">&quot;Number of coin tosses&quot;</span>)
+plt.ylabel(<span style="color: #CD5555">&quot;Heads ratio&quot;</span>)
+plt.legend(loc=<span style="color: #CD5555">&quot;lower right&quot;</span>)
+plt.axis([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">10000</span>, <span style="color: #B452CD">0.42</span>, <span style="color: #B452CD">0.58</span>])
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec22">Random forests </h2>
 
 <p>
 Random forests provide an improvement over bagged trees by way of a
@@ -759,7 +1001,7 @@ setting.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec18">A simple scikit-learn example </h2>
+<h2 id="___sec23">A simple scikit-learn example </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -775,9 +1017,150 @@ Random_Forest_model = RandomForestClassifier(n_estimators=<span style="color: #B
 accuracy = cross_validate(Random_Forest_model,X,Y,cv=<span style="color: #B452CD">10</span>)[<span style="color: #CD5555">&#39;test_score&#39;</span>]
 </pre></div>
 <p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec24">Please, not the moons again! </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> make_moons
+
+X, y = make_moons(n_samples=<span style="color: #B452CD">500</span>, noise=<span style="color: #B452CD">0.30</span>, random_state=<span style="color: #B452CD">42</span>)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=<span style="color: #B452CD">42</span>)
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> RandomForestClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> VotingClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LogisticRegression
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.svm</span> <span style="color: #8B008B; font-weight: bold">import</span> SVC
+
+log_clf = LogisticRegression(random_state=<span style="color: #B452CD">42</span>)
+rnd_clf = RandomForestClassifier(random_state=<span style="color: #B452CD">42</span>)
+svm_clf = SVC(random_state=<span style="color: #B452CD">42</span>)
+
+voting_clf = VotingClassifier(
+    estimators=[(<span style="color: #CD5555">&#39;lr&#39;</span>, log_clf), (<span style="color: #CD5555">&#39;rf&#39;</span>, rnd_clf), (<span style="color: #CD5555">&#39;svc&#39;</span>, svm_clf)],
+    voting=<span style="color: #CD5555">&#39;hard&#39;</span>)
+voting_clf.fit(X_train, y_train)
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> accuracy_score
+
+<span style="color: #8B008B; font-weight: bold">for</span> clf <span style="color: #8B008B">in</span> (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    <span style="color: #8B008B; font-weight: bold">print</span>(clf.<span style="color: #00688B">__class__</span>.<span style="color: #00688B">__name__</span>, accuracy_score(y_test, y_pred))
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>log_clf = LogisticRegression(random_state=<span style="color: #B452CD">42</span>)
+rnd_clf = RandomForestClassifier(random_state=<span style="color: #B452CD">42</span>)
+svm_clf = SVC(probability=<span style="color: #658b00">True</span>, random_state=<span style="color: #B452CD">42</span>)
+
+voting_clf = VotingClassifier(
+    estimators=[(<span style="color: #CD5555">&#39;lr&#39;</span>, log_clf), (<span style="color: #CD5555">&#39;rf&#39;</span>, rnd_clf), (<span style="color: #CD5555">&#39;svc&#39;</span>, svm_clf)],
+    voting=<span style="color: #CD5555">&#39;soft&#39;</span>)
+voting_clf.fit(X_train, y_train)
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> accuracy_score
+
+<span style="color: #8B008B; font-weight: bold">for</span> clf <span style="color: #8B008B">in</span> (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    <span style="color: #8B008B; font-weight: bold">print</span>(clf.<span style="color: #00688B">__class__</span>.<span style="color: #00688B">__name__</span>, accuracy_score(y_test, y_pred))
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec25">Bagging examples </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> BaggingClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.tree</span> <span style="color: #8B008B; font-weight: bold">import</span> DecisionTreeClassifier
+
+bag_clf = BaggingClassifier(
+    DecisionTreeClassifier(random_state=<span style="color: #B452CD">42</span>), n_estimators=<span style="color: #B452CD">500</span>,
+    max_samples=<span style="color: #B452CD">100</span>, bootstrap=<span style="color: #658b00">True</span>, n_jobs=-<span style="color: #B452CD">1</span>, random_state=<span style="color: #B452CD">42</span>)
+bag_clf.fit(X_train, y_train)
+y_pred = bag_clf.predict(X_test)
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> accuracy_score
+<span style="color: #8B008B; font-weight: bold">print</span>(accuracy_score(y_test, y_pred))
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>tree_clf = DecisionTreeClassifier(random_state=<span style="color: #B452CD">42</span>)
+tree_clf.fit(X_train, y_train)
+y_pred_tree = tree_clf.predict(X_test)
+<span style="color: #8B008B; font-weight: bold">print</span>(accuracy_score(y_test, y_pred_tree))
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib.colors</span> <span style="color: #8B008B; font-weight: bold">import</span> ListedColormap
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">plot_decision_boundary</span>(clf, X, y, axes=[-<span style="color: #B452CD">1.5</span>, <span style="color: #B452CD">2.5</span>, -<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1.5</span>], alpha=<span style="color: #B452CD">0.5</span>, contour=<span style="color: #658b00">True</span>):
+    x1s = np.linspace(axes[<span style="color: #B452CD">0</span>], axes[<span style="color: #B452CD">1</span>], <span style="color: #B452CD">100</span>)
+    x2s = np.linspace(axes[<span style="color: #B452CD">2</span>], axes[<span style="color: #B452CD">3</span>], <span style="color: #B452CD">100</span>)
+    x1, x2 = np.meshgrid(x1s, x2s)
+    X_new = np.c_[x1.ravel(), x2.ravel()]
+    y_pred = clf.predict(X_new).reshape(x1.shape)
+    custom_cmap = ListedColormap([<span style="color: #CD5555">&#39;#fafab0&#39;</span>,<span style="color: #CD5555">&#39;#9898ff&#39;</span>,<span style="color: #CD5555">&#39;#a0faa0&#39;</span>])
+    plt.contourf(x1, x2, y_pred, alpha=<span style="color: #B452CD">0.3</span>, cmap=custom_cmap)
+    <span style="color: #8B008B; font-weight: bold">if</span> contour:
+        custom_cmap2 = ListedColormap([<span style="color: #CD5555">&#39;#7d7d58&#39;</span>,<span style="color: #CD5555">&#39;#4c4c7f&#39;</span>,<span style="color: #CD5555">&#39;#507d50&#39;</span>])
+        plt.contour(x1, x2, y_pred, cmap=custom_cmap2, alpha=<span style="color: #B452CD">0.8</span>)
+    plt.plot(X[:, <span style="color: #B452CD">0</span>][y==<span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>][y==<span style="color: #B452CD">0</span>], <span style="color: #CD5555">&quot;yo&quot;</span>, alpha=alpha)
+    plt.plot(X[:, <span style="color: #B452CD">0</span>][y==<span style="color: #B452CD">1</span>], X[:, <span style="color: #B452CD">1</span>][y==<span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;bs&quot;</span>, alpha=alpha)
+    plt.axis(axes)
+    plt.xlabel(<span style="color: #CD5555">r&quot;$x_1$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>)
+    plt.ylabel(<span style="color: #CD5555">r&quot;$x_2$&quot;</span>, fontsize=<span style="color: #B452CD">18</span>, rotation=<span style="color: #B452CD">0</span>)
+plt.figure(figsize=(<span style="color: #B452CD">11</span>,<span style="color: #B452CD">4</span>))
+plt.subplot(<span style="color: #B452CD">121</span>)
+plot_decision_boundary(tree_clf, X, y)
+plt.title(<span style="color: #CD5555">&quot;Decision Tree&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+plt.subplot(<span style="color: #B452CD">122</span>)
+plot_decision_boundary(bag_clf, X, y)
+plt.title(<span style="color: #CD5555">&quot;Decision Trees with Bagging&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec26">Then random forests </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>bag_clf = BaggingClassifier(
+    DecisionTreeClassifier(splitter=<span style="color: #CD5555">&quot;random&quot;</span>, max_leaf_nodes=<span style="color: #B452CD">16</span>, random_state=<span style="color: #B452CD">42</span>),
+    n_estimators=<span style="color: #B452CD">500</span>, max_samples=<span style="color: #B452CD">1.0</span>, bootstrap=<span style="color: #658b00">True</span>, n_jobs=-<span style="color: #B452CD">1</span>, random_state=<span style="color: #B452CD">42</span>)
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>bag_clf.fit(X_train, y_train)
+y_pred = bag_clf.predict(X_test)
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> RandomForestClassifier
+rnd_clf = RandomForestClassifier(n_estimators=<span style="color: #B452CD">500</span>, max_leaf_nodes=<span style="color: #B452CD">16</span>, n_jobs=-<span style="color: #B452CD">1</span>, random_state=<span style="color: #B452CD">42</span>)
+rnd_clf.fit(X_train, y_train)
+y_pred_rf = rnd_clf.predict(X_test)
+np.sum(y_pred == y_pred_rf) / <span style="color: #658b00">len</span>(y_pred) 
+</pre></div>
+<p>
 <!-- !split  -->
 
-<h2 id="___sec19">Boosting </h2>
+<h2 id="___sec27">Boosting and more </h2>
 More material to come here.
 
 <!-- ------------------- end of main content --------------- -->
