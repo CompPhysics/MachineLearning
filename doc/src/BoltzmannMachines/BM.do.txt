@@ -43,7 +43,918 @@ Furthermore, they have been used to solve complicated quantum mechanical many-pa
 !split
 ===== An intermediate step, the Hopfield network and links to the Ising and Potts models =====
 
+!split
+===== A brief review on Markov Chains, Metropolis and Gibbs sampling =====
+
+
+* We want to study a physical system which evolves towards equilibrium, from given  initial conditions.
+* We start with a PDF $w(x_0,t_0)$  and we want to understand how the system evolves with time.
+* We want to reach a situation where after a given number of time steps we obtain a steady state. This means that the system reaches its most likely state (equilibrium situation)
+* Our PDF is normally a multidimensional object whose normalization constant is impossible to find.
+* Analytical calculations from $w(x,t)$ are not possible.
+* To sample directly from from $w(x,t)$ is not possible/difficult.
+* The transition probability $W$ is also not  known.
+* How can we establish that we have reached a steady state?   Sounds impossible!
+
+_Use Markov chain Monte Carlo_
+
+!split 
+===== Brownian motion and Markov processes =====
+A Markov process is a random walk with a selected probability for making a
+move. The new move is independent of the previous history of the system.
+
+The Markov process is used repeatedly in Monte Carlo simulations in order to generate
+new random states.
+
+The reason for choosing a Markov process is that when it is run for a
+long enough time starting with a random state, we will eventually reach the most likely state of the system.
+
+In thermodynamics, this means that after a certain number of Markov processes
+we reach an equilibrium distribution.
+
+This mimicks the way a real system reaches
+its most likely state at a given temperature of the surroundings.
+
+!split 
+===== Brownian motion and Markov processes, Ergodicity and Detailed balance =====
+
+To reach this distribution, the Markov process needs to obey two important conditions, that of
+_ergodicity_ and _detailed balance_. These conditions impose then constraints on our algorithms
+for accepting or rejecting new random states.
+
+
+The Metropolis algorithm discussed here
+abides to both these constraints.
+
+The Metropolis algorithm is widely used in Monte Carlo
+simulations and the understanding of it rests within
+the interpretation of random walks and Markov processes.
+
+!split 
+===== Brownian motion and Markov processes, jargon =====
+
+In a random walk one defines a mathematical entity called a _walker_, 
+whose  attributes
+completely define the state of the system in question. 
+
+The state of the system  can refer to any physical quantities,
+from the vibrational state of a molecule specified by a set of quantum numbers, 
+to the brands of coffee in your favourite supermarket.
+
+
+The walker moves in an appropriate state space by a combination of 
+deterministic and random displacements from its previous
+position.
+
+This sequence of steps forms a _chain_.
+
+!split 
+===== Brownian motion and Markov processes, sequence of ingredients =====
+
+* We want to study a physical system which evolves towards equilibrium, from given  initial conditions.
+* Markov chains are intimately linked with the physical process of diffusion. 
+* From a Markov chain we can then derive the conditions for detailed balance and ergodicity. These are the conditions needed for obtaining a steady state.
+* The widely used algorithm for doing this is the so-called Metropolis algorithm, in its refined form the Metropolis-Hastings algorithm.
+
+!split
+===== Applications: almost every field in science =====
+
+* Financial engineering, see for example Patriarca *et al*, Physica _340_, "page 334 (2004)":"http://www.sciencedirect.com/science/article/pii/S0378437104004327".
+* Neuroscience, see for example Lipinski, Physics Medical Biology _35_, "page 441 (1990)":"http://iopscience.iop.org/article/10.1088/0031-9155/35/3/012/meta;jsessionid=FA91B191036E1F10948F7C42B6A6D295.c1" or Farnell and Gibson, Journal of Computational Physics _208_, "page 253 (2005)":"http://www.sciencedirect.com/science/article/pii/S0021999105001087"
+* Tons of applications in physics
+* and chemistry
+* and biology, medicine
+* Nobel prize in economy to Black and Scholes
+!bt
+\[
+\frac{\partial V}{\partial t}+\frac{1}{2}\sigma^{2}S^{2}\frac{\partial^{2} V}{\partial S^{2}}+rS\frac{\partial V}{\partial S}-rV=0.
+\]
+!et
+The Black and Scholes equation is a partial differential equation, which describes the price
+of the option over time. It is a diffusion equation with a random term.
+
+The list of applications is endless.
+
+
+!split
+===== Markov processes =====
+!bblock
+A Markov process allows in principle for a microscopic description of Brownian motion.
+As with the random walk studied in the previous section, we consider a particle 
+which moves along the  $x$-axis in the form of a series of jumps with step length 
+$\Delta x = l$. Time and space are discretized and the subsequent moves are
+statistically independent, i.e., the new move depends only on the previous step
+and not on the results from earlier trials. 
+We start at a position $x=jl=j\Delta x$ and move to 
+a new position $x =i\Delta x$ during a step $\Delta t=\epsilon$, where 
+$i\ge  0$ and $j\ge 0$ are integers. 
+The original probability distribution function (PDF) of the particles is given by  
+$w_i(t=0)$ where $i$ refers to a specific position on the grid in 
+!eblock
+The function $w_i(t=0)$ is now the discretized version of $w(x,t)$.
+We can regard the discretized PDF as a vector.
+
+!split
+===== Markov processes =====
+!bblock
+For the Markov process we have a transition probability from a position
+$x=jl$ to a position $x=il$ given by
+!bt
+\begin{equation*}
+   W_{ij}(\epsilon)=W(il-jl,\epsilon)=\left\{\begin{array}{cc}\frac{1}{2} & |i-j| = 1\\
+             0 & \mathrm{else} \end{array} \right. ,
+\end{equation*}
+!et
+where $W_{ij}$ is normally called 
+the transition probability and we can represent it, see below,
+as a matrix. 
+_Here we have specialized to a case where the transition probability is known_.
+
+Our new PDF $w_i(t=\epsilon)$ is now related to the PDF at
+$t=0$ through the relation
+
+!bt
+\begin{equation*} 
+   w_i(t=\epsilon) =\sum_{j} W(j\rightarrow i)w_j(t=0).
+\end{equation*}
+!et
  
+This equation represents the discretized time-development of an original 
+PDF with equal probability of jumping left or right.
+!eblock
+
+!split
+===== Markov processes, the probabilities =====
+!bblock
+
+Since both $W$ and $w$ represent probabilities, they have to be normalized, i.e., we require
+that at each time step we have
+
+!bt
+\begin{equation*} 
+   \sum_i w_i(t) = 1, 
+\end{equation*}
+!et
+and
+
+!bt
+\begin{equation*} 
+   \sum_j W(j\rightarrow i) = 1,
+\end{equation*}
+!et
+which applies for all $j$-values.
+The further constraints are
+$0 \le W_{ij} \le 1$  and  $0 \le w_{j} \le 1$.
+Note that the probability for remaining at the same place is in general 
+not necessarily equal zero. 
+!eblock
+
+!split
+===== Markov processes =====
+!bblock
+The time development of our initial PDF can now be represented through the action of
+the transition probability matrix applied $n$ times. At a 
+time  $t_n=n\epsilon$ our initial distribution has developed into
+
+!bt
+\begin{equation*}
+   w_i(t_n) = \sum_jW_{ij}(t_n)w_j(0),
+\end{equation*}
+!et
+and defining
+
+!bt
+\begin{equation*}
+   W(il-jl,n\epsilon)=(W^n(\epsilon))_{ij}
+\end{equation*}
+!et
+we obtain
+
+!bt
+\begin{equation*}
+   w_i(n\epsilon) = \sum_j(W^n(\epsilon))_{ij}w_j(0),
+\end{equation*}
+!et
+or in matrix form
+!bt
+\begin{equation} label{eq:wfinal}
+   \hat{w}(n\epsilon) = \hat{W}^n(\epsilon)\hat{w}(0).
+\end{equation}
+!et
+!eblock
+
+!split
+===== An Illustrative Example =====
+!bblock
+
+The following simple example may help in understanding the meaning of 
+the transition matrix $\hat{W}$ and the vector $\hat{w}$.
+Consider the $4\times 4$ matrix $\hat{W}$
+
+!bt
+\begin{equation*}
+   \hat{W} = \left(\begin{array}{cccc} 1/4 & 1/9 & 3/8 & 1/3 \\                   
+                                       2/4 & 2/9 & 0 & 1/3\\                   
+                                       0   & 1/9 & 3/8 & 0\\
+                                       1/4 & 5/9&  2/8 & 1/3 \end{array} \right),
+\end{equation*}
+!et
+and we choose our initial state as
+
+!bt
+\begin{equation*}
+\hat{w}(t=0)=  \left(\begin{array}{c} 1\\                   
+                                 0\\
+                                 0 \\                   
+                                 0 \end{array} \right).
+\end{equation*}
+!et
+!eblock
+
+!split
+===== An Illustrative Example =====
+!bblock
+We note that both the vector and the matrix are properly normalized. Summing the vector elements gives one and
+summing over columns for the matrix results also in one.  Furthermore, the largest eigenvalue is one.
+We act then on $\hat{w}$ with $\hat{W}$.
+The first iteration is
+
+!bt
+\begin{equation*}
+   \hat{w}(t=\epsilon) = \hat{W}\hat{w}(t=0),
+\end{equation*}
+!et
+ 
+resulting in
+
+!bt
+\begin{equation*}
+\hat{w}(t=\epsilon)=  \left(\begin{array}{c} 1/4\\                   
+                                1/2 \\
+                                0 \\                   
+                                1/4 \end{array} \right).
+\end{equation*}
+!et
+!eblock
+
+!split
+===== An Illustrative Example, next step =====
+!bblock
+
+The next iteration results in
+
+!bt
+\begin{equation*}
+   \hat{w}(t=2\epsilon) = \hat{W}\hat{w}(t=\epsilon),
+\end{equation*}
+!et
+ 
+resulting in
+
+!bt
+\begin{equation*}
+\hat{w}(t=2\epsilon)=  \left(\begin{array}{c} 0.201389\\
+   0.319444 \\
+   0.055556 \\
+   0.423611 \end{array} \right).
+\end{equation*}
+!et
+Note that the vector $\hat{w}$ is always normalized to $1$. 
+!eblock
+!split
+===== An Illustrative Example, the steady state =====
+!bblock
+We find the steady state of the system by solving the set of equations
+
+!bt
+\begin{equation*} 
+w(t=\infty) = Ww(t=\infty),
+\end{equation*}
+!et
+which is an eigenvalue problem with eigenvalue equal to _one_!
+This set of equations reads
+!bt
+\begin{align}
+ W_{11}w_1(t=\infty) +W_{12}w_2(t=\infty) +W_{13}w_3(t=\infty)+ W_{14}w_4(t=\infty)=&w_1(t=\infty) \nonumber \\
+W_{21}w_1(t=\infty) + W_{22}w_2(t=\infty) + W_{23}w_3(t=\infty)+ W_{24}w_4(t=\infty)=&w_2(t=\infty) \nonumber \\
+W_{31}w_1(t=\infty) + W_{32}w_2(t=\infty) + W_{33}w_3(t=\infty)+ W_{34}w_4(t=\infty)=&w_3(t=\infty) \nonumber \\
+W_{41}w_1(t=\infty) + W_{42}w_2(t=\infty) + W_{43}w_3(t=\infty)+ W_{44}w_4(t=\infty)=&w_4(t=\infty) \nonumber \\
+\end{align}
+!et
+with the constraint that
+
+!bt
+\begin{equation*}
+   \sum_i w_i(t=\infty) = 1, 
+\end{equation*}
+!et
+yielding as solution
+
+!bt
+\begin{equation*}
+\hat{w}(t=\infty)=  \left(\begin{array}{c}0.244318 \\                   
+                                 0.319602 \\  0.056818 \\  0.379261 \end{array} \right).
+\end{equation*}
+!et
+!eblock
+
+!split
+===== An Illustrative Example, iterative steps =====
+!bblock
+
+The table here  demonstrates the convergence as a function of the number of iterations or
+time steps. After  twelve iterations we have reached the exact value with six leading digits. 
+
+|-------------------------------------------------------------------------------------------------------------|
+| Iteration           | $w_1$               | $w_2$               | $w_3$               | $w_4$               |
+|---------r--------------------l--------------------l--------------------l--------------------l---------------|
+| 0                   | 1.000000            | 0.000000            | 0.000000            | 0.000000            |
+| 1                   | 0.250000            | 0.500000            | 0.000000            | 0.250000            |
+| 2                   | 0.201389            | 0.319444            | 0.055556            | 0.423611            |
+| 3                   | 0.247878            | 0.312886            | 0.056327            | 0.382909            |
+| 4                   | 0.245494            | 0.321106            | 0.055888            | 0.377513            |
+| 5                   | 0.243847            | 0.319941            | 0.056636            | 0.379575            |
+| 6                   | 0.244274            | 0.319547            | 0.056788            | 0.379391            |
+| 7                   | 0.244333            | 0.319611            | 0.056801            | 0.379255            |
+| 8                   | 0.244314            | 0.319610            | 0.056813            | 0.379264            |
+| 9                   | 0.244317            | 0.319603            | 0.056817            | 0.379264            |
+| 10                  | 0.244318            | 0.319602            | 0.056818            | 0.379262            |
+| 11                  | 0.244318            | 0.319602            | 0.056818            | 0.379261            |
+| 12                  | 0.244318            | 0.319602            | 0.056818            | 0.379261            |
+| $\hat{w}(t=\infty)$ | 0.244318            | 0.319602            | 0.056818            | 0.379261            |
+|-------------------------------------------------------------------------------------------------------------|
+
+!eblock
+
+!split
+===== An Illustrative Example, what does it mean? =====
+!bblock
+
+We have after $t$-steps
+
+!bt
+\begin{equation*}
+   \hat{w}(t) = \hat{W}^t\hat{w}(0),
+\end{equation*}
+!et
+with $\hat{w}(0)$ the distribution at $t=0$ and $\hat{W}$ representing the 
+transition probability matrix. 
+
+!eblock
+
+!split
+===== An Illustrative Example, understanding the basics =====
+!bblock
+
+We can always expand $\hat{w}(0)$ in terms of the right eigenvectors 
+$\hat{v}$ of $\hat{W}$ as
+
+!bt
+\begin{equation*}
+    \hat{w}(0)  = \sum_i\alpha_i\hat{v}_i,
+\end{equation*}
+!et
+resulting in
+
+!bt
+\begin{equation*}
+   \hat{w}(t) = \hat{W}^t\hat{w}(0)=\hat{W}^t\sum_i\alpha_i\hat{v}_i=
+\sum_i\lambda_i^t\alpha_i\hat{v}_i,
+\end{equation*}
+!et
+with $\lambda_i$ the $i^{\mathrm{th}}$ eigenvalue corresponding to  
+the eigenvector $\hat{v}_i$. 
+
+If we assume that $\lambda_0$ is the largest eigenvector we see that in the limit $t\rightarrow \infty$,
+$\hat{w}(t)$ becomes proportional to the corresponding eigenvector 
+$\hat{v}_0$. This is our steady state or final distribution. 
+
+!eblock
+
+
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+Let us recapitulate some of our results about Markov chains and random walks.
+
+  * The time development of our PDF $w(t)$, after 
+one time-step from $t=0$ is given by  
+!bt
+\begin{equation*}    
+w_i(t=\epsilon) = W(j\rightarrow i)w_j(t=0).
+\end{equation*}
+!et
+ 
+This equation represents the discretized time-development of an original 
+PDF.  We can rewrite this as a
+
+!bt
+\begin{equation*}
+   w_i(t=\epsilon) = W_{ij}w_j(t=0).
+\end{equation*}
+!et
+with the transition matrix $W$ for a random walk given by
+
+!bt
+\begin{equation*}
+   W_{ij}(\epsilon)=W(il-jl,\epsilon)=\left\{\begin{array}{cc}\frac{1}{2} & |i-j| = 1\\
+                                             0 & \mathrm{else} \end{array} \right.
+\end{equation*}
+!et
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+We call $W_{ij}$ for the transition probability and we represent it
+as a matrix. 
+  * Both  $W$ and $w$ represent probabilities and they have to be normalized, meaning that at each time step we have   
+!bt 
+\begin{equation*}    
+\sum_i w_i(t) = 1,
+\end{equation*}
+!et
+and
+
+!bt
+\begin{equation*} 
+   \sum_j W(j\rightarrow i) = 1.
+\end{equation*}
+!et
+Here we have written the previous matrix $W_{ij}=W(j\rightarrow i)$.
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+The further constraints are
+$0 \le W_{ij} \le 1$  and  $0 \le w_{j} \le 1$.
+  * We can thus write the action of $W$ as   
+!bt 
+\begin{equation*}    
+w_i(t+1) = \sum_jW_{ij}w_j(t),
+\end{equation*}
+!et
+or as vector-matrix relation
+
+!bt
+\begin{equation*}
+   \hat{w}(t+1) = \hat{W\hat{w}}(t),
+\end{equation*}
+!et
+and if we have that $||\hat{w}(t+1)-\hat{w}(t)||\rightarrow 0$, we say that 
+we have reached the most likely state of the system, the so-called steady state or equilibrium state.
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+Another way of phrasing this is
+!bt
+\begin{equation} 
+w(t=\infty) = Ww(t=\infty). 
+\end{equation}   
+!et
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+The question then is how can we model anything under such a severe lack of knowledge? The Metropolis algorithm comes to our rescue here. Since $W(j\rightarrow i)$ is unknown, we model it as the product of two probabilities, 
+a probability for accepting the proposed move from the state $j$ to the state $j$, and a probability for making the transition to the state $i$ being in the state $j$. We label these probabilities $A(j\rightarrow i)$ and $T(j\rightarrow i)$, respectively.  Our total transition probability is then
+
+!bt
+\begin{equation*}
+W(j\rightarrow i)=T(j\rightarrow i)A(j\rightarrow i).
+\end{equation*}
+!et
+The algorithm can then be expressed as
+
+  * We make a suggested move to the new state $i$ with some transition or moving probability $T_{j\rightarrow i}$.
+
+  * We accept this move to the new state with an acceptance probability $A_{j \rightarrow i}$. The new state $i$ is in turn used as our new starting point for the next move.  We reject this proposed moved with a $1-A_{j\rightarrow i}$ and the original state $j$ is used again as a sample.
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+We wish to derive the required properties of the probabilities $T$ and $A$ such that
+$w_i^{(t\rightarrow \infty)} \rightarrow w_i$, starting
+from any distribution, will lead us to the correct distribution.
+
+We can now derive the dynamical process towards 
+equilibrium. To obtain this equation we note that after $t$ time steps the probability for being in a state $i$ is related 
+to the probability of being in a state $j$ and performing a transition to the new state together with the probability of actually being in the state $i$ and making a move to any of the possible states $j$ from the previous time step.
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+We can express this as, assuming that $T$ and $A$ are time-independent,
+
+!bt
+\begin{equation*}
+w_i(t+1) = \sum_j \left [
+w_j(t)T_{j\rightarrow i} A_{j\rightarrow i} 
++w_i(t)T_{i\rightarrow j}\left ( 1- A_{i\rightarrow j} \right)
+\right ] \,.
+\end{equation*}
+!et
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+All probabilities are normalized, meaning that 
+$\sum_j T_{i\rightarrow j} = 1$. Using the latter, we can rewrite the previous equation as
+
+!bt
+\begin{equation*}
+w_i(t+1) = w_i(t) +
+ \sum_j \left [
+w_j(t)T_{j\rightarrow i} A_{j\rightarrow i} 
+-w_i(t)T_{i\rightarrow j}A_{i\rightarrow j}\right ] \,,
+\end{equation*}
+!et
+which can be rewritten as
+
+!bt
+\begin{equation*}
+w_i(t+1)-w_i(t) =  \sum_j \left [w_j(t)T_{j\rightarrow i} A_{j\rightarrow i} 
+-w_i(t)T_{i\rightarrow j}A_{i\rightarrow j}\right ] .
+\end{equation*}
+!et
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+The last equation is very similar to the so-called Master equation, which relates the temporal dependence of 
+a PDF $w_i(t)$ to various transition rates. The equation can be derived from the so-called 
+Chapman-Einstein-Enskog-Kolmogorov equation. The equation is given as 
+!bt
+\begin{equation}
+label{eq:masterequation}
+\frac{d w_i(t)}{dt} = \sum_j\left[ W(j\rightarrow i)w_j-W(i\rightarrow j)w_i\right],
+\end{equation}
+!et
+which simply states that the rate at which the systems moves from a state $j$
+to a final state $i$ (the first term on the right-hand side of the last equation) is balanced by the rate at which the system undergoes transitions from the state $i$ to a state $j$ (the second term). If we have reached the so-called steady state, then the temporal development is zero. This  means that in equilibrium we have
+
+!bt
+\begin{equation*}
+\frac{d w_i(t)}{dt} = 0.
+\end{equation*}
+!et
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+In the limit $t\rightarrow \infty$ we require that the  two distributions $w_i(t+1)=w_i$ and $w_i(t)=w_i$
+and we have
+
+!bt
+\begin{equation*}
+ \sum_j w_jT_{j\rightarrow i} A_{j\rightarrow i}= \sum_j w_iT_{i\rightarrow j}A_{i\rightarrow j},
+\end{equation*}
+!et
+which is the condition for balance when the most likely state (or steady state) has been reached.
+We see also that the right-hand side  can be  rewritten as
+
+!bt
+\begin{equation*} 
+\sum_j w_iT_{i\rightarrow j}A_{i\rightarrow j}= \sum_j w_iW_{i\rightarrow j},
+\end{equation*}
+!et
+and using the property that $\sum_j W_{i\rightarrow j}=1$, we can rewrite our equation
+as
+
+!bt
+\begin{equation*}
+w_i= \sum_j w_jT_{j\rightarrow i} A_{j\rightarrow i}= \sum_j w_j W_{j\rightarrow i},
+\end{equation*}
+!et
+which is nothing but the standard equation for a Markov chain when the steady state has been reached.
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+However, the condition that the rates should equal each other is in general not sufficient
+to guarantee that we, after many simulations, generate the correct distribution.
+We may risk to end up with so-called cyclic solutions. To avoid this
+we therefore introduce an additional condition, namely that of detailed balance
+
+!bt
+\begin{equation*} W(j\rightarrow i)w_j= W(i\rightarrow j)w_i.  \end{equation*}
+!et
+These equations were derived by Lars Onsager when studying irreversible processes.
+At equilibrium detailed balance gives thus
+
+!bt
+\begin{equation*} \frac{W(j\rightarrow i)}{W(i\rightarrow j)}=\frac{w_i}{w_j}.  \end{equation*}
+!et
+Rewriting the last equation in terms of our transition probabilities $T$ and 
+acceptance probobalities $A$ we obtain
+
+!bt
+\begin{equation*} 
+w_j(t)T_{j\rightarrow i}A_{j\rightarrow i}= w_i(t)T_{i\rightarrow j}A_{i\rightarrow j}.
+\end{equation*}
+!et
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+Since we normally have an expression 
+for the probability distribution functions $w_i$,  we can rewrite the last equation as
+
+!bt
+\begin{equation*} 
+\frac{T_{j\rightarrow i}A_{j\rightarrow i}}{T_{i\rightarrow j}A_{i\rightarrow j}}= \frac{w_i}{w_j}.
+\end{equation*}
+!et
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+In statistical physics this condition ensures that it is e.g., the 
+Boltzmann distribution which is generated when equilibrium is reached.
+
+We introduce  now the Boltzmann distribution
+
+!bt
+\begin{equation*}
+   w_i= \frac{\exp{(-\beta(E_i))}}{Z},
+\end{equation*}
+!et
+which states that the probability of finding the system in a state $i$ with energy $E_i$ 
+at an inverse temperature $\beta = 1/k_BT$ is $w_i\propto \exp{(-\beta(E_i))}$.
+The denominator $Z$ is a normalization constant which ensures that the sum of all
+probabilities is normalized to one. It is defined as the sum of probabilities over all microstates
+$j$ of the system
+
+!bt
+\begin{equation*}
+   Z=\sum_j \exp{(-\beta(E_i))}.
+\end{equation*}
+!et
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+From the partition function we can in principle generate all interesting quantities
+for a given system in equilibrium with its surroundings at a temperature $T$.
+
+With the probability distribution given by the Boltzmann distribution we are now in a position
+where we can generate expectation values for a given variable $A$ through the
+definition
+
+!bt
+\begin{equation*}
+   \langle A \rangle = \sum_jA_jw_j=
+    \frac{\sum_jA_j\exp{(-\beta(E_j)}}{Z}.
+\end{equation*}
+!et
+In general, most systems have an infinity of microstates making thereby the computation
+of $Z$ practically impossible and 
+a brute force Monte Carlo calculation over a given number of randomly selected microstates
+may therefore not yield those microstates which are important 
+at equilibrium. 
+To select the most important contributions we need to  
+use the condition for detailed balance. Since this is just given by the ratios of probabilities,
+we never need to evaluate the partition function $Z$.
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+For the 
+Boltzmann distribution, detailed balance results in
+
+!bt
+\begin{equation*} \frac{w_i}{w_j}= \exp{(-\beta(E_i-E_j))}. \end{equation*}
+!et
+
+Let us now specialize to a system whose energy is defined by the orientation of single spins.
+Consider the state $i$, with given energy $E_i$ represented by the following $N$ spins
+
+!bt
+\begin{equation*}
+\begin{array}{cccccccccc}
+\uparrow&\uparrow&\uparrow&\dots&\uparrow&\downarrow&\uparrow&\dots&\uparrow&\downarrow\\
+1&2&3&\dots& k-1&k&k+1&\dots&N-1&N\end{array}
+\end{equation*}
+!et
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+We are interested in the transition with one single  spinflip to a new state $j$ with energy $E_j$
+
+!bt
+\begin{equation*}
+\begin{array}{cccccccccc}
+\uparrow&\uparrow&\uparrow&\dots&\uparrow&\uparrow&\uparrow&\dots&\uparrow&\downarrow\\
+1&2&3&\dots& k-1&k&k+1&\dots&N-1&N\end{array}
+\end{equation*}
+!et
+This change from one microstate $i$ (or spin configuration)  to another microstate $j$ is the
+configuration space analogue to a random walk on a lattice. Instead of jumping from 
+one place to another in space, we 'jump' from one microstate to another.
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+However, the selection of states has to generate a final distribution which is the
+Boltzmann distribution. This is again the same we saw for a random walker, for the discrete case we had 
+always a binomial distribution, whereas for the continuous case we had a normal distribution.
+The way we sample configurations should result, when equilibrium is established, in the 
+Boltzmann distribution. Else, our algorithm for selecting microstates is wrong.
+ 
+
+As stated above, we do in general not know the closed-form expression of the transition rate and we are free to model it as
+     $W(i\rightarrow j)=T(i\rightarrow j)A(i\rightarrow j)$.
+Our ratio between probabilities gives us
+
+!bt
+\begin{equation*} 
+\frac{A_{j\rightarrow i}}{A_{i\rightarrow j}}= \frac{w_iT_{i\rightarrow j}}{w_jT_{j\rightarrow i}}.
+\end{equation*}
+!et
+The simplest form of the Metropolis algorithm (sometimes called for brute force Metropolis) assumes that 
+the transition probability $T(i\rightarrow j)$ is symmetric, implying that $T(i\rightarrow j)=T(j\rightarrow i)$.
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+We obtain then (using the Boltzmann distribution)
+
+!bt
+\begin{equation*}
+\frac{A(j\rightarrow i)}{A(i\rightarrow j)}= \exp{(-\beta(E_i-E_j))} .
+\end{equation*}
+!et
+We are in this case interested in a new state $E_j$ whose energy is lower than 
+$E_i$, viz., $\Delta E = E_j-E_i \le 0$. A simple test would then be to accept only those
+microstates which lower the energy.  
+Suppose we have ten microstates with energy $E_0 \le E_1 \le E_2 \le E_3 \le \dots \le E_9$.
+Our desired energy is $E_0$.
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+At a given temperature $T$ we start our simulation by randomly choosing state
+$E_9$. Flipping spins we may then find a path from $E_9\rightarrow E_8 \rightarrow E_7 \dots \rightarrow E_1 \rightarrow E_0$. 
+This would however lead to biased statistical averages since it would violate the ergodic hypothesis discussed
+in the previous section. This principle states  that 
+it should be possible for any Markov process to reach every possible state of the system
+from any starting point if the simulations is carried out for a long enough time.
+
+Any state in a Boltzmann distribution has a probability different from zero and if such 
+a state cannot be reached from a given starting point, then the system is not ergodic.
+This means that another possible path to $E_0$ could be 
+$E_9\rightarrow E_7 \rightarrow E_8 \dots \rightarrow E_9 \rightarrow E_5 \rightarrow E_0$ and so forth.
+Even though such a path could have a negligible probability it is still a possibility, and if
+we simulate long enough it should be included in our computation of an expectation value.
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+Thus, we require that our algorithm should satisfy the principle of detailed balance and be ergodic. 
+The problem with our ratio
+
+!bt
+\begin{equation*}
+\frac{A(j\rightarrow i)}{A(i\rightarrow j)}= \exp{(-\beta(E_i-E_j))}, 
+\end{equation*}
+!et
+is that we do not know the acceptance probability. This equation only specifies the ratio of pairs of probabilities. Normally we want an algorithm which is as efficient as possible and maximizes the number of accepted moves. 
+Moreover, we know that the acceptance probability has $0$ as its smallest value and $1$ as its largest. 
+If we assume that the largest possible acceptance probability is $1$,  we adjust thereafter the other acceptance probability
+to this constraint. 
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+To understand this better, assume that we have two energies, $E_i$ and $E_j$, with $E_i < E_j$. This means that the largest acceptance value must be 
+$A(j\rightarrow i)$ since we move to a state with lower energy.  It follows from also from the fact that the probability $w_i$ is larger than $w_j$. 
+The trick then is to fix this value to $A(j\rightarrow i)=1$. It means that 
+the other acceptance probability has to be
+
+!bt
+\begin{equation*}
+A(i\rightarrow j)= \exp{(-\beta(E_j-E_i))}.
+\end{equation*}
+!et
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+One possible way to encode this equation reads
+
+!bt
+\begin{equation*}       
+A(j\rightarrow i)=\left\{\begin{array}{cc}
+\exp{(-\beta(E_i-E_j))} & E_i-E_j > 0 \\ 1 & else \end{array} \right.,  
+\end{equation*}
+!et
+implying that if we move to a state with a lower energy, we always accept
+this move with acceptance probability $A(j\rightarrow i)=1$. If the energy is higher, we need to check
+this acceptance probability with the ratio between the probabilities  from our PDF.  From a practical point of view, 
+the above ratio is compared with a random number.
+If the ratio is smaller than a given random number we accept the move to a higher energy, else we stay in the same state. 
+
+!eblock
+
+!split
+===== The Metropolis Algorithm and Detailed Balance  =====
+!bblock
+
+Nothing hinders us obviously in choosing another acceptance ratio, like a weighting  of the two energies via
+
+!bt
+\begin{equation*}
+A(j\rightarrow i)=\exp{(-\frac{1}{2}\beta(E_i-E_j))}.
+\end{equation*}
+!et
+However, it is easy to see that such an acceptance ratio would result in 
+fewer accepted moves.
+!eblock
+
+!split
+===== Brief Summary =====
+
+The Monte Carlo approach, combined with the theory for Markov chains can be summarized as follows:
+A Markov chain Monte Carlo method for the simulation of a distribution $w$ is any method producing an 
+ergodic Markov chain of events $x$ whose stationary distribution is $w$. The Metropolis algorithm can be phrased as
+
+  * Generate an initial value $x^{(i)}$.
+
+  * Generate a trial value $y_t$ with probability $T(y_t|x^{(i)})$. The latter quantity represents the probability of generating $y_t$ given $x^{(i)}$.
+
+  * Take a new value   
+!bt 
+\begin{equation*}  
+x^{(i+1)}= \left\{\begin{array}{cc} y_t & \mathrm{with\hspace{0.1cm}probability} = A(x^{(i)}\rightarrow y_t) \\                                           x^{(i)}    & \mathrm{with \hspace{0.1cm}probability} = 1-A(x^{(i)}\rightarrow y_t)\end{array}\right .
+\end{equation*}
+!et 
+
+  * We have defined the transition (acceptance) probability as   
+!bt 
+\begin{equation*}    A(x\rightarrow y)= \mathrm{min}\left\{\frac{w(y)T(x|y)}{w(x)T(y|x)},1\right\}.
+\end{equation*}
+!et
+
+
+!split
+===== Gibbs sampling =====
+
+More text to come. 
 
 
 !split
