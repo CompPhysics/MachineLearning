@@ -43,6 +43,8 @@ Furthermore, they have been used to solve complicated quantum mechanical many-pa
 !split
 ===== An intermediate step, the Hopfield network and links to the Ising and Potts models =====
 
+More material on Hopfield networks will come here
+
 !split
 ===== A brief review on Markov Chains, Metropolis and Gibbs sampling =====
 
@@ -1184,7 +1186,7 @@ To get the expecation values with respect to the *data*, we set the visible unit
 To get the expectation values with respect to the *model*, we use Gibbs sampling. We can either initialize the $\bm{x}$ randomly or with a training sample. While we ideally want a large number of Gibbs iterations $n\rightarrow n$, one might decide to truncate it earlier for efficiency. Doing this while having intialized $\bm{x}$ with a training data vector is referred to as contrastive divergence (CD), because one is then closer to approximating the gradient of this function than the negative log-likelihood. The contrastive divergence function is the difference between two Kullback-Leibler divergences (also called relative entropy), which measure how one probability distribution diverges from a second, expected probability distribution (in this case the estimated one from the ground truth one).
 
 !split
-===== RBMs for the quantum many body problem =====
+===== Recent examples: RBMs for the quantum many body problem =====
 
 The idea of applying RBMs to quantum many body problems was presented by G. Carleo and M. Troyer, working with ETH Zurich and Microsoft Research.
 
@@ -1203,90 +1205,5 @@ Some of their motivation included
 
 Carleo and Troyer applied the RBM to the quantum mechanical spin lattice systems of the Ising model and Heisenberg model, with encouraging results. Our goal is to test the method on systems of moving particles. For the spin lattice systems it was natural to use a binary-binary RBM, with the nodes taking values of 1 and -1. For moving particles, on the other hand, we want the visible nodes to be continuous, representing position coordinates. Thus, we start by choosing a Gaussian-binary RBM, where the visible nodes are continuous and hidden nodes take on values of 0 or 1. If eventually we would like the hidden nodes to be continuous as well the rectified linear units seem like the most relevant choice.
 
-!split
-===== Representing the wave function =====
-The wavefunction should be a probability amplitude depending on $\bm{x}$. The RBM model is given by the joint distribution of $\bm{x}$ and $\bm{h}$
-!bt
-\begin{align}
-	F_{rbm}(\mathbf{x},\mathbf{h}) = \frac{1}{Z} e^{-\frac{1}{T_0}E(\mathbf{x},\mathbf{h})}.
-\end{align}
-!et
-To find the marginal distribution of $\bm{x}$ we set:
-!bt
-\begin{align}
-	F_{rbm}(\mathbf{x}) &= \sum_\mathbf{h} F_{rbm}(\mathbf{x}, \mathbf{h}) \\
-				&= \frac{1}{Z}\sum_\mathbf{h} e^{-E(\mathbf{x}, \mathbf{h})}.
-\end{align}
-!et
-Now this is what we use to represent the wave function, calling it a neural-network quantum state (NQS)
-!bt
-\begin{align}
-	\Psi (\mathbf{X}) &= F_{rbm}(\mathbf{x}) \\
-	&= \frac{1}{Z}\sum_{\bm{h}} e^{-E(\mathbf{x}, \mathbf{h})} \\
-	&= \frac{1}{Z} \sum_{\{h_j\}} e^{-\sum_i^M \frac{(x_i - a_i)^2}{2\sigma^2} + \sum_j^N b_j h_j + \sum_{i,j}^{M,N} \frac{x_i w_{ij} h_j}{\sigma^2}} \\
-	&= \frac{1}{Z} e^{-\sum_i^M \frac{(x_i - a_i)^2}{2\sigma^2}} \prod_j^N (1 + e^{b_j + \sum_i^M \frac{x_i w_{ij}}{\sigma^2}}). \\
-\end{align}
-!et
-
-!split
-===== Choose the cost function =====
-Now we don't necessarily have training data (unless we generate it by using some other method). However, what we do have is the variational principle which allows us to obtain the ground state wave function by minimizing the expectation value of the energy of a trial wavefunction (corresponding to the untrained NQS). Similarly to the traditional variational Monte Carlo method then, it is the local energy we wish to minimize. The gradient to use for the stochastic gradient descent procedure is
-!bt
-\begin{align}
-	G_i = \frac{\partial \langle E_L \rangle}{\partial \theta_i}
-	= 2(\langle E_L \frac{1}{\Psi}\frac{\partial \Psi}{\partial \theta_i} \rangle - \langle E_L \rangle \langle \frac{1}{\Psi}\frac{\partial \Psi}{\partial \theta_i} \rangle ),
-\end{align}
-!et
-where the local energy is given by
-!bt
-\begin{align}
-	E_L = \frac{1}{\Psi} \hat{\mathbf{H}} \Psi.
-\end{align}
-!et
-
-
-!split
-===== Running the codes =====
-!bblock
-You can find the codes for the simple two-electron case at the Github repository URL:"https://github.com/mhjensenseminars/MachineLearningTalk/tree/master/doc/Programs/MLcpp/src". Python codes to come, only c++ as of now. 
-
-The trial wave function is based on the product of a Slater determinant with Gaussian orbitals, a simple Jastrow factor $\exp{(r_{ij})}$ and the reduced Boltzmann machines. 
-
-The Broyden-Fletcher-Goldfarb-Shanno algorithm was used to perform the minimization. We used $14$ hidden nodes in the calculations below.
-
-!eblock
-
-
-
-
-!split
-===== Energy as function of iterations, $N=2$ electrons  =====
-!bblock
-FIGURE: [figures/figN2.pdf, width=700 frac=0.9]
-!eblock
-
-
-!split
-===== Energy as function of iterations, $N=6$ electrons  =====
-!bblock
-FIGURE: [figures/figN6.pdf, width=700 frac=0.9]
-!eblock
-
-
-
-!split
-===== Conclusions and where do we stand =====
-!bblock
-* A simple extension of the work of "G. Carleo and M. Troyer, Science _355_, Issue 6325, pp. 602-606 (2017)":"http://science.sciencemag.org/content/355/6325/602" gives excellent results for two-electron systems as well as good agreement with standard VMC calculations for $N=6$ and $N=12$ electrons.
-* Minimization problem can be tricky.
-* Anti-symmetry dealt with multiplying the trail wave function with an optimized Slater determinant.
-* To come: Analysis of wave function from ML and compare with diffusion and Variational Monte Carlo calculations as well as the analytical results of Taut for the two-electron case.
-* Extend to more fermions. How do we deal with the antisymmetry of the multi-fermion wave function?
-  o Here we used standard Hartree-Fock theory to define an optimal Slater determinant. Takes care of the antisymmetry. What about constructing an anti-symmetrized network function?
-  o Use thereafter ML to determine the correlated part of the wafe function (including a standard Jastrow factor).
-  o Test this for multi-fermion systems and compare with other many-body methods.
-* Can we use ML to find out which correlations are relevant and thereby diminish the dimensionality problem in say CC or SRG theories?
-
-!eblock
 
 

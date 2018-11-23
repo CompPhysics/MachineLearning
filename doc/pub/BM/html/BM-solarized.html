@@ -225,20 +225,11 @@ div { text-align: justify; text-justify: inter-word; }
               ('Optimization / Training', 2, None, '___sec58'),
               ('More on RBMs', 2, None, '___sec59'),
               ('Which sampling to use', 2, None, '___sec60'),
-              ('RBMs for the quantum many body problem', 2, None, '___sec61'),
-              ('Choose the right RBM', 2, None, '___sec62'),
-              ('Representing the wave function', 2, None, '___sec63'),
-              ('Choose the cost function', 2, None, '___sec64'),
-              ('Running the codes', 2, None, '___sec65'),
-              ('Energy as function of iterations, $N=2$ electrons',
+              ('Recent examples: RBMs for the quantum many body problem',
                2,
                None,
-               '___sec66'),
-              ('Energy as function of iterations, $N=6$ electrons',
-               2,
-               None,
-               '___sec67'),
-              ('Conclusions and where do we stand', 2, None, '___sec68')]}
+               '___sec61'),
+              ('Choose the right RBM', 2, None, '___sec62')]}
 end of tocinfo -->
 
 <body>
@@ -279,7 +270,7 @@ MathJax.Hub.Config({
 <center><b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University and Department of Physics, University of Oslo, Norway</b></center>
 <br>
 <p>
-<center><h4>Nov 22, 2018 </h4></center> <!-- date -->
+<center><h4>Nov 23, 2018 </h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -330,6 +321,9 @@ Furthermore, they have been used to solve complicated quantum mechanical many-pa
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
 <h2 id="___sec2">An intermediate step, the Hopfield network and links to the Ising and Potts models </h2>
+
+<p>
+More material on Hopfield networks will come here
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1880,7 +1874,7 @@ To get the expectation values with respect to the <em>model</em>, we use Gibbs s
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec61">RBMs for the quantum many body problem </h2>
+<h2 id="___sec61">Recent examples: RBMs for the quantum many body problem </h2>
 
 <p>
 The idea of applying RBMs to quantum many body problems was presented by G. Carleo and M. Troyer, working with ETH Zurich and Microsoft Research.
@@ -1908,131 +1902,6 @@ Some of their motivation included
 
 <p>
 Carleo and Troyer applied the RBM to the quantum mechanical spin lattice systems of the Ising model and Heisenberg model, with encouraging results. Our goal is to test the method on systems of moving particles. For the spin lattice systems it was natural to use a binary-binary RBM, with the nodes taking values of 1 and -1. For moving particles, on the other hand, we want the visible nodes to be continuous, representing position coordinates. Thus, we start by choosing a Gaussian-binary RBM, where the visible nodes are continuous and hidden nodes take on values of 0 or 1. If eventually we would like the hidden nodes to be continuous as well the rectified linear units seem like the most relevant choice.
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec63">Representing the wave function </h2>
-The wavefunction should be a probability amplitude depending on \( \boldsymbol{x} \). The RBM model is given by the joint distribution of \( \boldsymbol{x} \) and \( \boldsymbol{h} \)
-$$
-\begin{align}
-	F_{rbm}(\mathbf{x},\mathbf{h}) = \frac{1}{Z} e^{-\frac{1}{T_0}E(\mathbf{x},\mathbf{h})}.
-\label{_auto25}
-\end{align}
-$$
-
-To find the marginal distribution of \( \boldsymbol{x} \) we set:
-$$
-\begin{align}
-	F_{rbm}(\mathbf{x}) &= \sum_\mathbf{h} F_{rbm}(\mathbf{x}, \mathbf{h}) 
-\label{_auto26}\\
-				&= \frac{1}{Z}\sum_\mathbf{h} e^{-E(\mathbf{x}, \mathbf{h})}.
-\label{_auto27}
-\end{align}
-$$
-
-Now this is what we use to represent the wave function, calling it a neural-network quantum state (NQS)
-$$
-\begin{align}
-	\Psi (\mathbf{X}) &= F_{rbm}(\mathbf{x}) 
-\label{_auto28}\\
-	&= \frac{1}{Z}\sum_{\boldsymbol{h}} e^{-E(\mathbf{x}, \mathbf{h})} 
-\label{_auto29}\\
-	&= \frac{1}{Z} \sum_{\{h_j\}} e^{-\sum_i^M \frac{(x_i - a_i)^2}{2\sigma^2} + \sum_j^N b_j h_j + \sum_{i,j}^{M,N} \frac{x_i w_{ij} h_j}{\sigma^2}} 
-\label{_auto30}\\
-	&= \frac{1}{Z} e^{-\sum_i^M \frac{(x_i - a_i)^2}{2\sigma^2}} \prod_j^N (1 + e^{b_j + \sum_i^M \frac{x_i w_{ij}}{\sigma^2}}). 
-\label{_auto31}\\
-\label{_auto32}
-\end{align}
-$$
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec64">Choose the cost function </h2>
-Now we don't necessarily have training data (unless we generate it by using some other method). However, what we do have is the variational principle which allows us to obtain the ground state wave function by minimizing the expectation value of the energy of a trial wavefunction (corresponding to the untrained NQS). Similarly to the traditional variational Monte Carlo method then, it is the local energy we wish to minimize. The gradient to use for the stochastic gradient descent procedure is
-$$
-\begin{align}
-	G_i = \frac{\partial \langle E_L \rangle}{\partial \theta_i}
-	= 2(\langle E_L \frac{1}{\Psi}\frac{\partial \Psi}{\partial \theta_i} \rangle - \langle E_L \rangle \langle \frac{1}{\Psi}\frac{\partial \Psi}{\partial \theta_i} \rangle ),
-\label{_auto33}
-\end{align}
-$$
-
-where the local energy is given by
-$$
-\begin{align}
-	E_L = \frac{1}{\Psi} \hat{\mathbf{H}} \Psi.
-\label{_auto34}
-\end{align}
-$$
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec65">Running the codes </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-You can find the codes for the simple two-electron case at the Github repository <a href="https://github.com/mhjensenseminars/MachineLearningTalk/tree/master/doc/Programs/MLcpp/src" target="_blank"><tt>https://github.com/mhjensenseminars/MachineLearningTalk/tree/master/doc/Programs/MLcpp/src</tt></a>. Python codes to come, only c++ as of now.
-
-<p>
-The trial wave function is based on the product of a Slater determinant with Gaussian orbitals, a simple Jastrow factor \( \exp{(r_{ij})} \) and the reduced Boltzmann machines.
-
-<p>
-The Broyden-Fletcher-Goldfarb-Shanno algorithm was used to perform the minimization. We used \( 14 \) hidden nodes in the calculations below.
-
-
-</div>
-
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec66">Energy as function of iterations, \( N=2 \) electrons  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<br /><br /><center><p><img src="figures/figN2.png" align="bottom" width=700></p></center><br /><br />
-</div>
-
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec67">Energy as function of iterations, \( N=6 \) electrons  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<br /><br /><center><p><img src="figures/figN6.png" align="bottom" width=700></p></center><br /><br />
-</div>
-
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec68">Conclusions and where do we stand </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-
-<ul>
-<li> A simple extension of the work of <a href="http://science.sciencemag.org/content/355/6325/602" target="_blank">G. Carleo and M. Troyer, Science <b>355</b>, Issue 6325, pp. 602-606 (2017)</a> gives excellent results for two-electron systems as well as good agreement with standard VMC calculations for \( N=6 \) and \( N=12 \) electrons.</li>
-<li> Minimization problem can be tricky.</li>
-<li> Anti-symmetry dealt with multiplying the trail wave function with an optimized Slater determinant.</li>
-<li> To come: Analysis of wave function from ML and compare with diffusion and Variational Monte Carlo calculations as well as the analytical results of Taut for the two-electron case.</li>
-<li> Extend to more fermions. How do we deal with the antisymmetry of the multi-fermion wave function?
-
-<ol type="a"></li>
- <li> Here we used standard Hartree-Fock theory to define an optimal Slater determinant. Takes care of the antisymmetry. What about constructing an anti-symmetrized network function?</li>
- <li> Use thereafter ML to determine the correlated part of the wafe function (including a standard Jastrow factor).</li>
- <li> Test this for multi-fermion systems and compare with other many-body methods.</li>
-</ol>
-
-<li> Can we use ML to find out which correlations are relevant and thereby diminish the dimensionality problem in say CC or SRG theories?</li>
-</ul>
-</div>
-
 
 <p>
 
