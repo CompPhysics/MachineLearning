@@ -204,18 +204,25 @@ Automatically generated HTML file from DocOnce source
               ('Optimization / Training', 2, None, '___sec60'),
               ('More on RBMs', 2, None, '___sec61'),
               ('Which sampling to use', 2, None, '___sec62'),
+              ('Kullback-Leibler relative entropy', 2, None, '___sec63'),
+              ('Optimizing the cost function', 2, None, '___sec64'),
+              ('Setting up for gradient descent calculations',
+               2,
+               None,
+               '___sec65'),
+              ('More interpretations', 2, None, '___sec66'),
               ('Recent examples: RBMs for the quantum many body problem',
                2,
                None,
-               '___sec63'),
-              ('Choose the right RBM', 2, None, '___sec64'),
-              ('Representing the wave function', 2, None, '___sec65'),
-              ('Choose the cost function', 2, None, '___sec66'),
-              ('Running the codes', 2, None, '___sec67'),
+               '___sec67'),
+              ('Choose the right RBM', 2, None, '___sec68'),
+              ('Representing the wave function', 2, None, '___sec69'),
+              ('Choose the cost function', 2, None, '___sec70'),
+              ('Running the codes', 2, None, '___sec71'),
               ('Energy as function of iterations, $N=2$ electrons',
                2,
                None,
-               '___sec68')]}
+               '___sec72')]}
 end of tocinfo -->
 
 <body>
@@ -316,12 +323,16 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._BM-bs061.html#___sec60" style="font-size: 80%;">Optimization / Training</a></li>
      <!-- navigation toc: --> <li><a href="._BM-bs062.html#___sec61" style="font-size: 80%;">More on RBMs</a></li>
      <!-- navigation toc: --> <li><a href="._BM-bs063.html#___sec62" style="font-size: 80%;">Which sampling to use</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec63" style="font-size: 80%;">Recent examples: RBMs for the quantum many body problem</a></li>
-     <!-- navigation toc: --> <li><a href="._BM-bs065.html#___sec64" style="font-size: 80%;">Choose the right RBM</a></li>
-     <!-- navigation toc: --> <li><a href="._BM-bs066.html#___sec65" style="font-size: 80%;">Representing the wave function</a></li>
-     <!-- navigation toc: --> <li><a href="._BM-bs067.html#___sec66" style="font-size: 80%;">Choose the cost function</a></li>
-     <!-- navigation toc: --> <li><a href="._BM-bs068.html#___sec67" style="font-size: 80%;">Running the codes</a></li>
-     <!-- navigation toc: --> <li><a href="._BM-bs069.html#___sec68" style="font-size: 80%;">Energy as function of iterations, \( N=2 \) electrons</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec63" style="font-size: 80%;">Kullback-Leibler relative entropy</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs065.html#___sec64" style="font-size: 80%;">Optimizing the cost function</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs066.html#___sec65" style="font-size: 80%;">Setting up for gradient descent calculations</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs067.html#___sec66" style="font-size: 80%;">More interpretations</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs068.html#___sec67" style="font-size: 80%;">Recent examples: RBMs for the quantum many body problem</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs069.html#___sec68" style="font-size: 80%;">Choose the right RBM</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs070.html#___sec69" style="font-size: 80%;">Representing the wave function</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs071.html#___sec70" style="font-size: 80%;">Choose the cost function</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs072.html#___sec71" style="font-size: 80%;">Running the codes</a></li>
+     <!-- navigation toc: --> <li><a href="._BM-bs073.html#___sec72" style="font-size: 80%;">Energy as function of iterations, \( N=2 \) electrons</a></li>
 
         </ul>
       </li>
@@ -337,28 +348,50 @@ MathJax.Hub.Config({
 <a name="part0064"></a>
 <!-- !split -->
 
-<h2 id="___sec63" class="anchor">Recent examples: RBMs for the quantum many body problem </h2>
+<h2 id="___sec63" class="anchor">Kullback-Leibler relative entropy </h2>
 
 <p>
-The idea of applying RBMs to quantum many body problems was presented by G. Carleo and M. Troyer, working with ETH Zurich and Microsoft Research.
+When the goal of the training is to approximate a probability
+distribution, as it is in generative modeling, another relevant
+measure is the <b>Kullback-Leibler divergence</b>, also known as the
+relative entropy or Shannon entropy. It is a non-symmetric measure of the
+dissimilarity between two probability density functions \( p \) and
+\( q \). If \( p \) is the unkown probability which we approximate with \( q \),
+we can measure the difference by
+$$
+\begin{align}
+	\text{KL}(p||q) = \int_{-\infty}^{\infty} p (\boldsymbol{x}) \log \frac{p(\boldsymbol{x})}{q(\boldsymbol{x})}  d\boldsymbol{x}.
+\tag{27}
+\end{align}
+$$
 
 <p>
-Some of their motivation included
+Thus, the Kullback-Leibler divergence between the distribution of the
+training data \( f(\boldsymbol{x}) \) and the model distribution \( p(\boldsymbol{x}|
+\boldsymbol{\theta}) \) is
 
-<ul>
-<li> "The wave function \( \Psi \) is a monolithic mathematical quantity that contains all the information on a quantum state, be it a single particle or a complex molecule. In principle, an exponential amount of information is needed to fully encode a generic many-body quantum state."</li>
-<li> There are still interesting open problems, including fundamental questions ranging from the dynamical properties of high-dimensional systems to the exact ground-state properties of strongly interacting fermions.</li>
-<li> The difficulty lies in finding a general strategy to reduce the exponential complexity of the full many-body wave function down to its most essential features. That is
+$$
+\begin{align}
+	\text{KL} (f(\boldsymbol{x})|| p(\boldsymbol{x}| \boldsymbol{\theta})) =& \int_{-\infty}^{\infty}
+	f (\boldsymbol{x}) \log \frac{f(\boldsymbol{x})}{p(\boldsymbol{x}| \boldsymbol{\theta})} d\boldsymbol{x} 
+\tag{28}\\
+	=& \int_{-\infty}^{\infty} f(\boldsymbol{x}) \log f(\boldsymbol{x}) d\boldsymbol{x} - \int_{-\infty}^{\infty} f(\boldsymbol{x}) \log
+	p(\boldsymbol{x}| \boldsymbol{\theta}) d\boldsymbol{x} 
+\tag{29}\\
+	%=& \mathbb{E}_{f(\boldsymbol{x})} (\log f(\boldsymbol{x})) - \mathbb{E}_{f(\boldsymbol{x})} (\log p(\boldsymbol{x}| \boldsymbol{\theta}))
+	=& \langle \log f(\boldsymbol{x}) \rangle_{f(\boldsymbol{x})} - \langle \log p(\boldsymbol{x}| \boldsymbol{\theta}) \rangle_{f(\boldsymbol{x})} 
+\tag{30}\\
+	=& \langle \log f(\boldsymbol{x}) \rangle_{data} + \langle E(\boldsymbol{x}) \rangle_{data} + \log Z 
+\tag{31}\\
+	=& \langle \log f(\boldsymbol{x}) \rangle_{data} + \mathcal{C}_{LL} .
+\tag{32}
+\end{align}
+$$
 
-<ol type="a"></li>
-<li> \( \rightarrow \) Dimensional reduction</li>
-<li> \( \rightarrow \) Feature extraction</li>
-</ol>
+<p>
+The first term is constant with respect to \( \boldsymbol{\theta} \) since \( f(\boldsymbol{x}) \) is independent of \( \boldsymbol{\theta} \). Thus the Kullback-Leibler Divergence is minimal when the second term is minimal. The second term is the log-likelihood cost function, hence minimizing the Kullback-Leibler divergence is equivalent to maximizing the log-likelihood.
 
-<li> Among the most successful techniques to attack these challenges, artifical neural networks play a prominent role.</li>
-<li> Want to understand whether an artifical neural network may adapt to describe a quantum system.</li>
-</ul>
-
+<p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
@@ -379,6 +412,10 @@ Some of their motivation included
   <li><a href="._BM-bs067.html">68</a></li>
   <li><a href="._BM-bs068.html">69</a></li>
   <li><a href="._BM-bs069.html">70</a></li>
+  <li><a href="._BM-bs070.html">71</a></li>
+  <li><a href="._BM-bs071.html">72</a></li>
+  <li><a href="._BM-bs072.html">73</a></li>
+  <li><a href="._BM-bs073.html">74</a></li>
   <li><a href="._BM-bs065.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
