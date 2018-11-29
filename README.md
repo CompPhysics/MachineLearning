@@ -25,19 +25,19 @@ The course has several numerical projects and numerical exercises that are meant
 ## Learning outcomes
 
 The course introduces a variety of central algorithms and methods
-essential for studies of data analysis and machine learning. The course is project based and through the various projects, normally three, the students will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. The students will learn to develop and structure large codes for studying these systems, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
+essential for studies of data analysis and machine learning. The course is project based and through the various projects, normally three, the students will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying these systems, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
 - Learn about basic data analysis, Bayesian statistics, Monte Carlo methods, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
-- Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications, from numerical integration to simulation of stock markets;
-- Understand linear methods for regression and classification;
-- Learn about neural network, genetic algorithms and Boltzmann machines;
+- Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications;
+- Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
+- Learn about various neural networks and Boltzmann machines;
 - Work on numerical projects to illustrate the theory. The projects play a central role and students are expected to know modern programming languages like Python or C++.  
 
 ## Prerequisites
 
-Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is required and experience with Jupiter notebook is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1xxx. 
+Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is required and experience with Jupiter notebook is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. 
 
 
 ## The course has two central parts
@@ -53,27 +53,26 @@ The following topics will be covered
 - Central elements of Bayesian statistics and modeling;
 - Central elements from linear algebra
 - Cubic splines and gradient methods for data optimization
-- Monte Carlo methods, Markov chains, Metropolis-Hastings algorithm, ergodicity;
+- Monte Carlo methods, Markov chains, Metropolis-Hastings algorithm;
 - Linear methods for regression and classification;
-- Estimation of errors using blocking, bootstrapping and jackknife methods;
+- Estimation of errors using cross-validation, blocking, bootstrapping and jackknife methods;
 - Practical optimization using Singular-value decomposition and least squares for parameterizing data.
 
 
-### Machine learning
+### Machine learning, mainly supervised learning
 
 The following topics will be covered
-- Gaussian and Dirichlet processes;
+- Linear Regression and Logistic Regression;
 - Boltzmann machines;
 - Neural networks;
 - Decisions trees and nearest neighbor algorithms
 - Support vector machines
-- Genetic algorithms.
 
 All the above topics will be supported by examples, hands-on exercises and project work.
 
 Computational aspects play a central role and the students are
 expected to work on numerical examples and projects which illustrate
-the theory and methods. Some of the projects can be coordinated with the high-performance programming course (course code to be added). 
+the theory and methods. Some of the projects can be coordinated with the high-performance programming course IN4200. 
 
 
 
