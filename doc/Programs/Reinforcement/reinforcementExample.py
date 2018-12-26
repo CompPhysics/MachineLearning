@@ -1,18 +1,3 @@
-TITLE: Data Analysis and Machine Learning: Reinforcement Learning 
-AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
-DATE: today
-
-
-!split
-===== Reinforcement Learning: Overarching view =====
-
-Reinforcement Learning (RL) is one of the most exciting fields of Machine Learning today, and also one
-of the oldest. It has been around since the 1950s, producing many interesting applications over the years.
-
-
-!split
-=====  Code example =====
-!bc pycod 
 """
 A simple example for Reinforcement Learning using table lookup Q-learning method.
 An agent "o" is on the left of a 1 dimensional world, the treasure is on the rightmost location.
@@ -119,4 +104,3 @@ if __name__ == "__main__":
     q_table = rl()
     print('\r\nQ-table:\n')
 print(q_table)
-!ec
