@@ -27,12 +27,15 @@ The course has several numerical projects and numerical exercises that are meant
 The course introduces a variety of central algorithms and methods
 essential for studies of data analysis and machine learning. The course is project based and through the various projects, normally three, the students will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying these systems, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
-- Learn about basic data analysis, Bayesian statistics, Monte Carlo methods, data optimization and machine learning;
+- Learn about basic data analysis, statistical analysis, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
 - Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications;
 - Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
-- Learn about various neural networks and Boltzmann machines;
+- Learn about various neural networks and deep  learning methods for supervised and unsupervised learning;
+- Learn about about decision trees and random forests
+- Learn about support vector machines and kernel transformations
+- Reduction of data sets, from PCA to clustering
 - Work on numerical projects to illustrate the theory. The projects play a central role and students are expected to know modern programming languages like Python or C++.  
 
 ## Prerequisites
@@ -52,7 +55,7 @@ The following topics will be covered
 - Simpler models, binomial distribution, the Poisson distribution, simple and multivariate normal distributions;
 - Central elements of Bayesian statistics and modeling;
 - Central elements from linear algebra
-- Cubic splines and gradient methods for data optimization
+- Gradient methods for data optimization
 - Monte Carlo methods, Markov chains, Metropolis-Hastings algorithm;
 - Linear methods for regression and classification;
 - Estimation of errors using cross-validation, blocking, bootstrapping and jackknife methods;
@@ -63,8 +66,7 @@ The following topics will be covered
 
 The following topics will be covered
 - Linear Regression and Logistic Regression;
-- Boltzmann machines;
-- Neural networks;
+- Neural networks and deep learning;
 - Decisions trees and nearest neighbor algorithms
 - Support vector machines
 
