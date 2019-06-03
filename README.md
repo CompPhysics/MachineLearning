@@ -35,7 +35,7 @@ essential for studies of data analysis and machine learning. The course is proje
 - Learn about various neural networks and deep  learning methods for supervised and unsupervised learning;
 - Learn about about decision trees and random forests
 - Learn about support vector machines and kernel transformations
-- Reduction of data sets, from PCA to clustering
+- Reduction of data sets, from PCA to clustering, supervised and unsupervided methods
 - Work on numerical projects to illustrate the theory. The projects play a central role and students are expected to know modern programming languages like Python or C++.  
 
 ## Prerequisites
