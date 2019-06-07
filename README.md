@@ -54,21 +54,22 @@ The following topics will be covered
 - Basic concepts, expectation values, variance, covariance, correlation functions and errors;
 - Simpler models, binomial distribution, the Poisson distribution, simple and multivariate normal distributions;
 - Central elements of Bayesian statistics and modeling;
-- Central elements from linear algebra
 - Gradient methods for data optimization
 - Monte Carlo methods, Markov chains, Metropolis-Hastings algorithm;
 - Linear methods for regression and classification;
 - Estimation of errors using cross-validation, blocking, bootstrapping and jackknife methods;
 - Practical optimization using Singular-value decomposition and least squares for parameterizing data.
 
-
-### Machine learning, mainly supervised learning
+### Machine learning
 
 The following topics will be covered
 - Linear Regression and Logistic Regression;
 - Neural networks and deep learning;
 - Decisions trees and nearest neighbor algorithms
 - Support vector machines
+- Bayesian Neural Networks
+- Boltzmann Machines
+- Dimensionality reduction, from PCA to cluster models
 
 All the above topics will be supported by examples, hands-on exercises and project work.
 
