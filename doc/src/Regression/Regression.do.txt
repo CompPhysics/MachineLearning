@@ -4,17 +4,35 @@ DATE: today
 
 
 !split
+===== Why Linear Regression (aka Ordinary Least Squares and family) =====
+
+Fitting a continuous function with linear parameterization in terms of the parameters  $\bm{\beta}$.
+* Method of choice for fitting a continuous function!
+* Gives an excellent introduction to central Machine Learning features with _understandable pedagogical_ links to other methods like _Neural Networks_, _Support Vector Machines_ etc
+* Analytical expression for the fitting parameters $\bm{\beta}$
+* Analytical expressions for statistical propertiers like mean values, variances, confidence intervals and more
+* Analytical relation with probabilistic interpretations 
+* Easy to introduce basic concepts like bias-variance tradeoff, cross-validation, resampling and regularization techniques and many other ML topics
+* Easy to code! And links well with classification problems and logistic regression and neural networks
+* Allows for _easy_ hands-on understanding of gradient descent methods
+* and many more features
+
+For more discussions of Ridge and Lasso regression, "Wessel van Wieringen's":"https://arxiv.org/abs/1509.09169" article is highly recommended.
+Similarly, "Mehta et al's article":"https://arxiv.org/abs/1803.08823" is also recommended.
+
+
+!split
 ===== Regression analysis, overarching aims  =====
 !bblock
 
-Regression modeling deals with the description of  the sampling distribution of a given random variable $y$ varies as function of another variable or a set of such variables $\hat{x} =[x_0, x_1,\dots, x_p]^T$. 
-The first variable is called the _dependent_, the _outcome_ or the _response_ variable while the set of variables $\hat{x}$ is called the independent variable, or the predictor variable or the explanatory variable. 
+Regression modeling deals with the description of  the sampling distribution of a given random variable $y$ and how it varies as function of another variable or a set of such variables $\bm{x} =[x_0, x_1,\dots, x_{n-1}]^T$. 
+The first variable is called the _dependent_, the _outcome_ or the _response_ variable while the set of variables $\bm{x}$ is called the independent variable, or the predictor variable or the explanatory variable. 
  
-A regression model aims at finding a likelihood function $p(y\vert \hat{x})$, that is the conditional distribution for $y$ with a given $\hat{x}$. The estimation of  $p(y\vert \hat{x})$ is made using a data set with 
+A regression model aims at finding a likelihood function $p(\bm{y}\vert \bm{x})$, that is the conditional distribution for $\bm{y}$ with a given $\bm{x}$. The estimation of  $p(\bm{y}\vert \bm{x})$ is made using a data set with 
 * $n$ cases $i = 0, 1, 2, \dots, n-1$ 
-* Response (dependent or outcome) variable $y_i$ with $i = 0, 1, 2, \dots, n-1$ 
-* $p$ Explanatory (independent or predictor) variables $\hat{x}_i=[x_{i0}, x_{i1}, \dots, x_{ip}]$ with $i = 0, 1, 2, \dots, n-1$   
- The goal of the regression analysis is to extract/exploit relationship between $y_i$ and $\hat{x}_i$ in or to infer causal dependencies, approximations to the likelihood functions, functional relationships and to make predictions .
+* Response (target, dependent or outcome) variable $y_i$ with $i = 0, 1, 2, \dots, n-1$ 
+* $p$ so-called explanatory (independent or predictor) variables $\bm{x}_i=[x_{i0}, x_{i1}, \dots, x_{ip-1}]$ with $i = 0, 1, 2, \dots, n-1$ and explanatory variables running from $0$ to $p-1$. See below for more explicit examples.   
+ The goal of the regression analysis is to extract/exploit relationship between $\bm{y}$ and $\bm{X}$ in or to infer causal dependencies, approximations to the likelihood functions, functional relationships and to make predictions, making fits and many other things.
 !eblock
 
 !split
@@ -23,34 +41,62 @@ A regression model aims at finding a likelihood function $p(y\vert \hat{x})$, th
 
 
 Consider an experiment in which $p$ characteristics of $n$ samples are
-measured. The data from this experiment are denoted $\mathbf{X}$, with
-$\mathbf{X}$ as above. The matrix $\mathbf{X}$ is called the *design
+measured. The data from this experiment, for various explanatory variables $p$ are normally represented by a matrix  
+$\mathbf{X}$.
+
+The matrix $\mathbf{X}$ is called the *design
 matrix*. Additional information of the samples is available in the
-form of $\mathbf{Y}$ (also as above). The variable $\mathbf{Y}$ is
+form of $\bm{y}$ (also as above). The variable $\bm{y}$ is
 generally referred to as the *response variable*. The aim of
-regression analysis is to explain $\mathbf{Y}$ in terms of
-$\mathbf{X}$ through a functional relationship like $Y_i =
+regression analysis is to explain $\bm{y}$ in terms of
+$\bm{X}$ through a functional relationship like $y_i =
 f(\mathbf{X}_{i,\ast})$. When no prior knowledge on the form of
 $f(\cdot)$ is available, it is common to assume a linear relationship
-between $\mathbf{X}$ and $\mathbf{Y}$. This assumption gives rise to
-the *linear regression model* where $\beta = (\beta_1, \ldots,
-\beta_p)^{\top}$ is the *regression parameter*. The parameter
-$\beta_j$, $j=1, \ldots, p$, represents the effect size of covariate
-$j$ on the response. That is, for each unit change in covariate $j$
-(while keeping the other covariates fixed) the observed change in the
-response is equal to $\beta_j$.  
+between $\bm{X}$ and $\bm{y}$. This assumption gives rise to
+the *linear regression model* where $\bm{\beta} = [\beta_0, \ldots,
+\beta_{p-1}]^{T}$ are the *regression parameters*. 
+
+Linear regression gives us a set of analytical equations for the parameters $\beta_j$.
 
 !eblock
+
+
+
+!split
+=====  Examples  =====
+!bblock
+In order to understand the relation among the predictors $p$, the set of data $n$ and the target (outcome, output etc) $\bm{y}$,
+consider the model we discussed for describing nuclear binding energies. 
+
+There we assumed that we could parametrize the data using a polynomial approximation based on the liquid drop model.
+Assuming 
+!bt
+\[
+BE(A) = a_0+a_1A+a_2A^{2/3}+a_3A^{-1/3}+a_4A^{-1},
+\]
+!et
+we have five predictors, that is the intercept, the $A$ dependent term, the $A^{2/3}$ term and the $A^{-1/3}$ and $A^{-1}$ terms.
+This gives $p=0,1,2,3,4$. Furthermore we have $n$ entries for each predictor. It means that our design matrix is a 
+$p\times n$ matrix $\bm{X}$.
+
+Here the predictors are based on a model we have made. A popular data set which is widely encountered in ML applications is the
+so-called "credit card default data from Taiwan":"https://www.sciencedirect.com/science/article/pii/S0957417407006719?via%3Dihub". The data set contains data on $n=30000$ credit card holders with predictors like gender, marital status, age, profession, education, etc. In total there are $24$ such predictors or attributes leading to a design matrix of dimensionality $24 \times 30000$
+
+!eblock
+
+
+
+
 
 !split
 ===== General linear models  =====
 !bblock
-Before we proceed let us study a case from linear algebra where we aim at fitting a set of data $\hat{y}=[y_0,y_1,\dots,y_{n-1}]$. We could think of these data as a result of an experiment or a complicated numerical experiment. These data are functions of a series of variables $\hat{x}=[x_0,x_1,\dots,x_{n-1}]$, that is $y_i = y(x_i)$ with $i=0,1,2,\dots,n-1$. The variables $x_i$ could represent physical quantities like time, temperature, position etc. We assume that $y(x)$ is a smooth function. 
+Before we proceed let us study a case from linear algebra where we aim at fitting a set of data $\bm{y}=[y_0,y_1,\dots,y_{n-1}]$. We could think of these data as a result of an experiment or a complicated numerical experiment. These data are functions of a series of variables $\bm{x}=[x_0,x_1,\dots,x_{n-1}]$, that is $y_i = y(x_i)$ with $i=0,1,2,\dots,n-1$. The variables $x_i$ could represent physical quantities like time, temperature, position etc. We assume that $y(x)$ is a smooth function. 
 
 Since obtaining these data points may not be trivial, we want to use these data to fit a function which can allow us to make predictions for values of $y$ which are not in the present set. The perhaps simplest approach is to assume we can parametrize our function in terms of a polynomial of degree $n-1$ with $n$ points, that is
 !bt
 \[
-y=y(x) \rightarrow y(x_i)=\tilde{y}_i+\epsilon_i=\sum_{j=0}^{n-1} \beta_i x_i^j+\epsilon_i,
+y=y(x) \rightarrow y(x_i)=\tilde{y}_i+\epsilon_i=\sum_{j=0}^{n-1} \beta_j x_i^j+\epsilon_i,
 \]
 !et
 where $\epsilon_i$ is the error in our approximation. 
@@ -68,37 +114,37 @@ y_0&=\beta_0+\beta_1x_0^1+\beta_2x_0^2+\dots+\beta_{n-1}x_0^{n-1}+\epsilon_0\\
 y_1&=\beta_0+\beta_1x_1^1+\beta_2x_1^2+\dots+\beta_{n-1}x_1^{n-1}+\epsilon_1\\
 y_2&=\beta_0+\beta_1x_2^1+\beta_2x_2^2+\dots+\beta_{n-1}x_2^{n-1}+\epsilon_2\\
 \dots & \dots \\
-y_{n-1}&=\beta_0+\beta_1x_{n-1}^1+\beta_2x_{n-1}^2+\dots+\beta_1x_{n-1}^{n-1}+\epsilon_{n-1}.\\
+y_{n-1}&=\beta_0+\beta_1x_{n-1}^1+\beta_2x_{n-1}^2+\dots+\beta_{n-1}x_{n-1}^{n-1}+\epsilon_{n-1}.\\
 \end{align*}
 !et
 !eblock
 
 
 !split
-===== Rewriting the fitting procedure as a linear algebra problem, follows  =====
+===== Rewriting the fitting procedure as a linear algebra problem, more details  =====
 !bblock
 Defining the vectors
 !bt
 \[
-\hat{y} = [y_0,y_1, y_2,\dots, y_{n-1}]^T,
+\bm{y} = [y_0,y_1, y_2,\dots, y_{n-1}]^T,
 \]
 !et
 and
 !bt
 \[
-\hat{\beta} = [\beta_0,\beta_1, \beta_2,\dots, \beta_{n-1}]^T,
+\bm{\beta} = [\beta_0,\beta_1, \beta_2,\dots, \beta_{n-1}]^T,
 \]
 !et
 and
 !bt
 \[
-\hat{\epsilon} = [\epsilon_0,\epsilon_1, \epsilon_2,\dots, \epsilon_{n-1}]^T,
+\bm{\epsilon} = [\epsilon_0,\epsilon_1, \epsilon_2,\dots, \epsilon_{n-1}]^T,
 \]
 !et
-and the matrix
+and the design matrix
 !bt
 \[
-\hat{X}=
+\bm{X}=
 \begin{bmatrix} 
 1& x_{0}^1 &x_{0}^2& \dots & \dots &x_{0}^{n-1}\\
 1& x_{1}^1 &x_{1}^2& \dots & \dots &x_{1}^{n-1}\\
@@ -111,17 +157,23 @@ and the matrix
 we can rewrite our equations as
 !bt
 \[
-\hat{y} = \hat{X}\hat{\beta}+\hat{\epsilon}.
+\bm{y} = \bm{X}\bm{\beta}+\bm{\epsilon}.
 \]
 !et
+The above design matrix is called a "Vandermonde matrix":"https://en.wikipedia.org/wiki/Vandermonde_matrix".
 !eblock
 
 
 !split
 ===== Generalizing the fitting procedure as a linear algebra problem  =====
 !bblock
-We are obviously not limited to the above polynomial. We could replace the various powers of $x$ with elements of Fourier series, that is, instead of $x_i^j$ we could have $\cos{(j x_i)}$ or $\sin{(j x_i)}$, or time series or other orthogonal functions.
-For every set of values $y_i,x_i$ we can then generalize the equations to 
+
+We are obviously not limited to the above polynomial expansions.  We
+could replace the various powers of $x$ with elements of Fourier
+series or instead of $x_i^j$ we could have $\cos{(j x_i)}$ or $\sin{(j
+x_i)}$, or time series or other orthogonal functions.  For every set
+of values $y_i,x_i$ we can then generalize the equations to
+
 !bt
 \begin{align*}
 y_0&=\beta_0x_{00}+\beta_1x_{01}+\beta_2x_{02}+\dots+\beta_{n-1}x_{0n-1}+\epsilon_0\\
@@ -130,19 +182,21 @@ y_2&=\beta_0x_{20}+\beta_1x_{21}+\beta_2x_{22}+\dots+\beta_{n-1}x_{2n-1}+\epsilo
 \dots & \dots \\
 y_{i}&=\beta_0x_{i0}+\beta_1x_{i1}+\beta_2x_{i2}+\dots+\beta_{n-1}x_{in-1}+\epsilon_i\\
 \dots & \dots \\
-y_{n-1}&=\beta_0x_{n-1,0}+\beta_1x_{n-1,2}+\beta_2x_{n-1,2}+\dots+\beta_1x_{n-1,n-1}+\epsilon_{n-1}.\\
+y_{n-1}&=\beta_0x_{n-1,0}+\beta_1x_{n-1,2}+\beta_2x_{n-1,2}+\dots+\beta_{n-1}x_{n-1,n-1}+\epsilon_{n-1}.\\
 \end{align*}
 !et
+
+_Note that we have $p=n$ here. The matrix is symmetric. This is generally not the case!_
 !eblock
 
 
 !split
 ===== Generalizing the fitting procedure as a linear algebra problem  =====
 !bblock
-We redefine in turn the matrix $\hat{X}$ as
+We redefine in turn the matrix $\bm{X}$ as
 !bt
 \[
-\hat{X}=
+\bm{X}=
 \begin{bmatrix} 
 x_{00}& x_{01} &x_{02}& \dots & \dots &x_{0,n-1}\\
 x_{10}& x_{11} &x_{12}& \dots & \dots &x_{1,n-1}\\
@@ -155,17 +209,17 @@ x_{n-1,0}& x_{n-1,1} &x_{n-1,2}& \dots & \dots &x_{n-1,n-1}\\
 and without loss of generality we rewrite again  our equations as
 !bt
 \[
-\hat{y} = \hat{X}\hat{\beta}+\hat{\epsilon}.
+\bm{y} = \bm{X}\bm{\beta}+\bm{\epsilon}.
 \]
 !et
-The left-hand side of this equation forms know. Our error vector $\hat{\epsilon}$ and the parameter vector $\hat{\beta}$ are our unknow quantities. How can we obtain the optimal set of $\beta_i$ values? 
+The left-hand side of this equation is kwown. Our error vector $\bm{\epsilon}$ and the parameter vector $\bm{\beta}$ are our unknow quantities. How can we obtain the optimal set of $\beta_i$ values? 
 !eblock
 
 
 !split
 ===== Optimizing our parameters  =====
 !bblock
-We have defined the matrix $\hat{X}$
+We have defined the matrix $\bm{X}$ via the equations
 !bt
 \begin{align*}
 y_0&=\beta_0x_{00}+\beta_1x_{01}+\beta_2x_{02}+\dots+\beta_{n-1}x_{0n-1}+\epsilon_0\\
@@ -174,69 +228,191 @@ y_2&=\beta_0x_{20}+\beta_1x_{21}+\beta_2x_{22}+\dots+\beta_{n-1}x_{2n-1}+\epsilo
 \dots & \dots \\
 y_{i}&=\beta_0x_{i0}+\beta_1x_{i1}+\beta_2x_{i2}+\dots+\beta_{n-1}x_{in-1}+\epsilon_1\\
 \dots & \dots \\
-y_{n-1}&=\beta_0x_{n-1,0}+\beta_1x_{n-1,2}+\beta_2x_{n-1,2}+\dots+\beta_1x_{n-1,n-1}+\epsilon_{n-1}.\\
+y_{n-1}&=\beta_0x_{n-1,0}+\beta_1x_{n-1,2}+\beta_2x_{n-1,2}+\dots+\beta_{n-1}x_{n-1,n-1}+\epsilon_{n-1}.\\
 \end{align*}
 !et
+
+As we noted above, we stayed with a system with the design matrix 
+ $\bm{X}\in {\mathbb{R}}^{n\times n}$, that is we have $p=n$. For reasons to come later (algorithmic arguments) we will hereafter define 
+our matrix as $\bm{X}\in {\mathbb{R}}^{n\times p}$, with the predictors refering to the column numbers and the entries $n$ being the row elements.
+
 !eblock
+
+
+!split
+===== Our model for the nuclear binding energies =====
+
+In our "introductory notes":"https://compphysics.github.io/MachineLearningMSU/doc/pub/Introduction/html/Introduction.html" we looked at the so-called "liguid drop model":"https://en.wikipedia.org/wiki/Semi-empirical_mass_formula". Let us remind ourselves about what we did by looking at the code.
+
+We restate the parts of the code we are most interested in.
+!bc pycod
+# Common imports
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from IPython.display import display
+import os
+
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+infile = open(data_path("MassEval2016.dat"),'r')
+
+
+# Read the experimental data with Pandas
+Masses = pd.read_fwf(infile, usecols=(2,3,4,6,11),
+              names=('N', 'Z', 'A', 'Element', 'Ebinding'),
+              widths=(1,3,5,5,5,1,3,4,1,13,11,11,9,1,2,11,9,1,3,1,12,11,1),
+              header=39,
+              index_col=False)
+
+# Extrapolated values are indicated by '#' in place of the decimal place, so
+# the Ebinding column won't be numeric. Coerce to float and drop these entries.
+Masses['Ebinding'] = pd.to_numeric(Masses['Ebinding'], errors='coerce')
+Masses = Masses.dropna()
+# Convert from keV to MeV.
+Masses['Ebinding'] /= 1000
+
+# Group the DataFrame by nucleon number, A.
+Masses = Masses.groupby('A')
+# Find the rows of the grouped DataFrame with the maximum binding energy.
+Masses = Masses.apply(lambda t: t[t.Ebinding==t.Ebinding.max()])
+A = Masses['A']
+Z = Masses['Z']
+N = Masses['N']
+Element = Masses['Element']
+Energies = Masses['Ebinding']
+
+# Now we set up the design matrix X
+X = np.zeros((len(A),5))
+X[:,0] = 1
+X[:,1] = A
+X[:,2] = A**(2.0/3.0)
+X[:,3] = A**(-1.0/3.0)
+X[:,4] = A**(-1.0)
+# Then nice printout using pandas
+DesignMatrix = pd.DataFrame(X)
+DesignMatrix.index = A
+DesignMatrix.columns = ['1', 'A', 'A^(2/3)', 'A^(-1/3)', '1/A']
+display(DesignMatrix)
+!ec
+
+With $\bm{\beta}\in {\mathbb{R}}^{p\times 1}$, it means that we will hereafter write our equations for the approximation as
+!bt
+\[
+\bm{\tilde{y}}= \bm{X}\bm{\beta},
+\]
+!et
+throughout these lectures. 
 
 
 !split
 ===== Optimizing our parameters, more details  =====
 !bblock
-We well use this matrix to define the approximation $\hat{\tilde{y}}$ via the unknown quantity $\hat{\beta}$ as
+With the above we use the design matrix to define the approximation $\bm{\tilde{y}}$ via the unknown quantity $\bm{\beta}$ as
 !bt
 \[
-\hat{\tilde{y}}= \hat{X}\hat{\beta},
+\bm{\tilde{y}}= \bm{X}\bm{\beta},
 \]
 !et
-and in order to find the optimal parameters $\beta_i$ instead of solving the above linear algebra problem, we define a function which gives a measure of the spread between the values $y_i$ (which represent hopefully the exact values) and the parametrized values $\tilde{y}_i$, namely
+and in order to find the optimal parameters $\beta_i$ instead of solving the above linear algebra problem, we define a function which gives a measure of the spread between the values $y_i$ (which represent hopefully the exact values) and the parameterized values $\tilde{y}_i$, namely
 !bt
 \[
-Q(\hat{\beta})=\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\left(\hat{y}-\hat{\tilde{y}}\right)^T\left(\hat{y}-\hat{\tilde{y}}\right),
+C(\bm{\beta})=\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\left\{\left(\bm{y}-\bm{\tilde{y}}\right)^T\left(\bm{y}-\bm{\tilde{y}}\right)\right\},
 \]
 !et
-or using the matrix $\hat{X}$ as
+or using the matrix $\bm{X}$ and in a more compact matrix-vector notation as
 !bt
 \[
-Q(\hat{\beta})=\left(\hat{y}-\hat{X}\hat{\beta}\right)^T\left(\hat{y}-\hat{X}\hat{\beta}\right).
+C(\bm{\beta})=\frac{1}{n}\left\{\left(\bm{y}-\bm{X}^T\bm{\beta}\right)^T\left(\bm{y}-\bm{X}^T\bm{\beta}\right)\right\}.
 \]
 !et
+This function is one possible way to define the so-called cost function.
+
+
+
+It is also common to define
+the function $Q$ as
+
+!bt
+\[
+C(\bm{\beta})=\frac{1}{2n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2,
+\]
+!et
+since when taking the first derivative with respect to the unknown parameters $\beta$, the factor of $2$ cancels out. 
 !eblock
 
 
 !split
 ===== Interpretations and optimizing our parameters  =====
 !bblock
+
 The function 
 !bt
 \[
-Q(\hat{\beta})=\left(\hat{y}-\hat{X}\hat{\beta}\right)^T\left(\hat{y}-\hat{X}\hat{\beta}\right),
+C(\bm{\beta})=\frac{1}{n}\left\{\left(\bm{y}-\bm{X}\bm{\beta}\right)^T\left(\bm{y}-\bm{X}\bm{\beta}\right)\right\},
 \]
 !et
-can be linked to the variance of the quantity $y_i$ if we interpret the latter as the mean value of for example a numerical  experiment. When linking below with the maximum likelihood approach below, we will indeed interpret $y_i$ as a mean value
+can be linked to the variance of the quantity $y_i$ if we interpret the latter as the mean value. 
+When linking below with the maximum likelihood approach below, we will indeed interpret $y_i$ as a mean value (see exercises)
 !bt
 \[
 y_{i}=\langle y_i \rangle = \beta_0x_{i,0}+\beta_1x_{i,1}+\beta_2x_{i,2}+\dots+\beta_{n-1}x_{i,n-1}+\epsilon_i,
 \]
 !et
-where $\langle y_i \rangle$ is the mean value. Keep in mind also that till now  we have treated $y_i$ as the exact value. Normally, the response (dependent or outcome) variable $y_i$ the outcome of a numerical experiment or another type of experiment and is thus only an approximation to the true value. It is then always accompanied by an error estimate, often limited to a statistical error estimate given by the standard deviation discussed earlier. In the discussion here we will treat $y_i$ as our exact value for the response variable.
 
-In order to find the parameters $\beta_i$ we will then minimize the spread of $Q(\hat{\beta})$ by requiring
+where $\langle y_i \rangle$ is the mean value. Keep in mind also that
+till now we have treated $y_i$ as the exact value. Normally, the
+response (dependent or outcome) variable $y_i$ the outcome of a
+numerical experiment or another type of experiment and is thus only an
+approximation to the true value. It is then always accompanied by an
+error estimate, often limited to a statistical error estimate given by
+the standard deviation discussed earlier. In the discussion here we
+will treat $y_i$ as our exact value for the response variable.
+
+In order to find the parameters $\beta_i$ we will then minimize the spread of $C(\bm{\beta})$, that is we are going to solve the problem
 !bt
 \[
-\frac{\partial Q(\hat{\beta})}{\partial \beta_j} = \frac{\partial }{\partial \beta_j}\left[ \sum_{i=0}^{n-1}\left(y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}\right)^2\right]=0, 
+{\displaystyle \min_{\bm{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\bm{y}-\bm{X}\bm{\beta}\right)^T\left(\bm{y}-\bm{X}\bm{\beta}\right)\right\}.
+\]
+!et
+In practical terms it means we will require
+!bt
+\[
+\frac{\partial C(\bm{\beta})}{\partial \beta_j} = \frac{\partial }{\partial \beta_j}\left[ \frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}\right)^2\right]=0, 
 \]
 !et
 which results in
 !bt
 \[
-\frac{\partial Q(\hat{\beta})}{\partial \beta_j} = -2\left[ \sum_{i=0}^{n-1}x_{ij}\left(y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}\right)\right]=0, 
+\frac{\partial C(\bm{\beta})}{\partial \beta_j} = -\frac{2}{n}\left[ \sum_{i=0}^{n-1}x_{ij}\left(y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}\right)\right]=0, 
 \]
 !et
 or in a matrix-vector form as
 !bt
 \[
-\frac{\partial Q(\hat{\beta})}{\partial \hat{\beta}} = 0 = \hat{X}^T\left( \hat{y}-\hat{X}\hat{\beta}\right).  
+\frac{\partial C(\bm{\beta})}{\partial \bm{\beta}} = 0 = \bm{X}^T\left( \bm{y}-\bm{X}\bm{\beta}\right).  
 \]
 !et
 
@@ -250,63 +426,155 @@ or in a matrix-vector form as
 We can rewrite
 !bt
 \[
-\frac{\partial Q(\hat{\beta})}{\partial \hat{\beta}} = 0 = \hat{X}^T\left( \hat{y}-\hat{X}\hat{\beta}\right),  
+\frac{\partial C(\bm{\beta})}{\partial \bm{\beta}} = 0 = \bm{X}^T\left( \bm{y}-\bm{X}\bm{\beta}\right),  
 \]
 !et
 as
 !bt
 \[
-\hat{X}^T\hat{y} = \hat{X}^T\hat{X}\hat{\beta},  
+\bm{X}^T\bm{y} = \bm{X}^T\bm{X}\bm{\beta},  
 \]
 !et
-and if the matrix $\hat{X}^T\hat{X}$ is invertible we have the solution
+and if the matrix $\bm{X}^T\bm{X}$ is invertible we have the solution
 !bt
 \[
-\hat{\beta} =\left(\hat{X}^T\hat{X}\right)^{-1}\hat{X}^T\hat{y}.
+\bm{\beta} =\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}.
 \]
 !et
+
+We note also that since our design matrix is defined as $\bm{X}\in
+{\mathbb{R}}^{n\times p}$, the product $\bm{X}^T\bm{X} \in
+{\mathbb{R}}^{p\times p}$.  In the above case we have that $p \ll n$,
+in our case $p=5$ meaning that we end up with inverting a small
+$5\times 5$ matrix. This is a rather common situation, in many cases we end up with low-dimensional
+matrices to invert. The methods discussed here and for many other
+supervised learning algorithms like classification with logistic
+regression or support vector machines, exhibit dimensionalities which
+allow for the usage of direct linear algebra methods such as _LU_ decomposition or _Singular Value Decomposition_ (SVD) for finding the inverse of the matrix
+$\bm{X}^T\bm{X}$. 
+
+
+
+
 
 !eblock
 
 !split
 ===== Interpretations and optimizing our parameters  =====
 !bblock
-The residuals $\hat{\epsilon}$ are in turn given by
+The residuals $\bm{\epsilon}$ are in turn given by
 !bt
 \[
-\hat{\epsilon} = \hat{y}-\hat{\tilde{y}} = \hat{y}-\hat{X}\hat{\beta},
+\bm{\epsilon} = \bm{y}-\bm{\tilde{y}} = \bm{y}-\bm{X}\bm{\beta},
 \]
 !et
 and with 
 !bt
 \[
-\hat{X}^T\left( \hat{y}-\hat{X}\hat{\beta}\right)= 0, 
+\bm{X}^T\left( \bm{y}-\bm{X}\bm{\beta}\right)= 0, 
 \]
 !et
 we have
 !bt
 \[
-\hat{X}^T\hat{\epsilon}=\hat{X}^T\left( \hat{y}-\hat{X}\hat{\beta}\right)= 0, 
+\bm{X}^T\bm{\epsilon}=\bm{X}^T\left( \bm{y}-\bm{X}\bm{\beta}\right)= 0, 
 \]
 !et
-meaning that the solution for $\hat{\beta}$ is the one which minimizes the residuals.  Later we will link this with the maximum likelihood approach.
+meaning that the solution for $\bm{\beta}$ is the one which minimizes the residuals.  Later we will link this with the maximum likelihood approach.
 
 !eblock
+
+
+Let us now return to our nuclear binding energies and simply code the above equations. 
+
+!split
+===== Own code for Ordinary Least Squares =====
+
+It is rather straightforward to implement the matrix inversion and obtain the parameters $\bm{\beta}$. After having defined the matrix $\bm{X}$ we simply need to 
+write
+!bc pycod 
+# matrix inversion to find beta
+beta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(Energies)
+# and then make the prediction
+ytilde = X @ beta
+!ec
+Alternatively, you can use the least squares functionality in _Numpy_ as
+!bc pycod 
+fit = np.linalg.lstsq(X, Energies, rcond =None)[0]
+ytildenp = np.dot(fit,X.T)
+!ec
+
+And finally we plot our fit with and compare with data
+!bc pycod
+Masses['Eapprox']  = ytilde
+# Generate a plot comparing the experimental with the fitted values values.
+fig, ax = plt.subplots()
+ax.set_xlabel(r'$A = N + Z$')
+ax.set_ylabel(r'$E_\mathrm{bind}\,/\mathrm{MeV}$')
+ax.plot(Masses['A'], Masses['Ebinding'], alpha=0.7, lw=2,
+            label='Ame2016')
+ax.plot(Masses['A'], Masses['Eapprox'], alpha=0.7, lw=2, c='m',
+            label='Fit')
+ax.legend()
+save_fig("Masses2016OLS")
+plt.show()
+!ec
+
+!split
+===== Adding error analysis and training set up =====
+
+We can easily test our fit by computing the $R2$ score that we discussed in connection with the functionality of _Scikit_Learn_ in the introductory slides.
+Since we are not using _Scikit-Learn here we can define our own $R2$ function as
+!bc pycod 
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_model)) ** 2)
+!ec
+and we would be using it as 
+!bc pycod 
+print(R2(Energies,ytilde))
+!ec
+
+We can easily add our _MSE_ score as
+!bc pycod
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+print(MSE(Energies,ytilde))
+!ec
+and finally the relative error as
+!bc pycod
+def RelativeError(y_data,y_model):
+    return abs((y_data-y_model)/y_data)
+print(RelativeError(Energies, ytilde))
+!ec
+
+
+
 
 
 !split
 ===== The $\chi^2$ function  =====
 !bblock
 
-Normally, the response (dependent or outcome) variable $y_i$ the outcome of a numerical experiment or another type of experiment and is thus only an approximation to the true value. It is then always accompanied by an error estimate, often limited to a statistical error estimate given by the standard deviation discussed earlier. In the discussion here we will treat $y_i$ as our exact value for the response variable.
+Normally, the response (dependent or outcome) variable $y_i$ is the
+outcome of a numerical experiment or another type of experiment and is
+thus only an approximation to the true value. It is then always
+accompanied by an error estimate, often limited to a statistical error
+estimate given by the standard deviation discussed earlier. In the
+discussion here we will treat $y_i$ as our exact value for the
+response variable.
 
-Introducing the standard deviation $\sigma_i$ for each measurement $y_i$, we define now the $\chi^2$ function as  
+Introducing the standard deviation $\sigma_i$ for each measurement
+$y_i$, we define now the $\chi^2$ function (omitting the $1/n$ term)
+as
+
 !bt
 \[
-\chi^2(\hat{\beta})=\sum_{i=0}^{n-1}\frac{\left(y_i-\tilde{y}_i\right)^2}{\sigma_i^2}=\left(\hat{y}-\hat{\tilde{y}}\right)^T\frac{1}{\hat{\Sigma^2}}\left(\hat{y}-\hat{\tilde{y}}\right),
+\chi^2(\bm{\beta})=\frac{1}{n}\sum_{i=0}^{n-1}\frac{\left(y_i-\tilde{y}_i\right)^2}{\sigma_i^2}=\frac{1}{n}\left\{\left(\bm{y}-\bm{\tilde{y}}\right)^T\frac{1}{\bm{\Sigma^2}}\left(\bm{y}-\bm{\tilde{y}}\right)\right\},
 \]
 !et
-where the matrix $\hat{\Sigma}$ is a diagonal matrix with $\sigma_i$ as matrix elements. 
+where the matrix $\bm{\Sigma}$ is a diagonal matrix with $\sigma_i$ as matrix elements. 
 
 !eblock
 
@@ -314,25 +582,25 @@ where the matrix $\hat{\Sigma}$ is a diagonal matrix with $\sigma_i$ as matrix e
 ===== The $\chi^2$ function  =====
 !bblock
 
-In order to find the parameters $\beta_i$ we will then minimize the spread of $\chi^2(\hat{\beta})$ by requiring
+In order to find the parameters $\beta_i$ we will then minimize the spread of $\chi^2(\bm{\beta})$ by requiring
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_j} = \frac{\partial }{\partial \beta_j}\left[ \sum_{i=0}^{n-1}\left(\frac{y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}}{\sigma_i}\right)^2\right]=0, 
+\frac{\partial \chi^2(\bm{\beta})}{\partial \beta_j} = \frac{\partial }{\partial \beta_j}\left[ \frac{1}{n}\sum_{i=0}^{n-1}\left(\frac{y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}}{\sigma_i}\right)^2\right]=0, 
 \]
 !et
 which results in
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_j} = -2\left[ \sum_{i=0}^{n-1}\frac{x_{ij}}{\sigma_i}\left(\frac{y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}}{\sigma_i}\right)\right]=0, 
+\frac{\partial \chi^2(\bm{\beta})}{\partial \beta_j} = -\frac{2}{n}\left[ \sum_{i=0}^{n-1}\frac{x_{ij}}{\sigma_i}\left(\frac{y_i-\beta_0x_{i,0}-\beta_1x_{i,1}-\beta_2x_{i,2}-\dots-\beta_{n-1}x_{i,n-1}}{\sigma_i}\right)\right]=0, 
 \]
 !et
 or in a matrix-vector form as
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \hat{\beta}} = 0 = \hat{A}^T\left( \hat{b}-\hat{A}\hat{\beta}\right).  
+\frac{\partial \chi^2(\bm{\beta})}{\partial \bm{\beta}} = 0 = \bm{A}^T\left( \bm{b}-\bm{A}\bm{\beta}\right).  
 \]
 !et
-where we have defined the matrix $\hat{A} =\hat{X}/\hat{\Sigma}$ with matrix elements $a_{ij} = x_{ij}/\sigma_i$ and the vector $\hat{b}$ with elements $b_i = y_i/\sigma_i$.   
+where we have defined the matrix $\bm{A} =\bm{X}/\bm{\Sigma}$ with matrix elements $a_{ij} = x_{ij}/\sigma_i$ and the vector $\bm{b}$ with elements $b_i = y_i/\sigma_i$.   
 !eblock
 
 !split
@@ -342,19 +610,19 @@ where we have defined the matrix $\hat{A} =\hat{X}/\hat{\Sigma}$ with matrix ele
 We can rewrite
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \hat{\beta}} = 0 = \hat{A}^T\left( \hat{b}-\hat{A}\hat{\beta}\right),  
+\frac{\partial \chi^2(\bm{\beta})}{\partial \bm{\beta}} = 0 = \bm{A}^T\left( \bm{b}-\bm{A}\bm{\beta}\right),  
 \]
 !et
 as
 !bt
 \[
-\hat{A}^T\hat{b} = \hat{A}^T\hat{A}\hat{\beta},  
+\bm{A}^T\bm{b} = \bm{A}^T\bm{A}\bm{\beta},  
 \]
 !et
-and if the matrix $\hat{A}^T\hat{A}$ is invertible we have the solution
+and if the matrix $\bm{A}^T\bm{A}$ is invertible we have the solution
 !bt
 \[
-\hat{\beta} =\left(\hat{A}^T\hat{A}\right)^{-1}\hat{A}^T\hat{b}.
+\bm{\beta} =\left(\bm{A}^T\bm{A}\right)^{-1}\bm{A}^T\bm{b}.
 \]
 !et
 !eblock
@@ -366,10 +634,10 @@ and if the matrix $\hat{A}^T\hat{A}$ is invertible we have the solution
 If we then introduce the matrix
 !bt
 \[
-\hat{H} =  \left(\hat{A}^T\hat{A}\right)^{-1},
+\bm{H} =  \left(\bm{A}^T\bm{A}\right)^{-1},
 \]
 !et
-we have then the following expression for the parameters $\beta_j$ (the matrix elements of $\hat{H}$ are $h_{ij}$)
+we have then the following expression for the parameters $\beta_j$ (the matrix elements of $\bm{H}$ are $h_{ij}$)
 !bt
 \[
 \beta_j = \sum_{k=0}^{p-1}h_{jk}\sum_{i=0}^{n-1}\frac{y_i}{\sigma_i}\frac{x_{ik}}{\sigma_i} = \sum_{k=0}^{p-1}h_{jk}\sum_{i=0}^{n-1}b_ia_{ik}
@@ -401,13 +669,13 @@ y=y(x) \rightarrow y(x_i) \approx \beta_0+\beta_1 x_i.
 By computing the derivatives of $\chi^2$ with respect to $\beta_0$ and $\beta_1$ show that these are given by
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{n-1}\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0,
+\frac{\partial \chi^2(\bm{\beta})}{\partial \beta_0} = -2\left[ \frac{1}{n}\sum_{i=0}^{n-1}\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0,
 \]
 !et
 and
 !bt
 \[
-\frac{\partial \chi^2(\hat{\beta})}{\partial \beta_0} = -2\left[ \sum_{i=0}^{n-1}x_i\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0.
+\frac{\partial \chi^2(\bm{\beta})}{\partial \beta_1} = -\frac{2}{n}\left[ \sum_{i=0}^{n-1}x_i\left(\frac{y_i-\beta_0-\beta_1x_{i}}{\sigma_i^2}\right)\right]=0.
 \]
 !et
 !eblock
@@ -416,7 +684,7 @@ and
 ===== The $\chi^2$ function  =====
 !bblock
 
-For a linear fit we don't need to invert a matrix!!  
+For a linear fit (a first-order polynomial) we don't need to invert a matrix!!  
 Defining
 !bt
 \[
@@ -429,555 +697,488 @@ Defining
 \gamma_x =  \sum_{i=0}^{n-1}\frac{x_{i}}{\sigma_i^2},
 \]
 !et
+
 !bt
 \[
 \gamma_y = \sum_{i=0}^{n-1}\left(\frac{y_i}{\sigma_i^2}\right),
 \]
 !et
+
 !bt
 \[
 \gamma_{xx} =  \sum_{i=0}^{n-1}\frac{x_ix_{i}}{\sigma_i^2},
 \]
 !et
+
 !bt
 \[
 \gamma_{xy} = \sum_{i=0}^{n-1}\frac{y_ix_{i}}{\sigma_i^2},
 \]
 !et
+
 we obtain
+
 !bt
 \[
 \beta_0 = \frac{\gamma_{xx}\gamma_y-\gamma_x\gamma_y}{\gamma\gamma_{xx}-\gamma_x^2},
 \]
 !et
+
 !bt
 \[
 \beta_1 = \frac{\gamma_{xy}\gamma-\gamma_x\gamma_y}{\gamma\gamma_{xx}-\gamma_x^2}.
 \]
 !et
 
-This approach (different linear and non-linear regression) suffers often from both being underdetermined and overdetermined in the unknown coefficients $\beta_i$.  A better approach is to use the Singular Value Decomposition (SVD) method discussed below. Or using Lasso and Ridge regression. See below.
+This approach (different linear and non-linear regression) suffers
+often from both being underdetermined and overdetermined in the
+unknown coefficients $\beta_i$.  A better approach is to use the
+Singular Value Decomposition (SVD) method discussed below. Or using
+Lasso and Ridge regression. See below.
+
 !eblock
 
 
+!split
+===== Fitting an Equation of State for Dense Nuclear Matter =====
 
+Before we continue, let us introduce yet another example. We are going to fit the
+nuclear equation of state using results from many-body calculations.
+The equation of state we have made available here, as function of
+density, has been derived using modern nucleon-nucleon potentials with
+"the addition of three-body
+forces":"https://www.sciencedirect.com/science/article/pii/S0370157399001106". This
+time the file is presented as a standard _csv_ file.
+
+The beginning of the Python code here is similar to what you have seen before,
+with the same initializations and declarations. We use also _pandas_
+again, rather extensively in order to organize our data.
+
+The difference now is that we use _Scikit-Learn's_ regression tools
+instead of our own matrix inversion implementation. Furthermore, we
+sneak in _Ridge_ regression (to be discussed below) which includes a
+hyperparameter $\lambda$, also to be explained below.
 
 !split
-===== Simple regression model =====
-We are now ready to write our first program which aims at solving the above linear regression equations. We start with data we have produced ourselves, in this case normally distributed random numbers along the $x$-axis. These numbers define then the value of a function $y(x)=4+3x+N(0,1)$. Thereafter we order the $x$ values and employ our linear regression algorithm to set up the best fit. Here we find it useful to use the numpy function $c\_$ arrays where arrays are stacked along their last axis after being upgraded to at least two dimensions with ones post-pended to the shape. The following examples help in understanding what happens 
+=====  The code =====
+
 !bc pycod 
+# Common imports
+import os
 import numpy as np
-print(np.c_[np.array([1,2,3]), np.array([4,5,6])])
-print(np.c_[np.array([[1,2,3]]), 0, 0, np.array([[4,5,6]])])
-!ec
-
-!bc pycod
-# Importing various packages
-from random import random, seed
-import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-
-x = 2*np.random.rand(100,1)
-y = 4+3*x+np.random.randn(100,1)
-
-xb = np.c_[np.ones((100,1)), x]
-beta = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
-xnew = np.array([[0],[2]])
-xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(beta)
-
-plt.plot(xnew, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Linear Regression')
-plt.show()
-
-!ec
-
-We see that, as expected, a linear fit gives a seemingly (from the graph) good representation of the data.
-
-
-
-
-!split
-===== Simple regression model, now using _scikit-learn_ =====
-
-
-We can repeat the above algorithm using _scikit-learn_ as follows
-!bc pycod
-# Importing various packages
-from random import random, seed
-import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
+import sklearn.linear_model as skl
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
-x = 2*np.random.rand(100,1)
-y = 4+3*x+np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-xnew = np.array([[0],[2]])
-ypredict = linreg.predict(xnew)
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
 
-plt.plot(xnew, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Random numbers ')
-plt.show()
-!ec
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
 
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
 
-!split
-===== Simple linear regression model using _scikit-learn_ =====
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
 
-We start with perhaps our simplest possible example, using _scikit-learn_ to perform linear regression analysis on a data set produced by us. 
-What follows is a simple Python code where we have defined  function $y$ in terms of the variable $x$. Both are defined as vectors of dimension $1\times 100$. The entries to the vector $\hat{x}$  are given by random numbers generated with a uniform distribution with entries $x_i \in [0,1]$ (more about probability distribution functions later). These values are then used to define a function $y(x)$ (tabulated again as a vector) with a linear dependence on $x$ plus a random noise added via the normal distribution.
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
 
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
 
-The Numpy functions are imported used the _import numpy as np_
-statement and the random number generator for the uniform distribution
-is called using the function _np.random.rand()_, where we specificy
-that we want $100$ random variables.  Using Numpy we define
-automatically an array with the specified number of elements, $100$ in
-our case.  With the Numpy function _randn()_ we can compute random
-numbers with the normal distribution (mean value $\mu$ equal to zero and
-variance $\sigma^2$ set to one) and produce the values of $y$ assuming a linear
-dependence as function of $x$
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
 
-!bt
-\[
-y = 2x+N(0,1),
-\]
-!et
+infile = open(data_path("EoS.csv"),'r')
 
-where $N(0,1)$ represents random numbers generated by the normal
-distribution.  From _scikit-learn_ we import then the
-_LinearRegression_ functionality and make a prediction $\tilde{y} =
-\alpha + \beta x$ using the function _fit(x,y)_. We call the set of
-data $(\hat{x},\hat{y})$ for our training data. The Python package
-_scikit-learn_ has also a functionality which extracts the above
-fitting parameters $\alpha$ and $\beta$ (see below). Later we will
-distinguish between training data and test data.
+# Read the EoS data as  csv file and organize the data into two arrays with density and energies
+EoS = pd.read_csv(infile, names=('Density', 'Energy'))
+EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
+EoS = EoS.dropna()
+Energies = EoS['Energy']
+Density = EoS['Density']
+#  The design matrix now as function of various polytrops
+X = np.zeros((len(Density),4))
+X[:,3] = Density**(4.0/3.0)
+X[:,2] = Density
+X[:,1] = Density**(2.0/3.0)
+X[:,0] = 1
 
-For plotting we use the Python package
-"matplotlib":"https://matplotlib.org/" which produces publication
-quality figures. Feel free to explore the extensive
-"gallery":"https://matplotlib.org/gallery/index.html" of examples. In
-this example we plot our original values of $x$ and $y$ as well as the
-prediction _ypredict_ ($\tilde{y}$), which attempts at fitting our
-data with a straight line.
-
-The Python code follows here.
-!bc pycod
-# Importing various packages
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-
-x = np.random.rand(100,1)
-y = 2*x+np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-xnew = np.array([[0],[1]])
-ypredict = linreg.predict(xnew)
-
-plt.plot(xnew, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0,1.0,0, 5.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Simple Linear Regression')
-plt.show()
-!ec
-
-
-!split
-===== Simple linear regression model  =====
-
-This example serves several aims. It allows us to demonstrate several
-aspects of data analysis and later machine learning algorithms. The
-immediate visualization shows that our linear fit is not
-impressive. It goes through the data points, but there are many
-outliers which are not reproduced by our linear regression.  We could
-now play around with this small program and change for example the
-factor in front of $x$ and the normal distribution.  Try to change the
-function $y$ to
-
-!bt
-\[
-y = 10x+0.01 \times N(0,1),
-\]
-!et
-
-where $x$ is defined as before.  
-
-
-!split
-===== Less noise =====
-
-Does the fit look better? Indeed, by
-reducing the role of the normal distribution we see immediately that
-our linear prediction seemingly reproduces better the training
-set. However, this testing 'by the eye' is obviouly not satisfactory in the
-long run. Here we have only defined the training data and our model, and 
-have not discussed a more rigorous approach to the _cost_ function.
-
-
-!split
-===== How to study our fits =====
-
-We need more rigorous criteria in defining whether we have succeeded or
-not in modeling our training data.  You will be surprised to see that
-many scientists seldomly venture beyond this 'by the eye' approach. A
-standard approach for the *cost* function is the so-called $\chi^2$
-function 
-
-!bt 
-\[ \chi^2 = \frac{1}{n}
-\sum_{i=0}^{n-1}\frac{(y_i-\tilde{y}_i)^2}{\sigma_i^2}, 
-\] 
-!et 
-
-where $\sigma_i^2$ is the variance (to be defined later) of the entry
-$y_i$.  We may not know the explicit value of $\sigma_i^2$, it serves
-however the aim of scaling the equations and make the cost function
-dimensionless.  
-
-
-!split
-===== Minimizing the cost function =====
-
-Minimizing the cost function is a central aspect of
-our discussions to come. Finding its minima as function of the model
-parameters ($\alpha$ and $\beta$ in our case) will be a recurring
-theme in these series of lectures. Essentially all machine learning
-algorithms we will discuss center around the minimization of the
-chosen cost function. This depends in turn on our specific
-model for describing the data, a typical situation in supervised
-learning. Automatizing the search for the minima of the cost function is a
-central ingredient in all algorithms. Typical methods which are
-employed are various variants of _gradient_ methods. These will be
-discussed in more detail later. Again, you'll be surprised to hear that
-many practitioners minimize the above function ''by the eye', popularly dubbed as 
-'chi by the eye'. That is, change a parameter and see (visually and numerically) that 
-the  $\chi^2$ function becomes smaller. 
-
-!split
-===== Relative error =====
-
-There are many ways to define the cost function. A simpler approach is to look at the relative difference between the training data and the predicted data, that is we define 
-the relative error as
-
-!bt
-\[
-\epsilon_{\mathrm{relative}}= \frac{\vert \hat{y} -\hat{\tilde{y}}\vert}{\vert \hat{y}\vert}.
-\]
-!et
-We can modify easily the above Python code and plot the relative error instead
-!bc pycod
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-
-x = np.random.rand(100,1)
-y = 5*x+0.01*np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-ypredict = linreg.predict(x)
-
-plt.plot(x, np.abs(ypredict-y)/abs(y), "ro")
-plt.axis([0,1.0,0.0, 0.5])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$\epsilon_{\mathrm{relative}}$')
-plt.title(r'Relative error')
-plt.show()
-!ec
-
-Depending on the parameter in front of the normal distribution, we may
-have a small or larger relative error. Try to play around with
-different training data sets and study (graphically) the value of the
-relative error.
-
-
-!split
-===== The richness of _scikit-learn_ =====
-
-As mentioned above, _scikit-learn_ has an impressive functionality.
-We can for example extract the values of $\alpha$ and $\beta$ and
-their error estimates, or the variance and standard deviation and many
-other properties from the statistical data analysis. 
-
-Here we show an
-example of the functionality of scikit-learn.
-!bc pycod 
-import numpy as np 
-import matplotlib.pyplot as plt 
-from sklearn.linear_model import LinearRegression 
-from sklearn.metrics import mean_squared_error, r2_score, mean_squared_log_error, mean_absolute_error
-
-x = np.random.rand(100,1)
-y = 2.0+ 5*x+0.5*np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-ypredict = linreg.predict(x)
-print('The intercept alpha: \n', linreg.intercept_)
-print('Coefficient beta : \n', linreg.coef_)
+# We use now Scikit-Learn's linear regressor and ridge regressor
+# OLS part
+clf = skl.LinearRegression().fit(X, Energies)
+ytilde = clf.predict(X)
+EoS['Eols']  = ytilde
 # The mean squared error                               
-print("Mean squared error: %.2f" % mean_squared_error(y, ypredict))
+print("Mean squared error: %.2f" % mean_squared_error(Energies, ytilde))
 # Explained variance score: 1 is perfect prediction                                 
-print('Variance score: %.2f' % r2_score(y, ypredict))
-# Mean squared log error                                                        
-print('Mean squared log error: %.2f' % mean_squared_log_error(y, ypredict) )
+print('Variance score: %.2f' % r2_score(Energies, ytilde))
 # Mean absolute error                                                           
-print('Mean absolute error: %.2f' % mean_absolute_error(y, ypredict))
-plt.plot(x, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0.0,1.0,1.5, 7.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Linear Regression fit ')
-plt.show()
+print('Mean absolute error: %.2f' % mean_absolute_error(Energies, ytilde))
+print(clf.coef_, clf.intercept_)
 
+# The Ridge regression with a hyperparameter lambda = 0.1
+_lambda = 0.1
+clf_ridge = skl.Ridge(alpha=_lambda).fit(X, Energies)
+yridge = clf_ridge.predict(X)
+EoS['Eridge']  = yridge
+# The mean squared error                               
+print("Mean squared error: %.2f" % mean_squared_error(Energies, yridge))
+# Explained variance score: 1 is perfect prediction                                 
+print('Variance score: %.2f' % r2_score(Energies, yridge))
+# Mean absolute error                                                           
+print('Mean absolute error: %.2f' % mean_absolute_error(Energies, yridge))
+print(clf_ridge.coef_, clf_ridge.intercept_)
+
+fig, ax = plt.subplots()
+ax.set_xlabel(r'$\rho[\mathrm{fm}^{-3}]$')
+ax.set_ylabel(r'Energy per particle')
+ax.plot(EoS['Density'], EoS['Energy'], alpha=0.7, lw=2,
+            label='Theoretical data')
+ax.plot(EoS['Density'], EoS['Eols'], alpha=0.7, lw=2, c='m',
+            label='OLS')
+ax.plot(EoS['Density'], EoS['Eridge'], alpha=0.7, lw=2, c='g',
+            label='Ridge $\lambda = 0.1$')
+ax.legend()
+save_fig("EoSfitting")
+plt.show()
 !ec
 
+The above simple polynomial in density $\rho$ gives an excellent fit
+to the data. Can you give an interpretation of the various powers of $\rho$?
 
-!split
-===== Functions in _scikit-learn_ =====
-
-The function _coef_ gives us the parameter $\beta$ of our fit while _intercept_ yields 
-$\alpha$. Depending on the constant in front of the normal distribution, we get values near or far from $alpha =2$ and $\beta =5$. Try to play around with different parameters in front of the normal distribution. The function _meansquarederror_ gives us the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error or loss defined as
-!bt 
-\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
-\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
-\] 
-!et 
-
-The smaller the value, the better the fit. Ideally we would like to
-have an MSE equal zero.  The attentive reader has probably recognized
-this function as being similar to the $\chi^2$ function defined above.
-
-!split
-===== Other functions in  _scikit-learn_ =====
-
-The _r2score_ function computes $R^2$, the coefficient of
-determination. It provides a measure of how well future samples are
-likely to be predicted by the model. Best possible score is 1.0 and it
-can be negative (because the model can be arbitrarily worse). A
-constant model that always predicts the expected value of $\hat{y}$,
-disregarding the input features, would get a $R^2$ score of $0.0$.
-
-If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
-!bt
-\[
-R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
-\]
-!et
-where we have defined the mean value  of $\hat{y}$ as
-!bt
-\[
-\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
-\]
-!et
-
-!split
-===== The mean absolute error and other functions in  _scikit-learn_ =====
-
-Another quantity will meet again in our discussions of regression analysis is 
- mean absolute error (MAE), a risk metric corresponding to the expected value of the absolute error loss or what we call the $l1$-norm loss. In our discussion above we presented the relative error.
-The MAE is defined as follows
-!bt
-\[
-\text{MAE}(\hat{y}, \hat{\tilde{y}}) = \frac{1}{n} \sum_{i=0}^{n-1} \left| y_i - \tilde{y}_i \right|.
-\]
-!et
-Finally we present the 
-squared logarithmic (quadratic) error
-!bt
-\[
-\text{MSLE}(\hat{y}, \hat{\tilde{y}}) = \frac{1}{n} \sum_{i=0}^{n - 1} (\log_e (1 + y_i) - \log_e (1 + \tilde{y}_i) )^2,
-\]
-!et
-
-where $\log_e (x)$ stands for the natural logarithm of $x$. This error
-estimate is best to use when targets having exponential growth, such
-as population counts, average sales of a commodity over a span of
-years etc. 
+We note also that there is a small deviation between the
+standard OLS and the Ridge regression at higher densities. We discuss this in more detail
+below.
 
 
 !split
-===== Cubic polynomial in  _scikit-learn_ =====
+===== Splitting our Data in Training and Test data =====
 
-We will discuss in more
-detail these and other functions in the various lectures.  We conclude this part with another example. Instead of 
-a linear $x$-dependence we study now a cubic polynomial and use the polynomial regression analysis tools of scikit-learn. 
-Add description of the various python commands.
+It is normal in essentially all Machine Learning studies to split the
+data in a training set and a test set (sometimes also an additional
+validation set).  _Scikit-Learn_ has an own function for this. There
+is no explicit recipe for how much data should be included as training
+data and say test data.  An accepted rule of thumb is to use
+approximately $2/3$ to $4/5$ of the data as training data. We will
+postpone a discussion of this splitting to the end of these notes and
+our discussion of the so-called _bias-variance_ tradeoff. Here we
+limit ourselves to repeat the above equation of state fitting example
+but now splitting the data into a training set and a test set.
 
-!bc pycod
-import matplotlib.pyplot as plt
+!bc pycod 
+import os
 import numpy as np
-import random
-from sklearn.linear_model import Ridge
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import LinearRegression
-
-x=np.linspace(0.02,0.98,200)
-noise = np.asarray(random.sample((range(200)),200))
-y=x**3*noise
-yn=x**3*100
-poly3 = PolynomialFeatures(degree=3)
-X = poly3.fit_transform(x[:,np.newaxis])
-clf3 = LinearRegression()
-clf3.fit(X,y)
-
-Xplot=poly3.fit_transform(x[:,np.newaxis])
-poly3_plot=plt.plot(x, clf3.predict(Xplot), label='Cubic Fit')
-plt.plot(x,yn, color='red', label="True Cubic")
-plt.scatter(x, y, label='Data', color='orange', s=15)
-plt.legend()
-plt.show()
-
-def error(a):
-    for i in y:
-        err=(y-yn)/yn
-    return abs(np.sum(err))/len(err)
-
-print (error(y))
-!ec
-
-Using _R_, we can perform similar studies. 
-
-
-
-
-
-
-!split
-===== Polynomial Regression =====
-!bc pycod
-# Importing various packages
-from math import exp, sqrt
-from random import random, seed
-import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
 
-m = 100
-x = 2*np.random.rand(m,1)+4.
-y = 4+3*x*x+ +x-np.random.randn(m,1)
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
 
-xb = np.c_[np.ones((m,1)), x]
-theta = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
-xnew = np.array([[0],[2]])
-xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(theta)
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
 
-plt.plot(xnew, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Random numbers ')
-plt.show()
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
 
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_model)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+infile = open(data_path("EoS.csv"),'r')
+
+# Read the EoS data as  csv file and organized into two arrays with density and energies
+EoS = pd.read_csv(infile, names=('Density', 'Energy'))
+EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
+EoS = EoS.dropna()
+Energies = EoS['Energy']
+Density = EoS['Density']
+#  The design matrix now as function of various polytrops
+X = np.zeros((len(Density),5))
+X[:,0] = 1
+X[:,1] = Density**(2.0/3.0)
+X[:,2] = Density
+X[:,3] = Density**(4.0/3.0)
+X[:,4] = Density**(5.0/3.0)
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, Energies, test_size=0.2)
+# matrix inversion to find beta
+beta = np.linalg.inv(X_train.T.dot(X_train)).dot(X_train.T).dot(y_train)
+# and then make the prediction
+ytilde = X_train @ beta
+print("Training R2")
+print(R2(y_train,ytilde))
+print("Training MSE")
+print(MSE(y_train,ytilde))
+ypredict = X_test @ beta
+print("Test R2")
+print(R2(y_test,ypredict))
+print("Test MSE")
+print(MSE(y_test,ypredict))
 !ec
 
-!split 
-===== Linking the regression analysis with a statistical interpretation =====
-
-Before we proceed, and to link with our discussions of Bayesian statistics to come, it is useful the derive the standard regression analysis equations using a statistical interpretation. This allows us also to derive quantities like the variance and other expectation values in a rather straightforward way. 
-
-It is assumed that $\varepsilon_i
-\sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
-independent, i.e.: 
-!bt
-\begin{align*} 
-\mbox{Cov}(\varepsilon_{i_1},
-\varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
-& i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
-\end{align*} 
-!et
-The randomness of $\varepsilon_i$ implies that
-$\mathbf{Y}_i$ is also a random variable. In particular,
-$\mathbf{Y}_i$ is normally distributed, because $\varepsilon_i \sim
-\mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \beta$ is a
-non-random scalar. To specify the parameters of the distribution of
-$\mathbf{Y}_i$ we need to calculate its first two moments. 
 
 !split
-===== Expectation value and variance =====
+===== The singular value decomposition  =====
 
-Its expectation equals: 
-!bt
-\begin{align*} 
-\mathbb{E}(Y_i) & =
-\mathbb{E}(\mathbf{X}_{i, \ast} \, \beta) + \mathbb{E}(\varepsilon_i)
-\, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
-\end{align*} 
-!et
-while
-its variance is 
-!bt
-\begin{align*} \mbox{Var}(Y_i) & = \mathbb{E} \{ [Y_i
-- \mathbb{E}(Y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( Y_i^2 ) -
-[\mathbb{E}(Y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
-\beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \beta)^2 \\ &
-= \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \beta)^2 + 2 \varepsilon_i
-\mathbf{X}_{i, \ast} \, \beta + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
-\ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \beta)^2 + 2
-\mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \beta +
-\mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \beta)^2 
-\\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
-\mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
-\end{align*}
-!et
-Hence, $Y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \beta, \sigma^2)$. 
-
-
-
-
-
-
-!split
-===== The singular value decompostion  =====
 !bblock
 
+The examples we have looked at so far are cases where we normally can
+invert the matrix $\bm{X}^T\bm{X}$. Using a polynomial expansion as we
+did both for the masses and the fitting of the equation of state,
+leads to row vectors of the design matrix which are essentially
+orthogonal due to the polynomial character of our model. This may
+however not the be case in general and a standard matrix inversion
+algorithm based on say LU decomposition may lead to singularities. We will see an example of this below when we try to fit
+the coupling constant of the widely used Ising model. 
+There is however a way to partially circumvent this problem and also gain some insight about the ordinary least squares approach. 
 
-A general
-$m\times n$ matrix $\hat{A}$ can be written in terms of a diagonal
-matrix $\hat{D}$ of dimensionality $n\times n$ and two orthognal
-matrices $\hat{U}$ and $\hat{V}$, where the first has dimensionality
-$m \times m$ and the last dimensionality $n\times n$. 
-We have then 
-!bt
-\[ 
-\hat{A} = \hat{U}\hat{D}\hat{V}^T 
-\] 
-!et 
+This is given by the _Singular Value Decomposition_ algorithm, perhaps
+the most powerful linear algebra algorithm.  Let us look at a
+different example where we may have problems with the standard matrix
+inversion algorithm. Thereafter we dive into the math of the SVD.
+
 !eblock
 
+!split
+=====  The Ising model =====
+
+The one-dimensional Ising model with nearest neighbor interaction, no
+external field and a constant coupling constant $J$ is given by
+
+!bt
+\begin{align}
+    H = -J \sum_{k}^L s_k s_{k + 1},
+\end{align}
+!et
+
+where $s_i \in \{-1, 1\}$ and $s_{N + 1} = s_1$. The number of spins
+in the system is determined by $L$. For the one-dimensional system
+there is no phase transition.
+
+We will look at a system of $L = 40$ spins with a coupling constant of
+$J = 1$. To get enough training data we will generate 10000 states
+with their respective energies.
 
 
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import seaborn as sns
+import scipy.linalg as scl
+from sklearn.model_selection import train_test_split
+import tqdm
+sns.set(color_codes=True)
+cmap_args=dict(vmin=-1., vmax=1., cmap='seismic')
 
+L = 40
+n = int(1e4)
 
+spins = np.random.choice([-1, 1], size=(n, L))
+J = 1.0
 
+energies = np.zeros(n)
 
+for i in range(n):
+    energies[i] = - J * np.dot(spins[i], np.roll(spins[i], 1))
+!ec
 
+Here we use ordinary least squares
+regression to predict the energy for the nearest neighbor
+one-dimensional Ising model on a ring, i.e., the endpoints wrap
+around. We will use linear regression to fit a value for
+the coupling constant to achieve this.
 
+!split
+===== Reformulating the problem to suit regression =====
 
+A more general form for the one-dimensional Ising model is
 
+!bt
+\begin{align}
+    H = - \sum_j^L \sum_k^L s_j s_k J_{jk}.
+\end{align}
+!et
 
+Here we allow for interactions beyond the nearest neighbors and a state dependent
+coupling constant. This latter expression can be formulated as
+a matrix-product
+!bt
+\begin{align}
+    \bm{H} = \bm{X} J,
+\end{align}
+!et
 
+where $X_{jk} = s_j s_k$ and $J$ is a matrix which consists of the
+elements $-J_{jk}$. This form of writing the energy fits perfectly
+with the form utilized in linear regression, that is
+
+!bt
+\begin{align}
+    \bm{y} = \bm{X}\bm{\beta} + \bm{\epsilon},
+\end{align}
+!et
+
+We split the data in training and test data as discussed in the previous example
+
+!bc pycod
+X = np.zeros((n, L ** 2))
+for i in range(n):
+    X[i] = np.outer(spins[i], spins[i]).ravel()
+y = energies
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+!ec
+
+!split
+===== Linear regression =====
+
+In the ordinary least squares method we choose the cost function
+
+!bt
+\begin{align}
+    C(\bm{X}, \bm{\beta})= \frac{1}{n}\left\{(\bm{X}\bm{\beta} - \bm{y})^T(\bm{X}\bm{\beta} - \bm{y})\right\}.
+\end{align}
+!et
+
+We then find the extremal point of $C$ by taking the derivative with respect to $\bm{\beta}$ as discussed above.
+This yields the expression for $\bm{\beta}$ to be
+
+!bt
+\[
+    \bm{\beta} = \frac{\bm{X}^T \bm{y}}{\bm{X}^T \bm{X}},
+\]
+!et
+
+which immediately imposes some requirements on $\bm{X}$ as there must exist
+an inverse of $\bm{X}^T \bm{X}$. If the expression we are modeling contains an
+intercept, i.e., a constant term, we must make sure that the
+first column of $\bm{X}$ consists of $1$. We do this here
+
+!bc pycod
+X_train_own = np.concatenate(
+    (np.ones(len(X_train))[:, np.newaxis], X_train),
+    axis=1
+)
+X_test_own = np.concatenate(
+    (np.ones(len(X_test))[:, np.newaxis], X_test),
+    axis=1
+)
+!ec
+
+!bc pycod
+def ols_inv(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    return scl.inv(x.T @ x) @ (x.T @ y)
+beta = ols_inv(X_train_own, y_train)
+!ec
 
 
 !split
-===== From standard regression to Ridge regressions =====
+===== Singular Value decomposition =====
+
+Doing the inversion directly turns out to be a bad idea since the matrix
+$\bm{X}^T\bm{X}$ is singular. An alternative approach is to use the _singular
+value decomposition_. Using the definition of the Moore-Penrose
+pseudoinverse we can write the equation for $\bm{\beta}$ as
+
+!bt
+\[
+    \bm{\beta} = \bm{X}^{+}\bm{y},
+\]
+!et
+
+where the pseudoinverse of $\bm{X}$ is given by
+
+!bt
+\[
+    \bm{X}^{+} = \frac{\bm{X}^T}{\bm{X}^T\bm{X}}.
+\]
+!et
+
+Using singular value decomposition we can decompose the matrix  $\bm{X} = \bm{U}\bm{\Sigma} \bm{V}^T$,
+where $\bm{U}$ and $\bm{V}$ are orthogonal(unitary) matrices and $\bm{\Sigma}$ contains the singular values (more details below).
+where $X^{+} = V\Sigma^{+} U^T$. This reduces the equation for
+$\omega$ to
+!bt
+\begin{align}
+    \bm{\beta} = \bm{V}\bm{\Sigma}^{+} \bm{U}^T \bm{y}.
+\end{align}
+!et
+
+Note that solving this equation by actually doing the pseudoinverse
+(which is what we will do) is not a good idea as this operation scales
+as $\mathcal{O}(n^3)$, where $n$ is the number of elements in a
+general matrix. Instead, doing $QR$-factorization and solving the
+linear system as an equation would reduce this down to
+$\mathcal{O}(n^2)$ operations.
+
+
+!bc pycod
+def ols_svd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    u, s, v = scl.svd(x)
+    return v.T @ scl.pinv(scl.diagsvd(s, u.shape[0], v.shape[0])) @ u.T @ y
+!ec
+
+!bc pycod
+beta = ols_svd(X_train_own,y_train)
+!ec
+
+When extracting the $J$-matrix  we need to make sure that we remove the intercept, as is done here
+
+!bc pycod
+J = beta[1:].reshape(L, L)
+!ec
+
+A way of looking at the coefficients in $J$ is to plot the matrices as images.
+
+
+!bc pycod
+fig = plt.figure(figsize=(20, 14))
+im = plt.imshow(J, **cmap_args)
+plt.title("OLS", fontsize=18)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+cb = fig.colorbar(im)
+cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontsize=18)
+plt.show()
+!ec
+It is interesting to note that OLS
+considers both $J_{j, j + 1} = -0.5$ and $J_{j, j - 1} = -0.5$ as
+valid matrix elements for $J$.
+In our discussion below on hyperparameters and Ridge and Lasso regression we will see that
+this problem can be removed, partly and only with Lasso regression. 
+
+In this case our matrix inversion was actually possible. The obvious question now is what is the mathematics behind the SVD?
+
+
+!split
+===== Linear Regression Problems =====
 
 One of the typical problems we encounter with linear regression, in particular 
-when the matrix $\hat{X}$ (our so-called design matrix) is high-dimensional, 
-are problems with near singular or singular matrices. The column vectors of $\hat{X}$ 
+when the matrix $\bm{X}$ (our so-called design matrix) is high-dimensional, 
+are problems with near singular or singular matrices. The column vectors of $\bm{X}$ 
 may be linearly dependent, normally referred to as super-collinearity.  
 This means that the matrix may be rank deficient and it is basically impossible to 
 to model the data using linear regression. As an example, consider the matrix
@@ -996,17 +1197,17 @@ to model the data using linear regression. As an example, consider the matrix
 \end{align*}
 !et
 
-The columns of $\hat{X}$ are linearly dependent. We se this easily since the 
+The columns of $\bm{X}$ are linearly dependent. We see this easily since the 
 the first column is the row-wise sum of the other two columns. The rank (more correct,
 the column rank) of a matrix is the dimension of the space spanned by the
 column vectors. Hence, the rank of $\mathbf{X}$ is equal to the number
 of linearly independent columns. In this particular case the matrix has rank 2.
 
 Super-collinearity of an $(n \times p)$-dimensional design matrix $\mathbf{X}$ implies
-that the inverse of the matrix $\hat{X}^T\hat{x}$ (the matrix we needto invert to solve the linear regression equations) is non-invertible. If we have a square matrix that does not have an inverse, we say this matrix singular. The example here demonstrates this
+that the inverse of the matrix $\bm{X}^T\bm{x}$ (the matrix we need to invert to solve the linear regression equations) is non-invertible. If we have a square matrix that does not have an inverse, we say this matrix singular. The example here demonstrates this
 !bt
 \begin{align*}
-\hat{X} & =  \left[
+\bm{X} & =  \left[
 \begin{array}{rr}
 1 & -1
 \\
@@ -1014,400 +1215,406 @@ that the inverse of the matrix $\hat{X}^T\hat{x}$ (the matrix we needto invert t
 \end{array} \right].
 \end{align*}
 !et
-We see easily that  $\mbox{det}(\hat{X}) = x_{11} x_{22} - x_{12} x_{21} = 1 \times (-1) - 1 \times (-1) = 0$. Hence, $\mathbf{X}$ is singular and its inverse is undefined.
-This is equivalent to saying that the matrix $\hat{X}$ has at least an eigenvalue which is zero.
+We see easily that  $\mbox{det}(\bm{X}) = x_{11} x_{22} - x_{12} x_{21} = 1 \times (-1) - 1 \times (-1) = 0$. Hence, $\mathbf{X}$ is singular and its inverse is undefined.
+This is equivalent to saying that the matrix $\bm{X}$ has at least an eigenvalue which is zero.
+
 
 !split
 ===== Fixing the singularity =====
 
-If our design matrix $\hat{X}$ which enters the linear regression problem
+If our design matrix $\bm{X}$ which enters the linear regression problem
 !bt
 \begin{align}
-\hat{\beta} & =  (\hat{X}^{T} \hat{X})^{-1} \hat{X}^{T} \hat{y},
+\bm{\beta} & =  (\bm{X}^{T} \bm{X})^{-1} \bm{X}^{T} \bm{y},
 \end{align}
 !et
 has linearly dependent column vectors, we will not be able to compute the inverse
-of $\hat{X}^T\hat{X}$ and we cannot find the parameters (estimators) $\beta_i$. 
-The estimators are only well-defined if $(\hat{X}^{T}\hat{X})^{-1}$ exits. 
-This is more likely to happen when the matrix $\hat{X}$ is high-dimensional. In this case it is likely to encounter a situation where 
+of $\bm{X}^T\bm{X}$ and we cannot find the parameters (estimators) $\beta_i$. 
+The estimators are only well-defined if $(\bm{X}^{T}\bm{X})^{-1}$ exits. 
+This is more likely to happen when the matrix $\bm{X}$ is high-dimensional. In this case it is likely to encounter a situation where 
 the regression parameters $\beta_i$ cannot be estimated.
 
-The *ad hoc* approach which was introduced in the 70s was simply to add a diagonal component to the matrix to invert, that is we change
+A cheap  *ad hoc* approach is  simply to add a small diagonal component to the matrix to invert, that is we change
 !bt
 \[
-\hat{X}^{T} \hat{X} \rightarrow \hat{X}^{T} \hat{X}+\lambda \hat{I},
+\bm{X}^{T} \bm{X} \rightarrow \bm{X}^{T} \bm{X}+\lambda \bm{I},
 \]
 !et 
-where $\hat{I}$ is the identity matrix.
-
-
+where $\bm{I}$ is the identity matrix.  When we discuss _Ridge_ regression this is actually what we end up evaluating. The parameter $\lambda$ is called a hyperparameter. More about this later. 
 
 
 
 !split
-===== Fitting vs. predicting when data is in the model class =====
+===== Basic math of the SVD =====
 
-We start by considering the case
-$f(x)=2x$.
- 
-Then the data is clearly generated by a model that is contained within
-all three model classes we are using to make predictions (linear
-models, third order polynomials, and tenth order polynomials).
 
-Run the code for the following cases:
+From standard linear algebra we know that a square matrix $\bm{X}$ can be diagonalized if and only it is 
+a so-called "normal matrix":"https://en.wikipedia.org/wiki/Normal_matrix", that is if $\bm{X}\in {\mathbb{R}}^{n\times n}$
+we have $\bm{X}\bm{X}^T=\bm{X}^T\bm{X}$ or if $\bm{X}\in {\mathbb{C}}^{n\times n}$ we have $\bm{X}\bm{X}^{\dagger}=\bm{X}^{\dagger}\bm{X}$.
+The matrix has then a set of eigenpairs 
 
-o For  $f(x)=2x$ ,  $Ntrain=10$  and $\sigma =0$  (noiseless case), train the three classes of models (linear, third-order polynomial, and tenth order polynomial) for a training set when  $x \in [0,1]$ . Make graphs comparing fits for different order of polynomials. Which model fits the data the best?
-o Do you think that the data that has the least error on the training set will also make the best predictions? Why or why not? Can you try to discuss and formalize your intuition? What can go right and what can go wrong?
-o Check your answer by seeing how well your fits predict newly generated test data (including on data outside the range you fit on, for example  $x \in [0,1.2]$ ) using the code below. How well do you do on points in the range of  x  where you trained the model? How about points outside the original training data set?
-o Repeat the above for  $f(x)=2x$ ,  $Ntrain=10$ , and  $\sigma=1$ . What changes?
-Repeat the exercises above for  $f(x)=2x$ ,  $Ntrain=100$ , and  $\sigma=1$ . What changes?
-Summarize what you have learned about the relationship between model complexity (number of parameters), goodness of fit on training data, and the ability to predict well.
+!bt
+\[
+(\lambda_1,\bm{u}_1),\dots, (\lambda_n,\bm{u}_n),
+!et
+and the eigenvalues are given by the diagonal matrix
+!bt
+\[
+\bm{\Sigma}=\mathrm{Diag}(\lambda_1, \dots,\lambda_n).
+\]
+!et
+The matrix $\bm{X}$ can be written in terms of an orthogonal/unitary transformation $\bm{U}$
+!bt
+\[
+\bm{X} = \bm{U}\bm{\Sigma}\bm{V}^T,
+\]
+!et
+with $\bm{U}\bm{U}^T=\bm{I}$ or $\bm{U}\bm{U}^{\dagger}=\bm{I}$.
+
+Not all square matrices are diagonalizable. A matrix like the one discussed above
+!bt
+\[
+\bm{X} = \begin{bmatrix} 
+1&  -1 \\
+1& -1\\
+\end{bmatrix} 
+\]
+!et
+is not diagonalizable, it is a so-called "defective matrix":"https://en.wikipedia.org/wiki/Defective_matrix". It is easy to see that the condition
+$\bm{X}\bm{X}^T=\bm{X}^T\bm{X}$ is not fulfilled. 
 
 
 !split
-=====  Fitting versus predicting when data is not in the model class =====
-
-Thus far, we have considered the case where the data is generated using a model contained in the model class. Now consider $f(x)=2x-10x^5+15x^{10}$ . Notice that the for linear and third-order polynomial the true model  $f(x)$  is not contained in model class.
-
-o Do better fits lead to better predictions?
-o What is the relationship between the true model for generating the data and the model class that has the most predictive power? How is this related to the model complexity? How does this depend on the number of data points  $Ntrain$  and  $\sigma$?
-Summarize what you think you learned about the relationship of knowing the true model class and predictive power.
-
-!split
-===== An example code without the model assessment part =====
-
-!bc pycod
-import numpy as np
-import sklearn as sk
-from sklearn import datasets, linear_model
-from sklearn.preprocessing import PolynomialFeatures
-
-import matplotlib as mpl
-from matplotlib import pyplot as plt
-
-%matplotlib notebook
-
-# The Training Data
-
-N_train=100
-
-sigma_train=1;
-
-# Train on integers
-x=np.linspace(0.05,0.95,N_train)
-# Draw random noise
-s = sigma_train*np.random.randn(N_train)
-
-#linear
-y=2*x+s
-
-#Tenth Order
-#y=2*x-10*x**5+15*x**10+s
-
-p1=plt.plot(x,y, "o",ms=15, label='Training')
-
-#Linear Regression
-# Create linear regression object
-clf = linear_model.LinearRegression()
-
-# Train the model using the training sets
-clf.fit(x[:, np.newaxis], y)
-# The coefficients
-
-xplot=np.linspace(0.02,0.98,200)
-linear_plot=plt.plot(xplot, clf.predict(xplot[:, np.newaxis]),label='Linear')
-
-#Polynomial Regression
+===== The SVD, a Fantastic Algorithm =====
 
 
-poly3 = PolynomialFeatures(degree=3)
-X = poly3.fit_transform(x[:,np.newaxis])
-clf3 = linear_model.LinearRegression()
-clf3.fit(X,y)
+However, and this is the strength of the SVD algorithm, any general
+matrix $\bm{X}$ can be decomposed in terms of a diagonal matrix and
+two orthogonal/unitary matrices.  The "Singular Value Decompostion
+(SVD) theorem":"https://en.wikipedia.org/wiki/Singular_value_decomposition"
+states that a general $m\times n$ matrix $\bm{X}$ can be written in
+terms of a diagonal matrix $\bm{\Sigma}$ of dimensionality $n\times n$
+and two orthognal matrices $\bm{U}$ and $\bm{V}$, where the first has
+dimensionality $m \times m$ and the last dimensionality $n\times n$.
+We have then
 
+!bt
+\[ 
+\bm{X} = \bm{U}\bm{\Sigma}\bm{V}^T 
+\] 
+!et 
 
-Xplot=poly3.fit_transform(xplot[:,np.newaxis])
-poly3_plot=plt.plot(xplot, clf3.predict(Xplot), label='Poly 3')
+As an example, the above defective matrix can be decomposed as
 
+!bt
+\[
+\bm{X} = \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  1 \\ 1& -1\\ \end{bmatrix} \begin{bmatrix}  2&  0 \\ 0& 0\\ \end{bmatrix}    \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  -1 \\ 1& 1\\ \end{bmatrix}=\bm{U}\bm{\Sigma}\bm{V}^T, 
+\]
+!et
 
-
-#poly5 = PolynomialFeatures(degree=5)
-#X = poly5.fit_transform(x[:,np.newaxis])
-#clf5 = linear_model.LinearRegression()
-#clf5.fit(X,y)
-
-#Xplot=poly5.fit_transform(xplot[:,np.newaxis])
-#plt.plot(xplot, clf5.predict(Xplot), 'r--',linewidth=1)
-
-poly10 = PolynomialFeatures(degree=10)
-X = poly10.fit_transform(x[:,np.newaxis])
-clf10 = linear_model.LinearRegression()
-clf10.fit(X,y)
-
-Xplot=poly10.fit_transform(xplot[:,np.newaxis])
-poly10_plot=plt.plot(xplot, clf10.predict(Xplot), label='Poly 10')
-
-axes = plt.gca()
-axes.set_ylim([-7,7])
-
-handles, labels=axes.get_legend_handles_labels()
-plt.legend(handles,labels, loc='lower center')
-plt.xlabel("$x$")
-plt.ylabel("$y$")
-Title="$N=$"+str(N_train)+", $\sigma=$"+str(sigma_train)
-plt.title(Title+" (train)")
-plt.tight_layout()
-plt.show()
-
-!ec
-
-!split 
-===== Generating test data =====
-!bc pycod
-# Generate Test Data
-
-#Number of test data
-N_test=20
-
-sigma_test=sigma_train
-
-max_x=1.2
-x_test=max_x*np.random.random(N_test)
-# Draw random noise
-s_test = sigma_test*np.random.randn(N_test)
-
-#Linear
-y_test=2*x_test+s_test
-#Tenth order
-#y_test=2*x_test-10*x_test**5+15*x_test**10+s_test
-
-#Make design matrices for prediction
-x_plot=np.linspace(0,max_x, 200)
-X3 = poly3.fit_transform(x_plot[:,np.newaxis])
-X10 = poly10.fit_transform(x_plot[:,np.newaxis])
-
-%matplotlib notebook
-
-fig = plt.figure() 
-p1=plt.plot(x_test,y_test.transpose(), 'o', ms=12, label='data')
-p2=plt.plot(x_plot,clf.predict(x_plot[:,np.newaxis]), label='linear')
-p3=plt.plot(x_plot,clf3.predict(X3), label='3rd order')
-p10=plt.plot(x_plot,clf10.predict(X10), label='10th order')
-
-
-plt.legend(loc=2)
-plt.xlabel('$x$')
-plt.ylabel('$y$')
-plt.legend(loc='best')
-plt.title(Title+" (pred.)")
-plt.tight_layout()
-plt.show()
-
-
-!ec
-
-!split
-===== How can we effectively evaluate the various models? =====
-
-In Ridge regression and the subsequent discussion of its properties
-the bias or penalty parameter is considered known or `given'. In
-practice, it is unknown and the user needs to make an informed
-decision on its value. How do we do that?  Much of the same considerations apply to the Lasso method. 
-
-!split
-===== Code examples for Ridge and Lasso Regression =====
-
-!bc pycod
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn import linear_model
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-
-#creating data with random noise
-x=np.arange(50)
-
-delta=np.random.uniform(-2.5,2.5, size=(50))
-np.random.shuffle(delta)
-y =0.5*x+5+delta
-
-#arranging data into 2x50 matrix
-a=np.array(x) #inputs
-b=np.array(y) #outputs
-
-#Split into training and test
-X_train=a[:37, np.newaxis]
-X_test=a[37:, np.newaxis]
-y_train=b[:37]
-y_test=b[37:]
-
-print ("X_train: ", X_train.shape)
-print ("y_train: ", y_train.shape)
-print ("X_test: ", X_test.shape)
-print ("y_test: ", y_test.shape)
-
-print ("------------------------------------")
-
-print ("Ordinary Least Squares")
-#Add Ordinary Least Squares fit
-reg=LinearRegression()
-reg.fit(X_train, y_train)
-pred=reg.predict(X_test)
-print ("Prediction Shape: ", pred.shape)
-
-print('Coefficients: \n', reg.coef_)
-# The mean squared error
-print("Mean squared error: %.2f"
-      % mean_squared_error(y_test, pred))
-# Explained variance score: 1 is perfect prediction
-print('Variance score: %.2f' % r2_score(y_test, pred))
-
-#plot
-plt.scatter(X_test,y_test,color='green', label="Training Data")
-plt.plot(X_test, pred, color='black', label="Fit Line")
-plt.legend()
-plt.show()
-
-print ("------------------------------------")
-
-print ("Ridge Regression")
-
-ridge=linear_model.RidgeCV(alphas=[0.1,1.0,10.0])
-ridge.fit(X_train,y_train)
-print ("Ridge Coefficient: ",ridge.coef_)
-print ("Ridge Intercept: ", ridge.intercept_)
-#Look into graphing with Ridge fit
-
-print ("------------------------------------")
-
-print ("Lasso")
-lasso=linear_model.Lasso(alpha=0.1)
-lasso.fit(X_train,y_train)
-predl=lasso.predict(X_test)
-print("Lasso Coefficient: ", lasso.coef_)
-print("Lasso Intercept: ", lasso.intercept_)
-plt.scatter(X_test,y_test,color='green', label="Training Data")
-plt.plot(X_test, predl, color='blue', label="Lasso")
-plt.legend()
-plt.show()
-!ec
-
-
-
+with eigenvalues $\sigma_1=2$ and $\sigma_2=0$. 
+The SVD exits always! 
 
 
 !split
-===== A second-order polynomial with Ridge and Lasso =====
-!bc pycod
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import Ridge
-from sklearn.metrics import r2_score
+===== Another Example =====
 
-np.random.seed(4155)
+Consider the following matrix which can be SVD decomposed as
 
-n_samples = 100
+!bt
+\[
+\bm{X} = \frac{1}{15}\begin{bmatrix} 14 & 2\\ 4 & 22\\ 16 & 13\end{matrix}=\frac{1}{3}\begin{bmatrix}  1&  2 & 2 \\ 2& -1 & 1\\ 2 & 1& -2\end{bmatrix} \begin{bmatrix}  2&  0 \\ 0& 1\\ 0 & 0\end{bmatrix}\frac{1}{5}\begin{bmatrix}  3&  4 \\ 4& -3\end{bmatrix}=\bm{U}\bm{\Sigma}\bm{V}^T. 
+\]
+!et
 
-x = np.random.rand(n_samples,1)
-y = 5*x*x + 0.1*np.random.rand(n_samples,1)
+This is a $3\times 2$ matrix which is decomposed in terms of a
+$3\times 3$ matrix $\bm{U}$, and a $2\times 2$ matrix $\bm{V}$. It is easy to see
+that $\bm{U}$ and $\bm{V}$ are orthogonal (how?). 
 
-# Centering  x and y.
-x_ = x - np.mean(x)
-y_ = y - np.mean(y) # beta_0 = mean(y)
+And the SVD
+decomposition (singular values) gives eigenvalues 
+$\sigma_i\geq\sigma_{i+1}$ for all $i$ and for dimensions larger than $i=2$, the
+eigenvalues (singular values) are zero.
 
-X = np.c_[np.ones((n_samples,1)), x, x**2]
-X_ = np.c_[x_, x_**2]
+In the general case, where our design matrix $\bm{X}$ has dimension
+$n\times p$, the matrix is thus decomposed into an $n\times n$
+orthogonal matrix $\bm{U}$, a $p\times p$ orthogonal matrix $\bm{V}$
+and a diagonal matrix $\bm{\Sigma}$ with $r=\mathrm{min}(n,p)$
+singular values $\sigma_i\lg 0$ on the main diagonal and zeros filling
+the rest of the matrix.  There are at most $p$ singular values
+assuming that $n > p$. In our regression examples for the nuclear
+masses and the equation of state this is indeed the case, while for
+the Ising model we have $p > n$. These are often cases that lead to
+near singular or singular matrices.
 
+The columns of $\bm{U}$ are called the left singular vectors while the columns of $\bm{V}$ are the right singular vectors.
 
-### 1.
-lmb_values = [1e-4, 1e-3, 1e-2, 10, 1e2, 1e4]
-num_values = len(lmb_values)
+!split
+===== Economy-size SVD =====
 
-## Ridge-regression of centered and not centered data
-beta_ridge = np.zeros((3,num_values))
-beta_ridge_centered = np.zeros((3,num_values))
+If we assume that $n > p$, then our matrix $\bm{U}$ has dimension $n
+\times n$. The last $n-p$ columns of $\bm{U}$ become however
+irrelevant in our calculations since they are multiplied with the
+zeros in $\bm{\Sigma}$.
 
-I3 = np.eye(3)
-I2 = np.eye(2)
+The economy-size decomposition removes extra rows or columns of zeros
+from the diagonal matrix of singular values, $\bm{\Sigma}$, along with the columns
+in either $\bm{U}$ or $\bm{V}$ that multiply those zeros in the expression. 
+Removing these zeros and columns can improve execution time
+and reduce storage requirements without compromising the accuracy of
+the decomposition.
 
-for i,lmb in enumerate(lmb_values):
-    beta_ridge[:,i] = (np.linalg.inv( X.T @ X + lmb*I3) @ X.T @ y).flatten()
-    beta_ridge_centered[1:,i] = (np.linalg.inv( X_.T @ X_ + lmb*I2) @ X_.T @ y_).flatten()
+If $n > p$, we keep only the first $p$ columns of $\bm{U}$ and $\bm{\Sigma}$ has dimension $p\times p$. 
+If $p > n$, then only the first $n$ columns of $\bm{V}$ are computed and $\bm{\Sigma}$ has dimension $n\times n$.
+The $n=p$ case is obvious, we retain the full SVD. 
+In general the economy-size SVD leads to less FLOPS and still conserving the desired accuracy.
 
-# sett beta_0 = np.mean(y)
-beta_ridge_centered[0,:] = np.mean(y)
+!split
+===== Mathematical Properties =====
 
-## OLS (ordinary least squares) solution 
-beta_ls = np.linalg.inv( X.T @ X ) @ X.T @ y
+There are several interesting mathematical properties which will be
+relevant when we are going to discuss the differences between say
+ordinary least squares (OLS) and _Ridge_ regression.
 
-## Evaluate the models
-pred_ls = X @ beta_ls
-pred_ridge =  X @ beta_ridge
-pred_ridge_centered =  X_ @ beta_ridge_centered[1:] + beta_ridge_centered[0,:]
+We have from OLS that the parameters of the linear approximation are given by
+!bt
+\[
+\bm{\tilde{y}} = \bm{X}\bm{\beta} = \bm{X}\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}. 
+\]
+!et
 
-## Plot the results
+The matrix to invert can be rewritten in terms of our SVD decomposition as
 
-# Sorting
-sort_ind = np.argsort(x[:,0])
+!bt
+\[
+\bm{X}^T\bm{X} = \bm{V}\bm{\Sigma}^T\bm{U}^T\bm{U}\bm{\Sigma}\bm{V}^T.
+\]
+!et
+Using the orthogonality properties of $\bm{U}$ we have
 
-x_plot = x[sort_ind,0]
-x_centered_plot = x_[sort_ind,0]
+!bt
+\[
+\bm{X}^T\bm{X} = \bm{V}\bm{\Sigma}^T\bm{\Sigma}\bm{V}^T =  \bm{V}\bm{D}\bm{V}^T,
+\]
+!et
+with $\bm{D}$ being a diagonal matrix with values along the diagonal given by the singular values squared. 
 
-pred_ls_plot = pred_ls[sort_ind,0]
-pred_ridge_plot = pred_ridge[sort_ind,:]
-pred_ridge_centered_plot = pred_ridge_centered[sort_ind,:]
+This means that
+!bt
+\[
+(\bm{X}^T\bm{X})\bm{V} = \bm{V}\bm{D},
+\]
+!et
+that is the eigenvectors of $(\bm{X}^T\bm{X})$ are given by the columns of the right singular matrix of $\bm{X}$ and the eigenvalues are the squared singular values.  It is easy to show (show this) that
+!bt
+\[
+(\bm{X}\bm{X}^T)\bm{U} = \bm{U}\bm{D},
+\]
+!et
+that is, the eigenvectors of $(\bm{X}\bm{X})^T$ are the columns of the left singular matrix and the eigenvalues are the same. 
 
-# Plott not centered
-plt.plot(x_plot,pred_ls_plot,label='ls')
-
-for i in range(num_values):
-    plt.plot(x_plot,pred_ridge_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
-
-plt.plot(x,y,'ro')
-
-plt.title('linear regression on un-centered data')
-plt.legend()
-
-# Plott centered
-plt.figure()
-
-for i in range(num_values):
-    plt.plot(x_centered_plot,pred_ridge_centered_plot[:,i],label='ridge, lmb=%g'%lmb_values[i])
-
-plt.plot(x_,y,'ro')
-
-plt.title('linear regression on centered data')
-plt.legend()
-
-
-# 2.
-
-pred_ridge_scikit =  np.zeros((n_samples,num_values))
-for i,lmb in enumerate(lmb_values):
-    pred_ridge_scikit[:,i] = (Ridge(alpha=lmb,fit_intercept=False).fit(X,y).predict(X)).flatten() # fit_intercept=False fordi bias er allerede i X
-
-plt.figure()
-
-plt.plot(x_plot,pred_ls_plot,label='ls')
-
-for i in range(num_values):
-    plt.plot(x_plot,pred_ridge_scikit[sort_ind,i],label='scikit-ridge, lmb=%g'%lmb_values[i])
-
-plt.plot(x,y,'ro')
-plt.legend()
-plt.title('linear regression using scikit')
-
-plt.show()
-
-### R2-score of the results
-for i in range(num_values):
-    print('lambda = %g'%lmb_values[i])
-    print('r2 for scikit: %g'%r2_score(y,pred_ridge_scikit[:,i]))
-    print('r2 for own code, not centered: %g'%r2_score(y,pred_ridge[:,i]))
-    print('r2 for own, centered: %g\n'%r2_score(y,pred_ridge_centered[:,i]))
+Going back to our OLS equation we have
+!bt
+\[
+\bm{X}\bm{\beta} = \bm{X}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}\bm{X}^T\bm{y}=\bm{U\Sigma V^T}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\bm{U}\bm{U}^T\bm{y}.
+\]
+!et
+We will come back to this expression when we discuss Ridge regression. 
 
 
-!ec
+!split
+===== Ridge and LASSO Regression =====
+
+Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
+our optimization problem is
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\bm{y}-\bm{X}\bm{\beta}\right)^T\left(\bm{y}-\bm{X}\bm{\beta}\right)\right\}.
+\]
+!et
+or we can state it as
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2,
+\]
+!et
+where we have used the definition of  a norm-2 vector, that is
+!bt
+\[
+\vert\vert \bm{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}. 
+\]
+!et
+
+By minimizing the above equation with respect to the parameters
+$\bm{\beta}$ we could then obtain an analytical expression for the
+parameters $\bm{\beta}$.  We can add a regularization parameter $\lambda$ by
+defining a new cost function to be optimized, that is
+
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2+\lambda\vert\vert \bm{\beta}\vert\vert_2^2
+\]
+!et
+
+which leads to the Ridge regression minimization problem where we
+require that $\vert\vert \bm{\beta}\vert\vert_2^2\le t$, where $t$ is
+a finite number larger than zero. By defining
+
+!bt
+\[
+C(\bm{X},\bm{\beta})=\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2+\lambda\vert\vert \bm{\beta}\vert\vert_1,
+\]
+!et
+
+we have a new optimization equation
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2+\lambda\vert\vert \bm{\beta}\vert\vert_1
+\]
+!et
+which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
+
+Here we have defined the norm-1 as 
+!bt
+\[
+\vert\vert \bm{x}\vert\vert_1 = \sum_i \vert x_i\vert. 
+\]
+!et
+
+
+!split
+===== More on Ridge Regression =====
+
+Using the matrix-vector expression for Ridge regression,
+
+!bt
+\[
+C(\bm{X},\bm{\beta})=\frac{1}{n}\left\{(\bm{y}-\bm{X}\bm{\beta})^T(\bm{y}-\bm{X}\bm{\beta})\right\}+\lambda\bm{\beta}^T\bm{\beta},
+\]
+!et
+
+by taking the derivatives with respect to $\bm{\beta}$ we obtain then
+a slightly modified matrix inversion problem which for finite values
+of $\lambda$ does not suffer from singularity problems. We obtain
+
+!bt
+\[
+\bm{\beta}^{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y},
+\]
+!et
+
+with $\bm{I}$ being a $p\times p$ identity matrix with the constraint that
+
+!bt
+\[
+\sum_{i=0}^{p-1} \beta_i^2 \leq t,
+\]
+!et
+
+with $t$ a finite positive number. 
+
+We see that Ridge regression is nothing but the standard
+OLS with a modified diagonal term added to $\bm{X}^T\bm{X}$. The
+consequences, in particular for our discussion of the bias-variance
+are rather interesting.
+
+Furthermore, if we use the result above in terms of the SVD decomposition (our analysis was done for the OLS method), we had
+!bt
+\[
+(\bm{X}\bm{X}^T)\bm{U} = \bm{U}\bm{D}.
+\]
+!et
+
+We can  analyse the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\bm{U}$ as
+!bt
+\[
+\bm{X}\bm{\beta} = \bm{X}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}\bm{X}^T\bm{y}=\bm{U\Sigma V^T}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\bm{U}\bm{U}^T\bm{y}
+\]
+!et
+
+
+For Ridge regression this becomes
+
+!bt
+\[
+\bm{X}\bm{\beta}^{\mathrm{Ridge}} = \bm{U\Sigma V^T}\left(\bm{V}\bm{D}\bm{V}^T+\lambda\bm{I} \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\sum_{j=0}^{p-1}\bm{u}_j\bm{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\bm{y},
+\]
+!et
+
+with the vectors $\bm{u}_j$ being the columns of $\bm{U}$. 
+
+!split
+===== Interpreting the Ridge results =====
+
+Since $\lambda \geq 0$, it means that compared to OLS, we have 
+
+!bt
+\[
+\frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1. 
+\]
+!et
+
+Ridge regression finds the coordinates of $\bm{y}$ with respect to the
+orthonormal basis $\bm{U}$, it then shrinks the coordinates by
+$\frac{\sigma_j^2}{\sigma_j^2+\lambda}$. Recall that the SVD has
+eigenvalues ordered in a descending way, that is $\sigma_i \geq
+\sigma_{i+1}$.
+
+For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom.
+Actually, calculating the variance of $\bm{X}\bm{v}_j$ shows that this quantity is equal to $\sigma_j^2/n$.
+With a parameter $\lambda$ we can thus shrink the role of specific parameters.  
+
+
+!split
+===== More interpretations =====
+
+For the sake of simplicity, let us assume that the design matrix is orthonormal, that is 
+
+!bt
+\[
+\bm{X}^T\bm{X}=(\bm{X}^T\bm{X})^{-1} =\bm{I}. 
+\]
+!et
+
+In this case the standard OLS results in 
+!bt
+\[
+\bm{\beta}^{\mathrm{OLS}} = \bm{X}^T\bm{y}=\sum_{i=0}^{p-1}\bm{u}_j\bm{u}_j^T\bm{y},
+\]
+!et
+
+and
+
+!bt
+\[
+\bm{\beta}^{\mathrm{Ridge}} = \left(\bm{I}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y}=\left(1+\lambda\right)^{-1}\bm{\beta}^{\mathrm{OLS}},
+\]
+!et
+
+that is the Ridge estimator scales the OLS estimator by the inverse of a factor $1+\lambda$, and
+the Ridge estimator converges to zero when the hyperparameter goes to
+infinity.
+
+We will come back to more interpreations after we have gone through some of the statistical analysis part. 
+
+For more discussions of Ridge and Lasso regression, "Wessel van Wieringen's":"https://arxiv.org/abs/1509.09169" article is highly recommended.
+Similarly, "Mehta et al's article":"https://arxiv.org/abs/1803.08823" is also recommended.
+
+!split
+===== Where are we going? =====
+
+Before we proceed, we need to rethink what we have been doing. In our
+eager to fit the data, we have omitted several important elements in
+our regression analysis. In what follows we will
+o look at statistical properties, including a discussion of mean values, variance and the so-called bias-variance tradeoff
+o introduce resampling techniques like cross-validation, bootstrapping and jackknife and more
+
+This will allow us to link the standard linear algebra methods we have discussed above to a statistical interpretation of the methods. 
+
+
 
 
 
@@ -1429,6 +1636,7 @@ once using the original training sample.
 !split
 ===== Resampling approaches can be computationally expensive =====
 !bblock
+
 Resampling approaches can be computationally expensive, because they
 involve fitting the same statistical method multiple times using
 different subsets of the training data. However, due to recent
@@ -1444,14 +1652,16 @@ of flexibility. The process of evaluating a model’s performance is
 known as model assessment, whereas the process of selecting the proper
 level of flexibility for a model is known as model selection. The
 bootstrap is widely used.
+
 !eblock
 
 !split
 ===== Why resampling methods ? ===== 
 !bblock Statistical analysis
-    * Our simulations can be treated as *computer experiments*. This is particularly the case for Monte Carlo methods
-    * The results can be analysed with the same statistical tools as we would use analysing experimental data.
-    * As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
+    
+* Our simulations can be treated as *computer experiments*. This is particularly the case for Monte Carlo methods
+* The results can be analysed with the same statistical tools as we would use analysing experimental data.
+* As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
 
 
 !eblock    
@@ -1459,11 +1669,12 @@ bootstrap is widely used.
 !split
 =====  Statistical analysis ===== 
 !bblock 
-    * As in other experiments, many numerical  experiments have two classes of errors:
-      * Statistical errors
-      * Systematical errors
-    * Statistical errors can be estimated using standard tools from statistics
-    * Systematical errors are method specific and must be treated differently from case to case. 
+
+* As in other experiments, many numerical  experiments have two classes of errors:
+  * Statistical errors
+  * Systematical errors
+* Statistical errors can be estimated using standard tools from statistics
+* Systematical errors are method specific and must be treated differently from case to case. 
 !eblock    
 
 !split
@@ -2036,39 +2247,169 @@ measurements is very large.
 
 
 
+!split 
+===== Linking the regression analysis with a statistical interpretation =====
 
+Finally, we are going to discuss several statistical properties which can be obtained in terms of analytical expressions. 
+The
+advantage of doing linear regression is that we actually end up with
+analytical expressions for several statistical quantities.  
+Standard least squares and Ridge regression  allow us to
+derive quantities like the variance and other expectation values in a
+rather straightforward way.
+
+
+It is assumed that $\varepsilon_i
+\sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
+independent, i.e.: 
+!bt
+\begin{align*} 
+\mbox{Cov}(\varepsilon_{i_1},
+\varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
+& i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
+\end{align*} 
+!et
+The randomness of $\varepsilon_i$ implies that
+$\mathbf{y}_i$ is also a random variable. In particular,
+$\mathbf{y}_i$ is normally distributed, because $\varepsilon_i \sim
+\mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \bm{\beta}$ is a
+non-random scalar. To specify the parameters of the distribution of
+$\mathbf{y}_i$ we need to calculate its first two moments. 
+
+Recall that $\bm{X}$ is a matrix of dimensionality $n\times p$. The
+notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
+row number $i$ and perform a sum over all values $p$.
 
 
 !split
-===== Log-likelihood =====
+===== Assumptions made =====
 
-A popular strategy is to choose a penalty parameter that yields a good
-but parsimonious model. Information criteria measure the balance
-between model fit and model complexity. One possibility is  Aikaike's
-information criterion (AIC).
-The AIC measures model fit by the log-likelihood
-and model complexity is measured by the number of parameters used by
-the model. The number of model parameters in regular regression simply
-corresponds to the number of covariates in the model. Or, by the
-degrees of freedom consumed by the model, which is equivalent to the
-trace of the hat matrix. For ridge regression it thus seems natural to
-define model complexity analogously by the trace of the ridge hat
-matrix. This yields the AIC for the linear regression model with ridge
-estimates:
-
-
+The assumption we have made here can be summarized as (and this is going to useful when we discuss the bias-variance trade off)
+that there exists a function $f(\bm{x})$ and  a normal distributed error $\bm{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
+which describes our data
 !bt
-\begin{align*}
-\mbox{AIC}(\lambda) & =  2 \, p - 2 \log(\hat{L})
-\\
-& =  2 \, \mbox{tr} [\mathbf{H}(\lambda)] - 2 \log\{L[\hat{\beta}(\lambda), \hat{\sigma}^2(\lambda)]\}
-\\
-& =  2 \, \sum_{j=1}^p \frac{d_{jj}^2}{d_{jj}^2 + \lambda}
-+ 2 n \, \log[\sqrt{2 \, \pi} \, \hat{\sigma}(\lambda)] +  \frac{1}{\hat{\sigma}^2(\lambda)} \sum_{i=1}^n [y_i - \mathbf{X}_{i, \ast} \, \hat{\beta}(\lambda)]^2.
+\[
+\bm{y} = f(\bm{x})+\bm{\varepsilon}
+\]
+!et
+
+We approximate this function with our model from the solution of the linear regression equations, that is our
+function $f$ is approximated by $\bm{\tilde{y}}$ where we want to minimize $(\bm{y}-\bm{\tilde{y}})^2$, our MSE, with
+!bt
+\[
+\bm{\tilde{y}} = \bm{X}\bm{\beta}.
+\]
+!et
+
+!split
+===== Expectation value and variance =====
+
+We can calculate the expectation value of $\bm{y}$ for a given element $i$ 
+!bt
+\begin{align*} 
+\mathbb{E}(y_i) & =
+\mathbb{E}(\mathbf{X}_{i, \ast} \, \bm{\beta}) + \mathbb{E}(\varepsilon_i)
+\, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
+\end{align*} 
+!et
+while
+its variance is 
+!bt
+\begin{align*} \mbox{Var}(y_i) & = \mathbb{E} \{ [y_i
+- \mathbb{E}(y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( y_i^2 ) -
+[\mathbb{E}(y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
+\beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 \\ &
+= \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2 \varepsilon_i
+\mathbf{X}_{i, \ast} \, \bm{\beta} + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
+\ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2
+\mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \bm{\beta} +
+\mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 
+\\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
+\mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
 \end{align*}
 !et
-The value of $\lambda$ which minimizes $\mbox{AIC}(\lambda)$ corresponds to the `optimal' balance of model complexity and overfitting.
+Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \bm{\beta}, \sigma^2)$, that is $\bm{y}$ follows a normal distribution with 
+mean value $\bm{X}\bm{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD). 
 
+!split
+===== Expectation value and variance for $\bm{\beta}$ =====
+
+With the OLS expressions for the parameters $\bm{\beta}$ we can evaluate the expectation value
+!bt
+\[
+\mathbb{E}(\bm{\beta}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\bm{\beta}=\bm{\beta}.
+\]
+!et
+This means that the estimator of the regression parameters is unbiased.
+
+We can also calculate the variance
+
+The variance of $\bm{\beta}$ is
+!bt
+\begin{eqnarray*}
+\mbox{Var}(\bm{\beta}) & = & \mathbb{E} \{ [\bm{\beta} - \mathbb{E}(\bm{\beta})] [\bm{\beta} - \mathbb{E}(\bm{\beta})]^{T} \}
+\\
+& = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \bm{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \bm{\beta}]^{T} \}
+\\
+% & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}]^{T} \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} \, \mathbf{Y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{Y} \, \mathbf{Y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T \, \mathbf{X} \, \bm{\beta} \, \bm{\beta}^T \,  \mathbf{X}^T \, \mathbf{X} \, (\mathbf{X}^T % \mathbf{X})^{-1}
+% \\
+% & & + \, \, \sigma^2 \, (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T  \, \mathbf{X} \, (\mathbf{X}^T \mathbf{X})^{-1} - \bm{\beta} \bm{\beta}^T
+\\
+& = & \bm{\beta} \, \bm{\beta}^{T}  + \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\, \, \, = \, \, \, \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1},
+\end{eqnarray*}
+!et
+
+where we have used  that $\mathbb{E} (\mathbf{Y} \mathbf{Y}^{T}) =
+\mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \, \mathbf{X}^{T} +
+\sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\bm{\beta}) = \sigma^2
+\, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
+variance of the estimate of the $j$-th regression coefficient:
+$\hat{\sigma}^2 (\hat{\beta}_j ) = \hat{\sigma}^2 \sqrt{
+[(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} }$. This may be used to
+construct a confidence interval for the estimates.
+
+
+In a similar way, we cna obtain analytical expressions for say the
+expectation values of the parameters $\bm{\beta}$ and their variance
+when we employ Ridge regression, and thereby a confidence interval. 
+
+It is rather straightforward to show that
+!bt
+\[
+\mathbb{E} \big[ \bm{\beta}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\bm{\beta}^{\mathrm{OLS}}.
+\]
+!et
+We see clearly that 
+$\mathbb{E} \big[ \bm{\beta}^{\mathrm{Ridge}} \big] \not= \bm{\beta}^{\mathrm{OLS}}$ for any $\lambda > 0$. We say then that the ridge estimator is biased.
+
+We can also compute the variance as 
+
+!bt
+\[
+\mbox{Var}[\bm{\beta}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
+\]
+!et
+and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\bm{\beta}$ goes to zero. 
+
+With this, we can compute the difference 
+
+!bt
+\[
+\mbox{Var}[\bm{\beta}^{\mathrm{OLS}}]-\mbox{Var}(\bm{\beta}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
+\]
+!et
+The difference is non-negative definite since each component of the
+matrix product is non-negative definite. 
+This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\bm{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
 
 !split 
 ===== Cross-validation =====
@@ -2078,12 +2419,14 @@ model complexity, cross-validation requires it (i.e. the penalty
 parameter) to yield a model with good prediction
 performance. Commonly, this performance is evaluated on novel
 data. Novel data need not be easy to come by and one has to make do
-with the data at hand. The setting of `original' and novel data is
+with the data at hand.
+
+The setting of _original_ and novel data is
 then mimicked by sample splitting: the data set is divided into two
-(groups of samples). One of these two data sets, called the *training
-set*, plays the role of `original' data on which the model is
+(groups of samples). One of these two data sets, called the 
+*training set*, plays the role of _original_ data on which the model is
 built. The second of these data sets, called the *test set*, plays the
-role of the `novel' data and is used to evaluate the prediction
+role of the _novel_ data and is used to evaluate the prediction
 performance (often operationalized as the log-likelihood or the
 prediction error or its square or the R2 score) of the model built on the training data set. This
 procedure (model building and prediction evaluation on training and
@@ -2135,44 +2478,28 @@ cross-validation (LOOCV).
 
 * Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
 
-* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\hat{\sigma}_{-i}^2(\lambda)$, as
+* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\bm{\sigma}_{-i}^2(\lambda)$, as
 !bt
 \begin{align*}
-\hat{\beta}_{-i}(\lambda) & =  ( \hat{X}_{-i, \ast}^{\top}
-\hat{X}_{-i, \ast} + \lambda \hat{I}_{pp})^{-1}
-\hat{X}_{-i, \ast}^{\top} \hat{y}_{-i}
+\bm{\beta}_{-i}(\lambda) & =  ( \bm{X}_{-i, \ast}^{T}
+\bm{X}_{-i, \ast} + \lambda \bm{I}_{pp})^{-1}
+\bm{X}_{-i, \ast}^{T} \bm{y}_{-i}
 \end{align*}
 !et 
 
-* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \hat{X}_{i, \ast}; \hat{\beta}_{-i}(\lambda), \hat{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \hat{X}_{i, \ast} \hat{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
+* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \bm{X}_{i, \ast}; \bm{\beta}_{-i}(\lambda), \bm{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \bm{X}_{i, \ast} \bm{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
 
 * Repeat the first three steps  such that each sample plays the role of the test set once.
 
 * Average the prediction performances of the test sets at each grid point of the penalty bias/parameter by computing the *cross-validated log-likelihood*. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as
 !bt
 \begin{align*}
-\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \hat{\beta}_{-i}(\lambda), \hat{\sigma}_{-i}^2(\lambda)]\}.
+\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \bm{\beta}_{-i}(\lambda), \bm{\sigma}_{-i}^2(\lambda)]\}.
 \end{align*}
 !et
 
 * The value of the penalty parameter that maximizes the cross-validated log-likelihood is the value of choice. Or we can use the MSE or the R2 score functions.
 
-!split
-===== Predicted Residual Error Sum of Squares =====
-!bblock
-Another approach in the LOOCV scheme is to the use the so-called Predicted Residual Error Sum of Squares (PRESS). 
-
-We can define the optimal penalty parameter to minimize
-!bt
-\begin{align*}
-\lambda_{\mbox{{\tiny opt}}} = \arg \min_{\lambda} \frac{1}{n} \sum_{i=1}^n [y_i - \hat{X}_{i, \ast} \hat{\beta}_{-i}(\lambda)]^2.
-\end{align*}
-!et
-
-The LOOCV prediction performance can be
-expressed analytically in terms of the known quantities derived from
-the design matrix and the parameters $\beta$.
-!eblock
 
 
 !split
@@ -2197,31 +2524,18 @@ need for bootstrapping.
 ===== Resampling methods: Jackknife =====
 
 The Jackknife works by making many replicas of the estimator $\widehat{\theta}$. 
-The jackknife is a resampling method, we explained that this happens by scrambling the data in some way. When using the jackknife, this is done by systematically leaving out one observation from the vector of observed values $\hat{x} = (x_1,x_2,\cdots,X_n)$. 
-Let $\hat{x}_i$ denote the vector
+The jackknife is a resampling method where we systematically leave out one observation from the vector of observed values $\bm{x} = (x_1,x_2,\cdots,X_n)$. 
+Let $\bm{x}_i$ denote the vector
 !bt
 \[
-\hat{x}_i = (x_1,x_2,\cdots,x_{i-1},x_{i+1},\cdots,x_n),
+\bm{x}_i = (x_1,x_2,\cdots,x_{i-1},x_{i+1},\cdots,x_n),
 \]
 !et
 
-which equals the vector $\hat{x}$ with the exception that observation
+which equals the vector $\bm{x}$ with the exception that observation
 number $i$ is left out. Using this notation, define
 $\widehat{\theta}_i$ to be the estimator
 $\widehat{\theta}$ computed using $\vec{X}_i$. 
-
-!split
-===== Resampling methods: Jackknife estimator =====
-
-To get an estimate for the bias and
-standard error of $\widehat{\theta}$, use the following
-estimators for each component of $\widehat{\theta}$
-
-!bt
-\[
-\widehat{\mathrm{Bias}}(\widehat \theta,\theta) = (n-1)\left( - \widehat{\theta} + \frac{1}{n}\sum_{i=1}^{n} \widehat \theta_i \right) \qquad \text{and} \qquad \widehat{\sigma}^2_{\widehat{\theta} } = \frac{n-1}{n}\sum_{i=1}^{n}( \widehat{\theta}_i - \frac{1}{n}\sum_{j=1}^{n}\widehat \theta_j )^2.
-\]
-!et
 
 
 !split
@@ -2276,14 +2590,14 @@ o It is relatively simple to apply the bootstrap to complex data-collection plan
 !split
 ===== Resampling methods: Bootstrap background =====
 
-Since $\widehat{\theta} = \widehat{\theta}(\hat{X})$ is a function of random variables,
+Since $\widehat{\theta} = \widehat{\theta}(\bm{X})$ is a function of random variables,
 $\widehat{\theta}$ itself must be a random variable. Thus it has
-a pdf, call this function $p(\hat{t})$. The aim of the bootstrap is to
-estimate $p(\hat{t})$ by the relative frequency of
+a pdf, call this function $p(\bm{t})$. The aim of the bootstrap is to
+estimate $p(\bm{t})$ by the relative frequency of
 $\widehat{\theta}$. You can think of this as using a histogram
-in the place of $p(\hat{t})$. If the relative frequency closely
+in the place of $p(\bm{t})$. If the relative frequency closely
 resembles $p(\vec{t})$, then using numerics, it is straight forward to
-estimate all the interesting parameters of $p(\hat{t})$ using point
+estimate all the interesting parameters of $p(\bm{t})$ using point
 estimators.  
 
 
@@ -2301,7 +2615,7 @@ o Then using these numbers, we could compute a replica of $\widehat{\theta}$ cal
 By repeated use of (1) and (2), many
 estimates of $\widehat{\theta}$ could have been obtained. The
 idea is to use the relative frequency of $\widehat{\theta}^*$
-(think of a histogram) as an estimate of $p(\hat{t})$.
+(think of a histogram) as an estimate of $p(\bm{t})$.
 
 !split
 ===== Resampling methods: Bootstrap approach =====
@@ -2319,24 +2633,46 @@ result in some asymptotic sense? The answer is yes.
 Instead of generating the histogram for the relative
 frequency of the observation $X_i$, just draw the values
 $(X_1^*,X_2^*,\cdots,X_n^*)$ with replacement from the vector
-$\hat{X}$. 
+$\bm{X}$. 
 
 !split
 ===== Resampling methods: Bootstrap steps =====
 
 The independent bootstrap works like this: 
 
-o Draw with replacement $n$ numbers for the observed variables $\hat{x} = (x_1,x_2,\cdots,x_n)$. 
-o Define a vector $\hat{x}^*$ containing the values which were drawn from $\hat{x}$. 
-o Using the vector $\hat{x}^*$ compute $\widehat{\theta}^*$ by evaluating $\widehat \theta$ under the observations $\hat{x}^*$. 
+o Draw with replacement $n$ numbers for the observed variables $\bm{x} = (x_1,x_2,\cdots,x_n)$. 
+o Define a vector $\bm{x}^*$ containing the values which were drawn from $\bm{x}$. 
+o Using the vector $\bm{x}^*$ compute $\widehat{\theta}^*$ by evaluating $\widehat \theta$ under the observations $\bm{x}^*$. 
 o Repeat this process $k$ times. 
 
-When you are done, you can draw a histogram of the relative frequency of $\widehat \theta^*$. This is your estimate of the probability distribution $p(t)$. Using this probability distribution you can estimate any statistics thereof. In principle you never draw the histogram of the relative frequency of $\widehat{\theta}^*$. Instead you use the estimators corresponding to the statistic of interest. For example, if you are interested in estimating the variance of $\widehat \theta$, apply the etsimator $\widehat \sigma^2$ to the values $\widehat \theta ^*$.
+When you are done, you can draw a histogram of the relative frequency
+of $\widehat \theta^*$. This is your estimate of the probability
+distribution $p(t)$. Using this probability distribution you can
+estimate any statistics thereof. In principle you never draw the
+histogram of the relative frequency of $\widehat{\theta}^*$. Instead
+you use the estimators corresponding to the statistic of interest. For
+example, if you are interested in estimating the variance of $\widehat
+\theta$, apply the etsimator $\widehat \sigma^2$ to the values
+$\widehat \theta ^*$.
 
 
 !split
 ===== Code example for the Bootstrap method =====
-The following code starts with a Gaussian distribution with mean value $\mu =100$ and variance $\sigma=15$. We use this to generate the data used in the bootstrap analysis. The bootstrap analysis returns a data set after a given number of bootstrap operations (as many as we have data points). This data set consists of estimated mean values for each bootstrap operation. The histogram generated by the bootstrap method shows that the distribution for these mean values is also a Gaussian, centered around the mean value $\mu=100$ but with standard deviation $\sigma/\sqrt{n}$, where $n$ is the number of bootstrap samples (in this case the same as the number of original data points). The value of the standard deviation is what we expect from the central limit theorem. 
+
+The following code starts with a Gaussian distribution with mean value
+$\mu =100$ and variance $\sigma=15$. We use this to generate the data
+used in the bootstrap analysis. The bootstrap analysis returns a data
+set after a given number of bootstrap operations (as many as we have
+data points). This data set consists of estimated mean values for each
+bootstrap operation. The histogram generated by the bootstrap method
+shows that the distribution for these mean values is also a Gaussian,
+centered around the mean value $\mu=100$ but with standard deviation
+$\sigma/\sqrt{n}$, where $n$ is the number of bootstrap samples (in
+this case the same as the number of original data points). The value
+of the standard deviation is what we expect from the central limit
+theorem.
+
+
 !bc pycod
 from numpy import *
 from numpy.random import randint, randn
@@ -2348,30 +2684,29 @@ import matplotlib.pyplot as plt
 def stat(data):
     return mean(data)
 
-# Bootstrap algorithm                                                                                                                                                              
+# Bootstrap algorithm
 def bootstrap(data, statistic, R):
     t = zeros(R); n = len(data); inds = arange(n); t0 = time()
-
-    # non-parametric bootstrap                                                                                                                                                     
+    # non-parametric bootstrap         
     for i in range(R):
         t[i] = statistic(data[randint(0,n,n)])
 
-    # analysis                                                                                                                                                                     
+    # analysis    
     print("Runtime: %g sec" % (time()-t0)); print("Bootstrap Statistics :")
     print("original           bias      std. error")
-    print("%8g %8g %14g %15g" % (statistic(data), std(data),\
-                             mean(t), \
-                             std(t)))
+    print("%8g %8g %14g %15g" % (statistic(data), std(data),mean(t),std(t)))
     return t
 
 
 mu, sigma = 100, 15
 datapoints = 10000
 x = mu + sigma*random.randn(datapoints)
-# bootstrap returns the data sample                                                                                                          t = bootstrap(x, stat, datapoints)
-# the histogram of the bootstrapped  data                                                                                                    n, binsboot, patches = plt.hist(t, 50, normed=1, facecolor='red', alpha=0.75)
+# bootstrap returns the data sample                                    
+t = bootstrap(x, stat, datapoints)
+# the histogram of the bootstrapped  data                                                                                                    
+n, binsboot, patches = plt.hist(t, 50, normed=1, facecolor='red', alpha=0.75)
 
-# add a 'best fit' line                                                                                                                                                          
+# add a 'best fit' line  
 y = mlab.normpdf( binsboot, mean(t), std(t))
 lt = plt.plot(binsboot, y, 'r--', linewidth=1)
 plt.xlabel('Smarts')
@@ -2385,342 +2720,99 @@ plt.show()
 
 
 !split
-===== Resampling methods: Blocking  =====
+===== Code Example for Cross-validation and $k$-fold Cross-validation =====
 
-The blocking method was made popular by "Flyvbjerg and Pedersen (1989)":"https://aip.scitation.org/doi/10.1063/1.457480"
-and has become one of the standard ways to estimate
-$V(\widehat{\theta})$ for exactly one $\widehat{\theta}$, namely
-$\widehat{\theta} = \overline{X}$. 
-
-Assume $n = 2^d$ for some integer $d>1$ and $X_1,X_2,\cdots, X_n$ is a stationary time series to begin with. 
-Moreover, assume that the time series is asymptotically uncorrelated. We switch to vector notation by arranging $X_1,X_2,\cdots,X_n$ in an $n$-tuple. Define:
-!bt
-\begin{align*}
-\hat{X} = (X_1,X_2,\cdots,X_n).
-\end{align*}
-!et
-
-The strength of the blocking method is when the number of
-observations, $n$ is large. For large $n$, the complexity of dependent
-bootstrapping scales poorly, but the blocking method does not,
-moreover, it becomes more accurate the larger $n$ is.
-
-!split
-===== Blocking Transformations =====
- We now define
-blocking transformations. The idea is to take the mean of subsequent
-pair of elements from $\vec{X}$ and form a new vector
-$\vec{X}_1$. Continuing in the same way by taking the mean of
-subsequent pairs of elements of $\vec{X}_1$ we obtain $\vec{X}_2$, and
-so on. 
-Define $\vec{X}_i$ recursively by:
-
-!bt 
-\begin{align} 
-(\vec{X}_0)_k &\equiv (\vec{X})_k \nonumber \\
-(\vec{X}_{i+1})_k &\equiv \frac{1}{2}\Big( (\vec{X}_i)_{2k-1} +
-(\vec{X}_i)_{2k} \Big) \qquad \text{for all} \qquad 1 \leq i \leq d-1
-\end{align} 
-!et 
-
-The quantity $\vec{X}_k$ is
-subject to $k$ _blocking transformations_.  We now have $d$ vectors
-$\vec{X}_0, \vec{X}_1,\cdots,\vec X_{d-1}$ containing the subsequent
-averages of observations. It turns out that if the components of
-$\vec{X}$ is a stationary time series, then the components of
-$\vec{X}_i$ is a stationary time series for all $0 \leq i \leq d-1$
-
-We can then compute the autocovariance, the variance, sample mean, and
-number of observations for each $i$. 
-Let $\gamma_i, \sigma_i^2,
-\overline{X}_i$ denote the autocovariance, variance and average of the
-elements of $\vec{X}_i$ and let $n_i$ be the number of elements of
-$\vec{X}_i$. It follows by induction that $n_i = n/2^i$. 
-
-!split
-===== Blocking Transformations =====
-
-Using the
-definition of the blocking transformation and the distributive
-property of the covariance, it is clear that since $h =|i-j|$
-we can define
-!bt
-\begin{align}
-\gamma_{k+1}(h) &= cov\left( ({X}_{k+1})_{i}, ({X}_{k+1})_{j} \right) \nonumber \\
-&=  \frac{1}{4}cov\left( ({X}_{k})_{2i-1} + ({X}_{k})_{2i}, ({X}_{k})_{2j-1} + ({X}_{k})_{2j} \right) \nonumber \\
-&=  \frac{1}{2}\gamma_{k}(2h) + \frac{1}{2}\gamma_k(2h+1) \hspace{0.1cm} \mathrm{h = 0} \\
-&=\frac{1}{4}\gamma_k(2h-1) + \frac{1}{2}\gamma_k(2h) + \frac{1}{4}\gamma_k(2h+1) \quad \mathrm{else}
-\end{align}
-!et
-
-The quantity $\hat{X}$ is asymptotic uncorrelated by assumption, $\hat{X}_k$ is also asymptotic uncorrelated. Let's turn our attention to the variance of the sample mean $V(\overline{X})$. 
-
-!split
-===== Blocking Transformations, getting there =====
-We have
-!bt
-\begin{align}
-V(\overline{X}_k) = \frac{\sigma_k^2}{n_k} + \underbrace{\frac{2}{n_k} \sum_{h=1}^{n_k-1}\left( 1 - \frac{h}{n_k} \right)\gamma_k(h)}_{\equiv e_k} = \frac{\sigma^2_k}{n_k} + e_k \quad \text{if} \quad \gamma_k(0) = \sigma_k^2. 
-\end{align}
-!et
-The term $e_k$ is called the _truncation error_: 
-!bt
-\begin{equation}
-e_k = \frac{2}{n_k} \sum_{h=1}^{n_k-1}\left( 1 - \frac{h}{n_k} \right)\gamma_k(h). 
-\end{equation}
-!et
-We can show that $V(\overline{X}_i) = V(\overline{X}_j)$ for all $0 \leq i \leq d-1$ and $0 \leq j \leq d-1$. 
-
-!split
-===== Blocking Transformations, final expressions =====
-
-We can then wrap up
-!bt
-\begin{align}
-n_{j+1} \overline{X}_{j+1}  &= \sum_{i=1}^{n_{j+1}} (\hat{X}_{j+1})_i =  \frac{1}{2}\sum_{i=1}^{n_{j}/2} (\hat{X}_{j})_{2i-1} + (\hat{X}_{j})_{2i} \nonumber \\
-&= \frac{1}{2}\left[ (\hat{X}_j)_1 + (\hat{X}_j)_2 + \cdots + (\hat{X}_j)_{n_j} \right] = \underbrace{\frac{n_j}{2}}_{=n_{j+1}} \overline{X}_j = n_{j+1}\overline{X}_j. 
-\end{align}
-!et
-By repeated use of this equation we get $V(\overline{X}_i) = V(\overline{X}_0) = V(\overline{X})$ for all $0 \leq i \leq d-1$. This has the consequence that
-!bt
-\begin{align}
-V(\overline{X}) = \frac{\sigma_k^2}{n_k} + e_k \qquad \text{for all} \qquad 0 \leq k \leq d-1. \label{eq:convergence}
-\end{align}
-!et
-
-Fyvbjerg and Petersen demonstrated that the sequence
-$\{e_k\}_{k=0}^{d-1}$ is decreasing, and conjecture that the term
-$e_k$ can be made as small as we would like by making $k$ (and hence
-$d$) sufficiently large. The sequence is decreasing (Master of Science thesis by Marius Jonsson, UiO 2018).
-It means we can apply blocking transformations until
-$e_k$ is sufficiently small, and then estimate $V(\overline{X})$ by
-$\widehat{\sigma}^2_k/n_k$. 
-
-
-!split
-===== "Code examples for Blocking, Jackknife and bootstrap":"https://github.com/CompPhysics/MachineLearning/tree/master/doc/Programs/ResamplingAnalysisScripts" =====
-
+The code here uses Ridge regression with cross-validation (CV)  resampling and $k$-fold CV in order to fit a specific polynomial. 
 !bc pycod
-from sys import argv
-from os import mkdir, path
-import time
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
-from matplotlib.font_manager import FontProperties
+from sklearn.model_selection import KFold
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import PolynomialFeatures
 
-# Timing Decorator
-def timeFunction(f):
-    def wrap(*args):
-        time1 = time.time()
-        ret = f(*args)
-        time2 = time.time()
-        print '%s Function Took: \t %0.3f s' % (f.func_name.title(), (time2-time1))
-        return ret
-    return wrap
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
 
-class dataAnalysisClass:
-    # General Init functions
-    def __init__(self, fileName, size=0):
-        self.inputFileName = fileName
-        self.loadData(size)
-        self.createOutputFolder()
-        self.avg = np.average(self.data)
-        self.var = np.var(self.data)
-        self.std = np.std(self.data)
+# Generate the data.
+nsamples = 100
+x = np.random.randn(nsamples)
+y = 3*x**2 + np.random.randn(nsamples)
 
-    def loadData(self, size=0):
-        if size != 0:
-            with open(self.inputFileName) as inputFile:
-                self.data = np.zeros(size)
-                for x in xrange(size):
-                    self.data[x] = float(next(inputFile))
-        else:
-            self.data = np.loadtxt(self.inputFileName)
+## Cross-validation on Ridge regression using KFold only
 
-    # Statistical Analysis with Multiple Methods
-    def runAllAnalyses(self):
-        if len(self.data) <= 100000:
-            print "Autocorrelation..."
-            self.autocorrelation()
-        print "Bootstrap..."
-        self.bootstrap()
-        print "Jackknife..."
-        self.jackknife()
-        print "Blocking..."
-        self.blocking()
+# Decide degree on polynomial to fit
+poly = PolynomialFeatures(degree = 6)
 
-    # Standard Autocorrelation
-    @timeFunction
-    def autocorrelation(self):
-        self.acf = np.zeros(len(self.data)/2)
-        for k in range(0, len(self.data)/2):
-            self.acf[k] = np.corrcoef(np.array([self.data[0:len(self.data)-k], \
-                                            self.data[k:len(self.data)]]))[0,1]
+# Decide which values of lambda to use
+nlambdas = 500
+lambdas = np.logspace(-3, 5, nlambdas)
 
-    # Bootstrap
-    @timeFunction
-    def bootstrap(self, nBoots = 1000):
-        bootVec = np.zeros(nBoots)
-        for k in range(0,nBoots):
-            bootVec[k] = np.average(np.random.choice(self.data, len(self.data)))
-        self.bootAvg = np.average(bootVec)
-        self.bootVar = np.var(bootVec)
-        self.bootStd = np.std(bootVec)
+# Initialize a KFold instance
+k = 5
+kfold = KFold(n_splits = k)
 
-    # Jackknife
-    @timeFunction
-    def jackknife(self):
-        jackknVec = np.zeros(len(self.data))
-        for k in range(0,len(self.data)):
-            jackknVec[k] = np.average(np.delete(self.data, k))
-        self.jackknAvg = self.avg - (len(self.data) - 1) * (np.average(jackknVec) - self.avg)
-        self.jackknVar = float(len(self.data) - 1) * np.var(jackknVec)
-        self.jackknStd = np.sqrt(self.jackknVar)
+# Perform the cross-validation to estimate MSE
+scores_KFold = np.zeros((nlambdas, k))
 
-    # Blocking
-    @timeFunction
-    def blocking(self, blockSizeMax = 500):
-        blockSizeMin = 1
+i = 0
+for lmb in lambdas:
+    ridge = Ridge(alpha = lmb)
+    j = 0
+    for train_inds, test_inds in kfold.split(x):
+        xtrain = x[train_inds]
+        ytrain = y[train_inds]
 
-        self.blockSizes = []
-        self.meanVec = []
-        self.varVec = []
+        xtest = x[test_inds]
+        ytest = y[test_inds]
 
-        for i in range(blockSizeMin, blockSizeMax):
-            if(len(self.data) % i != 0):
-                pass#continue
-            blockSize = i
-            meanTempVec = []
-            varTempVec = []
-            startPoint = 0
-            endPoint = blockSize
+        Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
+        ridge.fit(Xtrain, ytrain[:, np.newaxis])
 
-            while endPoint <= len(self.data):
-                meanTempVec.append(np.average(self.data[startPoint:endPoint]))
-                startPoint = endPoint
-                endPoint += blockSize
-            mean, var = np.average(meanTempVec), np.var(meanTempVec)/len(meanTempVec)
-            self.meanVec.append(mean)
-            self.varVec.append(var)
-            self.blockSizes.append(blockSize)
+        Xtest = poly.fit_transform(xtest[:, np.newaxis])
+        ypred = ridge.predict(Xtest)
 
-        self.blockingAvg = np.average(self.meanVec[-200:])
-        self.blockingVar = (np.average(self.varVec[-200:]))
-        self.blockingStd = np.sqrt(self.blockingVar)
+        scores_KFold[i,j] = np.sum((ypred - ytest[:, np.newaxis])**2)/np.size(ypred)
+
+        j += 1
+    i += 1
 
 
+estimated_mse_KFold = np.mean(scores_KFold, axis = 1)
 
-    # Plot of Data, Autocorrelation Function and Histogram
-    def plotAll(self):
-        self.createOutputFolder()
-        if len(self.data) <= 100000:
-            self.plotAutocorrelation()
-        self.plotData()
-        self.plotHistogram()
-        self.plotBlocking()
+## Cross-validation using cross_val_score from sklearn along with KFold
 
-    # Create Output Plots Folder
-    def createOutputFolder(self):
-        self.outName = self.inputFileName[:-4]
-        if not path.exists(self.outName):
-            mkdir(self.outName)
+# kfold is an instance initialized above as:
+# kfold = KFold(n_splits = k)
 
-    # Plot the Dataset, Mean and Std
-    def plotData(self):
-        # Far away plot
-        font = {'fontname':'serif'}
-        plt.plot(range(0, len(self.data)), self.data, 'r-', linewidth=1)
-        plt.plot([0, len(self.data)], [self.avg, self.avg], 'b-', linewidth=1)
-        plt.plot([0, len(self.data)], [self.avg + self.std, self.avg + self.std], 'g--', linewidth=1)
-        plt.plot([0, len(self.data)], [self.avg - self.std, self.avg - self.std], 'g--', linewidth=1)
-        plt.ylim(self.avg - 5*self.std, self.avg + 5*self.std)
-        plt.gca().yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
-        plt.xlim(0, len(self.data))
-        plt.ylabel(self.outName.title() + ' Monte Carlo Evolution', **font)
-        plt.xlabel('MonteCarlo History', **font)
-        plt.title(self.outName.title(), **font)
-        plt.savefig(self.outName + "/data.eps")
-        plt.savefig(self.outName + "/data.png")
-        plt.clf()
+estimated_mse_sklearn = np.zeros(nlambdas)
+i = 0
+for lmb in lambdas:
+    ridge = Ridge(alpha = lmb)
 
-    # Plot Histogram of Dataset and Gaussian around it
-    def plotHistogram(self):
-        binNumber = 50
-        font = {'fontname':'serif'}
-        count, bins, ignore = plt.hist(self.data, bins=np.linspace(self.avg - 5*self.std, self.avg + 5*self.std, binNumber))
-        plt.plot([self.avg, self.avg], [0,np.max(count)+10], 'b-', linewidth=1)
-        plt.ylim(0,np.max(count)+10)
-        plt.ylabel(self.outName.title() + ' Histogram', **font)
-        plt.xlabel(self.outName.title() , **font)
-        plt.title('Counts', **font)
+    X = poly.fit_transform(x[:, np.newaxis])
+    estimated_mse_folds = cross_val_score(ridge, X, y[:, np.newaxis], scoring='neg_mean_squared_error', cv=kfold)
 
-        #gaussian
-        norm = 0
-        for i in range(0,len(bins)-1):
-            norm += (bins[i+1]-bins[i])*count[i]
-        plt.plot(bins,  norm/(self.std * np.sqrt(2 * np.pi)) * np.exp( - (bins - self.avg)**2 / (2 * self.std**2) ), linewidth=1, color='r')
-        plt.savefig(self.outName + "/hist.eps")
-        plt.savefig(self.outName + "/hist.png")
-        plt.clf()
+    # cross_val_score return an array containing the estimated negative mse for every fold.
+    # we have to the the mean of every array in order to get an estimate of the mse of the model
+    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
 
-    # Plot the Autocorrelation Function
-    def plotAutocorrelation(self):
-        font = {'fontname':'serif'}
-        plt.plot(range(1, len(self.data)/2), self.acf[1:], 'r-')
-        plt.ylim(-1, 1)
-        plt.xlim(0, len(self.data)/2)
-        plt.ylabel('Autocorrelation Function', **font)
-        plt.xlabel('Lag', **font)
-        plt.title('Autocorrelation', **font)
-        plt.savefig(self.outName + "/autocorrelation.eps")
-        plt.savefig(self.outName + "/autocorrelation.png")
-        plt.clf()
+    i += 1
 
-    def plotBlocking(self):
-        font = {'fontname':'serif'}
-        plt.plot(self.blockSizes, self.varVec, 'r-')
-        plt.ylabel('Variance', **font)
-        plt.xlabel('Block Size', **font)
-        plt.title('Blocking', **font)
-        plt.savefig(self.outName + "/blocking.eps")
-        plt.savefig(self.outName + "/blocking.png")
-        plt.clf()
+## Plot and compare the slightly different ways to perform cross-validation
 
-    # Print Stuff to the Terminal
-    def printOutput(self):
-        print "\nSample Size:    \t", len(self.data)
-        print "\n=========================================\n"
-        print "Sample Average: \t", self.avg
-        print "Sample Variance:\t", self.var
-        print "Sample Std:     \t", self.std
-        print "\n=========================================\n"
-        print "Bootstrap Average: \t", self.bootAvg
-        print "Bootstrap Variance:\t", self.bootVar
-        print "Bootstrap Error:   \t", self.bootStd
-        print "\n=========================================\n"
-        print "Jackknife Average: \t", self.jackknAvg
-        print "Jackknife Variance:\t", self.jackknVar
-        print "Jackknife Error:   \t", self.jackknStd
-        print "\n=========================================\n"
-        print "Blocking Average: \t", self.blockingAvg
-        print "Blocking Variance:\t", self.blockingVar
-        print "Blocking Error:   \t", self.blockingStd, "\n"
+plt.figure()
 
-# Initialize the class
-if len(argv) > 2:
-    dataAnalysis = dataAnalysisClass(argv[1], int(argv[2]))
-else:
-    dataAnalysis = dataAnalysisClass(argv[1])
+plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = 'cross_val_score')
+plt.plot(np.log10(lambdas), estimated_mse_KFold, 'r--', label = 'KFold')
 
-# Run Analyses
-dataAnalysis.runAllAnalyses()
+plt.xlabel('log10(lambda)')
+plt.ylabel('mse')
 
-# Plot the data
-dataAnalysis.plotAll()
+plt.legend()
 
-# Print Some Output
-dataAnalysis.printOutput()
+plt.show()
 
 !ec
 
@@ -2728,139 +2820,205 @@ dataAnalysis.printOutput()
 !split
 ===== The bias-variance tradeoff =====
 
-We begin  with an unknown function $y=f(x)$ and fix a \emph{hypothesis set}
- $\mathcal{H}$ consisting of all functions we are willing to consider,
- defined also on the domain of $f$. This set may be uncountably
- infinite (e.g.~if there are real-valued parameters to fit). 
-The
- choice of which functions to include in $\mathcal{H}$ usually depends
- on our intuition about the problem of interest. The function $f(x)$
- produces a set of pairs $(x_i,y_i)$, $i=1\dots N$, which serve as the
- observable data. Our goal is to select a function from the hypothesis
- set $h\in\mathcal{H}$ which approximates $f(x)$ as best as possible,
- namely, we would like to find $h\in\mathcal{H}$ such that $h\approx
- f$ in some strict mathematical sense which we specify below. If this
- is possible, we say that we \emph{learned} $f(x)$. But if the
- function $f(x)$ can, in principle, take any value on
- \emph{unobserved} inputs, how is it possible to learn in any
- meaningful sense?
+
+We will discuss the bias-variance tradeoff in the context of
+continuous predictions such as regression. However, many of the
+intuitions and ideas discussed here also carry over to classification
+tasks. Consider a dataset $\mathcal{L}$ consisting of the data
+$\mathbf{X}_\mathcal{L}=\{(y_j, \boldsymbol{x}_j), j=0\ldots n-1\}$. 
+
+Let us assume that the true data is generated from a noisy model
+
+!bt
+\[
+\bm{y}=f(\boldsymbol{x}) + \bm{\epsilon}
+\]
+!et
+
+where $\epsilon$ is normally distributed with mean zero and standard deviation $\sigma^2$.
+
+In our derivation of the ordinary least squares method we defined then
+an approximation to the function $f$ in terms of the parameters
+$\bm{\beta}$ and the design matrix $\bm{X}$ which embody our model,
+that is $\bm{\tilde{y}}=\bm{X}\bm{\beta}$. 
+
+Thereafter we found the parameters $\bm{\beta}$ by optimizing the means squared error via the so-called cost function
+!bt
+\[
+C(\bm{X},\bm{\beta}) =\frac{1}{n}\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2=\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right].
+\]
+!et
+
+We can rewrite this as 
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\frac{1}{n}\sum_i(f_i-\mathbb{E}\left[\bm{\tilde{y}}\right])^2+\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\bm{\tilde{y}}\right])^2+\sigma^2.
+\]
+!et
+
+The three terms represent the square of the bias of the learning
+method, which can be thought of as the error caused by the simplifying
+assumptions built into the method. The second term represents the
+variance of the chosen model and finally the last terms is variance of
+the error $\bm{\epsilon}$.
+
+To derive this equation, we need to recall that the variance of $\bm{y}$ and $\bm{\epsilon}$ are both equal to $\sigma^2$. The mean value of $\bm{\epsilon}$ is by definition equal to zero. Furthermore, the function $f$ is not a stochastics variable, idem for $\bm{\tilde{y}}$.
+We use a more compact notation in terms of the expectation value 
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\mathbb{E}\left[(\bm{f}+\bm{\epsilon}-\bm{\tilde{y}})^2\right],
+\]
+!et
+and adding and subtracting $\mathbb{E}\left[\bm{\tilde{y}}\right]$ we get
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\mathbb{E}\left[(\bm{f}+\bm{\epsilon}-\bm{\tilde{y}}+\mathbb{E}\left[\bm{\tilde{y}}\right]-\mathbb{E}\left[\bm{\tilde{y}}\right])^2\right],
+\]
+!et
+which, using the abovementioned expectation values can be rewritten as 
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\mathbb{E}\left[(\bm{y}-\mathbb{E}\left[\bm{\tilde{y}}\right])^2\right]+\mathrm{Var}\left[\bm{\tilde{y}}\right]+\sigma^2,
+\]
+!et
+that is the rewriting in terms of the so-called bias, the variance of the model $\bm{\tilde{y}}$ and the variance of $\bm{\epsilon}$.
+
+
+
+
+
+!split
+===== Example code for Bias-Variance tradeoff =====
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.utils import resample
+
+np.random.seed(2018)
+
+n = 500
+n_boostraps = 100
+degree = 18  # A quite high value, just to show.
+noise = 0.1
+
+# Make data set.
+x = np.linspace(-1, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2) + np.random.normal(0, 0.1, x.shape)
+
+# Hold out some test data that is never used in training.
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+# Combine x transformation and model into one operation.
+# Not neccesary, but convenient.
+model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
+
+# The following (m x n_bootstraps) matrix holds the column vectors y_pred
+# for each bootstrap iteration.
+y_pred = np.empty((y_test.shape[0], n_boostraps))
+for i in range(n_boostraps):
+    x_, y_ = resample(x_train, y_train)
+
+    # Evaluate the new model on the same test data each time.
+    y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
+
+# Note: Expectations and variances taken w.r.t. different training
+# data sets, hence the axis=1. Subsequent means are taken across the test data
+# set in order to obtain a total value, but before this we have error/bias/variance
+# calculated per data point in the test set.
+# Note 2: The use of keepdims=True is important in the calculation of bias as this 
+# maintains the column vector form. Dropping this yields very unexpected results.
+error = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
+bias = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
+variance = np.mean( np.var(y_pred, axis=1, keepdims=True) )
+print('Error:', error)
+print('Bias^2:', bias)
+print('Var:', variance)
+print('{} >= {} + {} = {}'.format(error, bias, variance, bias+variance))
+
+plt.plot(x[::5, :], y[::5, :], label='f(x)')
+plt.scatter(x_test, y_test, label='Data points')
+plt.scatter(x_test, np.mean(y_pred, axis=1), label='Pred')
+plt.legend()
+plt.show()
+
+!ec
+
+
+!split
+===== Understanding what happens =====
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.utils import resample
+
+np.random.seed(2018)
+
+n = 40
+n_boostraps = 100
+maxdegree = 14
+
+
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+error = np.zeros(maxdegree)
+bias = np.zeros(maxdegree)
+variance = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+for degree in range(maxdegree):
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
+    y_pred = np.empty((y_test.shape[0], n_boostraps))
+    for i in range(n_boostraps):
+        x_, y_ = resample(x_train, y_train)
+        y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
+
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
+    variance[degree] = np.mean( np.var(y_pred, axis=1, keepdims=True) )
+    print('Polynomial degree:', degree)
+    print('Error:', error[degree])
+    print('Bias^2:', bias[degree])
+    print('Var:', variance[degree])
+    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+
+plt.plot(polydegree, np.log10(error), label='Error')
+plt.plot(polydegree, bias, label='bias')
+plt.plot(polydegree, variance, label='Variance')
+plt.legend()
+plt.show()
+
+
+
+
+!ec
 
 !split 
-===== Training and testing data =====
-
-We will discuss the bias-variance tradeoff in the context of continuous predictions such as regression. However, many of the intuitions and ideas discussed here also carry over to classification tasks. Consider a dataset $\mathcal{L}$ consisting of the data $\mathbf{X}_\mathcal{L}=\{(y_j, \boldsymbol{x}_j), j=1\ldots N\}$. Let us assume that the true data is generated from a noisy model
-!bt
-\[
-y=f(\boldsymbol{x}) + \epsilon
-\]
-!et
-where $\epsilon$ is normally distributed with mean zero and standard deviation $\sigma_\epsilon$.
-
-!split
-===== Procedure to find a predictor =====
-
-We have a statistical procedure (e.g. least-squares regression) for
-forming a predictor $\hat{g}_{\mathcal{L}}(\boldsymbol{x})$ that gives the
-prediction of our model for a new data point $\boldsymbol{x}$.  This estimator
-is chosen by minimizing a cost function which we take to be the
-squared error
-
-!bt
-\[
- \mathcal{C}( \boldsymbol{X}, \hat{g}(\boldsymbol{x})) =  \sum_i (y_i - \hat{g}_\mathcal{L}(\boldsymbol{x}_i))^2. 
-\]
-!et
-
-!split
-=====  What we want =====
-
-We are interested in the generalization error on all data drawn from
-the true model, not just the error on the particular training dataset
-$\mathcal{L}$ that we have in hand. This is just the expectation of
-the cost function over many different data sets
-$\{\mathcal{L}_j\}$. Denote this expectation value by
-$E_{\mathcal{L}}$. In other words, we can view $\hat{g}_{\mathcal{L}}$
-as a stochastic functional that depends on the dataset $\mathcal{L}$
-and we can think of $E_{\mathcal{L}}$ as the expected value of the
-functional if we drew an infinite number of datasets $\{\mathcal{L}_1,
-\mathcal{L}_2, \ldots \}$.
+===== Summing up ===== 
 
 
-!split
-===== The expected generalization error =====
 
-We would also like to average over different instances of the
-``noise'' $\epsilon$ and we denote the expectation value over the
-noise by $E_\epsilon$. Thus, we can decompose the expected
-generalization error as
-
-
-!bt
-\begin{align}
-E_\mathcal{L, \epsilon}[\mathcal{C}( \boldsymbol{X}, \hat{g}(\boldsymbol{x})) ]&= E_\mathcal{L,\epsilon}\left[ \sum_i ({y}_i - \hat{g}_\mathcal{L}(\boldsymbol{x}_i))^2 \right] \nonumber \\
- &= E_\mathcal{L, \epsilon}\left[ \sum_{i}({y}_i -f(\boldsymbol{x}_i) +f(\boldsymbol{x}_i)- \hat{g}_\mathcal{L}(\boldsymbol{x}_i))^2\right] \nonumber \\
- &= \sum_i E_\epsilon[ ({y}_i -f(\boldsymbol{x}_i))^2 ]+ E_\mathcal{L, \epsilon}[(f(\boldsymbol{x}_i)- \hat{g}_\mathcal{L}(\boldsymbol{x}_i))^2] + 2E_\epsilon[{y}_i -f(\boldsymbol{x}_i)]E_\mathcal{L}[f(\boldsymbol{x}_i)- \hat{g}_\mathcal{L}(\boldsymbol{x}_i)] \nonumber \\
- &=\sum_i \sigma_\epsilon^2 + E_\mathcal{L}[(f(\boldsymbol{x}_i)- \hat{g}_\mathcal{L}(\boldsymbol{x}_i))^2],
-\end{align}
-!et
-
-where in the last line we used the fact that our noise has zero mean
-and variance $\sigma_\epsilon^2$ and the sum over $i$ applies to all
-terms. 
-
-!split
-===== Elaborating a little bit more =====
-
-It is also helpful to further decompose the second term as
-follows:
-
-!bt
-\begin{align}
-E_\mathcal{L}[(f(\boldsymbol{x}_i)- \hat{g}_\mathcal{L}(\boldsymbol{x}_i))^2] &=E_\mathcal{L}[(f(\mathbf{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)]+ E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)]- \hat{g}_\mathcal{L}(\boldsymbol{x}_i))^2] \nonumber \\
-&=E_\mathcal{L}[(f(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])^2] + E_\mathcal{L}[( \hat{g}_\mathcal{L}(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])^2] \nonumber \\
-&+2E_\mathcal{L}[(f(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])( \hat{g}_\mathcal{L}(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])] \nonumber \\
-&=(f(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])^2+E_\mathcal{L}[( \hat{g}_\mathcal{L}(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])^2].
-\end{align}
-!et
-
-!split
-===== The bias =====
-
-The first term is called the bias
-!bt
-\[
-Bias^2= \sum_i (f(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])^2
-\]
-!et
-and measures the deviation of the expectation value of our estimator (i.e. the asymptotic value of our estimator in the infinite data limit) from the true value. 
-
-!split
-===== The variance =====
-The second term is called the variance
-!bt
-\[
-Var=\sum_i E_\mathcal{L}[( \hat{g}_\mathcal{L}(\boldsymbol{x}_i)-E_\mathcal{L}[\hat{g}_\mathcal{L}(\boldsymbol{x}_i)])^2],
-\]
-!et
-
-and measures how much our estimator fluctuates due to finite-sample effects. Combining these expressions, we see that the expected out-of-sample error of our model can be decomposed as
-!bt
-\[
-E_\mathrm{out}=E_\mathcal{L, \epsilon}[\mathcal{C}( \boldsymbol{X}, \hat{g}(\boldsymbol{x})) ] = Bias^2 + Var + Noise.
-\]
-!et
 
 The bias-variance tradeoff summarizes the fundamental tension in
 machine learning, particularly supervised learning, between the
 complexity of a model and the amount of training data needed to train
 it.  Since data is often limited, in practice it is often useful to
-use a less-complex model with higher bias -- a model whose asymptotic
-performance is worse than another model -- because it is easier to
+use a less-complex model with higher bias, that is  a model whose asymptotic
+performance is worse than another model because it is easier to
 train and less sensitive to sampling noise arising from having a
 finite-sized training dataset (smaller variance). 
 
-!split 
-===== Summing up ===== 
+
 
 The above equations tell us that in
 order to minimize the expected test error, we need to select a
@@ -2882,9 +3040,92 @@ flexible statistical methods have higher variance.
 
 
 !split
-===== The one-dimensional Ising model, project 2 =====
+===== Another Example rom Scikit-Learn's Repository =====
+!bc pycod
+"""
+============================
+Underfitting vs. Overfitting
+============================
 
-The one-dimensional Ising model with nearest neighbor interaction, no external field and a constant coupling constant $J$ is given by
+This example demonstrates the problems of underfitting and overfitting and
+how we can use linear regression with polynomial features to approximate
+nonlinear functions. The plot shows the function that we want to approximate,
+which is a part of the cosine function. In addition, the samples from the
+real function and the approximations of different models are displayed. The
+models have polynomial features of different degrees. We can see that a
+linear function (polynomial with degree 1) is not sufficient to fit the
+training samples. This is called **underfitting**. A polynomial of degree 4
+approximates the true function almost perfectly. However, for higher degrees
+the model will **overfit** the training data, i.e. it learns the noise of the
+training data.
+We evaluate quantitatively **overfitting** / **underfitting** by using
+cross-validation. We calculate the mean squared error (MSE) on the validation
+set, the higher, the less likely the model generalizes correctly from the
+training data.
+"""
+
+print(__doc__)
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score
+
+
+def true_fun(X):
+    return np.cos(1.5 * np.pi * X)
+
+np.random.seed(0)
+
+n_samples = 30
+degrees = [1, 4, 15]
+
+X = np.sort(np.random.rand(n_samples))
+y = true_fun(X) + np.random.randn(n_samples) * 0.1
+
+plt.figure(figsize=(14, 5))
+for i in range(len(degrees)):
+    ax = plt.subplot(1, len(degrees), i + 1)
+    plt.setp(ax, xticks=(), yticks=())
+
+    polynomial_features = PolynomialFeatures(degree=degrees[i],
+                                             include_bias=False)
+    linear_regression = LinearRegression()
+    pipeline = Pipeline([("polynomial_features", polynomial_features),
+                         ("linear_regression", linear_regression)])
+    pipeline.fit(X[:, np.newaxis], y)
+
+    # Evaluate the models using crossvalidation
+    scores = cross_val_score(pipeline, X[:, np.newaxis], y,
+                             scoring="neg_mean_squared_error", cv=10)
+
+    X_test = np.linspace(0, 1, 100)
+    plt.plot(X_test, pipeline.predict(X_test[:, np.newaxis]), label="Model")
+    plt.plot(X_test, true_fun(X_test), label="True function")
+    plt.scatter(X, y, edgecolor='b', s=20, label="Samples")
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.xlim((0, 1))
+    plt.ylim((-2, 2))
+    plt.legend(loc="best")
+    plt.title("Degree {}\nMSE = {:.2e}(+/- {:.2e})".format(
+        degrees[i], -scores.mean(), scores.std()))
+plt.show()
+!ec
+
+
+
+!split
+===== The one-dimensional Ising model =====
+
+Let us bring back the Ising model again, but now with an additional
+focus on Ridge and Lasso regression as well. We repeat some of the
+basic parts of the Ising model and the setup of the training and test
+data.  The one-dimensional Ising model with nearest neighbor
+interaction, no external field and a constant coupling constant $J$ is
+given by
 
 !bt
 \begin{align}
@@ -2920,15 +3161,6 @@ for i in range(n):
     energies[i] = - J * np.dot(spins[i], np.roll(spins[i], 1))
 !ec
 
-Here we use linear (ordinary least squares), ridge and LASSO
-regression to predict the energy in the nearest neighbor
-one-dimensional Ising model on a ring, i.e., the endpoints wrap
-around. We will use the linear regression models to fit a value for
-the coupling constant to achieve this.
-
-!split
-===== Reformulating the problem to suit regression =====
-
 A more general form for the one-dimensional Ising model is
 
 !bt
@@ -2951,12 +3183,10 @@ elements $-J_{jk}$. This form of writing the energy fits perfectly
 with the form utilized in linear regression, viz.
 !bt
 \begin{align}
-    y = X\omega + \epsilon,
+    \bm{y} = \bm{X}\bm{\beta} + \bm{\epsilon}.
 \end{align}
 !et
-
-
-
+We organize the data as we did above
 !bc pycod
 X = np.zeros((n, L ** 2))
 for i in range(n):
@@ -2975,147 +3205,17 @@ X_test_own = np.concatenate(
 )
 !ec
 
-!split
-===== Linear regression =====
-
-The problem at hand is to try to fit the equation
-!bt
-\begin{align}
-    y = f(x) + \epsilon,
-\end{align}
-!et
-
-where $f(x)$ is some unknown function of the data $x$ and $\epsilon$
-is normally distributed with mean zero noise with standard deviation
-$\sigma_{\epsilon}$. Our job is to try to find a predictor which
-estimates the function $f(x)$. In linear regression we assume that we
-can formulate the problem as
-
-!bt
-\begin{align}
-    y = X\omega + \epsilon,
-\end{align}
-!et
-
-where $X$ and $\omega$ are now matrices. Our job at hand is now to
-find a _cost function_ $C$, which we wish to minimize in order to find
-the best estimate of $\omega$.
-
-!split
-===== Ordinary least squares =====
-
-In the ordinary least squares method we choose the cost function
-!bt
-\begin{align}
-    C(X, \omega) = ||X\omega - y||^2
-    = (X\omega - y)^T(X\omega - y)
-\end{align}
-!et
-We then find the extremal point of $C$ by taking the derivative with respect to $\omega$ and setting it to zero, i.e.,
-
-!bt
-\begin{align}
-    \dfrac{\mathrm{d}C}{\mathrm{d}\omega}
-    = 0.
-\end{align}
-!et
-This yields the expression for $\omega$ to be
-!bt
-\begin{align}
-    \omega = \frac{X^T y}{X^T X},
-\end{align}
-!et
-
-which immediately imposes some requirements on $X$ as there must exist
-an inverse of $X^T X$. If the expression we are modelling contains an
-intercept, i.e., a constant expression we must make sure that the
-first column of $X$ consists of $1$.
-
-
-!bc pycod
-def get_ols_weights_naive(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    return scl.inv(x.T @ x) @ (x.T @ y)
-omega = get_ols_weights_naive(X_train_own, y_train)
-!ec
-
-
-!split
-===== Singular Value decomposition =====
-Doing the inversion directly turns out to be a bad idea as the matrix
-$X^TX$ is singular. An alternative approach is to use the _singular
-value decomposition_. Using the definition of the Moore-Penrose
-pseudoinverse we can write the equation for $\omega$ as
-
-!bt
-\begin{align}
-    \omega = X^{+}y,
-\end{align}
-!et
-where the pseudoinverse of $X$ is given by
-!bt
-\begin{align}
-    X^{+} = \frac{X^T}{X^T X}.
-\end{align}
-!et
-
-Using singular value decomposition we have that $X = U\Sigma V^T$,
-where $X^{+} = V\Sigma^{+} U^T$. This reduces the equation for
-$\omega$ to
-!bt
-\begin{align}
-    \omega = V\Sigma^{+} U^T y.
-\end{align}
-!et
-
-Note that solving this equation by actually doing the pseudoinverse
-(which is what we will do) is not a good idea as this operation scales
-as $\mathcal{O}(n^3)$, where $n$ is the number of elements in a
-general matrix. Instead, doing $QR$-factorization and solving the
-linear system as an equation would reduce this down to
-$\mathcal{O}(n^2)$ operations.
-
-
-!bc pycod
-def get_ols_weights(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    u, s, v = scl.svd(x)
-    return v.T @ scl.pinv(scl.diagsvd(s, u.shape[0], v.shape[0])) @ u.T @ y
-!ec
-Before passing in the data to the function we append a column with ones to the training data.
-
-
-!bc pycod
-omega = get_ols_weights(X_train_own,y_train)
-!ec
-
-!split
-===== Fitting with scikit-learn =====
-
-Next we fit a `LinearRegression`-model from Scikit-learn for comparison.
+We will do all fitting with _Scikit-Learn_,
 
 !bc pycod
 clf = skl.LinearRegression().fit(X_train, y_train)
 !ec
-
-Extracting the $J$-matrix from both our own method and the Scikit-learn model where we make sure to remove the intercept.
-
-
+When  extracting the $J$-matrix we make sure to remove the intercept
 !bc pycod
-J_own = omega[1:].reshape(L, L)
 J_sk = clf.coef_.reshape(L, L)
 !ec
-
-A way of looking at the coefficients in $J$ is to plot the matrices as images.
-
-
+And then we plot the results
 !bc pycod
-fig = plt.figure(figsize=(20, 14))
-im = plt.imshow(J_own, **cmap_args)
-plt.title("Home-made OLS", fontsize=18)
-plt.xticks(fontsize=18)
-plt.yticks(fontsize=18)
-cb = fig.colorbar(im)
-cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontsize=18)
-
 fig = plt.figure(figsize=(20, 14))
 im = plt.imshow(J_sk, **cmap_args)
 plt.title("LinearRegression from Scikit-learn", fontsize=18)
@@ -3125,11 +3225,7 @@ cb = fig.colorbar(im)
 cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontsize=18)
 plt.show()
 !ec
-
-We can see that our model for the least squares method performes close
-to the benchmark from Scikit-learn. It is interesting to note that OLS
-considers both $J_{j, j + 1} = -0.5$ and $J_{j, j - 1} = -0.5$ as
-valid matrix elements for $J$.
+The results perfectly with our previous discussion where we used our own code.
 
 !split
 ===== Ridge regression =====
@@ -3137,47 +3233,18 @@ valid matrix elements for $J$.
 Having explored the ordinary least squares we move on to ridge
 regression. In ridge regression we include a _regularizer_. This
 involves a new cost function which leads to a new estimate for the
-weights $\omega$. This results in a penalized regression problem. The
+weights $\bm{\beta}$. This results in a penalized regression problem. The
 cost function is given by
 
 !bt
 \begin{align}
-    C(X, \omega; \lambda) = ||X\omega - y||^2 + \lambda ||\omega||^2
-    = (X\omega - y)^T(X\omega - y) + \lambda \omega^T\omega.
+    C(\bm{X}, \bm{\beta}; \lambda) = (\bm{X}\bm{\beta} - \bm{y})^T(\bm{X}\bm{\beta} - \bm{y}) + \lambda \bm{\beta}^T\bm{\beta}.
 \end{align}
 !et
-Finding the extremum of this function yields the weights
-
-!bt
-\begin{align}
-    \omega(\lambda) = \frac{X^Ty}{X^TX + \lambda} \to \frac{\omega_{\text{LS}}}{1 + \lambda},
-\end{align}
-!et
-
-where $\omega_{\text{LS}}$ is the weights from ordinary least
-squares. The last assumption assumes that $X$ is orthogonal, which it
-is not. We will therefore resort to solving the equation as it stands
-on the left hand side.
-
-
 !bc pycod
-def get_ridge_weights(x: np.ndarray, y: np.ndarray, _lambda: float) -> np.ndarray:
-    return x.T @ y @ scl.inv(
-        x.T @ x + np.eye(x.shape[1], x.shape[1]) * _lambda
-    )
 _lambda = 0.1
-omega_ridge = get_ridge_weights(X_train_own, y_train, np.array([_lambda]))
 clf_ridge = skl.Ridge(alpha=_lambda).fit(X_train, y_train)
-J_ridge_own = omega_ridge[1:].reshape(L, L)
 J_ridge_sk = clf_ridge.coef_.reshape(L, L)
-fig = plt.figure(figsize=(20, 14))
-im = plt.imshow(J_ridge_own, **cmap_args)
-plt.title("Home-made ridge regression", fontsize=18)
-plt.xticks(fontsize=18)
-plt.yticks(fontsize=18)
-cb = fig.colorbar(im)
-cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontsize=18)
-
 fig = plt.figure(figsize=(20, 14))
 im = plt.imshow(J_ridge_sk, **cmap_args)
 plt.title("Ridge from Scikit-learn", fontsize=18)
@@ -3193,14 +3260,14 @@ plt.show()
 ===== LASSO regression =====
 
 In the _Least Absolute Shrinkage and Selection Operator_ (LASSO)-method we get a third cost function.
+
 !bt
 \begin{align}
-    C(X, \omega; \lambda) =
-    ||X\omega - y||^2 + \lambda ||\omega||
-    = (X\omega - y)^T(X\omega - y) + \lambda \sqrt{\omega^T\omega}.
+    C(\bm{X}, \bm{\beta}; \lambda) = (\bm{X}\bm{\beta} - \bm{y})^T(\bm{X}\bm{\beta} - \bm{y}) + \lambda \sqrt{\bm{\beta}^T\bm{\beta}}.
 \end{align}
 !et
-Finding the extremal point of this cost function is not so straight-forward as in least squares and ridge. We will therefore rely solely on the function ``Lasso`` from Scikit-learn.
+
+Finding the extremal point of this cost function is not so straight-forward as in least squares and ridge. We will therefore rely solely on the function ``Lasso`` from _Scikit-Learn_.
 
 !bc pycod
 clf_lasso = skl.Lasso(alpha=_lambda).fit(X_train, y_train)
@@ -3221,33 +3288,6 @@ constant as opposed to ridge and OLS. We get a sparse solution with
 $J_{j, j + 1} = -1$.
 
 
-!split
-===== Performance of the different models =====
-
-In order to judge which model performs best at varying values of $\lambda$ (for ridge and LASSO) we compute $R^2$ which is given by
-
-!bt
-\begin{align}
-    R^2 = 1 - \frac{(y - \hat{y})^2}{(y - \bar{y})^2},
-\end{align}
-!et
-where $y$ is a vector with the true values of the energy, $\hat{y}$ is the predicted values of $y$ from the models and $\bar{y}$ is the mean of $\hat{y}$.
-
-
-!bc pycod
-def r_squared(y, y_hat):
-    return 1 - np.sum((y - y_hat) ** 2) / np.sum((y - np.mean(y_hat)) ** 2)
-!ec
-
-This is the same metric used by Scikit-learn for their regression models when scoring.
-!bc pycod
-y_hat = clf.predict(X_test)
-r_test = r_squared(y_test, y_hat)
-sk_r_test = clf.score(X_test, y_test)
-
-assert abs(r_test - sk_r_test) < 1e-2
-!ec
-
 
 !split
 ===== Performance as  function of the regularization parameter =====
@@ -3259,17 +3299,13 @@ We see how the different models perform for a different set of values for $\lamb
 lambdas = np.logspace(-4, 5, 10)
 
 train_errors = {
-    "ols_own": np.zeros(lambdas.size),
     "ols_sk": np.zeros(lambdas.size),
-    "ridge_own": np.zeros(lambdas.size),
     "ridge_sk": np.zeros(lambdas.size),
     "lasso_sk": np.zeros(lambdas.size)
 }
 
 test_errors = {
-    "ols_own": np.zeros(lambdas.size),
     "ols_sk": np.zeros(lambdas.size),
-    "ridge_own": np.zeros(lambdas.size),
     "ridge_sk": np.zeros(lambdas.size),
     "lasso_sk": np.zeros(lambdas.size)
 }
@@ -3279,30 +3315,6 @@ plot_counter = 1
 fig = plt.figure(figsize=(32, 54))
 
 for i, _lambda in enumerate(tqdm.tqdm(lambdas)):
-    omega = get_ols_weights(X_train_own, y_train)
-    y_hat_train = X_train_own @ omega
-    y_hat_test = X_test_own @ omega
-
-    train_errors["ols_own"][i] = r_squared(y_train, y_hat_train)
-    test_errors["ols_own"][i] = r_squared(y_test, y_hat_test)
-
-    plt.subplot(10, 5, plot_counter)
-    plt.imshow(omega[1:].reshape(L, L), **cmap_args)
-    plt.title("Home made OLS")
-    plot_counter += 1
-
-    omega = get_ridge_weights(X_train_own, y_train, _lambda)
-    y_hat_train = X_train_own @ omega
-    y_hat_test = X_test_own @ omega
-
-    train_errors["ridge_own"][i] = r_squared(y_train, y_hat_train)
-    test_errors["ridge_own"][i] = r_squared(y_test, y_hat_test)
-
-    plt.subplot(10, 5, plot_counter)
-    plt.imshow(omega[1:].reshape(L, L), **cmap_args)
-    plt.title(r"Home made ridge, $\lambda = %.4f$" % _lambda)
-    plot_counter += 1
-
     for key, method in zip(
         ["ols_sk", "ridge_sk", "lasso_sk"],
         [skl.LinearRegression(), skl.Ridge(alpha=_lambda), skl.Lasso(alpha=_lambda)]
@@ -3322,7 +3334,7 @@ for i, _lambda in enumerate(tqdm.tqdm(lambdas)):
 plt.show()
 !ec
 
-We can see that LASSO quite fast reaches a good solution for low
+We see that LASSO reaches a good solution for low
 values of $\lambda$, but will "wither" when we increase $\lambda$ too
 much. Ridge is more stable over a larger range of values for
 $\lambda$, but eventually also fades away.
@@ -3342,8 +3354,6 @@ testing set that is close to the accuracy of the training set.
 fig = plt.figure(figsize=(20, 14))
 
 colors = {
-    "ols_own": "b",
-    "ridge_own": "g",
     "ols_sk": "r",
     "ridge_sk": "y",
     "lasso_sk": "c"
@@ -3366,9 +3376,6 @@ for key in test_errors:
         label="Test {0}".format(key),
         linewidth=4.0
     )
-#plt.semilogx(lambdas, train_errors["ols_own"], label="Train (OLS own)")
-#plt.semilogx(lambdas, test_errors["ols_own"], label="Test (OLS own)")
-
 plt.legend(loc="best", fontsize=18)
 plt.xlabel(r"$\lambda$", fontsize=18)
 plt.ylabel(r"$R^2$", fontsize=18)
@@ -3377,5 +3384,241 @@ plt.show()
 !ec
 
 From the above figure we can see that LASSO with $\lambda = 10^{-2}$
-achieve a very good accuracy on the test set. This by far surpases the
+achieves a very good accuracy on the test set. This by far surpasses the
 other models for all values of $\lambda$.
+
+
+
+!split
+===== Further Exercises =====
+
+=== Exercise 1  ===
+
+We will generate our own dataset for a function $y(x)$ where $x \in [0,1]$ and defined by random numbers computed with the uniform distribution. The function $y$ is a quadratic polynomial in $x$ with added stochastic noise according to the normal distribution $\cal {N}(0,1)$.
+The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
+!bc pycod
+x = np.random.rand(100,1)
+y = 5*x*x+0.1*np.random.randn(100,1)
+!ec
+
+o Write your own code (following the examples above)  for computing the parametrization of the data set fitting a second-order polynomial. 
+o Use thereafter _scikit-learn_ (see again the examples in the regression slides) and compare with your own code.   
+o Using scikit-learn, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+!bt 
+\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+\] 
+!et 
+and the $R^2$ score function.
+If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+!bt
+\[
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\]
+!et
+where we have defined the mean value  of $\hat{y}$ as
+!bt
+\[
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\]
+!et
+
+You can use the functionality included in scikit-learn. If you feel
+for it, you can use your own program and define functions which
+compute the above two functions.  Discuss the meaning of these
+results. Try also to vary the coefficient in front of the added
+stochastic noise term and discuss the quality of the fits.
+
+
+
+
+=== Exercise 2, variance of the parameters $\beta$ in linear regression  ===
+
+Show that the variance of the parameters $\beta$ in the linear regression method (chapter 3, equation (3.8) of "Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer":"https://www.springer.com/gp/book/9780387848570") is given as 
+
+!bt
+\[
+\mathrm{Var}(\hat{\beta}) = \left(\hat{X}^T\hat{X}\right)^{-1}\sigma^2,
+\]
+!et
+with 
+!bt
+\[
+\sigma^2 = \frac{1}{N-p-1}\sum_{i=1}^{N} (y_i-\tilde{y}_i)^2,
+\]
+!et
+where we have assumed that we fit a function of degree $p-1$ (for example a polynomial in $x$). 
+
+
+
+=== Exercise 3  ===
+
+This exercise is a continuation of exercise 1. We will
+use the same function to generate our data set, still staying with a
+simple function $y(x)$ which we want to fit using linear regression,
+but now extending the analysis to include the Ridge and the Lasso
+regression methods. You can use the code under the Regression as an example on how to use the Ridge and the Lasso methods.
+
+We will thus again generate our own dataset for a function $y(x)$ where 
+$x \in [0,1]$ and defined by random numbers computed with the uniform
+distribution. The function $y$ is a quadratic polynomial in $x$ with
+added stochastic noise according to the normal distribution $\cal{N}(0,1)$.
+
+The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
+!bc pycod
+x = np.random.rand(100,1)
+y = 5*x*x+0.1*np.random.randn(100,1)
+!ec
+
+o Write your own code for the Ridge method and compute the parametrization for different values of $\lambda$. Compare and analyze your results with those from exercise 1. Study the dependence on $\lambda$ while also varying the strength of the noise in your expression for $y(x)$. 
+
+o Repeat the above but using the functionality of _scikit-learn_. Compare your code with the results from _scikit-learn_. Remember to run with the same random numbers for generating $x$ and $y$. 
+
+o Our next step is to study the variance of the parameters $\beta_1$ and $\beta_2$ (assuming that we are parametrizing our function with a second-order polynomial. We will use standard linear regression and the Ridge regression.  You can now opt for either writing your own function that calculates the variance of these paramaters (recall that this is equal to the diagonal elements of the matrix $(\hat{X}^T\hat{X})+\lambda\hat{I})^{-1}$) or use the functionality of _scikit-learn_ and compute their variances. Discuss the results of these variances as functions 
+
+o Repeat the previous step but add now the Lasso method. Discuss your results and compare with standard regression and the Ridge regression results.
+
+o Try to implement the cross-validation as well. 
+
+o Finally, using _scikit-learn_ or your own code, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+!bt 
+\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+\] 
+!et 
+and the $R^2$ score function.
+If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+!bt
+\[
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\]
+!et
+where we have defined the mean value  of $\hat{y}$ as
+!bt
+\[
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\]
+!et
+Discuss these quantities as functions of the variable $\lambda$ in the Ridge and Lasso regression methods. 
+
+=== Exercise 4  ===
+
+We will study how
+to fit polynomials to a specific two-dimensional function called
+"Franke's
+function":"http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf".  This
+is a function which has been widely used when testing various  interpolation and fitting
+algorithms. Furthermore, after having established the model and the
+method, we will employ resamling techniques such as the  cross-validation and/or
+the bootstrap methods, in order to perform a proper assessment of our models.
+
+
+The Franke function, which is a weighted sum of four exponentials  reads as follows
+!bt
+\begin{align*}
+f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
+&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
+\end{align*}
+!et
+
+The function will be defined for $x,y\in [0,1]$.  Our first step will
+be to perform an OLS regression analysis of this function, trying out
+a polynomial fit with an $x$ and $y$ dependence of the form $[x, y,
+x^2, y^2, xy, \dots]$. We will also include cross-validation and
+bootstrap as resampling techniques.  As in homeworks 1 and 2, we
+can use a uniform distribution to set up the arrays of values for $x$
+and $y$, or as in the example below just a fix values for $x$ and $y$ with a given step size.
+In this case we will have two predictors and need to fit a
+function (for example a polynomial) of $x$ and $y$.  Thereafter we will
+repeat much of the same procedure using the the Ridge and
+Lasso regression methods, introducing thus a dependence on the bias
+(penalty) $\lambda$.
+
+
+The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
+!bc pycod
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import numpy as np
+from random import random, seed
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+# Make data.
+x = np.arange(0, 1, 0.05)
+y = np.arange(0, 1, 0.05)
+x, y = np.meshgrid(x,y)
+
+
+def FrankeFunction(x,y):
+    term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
+    term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
+    term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
+    term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+    return term1 + term2 + term3 + term4
+
+
+z = FrankeFunction(x, y)
+
+# Plot the surface.
+surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+
+# Customize the z axis.
+ax.set_zlim(-0.10, 1.40)
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
+
+plt.show()
+
+!ec
+
+
+We will thus again generate our own dataset for a function $\mathrm{FrankeFunction}(x,y)$ where 
+$x,y \in [0,1]$ could be defined by random numbers computed with the uniform
+distribution. The function $f(x,y)$ is the Franke function. You should explore also the addition
+an added stochastic noise to this function using  the normal distribution $\cal{N}(0,1)$.
+
+Write your own code (using either a matrix inversion or a singular value decomposition from e.g., _numpy_ )  or use your code from exercises 1 and 3
+and perform a standard least square regression analysis using polynomials in $x$ and $y$ up to fifth order. Find the confidence intervals of the parameters $\beta$ by computing their variances, evaluate the Mean Squared error (MSE)
+!bt 
+\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+\] 
+!et 
+and the $R^2$ score function.
+If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+!bt
+\[
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\]
+!et
+where we have defined the mean value  of $\hat{y}$ as
+!bt
+\[
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\]
+!et
+
+Perform a resampling of the data where you split the data in training data and test data. Implement the $k$-fold cross-validation algorithm and/or the bootstrap algorithm
+and evaluate again the MSE and the $R^2$ functions resulting from the test data. Evaluate also the bias and variance of the final models.
+
+
+Write then your own code for the Ridge method, either using matrix
+inversion or the singular value decomposition as done for standard OLS. Perform the same analysis as in the
+previous exercise (for the same polynomials and include resampling
+techniques) but now for different values of $\lambda$. Compare and
+analyze your results with those obtained with standard OLS. Study the
+dependence on $\lambda$ while also varying eventually the strength of
+the noise in your expression for $\mathrm{FrankeFunction}(x,y)$.
+
+Then perform the same studies but now with Lasso regression. Use the functionalities of
+_scikit-learn_. Give a critical discussion of the three methods and a
+judgement of which model fits the data best.
+
