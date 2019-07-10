@@ -3,7 +3,7 @@
 
 This site contains all material relevant for the course on Data Analysis and Machine Learning FYS-STK3155/4155. 
 
-## Course content
+## Introduction
 
 Probability theory and statistical methods play a central role in science. Nowadays we are
 surrounded by huge amounts of data. For example, there are about one trillion web pages; more than one
@@ -12,15 +12,7 @@ day; the genomes of 1000s of people, each of which has a length of more than a b
 been sequenced by various labs and so on.
 This deluge of data calls for automated methods of data analysis,
 which is exactly what machine
-learning provides. In this course the approach is to define machine learning as a set of methods that can
-automatically detect patterns in data, and then use the uncovered patterns to predict future
-data, or to perform other kinds of decision making under uncertainty. Since many of these problems can be studied using
-tools of probability theory, the aim of this course is to expose you to central methods in probability theory linked with machine learning.
-
-This course covers thus topics like Monte Carlo methods and Markov chains, Bayesian statistics, error estimates, various regression methods, optimization of data and error analysis and central algorithms in machine learning.
-The course has several numerical projects and numerical exercises that are meant to illustrate the theory.
-
-
+learning provides. 
 
 ## Learning outcomes
 
