@@ -9,15 +9,12 @@ Probability theory and statistical methods play a central role in science. Nowad
 surrounded by huge amounts of data. For example, there are about one trillion web pages; more than one
 hour of video is uploaded to YouTube every second, amounting to 10 years of content every
 day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
-been sequenced by various labs and so on.
-This deluge of data calls for automated methods of data analysis,
-which is exactly what machine
-learning provides. 
+been sequenced by various labs and so on. This deluge of data calls for automated methods of data analysis,
+which is exactly what machine learning provides. 
 
 ## Learning outcomes
 
-The course introduces a variety of central algorithms and methods
-essential for studies of data analysis and machine learning. The course is project based and through the various projects, normally three, the students will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying these systems, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
+This course aims thus at discussing many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through the various projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying these systems, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
 - Learn about basic data analysis, statistical analysis, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
