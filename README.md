@@ -1,20 +1,20 @@
 # FYS-STK3155/4155 Applied Data Analysis and Machine Learning, http://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/index-eng.html
 
 
-This site contains all material relevant for the course on Data Analysis and Machine Learning FYS-STK3155/4155. 
+This site contains all material relevant for the course on Data Analysis and Machine Learning FYS-STK3155/4155 at the University of Oslo, Norway.
 
 ## Introduction
 
 Probability theory and statistical methods play a central role in science. Nowadays we are
 surrounded by huge amounts of data. For example, there are about one trillion web pages; more than one
-hour of video is uploaded to YouTube every second, amounting to 10 years of content every
+hour of video is uploaded to YouTube every second, amounting to years of content every
 day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
 been sequenced by various labs and so on. This deluge of data calls for automated methods of data analysis,
 which is exactly what machine learning provides. 
 
 ## Learning outcomes
 
-This course aims thus at discussing many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through the various projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying these systems, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
+This course aims thus at discussing many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying different  systems where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
 - Learn about basic data analysis, statistical analysis, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
@@ -25,17 +25,19 @@ This course aims thus at discussing many of the central algorithms used in Data 
 - Learn about about decision trees and random forests
 - Learn about support vector machines and kernel transformations
 - Reduction of data sets, from PCA to clustering, supervised and unsupervided methods
-- Work on numerical projects to illustrate the theory. The projects play a central role and students are expected to know modern programming languages like Python or C++.  
+- Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++.  
 
 ## Prerequisites
 
-Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is required and experience with Jupiter notebook is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. 
+Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is strongly recommended and experience with Jupiter notebook is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. Most universities offer nowadays a basic programming courses (often compulsory) where Python is the recurring programming language.
 
 
 ## The course has two central parts
 
 1. Statistical analysis and optimization of data
 2. Machine learning
+
+These topics will be scattered thorughout the course and may not  necessarily be taught separately. Rather, we will often take an approach (during the lectures and project/exercise sessions where say elements from statistical data analysis are mixed with specific Machine Learning algorithms. 
 
 ### Statistical analysis and optimization of data
 
@@ -62,9 +64,9 @@ The following topics will be covered
 
 All the above topics will be supported by examples, hands-on exercises and project work.
 
-Computational aspects play a central role and the students are
+Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
-the theory and methods. Some of the projects can be coordinated with the high-performance programming course IN4200. 
+the theory and methods. We recommend strongly to form small projects of 2-3 participants. Some of the projects can be coordinated with the high-performance programming course IN4200. 
 
 
 
@@ -77,6 +79,7 @@ the theory and methods. Some of the projects can be coordinated with the high-pe
 6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
 7. Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail;
 8. The course will be offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course.
+
 
 ## Possible textbooks
 
