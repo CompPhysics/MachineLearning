@@ -16,7 +16,7 @@ which is exactly what machine learning provides.
 
 This course aims thus at discussing many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying different  systems where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
-- Learn about basic data analysis, statistical analysis, Monte Carlo sampling, data optimization and machine learning;
+- Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
 - Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications;
