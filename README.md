@@ -19,7 +19,6 @@ This course aims thus at discussing many of the central algorithms used in Data 
 - Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
-- Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications;
 - Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
 - Learn about various neural networks and deep  learning methods for supervised and unsupervised learning;
 - Learn about about decision trees and random forests
