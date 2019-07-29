@@ -61,7 +61,7 @@ The following topics will be covered
 - Boltzmann Machines
 - Dimensionality reduction, from PCA to cluster models
 
-All the above topics will be supported by examples, hands-on exercises and project work.
+Hands-one demonstrations, exercises and projects aim at deepining your understanding of these topics.
 
 Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
