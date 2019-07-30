@@ -19,7 +19,6 @@ This course aims thus at discussing many of the central algorithms used in Data 
 - Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
-- Gain knowledge of central aspects of Monte Carlo methods, Markov chains, Gibbs samplers and their possible applications;
 - Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
 - Learn about various neural networks and deep  learning methods for supervised and unsupervised learning;
 - Learn about about decision trees and random forests
@@ -62,11 +61,11 @@ The following topics will be covered
 - Boltzmann Machines
 - Dimensionality reduction, from PCA to cluster models
 
-All the above topics will be supported by examples, hands-on exercises and project work.
+Hands-one demonstrations, exercises and projects aim at deepining your understanding of these topics.
 
 Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
-the theory and methods. We recommend strongly to form small projects of 2-3 participants. Some of the projects can be coordinated with the high-performance programming course IN4200. 
+the theory and methods. We recommend strongly to form small projects of 2-3 participants. 
 
 
 
@@ -111,6 +110,4 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 - _IN5400/INF5860 Machine Learning for Image Analysis_ https://www.uio.no/studier/emner/matnat/ifi/IN5400/. An introduction to deep learning with particular emphasis on applications within Image analysis, but useful for other application areas too.
 - _TEK5040 Deep learning for autonomous systems_ https://www.uio.no/studier/emner/matnat/its/TEK5040/. The course addresses advanced algorithms and architectures for deep learning with neural networks. The course provides an introduction to how deep-learning techniques can be used in the construction of key parts of advanced autonomous systems that exist in physical environments and cyber environments.
 - _STK4051 Computational Statistics_ https://www.uio.no/studier/emner/matnat/math/STK4051/index-eng.html
-- _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/index-eng.html
-
-
+- _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/i
