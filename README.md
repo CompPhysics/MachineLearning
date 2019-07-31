@@ -23,7 +23,7 @@ This course aims thus at discussing many of the central algorithms used in Data 
 - Learn about various neural networks and deep  learning methods for supervised and unsupervised learning;
 - Learn about about decision trees and random forests
 - Learn about support vector machines and kernel transformations
-- Reduction of data sets, from PCA to clustering, supervised and unsupervided methods
+- Reduction of data sets, from PCA to clustering, supervised and unsupervised methods
 - Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++.  
 
 ## Prerequisites
