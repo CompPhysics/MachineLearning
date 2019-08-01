@@ -10,7 +10,7 @@ surrounded by huge amounts of data. For example, there are about one trillion we
 hour of video is uploaded to YouTube every second, amounting to years of content every
 day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
 been sequenced by various labs and so on. This deluge of data calls for automated methods of data analysis,
-which is exactly what machine learning provides. 
+which is exactly what machine learning aims at providing. 
 
 ## Learning outcomes
 
