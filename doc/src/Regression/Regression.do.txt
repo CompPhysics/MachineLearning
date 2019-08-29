@@ -775,9 +775,9 @@ density, has been derived using modern nucleon-nucleon potentials with
 forces":"https://www.sciencedirect.com/science/article/pii/S0370157399001106". This
 time the file is presented as a standard _csv_ file.
 
-The beginning of the Python code here is similar to what you have seen before,
-with the same initializations and declarations. We use also _pandas_
-again, rather extensively in order to organize our data.
+The beginning of the Python code here is similar to what you have seen
+before, with the same initializations and declarations. We use also
+_pandas_ again, rather extensively in order to organize our data.
 
 The difference now is that we use _Scikit-Learn's_ regression tools
 instead of our own matrix inversion implementation. Furthermore, we
@@ -963,6 +963,161 @@ print(R2(y_test,ypredict))
 print("Test MSE")
 print(MSE(y_test,ypredict))
 !ec
+
+
+!split 
+===== The Boston housing data example =====
+
+The Boston housing  
+data set was originally a part of UCI Machine Learning Repository
+and has been removed now. The data set is now included in _Scikit-Learn_'s 
+library.  There are 506 samples and 13 feature (predictor) variables
+in this data set. The objective is to predict the value of prices of
+the house using the features (predictors) listed here.
+
+The features/predictors are
+ o CRIM: Per capita crime rate by town
+ o ZN: Proportion of residential land zoned for lots over 25000 square feet
+ o INDUS: Proportion of non-retail business acres per town
+ o CHAS: Charles River dummy variable (= 1 if tract bounds river; 0 otherwise)
+ o NOX: Nitric oxide concentration (parts per 10 million)
+ o RM: Average number of rooms per dwelling
+ o AGE: Proportion of owner-occupied units built prior to 1940
+ o DIS: Weighted distances to five Boston employment centers
+ o RAD: Index of accessibility to radial highways
+ o TAX: Full-value property tax rate per USD10000
+ o B: $1000(Bk - 0.63)^2$, where $Bk$ is the proportion of [people of African American descent] by town
+ o LSTAT: Percentage of lower status of the population
+ o MEDV: Median value of owner-occupied homes in USD 1000s
+
+!split
+===== Housing data, the code =====
+We start by importing the libraries
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt 
+
+import pandas as pd  
+import seaborn as sns 
+!ec
+and load the Boston Housing DataSet from _Scikit-Learn_
+
+
+!bc pycod
+from sklearn.datasets import load_boston
+
+boston_dataset = load_boston()
+
+# boston_dataset is a dictionary
+# let's check what it contains
+boston_dataset.keys()
+!ec
+Then we invoke Pandas
+!bc pycod
+boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
+boston.head()
+boston['MEDV'] = boston_dataset.target
+!ec
+and preprocess the data
+!bc pycod
+# check for missing values in all the columns
+boston.isnull().sum()
+!ec
+We can then visualize the data
+!bc pycod
+# set the size of the figure
+sns.set(rc={'figure.figsize':(11.7,8.27)})
+
+# plot a histogram showing the distribution of the target values
+sns.distplot(boston['MEDV'], bins=30)
+plt.show()
+!ec
+
+It is now useful to look at the correlation matrix
+!bc pycod
+# compute the pair wise correlation for all columns  
+correlation_matrix = boston.corr().round(2)
+# use the heatmap function from seaborn to plot the correlation matrix
+# annot = True to print the values inside the square
+sns.heatmap(data=correlation_matrix, annot=True)
+!ec
+From the above coorelation plot we can see that _MEDV_ is strongly correlated to _LSTAT_ and  _RM_. We see also that _RAD_ and _TAX_ are stronly correlated, but we don't include this in our features together to avoid multi-colinearity
+
+!bc pycod
+plt.figure(figsize=(20, 5))
+
+features = ['LSTAT', 'RM']
+target = boston['MEDV']
+
+for i, col in enumerate(features):
+    plt.subplot(1, len(features) , i+1)
+    x = boston[col]
+    y = target
+    plt.scatter(x, y, marker='o')
+    plt.title(col)
+    plt.xlabel(col)
+    plt.ylabel('MEDV')
+!ec
+Now we start training our model
+!bc pycod
+X = pd.DataFrame(np.c_[boston['LSTAT'], boston['RM']], columns = ['LSTAT','RM'])
+Y = boston['MEDV']
+!ec
+We split the data into training and test sets
+
+!bc pycod
+from sklearn.model_selection import train_test_split
+
+# splits the training and test data set in 80% : 20%
+# assign random_state to any value.This ensures consistency.
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state=5)
+print(X_train.shape)
+print(X_test.shape)
+print(Y_train.shape)
+print(Y_test.shape)
+!ec
+Then we use the linear regression functionality from _Scikit-Learn_
+!bc pycod
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+lin_model = LinearRegression()
+lin_model.fit(X_train, Y_train)
+
+# model evaluation for training set
+
+y_train_predict = lin_model.predict(X_train)
+rmse = (np.sqrt(mean_squared_error(Y_train, y_train_predict)))
+r2 = r2_score(Y_train, y_train_predict)
+
+print("The model performance for training set")
+print("--------------------------------------")
+print('RMSE is {}'.format(rmse))
+print('R2 score is {}'.format(r2))
+print("\n")
+
+# model evaluation for testing set
+
+y_test_predict = lin_model.predict(X_test)
+# root mean square error of the model
+rmse = (np.sqrt(mean_squared_error(Y_test, y_test_predict)))
+
+# r-squared score of the model
+r2 = r2_score(Y_test, y_test_predict)
+
+print("The model performance for testing set")
+print("--------------------------------------")
+print('RMSE is {}'.format(rmse))
+print('R2 score is {}'.format(r2))
+!ec
+
+!bc pycod
+# plotting the y_test vs y_pred
+# ideally should have been a straight line
+plt.scatter(Y_test, y_test_predict)
+plt.show()
+!ec
+
 
 
 !split
@@ -1837,6 +1992,90 @@ $X_j$, ($i\neq j$):
 !et
 !eblock
 
+!split
+===== Covariance example =====
+
+Suppose we have defined three vectors $\hat{x}, \hat{y}, \hat{z}$ with
+$n$ elements each. The covariance matrix is defined as
+
+
+!bt
+\[
+\hat{\Sigma} = \begin{bmatrix} \sigma_{xx} & \sigma_{xy} & \sigma_{xz} \\
+                              \sigma_{yx} & \sigma_{yy} & \sigma_{yz} \\
+                              \sigma_{zx} & \sigma_{zy} & \sigma_{zz}
+             \end{bmatrix},
+\]
+!et
+where for example
+!bt
+\[
+\sigma_{xy} =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
+\]
+!et
+
+The Numpy function _np.cov_ calculates the covariance elements using
+the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have
+the exact mean valu\ es.
+
+The following simple function uses the _np.vstack_ function which
+takes each vector of dimension $1\times n$ and produces a $3\times n$
+matrix $\hat{W}$
+
+!bt
+\[
+\hat{W} = \begin{bmatrix} x_0 & y_0 & z_0 \\
+                          x_1 & y_1 & z_1 \\
+                          x_2 & y_2 & z_2 \\
+                          \dots & \dots & \dots \\
+                          x_{n-2} & y_{n-2} & z_{n-2} \\
+                          x_{n-1} & y_{n-1} & z_{n-1}
+             \end{bmatrix},
+\]
+!et
+
+which in turn is converted into into the $3\times 3$ covariance matrix
+$\hat{\Sigma}$ via the Numpy function _np.cov()_. We note that we can
+also calculate the mean value of each set of samples $\hat{x}$ etc
+using the Numpy function _np.mean(x)_. We can also extract the
+eigenvalues of the covariance matrix through the _np.linalg.eig()_
+function.
+
+
+!split
+===== Covariance in numpy =====
+
+!bc pycod
+# Importing various packages
+import numpy as np
+
+n = 100
+x = np.random.normal(size=n)
+print(np.mean(x))
+y = 4+3*x+np.random.normal(size=n)
+print(np.mean(y))
+z = x**3+np.random.normal(size=n)
+print(np.mean(z))
+W = np.vstack((x, y, z))
+Sigma = np.cov(W)
+print(Sigma)
+Eigvals, Eigvecs = np.linalg.eig(Sigma)
+print(Eigvals)
+!ec
+
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import sparse
+eye = np.eye(4)
+print(eye)
+sparse_mtx = sparse.csr_matrix(eye)
+print(sparse_mtx)
+x = np.linspace(-10,10,100)
+y = np.sin(x)
+plt.plot(x,y,marker='x')
+plt.show()
+!ec
 
 
 !split
@@ -3421,236 +3660,5 @@ other models for all values of $\lambda$.
 
 
 
-!split
-===== Further Exercises =====
 
-=== Exercise 1  ===
-
-We will generate our own dataset for a function $y(x)$ where $x \in [0,1]$ and defined by random numbers computed with the uniform distribution. The function $y$ is a quadratic polynomial in $x$ with added stochastic noise according to the normal distribution $\cal {N}(0,1)$.
-The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
-!bc pycod
-x = np.random.rand(100,1)
-y = 5*x*x+0.1*np.random.randn(100,1)
-!ec
-
-o Write your own code (following the examples above)  for computing the parametrization of the data set fitting a second-order polynomial. 
-o Use thereafter _scikit-learn_ (see again the examples in the regression slides) and compare with your own code.   
-o Using scikit-learn, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
-!bt 
-\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
-\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
-\] 
-!et 
-and the $R^2$ score function.
-If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
-!bt
-\[
-R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
-\]
-!et
-where we have defined the mean value  of $\hat{y}$ as
-!bt
-\[
-\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
-\]
-!et
-
-You can use the functionality included in scikit-learn. If you feel
-for it, you can use your own program and define functions which
-compute the above two functions.  Discuss the meaning of these
-results. Try also to vary the coefficient in front of the added
-stochastic noise term and discuss the quality of the fits.
-
-
-
-
-=== Exercise 2, variance of the parameters $\beta$ in linear regression  ===
-
-Show that the variance of the parameters $\beta$ in the linear regression method (chapter 3, equation (3.8) of "Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer":"https://www.springer.com/gp/book/9780387848570") is given as 
-
-!bt
-\[
-\mathrm{Var}(\hat{\beta}) = \left(\hat{X}^T\hat{X}\right)^{-1}\sigma^2,
-\]
-!et
-with 
-!bt
-\[
-\sigma^2 = \frac{1}{N-p-1}\sum_{i=1}^{N} (y_i-\tilde{y}_i)^2,
-\]
-!et
-where we have assumed that we fit a function of degree $p-1$ (for example a polynomial in $x$). 
-
-
-
-=== Exercise 3  ===
-
-This exercise is a continuation of exercise 1. We will
-use the same function to generate our data set, still staying with a
-simple function $y(x)$ which we want to fit using linear regression,
-but now extending the analysis to include the Ridge and the Lasso
-regression methods. You can use the code under the Regression as an example on how to use the Ridge and the Lasso methods.
-
-We will thus again generate our own dataset for a function $y(x)$ where 
-$x \in [0,1]$ and defined by random numbers computed with the uniform
-distribution. The function $y$ is a quadratic polynomial in $x$ with
-added stochastic noise according to the normal distribution $\cal{N}(0,1)$.
-
-The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
-!bc pycod
-x = np.random.rand(100,1)
-y = 5*x*x+0.1*np.random.randn(100,1)
-!ec
-
-o Write your own code for the Ridge method and compute the parametrization for different values of $\lambda$. Compare and analyze your results with those from exercise 1. Study the dependence on $\lambda$ while also varying the strength of the noise in your expression for $y(x)$. 
-
-o Repeat the above but using the functionality of _scikit-learn_. Compare your code with the results from _scikit-learn_. Remember to run with the same random numbers for generating $x$ and $y$. 
-
-o Our next step is to study the variance of the parameters $\beta_1$ and $\beta_2$ (assuming that we are parametrizing our function with a second-order polynomial. We will use standard linear regression and the Ridge regression.  You can now opt for either writing your own function that calculates the variance of these paramaters (recall that this is equal to the diagonal elements of the matrix $(\hat{X}^T\hat{X})+\lambda\hat{I})^{-1}$) or use the functionality of _scikit-learn_ and compute their variances. Discuss the results of these variances as functions 
-
-o Repeat the previous step but add now the Lasso method. Discuss your results and compare with standard regression and the Ridge regression results.
-
-o Try to implement the cross-validation as well. 
-
-o Finally, using _scikit-learn_ or your own code, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
-!bt 
-\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
-\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
-\] 
-!et 
-and the $R^2$ score function.
-If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
-!bt
-\[
-R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
-\]
-!et
-where we have defined the mean value  of $\hat{y}$ as
-!bt
-\[
-\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
-\]
-!et
-Discuss these quantities as functions of the variable $\lambda$ in the Ridge and Lasso regression methods. 
-
-=== Exercise 4  ===
-
-We will study how
-to fit polynomials to a specific two-dimensional function called
-"Franke's
-function":"http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf".  This
-is a function which has been widely used when testing various  interpolation and fitting
-algorithms. Furthermore, after having established the model and the
-method, we will employ resamling techniques such as the  cross-validation and/or
-the bootstrap methods, in order to perform a proper assessment of our models.
-
-
-The Franke function, which is a weighted sum of four exponentials  reads as follows
-!bt
-\begin{align*}
-f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
-&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
-\end{align*}
-!et
-
-The function will be defined for $x,y\in [0,1]$.  Our first step will
-be to perform an OLS regression analysis of this function, trying out
-a polynomial fit with an $x$ and $y$ dependence of the form $[x, y,
-x^2, y^2, xy, \dots]$. We will also include cross-validation and
-bootstrap as resampling techniques.  As in homeworks 1 and 2, we
-can use a uniform distribution to set up the arrays of values for $x$
-and $y$, or as in the example below just a fix values for $x$ and $y$ with a given step size.
-In this case we will have two predictors and need to fit a
-function (for example a polynomial) of $x$ and $y$.  Thereafter we will
-repeat much of the same procedure using the the Ridge and
-Lasso regression methods, introducing thus a dependence on the bias
-(penalty) $\lambda$.
-
-
-The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
-!bc pycod
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import numpy as np
-from random import random, seed
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-
-# Make data.
-x = np.arange(0, 1, 0.05)
-y = np.arange(0, 1, 0.05)
-x, y = np.meshgrid(x,y)
-
-
-def FrankeFunction(x,y):
-    term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-    term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-    term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-    term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
-    return term1 + term2 + term3 + term4
-
-
-z = FrankeFunction(x, y)
-
-# Plot the surface.
-surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
-
-# Customize the z axis.
-ax.set_zlim(-0.10, 1.40)
-ax.zaxis.set_major_locator(LinearLocator(10))
-ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-
-# Add a color bar which maps values to colors.
-fig.colorbar(surf, shrink=0.5, aspect=5)
-
-plt.show()
-
-!ec
-
-
-We will thus again generate our own dataset for a function $\mathrm{FrankeFunction}(x,y)$ where 
-$x,y \in [0,1]$ could be defined by random numbers computed with the uniform
-distribution. The function $f(x,y)$ is the Franke function. You should explore also the addition
-an added stochastic noise to this function using  the normal distribution $\cal{N}(0,1)$.
-
-Write your own code (using either a matrix inversion or a singular value decomposition from e.g., _numpy_ )  or use your code from exercises 1 and 3
-and perform a standard least square regression analysis using polynomials in $x$ and $y$ up to fifth order. Find the confidence intervals of the parameters $\beta$ by computing their variances, evaluate the Mean Squared error (MSE)
-!bt 
-\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
-\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
-\] 
-!et 
-and the $R^2$ score function.
-If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
-!bt
-\[
-R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
-\]
-!et
-where we have defined the mean value  of $\hat{y}$ as
-!bt
-\[
-\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
-\]
-!et
-
-Perform a resampling of the data where you split the data in training data and test data. Implement the $k$-fold cross-validation algorithm and/or the bootstrap algorithm
-and evaluate again the MSE and the $R^2$ functions resulting from the test data. Evaluate also the bias and variance of the final models.
-
-
-Write then your own code for the Ridge method, either using matrix
-inversion or the singular value decomposition as done for standard OLS. Perform the same analysis as in the
-previous exercise (for the same polynomials and include resampling
-techniques) but now for different values of $\lambda$. Compare and
-analyze your results with those obtained with standard OLS. Study the
-dependence on $\lambda$ while also varying eventually the strength of
-the noise in your expression for $\mathrm{FrankeFunction}(x,y)$.
-
-Then perform the same studies but now with Lasso regression. Use the functionalities of
-_scikit-learn_. Give a critical discussion of the three methods and a
-judgement of which model fits the data best.
 
