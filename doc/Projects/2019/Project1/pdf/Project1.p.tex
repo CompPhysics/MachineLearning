@@ -45,6 +45,12 @@ final,                   % draft: marks overfull hboxes, figures with paths
 
 \usepackage[pdftex]{graphicx}
 
+\usepackage{ptex2tex}
+% #ifdef MINTED
+\usepackage{minted}
+\usemintedstyle{default}
+% #endif
+
 \usepackage[T1]{fontenc}
 %\usepackage[latin1]{inputenc}
 \usepackage{ucs}
@@ -149,7 +155,7 @@ Project 1 on Machine Learning, deadline September 30, 2019
 
 % --- begin date ---
 \begin{center}
-Aug 26, 2019
+Aug 29, 2019
 \end{center}
 % --- end date ---
 
@@ -163,42 +169,272 @@ regression methods, including the Ordinary Least Squares (OLS) method,
 Ridge regression and finally Lasso regression.
 The methods are in turn combined with resampling techniques.
 
+We will first study how to fit polynomials to a specific
+two-dimensional function called \href{{http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf}}{Franke's
+function}.  This
+is a function which has been widely used when testing various
+interpolation and fitting algorithms. Furthermore, after having
+established the model and the method, we will employ resamling
+techniques such as cross-validation in order to perform a
+proper assessment of our models. We will also study in detail the
+so-called Bias-Variance trade off.
+
+
+The Franke function, which is a weighted sum of four exponentials  reads as follows
+\begin{align*}
+f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
+&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
+\end{align*}
+
+The function will be defined for $x,y\in [0,1]$.  Our first step will
+be to perform an OLS regression analysis of this function, trying out
+a polynomial fit with an $x$ and $y$ dependence of the form $[x, y,
+x^2, y^2, xy, \dots]$. We will also include cross-validation as
+resampling technique.  As in homeworks 1 and 2, we can use a uniform
+distribution to set up the arrays of values for $x$ and $y$, or as in
+the example below just a set of fixed 
+values for $x$ and $y$ with a given step
+size.  We will fit a
+function (for example a polynomial) of $x$ and $y$.  Thereafter we
+will repeat much of the same procedure using the Ridge and Lasso
+regression methods, introducing thus a dependence on the bias
+(penalty) $\lambda$.
+
+Finally we are going to use (real) digital terrain data and try to
+reproduce these data using the same methods. We will also try to go
+beyond the second-order polynomials metioned above and explore 
+which polynomial fits the data best.
+
+
+The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
+\bpycod
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import numpy as np
+from random import random, seed
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+# Make data.
+x = np.arange(0, 1, 0.05)
+y = np.arange(0, 1, 0.05)
+x, y = np.meshgrid(x,y)
+
+
+def FrankeFunction(x,y):
+    term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
+    term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
+    term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
+    term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+    return term1 + term2 + term3 + term4
+
+
+z = FrankeFunction(x, y)
+
+# Plot the surface.
+surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+
+# Customize the z axis.
+ax.set_zlim(-0.10, 1.40)
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
+
+plt.show()
+
+\epycod
+
 
 \paragraph{Part a): Ordinary Least Square on the Franke function  with resampling.}
-We will thus again generate our own dataset for a function $\mathrm{FrankeFunction}(x,y)$ where 
-$x,y \in [0,1]$ could be defined by random numbers computed with the uniform
-distribution. The function $f(x,y)$ is the Franke function. You should explore also the addition
-an added stochastic noise to this function using  the normal distribution $\cal{N}(0,1)$.
+We will generate our own dataset for a function
+$\mathrm{FrankeFunction}(x,y)$ with $x,y \in [0,1]$. The function
+$f(x,y)$ is the Franke function. You should explore also the addition
+an added stochastic noise to this function using the normal
+distribution $\cal{N}(0,1)$.
 
-Write your own code (using either a matrix inversion or a singular value decomposition from e.g., \textbf{numpy} )  or use your code from homeworks 1 and 2
-and perform a standard least square regression analysis using polynomials in $x$ and $y$ up to fifth order. Find the confidence intervals of the parameters $\beta$ by computing their variances, evaluate the Mean Squared error (MSE)
+Write your own code (using either a matrix inversion or a singular
+value decomposition from e.g., \textbf{numpy} ) or use your code from
+homeworks 1 and 2 and perform a standard least square regression
+analysis using polynomials in $x$ and $y$ up to fifth order. Find the
+confidence intervals of the parameters $\beta$ by computing their
+variances, evaluate the Mean Squared error (MSE)
+
 \[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
 \sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
 \] 
-and the $R^2$ score function.
-If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+
+and the $R^2$ score function.  If $\tilde{\hat{y}}_i$ is the predicted
+value of the $i-th$ sample and $y_i$ is the corresponding true value,
+then the score $R^2$ is defined as
+
 \[
 R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
 \]
+
 where we have defined the mean value  of $\hat{y}$ as
+
 \[
 \bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
 \]
 
-Perform a resampling of the data where you split the data in training data and test data. Implement the $k$-fold cross-validation algorithm and/or the bootstrap algorithm
-and evaluate again the MSE and the $R^2$ functions resulting from the test data. Evaluate also the bias and variance of the final models using for example equation (7.9) in the textbook of Hastie \emph{et al.}
+\paragraph{Part b) Resampling techniques.}
+Perform a resampling of the data where you split the data in training
+data and test data. Here you can write your own function or use the
+function for splitting training data provided by \textbf{Scikit-Learn}.
+This function is called $train\_test\_split$.
+
+It is normal in essentially all Machine Learning studies to split the
+data in a training set and a test set (sometimes also an additional
+validation set).  There
+is no explicit recipe for how much data should be included as training
+data and say test data.  An accepted rule of thumb is to use
+approximately $2/3$ to $4/5$ of the data as training data.
+
+
+Implement the $k$-fold cross-validation algorithm (write your own
+code) and and evaluate again the MSE and the $R^2$ functions resulting
+from the test data. You can compare your own code with that from
+\textbf{Scikit-Learn} if needed.
 
 
 
-\paragraph{Part b): Ridge Regression with resampling.}
-Write your own code for the Ridge method, either using matrix inversion or the singular value decomposition as done in the previous exercise or howework 2  (see also chapter 3.4 of Hastie \emph{et al.}, equations (3.43) and (3.44)). Perform the same analysis as in the previous exercise (for the same polynomials and include resampling techniques)  but now for different values of $\lambda$. Compare and analyze your results with those obtained in part a). Study the dependence on $\lambda$ while also varying eventually the strength of the noise in your expression for $\mathrm{FrankeFunction}(x,y)$. 
 
-\paragraph{Part c): Lasso Regression with resampling.}
-This part is essentially a repeat of the previous two ones, but now with Lasso regression. Write either your own code or, in this case, you can also use the functionalities of \textbf{scikit-learn}. Give a critical discussion of the three methods and a judgement of which model fits the data best. 
+\paragraph{Part c): Bias-variance tradeoff.}
+With a code which does OLS and includes resampling techniques, 
+we will now discuss the bias-variance tradeoff in the context of
+continuous predictions such as regression. However, many of the
+intuitions and ideas discussed here also carry over to classification
+tasks and basically all Machine Learning algorithms. 
+
+Consider a
+dataset $\mathcal{L}$ consisting of the data
+$\mathbf{X}_\mathcal{L}=\{(y_j, \boldsymbol{x}_j), j=0\ldots n-1\}$.
+
+Let us assume that the true data is generated from a noisy model
+
+\[
+\bm{y}=f(\boldsymbol{x}) + \bm{\epsilon}.
+\]
+
+Here $\epsilon$ is normally distributed with mean zero and standard
+deviation $\sigma^2$.
+
+In our derivation of the ordinary least squares method we defined then
+an approximation to the function $f$ in terms of the parameters
+$\bm{\beta}$ and the design matrix $\bm{X}$ which embody our model,
+that is $\bm{\tilde{y}}=\bm{X}\bm{\beta}$.
+
+The parameters $\bm{\beta}$ are in turn found by optimizing the means
+squared error via the so-called cost function
+
+\[
+C(\bm{X},\bm{\beta}) =\frac{1}{n}\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2=\mathbb{E}\left[(\bm{\
+y}-\bm{\tilde{y}})^2\right].
+\]
+
+Show that you can rewrite  this as
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\frac{1}{n}\sum_i(f_i-\mathbb{E}\left[\bm\
+{\tilde{y}}\right])^2+\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\bm{\tilde{y}}\right])\
+^2+\sigma^2.
+\]
+
+Explain what the terms mean, which one is the bias and which one is
+the variance and discuss their interpretations.
 
 
-\paragraph{Part e) OLS, Ridge and Lasso regression with resampling.}
-At the end, you should pesent a critical evaluation of your results and discuss the applicability of these regression methods to the type of data presented here. 
+Discuss the bias and variance tradeoff as function
+of your model complexity (the degree of the polynomial) and the number
+of data points, and possibly also your training and test data.
+
+Try to make a figure similar to Fig.~2.11 of Hastie, Tibshirani, and
+Friedman, see the references below. You will most likely not get an
+equally smooth curve!
+
+\paragraph{Part d): Ridge Regression on the Franke function  with resampling.}
+Write your own code for the Ridge method, either using matrix
+inversion or the singular value decomposition as done in the previous
+exercise or howework 2 (see also chapter 3.4 of Hastie \emph{et al.},
+equations (3.43) and (3.44)). Perform the same analysis as in the
+previous exercises (for the same polynomials and include resampling
+techniques) but now for different values of $\lambda$. Compare and
+analyze your results with those obtained in parts a-c). Study the
+dependence on $\lambda$.
+
+Study also the bias-variance tradeoff as function of various values of
+the parameter $\lambda$. Comment your results. 
+
+\paragraph{Part e): Lasso Regression on the Franke function  with resampling.}
+This part is essentially a repeat of the previous two ones, but now
+with Lasso regression. Write either your own code or, in this case,
+you can also use the functionalities of \textbf{Scikit-Learn} (recommended). 
+Give a
+critical discussion of the three methods and a judgement of which
+model fits the data best.
+
+\paragraph{Part f): Introducing real data.}
+With our codes functioning and having been tested properly on a
+simpler function we are now ready to look at real data. We will
+essentially repeat in part g) what was done in parts a-e). However, we
+need first to download the data and prepare properly the inputs to our
+codes.  We are going to download digital terrain data from the website
+\href{{https://earthexplorer.usgs.gov/}}{\nolinkurl{https://earthexplorer.usgs.gov/}},
+
+In order to obtain data for a specific region, you need to register as
+a user (free) at this website and then decide upon which area you want
+to fetch the digital terrain data from.  In order to be able to read
+the data properly, you need to specify that the format should be \textbf{SRTM
+Arc-Second Global} and download the data as a \textbf{GeoTIF} file.  The
+files are then stored in \emph{tif} format which can be imported into a
+Python program using
+
+\bpycod
+scipy.misc.imread
+\epycod
+
+Here is a simple part of a Python code which reads and plots the data
+from such files
+
+\bpycod
+import numpy as np
+from imageio import imread
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+
+# Load the terrain
+terrain1 = imread('SRTM_data_Norway_1.tif')
+# Show the terrain
+plt.figure()
+plt.title('Terrain over Norway 1')
+plt.imshow(terrain1, cmap='gray')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.show()
+\epycod
+
+If you should have problems in downloading the digital terrain data,
+we provide two examples under the data folder of project 1. One is
+from a region close to Stavanger in Norway and the other Møsvatn
+Austfjell, again in Norway.
+Feel free to produce your own terrain data.
+
+\paragraph{Part g) OLS, Ridge and Lasso regression with resampling.}
+Our final part deals with the parameterization of your digital terrain
+data.  We will apply all three methods for linear regression as in
+parts a-c), the same type (or higher order) of polynomial
+approximation and the same resampling techniques to evaluate which
+model fits the data best.
+
+At the end, you should pesent a critical evaluation of your results
+and discuss the applicability of these regression methods to the type
+of data presented here.
 
 
 

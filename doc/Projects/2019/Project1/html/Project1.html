@@ -49,19 +49,30 @@ div { text-align: justify; text-justify: inter-word; }
                3,
                None,
                '___sec1'),
-              ('Part b): Ridge Regression with resampling', 3, None, '___sec2'),
-              ('Part c): Lasso Regression with resampling', 3, None, '___sec3'),
-              ('Part e) OLS, Ridge and Lasso regression with resampling',
+              ('Part b) Resampling techniques', 3, None, '___sec2'),
+              ('Part c): Bias-variance tradeoff', 3, None, '___sec3'),
+              ('Part d): Ridge Regression on the Franke function  with '
+               'resampling',
                3,
                None,
                '___sec4'),
-              ('Background literature', 2, None, '___sec5'),
-              ('Introduction to numerical projects', 2, None, '___sec6'),
+              ('Part e): Lasso Regression on the Franke function  with '
+               'resampling',
+               3,
+               None,
+               '___sec5'),
+              ('Part f): Introducing real data', 3, None, '___sec6'),
+              ('Part g) OLS, Ridge and Lasso regression with resampling',
+               3,
+               None,
+               '___sec7'),
+              ('Background literature', 2, None, '___sec8'),
+              ('Introduction to numerical projects', 2, None, '___sec9'),
               ('Format for electronic delivery of report and programs',
                2,
                None,
-               '___sec7'),
-              ('Software and needed installations', 2, None, '___sec8')]}
+               '___sec10'),
+              ('Software and needed installations', 2, None, '___sec11')]}
 end of tocinfo -->
 
 <body>
@@ -102,7 +113,7 @@ MathJax.Hub.Config({
 <center><b>Department of Physics, University of Oslo, Norway</b></center>
 <br>
 <p>
-<center><h4>Aug 26, 2019</h4></center> <!-- date -->
+<center><h4>Aug 29, 2019</h4></center> <!-- date -->
 <br>
 
 <h2 id="___sec0">Regression analysis and resampling methods  </h2>
@@ -113,59 +124,316 @@ regression methods, including the Ordinary Least Squares (OLS) method,
 Ridge regression and finally Lasso regression.
 The methods are in turn combined with resampling techniques.
 
+<p>
+We will first study how to fit polynomials to a specific
+two-dimensional function called <a href="http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf" target="_blank">Franke's
+function</a>.  This
+is a function which has been widely used when testing various
+interpolation and fitting algorithms. Furthermore, after having
+established the model and the method, we will employ resamling
+techniques such as cross-validation in order to perform a
+proper assessment of our models. We will also study in detail the
+so-called Bias-Variance trade off.
+
+<p>
+The Franke function, which is a weighted sum of four exponentials  reads as follows
+$$
+\begin{align*}
+f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
+&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
+\end{align*}
+$$
+
+<p>
+The function will be defined for \( x,y\in [0,1] \).  Our first step will
+be to perform an OLS regression analysis of this function, trying out
+a polynomial fit with an \( x \) and \( y \) dependence of the form \( [x, y,
+x^2, y^2, xy, \dots] \). We will also include cross-validation as
+resampling technique.  As in homeworks 1 and 2, we can use a uniform
+distribution to set up the arrays of values for \( x \) and \( y \), or as in
+the example below just a set of fixed 
+values for \( x \) and \( y \) with a given step
+size.  We will fit a
+function (for example a polynomial) of \( x \) and \( y \).  Thereafter we
+will repeat much of the same procedure using the Ridge and Lasso
+regression methods, introducing thus a dependence on the bias
+(penalty) \( \lambda \).
+
+<p>
+Finally we are going to use (real) digital terrain data and try to
+reproduce these data using the same methods. We will also try to go
+beyond the second-order polynomials metioned above and explore 
+which polynomial fits the data best.
+
+<p>
+The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">mpl_toolkits.mplot3d</span> <span style="color: #008000; font-weight: bold">import</span> Axes3D
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">matplotlib</span> <span style="color: #008000; font-weight: bold">import</span> cm
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">matplotlib.ticker</span> <span style="color: #008000; font-weight: bold">import</span> LinearLocator, FormatStrFormatter
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+
+fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
+ax <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>gca(projection<span style="color: #666666">=</span><span style="color: #BA2121">&#39;3d&#39;</span>)
+
+<span style="color: #408080; font-style: italic"># Make data.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">0.05</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">0.05</span>)
+x, y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>meshgrid(x,y)
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">FrankeFunction</span>(x,y):
+    term1 <span style="color: #666666">=</span> <span style="color: #666666">0.75*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">0.25*</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>) <span style="color: #666666">-</span> <span style="color: #666666">0.25*</span>((<span style="color: #666666">9*</span>y<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>))
+    term2 <span style="color: #666666">=</span> <span style="color: #666666">0.75*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>((<span style="color: #666666">9*</span>x<span style="color: #666666">+1</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">/49.0</span> <span style="color: #666666">-</span> <span style="color: #666666">0.1*</span>(<span style="color: #666666">9*</span>y<span style="color: #666666">+1</span>))
+    term3 <span style="color: #666666">=</span> <span style="color: #666666">0.5*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-7</span>)<span style="color: #666666">**2/4.0</span> <span style="color: #666666">-</span> <span style="color: #666666">0.25*</span>((<span style="color: #666666">9*</span>y<span style="color: #666666">-3</span>)<span style="color: #666666">**2</span>))
+    term4 <span style="color: #666666">=</span> <span style="color: #666666">-0.2*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-4</span>)<span style="color: #666666">**2</span> <span style="color: #666666">-</span> (<span style="color: #666666">9*</span>y<span style="color: #666666">-7</span>)<span style="color: #666666">**2</span>)
+    <span style="color: #008000; font-weight: bold">return</span> term1 <span style="color: #666666">+</span> term2 <span style="color: #666666">+</span> term3 <span style="color: #666666">+</span> term4
+
+
+z <span style="color: #666666">=</span> FrankeFunction(x, y)
+
+<span style="color: #408080; font-style: italic"># Plot the surface.</span>
+surf <span style="color: #666666">=</span> ax<span style="color: #666666">.</span>plot_surface(x, y, z, cmap<span style="color: #666666">=</span>cm<span style="color: #666666">.</span>coolwarm,
+                       linewidth<span style="color: #666666">=0</span>, antialiased<span style="color: #666666">=</span><span style="color: #008000">False</span>)
+
+<span style="color: #408080; font-style: italic"># Customize the z axis.</span>
+ax<span style="color: #666666">.</span>set_zlim(<span style="color: #666666">-0.10</span>, <span style="color: #666666">1.40</span>)
+ax<span style="color: #666666">.</span>zaxis<span style="color: #666666">.</span>set_major_locator(LinearLocator(<span style="color: #666666">10</span>))
+ax<span style="color: #666666">.</span>zaxis<span style="color: #666666">.</span>set_major_formatter(FormatStrFormatter(<span style="color: #BA2121">&#39;</span><span style="color: #BB6688; font-weight: bold">%.02f</span><span style="color: #BA2121">&#39;</span>))
+
+<span style="color: #408080; font-style: italic"># Add a color bar which maps values to colors.</span>
+fig<span style="color: #666666">.</span>colorbar(surf, shrink<span style="color: #666666">=0.5</span>, aspect<span style="color: #666666">=5</span>)
+
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+
 <h3 id="___sec1">Part a): Ordinary Least Square on the Franke function  with resampling </h3>
 
 <p>
-We will thus again generate our own dataset for a function \( \mathrm{FrankeFunction}(x,y) \) where 
-\( x,y \in [0,1] \) could be defined by random numbers computed with the uniform
-distribution. The function \( f(x,y) \) is the Franke function. You should explore also the addition
-an added stochastic noise to this function using  the normal distribution \( \cal{N}(0,1) \).
+We will generate our own dataset for a function
+\( \mathrm{FrankeFunction}(x,y) \) with \( x,y \in [0,1] \). The function
+\( f(x,y) \) is the Franke function. You should explore also the addition
+an added stochastic noise to this function using the normal
+distribution \( \cal{N}(0,1) \).
 
 <p>
-Write your own code (using either a matrix inversion or a singular value decomposition from e.g., <b>numpy</b> )  or use your code from homeworks 1 and 2
-and perform a standard least square regression analysis using polynomials in \( x \) and \( y \) up to fifth order. Find the confidence intervals of the parameters \( \beta \) by computing their variances, evaluate the Mean Squared error (MSE)
+Write your own code (using either a matrix inversion or a singular
+value decomposition from e.g., <b>numpy</b> ) or use your code from
+homeworks 1 and 2 and perform a standard least square regression
+analysis using polynomials in \( x \) and \( y \) up to fifth order. Find the
+confidence intervals of the parameters \( \beta \) by computing their
+variances, evaluate the Mean Squared error (MSE)
+
 $$ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
 \sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
 $$
 
-and the \( R^2 \) score function.
-If \( \tilde{\hat{y}}_i \) is the predicted value of the \( i-th \) sample and \( y_i \) is the corresponding true value, then the score \( R^2 \) is defined as
+<p>
+and the \( R^2 \) score function.  If \( \tilde{\hat{y}}_i \) is the predicted
+value of the \( i-th \) sample and \( y_i \) is the corresponding true value,
+then the score \( R^2 \) is defined as
+
 $$
 R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
 $$
 
+<p>
 where we have defined the mean value  of \( \hat{y} \) as
+
 $$
 \bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
 $$
 
-<p>
-Perform a resampling of the data where you split the data in training data and test data. Implement the \( k \)-fold cross-validation algorithm and/or the bootstrap algorithm
-and evaluate again the MSE and the \( R^2 \) functions resulting from the test data. Evaluate also the bias and variance of the final models using for example equation (7.9) in the textbook of Hastie <em>et al.</em>
-
-<h3 id="___sec2">Part b): Ridge Regression with resampling </h3>
+<h3 id="___sec2">Part b) Resampling techniques </h3>
 
 <p>
-Write your own code for the Ridge method, either using matrix inversion or the singular value decomposition as done in the previous exercise or howework 2  (see also chapter 3.4 of Hastie <em>et al.</em>, equations (3.43) and (3.44)). Perform the same analysis as in the previous exercise (for the same polynomials and include resampling techniques)  but now for different values of \( \lambda \). Compare and analyze your results with those obtained in part a). Study the dependence on \( \lambda \) while also varying eventually the strength of the noise in your expression for \( \mathrm{FrankeFunction}(x,y) \).
-
-<h3 id="___sec3">Part c): Lasso Regression with resampling </h3>
-
-<p>
-This part is essentially a repeat of the previous two ones, but now with Lasso regression. Write either your own code or, in this case, you can also use the functionalities of <b>scikit-learn</b>. Give a critical discussion of the three methods and a judgement of which model fits the data best.
-
-<h3 id="___sec4">Part e) OLS, Ridge and Lasso regression with resampling </h3>
+Perform a resampling of the data where you split the data in training
+data and test data. Here you can write your own function or use the
+function for splitting training data provided by <b>Scikit-Learn</b>.
+This function is called \( train\_test\_split \).
 
 <p>
-At the end, you should pesent a critical evaluation of your results and discuss the applicability of these regression methods to the type of data presented here.
+It is normal in essentially all Machine Learning studies to split the
+data in a training set and a test set (sometimes also an additional
+validation set).  There
+is no explicit recipe for how much data should be included as training
+data and say test data.  An accepted rule of thumb is to use
+approximately \( 2/3 \) to \( 4/5 \) of the data as training data.
 
-<h2 id="___sec5">Background literature </h2>
+<p>
+Implement the \( k \)-fold cross-validation algorithm (write your own
+code) and and evaluate again the MSE and the \( R^2 \) functions resulting
+from the test data. You can compare your own code with that from
+<b>Scikit-Learn</b> if needed.
+
+<h3 id="___sec3">Part c): Bias-variance tradeoff </h3>
+
+<p>
+With a code which does OLS and includes resampling techniques, 
+we will now discuss the bias-variance tradeoff in the context of
+continuous predictions such as regression. However, many of the
+intuitions and ideas discussed here also carry over to classification
+tasks and basically all Machine Learning algorithms.
+
+<p>
+Consider a
+dataset \( \mathcal{L} \) consisting of the data
+\( \mathbf{X}_\mathcal{L}=\{(y_j, \boldsymbol{x}_j), j=0\ldots n-1\} \).
+
+<p>
+Let us assume that the true data is generated from a noisy model
+
+$$
+\boldsymbol{y}=f(\boldsymbol{x}) + \boldsymbol{\epsilon}.
+$$
+
+<p>
+Here \( \epsilon \) is normally distributed with mean zero and standard
+deviation \( \sigma^2 \).
+
+<p>
+In our derivation of the ordinary least squares method we defined then
+an approximation to the function \( f \) in terms of the parameters
+\( \boldsymbol{\beta} \) and the design matrix \( \boldsymbol{X} \) which embody our model,
+that is \( \boldsymbol{\tilde{y}}=\boldsymbol{X}\boldsymbol{\beta} \).
+
+<p>
+The parameters \( \boldsymbol{\beta} \) are in turn found by optimizing the means
+squared error via the so-called cost function
+
+$$
+C(\boldsymbol{X},\boldsymbol{\beta}) =\frac{1}{n}\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2=\mathbb{E}\left[(\boldsymbol{\
+y}-\boldsymbol{\tilde{y}})^2\right].
+$$
+
+<p>
+Show that you can rewrite  this as
+$$
+\mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=\frac{1}{n}\sum_i(f_i-\mathbb{E}\left[\bm\
+{\tilde{y}}\right])^2+\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])\
+^2+\sigma^2.
+$$
+
+<p>
+Explain what the terms mean, which one is the bias and which one is
+the variance and discuss their interpretations.
+
+<p>
+Discuss the bias and variance tradeoff as function
+of your model complexity (the degree of the polynomial) and the number
+of data points, and possibly also your training and test data.
+
+<p>
+Try to make a figure similar to Fig. 2.11 of Hastie, Tibshirani, and
+Friedman, see the references below. You will most likely not get an
+equally smooth curve!
+
+<h3 id="___sec4">Part d): Ridge Regression on the Franke function  with resampling </h3>
+
+<p>
+Write your own code for the Ridge method, either using matrix
+inversion or the singular value decomposition as done in the previous
+exercise or howework 2 (see also chapter 3.4 of Hastie <em>et al.</em>,
+equations (3.43) and (3.44)). Perform the same analysis as in the
+previous exercises (for the same polynomials and include resampling
+techniques) but now for different values of \( \lambda \). Compare and
+analyze your results with those obtained in parts a-c). Study the
+dependence on \( \lambda \).
+
+<p>
+Study also the bias-variance tradeoff as function of various values of
+the parameter \( \lambda \). Comment your results.
+
+<h3 id="___sec5">Part e): Lasso Regression on the Franke function  with resampling </h3>
+
+<p>
+This part is essentially a repeat of the previous two ones, but now
+with Lasso regression. Write either your own code or, in this case,
+you can also use the functionalities of <b>Scikit-Learn</b> (recommended). 
+Give a
+critical discussion of the three methods and a judgement of which
+model fits the data best.
+
+<h3 id="___sec6">Part f): Introducing real data </h3>
+
+<p>
+With our codes functioning and having been tested properly on a
+simpler function we are now ready to look at real data. We will
+essentially repeat in part g) what was done in parts a-e). However, we
+need first to download the data and prepare properly the inputs to our
+codes.  We are going to download digital terrain data from the website
+<a href="https://earthexplorer.usgs.gov/" target="_blank"><tt>https://earthexplorer.usgs.gov/</tt></a>,
+
+<p>
+In order to obtain data for a specific region, you need to register as
+a user (free) at this website and then decide upon which area you want
+to fetch the digital terrain data from.  In order to be able to read
+the data properly, you need to specify that the format should be <b>SRTM
+Arc-Second Global</b> and download the data as a <b>GeoTIF</b> file.  The
+files are then stored in <em>tif</em> format which can be imported into a
+Python program using
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>scipy<span style="color: #666666">.</span>misc<span style="color: #666666">.</span>imread
+</pre></div>
+<p>
+Here is a simple part of a Python code which reads and plots the data
+from such files
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">imageio</span> <span style="color: #008000; font-weight: bold">import</span> imread
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">mpl_toolkits.mplot3d</span> <span style="color: #008000; font-weight: bold">import</span> Axes3D
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">matplotlib</span> <span style="color: #008000; font-weight: bold">import</span> cm
+
+<span style="color: #408080; font-style: italic"># Load the terrain</span>
+terrain1 <span style="color: #666666">=</span> imread(<span style="color: #BA2121">&#39;SRTM_data_Norway_1.tif&#39;</span>)
+<span style="color: #408080; font-style: italic"># Show the terrain</span>
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&#39;Terrain over Norway 1&#39;</span>)
+plt<span style="color: #666666">.</span>imshow(terrain1, cmap<span style="color: #666666">=</span><span style="color: #BA2121">&#39;gray&#39;</span>)
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;X&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;Y&#39;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+If you should have problems in downloading the digital terrain data,
+we provide two examples under the data folder of project 1. One is
+from a region close to Stavanger in Norway and the other M&#248;svatn
+Austfjell, again in Norway.
+Feel free to produce your own terrain data.
+
+<h3 id="___sec7">Part g) OLS, Ridge and Lasso regression with resampling </h3>
+
+<p>
+Our final part deals with the parameterization of your digital terrain
+data.  We will apply all three methods for linear regression as in
+parts a-c), the same type (or higher order) of polynomial
+approximation and the same resampling techniques to evaluate which
+model fits the data best.
+
+<p>
+At the end, you should pesent a critical evaluation of your results
+and discuss the applicability of these regression methods to the type
+of data presented here.
+
+<h2 id="___sec8">Background literature </h2>
 
 <ol>
 <li> For a discussion and derivation of the variances and mean squared errors using linear regression, see the <a href="https://arxiv.org/abs/1509.09169" target="_blank">Lecture notes on ridge regression by Wessel N. van Wieringen</a></li>
 <li> The textbook of <a href="https://www.springer.com/gp/book/9780387848570" target="_blank">Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer</a>, chapters 3 and 7 are the most relevant ones for the analysis here.</li> 
 </ol>
 
-<h2 id="___sec6">Introduction to numerical projects </h2>
+<h2 id="___sec9">Introduction to numerical projects </h2>
 
 <p>
 Here follows a brief recipe and recommendation on how to write a report for each
@@ -183,7 +451,7 @@ project.
   <li> Try to establish a practice where you log your work at the  computerlab. You may find such a logbook very handy at later stages in your work, especially when you don't properly remember  what a previous test version  of your program did. Here you could also record  the time spent on solving the exercise, various algorithms you may have tested or other topics which you feel worthy of mentioning.</li>
 </ul>
 
-<h2 id="___sec7">Format for electronic delivery of report and programs </h2>
+<h2 id="___sec10">Format for electronic delivery of report and programs </h2>
 
 <p>
 The preferred format for the report is a PDF file. You can also use DOC or postscript formats or as an ipython notebook file.  As programming language we prefer that you choose between C/C++, Fortran2008 or Python. The following prescription should be followed when preparing the report:
@@ -200,7 +468,7 @@ Finally,
 we encourage you to collaborate. Optimal working groups consist of 
 2-3 students. You can then hand in a common report.
 
-<h2 id="___sec8">Software and needed installations </h2>
+<h2 id="___sec11">Software and needed installations </h2>
 
 <p>
 If you have Python installed (we recommend Python3) and you feel pretty familiar with installing different packages, 
