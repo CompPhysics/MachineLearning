@@ -78,7 +78,7 @@ the theory and methods. We recommend strongly to form small projects of 2-3 part
 6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
 7. Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail;
 8. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
-9. We use Piazza for course communication, a special link on how to register to Piazza con be found on the official University of Oslo page for the course. Slack is also used for course communication;
+9. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course. Slack is also used for course communication. The Slack link is machinelearninguio.slack.com ;
 
 
 ## Possible textbooks
