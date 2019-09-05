@@ -1579,6 +1579,42 @@ For more discussions of Ridge and Lasso regression, "Wessel van Wieringen's":"ht
 Similarly, "Mehta et al's article":"https://arxiv.org/abs/1803.08823" is also recommended.
 
 !split
+=====  Some simple codes for the SVD =====
+
+!bc pycod
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
+    SVD is numerically more stable than the inversion algorithms provided by
+    numpy and scipy.linalg at the cost of being slower.
+    '''
+    U, s, VT = np.linalg.svd(A)
+    print(U)
+    print(s)
+    print(VT)
+    D = np.zeros((len(U),len(VT)))
+    for i in range(0,len(VT)):
+        D[i,i]=s[i]
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
+    return np.matmul(V,np.matmul(invD,UT))
+
+
+X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
+print(X)
+A = np.transpose(X) @ X
+print(A)
+# Brute force inversion of super-collinear matrix
+#B = np.linalg.inv(A)
+#print(B)
+C = SVDinv(A)
+print(C)
+
+!ec
+
+The matrix $\bm{X}$ has columns that are linearly dependent. The column is the row-wise sum of the other two columns. The rank of a matrix (the column rank) is the dimension of space spanned by the column vectors. The rank of the matrix is the number of linearly independent columns, in this case just $2$. We see this from the singular values when running the above code. Running the standard inversion algorithm for matrix inversion with $\bm{X}^T\bm{X}$ results in the program terminating due to a singular matrix. 
+
+!split
 ===== Where are we going? =====
 
 Before we proceed, we need to rethink what we have been doing. In our
