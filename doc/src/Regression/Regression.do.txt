@@ -1692,7 +1692,17 @@ regression to each new sample, and then examine the extent to which
 the resulting fits differ. Such an approach may allow us to obtain
 information that would not be available from fitting the model only
 once using the original training sample.
+
+Two resampling methods are often used in Machine Learning analyses,
+o The _bootstrap method_
+o and _Cross-Validation_
+
+In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
+cross-validation and the bootstrap method. 
+
+
 !eblock
+
 
 !split
 ===== Resampling approaches can be computationally expensive =====
@@ -2431,9 +2441,9 @@ row number $i$ and perform a sum over all values $p$.
 !split
 ===== Assumptions made =====
 
-The assumption we have made here can be summarized as (and this is going to useful when we discuss the bias-variance trade off)
+The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
 that there exists a function $f(\bm{x})$ and  a normal distributed error $\bm{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
-which describes our data
+which describe our data
 !bt
 \[
 \bm{y} = f(\bm{x})+\bm{\varepsilon}
@@ -2527,7 +2537,7 @@ construct a confidence interval for the estimates.
 
 In a similar way, we can obtain analytical expressions for say the
 expectation values of the parameters $\bm{\beta}$ and their variance
-when we employ Ridge regression, and thereby a confidence interval. 
+when we employ Ridge regression, allowing us again to define a confidence interval. 
 
 It is rather straightforward to show that
 !bt
@@ -2562,97 +2572,24 @@ This means the variance we obtain with the standard OLS will always for $\lambda
 !split
 ===== Resampling methods =====
 
-Discuss types of error and how we proceed in doing so. In particular emphasize with examples the difference between the test error and the training error.
+With all these analytical equations for both the OLS and Ridge
+regression, we will now outline how to assess a given model. This will
+lead us to a discussion of the so-called bias-variance tradeoff (see
+below) and so-called resampling methods.
 
+One of the quantities we have discussed as a way to measure errors is
+the mean-squared error (MSE), mainly used for fitting of continuous
+functions. Another choice is the absolute error.
 
-!split 
-===== Cross-validation =====
+In the discussions below we will focus on the MSE and in particular since we will split the data into test and training data,
+we discuss the
+o prediction error or simply the _test error_ $\mathrm{Err_{Test}}$, where we have a fixed training set and the test error is the MSE arising from the data reserved for testing. We discuss also the 
+o training error $\mathrm{Err_{Train}}$, which is the average loss over the training data.
 
-Instead of choosing the penalty parameter to balance model fit with
-model complexity, cross-validation requires it (i.e. the penalty
-parameter) to yield a model with good prediction
-performance. Commonly, this performance is evaluated on novel
-data. Novel data need not be easy to come by and one has to make do
-with the data at hand.
+As our model becomes more and more complex, more of the training data tends to  used. The training may thence adapt to more complicated structures in the data. This may lead to a decrease in the bias (see below for code example) and a slight increase of the variance for the test error.
+For a certain level of complexity the test error will reach minimum, before starting to increase again. The
+training error reaches a saturation.
 
-The setting of _original_ and novel data is
-then mimicked by sample splitting: the data set is divided into two
-(groups of samples). One of these two data sets, called the 
-*training set*, plays the role of _original_ data on which the model is
-built. The second of these data sets, called the *test set*, plays the
-role of the _novel_ data and is used to evaluate the prediction
-performance (often operationalized as the log-likelihood or the
-prediction error or its square or the R2 score) of the model built on the training data set. This
-procedure (model building and prediction evaluation on training and
-test set, respectively) is done for a collection of possible penalty
-parameter choices. The penalty parameter that yields the model with
-the best prediction performance is to be preferred. The thus obtained
-performance evaluation depends on the actual split of the data set. To
-remove this dependence the data set is split many times into a
-training and test set. For each split the model parameters are
-estimated for all choices of $\lambda$ using the training data and
-estimated parameters are evaluated on the corresponding test set. The
-penalty parameter that on average over the test sets performs best (in
-some sense) is then selected.
-
-
-!split
-===== Computationally expensive =====
-
-The validation set approach is conceptually simple and is easy to implement. But it has two potential drawbacks:
-
-* The validation estimate of the test error rate can be highly variable, depending on precisely which observations are included in the training set and which observations are included in the validation set.
-
-* In the validation approach, only a subset of the observations, those that are included in the training set rather than in the validation set are used to fit the model. Since statistical methods tend to perform worse when trained on fewer observations, this suggests that the validation set error rate may tend to overestimate the test error rate for the model fit on the entire data set.
-
-
-
-!split 
-===== Various steps in cross-validation =====
-
-When the repetitive splitting of the data set is done randomly,
-samples may accidently end up in a fast majority of the splits in
-either training or test set. Such samples may have an unbalanced
-influence on either model building or prediction evaluation. To avoid
-this $k$-fold cross-validation structures the data splitting. The
-samples are divided into $k$ more or less equally sized exhaustive and
-mutually exclusive subsets. In turn (at each split) one of these
-subsets plays the role of the test set while the union of the
-remaining subsets constitutes the training set. Such a splitting
-warrants a balanced representation of each sample in both training and
-test set over the splits. Still the division into the $k$ subsets
-involves a degree of randomness. This may be fully excluded when
-choosing $k=n$. This particular case is referred to as leave-one-out
-cross-validation (LOOCV). 
-
-!split 
-===== How to set up the cross-validation for Ridge and/or Lasso =====
-
-* Define a range of interest for the penalty parameter.
-
-* Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
-
-* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\bm{\sigma}_{-i}^2(\lambda)$, as
-!bt
-\begin{align*}
-\bm{\beta}_{-i}(\lambda) & =  ( \bm{X}_{-i, \ast}^{T}
-\bm{X}_{-i, \ast} + \lambda \bm{I}_{pp})^{-1}
-\bm{X}_{-i, \ast}^{T} \bm{y}_{-i}
-\end{align*}
-!et 
-
-* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \bm{X}_{i, \ast}; \bm{\beta}_{-i}(\lambda), \bm{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \bm{X}_{i, \ast} \bm{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
-
-* Repeat the first three steps  such that each sample plays the role of the test set once.
-
-* Average the prediction performances of the test sets at each grid point of the penalty bias/parameter by computing the *cross-validated log-likelihood*. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as
-!bt
-\begin{align*}
-\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \bm{\beta}_{-i}(\lambda), \bm{\sigma}_{-i}^2(\lambda)]\}.
-\end{align*}
-!et
-
-* The value of the penalty parameter that maximizes the cross-validated log-likelihood is the value of choice. Or we can use the MSE or the R2 score functions.
 
 
 
@@ -2871,6 +2808,58 @@ plt.grid(True)
 plt.show()
 
 !ec
+
+!split
+===== Cross-validation =====
+
+
+!split 
+===== Various steps in cross-validation =====
+
+When the repetitive splitting of the data set is done randomly,
+samples may accidently end up in a fast majority of the splits in
+either training or test set. Such samples may have an unbalanced
+influence on either model building or prediction evaluation. To avoid
+this $k$-fold cross-validation structures the data splitting. The
+samples are divided into $k$ more or less equally sized exhaustive and
+mutually exclusive subsets. In turn (at each split) one of these
+subsets plays the role of the test set while the union of the
+remaining subsets constitutes the training set. Such a splitting
+warrants a balanced representation of each sample in both training and
+test set over the splits. Still the division into the $k$ subsets
+involves a degree of randomness. This may be fully excluded when
+choosing $k=n$. This particular case is referred to as leave-one-out
+cross-validation (LOOCV). 
+
+!split 
+===== How to set up the cross-validation for Ridge and/or Lasso =====
+
+* Define a range of interest for the penalty parameter.
+
+* Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
+
+* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\bm{\sigma}_{-i}^2(\lambda)$, as
+!bt
+\begin{align*}
+\bm{\beta}_{-i}(\lambda) & =  ( \bm{X}_{-i, \ast}^{T}
+\bm{X}_{-i, \ast} + \lambda \bm{I}_{pp})^{-1}
+\bm{X}_{-i, \ast}^{T} \bm{y}_{-i}
+\end{align*}
+!et 
+
+* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \bm{X}_{i, \ast}; \bm{\beta}_{-i}(\lambda), \bm{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \bm{X}_{i, \ast} \bm{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
+
+* Repeat the first three steps  such that each sample plays the role of the test set once.
+
+* Average the prediction performances of the test sets at each grid point of the penalty bias/parameter by computing the *cross-validated log-likelihood*. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as
+!bt
+\begin{align*}
+\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \bm{\beta}_{-i}(\lambda), \bm{\sigma}_{-i}^2(\lambda)]\}.
+\end{align*}
+!et
+
+* The value of the penalty parameter that maximizes the cross-validated log-likelihood is the value of choice. Or we can use the MSE or the R2 score functions.
+
 
 
 !split
