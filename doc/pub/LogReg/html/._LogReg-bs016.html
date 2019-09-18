@@ -6,6 +6,7 @@ Automatically generated HTML file from DocOnce source
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="Data Analysis and Machine Learning: Logistic Regression">
 
 <title>Data Analysis and Machine Learning: Logistic Regression</title>
@@ -54,18 +55,8 @@ Automatically generated HTML file from DocOnce source
               ('Extending to more predictors', 2, None, '___sec11'),
               ('Including more classes', 2, None, '___sec12'),
               ('The Softmax function', 2, None, '___sec13'),
-              ('A _scikit-learn_ example', 2, None, '___sec14'),
-              ('A simple classification problem', 2, None, '___sec15'),
-              ('The two-dimensional Ising model, Predicting phase transition '
-               'of the two-dimensional Ising model',
-               2,
-               None,
-               '___sec16'),
-              ('Reading in the data', 2, None, '___sec17'),
-              ('Logistic regression', 2, None, '___sec18'),
-              ('Exploring the logistic regression', 2, None, '___sec19'),
-              ('Accuracy of a classification model', 2, None, '___sec20'),
-              ('Analyzing the results', 2, None, '___sec21')]}
+              ('A simple classification problem', 2, None, '___sec14'),
+              ('The Credit Card example', 2, None, '___sec15')]}
 end of tocinfo -->
 
 <body>
@@ -117,14 +108,8 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._LogReg-bs012.html#___sec11" style="font-size: 80%;">Extending to more predictors</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs013.html#___sec12" style="font-size: 80%;">Including more classes</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs014.html#___sec13" style="font-size: 80%;">The Softmax function</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs015.html#___sec14" style="font-size: 80%;">A <b>scikit-learn</b> example</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec15" style="font-size: 80%;">A simple classification problem</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs017.html#___sec16" style="font-size: 80%;">The two-dimensional Ising model, Predicting phase transition of the two-dimensional Ising model</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs018.html#___sec17" style="font-size: 80%;">Reading in the data</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs019.html#___sec18" style="font-size: 80%;">Logistic regression</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs020.html#___sec19" style="font-size: 80%;">Exploring the logistic regression</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs021.html#___sec20" style="font-size: 80%;">Accuracy of a classification model</a></li>
-     <!-- navigation toc: --> <li><a href="._LogReg-bs022.html#___sec21" style="font-size: 80%;">Analyzing the results</a></li>
+     <!-- navigation toc: --> <li><a href="._LogReg-bs015.html#___sec14" style="font-size: 80%;">A simple classification problem</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec15" style="font-size: 80%;">The Credit Card example</a></li>
 
         </ul>
       </li>
@@ -140,61 +125,8 @@ MathJax.Hub.Config({
 <a name="part0016"></a>
 <!-- !split -->
 
-<h2 id="___sec15" class="anchor">A simple classification problem </h2>
-<p>
+<h2 id="___sec15" class="anchor">The Credit Card example </h2>
 
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> datasets, linear_model
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">generate_data</span>():
-    np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">0</span>)
-    X, y <span style="color: #666666">=</span> datasets<span style="color: #666666">.</span>make_moons(<span style="color: #666666">200</span>, noise<span style="color: #666666">=0.20</span>)
-    <span style="color: #008000; font-weight: bold">return</span> X, y
-
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">visualize</span>(X, y, clf):
-    <span style="color: #408080; font-style: italic"># plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)</span>
-    <span style="color: #408080; font-style: italic"># plt.show()</span>
-    plot_decision_boundary(<span style="color: #008000; font-weight: bold">lambda</span> x: clf<span style="color: #666666">.</span>predict(x), X, y)
-    plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Logistic Regression&quot;</span>)
-
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">plot_decision_boundary</span>(pred_func, X, y):
-    <span style="color: #408080; font-style: italic"># Set min and max values and give it some padding</span>
-    x_min, x_max <span style="color: #666666">=</span> X[:, <span style="color: #666666">0</span>]<span style="color: #666666">.</span>min() <span style="color: #666666">-</span> <span style="color: #666666">.5</span>, X[:, <span style="color: #666666">0</span>]<span style="color: #666666">.</span>max() <span style="color: #666666">+</span> <span style="color: #666666">.5</span>
-    y_min, y_max <span style="color: #666666">=</span> X[:, <span style="color: #666666">1</span>]<span style="color: #666666">.</span>min() <span style="color: #666666">-</span> <span style="color: #666666">.5</span>, X[:, <span style="color: #666666">1</span>]<span style="color: #666666">.</span>max() <span style="color: #666666">+</span> <span style="color: #666666">.5</span>
-    h <span style="color: #666666">=</span> <span style="color: #666666">0.01</span>
-    <span style="color: #408080; font-style: italic"># Generate a grid of points with distance h between them</span>
-    xx, yy <span style="color: #666666">=</span> np<span style="color: #666666">.</span>meshgrid(np<span style="color: #666666">.</span>arange(x_min, x_max, h), np<span style="color: #666666">.</span>arange(y_min, y_max, h))
-    <span style="color: #408080; font-style: italic"># Predict the function value for the whole gid</span>
-    Z <span style="color: #666666">=</span> pred_func(np<span style="color: #666666">.</span>c_[xx<span style="color: #666666">.</span>ravel(), yy<span style="color: #666666">.</span>ravel()])
-    Z <span style="color: #666666">=</span> Z<span style="color: #666666">.</span>reshape(xx<span style="color: #666666">.</span>shape)
-    <span style="color: #408080; font-style: italic"># Plot the contour and training examples</span>
-    plt<span style="color: #666666">.</span>contourf(xx, yy, Z, cmap<span style="color: #666666">=</span>plt<span style="color: #666666">.</span>cm<span style="color: #666666">.</span>Spectral)
-    plt<span style="color: #666666">.</span>scatter(X[:, <span style="color: #666666">0</span>], X[:, <span style="color: #666666">1</span>], c<span style="color: #666666">=</span>y, cmap<span style="color: #666666">=</span>plt<span style="color: #666666">.</span>cm<span style="color: #666666">.</span>Spectral)
-    plt<span style="color: #666666">.</span>show()
-
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">classify</span>(X, y):
-    clf <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>LogisticRegressionCV()
-    clf<span style="color: #666666">.</span>fit(X, y)
-    <span style="color: #008000; font-weight: bold">return</span> clf
-
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">main</span>():
-    X, y <span style="color: #666666">=</span> generate_data()
-    <span style="color: #408080; font-style: italic"># visualize(X, y)</span>
-    clf <span style="color: #666666">=</span> classify(X, y)
-    visualize(X, y, clf)
-
-
-<span style="color: #008000; font-weight: bold">if</span> <span style="color: #19177C">__name__</span> <span style="color: #666666">==</span> <span style="color: #BA2121">&quot;__main__&quot;</span>:
-    main()
-</pre></div>
-<p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
@@ -210,13 +142,6 @@ MathJax.Hub.Config({
   <li><a href="._LogReg-bs014.html">15</a></li>
   <li><a href="._LogReg-bs015.html">16</a></li>
   <li class="active"><a href="._LogReg-bs016.html">17</a></li>
-  <li><a href="._LogReg-bs017.html">18</a></li>
-  <li><a href="._LogReg-bs018.html">19</a></li>
-  <li><a href="._LogReg-bs019.html">20</a></li>
-  <li><a href="._LogReg-bs020.html">21</a></li>
-  <li><a href="._LogReg-bs021.html">22</a></li>
-  <li><a href="._LogReg-bs022.html">23</a></li>
-  <li><a href="._LogReg-bs017.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
