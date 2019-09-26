@@ -1,34 +1,34 @@
 from math import exp, sqrt
 from random import random, seed
 import numpy as np
+from sklearn import datasets, linear_model
 import matplotlib.pyplot as plt
 from sklearn.linear_model import SGDRegressor
 
-x = 2*np.random.rand(100,1)
-y = 4+3*x#+np.random.randn(100,1)
-
-xb = np.c_[np.ones((100,1)), x]
+np.random.seed(0)
+X, y = datasets.make_moons(200, noise=0.20)
+#X = np.c_[np.ones((100,1)), x]
 
 sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
-sgdreg.fit(x,y.ravel())
+sgdreg.fit(X,y.ravel())
 print("sgdreg from scikit")
 print(sgdreg.intercept_, sgdreg.coef_)
 
-
+"""
 theta = np.random.randn(2,1)
 eta = 0.1
 Niterations = 1000
 m = 100
 
 for iter in range(Niterations):
-    gradients = 2.0/m*xb.T @ ((xb @ theta)-y)
+    gradients = 2.0/m*X.T @ ((X @ theta)-y)
     theta -= eta*gradients
 print("theta from own gd")
 print(theta)
 
 xnew = np.array([[0],[2]])
-xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(theta)
+Xnew = np.c_[np.ones((2,1)), xnew]
+ypredict = Xnew.dot(theta)
 
 n_epochs = 50
 t0, t1 = 5, 50
@@ -41,7 +41,7 @@ theta = np.random.randn(2,1)
 for epoch in range(n_epochs):
     for i in range(m):
         random_index = np.random.randint(m)
-        xi = xb[random_index:random_index+1]
+        xi = X[random_index:random_index+1]
         yi = y[random_index:random_index+1]
         gradients = 2 * xi.T @ ((xi @ theta)-yi)
         eta = learning_schedule(epoch*m+i)
@@ -56,3 +56,4 @@ plt.xlabel(r'$x$')
 plt.ylabel(r'$y$')
 plt.title(r'Random numbers ')
 plt.show()
+"""
