@@ -1,0 +1,882 @@
+\documentclass[11pt,british,a4paper]{article}
+%\pdfobjcompresslevel=0
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[includeheadfoot,margin=0.8 in]{geometry}
+\usepackage{siunitx,physics,cancel,upgreek,varioref,listings,booktabs,pdfpages,ifthen,polynom,todonotes}
+%\usepackage{minted}
+\usepackage[backend=biber]{biblatex}
+\DefineBibliographyStrings{english}{%
+      bibliography = {References},
+}
+\addbibresource{sources.bib}
+\usepackage{mathtools,upgreek,bigints}
+\usepackage{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tocloft}
+\usepackage[T1]{fontenc}
+%\usepackage{fouriernc}
+% \usepackage[T1]{fontenc}
+\usepackage{mathpazo}
+% \usepackage{inconsolata}
+%\usepackage{eulervm}
+%\usepackage{cmbright}
+%\usepackage{fontspec}
+%\usepackage{unicode-math}
+%\setmainfont{Tex Gyre Pagella}
+%\setmathfont{Tex Gyre Pagella Math}
+%\setmonofont{Tex Gyre Cursor}
+%\renewcommand*\ttdefault{txtt}
+\graphicspath{{figs/}}
+\usepackage[scaled]{beramono}
+\usepackage{fancyhdr}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{lastpage}
+\usepackage{microtype}
+\usepackage[font=normalsize]{subcaption}
+\usepackage{luacode}
+\usepackage[linktoc=all, bookmarks=true, pdfauthor={Anders Johansson},pdftitle={FYS-STK4155 Project 1}]{hyperref}
+\usepackage{tikz,pgfplots,pgfplotstable}
+\usepgfplotslibrary{colorbrewer}
+\usepgfplotslibrary{external}
+\tikzset{external/system call={lualatex \tikzexternalcheckshellescape -halt-on-error -interaction=batchmode -jobname "\image" "\texsource"}}
+\tikzexternalize%[prefix=tmp/, mode=list and make]
+\pgfplotsset{cycle list/Dark2}
+\pgfplotsset{compat=1.8}
+\renewcommand{\CancelColor}{\color{red}}
+\let\oldexp=\exp
+\renewcommand{\exp}[1]{\mathrm{e}^{#1}}
+
+
+\labelformat{section}{#1}
+\labelformat{subsection}{exercise~#1}
+\labelformat{subsubsection}{paragraph~#1}
+\labelformat{equation}{equation~(#1)}
+\labelformat{figure}{figure~#1}
+\labelformat{table}{table~#1}
+
+\renewcommand{\footrulewidth}{\headrulewidth}
+
+%\setcounter{secnumdepth}{4}
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{1em}
+
+\definecolor{bluekeywords}{rgb}{0.13,0.13,1}
+\definecolor{greencomments}{rgb}{0,0.5,0}
+\definecolor{redstrings}{rgb}{0.9,0,0}
+\lstset{rangeprefix=!/,
+    rangesuffix=/!,
+    includerangemarker=false}
+\lstset{showstringspaces=false,
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{bluekeywords},
+    commentstyle=\color{greencomments},
+    numberstyle=\color{bluekeywords},
+    stringstyle=\color{redstrings},
+    breaklines=true,
+    %texcl=true,
+    language=Fortran,
+    morekeywords={norm2,class,deferred}
+}
+\colorlet{DarkGrey}{white!20!black}
+\newcommand{\eqtag}[1]{\refstepcounter{equation}\tag{\theequation}\label{#1}}
+\hypersetup{hidelinks=True}
+
+\sisetup{detect-all}
+\sisetup{exponent-product = \cdot, output-product = \cdot,per-mode=symbol}
+% \sisetup{output-decimal-marker={,}}
+\sisetup{round-mode = off, round-precision=3}
+\sisetup{number-unit-product = \ }
+
+\allowdisplaybreaks[4]
+\fancyhf{}
+
+\rhead{Project 1}
+\rfoot{Page~\thepage{} of~\pageref{LastPage}}
+\lhead{FYS-STK4155}
+
+%\definecolor{gronn}{rgb}{0.29, 0.33, 0.13}
+\definecolor{gronn}{rgb}{0, 0.5, 0}
+
+\newcommand{\husk}[2]{\tikz[baseline,remember picture,inner sep=0pt,outer sep=0pt]{\node[anchor=base] (#1) {\(#2\)};}}
+\newcommand{\artanh}[1]{\operatorname{artanh}{\qty(#1)}}
+\newcommand{\matrise}[1]{\begin{pmatrix}#1\end{pmatrix}}
+\DeclareMathOperator{\Proj}{Proj}
+\DeclareMathOperator{\Col}{Col}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\MSE}{MSE}
+
+\newread\infile
+
+\setcounter{tocdepth}{2}
+\numberwithin{equation}{section}
+
+\usepackage{tikz-uml}
+
+\pgfplotstableset{
+    every head row/.style={before row=\toprule,after row=\midrule},
+    every last row/.style={after row=\bottomrule},
+    columns/Method/.style={string type, column type=l}
+}
+
+%start
+\begin{document}
+\title{FYS-STK4155: Project 1}
+\author{Anders Johansson}
+%\maketitle
+
+\begin{titlepage}
+%\includegraphics[width=\textwidth]{fysisk.pdf}
+\vspace*{\fill}
+\begin{center}
+\textsf{
+    \Huge \textbf{Project 1}\\\vspace{0.5cm}
+    \Large \textbf{FYS-STK4155 --- Applied data analysis and machine learning}\\
+    \vspace{2cm}
+    \includegraphics[width=0.45\textwidth]{figs/geography.pdf}%
+    \includegraphics[width=0.45\textwidth]{figs/geography_approx.pdf}\\
+    \vspace{2cm}
+    Anders Johansson\\
+    \today\\
+}
+\vspace{1.5cm}
+\includegraphics{uio.pdf}\\
+\vspace*{\fill}
+\end{center}
+\end{titlepage}
+\null
+\pagestyle{empty}
+\newpage
+
+\pagestyle{fancy}
+\setcounter{page}{1}
+
+\begin{abstract}
+    This project uses fitting of Franke's function and geographical data to compare ordinary least squares, Ridge and LASSO regression. Resampling is done in order to get accurate estimates for variances and means. A bias-variance decomposition is derived analytically and confirmed numerically for both artificial and geographical data. The regression methods are implemented from scratch in Fortran and show good performance, although Newton's method proves to be suboptimal as a minimisation method for the LASSO cost function, due to its non-differentiability in its minimum for large values of the regularisation parameter. Ridge and LASSO regression are found to outperform ordinary least squares on test data, in particular on the geographical data where ordinary least squares suffers from severe overfitting for polynomial degrees larger than \(10\).
+\end{abstract}
+
+All files for this project are available at \url{https://github.com/anjohan/ml1}.
+
+\tableofcontents
+\clearpage
+%  _       _
+% (_)_ __ | |_ _ __ ___
+% | | '_ \| __| '__/ _ \
+% | | | | | |_| | | (_) |
+% |_|_| |_|\__|_|  \___/
+\section{Introduction}
+Fitting of data is an important tool in most sciences.
+The goal can be to interpolate between already measured data or predict values outside the measured range when extra experiments are infeasible, or to discover relations between quantities.
+By assuming that the data points can be modelled by a linear combination of some set of functions and minimising the error, one ends up with linear regression.
+This report explores three different linear regression methods --- ordinary least squares, which simply minimises the error, and Ridge and LASSO, which make up for their worse performance on training data by returning better predictors.
+
+The main goal of this project is to compare these three regression methods empirically by applying it to two sets of data.
+First, the regression methods are applied to a data set generated from a known function, specifically the Franke's function, which is a sum of bivariate Gaussian functions.
+Having verified the implementation of the methods, they are then applied to geographic data, namely the altitude as a function of geographic coordinates.
+
+The first part of this report goes through the basic theory of these regression methods and their implementation, as well as resampling techniques and the bias-variance decomposition.
+Then, the regression methods are applied to the Franke's function and the results are analysed with resampling. Finally, geographical data is fitted and the methods are compared over a range of polynomial degrees and regularisation parameters.
+
+%  _   _
+% | |_| |__   ___  ___  _ __ _   _
+% | __| '_ \ / _ \/ _ \| '__| | | |
+% | |_| | | |  __/ (_) | |  | |_| |
+%  \__|_| |_|\___|\___/|_|   \__, |
+%                            |___/
+\section{Theory and methods}
+
+\subsection{Test case}
+The function to be fitted as verification of the regression methods is the famous Franke's function \(f:\qty[0,1]^2\to\mathbb{R}\) given by
+\begin{equation}
+    \begin{alignedat}{2}
+        f(x_1,x_2) &= \frac{3}{4}\oldexp(-\frac{(9x_1-2)^2}{4} - \frac{(9x_2-2)^2}{4})
+                + \frac{3}{4}\oldexp(-\frac{(9x_1+1)^2}{49}- \frac{(9x_2+1)}{10} ) \\
+               &+ \frac{1}{2}\oldexp(-\frac{(9x_1-7)^2}{4} - \frac{(9x_2-3)^2}{4})
+                - \frac{1}{5}\oldexp(-(9x_1-4)^2 - (9x_2-7)^2)
+    \end{alignedat}\label{eq:franke}
+\end{equation}
+and shown in~\vref{fig:franke}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{franke.pdf}
+    \caption{The Franke's function to be fitted, given by~\vref{eq:franke}.}\label{fig:franke}
+\end{figure}
+
+\subsection{Fitting problem statement}
+The general problem is to fit a given set of data \(D=\qty{(\vec{x}_i,y_i)}_{i=1}^N\), where \(\vec{x}_i\) are inputs of some dimensionality (\(2\) in this project) and \(y_i\) are scalar outputs.
+A set of basis functions \(\qty{\phi_j}_{j=1}^p\) is chosen, and the goal is to approximate the input data with the linear combination \(\beta_j \phi_j(\vec{x})\).
+If the data set were generated by such a linear combination, there would exist parameters \(\qty{\beta_j}\) such that \(\beta_j\phi_j(\vec{x}_i)=y_i\), which can be rewritten as the matrix equation
+\begin{equation}
+    X\vec{\beta} = \vec{y},
+\end{equation}
+where \(X\in\mathbb{R}^{N\times p}\) is the matrix with elements \(x_{ij}=\phi_j(\vec{x}_i)\), and \(\vec{\beta}\) and \(\vec{y}\) are the vectors with elements \(\beta_j\) and \(y_i\).
+
+In general, it will not be possible to find parameters \(\beta_j\) which fulfill this, since the data set will not be generated from the simple basis functions.
+Consequently, one must find the \(\beta_j\)s which in some sense make \(X\vec{\beta}\) as close to \(\vec{y}\) as possible.
+The way in which to measure deviation from the perfect solution is called the \emph{cost function}, frequently written \(Q(\vec{\beta};D)\).
+Regression methods differ in the choice of cost function, while their aim is always to find the parameters \(\beta_j\) which minimise the cost function.
+
+When a regression method has been used to find \(\vec{\beta}\), predicted values are denoted \(\tilde{y}_i = X_{ij}\beta_j\), while the original, exact values are denoted \(y_i\).
+
+%                _ _                          _                _
+%   ___  _ __ __| (_)_ __   __ _ _ __ _   _  | | ___  __ _ ___| |_
+%  / _ \| '__/ _` | | '_ \ / _` | '__| | | | | |/ _ \/ _` / __| __|
+% | (_) | | | (_| | | | | | (_| | |  | |_| | | |  __/ (_| \__ \ |_
+%  \___/|_|  \__,_|_|_| |_|\__,_|_|   \__, | |_|\___|\__,_|___/\__|
+%  ___  __ _ _   _  __ _ _ __ ___  ___|___/
+% / __|/ _` | | | |/ _` | '__/ _ \/ __|
+% \__ \ (_| | |_| | (_| | | |  __/\__ \
+% |___/\__, |\__,_|\__,_|_|  \___||___/
+%         |_|
+\subsection{Ordinary Least Squares}
+The ordinary least squares method is the simplest and most intuitive, since its cost function is simply the square of the error made by the fit,
+\begin{equation}
+    Q(\beta;D) = \norm{\vec{y}-X\vec{\beta}}_2^2,
+\end{equation}
+where \(\norm{\cdot}_p\) denotes the usual \(p\)-norm.
+
+\subsubsection{Geometric view}
+The geometric view of the equation \(X\vec{\beta}=\vec{y}\) is to find the linear combination of the columns of \(X\) equal to \(\vec{y}\).
+This is not necessarily possible if the columns of \(X\) do not span \(\mathbb{R}^N\), which is not possible if \(p<N\).
+Ordinary least squares seeks to find the linear combination of the columns of \(X\) as close to \(\vec{y}\) as possible.
+This is achieved when \(X\vec{\beta}\) is equal to the projection of \(\vec{y}\) onto the column space of \(X\), i.e.
+\begin{equation}
+    X\vec{\beta} = \Proj_{\Col{X}}{\vec{y}}.
+\end{equation}
+By construction, this equation will always have a solution, although it may not be unique if the columns of \(X\) are not linearly independent.
+Since \(X\vec{\beta}\) is the projection of \(\vec{y}\) onto the column space of \(X\), the error, \(\vec{y}-X\vec{\beta}\), is orthogonal to the columns of \(X\), i.e.\ the rows of \(X^T\).
+Consequently,
+\begin{equation}
+    X^T\qty(\vec{y}-X\vec{\beta}) = \vec{0}
+    \implies
+    X^T X \vec{\beta} = X^T \vec{y},\label{eq:olsnormal}
+\end{equation}
+which is a simple linear set of equations which can be solved for \(\vec{\beta}\).
+This set of equations is called the \emph{normal equations}.
+If \(X\) is non-singular, the minimisation problem in ordinary least squares has the closed form solution
+\begin{equation}
+    \vec{\beta}_{\text{OLS}} = \qty(X^T X)^{-1} X^T \vec{y}.
+\end{equation}
+
+\subsubsection{Minimisation view}
+The cost function for ordinary least squares can be written as
+\begin{equation}
+    Q(\beta;D) = \norm{\vec{y}-X\vec{\beta}}_2^2
+               = \sum_{i=1}^N \qty(y_i - X_{ij}\beta_j)^2.
+\end{equation}
+When this is minimised, \(\nabla Q = \vec{0}\), where the gradient denotes differentiation with respect to the parameters \(\beta_j\).
+The components of the gradient can straightforwardly be calculated from the cost function,
+\begin{equation}
+    \nabla_k Q = \pdv{\beta_k}(\qty(y_i - X_{ij}\beta_j)\qty(y_i - X_{ij}\beta_j))
+               = 2\qty(y_i-X_{ij}\beta_j) \pdv{\beta_k}(y_i-X_{ij}\beta_j)
+               = -2X_{ik}\qty(y_i-X_{ij}\beta_j),\label{eq:olsgradcomp}
+\end{equation}
+which can be rewritten on vector form as
+\begin{equation}
+    \nabla Q = -2X^T\qty(\vec{y}-X\vec{\beta}).\label{eq:olsgrad}
+\end{equation}
+Setting \(\nabla Q = \vec{0}\) gives~\vref{eq:olsnormal}.
+
+Ordinary least squares has been implemented by calling \lstinline{dgelss}, which uses a singular value decomposition to prevent numerical instabilities.
+
+%      _     _
+% _ __(_) __| | __ _  ___
+%| '__| |/ _` |/ _` |/ _ \
+%| |  | | (_| | (_| |  __/
+%|_|  |_|\__,_|\__, |\___|
+%              |___/
+\subsection{Ridge regression}
+The cost function used in Ridge regression is
+\begin{equation}
+    Q_\lambda(\vec{\beta};D) = \norm{\vec{y}-X\vec{\beta}}_2^2 + \lambda \norm{\vec{\beta}}_2^2
+                             = \sum_{i=1}^N \qty(y_i - X_{ij}\beta_j)^2 + \lambda\sum_{i=1}^p \beta_i^2,
+\end{equation}
+which penalises solution vectors \(\vec{\beta}\) where some coefficients are large.
+\(\lambda\) is a parameter which should be chosen with great care.
+The error is as small as possible for \(\lambda=0\), as this will reproduce the solution found by ordinary least squares, but a non-zero value of \(\lambda\) will give \(\beta_j\)s which yield more reasonable predictions for other values of \(\vec{x}\) than those contained in the training data set \(D\)\cite{mehta}.
+
+Using the derivative of the first term from~\vref{eq:olsgrad}, the gradient of the cost function is
+\begin{equation}
+    \nabla Q_\lambda = -2 X^T \qty(\vec{y}-X\vec{\beta}) + 2\lambda \vec{\beta}
+                     = -2 X^T \vec{y} + 2 X^T X \vec{\beta} + 2\lambda \vec{\beta}
+                     = -2 X^T \vec{y} + 2\qty(X^T X + \lambda I)\vec{\beta}.
+\end{equation}
+Minimisation requires \(\nabla Q_\lambda = \vec{0}\), which gives
+\begin{equation}
+    \qty(X^T X + \lambda I)\vec{\beta} = X^T \vec{y}.
+\end{equation}
+This can be solved for \(\vec{\beta}\), and the closed-form solution to the minimisation of the Ridge cost function is
+\begin{equation}
+    \vec{\beta}_\text{Ridge} = \qty(X^T X + \lambda I)^{-1} X^T \vec{y}.
+\end{equation}
+Having a non-zero \(\lambda\) clearly reduces problems with linearly dependent columns of \(X\) and singularity of \(X^T X\).
+
+Ridge regression has been implemented by calculating \(X^T X\) and adding \(\lambda\) on the diagonal, calculating \(X^T y\) and using \lstinline{dposv} to find \(\vec{\beta}\) using a Cholesky-decomposition, since \(X^T X + \lambda I\) is positive definite.
+
+% _
+%| | __ _ ___ ___  ___
+%| |/ _` / __/ __|/ _ \
+%| | (_| \__ \__ \ (_) |
+%|_|\__,_|___/___/\___/
+\tikzexternaldisable
+\subsection{LASSO regression}
+The cost function used in LASSO regression is
+\begin{equation}
+    Q_\lambda(\vec{\beta};D) = \norm{\vec{y}-X\vec{\beta}}_2^2 + \lambda \norm{\vec{\beta}}_1
+                             = \sum_{i=1}^N \qty(y_i - X_{ij}\beta_j)^2 + \lambda\sum_{i=1}^p \abs{\beta_i},
+\end{equation}
+which also penalises solution vectors \(\vec{\beta}\) where some coefficients are large.
+LASSO regression has the advantage that certain choices of \(\lambda\) will give a sparse solution, i.e. \(\beta_j=0\) for some values of \(j\)\cite{wieringen}.
+
+As with the other regression methods, the gradient of the cost function should now be differentiated and set to zero.
+Mathematicians will now point out that the absolute value is not differentiable at zero and start deriving ingenious minimisation methods to circumvent the problem.
+This is usually a non-issue in a physics course --- I will now \emph{define} the derivative to be
+\begin{equation}
+    \dv{\abs{x}}{x} \coloneqq \sgn{x} \coloneqq \begin{cases}1, & x > 0\\ 0, & x = 0 \\ -1, & x < 0 \end{cases}
+\end{equation}
+and proceed happily.
+
+The gradient of the cost function is thus
+\begin{equation}
+    \nabla Q_\lambda = -2 X^T \qty(\vec{y} - X\vec{\beta}) + \lambda \sgn\qty(\vec{\beta}),
+\end{equation}
+and \(\nabla Q_\lambda = \vec{0}\) does unfortunately not have a closed-form solution.
+A separate minimisation algorithm must therefore be used to find the parameters \(\beta_j\) which minimise the cost function.
+The calculated gradient can be put straight into the gradient descent algorithm with a suitable step length.
+Alternatively, Newton's method can be used with the second derivative (Hessian) matrix of the cost function.
+The second derivative of the absolute value is even more problematic, which is solved by setting it equal to zero.
+
+The Hessian matrix of the LASSO cost function is thus the same as the second derivative of the ordinary least squares cost function,
+\begin{equation}
+    H_{kl} = H_{lk} = \pdv{Q_\lambda}{\beta_l}{\beta_k}
+           = \pdv{\beta_l}(\nabla_k Q)
+           \,\husk{gradref}{=}\, \pdv{\beta_l}(-2X_{ik}\qty(y_i-X_{ij}\beta_j))
+           = 2X_{ik}X_{il},
+\tikz[>=latex,overlay,remember picture,thick]{\draw[<-,gronn] (gradref) .. controls ++(0,0.75) and ++(-1,0) .. ++(1,0.75) node[anchor=west] {\small\ref{eq:olsgradcomp}};}
+\end{equation}
+which is the component form of the matrix equation
+\begin{equation}
+    H = 2 X^T X.
+\end{equation}
+The gradient can now be rewritten as
+\begin{equation}
+    \nabla Q_\lambda = -2 X^T \vec{y} + H\vec{\beta} + \lambda \sgn\qty(\vec{\beta}).
+\end{equation}
+\Vref*{eq:newtonstep} in Newton's method can then transformed into
+\begin{equation}
+    H\qty(\vec{\beta}_{i+1} - \vec{\beta}_i) = 2X^T \vec{y}  - H\vec{\beta}_i - \lambda \sgn\qty(\vec{\beta}_i)
+    \implies H\vec{\beta}_{i+1} = 2X^T\vec{y} - \lambda \sgn\qty(\vec{\beta}_i). \label{eq:lassonewton}
+\end{equation}
+Since \(H=2X^T X\), this reduces to the normal equations of ordinary least squares (\vref*{eq:olsnormal}) in the case of \(\lambda=0\), as it should.
+
+Minimisation of the LASSO cost function has the benefit that the second derivative is independent of \(\vec{\beta}\).
+\(H\) can therefore be Cholesky-decomposed once, an \(\mathcal{O}\qty(p^3)\) operation, and the result can be used to solve the linear set of equations for each iteration, which is \(\mathcal{O}\qty(p^2)\) with a pre-Cholesky-decomposed matrix.
+The Cholesky-decomposition can be used instead of an LU-decomposition, reducing the number of floating point operations by a factor of two, because \(H=2X^T X\) is positive definite when \(X\) is non-singular.
+
+Evaluation of the gradient only involves matrix-vector products, which is also an \(\mathcal{O}\qty(p^2)\) operation.
+The minimisation can, therefore, be done with one initial \(\mathcal{O}\qty(p^3)\) and then only \(\mathcal{O}\qty(p^2)\) operations per iteration, while the more general problem requires both the construction and the Cholesky-decomposition of \(H\), an \(\mathcal{O}\qty(p^3)\) operation, for every single iteration.
+
+LASSO regression has been implemented by calculating the Cholesky-decomposition of \(H\) using \lstinline{dpptrf}, guessing \(\beta_j=1\) and then repeatedly solving~\vref{eq:lassonewton} using \lstinline{dpptrs} until convergence, as illustrated by the following snippet.
+\lstinputlisting[linerange={lassostart-lassoend}]{lib/lasso.f90}
+
+This implementation gives both good performance and accurate results for small values of \(\lambda\).
+Larger values, however, give rise to issues.
+The theory suggests that a large \(\lambda\) should force some of the parameters \(\beta_j\) to become zero, but the cost function is not differentiable, and certainly not double differentiable, when \(\beta_j\) is zero.
+Consequently, Newton's method struggles to converge when some \(\beta_j\)s are zero in the true minimum of the LASSO cost function.
+Smarter methods such as coordinate descent\cite{friedman} should therefore be used, as in e.g.\ scikit-learn.
+
+
+%           _       _           _           _   _
+% _ __ ___ (_)_ __ (_)_ __ ___ (_)___  __ _| |_(_) ___  _ __
+%| '_ ` _ \| | '_ \| | '_ ` _ \| / __|/ _` | __| |/ _ \| '_ \
+%| | | | | | | | | | | | | | | | \__ \ (_| | |_| | (_) | | | |
+%|_| |_| |_|_|_| |_|_|_| |_| |_|_|___/\__,_|\__|_|\___/|_| |_|
+\subsection{Minimisation methods}
+The important step in a regression method, or indeed in any statistical learning method, is to minimise the cost function.
+Certain cost functions, such as those of ordinary least squares and Ridge regression, admit analytical closed-form solutions for the parameters \(\beta_j\) which minimise \(Q(\vec{\beta};D)\), while most methods, including LASSO regression and logistic regression, require usage of some general minimisation algorithm.
+
+\subsubsection{Newton's method}\label{subsubsec:newton}
+Since the gradient of the cost function, \(\nabla Q\), is a perfectly normal function from \(\mathbb{R}^p\) to \(\mathbb{R}^p\), it can be Taylor expanded around some point \(\vec{\beta}_0\).
+This Taylor expansion can then be evaluated at a point \(\vec{\beta}_0 + \delta\vec{\beta}\). To first order in \(\delta\vec{\beta}\),
+\begin{equation}
+    \nabla Q\qty(\vec{\beta}_0 + \delta\vec{\beta}) = \nabla Q\qty(\vec{\beta}_0) + H\qty(\vec{\beta}_0)\delta\vec{\beta},
+\end{equation}
+where \(H(\vec{\beta}_0)\) is the derivative of \(\nabla Q\), i.e.\ the Hessian of \(Q\), evaluated at \(\beta_0\).
+Given a guess \(\beta_0\) somewhere near the minimum of \(Q\), a better estimate can be found by solving for the \(\delta\vec{\beta}\) which makes \(\nabla Q(\vec{\beta}_0 + \delta\vec{\beta}) = \vec{0}\), i.e.
+\begin{equation}
+    H\qty(\vec{\beta}_0)\delta\vec{\beta} = -\nabla Q\qty(\vec{\beta}_0),
+\end{equation}
+and, in general, solving
+\begin{equation}
+    H\qty(\vec{\beta}_i)\delta\vec{\beta}_i = -\nabla Q\qty(\vec{\beta}_i),\label{eq:newtonstep}
+\end{equation}
+letting \(\vec{\beta}_{i+1} = \vec{\beta}_i + \delta\vec{\beta}_i\) and continuing the process until the method has converged sufficiently.
+The above equation is a simple linear set of equations.
+
+
+\subsubsection{Gradient descent}
+Evaluating the Hessian matrix and inverting it can sometimes be infeasible, for example due to poor time complexity or being woefully undefined.
+In such cases, one can replace the Hessian \(H\) with a number \(1/\alpha\).
+\Vref{eq:newtonstep} is then rewritten as
+\begin{equation}
+    \vec{\beta}_{i+1} = \vec{\beta_i} - \alpha \nabla Q\qty(\vec{\beta}_i),
+\end{equation}
+with a simple geometric interpretation:
+By going a small step in the opposite direction of the gradient, the value of the cost function will decrease and \(\vec{\beta}\) will approach the true minimum.
+A small step will guarantee convergence for a convex function at the cost of slow convergence, while a larger value may give faster convergence or not converge at all.
+
+%                   __
+%  _ __   ___ _ __ / _| ___  _ __ _ __ ___   __ _ _ __   ___ ___
+% | '_ \ / _ \ '__| |_ / _ \| '__| '_ ` _ \ / _` | '_ \ / __/ _ \
+% | |_) |  __/ |  |  _| (_) | |  | | | | | | (_| | | | | (_|  __/
+% | .__/ \___|_|  |_|  \___/|_|  |_| |_| |_|\__,_|_| |_|\___\___|
+% |_|
+\subsection{Performance of regression methods}
+While the cost function is minimised by all regression methods, its value is not particularly meaningful.
+In particular, the cost functions in Ridge and LASSO regression depend on the parameter \(\lambda\), and a measure independent of \(\lambda\) should be used to determine the optimal \(\lambda\).
+Other functions are therefore introduced to measure the performance of a given regression method and/or a choice of parameters.
+
+The simplest measure is the mean square error,
+\begin{equation}
+    \MSE\qty(\vec{\beta},D) = \frac{1}{N}\norm{\vec{y}-\vec{\tilde{y}}}_2^2 = \frac{1}{N} \sum_{i=1}^N \qty(y_i - \tilde{y}_i)^2,
+\end{equation}
+which should be as small as possible. Another measure is the \(R^2\) score, defined as
+\begin{equation}
+    R^2(\vec{\beta},D) = 1 - \frac{\norm{\vec{y} - \vec{\tilde{y}}}_2^2}{\norm{\vec{y} - \bar{y}}_2^2}
+                       = 1 - \frac{\sum_{i=1}^N \qty(y_i - \tilde{y}_i)^2}{\sum_{i=1}^N \qty(y_i - \bar{y})^2},
+\end{equation}
+where \(\bar{y}\) is the mean of the measured values. The \(R^2\) score should be as close to \(1\) as possible.
+
+Prediction and these measures of performance can be applied to two main types of data.
+Firstly, it can be applied to the data from which \(\vec{\beta}\) was derived, which is called the training data.
+Ordinary least squares, corresponding to \(\lambda=0\) for the other methods, will, by definition, give the best results for this data set.
+Secondly, the performance can be measured for values not among the training data, called test data. Ridge and LASSO are expected to outperform ordinary least squares for small, non-zero values of \(\lambda\) for this category of data.
+
+%                                      _ _
+%  _ __ ___  ___  __ _ _ __ ___  _ __ | (_)_ __   __ _
+% | '__/ _ \/ __|/ _` | '_ ` _ \| '_ \| | | '_ \ / _` |
+% | | |  __/\__ \ (_| | | | | | | |_) | | | | | | (_| |
+% |_|  \___||___/\__,_|_| |_| |_| .__/|_|_|_| |_|\__, |
+%                               |_|              |___/
+\subsection{Resampling methods}
+Resampling methods are techniques to improve the prediction accuracy and obtain estimates for quantities such as the variance of \(\vec{\beta}\) by repeatedly dividing the data set into training and test data.
+Two simple examples are \(k\)-fold cross-validation and bootstrapping.
+The former partitions the data set into \(k\) partitions.
+One of these subsets is chosen as test data on which the performance is measured, while the rest are used as training data.
+This process is the repeated \(k\) times, so that each subset is used once as test data.
+Bootstrapping, on the other hand, repeatedly creates training data sets by randomly selecting \(N\) values from the data set with replacement, while another, separate data set is used as test data each time, as illustrated by the snippet below.
+\lstinputlisting[linerange={bootstrapstart-bootstrapend}]{lib/bootstrap.f90}
+
+%  _     _                             _
+% | |__ (_) __ _ ___    __ _ _ __   __| |
+% | '_ \| |/ _` / __|  / _` | '_ \ / _` |
+% | |_) | | (_| \__ \ | (_| | | | | (_| |
+% |_.__/|_|\__,_|___/  \__,_|_| |_|\__,_|
+% __   ____ _ _ __(_) __ _ _ __   ___ ___
+% \ \ / / _` | '__| |/ _` | '_ \ / __/ _ \
+%  \ V / (_| | |  | | (_| | | | | (_|  __/
+%   \_/ \__,_|_|  |_|\__,_|_| |_|\___\___|
+\subsection{Bias and variance}
+The choice of the number of basis functions, \(p\), determines the complexity of the model to which the data set is fitted.
+A higher complexity makes the model a better approximation to the training data, which is said to reduce the \emph{bias} of the model.
+On the other hand, a higher complexity may decrease the model's ability to predict reasonable values for test data, since a more complex model will be more affected by noise in the model.
+This is said to increase the model's \emph{variance}.
+The best prediction performance is therefore achieved for a complexity which balances bias and variance, which is called the bias-variance trade-off\cite{mehta}.
+
+Following~\cite{mehta}, a mathematical manifestation of the bias-variance trade-off can be derived by assuming that the measured data set \(D=\qty{\qty(\vec{x}_i,y_i)}_{i=1}^N\) is generated by a combination of some model \(f\qty(\vec{x})\) (for example Franke's function) and random noise, specifically
+\begin{equation}
+    y_i = f\qty(\vec{x}_i) + \varepsilon_i \eqqcolon f_i + \varepsilon_i,
+\end{equation}
+where the variables \(\varepsilon_i\) are independent and normally distributed with variance \(\sigma^2\) around zero.
+Given a data set \(D\), a prediction \(\tilde{y}_i^D\) can be made by any of the regression methods discussed above.
+An expected mean square error can be found by averaging over all datasets \(D\) and all noises \(\vec{\varepsilon}\),
+\begin{alignat}{2}
+    E_{D,\varepsilon}\qty[\norm{\vec{y}-\vec{\tilde{y}}_D}_2^2]
+    &= E_{D,\varepsilon}\qty[\norm{\vec{y} - \vec{f} + \vec{f} - \vec{\tilde{y}}_D}_2^2] \label{eq:tmp}
+     = E_{D,\varepsilon}\qty[\norm{\vec{y} - \vec{f}}_2^2 + \norm{\vec{f} - \vec{\tilde{y}}_D}_2^2
+                             + 2 \qty(\vec{y} - \vec{f})\cdot\qty(\vec{f} - \vec{\tilde{y}}_D)],
+    \shortintertext{and using the linearity of the expectation value,}
+    &= E_{D,\varepsilon}\qty[\norm{\vec{y} - \vec{f}}_2^2] + E_{D,\varepsilon}\qty[\norm{\vec{f} - \vec{\tilde{y}}_D}_2^2]
+                             + 2 E_{D,\varepsilon}\qty[\qty(\vec{y} - \vec{f})\cdot\qty(\vec{f} - \vec{\tilde{y}}_D)]\\
+    &= E_{D,\varepsilon}\qty[\norm{\vec{\varepsilon}}_2^2] + E_{D,\varepsilon}\qty[\norm{\vec{f} - \vec{\tilde{y}}_D}_2^2]
+       + 2 E_{D,\varepsilon}\qty[\vec{\varepsilon}\cdot\qty(\vec{f} - \vec{\tilde{y}}_D)]\\
+    &= \sigma^2 + E_{D,\varepsilon}\qty[\norm{\vec{f} - \vec{\tilde{y}}_D}_2^2]
+       + 2 \cancel{E_{\varepsilon}\qty[\vec{\varepsilon}]}\cdot E_{D}\qty[\qty(\vec{f} - \vec{\tilde{y}}_D)]\\
+    &= \sigma^2 + E_{D}\qty[\norm{\vec{f} - \vec{\tilde{y}}_D}_2^2].
+\end{alignat}
+This expression can be further decomposed by adding and subtracting the average prediction, \(E_D\qty[\vec{\tilde{y}}_D]\),
+\begin{alignat}{2}
+    E_{D}\qty[\norm{\vec{y}-\vec{\tilde{y}}_D}_2^2]
+    &= \sigma^2 + E_{D}\qty[\norm{\vec{f}- E_D\qty[\vec{\tilde{y}}_D] + E_D\qty[\vec{\tilde{y}}_D] - \vec{\tilde{y}}_D}_2^2]\\
+    &= \sigma^2 + \norm{\vec{f}- E_D\qty[\vec{\tilde{y}}_D]}_2^2 + E_D\qty[\norm{E_D\qty[\vec{\tilde{y}}_D] - \vec{\tilde{y}}_D}_2^2]\\
+    &\phantom{{}={}} + 2E_D\qty[\qty(\vec{f}- E_D\qty[\vec{\tilde{y}}_D])\cdot\cancel{\qty(E_D\qty[\vec{\tilde{y}}_D] - \vec{\tilde{y}}_D)}]\\
+    &= \sigma^2 + \norm{\vec{f}- E_D\qty[\vec{\tilde{y}}_D]}_2^2 + E_D\qty[\norm{E_D\qty[\vec{\tilde{y}}_D] - \vec{\tilde{y}}_D}_2^2].
+\end{alignat}
+The first term, \(\sigma^2\), represents the noise in the generated data, which no model can overcome.
+The second term measures the deviation of the average prediction from the true, noise-free model, which is the (squared) bias.
+Lastly, the third term measures how much the predictions vary and is called the variance.
+A complex model (large \(p\)) will minimise the second term, since a complex model will be better suited to fit the true model, \(f\), while the third term will increase with model complexity since the fitting procedure will be more sensitive to noise in the different data sets.
+
+Unfortunately, the above bias-variance decomposition requires knowledge of the exact model behind the data, \(f\).
+A more computationally practical expression could have been derived by adding and subtracting \(E_D\qty[\vec{\tilde{y}}_D]\) in~\vref{eq:tmp}, which gives the expression
+\begin{equation}
+    E_{D}\qty[\norm{\vec{y}-\vec{\tilde{y}}_D}_2^2]
+    = \norm{\vec{y}- E_D\qty[\vec{\tilde{y}}_D]}_2^2 + E_D\qty[\norm{E_D\qty[\vec{\tilde{y}}_D] - \vec{\tilde{y}}_D}_2^2]
+\end{equation}
+by manipulations analogous to the ones used above. This is another formulation of the bias-variance decomposition which can be used without any information about the underlying model. Dividing by \(N\) gives the average \(\MSE\) on the left-hand side.
+
+
+
+%  _                 _                           _        _   _
+% (_)_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __
+% | | '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \
+% | | | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+% |_|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+%             |_|
+\subsection{Implementation}
+The three regression methods and bootstrapping have been implemented in a polymorphic class hierarchy in Fortran.
+An object-oriented approach ensures ease of reuse for later projects, while also simplifying certain parts of the code and organisation.
+For instance, the bootstrapping algorithm can take in a regression method object, which is guaranteed to have methods for prediction and fitting, and not care whether ordinary least squares, Ridge or LASSO regression is used. Fortran was chosen because it combines excellent performance with object-oriented capabilities and a nice syntax for numerical work.
+\tikzexternalenable
+\tikzsetnextfilename{uml}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{umlpackage}{Linear regression and bootstrapping}
+            \umlclass[type=abstract]{regressor}{
+                \lstinline{real :: X(N, p), beta(p)}\\
+                \lstinline{class(basis_function) :: basis(p)}
+            }{
+                \lstinline{subroutine create_X(real :: x_values(N,:))}\\
+                \lstinline{subroutine predict(real :: x(N,:), y(N); optional :: y_exact(N), mse, r2)}\\
+                \lstinline{deferred subroutine fit(real, optional :: x_values(N,:); real :: y_values(N))}
+            }
+            \umlclass[below = 1cm of regressor.south, anchor=north]{ridge}{
+                \lstinline{real :: lambda}
+            }{}
+            \umlemptyclass[left=1cm of ridge.north west, anchor=north east]{ols}
+            \umlclass[right = 1cm of ridge.north east, anchor=north west]{lasso}{
+                \lstinline{real :: lambda}\\
+                \lstinline{real :: tolerance}
+            }{}
+            \umlinherit[geometry=|-|,arm1=0.3cm,arm2=0.3cm,anchor1=90,anchor2=240]{ols}{regressor}
+            \umlinherit[geometry=|-|,arm1=0.3cm,arm2=0.3cm,anchor1=90,anchor2=270]{ridge}{regressor}
+            \umlinherit[geometry=|-|,arm1=0.3cm,arm2=0.3cm,anchor1=90,anchor2=300]{lasso}{regressor}
+
+            \umlclass[type=abstract, below=5.5cm of regressor.west,anchor=north west]{basisfunction}{}{
+                \lstinline{deferred real function eval(real :: x(:))}
+            }
+            \umlclass[right=1cm of basisfunction.north east,anchor=north west]{polynomial2d}{
+                \lstinline{integer :: x1_pow, x2_pow}
+            }{}
+            \umlinherit{polynomial2d}{basisfunction}
+
+            \umluniassoc[pos1=2.9, mult1=1..*, geometry=|-|, anchor1=202, anchor2=165,weight=0.35]{regressor}{basisfunction}
+
+            \umlclass[above=1cm of regressor.north, anchor=south]{bootstrapper}{
+                \lstinline{class(regressor) :: fitter}\\
+                \lstinline{real :: y_predictions(N, num_bootstraps), R2s(num_bootstraps), MSEs(num_bootstraps)}\\
+                \lstinline{real :: betas(p, num_bootstraps), mean_beta(p), beta_variance(p)}
+            }{
+                \lstinline{subroutine bootstrap(real :: x(:,:), y(:); integer :: num_bootstraps)}
+            }
+            \umluniassoc[mult1=1,pos1=0.8]{bootstrapper}{regressor}
+        \end{umlpackage}
+    \end{tikzpicture}
+    \caption{Class hierarchy of implementation. All \lstinline{real} variables are of kind \lstinline{real64} from \lstinline{iso_fortran_env}.}
+\end{figure}
+\tikzexternaldisable
+
+%                    _           _              __
+%   __ _ _ __   __ _| |_   _ ___(_)___    ___  / _|
+%  / _` | '_ \ / _` | | | | / __| / __|  / _ \| |_
+% | (_| | | | | (_| | | |_| \__ \ \__ \ | (_) |  _|
+%  \__,_|_| |_|\__,_|_|\__, |___/_|___/  \___/|_|
+%                 _   _|___/
+%  _ __ ___   ___| |_| |__   ___   __| |___
+% | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+% | | | | | |  __/ |_| | | | (_) | (_| \__ \
+% |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+\section{Analysis of methods}
+The accuracy and viability of the methods can be studied on a test case where the underlying function is known.
+Such an example is Franke's function shown in~\vref{fig:franke}.
+
+\subsection{Verification of theory and fitting}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics{figs/verification_OLS.pdf}
+        \caption{Ordinary least squares regression.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics{figs/verification_Ridge.pdf}
+        \caption{Ridge regression.}
+    \end{subfigure}
+%    \begin{subfigure}{\textwidth}
+%        \centering
+%        \includegraphics{figs/verification_LASSO.pdf}
+%        \caption{LASSO regression.}
+%    \end{subfigure}
+    \caption{Comparison of Franke's function with noise (red) and a fifth degree polynomial approximation (multi-coloured). The colour of the polynomial approximation shows its deviation from Franke's function.~\Vref{fig:betas} shows that the parameters are significantly different for the different methods, yet the resulting approximations are approximately equal.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[thick,
+            height=3in,
+            width=6in,
+            grid,
+            xlabel = {\(i\)},
+            ylabel = {\(\beta_i\)},
+            legend style={draw=none,at={(0.98,0.98)},anchor=north east},
+            legend cell align=left
+        ]
+            \foreach \method in {OLS, Ridge}{
+                \addplot+[only marks,mark=o] plot[error bars/y dir=both, error bars/y explicit] table[y error=uncertainty] {data/verification_mean_beta_\method.dat};
+                \addlegendentryexpanded{\method};
+            }
+            \addplot+[only marks,mark=o] plot[error bars/y dir=both, error bars/y explicit] table[y error=uncertainty] {data/verification_mean_beta_sklearn.dat};
+            \addlegendentryexpanded{LASSO (scikit-learn)};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Comparison of parameters for the different regression methods when applied to Franke's function with noise and using polynomials up to fifth order. The Ridge coefficients are severely suppressed, yet~\vref{table:performance} shows that the fitting quality is virtually the same. LASSO regression (using scikit-learn) gives a sparse solution, i.e.\ some \(\beta_j\)s are exactly zero. Confidence intervals are estimated as \(\beta_j \pm 2\sigma_{\beta_j}\), where \(\sigma_{\beta_j}\) is the standard deviation of \(\beta_j\) calculated from bootstrapping.}\label{fig:betas}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \caption{Measure of performance on training and test data sampled from Franke's function with noise for the different methods. Ordinary least squares should, by design, perform best on the training data, while Ridge and LASSO are expected to perform better on test data not used in the fitting due to their regularisation parameter. The advantage of regularised methods is amplified when a smaller number of points is used (\(\num{10000}\) points were used here for plotting purposes). See also~\vref{tab:biasvar}, which shows the average error on test data for many bootstrap samples.}\label{table:performance}
+    \pgfplotstabletypeset[zerofill, fixed,precision=4]{./data/verification_mse_r2.dat}
+\end{table}
+
+\subsection{Bias and variance}
+According to the bias-variance decomposition, the mean squared error should be equal to the sum of the bias (squared) and the variance.
+The bias and variance are calculated from bootstrapping, and the results show good agreement with the theoretical prediction.
+\begin{table}[H]
+    \centering
+    \caption{Verification of the bias-variance decomposition via bootstrapping for fitting of Franke's function with noise. As expected, the sum of the bias and the variance is equal to the mean squared error, and the regularised methods perform better on test data than ordinary least squares.}\label{tab:biasvar}
+    \pgfplotstabletypeset[sci, sci zerofill, precision=3]{./data/verification_bias_variance.dat}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[thick,
+            height=3in,
+            width=6in,
+            ymode=log,
+            grid,
+            xtick distance=1,
+            xlabel = {Polynomial degree \(d\)},
+            ylabel = {Error},
+            legend style={draw=none,at={(0.02,0.50)},anchor=west},
+            legend cell align=left
+        ]
+            \addplot+ table[y index=1] {data/complexity.dat};
+            \addlegendentry{MSE (OLS)};
+            \addplot+ table[y index=2] {data/complexity.dat};
+            \addlegendentry{Bias (OLS)};
+            \addplot+ table[y index=3] {data/complexity.dat};
+            \addlegendentry{Variance (OLS)};
+            \addplot+ table[y index=4] {data/complexity.dat};
+            \addlegendentry{MSE (Ridge)};
+            \addplot+ table[y index=5] {data/complexity.dat};
+            \addlegendentry{Bias (Ridge)};
+            \addplot+ table[y index=6] {data/complexity.dat};
+            \addlegendentry{Variance (Ridge)};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Visualisation of bias-variance trade-off. The mean squared error for test data is expected to first decrease with increasing complexity as the bias decreases towards \(\sigma^2\), and then increase as the variance becomes dominant. Additionally, the regularisation of the Ridge regressor is intended to keep the variance moderate even with a high polynomial degree.}\label{fig:biasvar}
+\end{figure}
+
+\subsection{Effect of noise}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            thick,
+            width=6in,
+            height=3in,
+            xlabel = {\(\sigma\)},
+            ylabel = {\(R^2\)},
+            legend cell align=left,
+            legend style={draw=none,at={(0.98,0.98)},anchor=north east},
+            grid
+        ]
+            \addplot+ table[y index=1] {data/noise.dat};
+            \addlegendentry{Training data};
+            \addplot+ table[y index=2] {data/noise.dat};
+            \addlegendentry{Test data};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{\(R^2\) score of Ridge regression with \(\lambda=0.001\) when normally distributed noise with a standard deviation of \(\sigma\) is added to Franke's function. \(400\) data points are used, and the performance is clearly better for the training data to which the model was fitted than novel test data. A higher number of data points reduces the overfitting, so that the prediction and its performance are less affected by noise.}
+\end{figure}
+
+\subsection{Effect of regularisation}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            thick,
+            width=6in,
+            height=3in,
+            xmode=log,
+            xlabel = {\(\lambda\)},
+            ylabel = {\(R^2\)},
+            legend cell align=left,
+            legend style={draw=none,at={(0.02,0.40)},anchor=west},
+            grid
+        ]
+            \addplot+ table[y index=1] {data/r2_lambda.dat};
+            \addlegendentry{Training data};
+            \addplot+ table[y index=2] {data/r2_lambda.dat};
+            \addlegendentry{Test data};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{\(R^2\)-score as a function of the regularisation parameter \(\lambda\) for Ridge regression. \(\lambda=0\) would correspond to ordinary least squares. While ordinary least squares regression by construction gives the best performance on training data, the results show that a smart choice of \(\lambda\) can give better predicting performance since the regularisation reduces overfitting and variance.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            thick,
+            width=6in,
+            height=3in,
+            xmode=log,
+            ymode=log,
+            xlabel = {\(\lambda\)},
+            ylabel = {Error},
+            legend cell align=left,
+            legend style={draw=none,at={(0.98,0.98)},anchor=north east},
+            grid
+        ]
+            \addplot+ table[y index=1] {data/bivar_lambda.dat};
+            \addlegendentry{MSE};
+            \addplot+ table[y index=2] {data/bivar_lambda.dat};
+            \addlegendentry{Bias};
+            \addplot+ table[y index=3] {data/bivar_lambda.dat};
+            \addlegendentry{Variance};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Error, bias and variance as a function of the regularisation parameter \(\lambda\) for Ridge regression, calculated from bootstrapping. The variance, which is the error due to overfitting of the noise, gradually decreases as \(\lambda\) increases, while a too large \(\lambda\) causes the bias to increase because the severe suppression of the \(\beta_j\) coefficients makes it impossible for the polynomial expansion to approximate the model function (Franke's function).}
+\end{figure}
+
+
+\pgfplotstableread[skip first n=1]{data/beta_lambda.dat}{\betatable}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            thick,
+            width=6in,
+            height=3in,
+            xmode=log,
+            xlabel = {\(\lambda\)},
+            ylabel = {\(\beta_i\)},
+            legend cell align=left,
+            legend style={draw=none,at={(0.98,0.98)},anchor=north east},
+            grid
+        ]
+            \foreach \index in {1,3,...,44}{
+                \addplot+ table[y index=\index, y error index={\index+1}] {\betatable};
+            }
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Coefficients \(\beta_j\) as a function of the regularisation parameter \(\lambda\) for Ridge regression. Regularisation suppresses the coefficients due to the penalising \(\lambda\|\vec{\beta}\|_2^2\) term in the cost function, in order to achieve better prediction abilities due to lower variance and effect of noise. LASSO regression would set many of the coefficients to exactly zero, ref.~\vref{fig:betas}.}
+\end{figure}
+
+%                                        _
+%  __ _  ___  ___   __ _ _ __ __ _ _ __ | |__  _   _
+% / _` |/ _ \/ _ \ / _` | '__/ _` | '_ \| '_ \| | | |
+%| (_| |  __/ (_) | (_| | | | (_| | |_) | | | | |_| |
+% \__, |\___|\___/ \__, |_|  \__,_| .__/|_| |_|\__, |
+% |___/            |___/          |_|          |___/
+\section{Geographical data}
+The previous section verified the implementation of ordinary least squares and Ridge regression (and scikit-learn's LASSO regression), as well as some theoretical predictions.
+It is now time to apply them to real-world data, such as the geographical data in the figure below.
+\begin{figure}[H]
+    \centering
+    \includegraphics{figs/geography.pdf}
+    \caption{Some Norwegian geography, complete with a fjord.}\label{fig:geo}
+\end{figure}
+
+To determine the best possible model for the terrain, I have chosen to iterate over different polynomial degrees and compare ordinary least squares with Ridge regression for a selection of \(\lambda\)s for each degree. The best \(\lambda\) is determined for each degree, and the overall best approximation (measured by MSE for test data in bootstrap) is visualised in~\vref{fig:geoapprox}.
+\begin{table}[H]
+    \centering
+    \caption{Errors for different approximations to~\vref{fig:geo}. Several values of \(\lambda\) for Ridge regression are tried for each degree, and the one resulting in the smallest test MSE during bootstrapping is reported. Ordinary least squares is seen to perform well for polynomials of a small degree, while higher order polynomials lead to severe overfitting. On the other hand, the regularisation of Ridge manages to keep the variance and overfitting in check and give reasonable results also for higher degrees.}\label{tab:geo}
+    \small
+    \pgfplotstabletypeset[columns/lambda/.style={column name={$\lambda$}},columns/$d$/.style={fixed},sci, sci zerofill,precision=1]{data/geography_mse.dat}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            thick,
+            width=6in,
+            height=3in,
+            ymode=log,
+            xlabel = {\(d\)},
+            ylabel = {Error},
+            legend cell align=left,
+            legend style={draw=none,at={(0.98,0.02)},anchor=south east},
+            grid
+        ]
+            \addplot+ table[skip first n=1, y index=4] {data/geography_mse.dat};
+            \addlegendentry{MSE};
+            \addplot+ table[skip first n=1,y index=5] {data/geography_mse.dat};
+            \addlegendentry{Bias};
+            \addplot+ table[skip first n=1,y index=6] {data/geography_mse.dat};
+            \addlegendentry{Variance};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Error, bias and variance as a function of polynomial degree \(d\) for Ridge regression. The parameter \(\lambda\) is estimated for each \(d\) by bootstrapping for different \(\lambda\)s and choosing the one which gives the smallest mean squared error for the test data. Regularisation keeps the variance low even for a high polynomial degree, which is not the case for ordinary least squares according to~\vref{tab:geo}.}
+\end{figure}
+Bias and variance still add up to the mean squared error with approximately the same accuracy as when approximating Franke's function with noise. This was not necessarily expected due to the assumption of identically, independently and normally distributed noise in the derivation, which was added artificially. Geographical data is certainly not independent, and the other assumptions may also not hold.
+
+Ideally, there should be some polynomial degree for which the error is minimised, since overfitting will occur and the variance will increase as the degree of the polynomial grows and the approximation becomes more sensitive to noise. Overfitting requires that the number of basis functions, \(p=(d+1)(d+2)/2\), becomes non-negligible compared to the number of data points. I have here used approximately \(\num{65000}\) data points, meaning that a polynomial must be of a very high degree in order to overfit. Ridge regression scales as \(\mathcal{O}(p^3) = \mathcal{O}(d^6)\) and ordinary least squares possibly even worse, so the runtime increases drastically when the polynomial degree becomes large. The simulation giving the figures and tables in this section took roughly 100 CPU hours.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{figs/geography_approx.pdf}
+    \caption{Polynomial approximation to the geographical data in\vref{fig:geo} using the best model from~\vref{tab:geo}. The model captures key elements such as the fjord, while missing the finer details of the mountainous landscape. In particular, the steep climb from the fjord is almost step-like, which no polynomial of finite degree can approximate.}\label{fig:geoapprox}
+\end{figure}
+
+%                      _           _
+%  ___ ___  _ __   ___| |_   _ ___(_) ___  _ __
+% / __/ _ \| '_ \ / __| | | | / __| |/ _ \| '_ \
+%| (_| (_) | | | | (__| | |_| \__ \ | (_) | | | |
+% \___\___/|_| |_|\___|_|\__,_|___/_|\___/|_| |_|
+\section{Summary and conclusion}
+This report started with a lengthy discussion of theory, culminating in three different regression methods, some error analysis and a few implementational tidbits.
+Ordinary least squares is derived from a minimisation of the training error, which has been proven correct.
+The bias-variance decomposition showed that the predicting error can be decomposed into bias, which measures the approximating function's ability to model the data's underlying function, and variance, which measures how much the approximation varies when applied to different parts of the data set, such as in bootstrapping.
+Predicting models obtained from ordinary least squares have been inferior to Ridge and LASSO regression when applied to test data not used in the fitting procedure, as these methods have a regularisation term in their cost function which prevents the regressor from being affected by noise and overfitting to the same extent as ordinary least squares.
+
+Application of the regression techniques to Franke's function showed that the regularised methods perform better than ordinary least squares when a data set with few points and much noise is approximated, while a large number of data points reduces overfitting and makes ordinary least squares on par with Ridge and LASSO regression as long as a model with moderate complexity is used.
+Newton's method proved ineffective at minimising the LASSO cost function due to its non-differentiability, while the implementations of ordinary least squares, Ridge regression and bootstrapping performed well in terms of both accuracy and performance, the latter being crucial for large data sets with polynomials of a high degree.
+
+Lastly, geographical data from a Norwegian fjord was fitted. Ordinary least squares proved to be utterly useless unless a moderate order of polynomials is used, while Ridge regression performed well for a variety of polynomial degrees when the optimal regularisation parameter was chosen for each polynomial degree. The main geographical features were reproduced, despite difficult features such as a Heaviside-like incline on the side of the fjord.
+
+Future work includes using a prediction method which scales better with data and model complexity, such as neural networks. Additionally, a better version of the LASSO technique can be implemented by using a minimisation algorithm such as coordinate descent. A sparse solution with some \(\beta_j\)s exactly equal to zero is then expected due to the use of a soft thresholding operator, and its performance should be evaluated on e.g. Franke's function and geographical data and compared with the other regression methods.
+
+
+
+
+
+
+
+
+
+\clearpage
+\nocite{*}
+\printbibliography{}
+\addcontentsline{toc}{section}{\bibname}
+\end{document}
