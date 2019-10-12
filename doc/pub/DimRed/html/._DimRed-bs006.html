@@ -46,14 +46,15 @@ Automatically generated HTML file from DocOnce source
                None,
                '___sec0'),
               ('Preprocessing our data', 2, None, '___sec1'),
-              ('Principal Component Analysis', 2, None, '___sec2'),
-              ('PCA and scikit-learn', 2, None, '___sec3'),
-              ('More on the PCA', 2, None, '___sec4'),
-              ('Incremental PCA', 2, None, '___sec5'),
-              ('Randomized PCA', 2, None, '___sec6'),
-              ('Kernel PCA', 2, None, '___sec7'),
-              ('LLE', 2, None, '___sec8'),
-              ('Other techniques', 2, None, '___sec9')]}
+              ('Simple preprocessing examples', 2, None, '___sec2'),
+              ('Principal Component Analysis', 2, None, '___sec3'),
+              ('PCA and scikit-learn', 2, None, '___sec4'),
+              ('More on the PCA', 2, None, '___sec5'),
+              ('Incremental PCA', 2, None, '___sec6'),
+              ('Randomized PCA', 2, None, '___sec7'),
+              ('Kernel PCA', 2, None, '___sec8'),
+              ('LLE', 2, None, '___sec9'),
+              ('Other techniques', 2, None, '___sec10')]}
 end of tocinfo -->
 
 <body>
@@ -93,14 +94,15 @@ MathJax.Hub.Config({
         <ul class="dropdown-menu">
      <!-- navigation toc: --> <li><a href="._DimRed-bs001.html#___sec0" style="font-size: 80%;">Reducing the number of degrees of freedom, overarching view</a></li>
      <!-- navigation toc: --> <li><a href="._DimRed-bs002.html#___sec1" style="font-size: 80%;">Preprocessing our data</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs003.html#___sec2" style="font-size: 80%;">Principal Component Analysis</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs004.html#___sec3" style="font-size: 80%;">PCA and scikit-learn</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs005.html#___sec4" style="font-size: 80%;">More on the PCA</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec5" style="font-size: 80%;">Incremental PCA</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs007.html#___sec6" style="font-size: 80%;">Randomized PCA</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs008.html#___sec7" style="font-size: 80%;">Kernel PCA</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs009.html#___sec8" style="font-size: 80%;">LLE</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs010.html#___sec9" style="font-size: 80%;">Other techniques</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs003.html#___sec2" style="font-size: 80%;">Simple preprocessing examples</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs004.html#___sec3" style="font-size: 80%;">Principal Component Analysis</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs005.html#___sec4" style="font-size: 80%;">PCA and scikit-learn</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec5" style="font-size: 80%;">More on the PCA</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs007.html#___sec6" style="font-size: 80%;">Incremental PCA</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs008.html#___sec7" style="font-size: 80%;">Randomized PCA</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs009.html#___sec8" style="font-size: 80%;">Kernel PCA</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs010.html#___sec9" style="font-size: 80%;">LLE</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs011.html#___sec10" style="font-size: 80%;">Other techniques</a></li>
 
         </ul>
       </li>
@@ -116,13 +118,31 @@ MathJax.Hub.Config({
 <a name="part0006"></a>
 <!-- !split -->
 
-<h2 id="___sec5" class="anchor">Incremental PCA </h2>
-One problem with the preceding implementation of PCA is that it requires the whole training set to fit in
-memory in order for the SVD algorithm to run. Fortunately, Incremental PCA (IPCA) algorithms have
-been developed: you can split the training set into mini-batches and feed an IPCA algorithm one minibatch
-at a time. This is useful for large training sets, and also to apply PCA online (i.e., on the fly, as new
-instances arrive).
+<h2 id="___sec5" class="anchor">More on the PCA </h2>
+Instead of arbitrarily choosing the number of dimensions to reduce down to, it is generally preferable to
+choose the number of dimensions that add up to a sufficiently large portion of the variance (e.g., 95%).
+Unless, of course, you are reducing dimensionality for data visualization &#8212; in that case you will
+generally want to reduce the dimensionality down to 2 or 3.
+The following code computes PCA without reducing dimensionality, then computes the minimum number
+of dimensions required to preserve 95% of the training set&#8217;s variance:
+<p>
 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>pca <span style="color: #666666">=</span> PCA()
+pca<span style="color: #666666">.</span>fit(X)
+cumsum <span style="color: #666666">=</span> np<span style="color: #666666">.</span>cumsum(pca<span style="color: #666666">.</span>explained_variance_ratio_)
+d <span style="color: #666666">=</span> np<span style="color: #666666">.</span>argmax(cumsum <span style="color: #666666">&gt;=</span> <span style="color: #666666">0.95</span>) <span style="color: #666666">+</span> <span style="color: #666666">1</span>
+</pre></div>
+<p>
+You could then set \( n\_components=d \) and run PCA again. However, there is a much better option: instead
+of specifying the number of principal components you want to preserve, you can set \( n\_components \) to be
+a float between 0.0 and 1.0, indicating the ratio of variance you wish to preserve:
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>pca <span style="color: #666666">=</span> PCA(n_components<span style="color: #666666">=0.95</span>)
+X_reduced <span style="color: #666666">=</span> pca<span style="color: #666666">.</span>fit_transform(X)
+</pre></div>
 <p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
@@ -139,6 +159,7 @@ instances arrive).
   <li><a href="._DimRed-bs008.html">9</a></li>
   <li><a href="._DimRed-bs009.html">10</a></li>
   <li><a href="._DimRed-bs010.html">11</a></li>
+  <li><a href="._DimRed-bs011.html">12</a></li>
   <li><a href="._DimRed-bs007.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
