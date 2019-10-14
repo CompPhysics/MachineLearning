@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import sklearn.linear_model as skl
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import  train_test_split
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, Normalizer
 from sklearn.svm import SVR
 
 # Where to save the figures and data files
@@ -41,7 +42,7 @@ def FrankeFunction(x,y):
 	return term1 + term2 + term3 + term4
 
 
-def create_X(x, y, n = 5):
+def create_X(x, y, n ):
 	if len(x.shape) > 1:
 		x = np.ravel(x)
 		y = np.ravel(y)
@@ -71,13 +72,10 @@ X_train, X_test, y_train, y_test = train_test_split(X,z,test_size=0.2)
 svm = SVR(gamma='auto',C=10.0)
 svm.fit(X_train, y_train)
 
-# The mean squared error                               
-print("Test set accuracy: {:.2f}".format(svm.score(X_test,y_test)))
+# The mean squared error and R2 score
+print("MSE before scaling: {:.2f}".format(mean_squared_error(svm.predict(X_test), y_test)))
+print("R2 score before scaling {:.2f}".format(svm.score(X_test,y_test)))
 
-
-
-
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 scaler = StandardScaler()
 scaler.fit(X_train)
@@ -95,7 +93,7 @@ print("Feature max values after scaling:\n {}".format(X_train_scaled.max(axis=0)
 svm = SVR(gamma='auto',C=10.0)
 svm.fit(X_train_scaled, y_train)
 
-
+print("MSE after  scaling: {:.2f}".format(mean_squared_error(svm.predict(X_test_scaled), y_test)))
 print("Test set accuracy scaled data: {:.2f}".format(svm.score(X_test_scaled,y_test)))
 
 
