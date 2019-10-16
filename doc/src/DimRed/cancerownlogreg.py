@@ -23,18 +23,22 @@ fig.tight_layout()
 plt.show()
 
 X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-print(X_train.shape)
-print(X_test.shape)
 
 logreg = LogisticRegression()
 logreg.fit(X_train, y_train)
 print("Test set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
 
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
 
-logreg.fit(X_train_scaled, y_train)
-print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+
+beta = np.random.randn(2,1)
+
+eta = 0.1
+Niterations = 100
+
+for iter in range(Niterations):
+    gradients = 2.0/m*xb.T @ (xb @ (beta)-y)+2*lmbda*beta
+    beta -= eta*gradients
+
+print(beta)
+ypredict = xb @ beta
+ypredict2 = xb @ beta_linreg
