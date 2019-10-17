@@ -251,6 +251,8 @@ print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,
 !split
 ===== Why should we think of reducing the dimensionality =====
 
+In addition to the plot of the features, we study now also the covariance (or rather the correlation matrix).
+We use also _Pandas_ to compute the correlation matrix.
 !bc pycod
 import matplotlib.pyplot as plt
 import numpy as np
@@ -258,16 +260,19 @@ from sklearn.model_selection import  train_test_split
 from sklearn.datasets import load_breast_cancer
 from sklearn.linear_model import LogisticRegression
 cancer = load_breast_cancer()
+import pandas as pd
+# Making a data frame
+cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
 
 fig, axes = plt.subplots(15,2,figsize=(10,20))
-male = cancer.data[cancer.target == 0]
-bene = cancer.data[cancer.target == 1]
+malignant = cancer.data[cancer.target == 0]
+benign = cancer.data[cancer.target == 1]
 ax = axes.ravel()
 
 for i in range(30):
     _, bins = np.histogram(cancer.data[:,i], bins =50)
-    ax[i].hist(male[:,i], bins = bins, alpha = 0.5)
-    ax[i].hist(bene[:,i], bins = bins, alpha = 0.5)
+    ax[i].hist(malignant[:,i], bins = bins, alpha = 0.5)
+    ax[i].hist(benign[:,i], bins = bins, alpha = 0.5)
     ax[i].set_title(cancer.feature_names[i])
     ax[i].set_yticks(())
 ax[0].set_xlabel("Feature magnitude")
@@ -276,21 +281,33 @@ ax[0].legend(["Malignant", "Benign"], loc ="best")
 fig.tight_layout()
 plt.show()
 
-# Set up training data
+import seaborn as sns
+correlation_matrix = cancerpd.corr().round(1)
+# use the heatmap function from seaborn to plot the correlation matrix
+# annot = True to print the values inside the square
+sns.heatmap(data=correlation_matrix, annot=True)
+plt.show()
+#split into train and test and then scale thereafter
 X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-# Perform Logistic Regression 
+print(X_train.shape)
+print(X_test.shape)
+
 logreg = LogisticRegression()
 logreg.fit(X_train, y_train)
-print("Test set accuracy: {:.2f}".format(logreg.score(X_test,y_test)))
+print("Test set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
 
-# Scale data
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 scaler = StandardScaler()
 scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
+
 logreg.fit(X_train_scaled, y_train)
 print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+
+
+
+
 
 !ec
 
