@@ -56,7 +56,7 @@ div { text-align: justify; text-justify: inter-word; }
               ('More classes', 2, None, '___sec14'),
               ('A simple classification problem', 2, None, '___sec15'),
               ('The Credit Card example', 2, None, '___sec16'),
-              ('Analysis of the credi card example', 2, None, '___sec17')]}
+              ('How to read the Credit Card data', 2, None, '___sec17')]}
 end of tocinfo -->
 
 <body>
@@ -98,7 +98,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Oct 9, 2019</h4></center> <!-- date -->
+<center><h4>Oct 17, 2019</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split  -->
@@ -570,7 +570,23 @@ methods</a>.
 
 <h2 id="___sec16">The Credit Card example </h2>
 Here we use the the <a href="https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients" target="_blank">credit card data</a>. 
-The data are from an extensive database from Taiwan and include more than ten predictors.   More text and clean up of code will be added.
+The data are from an extensive database from Taiwan and include more than ten predictors.
+
+<p>
+For categorical data -Scikit-Learn- provides a so-called <b>one-hot encoder</b>.
+This is called one-hot
+encoding, because only one attribute will be equal to 1 (hot), while the others will be 0 (cold).
+<b>Scikit-Learn</b> provides a OneHotEncoder encoder to convert integer categorical values into one-hot
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> OneHotEncoder
+encoder = OneHotEncoder()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec17">How to read the Credit Card data </h2>
 
 <p>
 
@@ -667,118 +683,6 @@ logReg = LogisticRegression()
 gridSearch = GridSearchCV(logReg, parameters, cv=<span style="color: #B452CD">5</span>, scoring=scoring, refit=<span style="color: #CD5555">&#39;roc_auc&#39;</span>) 
 </pre></div>
 <p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #228B22"># &quot;refit&quot; gives the metric used deciding best model. </span>
-<span style="color: #228B22"># See more http://scikit-learn.org/stable/auto_examples/model_selection/plot_multi_metric_evaluation.html</span>
-gridSearch.fit(XTrain, yTrain.ravel())
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">gridSearchSummary</span>(method, scoring):
-    <span style="color: #CD5555">&quot;&quot;&quot;Prints best parameters from Grid search</span>
-<span style="color: #CD5555">    and AUC with standard deviation for all </span>
-<span style="color: #CD5555">    parameter combos &quot;&quot;&quot;</span>
-    
-    method = <span style="color: #658b00">eval</span>(method)
-    <span style="color: #8B008B; font-weight: bold">if</span> scoring == <span style="color: #CD5555">&#39;accuracy&#39;</span>:
-        mean = <span style="color: #CD5555">&#39;mean_test_score&#39;</span>
-        sd = <span style="color: #CD5555">&#39;std_test_score&#39;</span>
-    <span style="color: #8B008B; font-weight: bold">elif</span> scoring == <span style="color: #CD5555">&#39;auc&#39;</span>:
-        mean = <span style="color: #CD5555">&#39;mean_test_roc_auc&#39;</span>
-        sd = <span style="color: #CD5555">&#39;std_test_roc_auc&#39;</span>
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Best: %f using %s&quot;</span> % (method.best_score_, method.best_params_))
-    means = method.cv_results_[mean]
-    stds = method.cv_results_[sd]
-    params = method.cv_results_[<span style="color: #CD5555">&#39;params&#39;</span>]
-    <span style="color: #8B008B; font-weight: bold">for</span> mean, stdev, param <span style="color: #8B008B">in</span> <span style="color: #658b00">zip</span>(means, stds, params):
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;%f (%f) with: %r&quot;</span> % (mean, stdev, param))
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">createConfusionMatrix</span>(method, printOut=<span style="color: #658b00">True</span>):
-    <span style="color: #CD5555">&quot;&quot;&quot;</span>
-<span style="color: #CD5555">    Computes and prints confusion matrices, accuracy scores,</span>
-<span style="color: #CD5555">    and AUC for test and training sets </span>
-<span style="color: #CD5555">    &quot;&quot;&quot;</span>
-    confusionArray = np.zeros(<span style="color: #B452CD">6</span>, dtype=<span style="color: #658b00">object</span>)
-    method = <span style="color: #658b00">eval</span>(method)
-    
-    <span style="color: #228B22"># Train</span>
-    yPredTrain = method.predict(XTrain)
-    yPredTrain = (yPredTrain &gt; <span style="color: #B452CD">0.5</span>)
-    cm = confusion_matrix(
-        yTrain, yPredTrain) 
-    cm = np.around(cm/cm.sum(axis=<span style="color: #B452CD">1</span>)[:,<span style="color: #658b00">None</span>], <span style="color: #B452CD">2</span>)
-    confusionArray[<span style="color: #B452CD">0</span>] = cm
-    
-    accScore = accuracy_score(yTrain, yPredTrain)
-    confusionArray[<span style="color: #B452CD">1</span>] = accScore
-    
-    AUC = roc_auc_score(yTrain, yPredTrain)
-    confusionArray[<span style="color: #B452CD">2</span>] = AUC
-    
-    <span style="color: #8B008B; font-weight: bold">if</span> printOut:
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\n###################  Training  ###############&#39;</span>)
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\nTraining Confusion matrix: \n&#39;</span>, cm)
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\nTraining Accuracy score: \n&#39;</span>, accScore)
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\nTrain AUC: \n&#39;</span>, AUC)
-    
-    <span style="color: #228B22"># Test</span>
-    yPred = method.predict(XTest)
-    yPred = (yPred &gt; <span style="color: #B452CD">0.5</span>)
-    cm = confusion_matrix(
-        yTest, yPred) 
-    cm = np.around(cm/cm.sum(axis=<span style="color: #B452CD">1</span>)[:,<span style="color: #658b00">None</span>], <span style="color: #B452CD">2</span>)
-    confusionArray[<span style="color: #B452CD">3</span>] = cm
-    
-    accScore = accuracy_score(yTest, yPred)
-    confusionArray[<span style="color: #B452CD">4</span>] = accScore
-    
-    AUC = roc_auc_score(yTest, yPred)
-    confusionArray[<span style="color: #B452CD">5</span>] = AUC
-    
-    <span style="color: #8B008B; font-weight: bold">if</span> printOut:
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\n###################  Testing  ###############&#39;</span>)
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\nTest Confusion matrix: \n&#39;</span>, cm)
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\nTest Accuracy score: \n&#39;</span>, accScore)
-        <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;\nTestAUC: \n&#39;</span>, AUC)    
-    
-    <span style="color: #8B008B; font-weight: bold">return</span> confusionArray
-
-
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
-
-seaborn.set(style=<span style="color: #CD5555">&quot;white&quot;</span>, context=<span style="color: #CD5555">&quot;notebook&quot;</span>, font_scale=<span style="color: #B452CD">1.5</span>, 
-            rc={<span style="color: #CD5555">&quot;axes.grid&quot;</span>: <span style="color: #658b00">True</span>, <span style="color: #CD5555">&quot;legend.frameon&quot;</span>: <span style="color: #658b00">False</span>,
-<span style="color: #CD5555">&quot;lines.markeredgewidth&quot;</span>: <span style="color: #B452CD">1.4</span>, <span style="color: #CD5555">&quot;lines.markersize&quot;</span>: <span style="color: #B452CD">10</span>})
-seaborn.set_context(<span style="color: #CD5555">&quot;notebook&quot;</span>, font_scale=<span style="color: #B452CD">1.5</span>, rc={<span style="color: #CD5555">&quot;lines.linewidth&quot;</span>: <span style="color: #B452CD">4.5</span>})
-
-yPred = gridSearch.predict_proba(XTest) 
-<span style="color: #8B008B; font-weight: bold">print</span>(yTest.ravel().shape, yPred.shape)
-
-<span style="color: #228B22">#skplt.metrics.plot_cumulative_gain(yTest.ravel(), yPred_onehot)</span>
-skplt.metrics.plot_cumulative_gain(yTest.ravel(), yPred)
-
-defaults = <span style="color: #658b00">sum</span>(yTest == <span style="color: #B452CD">1</span>)
-total = <span style="color: #658b00">len</span>(yTest)
-defaultRate = defaults/total
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">bestCurve</span>(defaults, total, defaultRate):
-    x = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, total)
-    
-    y1 = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, defaults)
-    y2 = np.ones(total-defaults)
-    y3 = np.concatenate([y1,y2])
-    <span style="color: #8B008B; font-weight: bold">return</span> x, y3
-
-x, best = bestCurve(defaults=defaults, total=total, defaultRate=defaultRate)    
-plt.plot(x, best)    
-
-
-plt.show()
-</pre></div>
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec17">Analysis of the credi card example </h2>
 
 <!-- ------------------- end of main content --------------- -->
 

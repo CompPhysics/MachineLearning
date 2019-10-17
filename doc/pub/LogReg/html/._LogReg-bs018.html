@@ -62,7 +62,7 @@ Automatically generated HTML file from DocOnce source
               ('More classes', 2, None, '___sec14'),
               ('A simple classification problem', 2, None, '___sec15'),
               ('The Credit Card example', 2, None, '___sec16'),
-              ('Analysis of the credi card example', 2, None, '___sec17')]}
+              ('How to read the Credit Card data', 2, None, '___sec17')]}
 end of tocinfo -->
 
 <body>
@@ -117,7 +117,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._LogReg-bs015.html#___sec14" style="font-size: 80%;">More classes</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs016.html#___sec15" style="font-size: 80%;">A simple classification problem</a></li>
      <!-- navigation toc: --> <li><a href="._LogReg-bs017.html#___sec16" style="font-size: 80%;">The Credit Card example</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec17" style="font-size: 80%;">Analysis of the credi card example</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec17" style="font-size: 80%;">How to read the Credit Card data</a></li>
 
         </ul>
       </li>
@@ -133,7 +133,103 @@ MathJax.Hub.Config({
 <a name="part0018"></a>
 <!-- !split -->
 
-<h2 id="___sec17" class="anchor">Analysis of the credi card example </h2>
+<h2 id="___sec17" class="anchor">How to read the Credit Card data </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">os</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+
+
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> OneHotEncoder
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.compose</span> <span style="color: #008000; font-weight: bold">import</span> ColumnTransformer
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler, OneHotEncoder
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.metrics</span> <span style="color: #008000; font-weight: bold">import</span> confusion_matrix, accuracy_score, roc_auc_score
+
+<span style="color: #408080; font-style: italic"># Trying to set the seed</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">0</span>)
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">random</span>
+random<span style="color: #666666">.</span>seed(<span style="color: #666666">0</span>)
+
+<span style="color: #408080; font-style: italic"># Reading file into data frame</span>
+cwd <span style="color: #666666">=</span> os<span style="color: #666666">.</span>getcwd()
+filename <span style="color: #666666">=</span> cwd <span style="color: #666666">+</span> <span style="color: #BA2121">&#39;/default of credit card clients.xls&#39;</span>
+nanDict <span style="color: #666666">=</span> {}
+df <span style="color: #666666">=</span> pd<span style="color: #666666">.</span>read_excel(filename, header<span style="color: #666666">=1</span>, skiprows<span style="color: #666666">=0</span>, index_col<span style="color: #666666">=0</span>, na_values<span style="color: #666666">=</span>nanDict)
+
+df<span style="color: #666666">.</span>rename(index<span style="color: #666666">=</span><span style="color: #008000">str</span>, columns<span style="color: #666666">=</span>{<span style="color: #BA2121">&quot;default payment next month&quot;</span>: <span style="color: #BA2121">&quot;defaultPaymentNextMonth&quot;</span>}, inplace<span style="color: #666666">=</span><span style="color: #008000">True</span>)
+
+<span style="color: #408080; font-style: italic"># Features and targets </span>
+X <span style="color: #666666">=</span> df<span style="color: #666666">.</span>loc[:, df<span style="color: #666666">.</span>columns <span style="color: #666666">!=</span> <span style="color: #BA2121">&#39;defaultPaymentNextMonth&#39;</span>]<span style="color: #666666">.</span>values
+y <span style="color: #666666">=</span> df<span style="color: #666666">.</span>loc[:, df<span style="color: #666666">.</span>columns <span style="color: #666666">==</span> <span style="color: #BA2121">&#39;defaultPaymentNextMonth&#39;</span>]<span style="color: #666666">.</span>values
+
+<span style="color: #408080; font-style: italic"># Categorical variables to one-hot&#39;s</span>
+onehotencoder <span style="color: #666666">=</span> OneHotEncoder(categories<span style="color: #666666">=</span><span style="color: #BA2121">&quot;auto&quot;</span>)
+
+X <span style="color: #666666">=</span> ColumnTransformer(
+    [(<span style="color: #BA2121">&quot;&quot;</span>, onehotencoder, [<span style="color: #666666">3</span>]),],
+    remainder<span style="color: #666666">=</span><span style="color: #BA2121">&quot;passthrough&quot;</span>
+)<span style="color: #666666">.</span>fit_transform(X)
+
+y<span style="color: #666666">.</span>shape
+
+<span style="color: #408080; font-style: italic"># Train-test split</span>
+trainingShare <span style="color: #666666">=</span> <span style="color: #666666">0.5</span> 
+seed  <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+XTrain, XTest, yTrain, yTest<span style="color: #666666">=</span>train_test_split(X, y, train_size<span style="color: #666666">=</span>trainingShare, \
+                                              test_size <span style="color: #666666">=</span> <span style="color: #666666">1-</span>trainingShare,
+                                             random_state<span style="color: #666666">=</span>seed)
+
+<span style="color: #408080; font-style: italic"># Input Scaling</span>
+sc <span style="color: #666666">=</span> StandardScaler()
+XTrain <span style="color: #666666">=</span> sc<span style="color: #666666">.</span>fit_transform(XTrain)
+XTest <span style="color: #666666">=</span> sc<span style="color: #666666">.</span>transform(XTest)
+
+<span style="color: #408080; font-style: italic"># One-hot&#39;s of the target vector</span>
+Y_train_onehot, Y_test_onehot <span style="color: #666666">=</span> onehotencoder<span style="color: #666666">.</span>fit_transform(yTrain), onehotencoder<span style="color: #666666">.</span>fit_transform(yTest)
+
+<span style="color: #408080; font-style: italic"># Remove instances with zeros only for past bill statements or paid amounts</span>
+<span style="color: #BA2121; font-style: italic">&#39;&#39;&#39;</span>
+<span style="color: #BA2121; font-style: italic">df = df.drop(df[(df.BILL_AMT1 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.BILL_AMT2 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.BILL_AMT3 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.BILL_AMT4 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.BILL_AMT5 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.BILL_AMT6 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.PAY_AMT1 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.PAY_AMT2 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.PAY_AMT3 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.PAY_AMT4 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.PAY_AMT5 == 0) &amp;</span>
+<span style="color: #BA2121; font-style: italic">                (df.PAY_AMT6 == 0)].index)</span>
+<span style="color: #BA2121; font-style: italic">&#39;&#39;&#39;</span>
+df <span style="color: #666666">=</span> df<span style="color: #666666">.</span>drop(df[(df<span style="color: #666666">.</span>BILL_AMT1 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>BILL_AMT2 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>BILL_AMT3 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>BILL_AMT4 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>BILL_AMT5 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>BILL_AMT6 <span style="color: #666666">==</span> <span style="color: #666666">0</span>)]<span style="color: #666666">.</span>index)
+
+df <span style="color: #666666">=</span> df<span style="color: #666666">.</span>drop(df[(df<span style="color: #666666">.</span>PAY_AMT1 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>PAY_AMT2 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>PAY_AMT3 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>PAY_AMT4 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>PAY_AMT5 <span style="color: #666666">==</span> <span style="color: #666666">0</span>) <span style="color: #666666">&amp;</span>
+                (df<span style="color: #666666">.</span>PAY_AMT6 <span style="color: #666666">==</span> <span style="color: #666666">0</span>)]<span style="color: #666666">.</span>index)
+
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LogisticRegression
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> GridSearchCV
+
+lambdas<span style="color: #666666">=</span>np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-5</span>,<span style="color: #666666">7</span>,<span style="color: #666666">13</span>)
+parameters <span style="color: #666666">=</span> [{<span style="color: #BA2121">&#39;C&#39;</span>: <span style="color: #666666">1./</span>lambdas, <span style="color: #BA2121">&quot;solver&quot;</span>:[<span style="color: #BA2121">&quot;lbfgs&quot;</span>]}]<span style="color: #408080; font-style: italic">#*len(parameters)}]</span>
+scoring <span style="color: #666666">=</span> [<span style="color: #BA2121">&#39;accuracy&#39;</span>, <span style="color: #BA2121">&#39;roc_auc&#39;</span>]
+logReg <span style="color: #666666">=</span> LogisticRegression()
+gridSearch <span style="color: #666666">=</span> GridSearchCV(logReg, parameters, cv<span style="color: #666666">=5</span>, scoring<span style="color: #666666">=</span>scoring, refit<span style="color: #666666">=</span><span style="color: #BA2121">&#39;roc_auc&#39;</span>) 
+</pre></div>
+<p>
 
 <p>
 <!-- navigation buttons at the bottom of the page -->
