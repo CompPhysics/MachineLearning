@@ -339,30 +339,90 @@ Suppose we have defined two vectors
 $\hat{x} and \hat{y} with $n$ elements each. The covariance matrix $\bm{C}is defined as 
 !bt
 \[
-\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} cov[xx] & cov[xy] \\
-                              cov[yx] & cov[yy] \\
+\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} cov[\bm{x},\bm{x}] & cov[\bm{x},\bm{y}] \\
+                              cov[\bm{y},\bm{x}] & cov[\bm{y},\bm{y}] \\
              \end{bmatrix},
 \]
 !et
 where for example
 !bt
 \[
-cov[xy] =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
+cov[\bm{x},\bm{y}] =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
 \]
 !et
 With this definition and recalling that the variance is
+!bt
 \[
-var[\bm{x}]=\sigma_{xx} =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})^2,
+var[\bm{x}]=\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})^2,
 \]
 !et
 we can rewrite the covariance matrix in this case as 
 !bt
 \[
-\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} var[\bm{x}] & \sigma_{xy} \\
-                              \sigma_{yx} & var[\bm{y}] \\
+\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} var[\bm{x}] & cov[\bm{x},\bm{y}] \\
+                              cov[\bm{x},\bm{y}] & var[\bm{y}] \\
              \end{bmatrix},
 \]
 !et
+
+The covariance takes values between zero and infinity and may thus lead to problems with loss of numerical precision for particularly large values. It is common to scale the covariance matrix by introducing instead the correlation matrix defined via the so-called correlation function
+!bt
+\[
+corr[\bm{x},\bm{y}]=\frac{cov[\bm{x},\bm{y}]}{\sqrt{var[\bm{x}]\var\bm{y}]}}.
+\]
+!et
+The correlation function is then given by values $corr[\bm{x},\bm{y}] \in [-1,1]$. This avoids eventual problems with too large values. We can then define the correlation matrix for the two vectors $\bm{x}$ and $\bm{y}$ as
+!bt
+\[
+\bm{K}[\bm{x},\bm{y}] = \begin{bmatrix} 1 & corr[\bm{x},\bm{y}] \\
+                              corr[\bm{y},\bm{x}] & 1 \\
+             \end{bmatrix},
+\]
+!et
+
+In the above example this is the function we constructed using _pandas_.
+
+!split
+===== Correlation Function and Design/Feature Matrix =====
+
+In our derivation of the various regression algorithms like Ordinary Least Squares or Ridge regression we defined the design/feature matrix $\bm{X}$ as
+!bt
+\[
+\bm{X}=\begin{bmatrix}
+x_{0,0} & x_{0,1} & x_{0,2}& \dots & \dots x_{0,p-1}\\
+x_{1,0} & x_{1,1} & x_{1,2}& \dots & \dots x_{1,p-1}\\
+x_{2,0} & x_{2,1} & x_{2,2}& \dots & \dots x_{2,p-1}\\
+\dots & \dots & \dots & \dots \dots & \dots \\
+x_{n-2,0} & x_{n-2,1} & x_{n-2,2}& \dots & \dots x_{n-2,p-1}\\
+x_{n-1,0} & x_{n-1,1} & x_{n-1,2}& \dots & \dots x_{n-1,p-1}\\
+\end{bmatrix},
+\]
+!et
+with $\bm{X}\in {\mathbb{R}}^{n\times p}$, with the predictors/features $p$  refering to the column numbers and the
+entries $n$ being the row elements.
+We can rewrite the design/feature matrix in terms of its column vectors as
+!bt
+\[
+\bm{X}=\begin{bmatrix} \bm{x}_0 & \bm{x}_0 & \bm{x}_0 & \dots & \dots & \bm{x}_{p-1}\end{bmatrix},
+\]
+!et
+with a given vector
+!bt
+\[
+\bm{x}_i^T = \begin{bmatrix}x_{0,i} & x_{1,i} & x_{2,i}& \dots & \dots x_{n-1,i}\end{bmatrix}.
+\]
+!et
+
+With these definitions, we can now rewrite our $2\times 2$ correaltion/covariance matrix in terms of a moe general design/feature matrix $\bm{X}\in {\mathbb{R}}^{n\times p}$. This leads to a $p\times p$ covariance matrix for the vectors $\bm{x}_i$ with $i =0,1,\dots,p-1$
+!bt
+\[
+\bm{C}[\bm{x}] = \begin{bmatrix} var[\bm{x}_0] & cov[\bm{x}_0,\bm{x}_1] \\
+                              cov[\bm{x},\bm{y}] & var[\bm{x}_{p-1}] \\
+             \end{bmatrix},
+\]
+!et
+
+
 
 
 The Numpy function _np.cov_ calculates the covariance elements using the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have the exact mean values. 
