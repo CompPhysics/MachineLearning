@@ -297,30 +297,35 @@ plt.show()
 #print eigvalues of correlation matrix
 EigValues, EigVectors = np.linalg.eig(correlation_matrix)
 print(EigValues)
-
-#split into train and test and then scale thereafter
-X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-print(X_train.shape)
-print(X_test.shape)
-
-logreg = LogisticRegression()
-logreg.fit(X_train, y_train)
-print("Test set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
-
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-logreg.fit(X_train_scaled, y_train)
-print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
-
 !ec
 
+In the above example we note two things. In the first plot we display
+the overlap of benign and malignant tumors as functions of the various
+features in the Wisconsing breast cancer data set. We see that for
+some of the features we can distinguish clearly the benign and
+malignant cases while for other features we cannot. This can point to
+us which features may be of greater interest when we wish to classify
+a benign or not benign tumour.
 
+In the second figure we have computed the so-called correlation
+matrix, which in our case with thirty features becomes a $30\times 30$
+matrix.
 
-#todo: add more text in order to explain what is done here, discuss the correlation matrix
+We constructed this matrix using _pandas_ via the statements
+!bc pycod
+cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
+!ec
+and then
+!bc pycod
+correlation_matrix = cancerpd.corr().round(1)
+!ec
+
+Diagonalizing this matrix we can in turn say something about which
+features are of relevance and which are not. But before we proceed we
+need to define covariance and correlation matrices. This leads us to
+the classical Principal Component Analysis (PCA) theorem with
+applications.
+
 
 
 !split
@@ -329,6 +334,77 @@ print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,
 
 !split
 ===== Introducing the Covariance and Correlation functions  =====
+
+Suppose we have defined two vectors
+$\hat{x} and \hat{y} with $n$ elements each. The covariance matrix $\bm{C}is defined as 
+!bt
+\[
+\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} cov[xx] & cov[xy] \\
+                              cov[yx] & cov[yy] \\
+             \end{bmatrix},
+\]
+!et
+where for example
+!bt
+\[
+cov[xy] =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
+\]
+!et
+With this definition and recalling that the variance is
+\[
+var[\bm{x}]=\sigma_{xx} =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})^2,
+\]
+!et
+we can rewrite the covariance matrix in this case as 
+!bt
+\[
+\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} var[\bm{x}] & \sigma_{xy} \\
+                              \sigma_{yx} & var[\bm{y}] \\
+             \end{bmatrix},
+\]
+!et
+
+
+The Numpy function _np.cov_ calculates the covariance elements using the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have the exact mean values. 
+The following simple function uses the _np.vstack_ function which takes each vector of dimension $1\times n$ and produces a $2\times n$ matrix $\hat{W}$
+!bt
+\[
+\hat{W} = \begin{bmatrix} x_0 & y_0 \\
+                          x_1 & y_1 \\
+                          x_2 & y_2\\
+                          \dots & \dots \\
+                          x_{n-2} & y_{n-2}\\
+                          x_{n-1} & y_{n-1} & 
+             \end{bmatrix},
+\]
+!et
+
+which in turn is converted into into the $3\times 3$ covariance matrix
+$\hat{\Sigma}$ via the Numpy function _np.cov()_. We note that we can also calculate
+the mean value of each set of samples $\hat{x}$ etc using the Numpy
+function _np.mean(x)_. We can also extract the eigenvalues of the
+covariance matrix through the _np.linalg.eig()_ function.
+
+!bc pycod
+# Importing various packages
+import numpy as np
+
+n = 100
+x = np.random.normal(size=n)
+print(np.mean(x))
+y = 4+3*x+np.random.normal(size=n)
+print(np.mean(y))
+z = x**3+np.random.normal(size=n)
+print(np.mean(z))
+W = np.vstack((x, y, z))
+Sigma = np.cov(W)
+print(Sigma)
+Eigvals, Eigvecs = np.linalg.eig(Sigma)
+print(Eigvals)
+!ec
+
+
+
 
 !split
 ===== Classical PCA Theorem   =====
@@ -494,3 +570,58 @@ Here are some of the most popular:
 * _Isomap_ creates a graph by connecting each instance to its nearest neighbors, then reduces dimensionality while trying to preserve the geodesic distances between the instances.
 * _t-Distributed Stochastic Neighbor Embedding_ (t-SNE) reduces dimensionality while trying to keep similar instances close and dissimilar instances apart. It is mostly used for visualization, in particular to visualize clusters of instances in high-dimensional space (e.g., to visualize the MNIST images in 2D).
 * Linear Discriminant Analysis (LDA) is actually a classification algorithm, but during training it learns the most discriminative axes between the classes, and these axes can then be used to define a hyperplane onto which to project the data. The benefit is that the projection will keep classes as far apart as possible, so LDA is a good technique to reduce dimensionality before running another classification algorithm such as a Support Vector Machine (SVM) classifier discussed in the SVM lectures.
+
+
+
+
+
+
+
+Here are other examples where we use the _DataFrame_ functionality to handle arrays, now with more interesting features for us, namely numbers. We set up a matrix 
+of dimensionality $10\times 5$ and compute the mean value and standard deviation of each column. Similarly, we can perform mathematial operations like squaring the matrix elements and many other operations. 
+!bc pycod
+import numpy as np
+import pandas as pd
+from IPython.display import display
+np.random.seed(100)
+# setting up a 10 x 5 matrix
+rows = 10
+cols = 5
+a = np.random.randn(rows,cols)
+df = pd.DataFrame(a)
+display(df)
+print(df.mean())
+print(df.std())
+display(df**2)
+!ec
+
+Thereafter we can select specific columns only and plot final results
+!bc pycod
+df.columns = ['First', 'Second', 'Third', 'Fourth', 'Fifth']
+df.index = np.arange(10)
+
+display(df)
+print(df['Second'].mean() )
+print(df.info())
+print(df.describe())
+
+from pylab import plt, mpl
+plt.style.use('seaborn')
+mpl.rcParams['font.family'] = 'serif'
+
+df.cumsum().plot(lw=2.0, figsize=(10,6))
+plt.show()
+
+
+df.plot.bar(figsize=(10,6), rot=15)
+plt.show()
+!ec
+We can produce a $4\times 4$ matrix
+!bc pycod
+b = np.arange(16).reshape((4,4))
+print(b)
+df1 = pd.DataFrame(b)
+print(df1)
+!ec
+and many other operations. 
+
