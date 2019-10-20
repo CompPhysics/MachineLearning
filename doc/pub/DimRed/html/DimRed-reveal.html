@@ -526,7 +526,7 @@ We have a data set defined by a design/feature matrix \( \boldsymbol{X} \) (see 
 
 <p>
 Suppose we have defined two vectors
-$\hat{x} and \hat{y} with \( n \) elements each. The covariance matrix $\boldsymbol{C}is defined as 
+\( \hat{x} \) and \( \hat{y} \) with \( n \) elements each. The covariance matrix \( \boldsymbol{C} \) is defined as 
 <p>&nbsp;<br>
 $$
 \boldsymbol{C}[\boldsymbol{x},\boldsymbol{y}] = \begin{bmatrix} cov[\boldsymbol{x},\boldsymbol{x}] & cov[\boldsymbol{x},\boldsymbol{y}] \\
@@ -567,7 +567,7 @@ correlation function
 
 <p>&nbsp;<br>
 $$
-corr[\boldsymbol{x},\boldsymbol{y}]=\frac{cov[\boldsymbol{x},\boldsymbol{y}]}{\sqrt{var[\boldsymbol{x}]\var\boldsymbol{y}]}}.
+corr[\boldsymbol{x},\boldsymbol{y}]=\frac{cov[\boldsymbol{x},\boldsymbol{y}]}{\sqrt{var[\boldsymbol{x}]\var[\boldsymbol{y}]}}.
 $$
 <p>&nbsp;<br>
 
@@ -652,13 +652,22 @@ corr[\boldsymbol{x}_{p-1},\boldsymbol{x}_0]   & corr[\boldsymbol{x}_{p-1},\bolds
 \end{bmatrix},
 $$
 <p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="___sec10">Covariance Matrix Examples </h2>
 
 <p>
-The Numpy function <b>np.cov</b> calculates the covariance elements using the factor \( 1/(n-1) \) instead of \( 1/n \) since it assumes we do not have the exact mean values. 
-The following simple function uses the <b>np.vstack</b> function which takes each vector of dimension \( 1\times n \) and produces a \( 2\times n \) matrix \( \hat{W} \)
+The Numpy function <b>np.cov</b> calculates the covariance elements using
+the factor \( 1/(n-1) \) instead of \( 1/n \) since it assumes we do not have
+the exact mean values.  The following simple function uses the
+<b>np.vstack</b> function which takes each vector of dimension \( 1\times n \)
+and produces a \( 2\times n \) matrix \( \boldsymbol{W} \)
+
 <p>&nbsp;<br>
 $$
-\hat{W} = \begin{bmatrix} x_0 & y_0 \\
+\boldsymbol{W} = \begin{bmatrix} x_0 & y_0 \\
                           x_1 & y_1 \\
                           x_2 & y_2\\
                           \dots & \dots \\
@@ -669,9 +678,9 @@ $$
 <p>&nbsp;<br>
 
 <p>
-which in turn is converted into into the \( 3\times 3 \) covariance matrix
-\( \hat{\Sigma} \) via the Numpy function <b>np.cov()</b>. We note that we can also calculate
-the mean value of each set of samples \( \hat{x} \) etc using the Numpy
+which in turn is converted into into the \( 2\times 2 \) covariance matrix
+\( \boldsymbol{C} \) via the Numpy function <b>np.cov()</b>. We note that we can also calculate
+the mean value of each set of samples \( \boldsymbol{x} \) etc using the Numpy
 function <b>np.mean(x)</b>. We can also extract the eigenvalues of the
 covariance matrix through the <b>np.linalg.eig()</b> function.
 
@@ -680,35 +689,165 @@ covariance matrix through the <b>np.linalg.eig()</b> function.
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
 <div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Importing various packages</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-
 n = <span style="color: #B452CD">100</span>
 x = np.random.normal(size=n)
 <span style="color: #8B008B; font-weight: bold">print</span>(np.mean(x))
 y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.normal(size=n)
 <span style="color: #8B008B; font-weight: bold">print</span>(np.mean(y))
-z = x**<span style="color: #B452CD">3</span>+np.random.normal(size=n)
-<span style="color: #8B008B; font-weight: bold">print</span>(np.mean(z))
-W = np.vstack((x, y, z))
-Sigma = np.cov(W)
-<span style="color: #8B008B; font-weight: bold">print</span>(Sigma)
-Eigvals, Eigvecs = np.linalg.eig(Sigma)
-<span style="color: #8B008B; font-weight: bold">print</span>(Eigvals)
+W = np.vstack((x, y))
+C = np.cov(W)
+<span style="color: #8B008B; font-weight: bold">print</span>(C)
 </pre></div>
 </section>
 
 
 <section>
-<h2 id="___sec10">Classical PCA Theorem   </h2>
+<h2 id="___sec11">Correlation Matrix  </h2>
+
+<p>
+The previous example can be converted into the correlation matrix by
+simply scaling the matrix elements with the variances.  We should also
+subtract the mean values for each column. This leads to the following
+code which sets up the correlations matrix for the previous example in
+a more brute force way. Here we scale the mean values for each column of the design matrix, calculate the relevant mean values and variances and then finally set up the \( 2\times 2 \) correlation matrix (since we have only two vectors).
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+n = <span style="color: #B452CD">100</span>
+<span style="color: #228B22"># define two vectors                                                                                           </span>
+x = np.random.random(size=n)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.normal(size=n)
+<span style="color: #228B22">#scaling the x and y vectors                                                                                   </span>
+x = x - np.mean(x)
+y = y - np.mean(y)
+variance_x = np.sum(x<span style="color: #707a7c">@x</span>)/n
+variance_y = np.sum(y<span style="color: #707a7c">@y</span>)/n
+<span style="color: #8B008B; font-weight: bold">print</span>(variance_x)
+<span style="color: #8B008B; font-weight: bold">print</span>(variance_y)
+cov_xy = np.sum(x<span style="color: #707a7c">@y</span>)/n
+cov_xx = np.sum(x<span style="color: #707a7c">@x</span>)/n
+cov_yy = np.sum(y<span style="color: #707a7c">@y</span>)/n
+C = np.zeros((<span style="color: #B452CD">2</span>,<span style="color: #B452CD">2</span>))
+C[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>]= cov_xx/variance_x
+C[<span style="color: #B452CD">1</span>,<span style="color: #B452CD">1</span>]= cov_yy/variance_y
+C[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">1</span>]= cov_xy/np.sqrt(variance_y*variance_x)
+C[<span style="color: #B452CD">1</span>,<span style="color: #B452CD">0</span>]= C[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">1</span>]
+<span style="color: #8B008B; font-weight: bold">print</span>(C)
+</pre></div>
+<p>
+We see that the matrix elements along the diagonal are one as they
+should be and that the matrix is symmetric. Furthermore, diagonalizing
+this matrix we easily see that it is a positive definite matrix.
+
+<p>
+The above procedure with <b>numpy</b> can be made more compact if we use <b>pandas</b>.
 </section>
 
 
 <section>
-<h2 id="___sec11">Prof of the PCA Theorem  </h2>
+<h2 id="___sec12">Correlation Matrix with Pandas </h2>
+
+<p>
+We whow here how we can set up the correlation matrix using <b>pandas</b>, as done in this simple code
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+n = <span style="color: #B452CD">10</span>
+x = np.random.normal(size=n)
+x = x - np.mean(x)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.normal(size=n)
+y = y - np.mean(y)
+X = (np.vstack((x, y))).T
+<span style="color: #8B008B; font-weight: bold">print</span>(X)
+Xpd = pd.DataFrame(X)
+<span style="color: #8B008B; font-weight: bold">print</span>(Xpd)
+correlation_matrix = Xpd.corr()
+<span style="color: #8B008B; font-weight: bold">print</span>(correlation_matrix)
+</pre></div>
+<p>
+We expand this model to the Franke function discussed above.
 </section>
 
 
 <section>
-<h2 id="___sec12">Getting started with PCA </h2>
+<h2 id="___sec13">Correlation Matrix with Pandas and the Franke function </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Common imports</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">FrankeFunction</span>(x,y):
+	term1 = <span style="color: #B452CD">0.75</span>*np.exp(-(<span style="color: #B452CD">0.25</span>*(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>) - <span style="color: #B452CD">0.25</span>*((<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>))
+	term2 = <span style="color: #B452CD">0.75</span>*np.exp(-((<span style="color: #B452CD">9</span>*x+<span style="color: #B452CD">1</span>)**<span style="color: #B452CD">2</span>)/<span style="color: #B452CD">49.0</span> - <span style="color: #B452CD">0.1</span>*(<span style="color: #B452CD">9</span>*y+<span style="color: #B452CD">1</span>))
+	term3 = <span style="color: #B452CD">0.5</span>*np.exp(-(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">7</span>)**<span style="color: #B452CD">2</span>/<span style="color: #B452CD">4.0</span> - <span style="color: #B452CD">0.25</span>*((<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">3</span>)**<span style="color: #B452CD">2</span>))
+	term4 = -<span style="color: #B452CD">0.2</span>*np.exp(-(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">4</span>)**<span style="color: #B452CD">2</span> - (<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">7</span>)**<span style="color: #B452CD">2</span>)
+	<span style="color: #8B008B; font-weight: bold">return</span> term1 + term2 + term3 + term4
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_X</span>(x, y, n ):
+	<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">len</span>(x.shape) &gt; <span style="color: #B452CD">1</span>:
+		x = np.ravel(x)
+		y = np.ravel(y)
+
+	N = <span style="color: #658b00">len</span>(x)
+	l = <span style="color: #658b00">int</span>((n+<span style="color: #B452CD">1</span>)*(n+<span style="color: #B452CD">2</span>)/<span style="color: #B452CD">2</span>)		<span style="color: #228B22"># Number of elements in beta</span>
+	X = np.ones((N,l))
+
+	<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,n+<span style="color: #B452CD">1</span>):
+		q = <span style="color: #658b00">int</span>((i)*(i+<span style="color: #B452CD">1</span>)/<span style="color: #B452CD">2</span>)
+		<span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(i+<span style="color: #B452CD">1</span>):
+			X[:,q+k] = (x**(i-k))*(y**k)
+
+	<span style="color: #8B008B; font-weight: bold">return</span> X
+
+
+<span style="color: #228B22"># Making meshgrid of datapoints and compute Franke&#39;s function</span>
+n = <span style="color: #B452CD">4</span>
+N = <span style="color: #B452CD">100</span>
+x = np.sort(np.random.uniform(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, N))
+y = np.sort(np.random.uniform(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, N))
+z = FrankeFunction(x, y)
+X = create_X(x, y, n=n)    
+
+Xpd = pd.DataFrame(X)
+<span style="color: #228B22"># subtract the mean values and set up the covariance matrix</span>
+Xpd = Xpd - Xpd.mean()
+covariance_matrix = Xpd.cov()
+<span style="color: #8B008B; font-weight: bold">print</span>(covariance_matrix)
+</pre></div>
+<p>
+We note here that the covariance is zero for the first rows and
+columns since all matrix elements in the design matrix were set to one
+(we are fitting the function in terms of a polynomial of degree \( n \)).
+
+<p>
+This means that the variance for these elements will be zero and will
+cause problems when we set up the correlation matrix.  We can simply
+drop these elements as follows and then construct the correlation
+matrix.
+</section>
+
+
+<section>
+<h2 id="___sec14">Classical PCA Theorem   </h2>
+</section>
+
+
+<section>
+<h2 id="___sec15">Prof of the PCA Theorem  </h2>
+</section>
+
+
+<section>
+<h2 id="___sec16">Getting started with PCA </h2>
 
 <p>
 
@@ -724,7 +863,7 @@ X_pca = pca.transform(X_train_scaled)
 
 
 <section>
-<h2 id="___sec13">Principal Component Analysis </h2>
+<h2 id="___sec17">Principal Component Analysis </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -761,7 +900,7 @@ X2D = X_centered.dot(W2)
 
 
 <section>
-<h2 id="___sec14">PCA and scikit-learn </h2>
+<h2 id="___sec18">PCA and scikit-learn </h2>
 
 <p>
 Scikit-Learn&#8217;s PCA class implements PCA using SVD decomposition just like we did before. The
@@ -792,7 +931,7 @@ More material to come here.
 
 
 <section>
-<h2 id="___sec15">More on the PCA </h2>
+<h2 id="___sec19">More on the PCA </h2>
 
 <p>
 Instead of arbitrarily choosing the number of dimensions to reduce down to, it is generally preferable to
@@ -823,7 +962,7 @@ X_reduced = pca.fit_transform(X)
 
 
 <section>
-<h2 id="___sec16">Incremental PCA </h2>
+<h2 id="___sec20">Incremental PCA </h2>
 
 <p>
 One problem with the preceding implementation of PCA is that it requires the whole training set to fit in
@@ -835,7 +974,7 @@ instances arrive).
 
 
 <section>
-<h2 id="___sec17">Randomized PCA </h2>
+<h2 id="___sec21">Randomized PCA </h2>
 
 <p>
 Scikit-Learn offers yet another option to perform PCA, called Randomized PCA. This is a stochastic
@@ -849,7 +988,7 @@ previous algorithms when \( d \) is much smaller than \( n \).
 
 
 <section>
-<h2 id="___sec18">Kernel PCA </h2>
+<h2 id="___sec22">Kernel PCA </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -875,7 +1014,7 @@ X_reduced = rbf_pca.fit_transform(X)
 
 
 <section>
-<h2 id="___sec19">LLE </h2>
+<h2 id="___sec23">LLE </h2>
 
 <p>
 Locally Linear Embedding (LLE) is another very powerful nonlinear dimensionality reduction
@@ -887,7 +1026,7 @@ these local relationships are best preserved (more details shortly).
 
 
 <section>
-<h2 id="___sec20">Other techniques </h2>
+<h2 id="___sec24">Other techniques </h2>
 
 <p>
 There are many other dimensionality reduction techniques, several of which are available in Scikit-Learn.
