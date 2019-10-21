@@ -138,9 +138,9 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._DimRed-bs005.html#___sec4" style="font-size: 80%;">Simple preprocessing examples, breast cancer data and classification, Support Vector Machines</a></li>
      <!-- navigation toc: --> <li><a href="._DimRed-bs006.html#___sec5" style="font-size: 80%;">More on Cancer Data, now with Logistic Regression</a></li>
      <!-- navigation toc: --> <li><a href="._DimRed-bs007.html#___sec6" style="font-size: 80%;">Why should we think of reducing the dimensionality</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec7" style="font-size: 80%;">Basic ideas of the Principal Component Analysis (PCA)</a></li>
+     <!-- navigation toc: --> <li><a href="._DimRed-bs008.html#___sec7" style="font-size: 80%;">Basic ideas of the Principal Component Analysis (PCA)</a></li>
      <!-- navigation toc: --> <li><a href="._DimRed-bs009.html#___sec8" style="font-size: 80%;">Introducing the Covariance and Correlation functions</a></li>
-     <!-- navigation toc: --> <li><a href="._DimRed-bs010.html#___sec9" style="font-size: 80%;">Correlation Function and Design/Feature Matrix</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec9" style="font-size: 80%;">Correlation Function and Design/Feature Matrix</a></li>
      <!-- navigation toc: --> <li><a href="._DimRed-bs011.html#___sec10" style="font-size: 80%;">Covariance Matrix Examples</a></li>
      <!-- navigation toc: --> <li><a href="._DimRed-bs012.html#___sec11" style="font-size: 80%;">Correlation Matrix</a></li>
      <!-- navigation toc: --> <li><a href="._DimRed-bs013.html#___sec12" style="font-size: 80%;">Correlation Matrix with Pandas</a></li>
@@ -168,35 +168,77 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0008"></a>
+<a name="part0010"></a>
 <!-- !split -->
 
-<h2 id="___sec7" class="anchor">Basic ideas of the Principal Component Analysis (PCA) </h2>
+<h2 id="___sec9" class="anchor">Correlation Function and Design/Feature Matrix </h2>
 
 <p>
-We have a data set defined by a design/feature matrix \( \boldsymbol{X} \) (see below for its definition) 
+In our derivation of the various regression algorithms like Ordinary Least Squares or Ridge regression we defined the design/feature matrix \( \boldsymbol{X} \) as
+$$
+\boldsymbol{X}=\begin{bmatrix}
+x_{0,0} & x_{0,1} & x_{0,2}& \dots & \dots x_{0,p-1}\\
+x_{1,0} & x_{1,1} & x_{1,2}& \dots & \dots x_{1,p-1}\\
+x_{2,0} & x_{2,1} & x_{2,2}& \dots & \dots x_{2,p-1}\\
+\dots & \dots & \dots & \dots \dots & \dots \\
+x_{n-2,0} & x_{n-2,1} & x_{n-2,2}& \dots & \dots x_{n-2,p-1}\\
+x_{n-1,0} & x_{n-1,1} & x_{n-1,2}& \dots & \dots x_{n-1,p-1}\\
+\end{bmatrix},
+$$
 
-<ul>
-<li> Each data point is determined by \( p \) extrinsic (measurement) variables</li>
-<li> We may want to ask the following question: Are there fewer intrinsic variables (say \( d < < p \)) that still approximately describe the data?</li>
-<li> If so, these intrinsic variables may tell us something important and finding these intrinsic variables is what dimension reduction methods do.</li> 
-</ul>
+with \( \boldsymbol{X}\in {\mathbb{R}}^{n\times p} \), with the predictors/features \( p \)  refering to the column numbers and the
+entries \( n \) being the row elements.
+We can rewrite the design/feature matrix in terms of its column vectors as
+$$
+\boldsymbol{X}=\begin{bmatrix} \boldsymbol{x}_0 & \boldsymbol{x}_0 & \boldsymbol{x}_0 & \dots & \dots & \boldsymbol{x}_{p-1}\end{bmatrix},
+$$
 
+with a given vector
+$$
+\boldsymbol{x}_i^T = \begin{bmatrix}x_{0,i} & x_{1,i} & x_{2,i}& \dots & \dots x_{n-1,i}\end{bmatrix}.
+$$
+
+<p>
+With these definitions, we can now rewrite our \( 2\times 2 \) correaltion/covariance matrix in terms of a moe general design/feature matrix \( \boldsymbol{X}\in {\mathbb{R}}^{n\times p} \). This leads to a \( p\times p \) covariance matrix for the vectors \( \boldsymbol{x}_i \) with \( i =0,1,\dots,p-1 \)
+$$
+\boldsymbol{C}[\boldsymbol{x}] = \begin{bmatrix}
+\mathrm{var}[\boldsymbol{x}_0] & \mathrm{cov}[\boldsymbol{x}_0,\boldsymbol{x}_1]  & \mathrm{cov}[\boldsymbol{x}_0,\boldsymbol{x}_2] & \dots & \dots & \mathrm{cov}[\boldsymbol{x}_0,\boldsymbol{x}_{p-1}]\\
+\mathrm{cov}[\boldsymbol{x}_1,\boldsymbol{x}_0] & \mathrm{var}[\boldsymbol{x}_1]  & \mathrm{cov}[\boldsymbol{x}_1,\boldsymbol{x}_2] & \dots & \dots & \mathrm{cov}[\boldsymbol{x}_1,\boldsymbol{x}_{p-1}]\\
+\mathrm{cov}[\boldsymbol{x}_2,\boldsymbol{x}_0]   & \mathrm{cov}[\boldsymbol{x}_2,\boldsymbol{x}_1] & \mathrm{var}[\boldsymbol{x}_2] & \dots & \dots & \mathrm{cov}[\boldsymbol{x}_2,\boldsymbol{x}_{p-1}]\\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\mathrm{cov}[\boldsymbol{x}_{p-1},\boldsymbol{x}_0]   & \mathrm{cov}[\boldsymbol{x}_{p-1},\boldsymbol{x}_1] & \mathrm{cov}[\boldsymbol{x}_{p-1},\boldsymbol{x}_{2}]  & \dots & \dots  & \mathrm{var}[\boldsymbol{x}_{p-1}]\\
+\end{bmatrix},
+$$
+
+and the correlation matrix
+$$
+\boldsymbol{K}[\boldsymbol{x}] = \begin{bmatrix}
+1 & \mathrm{corr}[\boldsymbol{x}_0,\boldsymbol{x}_1]  & \mathrm{corr}[\boldsymbol{x}_0,\boldsymbol{x}_2] & \dots & \dots & \mathrm{corr}[\boldsymbol{x}_0,\boldsymbol{x}_{p-1}]\\
+\mathrm{corr}[\boldsymbol{x}_1,\boldsymbol{x}_0] & 1  & \mathrm{corr}[\boldsymbol{x}_1,\boldsymbol{x}_2] & \dots & \dots & \mathrm{corr}[\boldsymbol{x}_1,\boldsymbol{x}_{p-1}]\\
+\mathrm{corr}[\boldsymbol{x}_2,\boldsymbol{x}_0]   & \mathrm{corr}[\boldsymbol{x}_2,\boldsymbol{x}_1] & 1 & \dots & \dots & \mathrm{corr}[\boldsymbol{x}_2,\boldsymbol{x}_{p-1}]\\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\mathrm{corr}[\boldsymbol{x}_{p-1},\boldsymbol{x}_0]   & \mathrm{corr}[\boldsymbol{x}_{p-1},\boldsymbol{x}_1] & \mathrm{corr}[\boldsymbol{x}_{p-1},\boldsymbol{x}_{2}]  & \dots & \dots  & 1\\
+\end{bmatrix},
+$$
+
+<p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-<li><a href="._DimRed-bs007.html">&laquo;</a></li>
+<li><a href="._DimRed-bs009.html">&laquo;</a></li>
   <li><a href="._DimRed-bs000.html">1</a></li>
-  <li><a href="._DimRed-bs001.html">2</a></li>
+  <li><a href="">...</a></li>
   <li><a href="._DimRed-bs002.html">3</a></li>
   <li><a href="._DimRed-bs003.html">4</a></li>
   <li><a href="._DimRed-bs004.html">5</a></li>
   <li><a href="._DimRed-bs005.html">6</a></li>
   <li><a href="._DimRed-bs006.html">7</a></li>
   <li><a href="._DimRed-bs007.html">8</a></li>
-  <li class="active"><a href="._DimRed-bs008.html">9</a></li>
+  <li><a href="._DimRed-bs008.html">9</a></li>
   <li><a href="._DimRed-bs009.html">10</a></li>
-  <li><a href="._DimRed-bs010.html">11</a></li>
+  <li class="active"><a href="._DimRed-bs010.html">11</a></li>
   <li><a href="._DimRed-bs011.html">12</a></li>
   <li><a href="._DimRed-bs012.html">13</a></li>
   <li><a href="._DimRed-bs013.html">14</a></li>
@@ -204,9 +246,11 @@ We have a data set defined by a design/feature matrix \( \boldsymbol{X} \) (see 
   <li><a href="._DimRed-bs015.html">16</a></li>
   <li><a href="._DimRed-bs016.html">17</a></li>
   <li><a href="._DimRed-bs017.html">18</a></li>
+  <li><a href="._DimRed-bs018.html">19</a></li>
+  <li><a href="._DimRed-bs019.html">20</a></li>
   <li><a href="">...</a></li>
   <li><a href="._DimRed-bs025.html">26</a></li>
-  <li><a href="._DimRed-bs009.html">&raquo;</a></li>
+  <li><a href="._DimRed-bs011.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
