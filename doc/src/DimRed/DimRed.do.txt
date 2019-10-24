@@ -877,19 +877,6 @@ chapter 12.4 and discussion therein.
 
 
 
-!split
-===== PCA and Scikit-Learn Functionality =====
-
-
-!bc pycod
-# Now add PCA
-from sklearn.decomposition import PCA
-pca = PCA(n_components = 2)
-pca.fit(X_train_scaled)
-
-X_pca = pca.transform(X_train_scaled)
-!ec
-
 
 
 !split
@@ -899,12 +886,32 @@ Principal Component Analysis (PCA) is by far the most popular dimensionality red
 First it identifies the hyperplane that lies closest to the data, and then it projects the data onto it.
 
 The following Python code uses NumPy’s _svd()_ function to obtain all the principal components of the
-training set, then extracts the first two principal components. First we center the data
+training set, then extracts the first two principal components. First we center the data using either _pandas_ or our own code
 !bc pycod
+import numpy as np
+import pandas as pd
+from IPython.display import display
+np.random.seed(100)
+# setting up a 10 x 5 vanilla matrix 
+rows = 10
+cols = 5
+X = np.random.randn(rows,cols)
+df = pd.DataFrame(X)
+# Pandas does the centering for us
+df = df -df.mean()
+display(df)
+
+# we center it ourselves
 X_centered = X - X.mean(axis=0)
+# Then check the difference between pandas and our own set up
+print(X_centered-df)
+#Now we do an SVD
 U, s, V = np.linalg.svd(X_centered)
 c1 = V.T[:, 0]
 c2 = V.T[:, 1]
+W2 = V.T[:, :2]
+X2D = X_centered.dot(W2)
+print(X2D)
 !ec
 
 PCA assumes that the dataset is centered around the origin. Scikit-Learn’s PCA classes take care of centering
@@ -926,15 +933,17 @@ Scikit-Learn’s PCA class implements PCA using SVD decomposition just like we d
 following code applies PCA to reduce the dimensionality of the dataset down to two dimensions (note
 that it automatically takes care of centering the data):
 !bc pycod
+#thereafter we do a PCA with Scikit-learn
 from sklearn.decomposition import PCA
 pca = PCA(n_components = 2)
 X2D = pca.fit_transform(X)
+print(X2D)
 !ec
 After fitting the PCA transformer to the dataset, you can access the principal components using the
 components variable (note that it contains the PCs as horizontal vectors, so, for example, the first
 principal component is equal to 
 !bc pycod
-pca.components_.T[:, 0]).
+pca.components_.T[:, 0].
 !ec
 Another very useful piece of information is the explained variance ratio of each principal component,
 available via the $explained\_variance\_ratio$ variable. It indicates the proportion of the dataset’s
