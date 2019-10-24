@@ -14,7 +14,6 @@ correlation_matrix = cancerpd.corr().round(1)
 # use the heatmap function from seaborn to plot the correlation matrix
 # annot = True to print the values inside the square
 sns.heatmap(data=correlation_matrix, annot=True)
-plt.show()
 EigValues, EigVectors = np.linalg.eig(correlation_matrix)
 print(EigValues)
 
@@ -35,6 +34,11 @@ X_test_scaled = scaler.transform(X_test)
 logreg.fit(X_train_scaled, y_train)
 print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
 
+#thereafter we do a PCA with Scikit-learn
+from sklearn.decomposition import PCA
+pca = PCA(n_components = 2)
+X2D_train = pca.fit_transform(X_train_scaled)
+X2D_test = pca.fit_transform(X_test_scaled)
 
-
-
+logreg.fit(X2D_train,y_train)
+print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X2D_test,y_test)))
