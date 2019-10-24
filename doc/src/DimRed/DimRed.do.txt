@@ -754,16 +754,16 @@ J(\bm{W},\bm{Z}) = \frac{1}{p}\sum_i (\bm{x}_i - \overline{\bm{x}_i})^2,
 \]
 !et
 with $\overline{\bm{x}_i} = \bm{W}\bm{z}_i$, where $\bm{z}_i$ is a row vector with dimension ${\mathbb{R}}^{n}$ of the matrix
-$\bm{Z}\in {\mathbb{R}}^{p\times n}$.  
+$\bm{Z}\in {\mathbb{R}}^{p\times n}$.  When doing PCA we want to reduce this dimensionality. 
 
-The PCA theorem states that minimizing the above reconstruction error corresponds to setting $\bm{W}=\bm{S}$, the orthogonal matrix which diagonalizes the empirical covariance(correlation) matrix. The optimal low-dimensional encoding of the data is then given by a set of vectors $l$ $\bm{z}_i$, with $l << p$, defined by the orthogonal projection of the data onto the columns spanned by they eigenvectors of the covariance(correlations matrix).
+The PCA theorem states that minimizing the above reconstruction error corresponds to setting $\bm{W}=\bm{S}$, the orthogonal matrix which diagonalizes the empirical covariance(correlation) matrix. The optimal low-dimensional encoding of the data is then given by a set of vectors $l$ $\bm{z}_i$, with $l << p$, defined by the orthogonal projection of the data onto the columns spanned by the eigenvectors of the covariance(correlations matrix).
 
 
 
 !split
 ===== Proof of the PCA Theorem  =====
 
-To show the PCA theorem let us start with the assumption that there is a vector $\bm{w}_0$ which corresponds to a solution which minimized the reconstruction error $J$. This is an orthogonal vector. It means that we now approximate the reconstruction error in terms of $\bm{w}_0$ and $\bm{z}_0$ as
+To show the PCA theorem let us start with the assumption that there is one vector $\bm{w}_0$ which corresponds to a solution which minimized the reconstruction error $J$. This is an orthogonal vector. It means that we now approximate the reconstruction error in terms of $\bm{w}_0$ and $\bm{z}_0$ as
 !bt
 \[
 J(\bm{w}_0,\bm{z}_0)= \frac{1}{p}\sum_i (\bm{x}_i - z_{i0}\bm{w}_0)^2=\frac{1}{p}\sum_i (\bm{x}_^T\bm{x}_i - 2z_{i0}\bm{w}_0^T\bm{x}_i+z_{i0}^2\bm{w}_0^T\bm{w}_0),
@@ -783,8 +783,87 @@ z_{i0}=\bm{w}_0^T\bm{x}_i,
 !et
 where the vectors on the rhs are known. 
 
+
 !split
-===== Getting started with PCA =====
+===== PCA Proof continued =====
+
+We have now found the unknown parameters $z_{i0}$. These correspond to the project coordinates and we can write
+!bt
+\[
+J(\bm{w}_0)= \frac{1}{p}\sum_i (\bm{x}_i^T\bm{x}_i - z_{i0}^2)=\mathrm{const}-\frac{1}{p}\sum_i z_{i0}^2.
+\]
+!et
+
+We can show that the variance of the project coordinates defined by $\bm{w}_0^T\bm{x}_i$ are given by
+!bt
+\[
+\mathrm{var}[\bm{w}_0^T\bm{x}_i] = \frac{1}{p}\sum_i z_{i0}^2,
+\]
+!et
+since the expectation value of
+!bt
+\[
+\mathbb{E}[\bm{w}_0^T\bm{x}_i] = \mathbb{E}[z_{i0}]= \bm{w}_0^T\mathbb{E}[\bm{x}_i]=0,
+\]
+!et
+where we have used the fact that our data are centered.
+
+Recalling our definition of the covariance as 
+!bt
+\[
+\bm{C}[\bm{x}] = \frac{1}{n}\bm{X}\bm{X}^T= \mathbb{E}[\bm{X}\bm{X}^T],
+\]
+!et
+we have thus that
+!bt
+\[
+\mathrm{var}[\bm{w}_0^T\bm{x}_i] = \frac{1}{p}\sum_i z_{i0}^2=\bm{w}_0^T\bm{C}[\bm{x}]\bm{w}_0.
+\]
+!et
+
+We are almost there, we have obtained a relation between minimizing the reconstruction error and the variance and the covariance matrix. Minimizing the error is equivalent to maximizing the variance of the projected data. 
+
+!split
+=====  The final step =====
+
+We could trivially maximize the variance of the projection (and
+thereby minimize the error in the reconstruction function) by letting
+the norm-2 of $\bm{w}_0$ go to infinity. However, this norm since we
+want the matrix $\bm{W}$ to be an orthogonal matrix, is constrained by
+$$\vert\vert \bm{w}_0 \vert\vert_2^2=1$. Imposing this condition via a
+Lagrange multiplier we can then in turn maximize
+
+!bt
+\[
+J(\bm{w}_0)= \bm{w}_0^T\bm{C}[\bm{x}]\bm{w}_0+\lambda_0(1-\bm{w}_0^T\bm{w}_0).
+\]
+!et
+Taking the derivative with respect to $\bm{w}_0$ we obtain
+
+!bt
+\[
+\frac{\partial J(\bm{w}_0)}{\partial \bm{w}_0}= 2\bm{C}[\bm{x}]\bm{w}_0-2\lambda_0\bm{w}_0=0,
+\]
+!et
+meaning that
+!bt
+\[
+\bm{C}[\bm{x}]\bm{w}_0=\lambda_0\bm{w}_0.
+\]
+!et
+_The direction that maximizes the variance (or minimizes the construction error) is an eigenvector of the covariance matrix_! If we left multiply with $\bm{w}_0^T$ we have the variance of the projected data is
+!bt
+\[
+\bm{w}_^T\bm{C}[\bm{x}]\bm{w}_0=\lambda_0.
+\]
+!et
+If we want to maximize the variance (minimize the construction error) we simply pick the eigenvector of the covariance matrix with the largest eigenvalue. This establishes the link between the minimization of the reconstruction function $J$ in terms of an orthogonal matrix and the maximization of the variance and thereby the covariance of our observations encoded in the design/feature matrix $\bm{X}$. The proof for the other eigenvectors $\bm{w}_1,\bm{w}_2,\dots$ cna be established by applying the above arguments and using the fact that basis of eigenvectors is orthogonal, see "Murphy chapter 12.2":"https://mitpress.mit.edu/books/machine-learning-1".  The discussion in chapter 12.2 of Murphy's text has also a nice link with the Singular Value Decomposition theorem. For categorical data, see chapter 12.4 and discussion therein. 
+
+
+
+
+!split
+===== PCA and Scikit-Learn Functionality =====
 
 
 !bc pycod
@@ -805,7 +884,7 @@ Principal Component Analysis (PCA) is by far the most popular dimensionality red
 First it identifies the hyperplane that lies closest to the data, and then it projects the data onto it.
 
 The following Python code uses NumPy’s _svd()_ function to obtain all the principal components of the
-training set, then extracts the first two principal components
+training set, then extracts the first two principal components. First we center the data
 !bc pycod
 X_centered = X - X.mean(axis=0)
 U, s, V = np.linalg.svd(X_centered)
@@ -959,34 +1038,4 @@ print(df.mean())
 print(df.std())
 display(df**2)
 !ec
-
-Thereafter we can select specific columns only and plot final results
-!bc pycod
-df.columns = ['First', 'Second', 'Third', 'Fourth', 'Fifth']
-df.index = np.arange(10)
-
-display(df)
-print(df['Second'].mean() )
-print(df.info())
-print(df.describe())
-
-from pylab import plt, mpl
-plt.style.use('seaborn')
-mpl.rcParams['font.family'] = 'serif'
-
-df.cumsum().plot(lw=2.0, figsize=(10,6))
-plt.show()
-
-
-df.plot.bar(figsize=(10,6), rot=15)
-plt.show()
-!ec
-We can produce a $4\times 4$ matrix
-!bc pycod
-b = np.arange(16).reshape((4,4))
-print(b)
-df1 = pd.DataFrame(b)
-print(df1)
-!ec
-and many other operations. 
 
