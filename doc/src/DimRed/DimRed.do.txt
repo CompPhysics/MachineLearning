@@ -421,7 +421,7 @@ entries $n$ being the row elements.
 We can rewrite the design/feature matrix in terms of its column vectors as
 !bt
 \[
-\bm{X}=\begin{bmatrix} \bm{x}_0 & \bm{x}_0 & \bm{x}_0 & \dots & \dots & \bm{x}_{p-1}\end{bmatrix},
+\bm{X}=\begin{bmatrix} \bm{x}_0 & \bm{x}_1 & \bm{x}_2 & \dots & \dots & \bm{x}_{p-1}\end{bmatrix},
 \]
 !et
 with a given vector
@@ -649,7 +649,7 @@ If we then compute the expectation value
 \[
 \mathbb{E}[\bm{X}\bm{X}^T] = \frac{1}{n}\bm{X}\bm{X}^T=\begin{bmatrix}
 x_{00}^2+x_{01}^2 & x_{00}x_{10}+x_{01}x_{11}\\
-x_{10}x_{00}+x_{01}x_{11} & x_{10}^2+x_{11}^2\\
+x_{10}x_{00}+x_{11}x_{01} & x_{10}^2+x_{11}^2\\
 \end{bmatrix},
 \]
 !et
@@ -750,10 +750,10 @@ each with dimension $\bm{x}\in {\mathbb{R}}^{n}$.
 We assume also that we have an orthogonal transformation $\bm{W}\in {\mathbb{R}}^{p\times p}$.  We define the reconstruction error (which is similar to the mean squared error we have seen before) as
 !bt
 \[
-J(\bm{W},\bm{Z}) = \frac{1}{n}\sum_i (\bm{x}_i - \overline{\bm{x}_i})^2,
+J(\bm{W},\bm{Z}) = \frac{1}{n}\sum_i (\bm{x}_i - \overline{\bm{x}}_i)^2,
 \]
 !et
-with $\overline{\bm{x}_i} = \bm{W}\bm{z}_i$, where $\bm{z}_i$ is a row vector with dimension ${\mathbb{R}}^{n}$ of the matrix
+with $\overline{\bm{x}}_i = \bm{W}\bm{z}_i$, where $\bm{z}_i$ is a row vector with dimension ${\mathbb{R}}^{n}$ of the matrix
 $\bm{Z}\in{\mathbb{R}}^{p\times n}$.  When doing PCA we want to reduce this dimensionality. 
 
 The PCA theorem states that minimizing the above reconstruction error corresponds to setting $\bm{W}=\bm{S}$, the orthogonal matrix which diagonalizes the empirical covariance(correlation) matrix. The optimal low-dimensional encoding of the data is then given by a set of vectors $\bm{z}_i$ with at most $l$ vectors, with $l << p$, defined by the orthogonal projection of the data onto the columns spanned by the eigenvectors of the covariance(correlations matrix).
@@ -951,7 +951,8 @@ variance that lies along the axis of each principal component.
 
 !split
 ===== Back to the Cancer Data =====
-We can now repeat the above but applied to real data, in this case our breat cancer data.
+We can now repeat the above but applied to real data, in this case our breast cancer data.
+Here we compute performance scores on the training data using logistic regression.
 !bc pycod
 import matplotlib.pyplot as plt
 import numpy as np
@@ -961,32 +962,30 @@ from sklearn.linear_model import LogisticRegression
 cancer = load_breast_cancer()
 
 X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-print(X_train.shape)
-print(X_test.shape)
 
 logreg = LogisticRegression()
 logreg.fit(X_train, y_train)
-print("Test set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
-
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+print("Train set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_train,y_train)))
+# We scale the data
+from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
-
+# Then perform again a log reg fit
 logreg.fit(X_train_scaled, y_train)
-print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
-
+print("Train set accuracy scaled data: {:.2f}".format(logreg.score(X_train_scaled,y_train)))
 #thereafter we do a PCA with Scikit-learn
 from sklearn.decomposition import PCA
 pca = PCA(n_components = 2)
 X2D_train = pca.fit_transform(X_train_scaled)
-X2D_test = pca.fit_transform(X_test_scaled)
-
+# and finally compute the log reg fit and the score on the training data	
 logreg.fit(X2D_train,y_train)
-print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X2D_test,y_test)))
+print("Train set accuracy scaled and PCA data: {:.2f}".format(logreg.score(X2D_train,y_train)))
+
 !ec
 
+We see that our training data after the PCA decomposition has a performance similar to the non-scaled data. 
 
 !split
 ===== More on the PCA =====

@@ -23,7 +23,7 @@ print(X_test.shape)
 
 logreg = LogisticRegression()
 logreg.fit(X_train, y_train)
-print("Test set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
+print("Train set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_train,y_train)))
 
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 scaler = StandardScaler()
@@ -32,13 +32,12 @@ X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 logreg.fit(X_train_scaled, y_train)
-print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+print("Train set accuracy scaled data: {:.2f}".format(logreg.score(X_train_scaled,y_train)))
 
 #thereafter we do a PCA with Scikit-learn
 from sklearn.decomposition import PCA
 pca = PCA(n_components = 2)
 X2D_train = pca.fit_transform(X_train_scaled)
-X2D_test = pca.fit_transform(X_test_scaled)
 
 logreg.fit(X2D_train,y_train)
-print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X2D_test,y_test)))
+print("Train set accuracy scaled and PCA data: {:.2f}".format(logreg.score(X2D_train,y_train)))
