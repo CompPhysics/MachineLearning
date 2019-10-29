@@ -148,7 +148,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Oct 26, 2019</h4></center> <!-- date -->
+<center><h4>Oct 29, 2019</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -627,7 +627,191 @@ $$
 
 
 <section>
-<h2 id="___sec15">Entropy and the ID3 algorithm </h2>
+<h2 id="___sec15">The CART (Classification and Regression Tree) algorithm </h2>
+
+<p>
+The above functions (gini, entropy and misclassification error) are important components of the so-called CART algorithm. We will discuss this algorithm first before we move on to the information gain algorithm ID3.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> seed
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> randrange
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">csv</span> <span style="color: #8B008B; font-weight: bold">import</span> reader
+ 
+<span style="color: #228B22"># Load a CSV file</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">load_csv</span>(filename):
+	<span style="color: #658b00">file</span> = <span style="color: #658b00">open</span>(filename, <span style="color: #CD5555">&quot;rb&quot;</span>)
+	lines = reader(<span style="color: #658b00">file</span>)
+	dataset = <span style="color: #658b00">list</span>(lines)
+	<span style="color: #8B008B; font-weight: bold">return</span> dataset
+ 
+<span style="color: #228B22"># Convert string column to float</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">str_column_to_float</span>(dataset, column):
+	<span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> dataset:
+		row[column] = <span style="color: #658b00">float</span>(row[column].strip())
+ 
+<span style="color: #228B22"># Split a dataset into k folds</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">cross_validation_split</span>(dataset, n_folds):
+	dataset_split = <span style="color: #658b00">list</span>()
+	dataset_copy = <span style="color: #658b00">list</span>(dataset)
+	fold_size = <span style="color: #658b00">int</span>(<span style="color: #658b00">len</span>(dataset) / n_folds)
+	<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_folds):
+		fold = <span style="color: #658b00">list</span>()
+		<span style="color: #8B008B; font-weight: bold">while</span> <span style="color: #658b00">len</span>(fold) &lt; fold_size:
+			index = randrange(<span style="color: #658b00">len</span>(dataset_copy))
+			fold.append(dataset_copy.pop(index))
+		dataset_split.append(fold)
+	<span style="color: #8B008B; font-weight: bold">return</span> dataset_split
+ 
+<span style="color: #228B22"># Calculate accuracy percentage</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">accuracy_metric</span>(actual, predicted):
+	correct = <span style="color: #B452CD">0</span>
+	<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(actual)):
+		<span style="color: #8B008B; font-weight: bold">if</span> actual[i] == predicted[i]:
+			correct += <span style="color: #B452CD">1</span>
+	<span style="color: #8B008B; font-weight: bold">return</span> correct / <span style="color: #658b00">float</span>(<span style="color: #658b00">len</span>(actual)) * <span style="color: #B452CD">100.0</span>
+ 
+<span style="color: #228B22"># Evaluate an algorithm using a cross validation split</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">evaluate_algorithm</span>(dataset, algorithm, n_folds, *args):
+	folds = cross_validation_split(dataset, n_folds)
+	scores = <span style="color: #658b00">list</span>()
+	<span style="color: #8B008B; font-weight: bold">for</span> fold <span style="color: #8B008B">in</span> folds:
+		train_set = <span style="color: #658b00">list</span>(folds)
+		train_set.remove(fold)
+		train_set = <span style="color: #658b00">sum</span>(train_set, [])
+		test_set = <span style="color: #658b00">list</span>()
+		<span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> fold:
+			row_copy = <span style="color: #658b00">list</span>(row)
+			test_set.append(row_copy)
+			row_copy[-<span style="color: #B452CD">1</span>] = <span style="color: #658b00">None</span>
+		predicted = algorithm(train_set, test_set, *args)
+		actual = [row[-<span style="color: #B452CD">1</span>] <span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> fold]
+		accuracy = accuracy_metric(actual, predicted)
+		scores.append(accuracy)
+	<span style="color: #8B008B; font-weight: bold">return</span> scores
+ 
+<span style="color: #228B22"># Split a dataset based on an attribute and an attribute value</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">test_split</span>(index, value, dataset):
+	left, right = <span style="color: #658b00">list</span>(), <span style="color: #658b00">list</span>()
+	<span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> dataset:
+		<span style="color: #8B008B; font-weight: bold">if</span> row[index] &lt; value:
+			left.append(row)
+		<span style="color: #8B008B; font-weight: bold">else</span>:
+			right.append(row)
+	<span style="color: #8B008B; font-weight: bold">return</span> left, right
+ 
+<span style="color: #228B22"># Calculate the Gini index for a split dataset</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">gini_index</span>(groups, classes):
+	<span style="color: #228B22"># count all samples at split point</span>
+	n_instances = <span style="color: #658b00">float</span>(<span style="color: #658b00">sum</span>([<span style="color: #658b00">len</span>(group) <span style="color: #8B008B; font-weight: bold">for</span> group <span style="color: #8B008B">in</span> groups]))
+	<span style="color: #228B22"># sum weighted Gini index for each group</span>
+	gini = <span style="color: #B452CD">0.0</span>
+	<span style="color: #8B008B; font-weight: bold">for</span> group <span style="color: #8B008B">in</span> groups:
+		size = <span style="color: #658b00">float</span>(<span style="color: #658b00">len</span>(group))
+		<span style="color: #228B22"># avoid divide by zero</span>
+		<span style="color: #8B008B; font-weight: bold">if</span> size == <span style="color: #B452CD">0</span>:
+			<span style="color: #8B008B; font-weight: bold">continue</span>
+		score = <span style="color: #B452CD">0.0</span>
+		<span style="color: #228B22"># score the group based on the score for each class</span>
+		<span style="color: #8B008B; font-weight: bold">for</span> class_val <span style="color: #8B008B">in</span> classes:
+			p = [row[-<span style="color: #B452CD">1</span>] <span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> group].count(class_val) / size
+			score += p * p
+		<span style="color: #228B22"># weight the group score by its relative size</span>
+		gini += (<span style="color: #B452CD">1.0</span> - score) * (size / n_instances)
+	<span style="color: #8B008B; font-weight: bold">return</span> gini
+ 
+<span style="color: #228B22"># Select the best split point for a dataset</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">get_split</span>(dataset):
+	class_values = <span style="color: #658b00">list</span>(<span style="color: #658b00">set</span>(row[-<span style="color: #B452CD">1</span>] <span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> dataset))
+	b_index, b_value, b_score, b_groups = <span style="color: #B452CD">999</span>, <span style="color: #B452CD">999</span>, <span style="color: #B452CD">999</span>, <span style="color: #658b00">None</span>
+	<span style="color: #8B008B; font-weight: bold">for</span> index <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(dataset[<span style="color: #B452CD">0</span>])-<span style="color: #B452CD">1</span>):
+		<span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> dataset:
+			groups = test_split(index, row[index], dataset)
+			gini = gini_index(groups, class_values)
+			<span style="color: #8B008B; font-weight: bold">if</span> gini &lt; b_score:
+				b_index, b_value, b_score, b_groups = index, row[index], gini, groups
+	<span style="color: #8B008B; font-weight: bold">return</span> {<span style="color: #CD5555">&#39;index&#39;</span>:b_index, <span style="color: #CD5555">&#39;value&#39;</span>:b_value, <span style="color: #CD5555">&#39;groups&#39;</span>:b_groups}
+ 
+<span style="color: #228B22"># Create a terminal node value</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">to_terminal</span>(group):
+	outcomes = [row[-<span style="color: #B452CD">1</span>] <span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> group]
+	<span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">max</span>(<span style="color: #658b00">set</span>(outcomes), key=outcomes.count)
+ 
+<span style="color: #228B22"># Create child splits for a node or make terminal</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">split</span>(node, max_depth, min_size, depth):
+	left, right = node[<span style="color: #CD5555">&#39;groups&#39;</span>]
+	<span style="color: #8B008B; font-weight: bold">del</span>(node[<span style="color: #CD5555">&#39;groups&#39;</span>])
+	<span style="color: #228B22"># check for a no split</span>
+	<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #8B008B">not</span> left <span style="color: #8B008B">or</span> <span style="color: #8B008B">not</span> right:
+		node[<span style="color: #CD5555">&#39;left&#39;</span>] = node[<span style="color: #CD5555">&#39;right&#39;</span>] = to_terminal(left + right)
+		<span style="color: #8B008B; font-weight: bold">return</span>
+	<span style="color: #228B22"># check for max depth</span>
+	<span style="color: #8B008B; font-weight: bold">if</span> depth &gt;= max_depth:
+		node[<span style="color: #CD5555">&#39;left&#39;</span>], node[<span style="color: #CD5555">&#39;right&#39;</span>] = to_terminal(left), to_terminal(right)
+		<span style="color: #8B008B; font-weight: bold">return</span>
+	<span style="color: #228B22"># process left child</span>
+	<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">len</span>(left) &lt;= min_size:
+		node[<span style="color: #CD5555">&#39;left&#39;</span>] = to_terminal(left)
+	<span style="color: #8B008B; font-weight: bold">else</span>:
+		node[<span style="color: #CD5555">&#39;left&#39;</span>] = get_split(left)
+		split(node[<span style="color: #CD5555">&#39;left&#39;</span>], max_depth, min_size, depth+<span style="color: #B452CD">1</span>)
+	<span style="color: #228B22"># process right child</span>
+	<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">len</span>(right) &lt;= min_size:
+		node[<span style="color: #CD5555">&#39;right&#39;</span>] = to_terminal(right)
+	<span style="color: #8B008B; font-weight: bold">else</span>:
+		node[<span style="color: #CD5555">&#39;right&#39;</span>] = get_split(right)
+		split(node[<span style="color: #CD5555">&#39;right&#39;</span>], max_depth, min_size, depth+<span style="color: #B452CD">1</span>)
+ 
+<span style="color: #228B22"># Build a decision tree</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">build_tree</span>(train, max_depth, min_size):
+	root = get_split(train)
+	split(root, max_depth, min_size, <span style="color: #B452CD">1</span>)
+	<span style="color: #8B008B; font-weight: bold">return</span> root
+ 
+<span style="color: #228B22"># Make a prediction with a decision tree</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">predict</span>(node, row):
+	<span style="color: #8B008B; font-weight: bold">if</span> row[node[<span style="color: #CD5555">&#39;index&#39;</span>]] &lt; node[<span style="color: #CD5555">&#39;value&#39;</span>]:
+		<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">isinstance</span>(node[<span style="color: #CD5555">&#39;left&#39;</span>], <span style="color: #658b00">dict</span>):
+			<span style="color: #8B008B; font-weight: bold">return</span> predict(node[<span style="color: #CD5555">&#39;left&#39;</span>], row)
+		<span style="color: #8B008B; font-weight: bold">else</span>:
+			<span style="color: #8B008B; font-weight: bold">return</span> node[<span style="color: #CD5555">&#39;left&#39;</span>]
+	<span style="color: #8B008B; font-weight: bold">else</span>:
+		<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">isinstance</span>(node[<span style="color: #CD5555">&#39;right&#39;</span>], <span style="color: #658b00">dict</span>):
+			<span style="color: #8B008B; font-weight: bold">return</span> predict(node[<span style="color: #CD5555">&#39;right&#39;</span>], row)
+		<span style="color: #8B008B; font-weight: bold">else</span>:
+			<span style="color: #8B008B; font-weight: bold">return</span> node[<span style="color: #CD5555">&#39;right&#39;</span>]
+ 
+<span style="color: #228B22"># Classification and Regression Tree Algorithm</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">decision_tree</span>(train, test, max_depth, min_size):
+	tree = build_tree(train, max_depth, min_size)
+	predictions = <span style="color: #658b00">list</span>()
+	<span style="color: #8B008B; font-weight: bold">for</span> row <span style="color: #8B008B">in</span> test:
+		prediction = predict(tree, row)
+		predictions.append(prediction)
+	<span style="color: #8B008B; font-weight: bold">return</span>(predictions)
+ 
+<span style="color: #228B22"># Test CART </span>
+seed(<span style="color: #B452CD">1</span>)
+<span style="color: #228B22"># load and prepare data</span>
+filename = <span style="color: #CD5555">&#39;DataFiles/rideclass.csv&#39;</span>
+dataset = load_csv(filename)
+<span style="color: #228B22"># convert string attributes to integers</span>
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(dataset[<span style="color: #B452CD">0</span>])):
+	str_column_to_float(dataset, i)
+<span style="color: #228B22"># evaluate algorithm</span>
+n_folds = <span style="color: #B452CD">5</span>
+max_depth = <span style="color: #B452CD">5</span>
+min_size = <span style="color: #B452CD">10</span>
+scores = evaluate_algorithm(dataset, decision_tree, n_folds, max_depth, min_size)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Scores: %s&#39;</span> % scores)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Mean Accuracy: %.3f%%&#39;</span> % (<span style="color: #658b00">sum</span>(scores)/<span style="color: #658b00">float</span>(<span style="color: #658b00">len</span>(scores))))
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec16">Entropy and the ID3 algorithm </h2>
 
 <p>
 ID3, learns decision trees by constructing
@@ -664,7 +848,7 @@ attributes at each step while growing the tree.
 
 
 <section>
-<h2 id="___sec16">Implementing the ID3 Algorithm </h2>
+<h2 id="___sec17">Implementing the ID3 Algorithm </h2>
 
 <p>
 <b>more text to come here</b>, material presented during lecture Friday Oct 25.
@@ -672,7 +856,7 @@ attributes at each step while growing the tree.
 
 
 <section>
-<h2 id="___sec17">Cancer Data again now with Decision Trees </h2>
+<h2 id="___sec18">Cancer Data again now with Decision Trees </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -722,7 +906,7 @@ deep_tree_clf.fit(X_train_scaled, y_train)
 
 
 <section>
-<h2 id="___sec18">Another example, the moons again </h2>
+<h2 id="___sec19">Another example, the moons again </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -795,7 +979,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec19">Playing around with regions </h2>
+<h2 id="___sec20">Playing around with regions </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -824,7 +1008,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec20">Regression trees </h2>
+<h2 id="___sec21">Regression trees </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -847,7 +1031,7 @@ tree_reg.fit(X, y)
 
 
 <section>
-<h2 id="___sec21">Final regressor code </h2>
+<h2 id="___sec22">Final regressor code </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -926,7 +1110,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec22">Pros and cons of trees, pros </h2>
+<h2 id="___sec23">Pros and cons of trees, pros </h2>
 
 <ul>
 <p><li> White box, easy to interpret model. Some people believe that decision trees more closely mirror human decision-making than do the regression and classification approaches discussed earlier (think of support vector machines)</li>
@@ -941,7 +1125,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec23">Disadvantages </h2>
+<h2 id="___sec24">Disadvantages </h2>
 
 <ul>
 <p><li> Unfortunately, trees generally do not have the same level of predictive accuracy as some of the other regression and classification approaches</li>
@@ -959,7 +1143,7 @@ However, by aggregating many decision trees, using methods like bagging, random 
 
 
 <section>
-<h2 id="___sec24">Bagging </h2>
+<h2 id="___sec25">Bagging </h2>
 
 <p>
 The <b>plain</b> decision trees suffer from high
@@ -1002,7 +1186,7 @@ predictor, averaged over all \( B \) trees.
 
 
 <section>
-<h2 id="___sec25">Simple example, head or tail </h2>
+<h2 id="___sec26">Simple example, head or tail </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -1023,7 +1207,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec26">Random forests </h2>
+<h2 id="___sec27">Random forests </h2>
 
 <p>
 Random forests provide an improvement over bagged trees by way of a
@@ -1069,7 +1253,7 @@ this setting.
 
 
 <section>
-<h2 id="___sec27">A simple scikit-learn example </h2>
+<h2 id="___sec28">A simple scikit-learn example </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -1088,7 +1272,7 @@ accuracy = cross_validate(Random_Forest_model,X,Y,cv=<span style="color: #B452CD
 
 
 <section>
-<h2 id="___sec28">Please, not the moons again! </h2>
+<h2 id="___sec29">Please, not the moons again! </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -1147,7 +1331,7 @@ voting_clf.fit(X_train, y_train)
 
 
 <section>
-<h2 id="___sec29">Bagging examples </h2>
+<h2 id="___sec30">Bagging examples </h2>
 
 <p>
 
@@ -1209,7 +1393,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec30">Then random forests </h2>
+<h2 id="___sec31">Then random forests </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -1232,7 +1416,7 @@ np.sum(y_pred == y_pred_rf) / <span style="color: #658b00">len</span>(y_pred)
 
 
 <section>
-<h2 id="___sec31">Boosting and more </h2>
+<h2 id="___sec32">Boosting and more </h2>
 More material to come here.
 </section>
 
