@@ -34,45 +34,35 @@ def data_path(dat_id):
 def save_fig(fig_id):
     plt.savefig(image_path(fig_id) + ".png", format='png')
 
-infile = open(data_path("ride.csv"),'r')
+infile = open(data_path("rideclass.csv"),'r')
 
 # Read the experimental data with Pandas
 from IPython.display import display
 ridedata = pd.read_csv(infile,names = ('Outlook','Temperature','Humidity','Wind','Ride'))
 ridedata = pd.DataFrame(ridedata)
-display(ridedata)
+
 # Features and targets
 X = ridedata.loc[:, ridedata.columns != 'Ride'].values
-display(X)
 y = ridedata.loc[:, ridedata.columns == 'Ride'].values
-display(y)
-# Categorical variables to one-hot's
-onehotencoder = OneHotEncoder(categories="auto")
 
-X = ColumnTransformer([("", onehotencoder)]).fit_transform(X)
-y.shape
-
-display(X)
-display(y)
-
-
-"""
-X = pd.DataFrame(ridedata.data, columns=ridedata.feature_names)
-y = pd.Categorical.from_codes(ridedata.target, ridedata.target_names)
-y = pd.get_dummies(y)
-
-
+# Create the encoder.
+encoder = OneHotEncoder(handle_unknown="ignore")
+# Assume for simplicity all features are categorical.
+encoder.fit(X)    
+# Apply the encoder.
+X = encoder.transform(X)
+print(X)
+# Then do a Classification tree
 tree_clf = DecisionTreeClassifier(max_depth=2)
 tree_clf.fit(X, y)
-
-
+print("Train set accuracy with Decision Tree: {:.2f}".format(tree_clf.score(X,y)))
+#transfer to a decision tree graph
 export_graphviz(
     tree_clf,
-    out_file="ride.dot",
-    feature_names=tree_clf.feature_names,
-    class_names=tree_clf.target_names,
+    out_file="DataFiles/ride.dot",
     rounded=True,
     filled=True
 )
-"""
+cmd = 'dot -Tpng DataFiles/cancer.dot -o DataFiles/cancer.png'
+os.system(cmd)
 

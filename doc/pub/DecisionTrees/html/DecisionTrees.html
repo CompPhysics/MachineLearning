@@ -90,7 +90,10 @@ div { text-align: justify; text-justify: inter-word; }
               ('Visualizing the Tree, Classification', 2, None, '___sec14'),
               ('Visualizing the Tree, The Moons', 2, None, '___sec15'),
               ('Computing the Gini index', 2, None, '___sec16'),
-              ('Simple Python Code to read in Data', 2, None, '___sec17'),
+              ('Simple Python Code to read in Data and perform Classification',
+               2,
+               None,
+               '___sec17'),
               ('Computing the Gini Factor', 2, None, '___sec18'),
               ('Entropy and the ID3 algorithm', 2, None, '___sec19'),
               ('Implementing the ID3 Algorithm', 2, None, '___sec20'),
@@ -710,7 +713,7 @@ The table here summarizes the various attributes and
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec17">Simple Python Code to read in Data </h2>
+<h2 id="___sec17">Simple Python Code to read in Data and perform Classification </h2>
 
 <p>
 
@@ -719,6 +722,9 @@ The table here summarizes the various attributes and
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> DecisionTreeClassifier
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> export_graphviz
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler, OneHotEncoder
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.compose</span> <span style="color: #008000; font-weight: bold">import</span> ColumnTransformer
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> Image 
@@ -748,26 +754,37 @@ DATA_ID <span style="color: #666666">=</span> <span style="color: #BA2121">&quot
 <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">save_fig</span>(fig_id):
     plt<span style="color: #666666">.</span>savefig(image_path(fig_id) <span style="color: #666666">+</span> <span style="color: #BA2121">&quot;.png&quot;</span>, format<span style="color: #666666">=</span><span style="color: #BA2121">&#39;png&#39;</span>)
 
-infile <span style="color: #666666">=</span> <span style="color: #008000">open</span>(data_path(<span style="color: #BA2121">&quot;ride.csv&quot;</span>),<span style="color: #BA2121">&#39;r&#39;</span>)
+infile <span style="color: #666666">=</span> <span style="color: #008000">open</span>(data_path(<span style="color: #BA2121">&quot;rideclass.csv&quot;</span>),<span style="color: #BA2121">&#39;r&#39;</span>)
 
 <span style="color: #408080; font-style: italic"># Read the experimental data with Pandas</span>
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> display
 ridedata <span style="color: #666666">=</span> pd<span style="color: #666666">.</span>read_csv(infile,names <span style="color: #666666">=</span> (<span style="color: #BA2121">&#39;Outlook&#39;</span>,<span style="color: #BA2121">&#39;Temperature&#39;</span>,<span style="color: #BA2121">&#39;Humidity&#39;</span>,<span style="color: #BA2121">&#39;Wind&#39;</span>,<span style="color: #BA2121">&#39;Ride&#39;</span>))
 ridedata <span style="color: #666666">=</span> pd<span style="color: #666666">.</span>DataFrame(ridedata)
-display(ridedata)
+
 <span style="color: #408080; font-style: italic"># Features and targets</span>
 X <span style="color: #666666">=</span> ridedata<span style="color: #666666">.</span>loc[:, ridedata<span style="color: #666666">.</span>columns <span style="color: #666666">!=</span> <span style="color: #BA2121">&#39;Ride&#39;</span>]<span style="color: #666666">.</span>values
-display(X)
 y <span style="color: #666666">=</span> ridedata<span style="color: #666666">.</span>loc[:, ridedata<span style="color: #666666">.</span>columns <span style="color: #666666">==</span> <span style="color: #BA2121">&#39;Ride&#39;</span>]<span style="color: #666666">.</span>values
-display(y)
-<span style="color: #408080; font-style: italic"># Categorical variables to one-hot&#39;s</span>
-onehotencoder <span style="color: #666666">=</span> OneHotEncoder(categories<span style="color: #666666">=</span><span style="color: #BA2121">&quot;auto&quot;</span>)
 
-X <span style="color: #666666">=</span> ColumnTransformer([(<span style="color: #BA2121">&quot;&quot;</span>, onehotencoder)])<span style="color: #666666">.</span>fit_transform(X)
-y<span style="color: #666666">.</span>shape
-
-display(X)
-display(y)
+<span style="color: #408080; font-style: italic"># Create the encoder.</span>
+encoder <span style="color: #666666">=</span> OneHotEncoder(handle_unknown<span style="color: #666666">=</span><span style="color: #BA2121">&quot;ignore&quot;</span>)
+<span style="color: #408080; font-style: italic"># Assume for simplicity all features are categorical.</span>
+encoder<span style="color: #666666">.</span>fit(X)    
+<span style="color: #408080; font-style: italic"># Apply the encoder.</span>
+X <span style="color: #666666">=</span> encoder<span style="color: #666666">.</span>transform(X)
+<span style="color: #008000; font-weight: bold">print</span>(X)
+<span style="color: #408080; font-style: italic"># Then do a Classification tree</span>
+tree_clf <span style="color: #666666">=</span> DecisionTreeClassifier(max_depth<span style="color: #666666">=2</span>)
+tree_clf<span style="color: #666666">.</span>fit(X, y)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Train set accuracy with Decision Tree: {:.2f}&quot;</span><span style="color: #666666">.</span>format(tree_clf<span style="color: #666666">.</span>score(X,y)))
+<span style="color: #408080; font-style: italic">#transfer to a decision tree graph</span>
+export_graphviz(
+    tree_clf,
+    out_file<span style="color: #666666">=</span><span style="color: #BA2121">&quot;DataFiles/ride.dot&quot;</span>,
+    rounded<span style="color: #666666">=</span><span style="color: #008000">True</span>,
+    filled<span style="color: #666666">=</span><span style="color: #008000">True</span>
+)
+cmd <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;dot -Tpng DataFiles/cancer.dot -o DataFiles/cancer.png&#39;</span>
+os<span style="color: #666666">.</span>system(cmd)
 </pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
