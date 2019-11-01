@@ -1742,33 +1742,7 @@ np.sum(y_pred == y_pred_rf) / <span style="color: #658b00">len</span>(y_pred)
 <h2 id="___sec37">Feature Importance </h2>
 
 <p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">try</span>:
-    <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> fetch_openml
-    mnist = fetch_openml(<span style="color: #CD5555">&#39;mnist_784&#39;</span>, version=<span style="color: #B452CD">1</span>)
-    mnist.target = mnist.target.astype(np.int64)
-<span style="color: #8B008B; font-weight: bold">except</span> <span style="color: #008b45; font-weight: bold">ImportError</span>:
-    <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> fetch_mldata
-    mnist = fetch_mldata(<span style="color: #CD5555">&#39;MNIST original&#39;</span>)
-
-rnd_clf = RandomForestClassifier(n_estimators=<span style="color: #B452CD">10</span>, random_state=<span style="color: #B452CD">42</span>)
-rnd_clf.fit(mnist[<span style="color: #CD5555">&quot;data&quot;</span>], mnist[<span style="color: #CD5555">&quot;target&quot;</span>])
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">plot_digit</span>(data):
-    image = data.reshape(<span style="color: #B452CD">28</span>, <span style="color: #B452CD">28</span>)
-    plt.imshow(image, cmap = mpl.cm.hot,
-               interpolation=<span style="color: #CD5555">&quot;nearest&quot;</span>)
-    plt.axis(<span style="color: #CD5555">&quot;off&quot;</span>)
-
-plot_digit(rnd_clf.feature_importances_)
-
-cbar = plt.colorbar(ticks=[rnd_clf.feature_importances_.min(), rnd_clf.feature_importances_.max()])
-cbar.ax.set_yticklabels([<span style="color: #CD5555">&#39;Not important&#39;</span>, <span style="color: #CD5555">&#39;Very important&#39;</span>])
-
-<span style="color: #228B22">#save_fig(&quot;mnist_feature_importance_plot&quot;)</span>
-plt.show()
-</pre></div>
+Example will be added here.
 </section>
 
 
@@ -1900,6 +1874,71 @@ plt.title(<span style="color: #CD5555">&quot;learning_rate={}, n_estimators={}&q
 
 save_fig(<span style="color: #CD5555">&quot;gbrt_learning_rate_plot&quot;</span>)
 plt.show()
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec40">Gradient Boots with Early Stopping </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> mean_squared_error
+
+X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=<span style="color: #B452CD">49</span>)
+
+gbrt = GradientBoostingRegressor(max_depth=<span style="color: #B452CD">2</span>, n_estimators=<span style="color: #B452CD">120</span>, random_state=<span style="color: #B452CD">42</span>)
+gbrt.fit(X_train, y_train)
+
+errors = [mean_squared_error(y_val, y_pred)
+          <span style="color: #8B008B; font-weight: bold">for</span> y_pred <span style="color: #8B008B">in</span> gbrt.staged_predict(X_val)]
+bst_n_estimators = np.argmin(errors) + <span style="color: #B452CD">1</span>
+
+gbrt_best = GradientBoostingRegressor(max_depth=<span style="color: #B452CD">2</span>,n_estimators=bst_n_estimators, random_state=<span style="color: #B452CD">42</span>)
+gbrt_best.fit(X_train, y_train)
+
+min_error = np.min(errors)
+plt.figure(figsize=(<span style="color: #B452CD">11</span>, <span style="color: #B452CD">4</span>))
+
+plt.subplot(<span style="color: #B452CD">121</span>)
+plt.plot(errors, <span style="color: #CD5555">&quot;b.-&quot;</span>)
+plt.plot([bst_n_estimators, bst_n_estimators], [<span style="color: #B452CD">0</span>, min_error], <span style="color: #CD5555">&quot;k--&quot;</span>)
+plt.plot([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">120</span>], [min_error, min_error], <span style="color: #CD5555">&quot;k--&quot;</span>)
+plt.plot(bst_n_estimators, min_error, <span style="color: #CD5555">&quot;ko&quot;</span>)
+plt.text(bst_n_estimators, min_error*<span style="color: #B452CD">1.2</span>, <span style="color: #CD5555">&quot;Minimum&quot;</span>, ha=<span style="color: #CD5555">&quot;center&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+plt.axis([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">120</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.01</span>])
+plt.xlabel(<span style="color: #CD5555">&quot;Number of trees&quot;</span>)
+plt.title(<span style="color: #CD5555">&quot;Validation error&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+
+plt.subplot(<span style="color: #B452CD">122</span>)
+plot_predictions([gbrt_best], X, y, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.8</span>])
+plt.title(<span style="color: #CD5555">&quot;Best model (%d trees)&quot;</span> % bst_n_estimators, fontsize=<span style="color: #B452CD">14</span>)
+
+save_fig(<span style="color: #CD5555">&quot;early_stopping_gbrt_plot&quot;</span>)
+plt.show()
+
+
+gbrt = GradientBoostingRegressor(max_depth=<span style="color: #B452CD">2</span>, warm_start=<span style="color: #658b00">True</span>, random_state=<span style="color: #B452CD">42</span>)
+
+min_val_error = <span style="color: #658b00">float</span>(<span style="color: #CD5555">&quot;inf&quot;</span>)
+error_going_up = <span style="color: #B452CD">0</span>
+<span style="color: #8B008B; font-weight: bold">for</span> n_estimators <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>, <span style="color: #B452CD">120</span>):
+    gbrt.n_estimators = n_estimators
+    gbrt.fit(X_train, y_train)
+    y_pred = gbrt.predict(X_val)
+    val_error = mean_squared_error(y_val, y_pred)
+    <span style="color: #8B008B; font-weight: bold">if</span> val_error &lt; min_val_error:
+        min_val_error = val_error
+        error_going_up = <span style="color: #B452CD">0</span>
+    <span style="color: #8B008B; font-weight: bold">else</span>:
+        error_going_up += <span style="color: #B452CD">1</span>
+        <span style="color: #8B008B; font-weight: bold">if</span> error_going_up == <span style="color: #B452CD">5</span>:
+            <span style="color: #8B008B; font-weight: bold">break</span>  <span style="color: #228B22"># early stopping</span>
+
+
+<span style="color: #8B008B; font-weight: bold">print</span>(gbrt.n_estimators)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Minimum validation MSE:&quot;</span>, min_val_error)
 </pre></div>
 </section>
 
