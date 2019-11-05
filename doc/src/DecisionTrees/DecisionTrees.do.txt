@@ -1148,7 +1148,7 @@ However, by aggregating many decision trees, using methods like bagging, random 
 
 
 !split
-===== From a Single Tree to Many Trees, that is meet the Jungle of Methods =====
+===== From a Single Tree to Many Trees, Meet the Jungle of Methods =====
 
 As stated above and seen in many of the examples discussed here about
 a single decision tree, we often end up overfitting our training
@@ -1157,7 +1157,7 @@ the variance of a statistical learning method?
 
 This leads us to a set of different methods that can combine different
 machine learning algorithms or just use one of them to construct forests and jungles of trees, homogeneous ones or heterogenous ones. These methods are recognized by different names which we will try to explain here. These are
-o Votign classifiers
+o Voting classifiers
 o Bagging and Pasting
 o Random forests
 o Boosting methods
@@ -1425,24 +1425,91 @@ this setting.
 ===== Random Forest Algorithm =====
 The algorithm described here can be applied to both classification and regression problems.
 
+We will grow of forest of say $M$ trees.
+o For $m=1:M$ we
+  * Draw a bootstrap sample of from the training data organized in our $\bm{X}$ matrix.
+  * We grow then a random forest tree $T_m$ based on the bootstrapped data by repeating the steps outlined till we reach the maximum node size is reached
+    o we select $m \le p$ varibales at random from the $p$ predictors/features
+    o pick the best split point among the $m$ features using either the CART algorithm or the ID3 for classification and create a new node
+    o split the node into daughter nodes
+o Output then the ensemble of trees $\{T_m\}_1^{M}$ and make predictions for either a regression type of problem or a classification type of problem. 
+
+
 !split
-===== A simple scikit-learn example =====
+===== Random Forests Compared with other Methods on the Cancer Data =====
 !bc pycod 
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+
+# Load the data
+cancer = load_breast_cancer()
+
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+# Logistic Regression
+logreg = LogisticRegression(solver='lbfgs')
+logreg.fit(X_train, y_train)
+print("Test set accuracy with Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
+# Support vector machine
+svm = SVC(gamma='auto', C=100)
+svm.fit(X_train, y_train)
+print("Test set accuracy with SVM: {:.2f}".format(svm.score(X_test,y_test)))
+# Decision Trees
+deep_tree_clf = DecisionTreeClassifier(max_depth=None)
+deep_tree_clf.fit(X_train, y_train)
+print("Test set accuracy with Decision Trees: {:.2f}".format(deep_tree_clf.score(X_test,y_test)))
+#now scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# Logistic Regression
+logreg.fit(X_train_scaled, y_train)
+print("Test set accuracy Logistic Regression with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Support Vector Machine
+svm.fit(X_train_scaled, y_train)
+print("Test set accuracy SVM with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Decision Trees
+deep_tree_clf.fit(X_train_scaled, y_train)
+print("Test set accuracy with Decision Trees and scaled data: {:.2f}".format(deep_tree_clf.score(X_test_scaled,y_test)))
+
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import cross_validate
 # Data set not specificied
-X = dataset.XXX
-Y = dataset.YYY
-#Instantiate the model with 100 trees and entropy as splitting criteria
-Random_Forest_model = RandomForestClassifier(n_estimators=100,criterion="entropy")
+#Instantiate the model with 500 trees and entropy as splitting criteria
+Random_Forest_model = RandomForestClassifier(n_estimators=500,criterion="entropy")
+Random_Forest_model.fit(X_train_scaled, y_train)
 #Cross validation
-accuracy = cross_validate(Random_Forest_model,X,Y,cv=10)['test_score']
+accuracy = cross_validate(Random_Forest_model,X_test_scaled,y_test,cv=10)['test_score']
+print(accuracy)
+print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(Random_Forest_model.score(X_test_scaled,y_test)))
+
+
+import scikitplot as skplt
+y_pred = Random_Forest_model.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+#<matplotlib.axes._subplots.AxesSubplot object at 0x7fe967d64490>
+plt.show()
+y_probas = Random_Forest_model.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
+
 !ec
 
 
 !split
-===== Then random forests =====
+===== Compare  Bagging on Trees with Random Forests  =====
 !bc pycod
 bag_clf = BaggingClassifier(
     DecisionTreeClassifier(splitter="random", max_leaf_nodes=16, random_state=42),
@@ -1575,7 +1642,6 @@ plt.show()
 
 !split
 ===== Gradient boosting: Basic Algorithm =====
-
 
 
 
