@@ -126,37 +126,36 @@ div { text-align: justify; text-justify: inter-word; }
                '___sec37'),
               ('Now Bagging', 2, None, '___sec38'),
               ('Making our own Bagging with Bootstrap', 2, None, '___sec39'),
-              ('Random forests', 2, None, '___sec40'),
-              ('Random Forest Algorithm', 2, None, '___sec41'),
+              ('Changing the Level of the Decision Tree', 2, None, '___sec40'),
+              ('Random forests', 2, None, '___sec41'),
+              ('Random Forest Algorithm', 2, None, '___sec42'),
               ('Random Forests Compared with other Methods on the Cancer Data',
                2,
                None,
-               '___sec42'),
+               '___sec43'),
               ('Compare  Bagging on Trees with Random Forests',
                2,
                None,
-               '___sec43'),
-              ('Bootstrap with Random Forests Instead of a Single Tree',
+               '___sec44'),
+              ('Bootstrap with Random Forests Instead of a Single Tree, own '
+               'Bagging',
                2,
                None,
-               '___sec44'),
-              ("Boosting, a Bird'e Eye", 2, None, '___sec45'),
+               '___sec45'),
+              ("Boosting, a Bird'e Eye", 2, None, '___sec46'),
               ('Adaptive boosting: AdaBoost, Basic Algorithm',
                2,
                None,
-               '___sec46'),
-              ('Basic Steps of AdaBoost', 2, None, '___sec47'),
-              ('Figure to Illustrate the Iterative Classification Process',
-               2,
-               None,
-               '___sec48'),
+               '___sec47'),
+              ('Basic Steps of AdaBoost', 2, None, '___sec48'),
               ('AdaBoost Examples', 2, None, '___sec49'),
               ('Gradient boosting: Basics', 2, None, '___sec50'),
               ('Gradient Boosting, algorithm', 2, None, '___sec51'),
               ('Gradient Boosting, Examples', 2, None, '___sec52'),
               ('Gradient Boots with Early Stopping', 2, None, '___sec53'),
               ('XGBoost: Extreme Gradient Boosting', 2, None, '___sec54'),
-              ('Xgboost on the Cancer Data', 2, None, '___sec55')]}
+              ('Regression Case', 2, None, '___sec55'),
+              ('Xgboost on the Cancer Data', 2, None, '___sec56')]}
 end of tocinfo -->
 
 <body>
@@ -1781,7 +1780,66 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec40">Random forests </h2>
+<h2 id="___sec40">Changing the Level of the Decision Tree </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.pipeline</span> <span style="color: #008000; font-weight: bold">import</span> make_pipeline
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.utils</span> <span style="color: #008000; font-weight: bold">import</span> resample
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> DecisionTreeRegressor
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+n_boostraps <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+maxdepth <span style="color: #666666">=</span> <span style="color: #666666">8</span>
+
+<span style="color: #408080; font-style: italic"># Make data set.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
+error <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+variance <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+polydegree <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(x, y, test_size<span style="color: #666666">=0.2</span>)
+
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
+X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,maxdepth):
+    model <span style="color: #666666">=</span> DecisionTreeRegressor(max_depth<span style="color: #666666">=</span>degree) 
+    y_pred <span style="color: #666666">=</span> np<span style="color: #666666">.</span>empty((y_test<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>], n_boostraps))
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_boostraps):
+        x_, y_ <span style="color: #666666">=</span> resample(X_train_scaled, y_train)
+        model<span style="color: #666666">.</span>fit(x_, y_)
+        y_pred[:, i] <span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(X_test_scaled)<span style="color: #408080; font-style: italic">#.ravel()</span>
+
+    polydegree[degree] <span style="color: #666666">=</span> degree
+    error[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_test <span style="color: #666666">-</span> y_pred)<span style="color: #666666">**2</span>, axis<span style="color: #666666">=1</span>, keepdims<span style="color: #666666">=</span><span style="color: #008000">True</span>) )
+    bias[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( (y_test <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_pred, axis<span style="color: #666666">=1</span>, keepdims<span style="color: #666666">=</span><span style="color: #008000">True</span>))<span style="color: #666666">**2</span> )
+    variance[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>var(y_pred, axis<span style="color: #666666">=1</span>, keepdims<span style="color: #666666">=</span><span style="color: #008000">True</span>) )
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Polynomial degree:&#39;</span>, degree)
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Error:&#39;</span>, error[degree])
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Bias^2:&#39;</span>, bias[degree])
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Var:&#39;</span>, variance[degree])
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;{} &gt;= {} + {} = {}&#39;</span><span style="color: #666666">.</span>format(error[degree], bias[degree], variance[degree], bias[degree]<span style="color: #666666">+</span>variance[degree]))
+
+plt<span style="color: #666666">.</span>xlim(<span style="color: #666666">1</span>,maxdepth)
+plt<span style="color: #666666">.</span>plot(polydegree, error, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Error&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, bias, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;bias&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, variance, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Variance&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec41">Random forests </h2>
 
 <p>
 Random forests provide an improvement over bagged trees by way of a
@@ -1825,7 +1883,7 @@ this setting.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec41">Random Forest Algorithm </h2>
+<h2 id="___sec42">Random Forest Algorithm </h2>
 The algorithm described here can be applied to both classification and regression problems.
 
 <p>
@@ -1851,7 +1909,7 @@ We will grow of forest of say \( M \) trees.
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec42">Random Forests Compared with other Methods on the Cancer Data </h2>
+<h2 id="___sec43">Random Forests Compared with other Methods on the Cancer Data </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1924,7 +1982,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec43">Compare  Bagging on Trees with Random Forests  </h2>
+<h2 id="___sec44">Compare  Bagging on Trees with Random Forests  </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1946,7 +2004,7 @@ np<span style="color: #666666">.</span>sum(y_pred <span style="color: #666666">=
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec44">Bootstrap with Random Forests Instead of a Single Tree </h2>
+<h2 id="___sec45">Bootstrap with Random Forests Instead of a Single Tree, own Bagging </h2>
 
 <p>
 
@@ -1960,7 +2018,7 @@ np<span style="color: #666666">.</span>sum(y_pred <span style="color: #666666">=
 
 np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">2018</span>)
 
-n <span style="color: #666666">=</span> <span style="color: #666666">40</span>
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
 n_boostraps <span style="color: #666666">=</span> <span style="color: #666666">100</span>
 maxdegree <span style="color: #666666">=</span> <span style="color: #666666">14</span>
 
@@ -1984,7 +2042,7 @@ X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #6
     y_pred <span style="color: #666666">=</span> np<span style="color: #666666">.</span>empty((y_test<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>], n_boostraps))
     <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_boostraps):
         x_, y_ <span style="color: #666666">=</span> resample(X_train_scaled, y_train)
-        model<span style="color: #666666">.</span>fit(x_, y_)
+        model<span style="color: #666666">.</span>fit(x_, y_<span style="color: #666666">.</span>ravel())
         y_pred[:, i] <span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(X_test_scaled)<span style="color: #666666">.</span>ravel()
 
     polydegree[degree] <span style="color: #666666">=</span> degree
@@ -2006,7 +2064,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec45">Boosting, a Bird'e Eye </h2>
+<h2 id="___sec46">Boosting, a Bird'e Eye </h2>
 
 <p>
 The basic idea is to combine weak classifiers in order to create a good
@@ -2023,7 +2081,7 @@ them with a factor.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec46">Adaptive boosting: AdaBoost, Basic Algorithm </h2>
+<h2 id="___sec47">Adaptive boosting: AdaBoost, Basic Algorithm </h2>
 
 <p>
 The algorithm here is rather straightforward. Assume that our weak
@@ -2045,7 +2103,7 @@ where the function \( I() \) is one if we misclassify and zero if we classify co
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec47">Basic Steps of AdaBoost </h2>
+<h2 id="___sec48">Basic Steps of AdaBoost </h2>
 
 <p>
 With the above definitions we are now ready to set up the algorithm for AdaBoost.
@@ -2065,7 +2123,7 @@ $$
 <li> Then we start looping over all attempts at classifying, namely we start an iterative process for \( m=1:M \), where \( M \) is the final number of classifications. Our given classifier could for example be a plain decision tree.
 
 <ol type="a"></li>
- <li> Fit thus a given classifier to the training using the weights \( w_i \).</li>
+ <li> Fit then a given classifier to the training using the weights \( w_i \).</li>
  <li> Compute then \( \mathrm{err} \) and figure out which events are classified properly and which are classified wrongly.</li>
  <li> Define a quantity $\alpha_{m} = \log{(1-\mathrm{err})/\mathrm{err}}</li>
  <li> Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(\boldsymbol{X}_{i*})}.</li>
@@ -2081,11 +2139,6 @@ classified properly. As this proceeds, the observations which were
 difficult to classifiy correctly are given a larger influence. Each
 new classification step \( m \) is then forced to concentrate on those
 observations that are missed in the previous iterations.
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec48">Figure to Illustrate the Iterative Classification Process </h2>
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -2349,7 +2402,62 @@ It is now the algorithm which wins essentially all ML competitions!!!
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec55">Xgboost on the Cancer Data </h2>
+<h2 id="___sec55">Regression Case </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">xgboost</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">xgb</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">scikitplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skplt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.metrics</span> <span style="color: #008000; font-weight: bold">import</span> mean_squared_error
+
+n <span style="color: #666666">=</span> <span style="color: #666666">40</span>
+n_boostraps <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+maxdegree <span style="color: #666666">=</span> <span style="color: #666666">8</span>
+
+<span style="color: #408080; font-style: italic"># Make data set.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
+
+error <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+variance <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+polydegree <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(x, y, test_size<span style="color: #666666">=0.2</span>)
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
+X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(maxdegree):
+    model <span style="color: #666666">=</span>  xgb<span style="color: #666666">.</span>XGBRegressor(objective <span style="color: #666666">=</span><span style="color: #BA2121">&#39;reg:linear&#39;</span>, colsample_bytree <span style="color: #666666">=</span> <span style="color: #666666">0.3</span>, learning_rate <span style="color: #666666">=</span> <span style="color: #666666">0.1</span>,
+                max_depth <span style="color: #666666">=</span> maxdegree, alpha <span style="color: #666666">=</span> <span style="color: #666666">10</span>, n_estimators <span style="color: #666666">=</span> <span style="color: #666666">10</span>)
+    model<span style="color: #666666">.</span>fit(X_train_scaled,y_train)
+    y_pred <span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(X_test_scaled)
+    polydegree[degree] <span style="color: #666666">=</span> degree
+    error[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_test <span style="color: #666666">-</span> y_pred)<span style="color: #666666">**2</span>) )
+    bias[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( (y_test <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_pred))<span style="color: #666666">**2</span> )
+    variance[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>var(y_pred) )
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Max depth:&#39;</span>, degree)
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Error:&#39;</span>, error[degree])
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Bias^2:&#39;</span>, bias[degree])
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Var:&#39;</span>, variance[degree])
+    <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;{} &gt;= {} + {} = {}&#39;</span><span style="color: #666666">.</span>format(error[degree], bias[degree], variance[degree], bias[degree]<span style="color: #666666">+</span>variance[degree]))
+
+plt<span style="color: #666666">.</span>plot(polydegree, error, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Error&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, bias, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;bias&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, variance, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Variance&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec56">Xgboost on the Cancer Data </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
