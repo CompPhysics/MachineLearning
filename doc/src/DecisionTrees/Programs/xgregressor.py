@@ -6,8 +6,7 @@ from sklearn.preprocessing import StandardScaler
 import scikitplot as skplt
 from sklearn.metrics import mean_squared_error
 
-n = 40
-n_boostraps = 100
+n = 500
 maxdegree = 8
 
 # Make data set.
@@ -25,8 +24,8 @@ X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 for degree in range(maxdegree):
-    model =  xgb.XGBRegressor(objective ='reg:linear', colsample_bytree = 0.3, learning_rate = 0.1,
-                max_depth = maxdegree, alpha = 10, n_estimators = 10)
+    model =  xgb.XGBRegressor(objective ='reg:squarederror', colsample_bytree = 0.3, learning_rate = 0.1,
+                max_depth = degree, alpha = 10, n_estimators = 10)
     model.fit(X_train_scaled,y_train)
     y_pred = model.predict(X_test_scaled)
     polydegree[degree] = degree
@@ -39,6 +38,7 @@ for degree in range(maxdegree):
     print('Var:', variance[degree])
     print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
+plt.xlim(1,maxdegree-1)
 plt.plot(polydegree, error, label='Error')
 plt.plot(polydegree, bias, label='bias')
 plt.plot(polydegree, variance, label='Variance')
