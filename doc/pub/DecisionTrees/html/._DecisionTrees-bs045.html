@@ -104,16 +104,16 @@ Automatically generated HTML file from DocOnce source
               ('Changing the Level of the Decision Tree', 2, None, '___sec40'),
               ('Random forests', 2, None, '___sec41'),
               ('Random Forest Algorithm', 2, None, '___sec42'),
-              ('Random Forests Compared with other Methods on the Cancer Data',
+              ('Bootstrap with Random Forests Instead of a Single Tree, own '
+               'Bagging',
                2,
                None,
                '___sec43'),
-              ('Compare  Bagging on Trees with Random Forests',
+              ('Random Forests Compared with other Methods on the Cancer Data',
                2,
                None,
                '___sec44'),
-              ('Bootstrap with Random Forests Instead of a Single Tree, own '
-               'Bagging',
+              ('Compare  Bagging on Trees with Random Forests',
                2,
                None,
                '___sec45'),
@@ -211,9 +211,9 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._DecisionTrees-bs041.html#___sec40" style="font-size: 80%;">Changing the Level of the Decision Tree</a></li>
      <!-- navigation toc: --> <li><a href="._DecisionTrees-bs042.html#___sec41" style="font-size: 80%;">Random forests</a></li>
      <!-- navigation toc: --> <li><a href="._DecisionTrees-bs043.html#___sec42" style="font-size: 80%;">Random Forest Algorithm</a></li>
-     <!-- navigation toc: --> <li><a href="._DecisionTrees-bs044.html#___sec43" style="font-size: 80%;">Random Forests Compared with other Methods on the Cancer Data</a></li>
-     <!-- navigation toc: --> <li><a href="#___sec44" style="font-size: 80%;">Compare  Bagging on Trees with Random Forests</a></li>
-     <!-- navigation toc: --> <li><a href="._DecisionTrees-bs046.html#___sec45" style="font-size: 80%;">Bootstrap with Random Forests Instead of a Single Tree, own Bagging</a></li>
+     <!-- navigation toc: --> <li><a href="._DecisionTrees-bs044.html#___sec43" style="font-size: 80%;">Bootstrap with Random Forests Instead of a Single Tree, own Bagging</a></li>
+     <!-- navigation toc: --> <li><a href="#___sec44" style="font-size: 80%;">Random Forests Compared with other Methods on the Cancer Data</a></li>
+     <!-- navigation toc: --> <li><a href="._DecisionTrees-bs046.html#___sec45" style="font-size: 80%;">Compare  Bagging on Trees with Random Forests</a></li>
      <!-- navigation toc: --> <li><a href="._DecisionTrees-bs047.html#___sec46" style="font-size: 80%;">Boosting, a Bird'e Eye</a></li>
      <!-- navigation toc: --> <li><a href="._DecisionTrees-bs048.html#___sec47" style="font-size: 80%;">Adaptive boosting: AdaBoost, Basic Algorithm</a></li>
      <!-- navigation toc: --> <li><a href="._DecisionTrees-bs049.html#___sec48" style="font-size: 80%;">Basic Steps of AdaBoost</a></li>
@@ -240,24 +240,75 @@ MathJax.Hub.Config({
 <a name="part0045"></a>
 <!-- !split -->
 
-<h2 id="___sec44" class="anchor">Compare  Bagging on Trees with Random Forests  </h2>
+<h2 id="___sec44" class="anchor">Random Forests Compared with other Methods on the Cancer Data </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>bag_clf <span style="color: #666666">=</span> BaggingClassifier(
-    DecisionTreeClassifier(splitter<span style="color: #666666">=</span><span style="color: #BA2121">&quot;random&quot;</span>, max_leaf_nodes<span style="color: #666666">=16</span>, random_state<span style="color: #666666">=42</span>),
-    n_estimators<span style="color: #666666">=500</span>, max_samples<span style="color: #666666">=1.0</span>, bootstrap<span style="color: #666666">=</span><span style="color: #008000">True</span>, n_jobs<span style="color: #666666">=-1</span>, random_state<span style="color: #666666">=42</span>)
-</pre></div>
-<p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span>  train_test_split 
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.datasets</span> <span style="color: #008000; font-weight: bold">import</span> load_breast_cancer
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.svm</span> <span style="color: #008000; font-weight: bold">import</span> SVC
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LogisticRegression
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> DecisionTreeClassifier
 
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>bag_clf<span style="color: #666666">.</span>fit(X_train, y_train)
-y_pred <span style="color: #666666">=</span> bag_clf<span style="color: #666666">.</span>predict(X_test)
+<span style="color: #408080; font-style: italic"># Load the data</span>
+cancer <span style="color: #666666">=</span> load_breast_cancer()
+
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(cancer<span style="color: #666666">.</span>data,cancer<span style="color: #666666">.</span>target,random_state<span style="color: #666666">=0</span>)
+<span style="color: #008000; font-weight: bold">print</span>(X_train<span style="color: #666666">.</span>shape)
+<span style="color: #008000; font-weight: bold">print</span>(X_test<span style="color: #666666">.</span>shape)
+<span style="color: #408080; font-style: italic"># Logistic Regression</span>
+logreg <span style="color: #666666">=</span> LogisticRegression(solver<span style="color: #666666">=</span><span style="color: #BA2121">&#39;lbfgs&#39;</span>)
+logreg<span style="color: #666666">.</span>fit(X_train, y_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test set accuracy with Logistic Regression: {:.2f}&quot;</span><span style="color: #666666">.</span>format(logreg<span style="color: #666666">.</span>score(X_test,y_test)))
+<span style="color: #408080; font-style: italic"># Support vector machine</span>
+svm <span style="color: #666666">=</span> SVC(gamma<span style="color: #666666">=</span><span style="color: #BA2121">&#39;auto&#39;</span>, C<span style="color: #666666">=100</span>)
+svm<span style="color: #666666">.</span>fit(X_train, y_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test set accuracy with SVM: {:.2f}&quot;</span><span style="color: #666666">.</span>format(svm<span style="color: #666666">.</span>score(X_test,y_test)))
+<span style="color: #408080; font-style: italic"># Decision Trees</span>
+deep_tree_clf <span style="color: #666666">=</span> DecisionTreeClassifier(max_depth<span style="color: #666666">=</span><span style="color: #008000">None</span>)
+deep_tree_clf<span style="color: #666666">.</span>fit(X_train, y_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test set accuracy with Decision Trees: {:.2f}&quot;</span><span style="color: #666666">.</span>format(deep_tree_clf<span style="color: #666666">.</span>score(X_test,y_test)))
+<span style="color: #408080; font-style: italic">#now scale the data</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
+X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
+<span style="color: #408080; font-style: italic"># Logistic Regression</span>
+logreg<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test set accuracy Logistic Regression with scaled data: {:.2f}&quot;</span><span style="color: #666666">.</span>format(logreg<span style="color: #666666">.</span>score(X_test_scaled,y_test)))
+<span style="color: #408080; font-style: italic"># Support Vector Machine</span>
+svm<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test set accuracy SVM with scaled data: {:.2f}&quot;</span><span style="color: #666666">.</span>format(logreg<span style="color: #666666">.</span>score(X_test_scaled,y_test)))
+<span style="color: #408080; font-style: italic"># Decision Trees</span>
+deep_tree_clf<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test set accuracy with Decision Trees and scaled data: {:.2f}&quot;</span><span style="color: #666666">.</span>format(deep_tree_clf<span style="color: #666666">.</span>score(X_test_scaled,y_test)))
+
+
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.ensemble</span> <span style="color: #008000; font-weight: bold">import</span> RandomForestClassifier
-rnd_clf <span style="color: #666666">=</span> RandomForestClassifier(n_estimators<span style="color: #666666">=500</span>, max_leaf_nodes<span style="color: #666666">=16</span>, n_jobs<span style="color: #666666">=-1</span>, random_state<span style="color: #666666">=42</span>)
-rnd_clf<span style="color: #666666">.</span>fit(X_train, y_train)
-y_pred_rf <span style="color: #666666">=</span> rnd_clf<span style="color: #666666">.</span>predict(X_test)
-np<span style="color: #666666">.</span>sum(y_pred <span style="color: #666666">==</span> y_pred_rf) <span style="color: #666666">/</span> <span style="color: #008000">len</span>(y_pred) 
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> LabelEncoder
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> cross_validate
+<span style="color: #408080; font-style: italic"># Data set not specificied</span>
+<span style="color: #408080; font-style: italic">#Instantiate the model with 500 trees and entropy as splitting criteria</span>
+Random_Forest_model <span style="color: #666666">=</span> RandomForestClassifier(n_estimators<span style="color: #666666">=500</span>,criterion<span style="color: #666666">=</span><span style="color: #BA2121">&quot;entropy&quot;</span>)
+Random_Forest_model<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
+<span style="color: #408080; font-style: italic">#Cross validation</span>
+accuracy <span style="color: #666666">=</span> cross_validate(Random_Forest_model,X_test_scaled,y_test,cv<span style="color: #666666">=10</span>)[<span style="color: #BA2121">&#39;test_score&#39;</span>]
+<span style="color: #008000; font-weight: bold">print</span>(accuracy)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Test set accuracy with Random Forests and scaled data: {:.2f}&quot;</span><span style="color: #666666">.</span>format(Random_Forest_model<span style="color: #666666">.</span>score(X_test_scaled,y_test)))
+
+
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">scikitplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skplt</span>
+y_pred <span style="color: #666666">=</span> Random_Forest_model<span style="color: #666666">.</span>predict(X_test_scaled)
+skplt<span style="color: #666666">.</span>metrics<span style="color: #666666">.</span>plot_confusion_matrix(y_test, y_pred, normalize<span style="color: #666666">=</span><span style="color: #008000">True</span>)
+plt<span style="color: #666666">.</span>show()
+y_probas <span style="color: #666666">=</span> Random_Forest_model<span style="color: #666666">.</span>predict_proba(X_test_scaled)
+skplt<span style="color: #666666">.</span>metrics<span style="color: #666666">.</span>plot_roc(y_test, y_probas)
+plt<span style="color: #666666">.</span>show()
+skplt<span style="color: #666666">.</span>metrics<span style="color: #666666">.</span>plot_cumulative_gain(y_test, y_probas)
+plt<span style="color: #666666">.</span>show()
 </pre></div>
 <p>
 <p>
