@@ -1766,7 +1766,7 @@ which leads to
 where we have redefined the error as 
 !bt
 \[
-\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(\bm{X}_{i*})}{\sum_{i=0}^{n-1}w_i^m},
+\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i)}{\sum_{i=0}^{n-1}w_i^m},
 \]
 !et
 which leads to an update of
@@ -1809,13 +1809,13 @@ o We start by initializing all weights to $w_i = 1/n$, with $i=0,1,2,\dots n-1$.
 o We rewrite the misclassification error as 
 !bt
 \[
-\mathrm{err}=\frac{\sum_{i=0}^{n-1}w_iI(y_i\ne G(x_i})}{\sum_{i=0}^{n-1}w_i},
+\mathrm{\overline{err}}_m=\frac{\sum_{i=0}^{n-1}w_i^m I(y_i\ne G(x_i))}{\sum_{i=0}^{n-1}w_i},
 \]
 !et
 o Then we start looping over all attempts at classifying, namely we start an iterative process for $m=1:M$, where $M$ is the final number of classifications. Our given classifier could for example be a plain decision tree.
   o Fit then a given classifier to the training using the weights $w_i$.
   o Compute then $\mathrm{err}$ and figure out which events are classified properly and which are classified wrongly.
-  o Define a quantity $\alpha_{m} = \log{(1-\mathrm{err})/\mathrm{err}}$
+  o Define a quantity $\alpha_{m} = \log{(1-\mathrm{\overline{err}}_m)/\mathrm{\overline{err}}_m}$
   o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)}$.
 o Compute the new classifier $G(x)= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(x_i)$.
 
@@ -1870,6 +1870,8 @@ In order to understand the method, let us illustrate its basics by
 bringing back the essential steps in linear regression, where our cost
 function was the least squares function.
 
+See discussion during lecture November 8.
+
 !split
 ===== Gradient Boosting, algorithm =====
 
@@ -1883,7 +1885,7 @@ C(\bm{y},\bm{f})=\sum_{i=0}^{n-1}(y_i-f(x_i))^2.
 The way we proceed in an iterative fashion is to
 o Initialize our estimate $f_0(x)$.
 o For $m=1:M$, we
-  o compute the negative gradient vector $\bm{u}_m = -\partial C(\bm{y},\bm{f})/\partial \bm{f}(x)$ at $f(x) = f_{m-1}(x);
+  o compute the negative gradient vector $\bm{u}_m = -\partial C(\bm{y},\bm{f})/\partial \bm{f}(x)$ at $f(x) = f_{m-1}(x)$;
   o fit the so-called base-learner to the negative gradient $h_m(u_m,x)$;
   o update the estimate $f_m(x) = f_{m-1}(x)+\nu h_m(u_m,x)$;
 o The final estimate is then $f_M(x) = \sum_{m=1}^M\nu h_m(u_m,x)$.
@@ -1892,91 +1894,96 @@ o The final estimate is then $f_M(x) = \sum_{m=1}^M\nu h_m(u_m,x)$.
 
 
 !split
-===== Gradient Boosting, Examples =====
+===== Gradient Boosting, Examples of Regression =====
 !bc pycod
-np.random.seed(42)
-X = np.random.rand(100, 1) - 0.5
-y = 3*X[:, 0]**2 + 0.05 * np.random.randn(100)
-
-from sklearn.tree import DecisionTreeRegressor
-
-tree_reg1 = DecisionTreeRegressor(max_depth=2, random_state=42)
-tree_reg1.fit(X, y)
-
-y2 = y - tree_reg1.predict(X)
-tree_reg2 = DecisionTreeRegressor(max_depth=2, random_state=42)
-tree_reg2.fit(X, y2)
-
-y3 = y2 - tree_reg2.predict(X)
-tree_reg3 = DecisionTreeRegressor(max_depth=2, random_state=42)
-tree_reg3.fit(X, y3)
-
-X_new = np.array([[0.8]])
-y_pred = sum(tree.predict(X_new) for tree in (tree_reg1, tree_reg2, tree_reg3))
-
-def plot_predictions(regressors, X, y, axes, label=None, style="r-", data_style="b.", data_label=None):
-    x1 = np.linspace(axes[0], axes[1], 500)
-    y_pred = sum(regressor.predict(x1.reshape(-1, 1)) for regressor in regressors)
-    plt.plot(X[:, 0], y, data_style, label=data_label)
-    plt.plot(x1, y_pred, style, linewidth=2, label=label)
-    if label or data_label:
-        plt.legend(loc="upper center", fontsize=16)
-    plt.axis(axes)
-
-plt.figure(figsize=(11,11))
-
-plt.subplot(321)
-plot_predictions([tree_reg1], X, y, axes=[-0.5, 0.5, -0.1, 0.8], label="$h_1(x_1)$", style="g-", data_label="Training set")
-plt.ylabel("$y$", fontsize=16, rotation=0)
-plt.title("Residuals and tree predictions", fontsize=16)
-
-plt.subplot(322)
-plot_predictions([tree_reg1], X, y, axes=[-0.5, 0.5, -0.1, 0.8], label="$h(x_1) = h_1(x_1)$", data_label="Training set")
-plt.ylabel("$y$", fontsize=16, rotation=0)
-plt.title("Ensemble predictions", fontsize=16)
-
-plt.subplot(323)
-plot_predictions([tree_reg2], X, y2, axes=[-0.5, 0.5, -0.5, 0.5], label="$h_2(x_1)$", style="g-", data_style="k+", data_label="Residuals")
-plt.ylabel("$y - h_1(x_1)$", fontsize=16)
-
-plt.subplot(324)
-plot_predictions([tree_reg1, tree_reg2], X, y, axes=[-0.5, 0.5, -0.1, 0.8], label="$h(x_1) = h_1(x_1) + h_2(x_1)$")
-plt.ylabel("$y$", fontsize=16, rotation=0)
-
-plt.subplot(325)
-plot_predictions([tree_reg3], X, y3, axes=[-0.5, 0.5, -0.5, 0.5], label="$h_3(x_1)$", style="g-", data_style="k+")
-plt.ylabel("$y - h_1(x_1) - h_2(x_1)$", fontsize=16)
-plt.xlabel("$x_1$", fontsize=16)
-
-plt.subplot(326)
-plot_predictions([tree_reg1, tree_reg2, tree_reg3], X, y, axes=[-0.5, 0.5, -0.1, 0.8], label="$h(x_1) = h_1(x_1) + h_2(x_1) + h_3(x_1)$")
-plt.xlabel("$x_1$", fontsize=16)
-plt.ylabel("$y$", fontsize=16, rotation=0)
-
-save_fig("gradient_boosting_plot")
-plt.show()
-
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import StandardScaler
+import scikitplot as skplt
+from sklearn.metrics import mean_squared_error
 
-gbrt = GradientBoostingRegressor(max_depth=2, n_estimators=3, learning_rate=1.0, random_state=42)
-gbrt.fit(X, y)
+n = 100
+maxdegree = 6
 
-gbrt_slow = GradientBoostingRegressor(max_depth=2, n_estimators=200, learning_rate=0.1, random_state=42)
-gbrt_slow.fit(X, y)
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
 
-plt.figure(figsize=(11,4))
+error = np.zeros(maxdegree)
+bias = np.zeros(maxdegree)
+variance = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-plt.subplot(121)
-plot_predictions([gbrt], X, y, axes=[-0.5, 0.5, -0.1, 0.8], label="Ensemble predictions")
-plt.title("learning_rate={}, n_estimators={}".format(gbrt.learning_rate, gbrt.n_estimators), fontsize=14)
+for degree in range(1,maxdegree):
+    model = GradientBoostingRegressor(max_depth=degree, n_estimators=100, learning_rate=1.0)  
+    model.fit(X_train_scaled,y_train)
+    y_pred = model.predict(X_test_scaled)
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**2) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred))**2 )
+    variance[degree] = np.mean( np.var(y_pred) )
+    print('Max depth:', degree)
+    print('Error:', error[degree])
+    print('Bias^2:', bias[degree])
+    print('Var:', variance[degree])
+    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
-plt.subplot(122)
-plot_predictions([gbrt_slow], X, y, axes=[-0.5, 0.5, -0.1, 0.8])
-plt.title("learning_rate={}, n_estimators={}".format(gbrt_slow.learning_rate, gbrt_slow.n_estimators), fontsize=14)
-
-save_fig("gbrt_learning_rate_plot")
+plt.xlim(1,maxdegree-1)
+plt.plot(polydegree, error, label='Error')
+plt.plot(polydegree, bias, label='bias')
+plt.plot(polydegree, variance, label='Variance')
+plt.legend()
 plt.show()
+!ec
 
+
+!split
+===== Gradient Boosting, Examples of Classification =====
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+import scikitplot as skplt
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import cross_validate
+
+# Load the data
+cancer = load_breast_cancer()
+
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+#now scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+gd_clf = GradientBoostingClassifier(max_depth=3, n_estimators=100, learning_rate=1.0)  
+gd_clf.fit(X_train_scaled, y_train)
+#Cross validation
+accuracy = cross_validate(gd_clf,X_test_scaled,y_test,cv=10)['test_score']
+print(accuracy)
+print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(gd_clf.score(X_test_scaled,y_test)))
+
+import scikitplot as skplt
+y_pred = gd_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = gd_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
 !ec
 
 
@@ -2027,8 +2034,8 @@ X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 for degree in range(maxdegree):
-    model =  xgb.XGBRegressor(objective ='reg:squarederror', colsample_bytree = 0.3, learning_rate = 0.1,
-                max_depth = degree, alpha = 10, n_estimators = 10)
+    model =  xgb.XGBRegressor(objective ='reg:squarederror', colsaobjective ='reg:squarederror', colsample_bytree = 0.3, learning_rate = 0.1,max_depth = degree, alpha = 10, n_estimators = 200)
+
     model.fit(X_train_scaled,y_train)
     y_pred = model.predict(X_test_scaled)
     polydegree[degree] = degree
@@ -2048,14 +2055,12 @@ plt.plot(polydegree, variance, label='Variance')
 plt.legend()
 plt.show()
 
-
 !ec
-
-
 
 !split
 ===== Xgboost on the Cancer Data =====
 !bc pycod
+
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import  train_test_split 
@@ -2079,10 +2084,28 @@ X_test_scaled = scaler.transform(X_test)
 
 xg_clf = xgb.XGBClassifier()
 xg_clf.fit(X_train_scaled,y_train)
+
+y_test = xg_clf.predict(X_test_scaled)
+
+print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(xg_clf.score(X_test_scaled,y_test)))
+
+import scikitplot as skplt
+y_pred = xg_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = xg_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
+
+
 xgb.plot_tree(xg_clf,num_trees=0)
 plt.rcParams['figure.figsize'] = [50, 10]
 plt.show()
+
 xgb.plot_importance(xg_clf)
 plt.rcParams['figure.figsize'] = [5, 5]
 plt.show()
+
 !ec

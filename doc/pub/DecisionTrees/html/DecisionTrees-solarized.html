@@ -158,10 +158,17 @@ div { text-align: justify; text-justify: inter-word; }
               ('AdaBoost Examples', 2, None, '___sec52'),
               ('Gradient boosting: Basics', 2, None, '___sec53'),
               ('Gradient Boosting, algorithm', 2, None, '___sec54'),
-              ('Gradient Boosting, Examples', 2, None, '___sec55'),
-              ('XGBoost: Extreme Gradient Boosting', 2, None, '___sec56'),
-              ('Regression Case', 2, None, '___sec57'),
-              ('Xgboost on the Cancer Data', 2, None, '___sec58')]}
+              ('Gradient Boosting, Examples of Regression',
+               2,
+               None,
+               '___sec55'),
+              ('Gradient Boosting, Examples of Classification',
+               2,
+               None,
+               '___sec56'),
+              ('XGBoost: Extreme Gradient Boosting', 2, None, '___sec57'),
+              ('Regression Case', 2, None, '___sec58'),
+              ('Xgboost on the Cancer Data', 2, None, '___sec59')]}
 end of tocinfo -->
 
 <body>
@@ -2120,7 +2127,7 @@ $$
 
 where we have redefined the error as 
 $$
-\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(\boldsymbol{X}_{i*})}{\sum_{i=0}^{n-1}w_i^m},
+\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i)}{\sum_{i=0}^{n-1}w_i^m},
 $$
 
 which leads to an update of
@@ -2169,7 +2176,7 @@ The basic idea is to set up weights which will be used to scale the correctly cl
 </ol>
 
 $$
-\mathrm{err}=\frac{\sum_{i=0}^{n-1}w_iI(y_i\ne G(x_i})}{\sum_{i=0}^{n-1}w_i},
+\mathrm{\overline{err}}_m=\frac{\sum_{i=0}^{n-1}w_i^m I(y_i\ne G(x_i))}{\sum_{i=0}^{n-1}w_i},
 $$
 
 
@@ -2179,7 +2186,7 @@ $$
 <ol type="a"></li>
  <li> Fit then a given classifier to the training using the weights \( w_i \).</li>
  <li> Compute then \( \mathrm{err} \) and figure out which events are classified properly and which are classified wrongly.</li>
- <li> Define a quantity \( \alpha_{m} = \log{(1-\mathrm{err})/\mathrm{err}} \)</li>
+ <li> Define a quantity \( \alpha_{m} = \log{(1-\mathrm{\overline{err}}_m)/\mathrm{\overline{err}}_m} \)</li>
  <li> Set the new weights to \( w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)} \).</li>
 </ol>
 
@@ -2243,6 +2250,9 @@ bringing back the essential steps in linear regression, where our cost
 function was the least squares function.
 
 <p>
+See discussion during lecture November 8.
+
+<p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
 <h2 id="___sec54">Gradient Boosting, algorithm </h2>
@@ -2261,7 +2271,7 @@ The way we proceed in an iterative fashion is to
 <li> For \( m=1:M \), we
 
 <ol type="a"></li>
- <li> compute the negative gradient vector \( \boldsymbol{u}_m = -\partial C(\boldsymbol{y},\boldsymbol{f})/\partial \boldsymbol{f}(x) \) at $f(x) = f_{m-1}(x);</li>
+ <li> compute the negative gradient vector \( \boldsymbol{u}_m = -\partial C(\boldsymbol{y},\boldsymbol{f})/\partial \boldsymbol{f}(x) \) at \( f(x) = f_{m-1}(x) \);</li>
  <li> fit the so-called base-learner to the negative gradient \( h_m(u_m,x) \);</li>
  <li> update the estimate \( f_m(x) = f_{m-1}(x)+\nu h_m(u_m,x) \);</li>
 </ol>
@@ -2271,97 +2281,105 @@ The way we proceed in an iterative fashion is to
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec55">Gradient Boosting, Examples </h2>
+<h2 id="___sec55">Gradient Boosting, Examples of Regression </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>np.random.seed(<span style="color: #B452CD">42</span>)
-X = np.random.rand(<span style="color: #B452CD">100</span>, <span style="color: #B452CD">1</span>) - <span style="color: #B452CD">0.5</span>
-y = <span style="color: #B452CD">3</span>*X[:, <span style="color: #B452CD">0</span>]**<span style="color: #B452CD">2</span> + <span style="color: #B452CD">0.05</span> * np.random.randn(<span style="color: #B452CD">100</span>)
-
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.tree</span> <span style="color: #8B008B; font-weight: bold">import</span> DecisionTreeRegressor
-
-tree_reg1 = DecisionTreeRegressor(max_depth=<span style="color: #B452CD">2</span>, random_state=<span style="color: #B452CD">42</span>)
-tree_reg1.fit(X, y)
-
-y2 = y - tree_reg1.predict(X)
-tree_reg2 = DecisionTreeRegressor(max_depth=<span style="color: #B452CD">2</span>, random_state=<span style="color: #B452CD">42</span>)
-tree_reg2.fit(X, y2)
-
-y3 = y2 - tree_reg2.predict(X)
-tree_reg3 = DecisionTreeRegressor(max_depth=<span style="color: #B452CD">2</span>, random_state=<span style="color: #B452CD">42</span>)
-tree_reg3.fit(X, y3)
-
-X_new = np.array([[<span style="color: #B452CD">0.8</span>]])
-y_pred = <span style="color: #658b00">sum</span>(tree.predict(X_new) <span style="color: #8B008B; font-weight: bold">for</span> tree <span style="color: #8B008B">in</span> (tree_reg1, tree_reg2, tree_reg3))
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">plot_predictions</span>(regressors, X, y, axes, label=<span style="color: #658b00">None</span>, style=<span style="color: #CD5555">&quot;r-&quot;</span>, data_style=<span style="color: #CD5555">&quot;b.&quot;</span>, data_label=<span style="color: #658b00">None</span>):
-    x1 = np.linspace(axes[<span style="color: #B452CD">0</span>], axes[<span style="color: #B452CD">1</span>], <span style="color: #B452CD">500</span>)
-    y_pred = <span style="color: #658b00">sum</span>(regressor.predict(x1.reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)) <span style="color: #8B008B; font-weight: bold">for</span> regressor <span style="color: #8B008B">in</span> regressors)
-    plt.plot(X[:, <span style="color: #B452CD">0</span>], y, data_style, label=data_label)
-    plt.plot(x1, y_pred, style, linewidth=<span style="color: #B452CD">2</span>, label=label)
-    <span style="color: #8B008B; font-weight: bold">if</span> label <span style="color: #8B008B">or</span> data_label:
-        plt.legend(loc=<span style="color: #CD5555">&quot;upper center&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
-    plt.axis(axes)
-
-plt.figure(figsize=(<span style="color: #B452CD">11</span>,<span style="color: #B452CD">11</span>))
-
-plt.subplot(<span style="color: #B452CD">321</span>)
-plot_predictions([tree_reg1], X, y, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.8</span>], label=<span style="color: #CD5555">&quot;$h_1(x_1)$&quot;</span>, style=<span style="color: #CD5555">&quot;g-&quot;</span>, data_label=<span style="color: #CD5555">&quot;Training set&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;$y$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>, rotation=<span style="color: #B452CD">0</span>)
-plt.title(<span style="color: #CD5555">&quot;Residuals and tree predictions&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
-
-plt.subplot(<span style="color: #B452CD">322</span>)
-plot_predictions([tree_reg1], X, y, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.8</span>], label=<span style="color: #CD5555">&quot;$h(x_1) = h_1(x_1)$&quot;</span>, data_label=<span style="color: #CD5555">&quot;Training set&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;$y$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>, rotation=<span style="color: #B452CD">0</span>)
-plt.title(<span style="color: #CD5555">&quot;Ensemble predictions&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
-
-plt.subplot(<span style="color: #B452CD">323</span>)
-plot_predictions([tree_reg2], X, y2, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>], label=<span style="color: #CD5555">&quot;$h_2(x_1)$&quot;</span>, style=<span style="color: #CD5555">&quot;g-&quot;</span>, data_style=<span style="color: #CD5555">&quot;k+&quot;</span>, data_label=<span style="color: #CD5555">&quot;Residuals&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;$y - h_1(x_1)$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
-
-plt.subplot(<span style="color: #B452CD">324</span>)
-plot_predictions([tree_reg1, tree_reg2], X, y, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.8</span>], label=<span style="color: #CD5555">&quot;$h(x_1) = h_1(x_1) + h_2(x_1)$&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;$y$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>, rotation=<span style="color: #B452CD">0</span>)
-
-plt.subplot(<span style="color: #B452CD">325</span>)
-plot_predictions([tree_reg3], X, y3, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>], label=<span style="color: #CD5555">&quot;$h_3(x_1)$&quot;</span>, style=<span style="color: #CD5555">&quot;g-&quot;</span>, data_style=<span style="color: #CD5555">&quot;k+&quot;</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;$y - h_1(x_1) - h_2(x_1)$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
-plt.xlabel(<span style="color: #CD5555">&quot;$x_1$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
-
-plt.subplot(<span style="color: #B452CD">326</span>)
-plot_predictions([tree_reg1, tree_reg2, tree_reg3], X, y, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.8</span>], label=<span style="color: #CD5555">&quot;$h(x_1) = h_1(x_1) + h_2(x_1) + h_3(x_1)$&quot;</span>)
-plt.xlabel(<span style="color: #CD5555">&quot;$x_1$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>)
-plt.ylabel(<span style="color: #CD5555">&quot;$y$&quot;</span>, fontsize=<span style="color: #B452CD">16</span>, rotation=<span style="color: #B452CD">0</span>)
-
-save_fig(<span style="color: #CD5555">&quot;gradient_boosting_plot&quot;</span>)
-plt.show()
-
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> GradientBoostingRegressor
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> StandardScaler
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> mean_squared_error
 
-gbrt = GradientBoostingRegressor(max_depth=<span style="color: #B452CD">2</span>, n_estimators=<span style="color: #B452CD">3</span>, learning_rate=<span style="color: #B452CD">1.0</span>, random_state=<span style="color: #B452CD">42</span>)
-gbrt.fit(X, y)
+n = <span style="color: #B452CD">100</span>
+maxdegree = <span style="color: #B452CD">6</span>
 
-gbrt_slow = GradientBoostingRegressor(max_depth=<span style="color: #B452CD">2</span>, n_estimators=<span style="color: #B452CD">200</span>, learning_rate=<span style="color: #B452CD">0.1</span>, random_state=<span style="color: #B452CD">42</span>)
-gbrt_slow.fit(X, y)
+<span style="color: #228B22"># Make data set.</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
 
-plt.figure(figsize=(<span style="color: #B452CD">11</span>,<span style="color: #B452CD">4</span>))
+error = np.zeros(maxdegree)
+bias = np.zeros(maxdegree)
+variance = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=<span style="color: #B452CD">0.2</span>)
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-plt.subplot(<span style="color: #B452CD">121</span>)
-plot_predictions([gbrt], X, y, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.8</span>], label=<span style="color: #CD5555">&quot;Ensemble predictions&quot;</span>)
-plt.title(<span style="color: #CD5555">&quot;learning_rate={}, n_estimators={}&quot;</span>.format(gbrt.learning_rate, gbrt.n_estimators), fontsize=<span style="color: #B452CD">14</span>)
+<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,maxdegree):
+    model = GradientBoostingRegressor(max_depth=degree, n_estimators=<span style="color: #B452CD">100</span>, learning_rate=<span style="color: #B452CD">1.0</span>)  
+    model.fit(X_train_scaled,y_train)
+    y_pred = model.predict(X_test_scaled)
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred))**<span style="color: #B452CD">2</span> )
+    variance[degree] = np.mean( np.var(y_pred) )
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Max depth:&#39;</span>, degree)
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error[degree])
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias[degree])
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
+    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
-plt.subplot(<span style="color: #B452CD">122</span>)
-plot_predictions([gbrt_slow], X, y, axes=[-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.5</span>, -<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.8</span>])
-plt.title(<span style="color: #CD5555">&quot;learning_rate={}, n_estimators={}&quot;</span>.format(gbrt_slow.learning_rate, gbrt_slow.n_estimators), fontsize=<span style="color: #B452CD">14</span>)
-
-save_fig(<span style="color: #CD5555">&quot;gbrt_learning_rate_plot&quot;</span>)
+plt.xlim(<span style="color: #B452CD">1</span>,maxdegree-<span style="color: #B452CD">1</span>)
+plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;Error&#39;</span>)
+plt.plot(polydegree, bias, label=<span style="color: #CD5555">&#39;bias&#39;</span>)
+plt.plot(polydegree, variance, label=<span style="color: #CD5555">&#39;Variance&#39;</span>)
+plt.legend()
 plt.show()
 </pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec56">XGBoost: Extreme Gradient Boosting </h2>
+<h2 id="___sec56">Gradient Boosting, Examples of Classification </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span>  train_test_split 
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> load_breast_cancer
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> GradientBoostingClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> cross_validate
+
+<span style="color: #228B22"># Load the data</span>
+cancer = load_breast_cancer()
+
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=<span style="color: #B452CD">0</span>)
+<span style="color: #8B008B; font-weight: bold">print</span>(X_train.shape)
+<span style="color: #8B008B; font-weight: bold">print</span>(X_test.shape)
+<span style="color: #228B22">#now scale the data</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+gd_clf = GradientBoostingClassifier(max_depth=<span style="color: #B452CD">3</span>, n_estimators=<span style="color: #B452CD">100</span>, learning_rate=<span style="color: #B452CD">1.0</span>)  
+gd_clf.fit(X_train_scaled, y_train)
+<span style="color: #228B22">#Cross validation</span>
+accuracy = cross_validate(gd_clf,X_test_scaled,y_test,cv=<span style="color: #B452CD">10</span>)[<span style="color: #CD5555">&#39;test_score&#39;</span>]
+<span style="color: #8B008B; font-weight: bold">print</span>(accuracy)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Test set accuracy with Random Forests and scaled data: {:.2f}&quot;</span>.format(gd_clf.score(X_test_scaled,y_test)))
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
+y_pred = gd_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=<span style="color: #658b00">True</span>)
+plt.show()
+y_probas = gd_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec57">XGBoost: Extreme Gradient Boosting </h2>
 
 <p>
 <a href="https://github.com/dmlc/xgboost" target="_blank">XGBoost</a> or Extreme Gradient
@@ -2382,7 +2400,7 @@ It is now the algorithm which wins essentially all ML competitions!!!
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec57">Regression Case </h2>
+<h2 id="___sec58">Regression Case </h2>
 
 <p>
 
@@ -2413,8 +2431,8 @@ X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(maxdegree):
-    model =  xgb.XGBRegressor(objective =<span style="color: #CD5555">&#39;reg:squarederror&#39;</span>, colsample_bytree = <span style="color: #B452CD">0.3</span>, learning_rate = <span style="color: #B452CD">0.1</span>,
-                max_depth = degree, alpha = <span style="color: #B452CD">10</span>, n_estimators = <span style="color: #B452CD">10</span>)
+    model =  xgb.XGBRegressor(objective =<span style="color: #CD5555">&#39;reg:squarederror&#39;</span>, colsaobjective =<span style="color: #CD5555">&#39;reg:squarederror&#39;</span>, colsample_bytree = <span style="color: #B452CD">0.3</span>, learning_rate = <span style="color: #B452CD">0.1</span>,max_depth = degree, alpha = <span style="color: #B452CD">10</span>, n_estimators = <span style="color: #B452CD">200</span>)
+
     model.fit(X_train_scaled,y_train)
     y_pred = model.predict(X_test_scaled)
     polydegree[degree] = degree
@@ -2437,7 +2455,7 @@ plt.show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec58">Xgboost on the Cancer Data </h2>
+<h2 id="___sec59">Xgboost on the Cancer Data </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -2464,9 +2482,26 @@ X_test_scaled = scaler.transform(X_test)
 
 xg_clf = xgb.XGBClassifier()
 xg_clf.fit(X_train_scaled,y_train)
+
+y_test = xg_clf.predict(X_test_scaled)
+
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Test set accuracy with Random Forests and scaled data: {:.2f}&quot;</span>.format(xg_clf.score(X_test_scaled,y_test)))
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
+y_pred = xg_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=<span style="color: #658b00">True</span>)
+plt.show()
+y_probas = xg_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
+
+
 xgb.plot_tree(xg_clf,num_trees=<span style="color: #B452CD">0</span>)
 plt.rcParams[<span style="color: #CD5555">&#39;figure.figsize&#39;</span>] = [<span style="color: #B452CD">50</span>, <span style="color: #B452CD">10</span>]
 plt.show()
+
 xgb.plot_importance(xg_clf)
 plt.rcParams[<span style="color: #CD5555">&#39;figure.figsize&#39;</span>] = [<span style="color: #B452CD">5</span>, <span style="color: #B452CD">5</span>]
 plt.show()
