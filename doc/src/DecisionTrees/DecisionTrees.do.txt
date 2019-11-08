@@ -1748,19 +1748,37 @@ which is the classifier that minimizes the weighted error rate in predicting $y$
 We can do this by rewriting
 !bt
 \[
-\exp{-\beta}\sum_{y_i=G(x_i)}w_i^m+\exp{\beta}\sum_{y_i\ne G(x_i)}w_i^m,
+\exp{-(\beta)}\sum_{y_i=G(x_i)}w_i^m+\exp{(\beta)}\sum_{y_i\ne G(x_i)}w_i^m,
 \]
 !et
 which can be rewritten as
 !bt
 \[
-(\exp{\beta}-\exp{-\beta})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{-\beta}\sum_{i=0}^{n-1}w_i^m=0,
+(\exp{(\beta)}-\exp{-(\beta)})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{-(\beta)}\sum_{i=0}^{n-1}w_i^m=0,
 \]
 !et
 which leads to
 !bt
 \[
-\beta_m = frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+\beta_m = \frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+\]
+!et
+where we have redefined the error as 
+!bt
+\[
+\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(\bm{X}_{i*})}{\sum_{i=0}^{n-1}w_i^m},
+\]
+!et
+which leads to an update of
+!bt
+\[
+f_m(x) = f_{m-1}(x) +\beta_m G_m(x).
+\]
+!et
+This leads to the new weights
+!bt
+\[
+w_i^{m+1} = w_i^m \exp{-(y_i\beta_m G_m(x_i))}
 \]
 !et
 !split
@@ -1771,13 +1789,13 @@ classifier is a decision tree and we consider a binary set of outputs
 with $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
 observations. Our design matrix is given in terms of the
 feature/predictor vectors
-$\bm{X}=[\bm{x}_0\bm{x}_1\dots\bm{x}_{p-1}$. Finally, we define also a
-classifier determined by our data via a function $G(\bm{X})$. This function tells us how well we are able to classify our outputs/targets $\bm{y}$. 
+$\bm{X}=[\bm{x}_0\bm{x}_1\dots\bm{x}_{p-1}]$. Finally, we define also a
+classifier determined by our data via a function $G(x)$. This function tells us how well we are able to classify our outputs/targets $\bm{y}$. 
 
 We can then define the misclassification error $\mathrm{err}$ as
 !bt
 \[
-\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(\bm{X}_{i*}),
+\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(x_i),
 \]
 !et
 where the function $I()$ is one if we misclassify and zero if we classify correctly. 
@@ -1791,15 +1809,15 @@ o We start by initializing all weights to $w_i = 1/n$, with $i=0,1,2,\dots n-1$.
 o We rewrite the misclassification error as 
 !bt
 \[
-\mathrm{err}=\frac{\sum_{i=0}^{n-1}w_iI(y_i\ne G(\bm{X}_{i*})}{\sum_{i=0}^{n-1}w_i},
+\mathrm{err}=\frac{\sum_{i=0}^{n-1}w_iI(y_i\ne G(x_i})}{\sum_{i=0}^{n-1}w_i},
 \]
 !et
 o Then we start looping over all attempts at classifying, namely we start an iterative process for $m=1:M$, where $M$ is the final number of classifications. Our given classifier could for example be a plain decision tree.
   o Fit then a given classifier to the training using the weights $w_i$.
   o Compute then $\mathrm{err}$ and figure out which events are classified properly and which are classified wrongly.
   o Define a quantity $\alpha_{m} = \log{(1-\mathrm{err})/\mathrm{err}}$
-  o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(\bm{X}_{i*})}$.
-o Compute the new classifier $G(\bm{X})= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(\bm{X}_{i*})$.
+  o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)}$.
+o Compute the new classifier $G(x)= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(x_i)$.
 
 For the iterations with $m \le 2$ the weights are modified
 individually at each steps. The obersvations which were misclassified
@@ -1855,15 +1873,15 @@ function was the least squares function.
 !split
 ===== Gradient Boosting, algorithm =====
 
-Suppose we have a cost function $C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i))$ where $y_i$ is our target and $f(x_i)$ the function which is meant to model $y_i$. The above cost function could be our standard least squares  function
+Suppose we have a cost function $C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i))$ where $y_i$ is our target and $f(x_i)$ the function which is meant to model $y_i$. The above cost function could be our standard  square-error  function
 !bt
 \[
-C(\bm{y},\bm{f})=\frac{1}{n}\sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+C(\bm{y},\bm{f})=\sum_{i=0}^{n-1}(y_i-f(x_i))^2.
 \]
 !et
 
 The way we proceed in an iterative fashion is to
-o Initialize our estimate by $f_0(x)=0$.
+o Initialize our estimate $f_0(x)$.
 o For $m=1:M$, we
   o compute the negative gradient vector $\bm{u}_m = -\partial C(\bm{y},\bm{f})/\partial \bm{f}(x)$ at $f(x) = f_{m-1}(x);
   o fit the so-called base-learner to the negative gradient $h_m(u_m,x)$;
@@ -1961,68 +1979,6 @@ plt.show()
 
 !ec
 
-
-!split
-===== Gradient Boots with Early Stopping =====
-!bc pycod
-
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
-
-X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=49)
-
-gbrt = GradientBoostingRegressor(max_depth=2, n_estimators=120, random_state=42)
-gbrt.fit(X_train, y_train)
-
-errors = [mean_squared_error(y_val, y_pred)
-          for y_pred in gbrt.staged_predict(X_val)]
-bst_n_estimators = np.argmin(errors) + 1
-
-gbrt_best = GradientBoostingRegressor(max_depth=2,n_estimators=bst_n_estimators, random_state=42)
-gbrt_best.fit(X_train, y_train)
-
-min_error = np.min(errors)
-plt.figure(figsize=(11, 4))
-
-plt.subplot(121)
-plt.plot(errors, "b.-")
-plt.plot([bst_n_estimators, bst_n_estimators], [0, min_error], "k--")
-plt.plot([0, 120], [min_error, min_error], "k--")
-plt.plot(bst_n_estimators, min_error, "ko")
-plt.text(bst_n_estimators, min_error*1.2, "Minimum", ha="center", fontsize=14)
-plt.axis([0, 120, 0, 0.01])
-plt.xlabel("Number of trees")
-plt.title("Validation error", fontsize=14)
-
-plt.subplot(122)
-plot_predictions([gbrt_best], X, y, axes=[-0.5, 0.5, -0.1, 0.8])
-plt.title("Best model (%d trees)" % bst_n_estimators, fontsize=14)
-
-save_fig("early_stopping_gbrt_plot")
-plt.show()
-
-
-gbrt = GradientBoostingRegressor(max_depth=2, warm_start=True, random_state=42)
-
-min_val_error = float("inf")
-error_going_up = 0
-for n_estimators in range(1, 120):
-    gbrt.n_estimators = n_estimators
-    gbrt.fit(X_train, y_train)
-    y_pred = gbrt.predict(X_val)
-    val_error = mean_squared_error(y_val, y_pred)
-    if val_error < min_val_error:
-        min_val_error = val_error
-        error_going_up = 0
-    else:
-        error_going_up += 1
-        if error_going_up == 5:
-            break  # early stopping
-
-
-print(gbrt.n_estimators)
-print("Minimum validation MSE:", min_val_error)
-!ec
 
 !split
 ===== XGBoost: Extreme Gradient Boosting =====

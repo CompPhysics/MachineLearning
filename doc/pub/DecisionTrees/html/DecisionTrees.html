@@ -164,10 +164,9 @@ div { text-align: justify; text-justify: inter-word; }
               ('Gradient boosting: Basics', 2, None, '___sec53'),
               ('Gradient Boosting, algorithm', 2, None, '___sec54'),
               ('Gradient Boosting, Examples', 2, None, '___sec55'),
-              ('Gradient Boots with Early Stopping', 2, None, '___sec56'),
-              ('XGBoost: Extreme Gradient Boosting', 2, None, '___sec57'),
-              ('Regression Case', 2, None, '___sec58'),
-              ('Xgboost on the Cancer Data', 2, None, '___sec59')]}
+              ('XGBoost: Extreme Gradient Boosting', 2, None, '___sec56'),
+              ('Regression Case', 2, None, '___sec57'),
+              ('Xgboost on the Cancer Data', 2, None, '___sec58')]}
 end of tocinfo -->
 
 <body>
@@ -2111,17 +2110,32 @@ which is the classifier that minimizes the weighted error rate in predicting \( 
 <p>
 We can do this by rewriting
 $$
-\exp{-\beta}\sum_{y_i=G(x_i)}w_i^m+\exp{\beta}\sum_{y_i\ne G(x_i)}w_i^m,
+\exp{-(\beta)}\sum_{y_i=G(x_i)}w_i^m+\exp{(\beta)}\sum_{y_i\ne G(x_i)}w_i^m,
 $$
 
 which can be rewritten as
 $$
-(\exp{\beta}-\exp{-\beta})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{-\beta}\sum_{i=0}^{n-1}w_i^m=0,
+(\exp{(\beta)}-\exp{-(\beta)})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{-(\beta)}\sum_{i=0}^{n-1}w_i^m=0,
 $$
 
 which leads to
 $$
-\beta_m = frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+\beta_m = \frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+$$
+
+where we have redefined the error as 
+$$
+\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(\boldsymbol{X}_{i*})}{\sum_{i=0}^{n-1}w_i^m},
+$$
+
+which leads to an update of
+$$
+f_m(x) = f_{m-1}(x) +\beta_m G_m(x).
+$$
+
+This leads to the new weights
+$$
+w_i^{m+1} = w_i^m \exp{-(y_i\beta_m G_m(x_i))}
 $$
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -2134,13 +2148,13 @@ classifier is a decision tree and we consider a binary set of outputs
 with \( y_i \in \{-1,1\} \) and \( i=0,1,2,\dots,n-1 \) as our set of
 observations. Our design matrix is given in terms of the
 feature/predictor vectors
-\( \boldsymbol{X}=[\boldsymbol{x}_0\boldsymbol{x}_1\dots\boldsymbol{x}_{p-1} \). Finally, we define also a
-classifier determined by our data via a function \( G(\boldsymbol{X}) \). This function tells us how well we are able to classify our outputs/targets \( \boldsymbol{y} \).
+\( \boldsymbol{X}=[\boldsymbol{x}_0\boldsymbol{x}_1\dots\boldsymbol{x}_{p-1}] \). Finally, we define also a
+classifier determined by our data via a function \( G(x) \). This function tells us how well we are able to classify our outputs/targets \( \boldsymbol{y} \).
 
 <p>
 We can then define the misclassification error \( \mathrm{err} \) as
 $$
-\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(\boldsymbol{X}_{i*}),
+\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(x_i),
 $$
 
 where the function \( I() \) is one if we misclassify and zero if we classify correctly.
@@ -2160,7 +2174,7 @@ The basic idea is to set up weights which will be used to scale the correctly cl
 </ol>
 
 $$
-\mathrm{err}=\frac{\sum_{i=0}^{n-1}w_iI(y_i\ne G(\boldsymbol{X}_{i*})}{\sum_{i=0}^{n-1}w_i},
+\mathrm{err}=\frac{\sum_{i=0}^{n-1}w_iI(y_i\ne G(x_i})}{\sum_{i=0}^{n-1}w_i},
 $$
 
 
@@ -2171,10 +2185,10 @@ $$
  <li> Fit then a given classifier to the training using the weights \( w_i \).</li>
  <li> Compute then \( \mathrm{err} \) and figure out which events are classified properly and which are classified wrongly.</li>
  <li> Define a quantity \( \alpha_{m} = \log{(1-\mathrm{err})/\mathrm{err}} \)</li>
- <li> Set the new weights to \( w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(\boldsymbol{X}_{i*})} \).</li>
+ <li> Set the new weights to \( w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)} \).</li>
 </ol>
 
-<li> Compute the new classifier \( G(\boldsymbol{X})= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(\boldsymbol{X}_{i*}) \).</li>
+<li> Compute the new classifier \( G(x)= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(x_i) \).</li>
 </ol>
 
 For the iterations with \( m \le 2 \) the weights are modified
@@ -2239,16 +2253,16 @@ function was the least squares function.
 <h2 id="___sec54">Gradient Boosting, algorithm </h2>
 
 <p>
-Suppose we have a cost function \( C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i)) \) where \( y_i \) is our target and \( f(x_i) \) the function which is meant to model \( y_i \). The above cost function could be our standard least squares  function
+Suppose we have a cost function \( C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i)) \) where \( y_i \) is our target and \( f(x_i) \) the function which is meant to model \( y_i \). The above cost function could be our standard  square-error  function
 $$
-C(\boldsymbol{y},\boldsymbol{f})=\frac{1}{n}\sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+C(\boldsymbol{y},\boldsymbol{f})=\sum_{i=0}^{n-1}(y_i-f(x_i))^2.
 $$
 
 <p>
 The way we proceed in an iterative fashion is to
 
 <ol>
-<li> Initialize our estimate by \( f_0(x)=0 \).</li>
+<li> Initialize our estimate \( f_0(x) \).</li>
 <li> For \( m=1:M \), we
 
 <ol type="a"></li>
@@ -2352,71 +2366,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec56">Gradient Boots with Early Stopping </h2>
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.metrics</span> <span style="color: #008000; font-weight: bold">import</span> mean_squared_error
-
-X_train, X_val, y_train, y_val <span style="color: #666666">=</span> train_test_split(X, y, random_state<span style="color: #666666">=49</span>)
-
-gbrt <span style="color: #666666">=</span> GradientBoostingRegressor(max_depth<span style="color: #666666">=2</span>, n_estimators<span style="color: #666666">=120</span>, random_state<span style="color: #666666">=42</span>)
-gbrt<span style="color: #666666">.</span>fit(X_train, y_train)
-
-errors <span style="color: #666666">=</span> [mean_squared_error(y_val, y_pred)
-          <span style="color: #008000; font-weight: bold">for</span> y_pred <span style="color: #AA22FF; font-weight: bold">in</span> gbrt<span style="color: #666666">.</span>staged_predict(X_val)]
-bst_n_estimators <span style="color: #666666">=</span> np<span style="color: #666666">.</span>argmin(errors) <span style="color: #666666">+</span> <span style="color: #666666">1</span>
-
-gbrt_best <span style="color: #666666">=</span> GradientBoostingRegressor(max_depth<span style="color: #666666">=2</span>,n_estimators<span style="color: #666666">=</span>bst_n_estimators, random_state<span style="color: #666666">=42</span>)
-gbrt_best<span style="color: #666666">.</span>fit(X_train, y_train)
-
-min_error <span style="color: #666666">=</span> np<span style="color: #666666">.</span>min(errors)
-plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">11</span>, <span style="color: #666666">4</span>))
-
-plt<span style="color: #666666">.</span>subplot(<span style="color: #666666">121</span>)
-plt<span style="color: #666666">.</span>plot(errors, <span style="color: #BA2121">&quot;b.-&quot;</span>)
-plt<span style="color: #666666">.</span>plot([bst_n_estimators, bst_n_estimators], [<span style="color: #666666">0</span>, min_error], <span style="color: #BA2121">&quot;k--&quot;</span>)
-plt<span style="color: #666666">.</span>plot([<span style="color: #666666">0</span>, <span style="color: #666666">120</span>], [min_error, min_error], <span style="color: #BA2121">&quot;k--&quot;</span>)
-plt<span style="color: #666666">.</span>plot(bst_n_estimators, min_error, <span style="color: #BA2121">&quot;ko&quot;</span>)
-plt<span style="color: #666666">.</span>text(bst_n_estimators, min_error<span style="color: #666666">*1.2</span>, <span style="color: #BA2121">&quot;Minimum&quot;</span>, ha<span style="color: #666666">=</span><span style="color: #BA2121">&quot;center&quot;</span>, fontsize<span style="color: #666666">=14</span>)
-plt<span style="color: #666666">.</span>axis([<span style="color: #666666">0</span>, <span style="color: #666666">120</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0.01</span>])
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Number of trees&quot;</span>)
-plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Validation error&quot;</span>, fontsize<span style="color: #666666">=14</span>)
-
-plt<span style="color: #666666">.</span>subplot(<span style="color: #666666">122</span>)
-plot_predictions([gbrt_best], X, y, axes<span style="color: #666666">=</span>[<span style="color: #666666">-0.5</span>, <span style="color: #666666">0.5</span>, <span style="color: #666666">-0.1</span>, <span style="color: #666666">0.8</span>])
-plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;Best model (</span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BA2121"> trees)&quot;</span> <span style="color: #666666">%</span> bst_n_estimators, fontsize<span style="color: #666666">=14</span>)
-
-save_fig(<span style="color: #BA2121">&quot;early_stopping_gbrt_plot&quot;</span>)
-plt<span style="color: #666666">.</span>show()
-
-
-gbrt <span style="color: #666666">=</span> GradientBoostingRegressor(max_depth<span style="color: #666666">=2</span>, warm_start<span style="color: #666666">=</span><span style="color: #008000">True</span>, random_state<span style="color: #666666">=42</span>)
-
-min_val_error <span style="color: #666666">=</span> <span style="color: #008000">float</span>(<span style="color: #BA2121">&quot;inf&quot;</span>)
-error_going_up <span style="color: #666666">=</span> <span style="color: #666666">0</span>
-<span style="color: #008000; font-weight: bold">for</span> n_estimators <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>, <span style="color: #666666">120</span>):
-    gbrt<span style="color: #666666">.</span>n_estimators <span style="color: #666666">=</span> n_estimators
-    gbrt<span style="color: #666666">.</span>fit(X_train, y_train)
-    y_pred <span style="color: #666666">=</span> gbrt<span style="color: #666666">.</span>predict(X_val)
-    val_error <span style="color: #666666">=</span> mean_squared_error(y_val, y_pred)
-    <span style="color: #008000; font-weight: bold">if</span> val_error <span style="color: #666666">&lt;</span> min_val_error:
-        min_val_error <span style="color: #666666">=</span> val_error
-        error_going_up <span style="color: #666666">=</span> <span style="color: #666666">0</span>
-    <span style="color: #008000; font-weight: bold">else</span>:
-        error_going_up <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-        <span style="color: #008000; font-weight: bold">if</span> error_going_up <span style="color: #666666">==</span> <span style="color: #666666">5</span>:
-            <span style="color: #008000; font-weight: bold">break</span>  <span style="color: #408080; font-style: italic"># early stopping</span>
-
-
-<span style="color: #008000; font-weight: bold">print</span>(gbrt<span style="color: #666666">.</span>n_estimators)
-<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Minimum validation MSE:&quot;</span>, min_val_error)
-</pre></div>
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec57">XGBoost: Extreme Gradient Boosting </h2>
+<h2 id="___sec56">XGBoost: Extreme Gradient Boosting </h2>
 
 <p>
 <a href="https://github.com/dmlc/xgboost" target="_blank">XGBoost</a> or Extreme Gradient
@@ -2437,7 +2387,7 @@ It is now the algorithm which wins essentially all ML competitions!!!
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec58">Regression Case </h2>
+<h2 id="___sec57">Regression Case </h2>
 
 <p>
 
@@ -2492,7 +2442,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec59">Xgboost on the Cancer Data </h2>
+<h2 id="___sec58">Xgboost on the Cancer Data </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
