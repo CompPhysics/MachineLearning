@@ -1390,67 +1390,9 @@ plt.show()
 !ec
 
 
-!split
-===== Making our own Bagging with Bootstrap =====
-!bc pycod
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.utils import resample
-from sklearn.tree import DecisionTreeRegressor
-
-
-np.random.seed(2018)
-
-n = 40
-n_boostraps = 100
-maxdegree = 14
-
-# Make data set.
-x = np.linspace(-3, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
-error = np.zeros(maxdegree)
-bias = np.zeros(maxdegree)
-variance = np.zeros(maxdegree)
-polydegree = np.zeros(maxdegree)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-for degree in range(maxdegree):
-    model = DecisionTreeRegressor(max_depth=5) 
-    y_pred = np.empty((y_test.shape[0], n_boostraps))
-    for i in range(n_boostraps):
-        x_, y_ = resample(X_train_scaled, y_train)
-        model.fit(x_, y_)
-        y_pred[:, i] = model.predict(X_test_scaled).ravel()
-
-    polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
-    variance[degree] = np.mean( np.var(y_pred, axis=1, keepdims=True) )
-    print('Polynomial degree:', degree)
-    print('Error:', error[degree])
-    print('Bias^2:', bias[degree])
-    print('Var:', variance[degree])
-    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
-
-plt.plot(polydegree, error, label='Error')
-plt.plot(polydegree, bias, label='bias')
-plt.plot(polydegree, variance, label='Variance')
-plt.legend()
-plt.show()
-
-!ec
-
 
 !split
-=====  Changing the Level of the Decision Tree =====
+=====  Making your own Bootstrap: Changing the Level of the Decision Tree =====
 
 !bc pycod
 
@@ -1504,9 +1446,6 @@ plt.plot(polydegree, bias, label='bias')
 plt.plot(polydegree, variance, label='Variance')
 plt.legend()
 plt.show()
-
-
-
 
 !ec
 
@@ -1565,69 +1504,6 @@ o For $m=1:M$ we
     o pick the best split point among the $m$ features using either the CART algorithm or the ID3 for classification and create a new node
     o split the node into daughter nodes
 o Output then the ensemble of trees $\{T_m\}_1^{M}$ and make predictions for either a regression type of problem or a classification type of problem. 
-
-
-!split
-===== Bootstrap with Random Forests Instead of a Single Tree, own Bagging =====
-
-!bc pycod
-
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.utils import resample
-from sklearn.ensemble import RandomForestRegressor
-
-np.random.seed(2018)
-
-n = 100
-n_boostraps = 100
-maxdegree = 14
-
-# Make data set.
-x = np.linspace(-3, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
-error = np.zeros(maxdegree)
-bias = np.zeros(maxdegree)
-variance = np.zeros(maxdegree)
-polydegree = np.zeros(maxdegree)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-for degree in range(maxdegree):
-    model = RandomForestRegressor()
-    y_pred = np.empty((y_test.shape[0], n_boostraps))
-    for i in range(n_boostraps):
-        x_, y_ = resample(X_train_scaled, y_train)
-        model.fit(x_, y_.ravel())
-        y_pred[:, i] = model.predict(X_test_scaled).ravel()
-
-    polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
-    variance[degree] = np.mean( np.var(y_pred, axis=1, keepdims=True) )
-    print('Polynomial degree:', degree)
-    print('Error:', error[degree])
-    print('Bias^2:', bias[degree])
-    print('Var:', variance[degree])
-    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
-
-plt.plot(polydegree, error, label='Error')
-plt.plot(polydegree, bias, label='bias')
-plt.plot(polydegree, variance, label='Variance')
-plt.legend()
-plt.show()
-
-
-
-!ec
-
 
 
 
@@ -1742,6 +1618,113 @@ them with a factor.
 
 
 !split
+===== What is boosting? Additive Modelling, or iterative Fitting =====
+
+Boosting is a way of fitting an additive expansion in a set of
+elementary basis functions like for example some simple polynomials.
+Assume for example that we have a function
+!bt
+\[
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
+\]
+!et
+where $\beta_m$ are the expansion parameters to be determined in a minimization process and $b(x;\gamma_m)$ are some simple function of the multivariable parameter $x$ which is characterized by the parameters $\gamma_m$.
+
+As an example, consider the Sigmoid function we used in logistic regression. In that case, we can translate the function $b(x;\gamma_m)$ into the Sigmoid function
+!bt
+\[
+\sigma(t) = \frac{1}{1+\exp{-t}},
+\]
+!et
+where $t=\gamma_0+\gamma_1 x$ and the parameters $\gamma_0$ and $\gamma_1$ where determined by the Logistic Regression fitting algorithm.
+
+As another example, consider the cost function we defined for linear regression
+!bt
+\[
+C(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+\]
+!et
+
+In this case the function $f(x)$ was replaced by the design matrix
+$\bm{X}$ and the unknown linear regression parameters $\bm{\beta}$,
+that is $\bm{f}=\bm{X}\bm{\beta}$. In linear regression we could simply invert a matrix and obtained the parameters $\beta$ by
+!bt
+\[
+\bm{\beta}=\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}.
+\]
+!et
+
+In iterative fitting or additive modeling, we minimize the cost function with respect to the parameters $\beta_m$ and $\gamma_m$.
+
+
+!split
+===== Iterative Fitting, Regression and Squared-error Cost Function =====
+
+The way we proceed is as follows (here we specialize to the squared-error cost function)
+o Establish a cost function, here $C(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f_M(x_i))^2$ with $f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m)$.
+o Initialize with a guess $f_0(x)$. It could be one or even zero or some random numbers.
+o For $m=1:M$
+  o minmize $\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2 wrt $\gamma$ and $\beta$$
+  o This gives the optimial values $\beta_m$ and $\gamma_m$
+  o Determine then the new values $f_m(x)=f_{m-1}(x) +\beta_m b(x;\gamma_m)
+
+We could use any of the algorithms we have discussed till now. If we use trees, $\gamma$ parameterizes the split variables and split points at the internal nodes, and the predictions at the terminal nodes. 
+
+
+!split
+===== Iterative Fitting, Classification, AdaBoost =====
+
+Let us consider a binary classification problem with two outcomes $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
+observations. We define a classification function $G(x)$ which produces a prediction taking any of the two values 
+$\{-1,1\}$.
+
+The error rate of the training sample is then
+
+!bt
+\[
+\mathrm{\overline{err}}=\frac{1}{n} \sum_{i=0}^{n-1} I(y_i\ne G(x_i). 
+\]
+!et
+
+The iterative procedure starts with defining a weak classifier whose
+error rate is barely better than random guessing.  Teh iterative
+procedure in boosting is to sequentially apply a the weak
+classification algorithm to repeatedly modified versions of the data producing a sequence of weak classifiers $G_m(x)$.
+
+Here we will express our  function $f(x)$ in terms of $G(x)$. That is
+!bt
+\[
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
+\]
+!et
+will be a function of 
+!bt
+\[
+G_M(x) = \mathrm{sign} \sum_{i=1}^M \alpha_m G_m(x).
+\]
+!et
+
+
+
+!split
+===== Adaptive Boosting, AdaBoost =====
+
+In our iterative procedure we define thus
+!bt
+\[
+f_m(x) = f_{m-1}(x)+\beta_mG_m(x).
+\]
+!et
+
+The simplest possible cost function which leads (also simple from a computational point of view) to the AdaBoost algorithm is the
+exponential cost/loss function defined as
+!bt
+\[
+C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}\exp{-(y_i(f_{m-1(x_i)+\beta G(x_i})}
+\]
+!et
+
+!split
 ===== Adaptive boosting: AdaBoost, Basic Algorithm =====
 
 The algorithm here is rather straightforward. Assume that our weak
@@ -1775,9 +1758,9 @@ o We rewrite the misclassification error as
 o Then we start looping over all attempts at classifying, namely we start an iterative process for $m=1:M$, where $M$ is the final number of classifications. Our given classifier could for example be a plain decision tree.
   o Fit then a given classifier to the training using the weights $w_i$.
   o Compute then $\mathrm{err}$ and figure out which events are classified properly and which are classified wrongly.
-  o Define a quantity $\alpha_{m} = \log{(1-\mathrm{err})/\mathrm{err}}
-  o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(\bm{X}_{i*})}.
-o Compute the new classifier $G(\bm{X})= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(\bm{X}_{i*}).
+  o Define a quantity $\alpha_{m} = \log{(1-\mathrm{err})/\mathrm{err}}$
+  o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(\bm{X}_{i*})}$.
+o Compute the new classifier $G(\bm{X})= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(\bm{X}_{i*})$.
 
 For the iterations with $m \le 2$ the weights are modified
 individually at each steps. The obersvations which were misclassified
