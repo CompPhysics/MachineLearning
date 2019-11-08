@@ -1664,9 +1664,9 @@ The way we proceed is as follows (here we specialize to the squared-error cost f
 o Establish a cost function, here $C(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f_M(x_i))^2$ with $f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m)$.
 o Initialize with a guess $f_0(x)$. It could be one or even zero or some random numbers.
 o For $m=1:M$
-  o minmize $\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2 wrt $\gamma$ and $\beta$$
+  o minimize $\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2$ wrt $\gamma$ and $\beta$
   o This gives the optimial values $\beta_m$ and $\gamma_m$
-  o Determine then the new values $f_m(x)=f_{m-1}(x) +\beta_m b(x;\gamma_m)
+  o Determine then the new values $f_m(x)=f_{m-1}(x) +\beta_m b(x;\gamma_m)$
 
 We could use any of the algorithms we have discussed till now. If we use trees, $\gamma$ parameterizes the split variables and split points at the internal nodes, and the predictions at the terminal nodes. 
 
@@ -1720,10 +1720,49 @@ The simplest possible cost function which leads (also simple from a computationa
 exponential cost/loss function defined as
 !bt
 \[
-C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}\exp{-(y_i(f_{m-1(x_i)+\beta G(x_i})}
+C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}\exp{-(y_i(f_{m-1}(x_i)+\beta G(x_i))}.
 \]
 !et
 
+We optimize $\beta$ and $G$ for each value of $m=1:M$ as we did in the regression case.
+This is normally done in two steps. Let us however first rewrite the cost function as 
+
+!bt
+\[
+C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}w_i^{m}\exp{-(y_i\beta G(x_i))},
+\]
+!et
+where we have defined $w_i^m= \exp{-(y_if_{m-1}(x_i))}$.
+
+!split
+===== Building up AdaBoost =====
+
+First, for any $\beta > 0$, we optimize $G$ by setting
+!bt
+\[
+G_m(x) = \mathrm{sign} \sum_{i=0}^{n-1} w_i^m I(y_i \ne G_(x_i)),
+\]
+!et
+which is the classifier that minimizes the weighted error rate in predicting $y$.
+
+We can do this by rewriting
+!bt
+\[
+\exp{-\beta}\sum_{y_i=G(x_i)}w_i^m+\exp{\beta}\sum_{y_i\ne G(x_i)}w_i^m,
+\]
+!et
+which can be rewritten as
+!bt
+\[
+(\exp{\beta}-\exp{-\beta})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{-\beta}\sum_{i=0}^{n-1}w_i^m=0,
+\]
+!et
+which leads to
+!bt
+\[
+\beta_m = frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+\]
+!et
 !split
 ===== Adaptive boosting: AdaBoost, Basic Algorithm =====
 
