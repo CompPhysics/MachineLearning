@@ -173,18 +173,20 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                '___sec55'),
-              ('Gradient Boosting, algorithm', 2, None, '___sec56'),
+              ('Steepest Descent Example', 2, None, '___sec56'),
+              ('Gradient Boosting, algorithm', 2, None, '___sec57'),
+              ('Gradient Boosting Example, Regression', 2, None, '___sec58'),
               ('Gradient Boosting, Examples of Regression',
                2,
                None,
-               '___sec57'),
+               '___sec59'),
               ('Gradient Boosting, Classification Example',
                2,
                None,
-               '___sec58'),
-              ('XGBoost: Extreme Gradient Boosting', 2, None, '___sec59'),
-              ('Regression Case', 2, None, '___sec60'),
-              ('Xgboost on the Cancer Data', 2, None, '___sec61')]}
+               '___sec60'),
+              ('XGBoost: Extreme Gradient Boosting', 2, None, '___sec61'),
+              ('Regression Case', 2, None, '___sec62'),
+              ('Xgboost on the Cancer Data', 2, None, '___sec63')]}
 end of tocinfo -->
 
 <body>
@@ -226,7 +228,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Nov 12, 2019</h4></center> <!-- date -->
+<center><h4>Nov 13, 2019</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1791,6 +1793,10 @@ scaler<span style="color: #666666">.</span>fit(X_train)
 X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
 X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
 
+<span style="color: #408080; font-style: italic"># we produce a simple tree first as benchmark</span>
+simpletree <span style="color: #666666">=</span> DecisionTreeRegressor(max_depth<span style="color: #666666">=3</span>) 
+simpletree<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
+simpleprediction <span style="color: #666666">=</span> simpletree<span style="color: #666666">.</span>predict(X_test_scaled)
 <span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,maxdepth):
     model <span style="color: #666666">=</span> DecisionTreeRegressor(max_depth<span style="color: #666666">=</span>degree) 
     y_pred <span style="color: #666666">=</span> np<span style="color: #666666">.</span>empty((y_test<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>], n_boostraps))
@@ -1809,8 +1815,10 @@ X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #6
     <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;Var:&#39;</span>, variance[degree])
     <span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&#39;{} &gt;= {} + {} = {}&#39;</span><span style="color: #666666">.</span>format(error[degree], bias[degree], variance[degree], bias[degree]<span style="color: #666666">+</span>variance[degree]))
 
+mse_simpletree <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_test <span style="color: #666666">-</span> simpleprediction)<span style="color: #666666">**2</span>)
 plt<span style="color: #666666">.</span>xlim(<span style="color: #666666">1</span>,maxdepth)
-plt<span style="color: #666666">.</span>plot(polydegree, error, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Error&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, error, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;MSE simple tree&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, mse_simpletree, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;MSE for Bootstrap&#39;</span>)
 plt<span style="color: #666666">.</span>plot(polydegree, bias, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;bias&#39;</span>)
 plt<span style="color: #666666">.</span>plot(polydegree, variance, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Variance&#39;</span>)
 plt<span style="color: #666666">.</span>legend()
@@ -2350,7 +2358,7 @@ We start again with our cost function \( {\cal C}(\boldsymbol{y}m\boldsymbol{f})
 This means that for every iteration, we need to optimize
 
 $$
-(\hat{\boldsymbol{f}})  \mathrm{argmin}_{\boldsymbol{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+(\hat{\boldsymbol{f}}) = \mathrm{argmin}_{\boldsymbol{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
 $$
 
 <p>
@@ -2372,13 +2380,31 @@ the gradient is \( g_m(x_i) = -2(y_i-f(x_i)) \).
 <p>
 Choosing \( f_0(x)=0 \) we obtain \( g_m(x) = -2y_i \) and inserting this into the minimization problem for the cost function we have
 $$
-(\rho_1)  \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
+(\rho_1) = \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
 $$
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec56">Gradient Boosting, algorithm </h2>
+<h2 id="___sec56">Steepest Descent Example </h2>
+
+<p>
+Optimizing with respect to \( \rho \) we obtain (taking the derivative) that \( \rho_1 = -1/2 \). We have then that
+$$
+f_1(x) = f_{0}(x) -\rho_1 g_1(x)=-y_i.
+$$
+
+We can then proceed and compute
+$$
+g_2(x_i) = \left[ \frac{\partial {\cal L}(y_i, f(x_i))}{\partial f(x_i)}\right]_{f(x_i)=f_{1}(x_i)=y_i}=-4y_i,
+$$
+
+and find a new value for \( \rho_2=-1/2 \) and continue till we have reached \( m=M \). We can modify the steepest descent method, or steepest boosting, by introducing what is called <b>gradient boosting</b>.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec57">Gradient Boosting, algorithm </h2>
 
 <p>
 Suppose we have a cost function \( C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i)) \) where \( y_i \) is our target and \( f(x_i) \) the function which is meant to model \( y_i \). The above cost function could be our standard  squared-error  function
@@ -2404,7 +2430,15 @@ The way we proceed in an iterative fashion is to
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec57">Gradient Boosting, Examples of Regression </h2>
+<h2 id="___sec58">Gradient Boosting Example, Regression </h2>
+
+<p>
+We discuss here the difference between the steepest descent approach and gradient boosting by repeating our simple regression example above.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec59">Gradient Boosting, Examples of Regression </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -2458,7 +2492,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec58">Gradient Boosting, Classification Example </h2>
+<h2 id="___sec60">Gradient Boosting, Classification Example </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -2506,7 +2540,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec59">XGBoost: Extreme Gradient Boosting </h2>
+<h2 id="___sec61">XGBoost: Extreme Gradient Boosting </h2>
 
 <p>
 <a href="https://github.com/dmlc/xgboost" target="_blank">XGBoost</a> or Extreme Gradient
@@ -2527,7 +2561,7 @@ It is now the algorithm which wins essentially all ML competitions!!!
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec60">Regression Case </h2>
+<h2 id="___sec62">Regression Case </h2>
 
 <p>
 
@@ -2582,7 +2616,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec61">Xgboost on the Cancer Data </h2>
+<h2 id="___sec63">Xgboost on the Cancer Data </h2>
 
 <p>
 As you will see from the confusion matrix below, XGBoots does an excellent job on the Wisconsin cancer data and outperforms essentially all agorithms we have discussed till now. 

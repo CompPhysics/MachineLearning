@@ -1433,6 +1433,10 @@ scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+# we produce a simple tree first as benchmark
+simpletree = DecisionTreeRegressor(max_depth=3) 
+simpletree.fit(X_train_scaled, y_train)
+simpleprediction = simpletree.predict(X_test_scaled)
 for degree in range(1,maxdepth):
     model = DecisionTreeRegressor(max_depth=degree) 
     y_pred = np.empty((y_test.shape[0], n_boostraps))
@@ -1451,8 +1455,10 @@ for degree in range(1,maxdepth):
     print('Var:', variance[degree])
     print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
+mse_simpletree = np.mean( np.mean((y_test - simpleprediction)**2)
 plt.xlim(1,maxdepth)
-plt.plot(polydegree, error, label='Error')
+plt.plot(polydegree, error, label='MSE simple tree')
+plt.plot(polydegree, mse_simpletree, label='MSE for Bootstrap')
 plt.plot(polydegree, bias, label='bias')
 plt.plot(polydegree, variance, label='Variance')
 plt.legend()
@@ -1956,7 +1962,7 @@ This means that for every iteration, we need to optimize
 
 !bt
 \[
-(\hat{\bm{f}})  \mathrm{argmin}_{\bm{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+(\hat{\bm{f}}) = \mathrm{argmin}_{\bm{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
 \]
 !et
 
@@ -1980,10 +1986,26 @@ the gradient is $g_m(x_i) = -2(y_i-f(x_i))$.
 Choosing $f_0(x)=0$ we obtain $g_m(x) = -2y_i$ and inserting this into the minimization problem for the cost function we have
 !bt
 \[
-(\rho_1)  \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
+(\rho_1) = \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
 \]
 !et
 
+!split
+===== Steepest Descent Example =====
+
+Optimizing with respect to $\rho$ we obtain (taking the derivative) that $\rho_1 = -1/2$. We have then that
+!bt
+\[
+f_1(x) = f_{0}(x) -\rho_1 g_1(x)=-y_i.
+\]
+!et
+We can then proceed and compute
+!bt
+\[
+g_2(x_i) = \left[ \frac{\partial {\cal L}(y_i, f(x_i))}{\partial f(x_i)}\right]_{f(x_i)=f_{1}(x_i)=y_i}=-4y_i,
+\]
+!et
+and find a new value for $\rho_2=-1/2$ and continue till we have reached $m=M$. We can modify the steepest descent method, or steepest boosting, by introducing what is called _gradient boosting_. 
 
 !split
 ===== Gradient Boosting, algorithm =====
@@ -2003,7 +2025,10 @@ o For $m=1:M$, we
   o update the estimate $f_m(x) = f_{m-1}(x)+\nu h_m(u_m,x)$;
 o The final estimate is then $f_M(x) = \sum_{m=1}^M\nu h_m(u_m,x)$.
 
+!split
+===== Gradient Boosting Example, Regression =====
 
+We discuss here the difference between the steepest descent approach and gradient boosting by repeating our simple regression example above. 
 
 
 !split

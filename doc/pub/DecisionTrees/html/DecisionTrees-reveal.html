@@ -148,7 +148,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Nov 12, 2019</h4></center> <!-- date -->
+<center><h4>Nov 13, 2019</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -1758,6 +1758,10 @@ scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+<span style="color: #228B22"># we produce a simple tree first as benchmark</span>
+simpletree = DecisionTreeRegressor(max_depth=<span style="color: #B452CD">3</span>) 
+simpletree.fit(X_train_scaled, y_train)
+simpleprediction = simpletree.predict(X_test_scaled)
 <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,maxdepth):
     model = DecisionTreeRegressor(max_depth=degree) 
     y_pred = np.empty((y_test.shape[<span style="color: #B452CD">0</span>], n_boostraps))
@@ -1776,8 +1780,10 @@ X_test_scaled = scaler.transform(X_test)
     <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
     <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
+mse_simpletree = np.mean( np.mean((y_test - simpleprediction)**<span style="color: #B452CD">2</span>)
 plt.xlim(<span style="color: #B452CD">1</span>,maxdepth)
-plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;Error&#39;</span>)
+plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;MSE simple tree&#39;</span>)
+plt.plot(polydegree, mse_simpletree, label=<span style="color: #CD5555">&#39;MSE for Bootstrap&#39;</span>)
 plt.plot(polydegree, bias, label=<span style="color: #CD5555">&#39;bias&#39;</span>)
 plt.plot(polydegree, variance, label=<span style="color: #CD5555">&#39;Variance&#39;</span>)
 plt.legend()
@@ -2378,7 +2384,7 @@ This means that for every iteration, we need to optimize
 
 <p>&nbsp;<br>
 $$
-(\hat{\boldsymbol{f}})  \mathrm{argmin}_{\boldsymbol{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+(\hat{\boldsymbol{f}}) = \mathrm{argmin}_{\boldsymbol{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
 $$
 <p>&nbsp;<br>
 
@@ -2406,14 +2412,36 @@ the gradient is \( g_m(x_i) = -2(y_i-f(x_i)) \).
 Choosing \( f_0(x)=0 \) we obtain \( g_m(x) = -2y_i \) and inserting this into the minimization problem for the cost function we have
 <p>&nbsp;<br>
 $$
-(\rho_1)  \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
+(\rho_1) = \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
 $$
 <p>&nbsp;<br>
 </section>
 
 
 <section>
-<h2 id="___sec56">Gradient Boosting, algorithm </h2>
+<h2 id="___sec56">Steepest Descent Example </h2>
+
+<p>
+Optimizing with respect to \( \rho \) we obtain (taking the derivative) that \( \rho_1 = -1/2 \). We have then that
+<p>&nbsp;<br>
+$$
+f_1(x) = f_{0}(x) -\rho_1 g_1(x)=-y_i.
+$$
+<p>&nbsp;<br>
+
+We can then proceed and compute
+<p>&nbsp;<br>
+$$
+g_2(x_i) = \left[ \frac{\partial {\cal L}(y_i, f(x_i))}{\partial f(x_i)}\right]_{f(x_i)=f_{1}(x_i)=y_i}=-4y_i,
+$$
+<p>&nbsp;<br>
+
+and find a new value for \( \rho_2=-1/2 \) and continue till we have reached \( m=M \). We can modify the steepest descent method, or steepest boosting, by introducing what is called <b>gradient boosting</b>.
+</section>
+
+
+<section>
+<h2 id="___sec57">Gradient Boosting, algorithm </h2>
 
 <p>
 Suppose we have a cost function \( C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i)) \) where \( y_i \) is our target and \( f(x_i) \) the function which is meant to model \( y_i \). The above cost function could be our standard  squared-error  function
@@ -2441,7 +2469,15 @@ The way we proceed in an iterative fashion is to
 
 
 <section>
-<h2 id="___sec57">Gradient Boosting, Examples of Regression </h2>
+<h2 id="___sec58">Gradient Boosting Example, Regression </h2>
+
+<p>
+We discuss here the difference between the steepest descent approach and gradient boosting by repeating our simple regression example above.
+</section>
+
+
+<section>
+<h2 id="___sec59">Gradient Boosting, Examples of Regression </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -2496,7 +2532,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec58">Gradient Boosting, Classification Example </h2>
+<h2 id="___sec60">Gradient Boosting, Classification Example </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -2545,7 +2581,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec59">XGBoost: Extreme Gradient Boosting </h2>
+<h2 id="___sec61">XGBoost: Extreme Gradient Boosting </h2>
 
 <p>
 <a href="https://github.com/dmlc/xgboost" target="_blank">XGBoost</a> or Extreme Gradient
@@ -2566,7 +2602,7 @@ It is now the algorithm which wins essentially all ML competitions!!!
 
 
 <section>
-<h2 id="___sec60">Regression Case </h2>
+<h2 id="___sec62">Regression Case </h2>
 
 <p>
 
@@ -2622,7 +2658,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec61">Xgboost on the Cancer Data </h2>
+<h2 id="___sec63">Xgboost on the Cancer Data </h2>
 
 <p>
 As you will see from the confusion matrix below, XGBoots does an excellent job on the Wisconsin cancer data and outperforms essentially all agorithms we have discussed till now. 
