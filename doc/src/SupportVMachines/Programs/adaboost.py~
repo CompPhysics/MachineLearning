@@ -1,0 +1,65 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
+
+def plot_decision_boundary(clf, X, y, axes=[-1.5, 2.5, -1, 1.5], alpha=0.5, contour=True):
+    x1s = np.linspace(axes[0], axes[1], 100)
+    x2s = np.linspace(axes[2], axes[3], 100)
+    x1, x2 = np.meshgrid(x1s, x2s)
+    X_new = np.c_[x1.ravel(), x2.ravel()]
+    y_pred = clf.predict(X_new).reshape(x1.shape)
+    custom_cmap = ListedColormap(['#fafab0','#9898ff','#a0faa0'])
+    plt.contourf(x1, x2, y_pred, alpha=0.3, cmap=custom_cmap)
+    if contour:
+        custom_cmap2 = ListedColormap(['#7d7d58','#4c4c7f','#507d50'])
+        plt.contour(x1, x2, y_pred, cmap=custom_cmap2, alpha=0.8)
+    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo", alpha=alpha)
+    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs", alpha=alpha)
+    plt.axis(axes)
+    plt.xlabel(r"$x_1$", fontsize=18)
+    plt.ylabel(r"$x_2$", fontsize=18, rotation=0)
+
+# Load the data
+cancer = load_breast_cancer()
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+#now scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+ada_clf = AdaBoostClassifier(
+    DecisionTreeClassifier(max_depth=1), n_estimators=200,
+    algorithm="SAMME.R", learning_rate=0.5, random_state=42)
+
+ada_clf.fit(X_train_scaled, y_train)
+plot_decision_boundary(ada_clf, cancer.data,cancer.target)
+
+m = len(X_train_scaled)
+
+plt.figure(figsize=(11, 4))
+for subplot, learning_rate in ((121, 1), (122, 0.5)):
+    sample_weights = np.ones(m)
+    plt.subplot(subplot)
+    for i in range(5):
+        svm_clf = SVC(kernel="rbf", C=0.05, gamma="auto", random_state=42)
+        svm_clf.fit(X_train_scaled, y_train, sample_weight=sample_weights)
+        y_pred = svm_clf.predict(X_train_scaled)
+        sample_weights[y_pred != y_train] *= (1 + learning_rate)
+        plot_decision_boundary(svm_clf, cancer.data,cancer.target, alpha=0.2)
+        plt.title("learning_rate = {}".format(learning_rate), fontsize=16)
+    if subplot == 121:
+        plt.text(-0.7, -0.65, "1", fontsize=14)
+        plt.text(-0.6, -0.10, "2", fontsize=14)
+        plt.text(-0.5,  0.10, "3", fontsize=14)
+        plt.text(-0.4,  0.55, "4", fontsize=14)
+        plt.text(-0.3,  0.90, "5", fontsize=14)
+
+plt.show()
+
