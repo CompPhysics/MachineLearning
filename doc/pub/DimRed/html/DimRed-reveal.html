@@ -148,7 +148,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Oct 25, 2019</h4></center> <!-- date -->
+<center><h4>Dec 26, 2019</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -982,14 +982,120 @@ $$
 <p><li> Order the eigenvalue (and the eigenvectors accordingly) in order of decreasing eigenvalues.</li>
 <p><li> Keep only those \( l \) eigenvalues larger than a selected threshold value, discarding thus \( p-l \) features since we expect small variations in the data here.</li>
 </ul>
+</section>
+
+
+<section>
+<h2 id="___sec17">Writing our own PCA code </h2>
+
+<p>
+We will use a simple example first with two-dimensional data
+drawn from a multivariate normal distribution with the following mean and covariance matrix:
+<p>&nbsp;<br>
+$$
+\mu = (-1,2) \qquad \Sigma = \begin{bmatrix} 4 & 2 \\
+2 & 2
+\end{bmatrix}
+$$
+<p>&nbsp;<br>
+
+<p>
+We will generate \( N = 1000 \) points \( X = \{ x_1, \ldots, x_N \} \) from
+this distribution, and store them in the \( 1000 \times 2 \) matrix \( \boldsymbol{X} \).
+
+<p>
+The following Python code aids in setting up the data
+
 <p>
 
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>N = <span style="color: #B452CD">1000</span>
+mean = (-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">2</span>)
+cov = [[<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>], [<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2</span>]]
+X = np.random.multivariate_normal(mean, cov, N)
+</pre></div>
+<p>
+Make a small Python code which plots the data.
+
+<p>
+Now we are going to implement the PCA algorithm. We will break it down into sub-steps and across multiple cells.
+
+<h3 id="___sec18">Compute the sample mean and center the data </h3>
+
+<p>
+The first step of PCA is to compute the sample mean of the data and use it to center the data. Recall the sample mean is
+<p>&nbsp;<br>
+$$
+\mu_N = \frac{1}{N} \sum_{i=1}^N x_i
+$$
+<p>&nbsp;<br>
+
+and the mean-centered data \( \bar{X} = \{ \bar{x}_1, \ldots, \bar{x}_N \} \) takes the form
+<p>&nbsp;<br>
+$$
+\bar{x}_i = x_i - \mu_N
+$$
+<p>&nbsp;<br>
+
+When you are done with these steps, print out \( \mu_N \) to verify it is
+close to \( \mu \) and plot your mean centered data to verify it is
+centered at the origin! Compare your code with the functionality from <b>Scikit-Learn</b> discussed above.
+
+<h3 id="___sec19">Compute the sample covariance </h3>
+
+<p>
+Now we are going to use the mean centered data to compute the sample covariance of the data. Recall it is given by:
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\Sigma_N = \frac{1}{N-1} \sum_{i=1}^N \bar{x}_i^T \bar{x}_i = \frac{1}{N-1} \sum_{i=1}^N (x_i - \mu_N)^T (x_i - \mu_N)
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+where the data points \( x_i \in \mathbb{R}^p \) (here in this example \( p = 2 \)) are column vectors and \( x^T \) is the transpose of \( x \).
+Compare the computed covariance with the answer given above.
+
+<h3 id="___sec20">Diagonalize the sample covariance matrix to obtain the principal components </h3>
+
+<p>
+Now we are ready to solve for the principal components! To do so we
+diagonalize the sample covariance matrix \( \Sigma_N \). We can use the
+function <b>np.linalg.eig</b> to do so. It will return the eigenvalues and
+eigenvectors of \( \Sigma_N \). Once you have these, carry out the
+following tasks:
+
+<ul>
+<p><li> Compute the percentage of the total variance captured by the first principal component</li>
+<p><li> Plot the mean centered data and lines along the first and second principal components</li>
+<p><li> Project the mean centered data onto the first and second principal components, and plot the projected data. What do you observe?</li>
+<p><li> Approximate the data as</li>
+</ul>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+x_i \approx \tilde{x}_i := \mu_N + \langle x_i, v_0 \rangle v_0
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+where \( v_0 \) is the first principal component. What do you observe?
+
+<p>
+Finally, collect all these steps and write your own PCA function and
+compare this with the functionality included in <b>Scikit-Learn</b>.
+Have the input be the data and have the output be the principal components and their associated eigenvalues, sorted in descending order. Can you think of a way to make it more efficient than the algorithm outlined above?
+
+<p>
+Finally, try out your own PCA function with other data sets.
+
+<p>
 After this we ask ourselves how do we prove the link between the maximum variance and the feature reduction.
 </section>
 
 
 <section>
-<h2 id="___sec17">Classical PCA Theorem   </h2>
+<h2 id="___sec21">Classical PCA Theorem   </h2>
 
 <p>
 We assume now that we have a design matrix \( \boldsymbol{X} \) which has been centered as discussed above. For the sake of simplicity we skip the overline symbol. The matrix is defined in terms of the various column vectors \( [\boldsymbol{x}_0,\boldsymbol{x}_1,\dots, \boldsymbol{x}_{p-1}] \)
@@ -1012,7 +1118,7 @@ The PCA theorem states that minimizing the above reconstruction error correspond
 
 
 <section>
-<h2 id="___sec18">Proof of the PCA Theorem  </h2>
+<h2 id="___sec22">Proof of the PCA Theorem  </h2>
 
 <p>
 To show the PCA theorem let us start with the assumption that there is one vector \( \boldsymbol{w}_0 \) which corresponds to a solution which minimized the reconstruction error \( J \). This is an orthogonal vector. It means that we now approximate the reconstruction error in terms of \( \boldsymbol{w}_0 \) and \( \boldsymbol{z}_0 \) as
@@ -1041,7 +1147,7 @@ where the vectors on the rhs are known.
 
 
 <section>
-<h2 id="___sec19">PCA Proof continued </h2>
+<h2 id="___sec23">PCA Proof continued </h2>
 
 <p>
 We have now found the unknown parameters \( z_{i0} \). These correspond to the projected coordinates and we can write
@@ -1089,7 +1195,7 @@ We are almost there, we have obtained a relation between minimizing the reconstr
 
 
 <section>
-<h2 id="___sec20">The final step </h2>
+<h2 id="___sec24">The final step </h2>
 
 <p>
 We could trivially maximize the variance of the projection (and
@@ -1148,7 +1254,7 @@ chapter 12.4 and discussion therein.
 
 
 <section>
-<h2 id="___sec21">Principal Component Analysis </h2>
+<h2 id="___sec25">Principal Component Analysis </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -1205,7 +1311,7 @@ X2D = X_centered.dot(W2)
 
 
 <section>
-<h2 id="___sec22">PCA and scikit-learn </h2>
+<h2 id="___sec26">PCA and scikit-learn </h2>
 
 <p>
 Scikit-Learn&#8217;s PCA class implements PCA using SVD decomposition just like we did before. The
@@ -1237,7 +1343,7 @@ variance that lies along the axis of each principal component.
 
 
 <section>
-<h2 id="___sec23">Back to the Cancer Data </h2>
+<h2 id="___sec27">Back to the Cancer Data </h2>
 We can now repeat the above but applied to real data, in this case our breast cancer data.
 Here we compute performance scores on the training data using logistic regression.
 <p>
@@ -1278,7 +1384,7 @@ We see that our training data after the PCA decomposition has a performance simi
 
 
 <section>
-<h2 id="___sec24">More on the PCA </h2>
+<h2 id="___sec28">More on the PCA </h2>
 
 <p>
 Instead of arbitrarily choosing the number of dimensions to reduce down to, it is generally preferable to
@@ -1309,7 +1415,7 @@ X_reduced = pca.fit_transform(X)
 
 
 <section>
-<h2 id="___sec25">Incremental PCA </h2>
+<h2 id="___sec29">Incremental PCA </h2>
 
 <p>
 One problem with the preceding implementation of PCA is that it requires the whole training set to fit in
@@ -1321,7 +1427,7 @@ instances arrive).
 
 
 <section>
-<h2 id="___sec26">Randomized PCA </h2>
+<h2 id="___sec30">Randomized PCA </h2>
 
 <p>
 Scikit-Learn offers yet another option to perform PCA, called Randomized PCA. This is a stochastic
@@ -1335,7 +1441,7 @@ previous algorithms when \( d \) is much smaller than \( n \).
 
 
 <section>
-<h2 id="___sec27">Kernel PCA </h2>
+<h2 id="___sec31">Kernel PCA </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -1361,7 +1467,7 @@ X_reduced = rbf_pca.fit_transform(X)
 
 
 <section>
-<h2 id="___sec28">LLE </h2>
+<h2 id="___sec32">LLE </h2>
 
 <p>
 Locally Linear Embedding (LLE) is another very powerful nonlinear dimensionality reduction
@@ -1373,7 +1479,7 @@ these local relationships are best preserved (more details shortly).
 
 
 <section>
-<h2 id="___sec29">Other techniques </h2>
+<h2 id="___sec33">Other techniques </h2>
 
 <p>
 There are many other dimensionality reduction techniques, several of which are available in Scikit-Learn.

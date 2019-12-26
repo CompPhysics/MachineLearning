@@ -739,6 +739,94 @@ x_{n-1,0} & x_{n-1,1} & x_{n-1,2}& \dots & \dots x_{n-1,p-1}\\
 * Order the eigenvalue (and the eigenvectors accordingly) in order of decreasing eigenvalues.
 * Keep only those $l$ eigenvalues larger than a selected threshold value, discarding thus $p-l$ features since we expect small variations in the data here.
 
+
+!split
+===== Writing our own PCA code =====
+
+We will use a simple example first with two-dimensional data
+drawn from a multivariate normal distribution with the following mean and covariance matrix:
+!bt
+\[
+\mu = (-1,2) \qquad \Sigma = \begin{bmatrix} 4 & 2 \\
+2 & 2
+\end{bmatrix}
+\]
+!et
+
+We will generate $N = 1000$ points $X = \{ x_1, \ldots, x_N \}$ from
+this distribution, and store them in the $1000 \times 2$ matrix $\bm{X}$.
+
+The following Python code aids in setting up the data
+
+!bc pycod 
+N = 1000
+mean = (-1, 2)
+cov = [[4, 2], [2, 2]]
+X = np.random.multivariate_normal(mean, cov, N)
+!ec
+
+Make a small Python code which plots the data.
+
+Now we are going to implement the PCA algorithm. We will break it down into sub-steps and across multiple cells.
+
+=== Compute the sample mean and center the data ===
+
+The first step of PCA is to compute the sample mean of the data and use it to center the data. Recall the sample mean is
+!bt
+\[
+\mu_N = \frac{1}{N} \sum_{i=1}^N x_i
+\]
+!et
+and the mean-centered data $\bar{X} = \{ \bar{x}_1, \ldots, \bar{x}_N \}$ takes the form
+!bt
+\[
+\bar{x}_i = x_i - \mu_N
+\]
+!et
+When you are done with these steps, print out $\mu_N$ to verify it is
+close to $\mu$ and plot your mean centered data to verify it is
+centered at the origin! Compare your code with the functionality from _Scikit-Learn_ discussed above.
+
+
+=== Compute the sample covariance ===
+
+Now we are going to use the mean centered data to compute the sample covariance of the data. Recall it is given by:
+!bt
+\begin{equation*}
+\Sigma_N = \frac{1}{N-1} \sum_{i=1}^N \bar{x}_i^T \bar{x}_i = \frac{1}{N-1} \sum_{i=1}^N (x_i - \mu_N)^T (x_i - \mu_N)
+\end{equation*}
+!et
+where the data points $x_i \in \mathbb{R}^p$ (here in this example $p = 2$) are column vectors and $x^T$ is the transpose of $x$.
+Compare the computed covariance with the answer given above.
+
+
+=== Diagonalize the sample covariance matrix to obtain the principal components ===
+
+Now we are ready to solve for the principal components! To do so we
+diagonalize the sample covariance matrix $\Sigma_N$. We can use the
+function _np.linalg.eig_ to do so. It will return the eigenvalues and
+eigenvectors of $\Sigma_N$. Once you have these, carry out the
+following tasks:
+
+* Compute the percentage of the total variance captured by the first principal component
+* Plot the mean centered data and lines along the first and second principal components
+* Project the mean centered data onto the first and second principal components, and plot the projected data. What do you observe?
+* Approximate the data as
+!bt
+\begin{equation*}
+x_i \approx \tilde{x}_i := \mu_N + \langle x_i, v_0 \rangle v_0
+\end{equation*}
+!et
+where $v_0$ is the first principal component. What do you observe?
+
+Finally, collect all these steps and write your own PCA function and
+compare this with the functionality included in _Scikit-Learn_.
+Have the input be the data and have the output be the principal components and their associated eigenvalues, sorted in descending order. Can you think of a way to make it more efficient than the algorithm outlined above?
+
+Finally, try out your own PCA function with other data sets.
+
+
+
 After this we ask ourselves how do we prove the link between the maximum variance and the feature reduction.
 
 !split
