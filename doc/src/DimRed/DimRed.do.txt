@@ -779,13 +779,19 @@ this distribution, and store them in the $1000 \times 2$ matrix $\bm{X}$.
 The following Python code aids in setting up the data
 
 !bc pycod 
-n = 1000
+import numpy as np
+import pandas as pd
+from IPython.display import display
+n = 100
 mean = (-1, 2)
 cov = [[4, 2], [2, 2]]
 X = np.random.multivariate_normal(mean, cov, n)
+# Print the X-matrix
+print(X)
 !ec
 
-Make thereafter a small Python code which plots the data. Note that the function _multivariate_ returns also the covariance discussed above and that it is defined by dividing by $n-1$ instead of $n$.
+
+Make thereafter a small Python code which writes out the data. Note that the function _multivariate_ returns also the covariance discussed above and that it is defined by dividing by $n-1$ instead of $n$.
 
 Now we are going to implement the PCA algorithm. We will break it down into various substeps.
 
@@ -806,6 +812,18 @@ and the mean-centered data $\bar{X} = \{ \bar{x}_1, \ldots, \bar{x}_n \}$ takes 
 When you are done with these steps, print out $\mu_n$ to verify it is
 close to $\mu$ and plot your mean centered data to verify it is
 centered at the origin! Compare your code with the functionality from _Scikit-Learn_ discussed above.
+
+!bc pycod
+df = pd.DataFrame(X)
+# Pandas does the centering for us
+df = df -df.mean()
+display(df)
+
+# we center it ourselves
+X_centered = X - X.mean(axis=0)
+# test that we get the same as Pandas
+print(X_centered-df)
+!ec
 
 
 === Compute the sample covariance ===
@@ -843,7 +861,31 @@ Finally, collect all these steps and write your own PCA function and
 compare this with the functionality included in _Scikit-Learn_.
 Have the input be the data and have the output be the principal components and their associated eigenvalues, sorted in descending order. Can you think of a way to make it more efficient than the algorithm outlined above?
 
+!bc pycod
+#Now we do an SVD
+U, s, V = np.linalg.svd(X_centered)
+c1 = V.T[:, 0]
+c2 = V.T[:, 1]
+W2 = V.T[:, :2]
+X2D = X_centered.dot(W2)
+print(X2D)
+#thereafter we do a PCA with Scikit-learn
+from sklearn.decomposition import PCA
+pca = PCA(n_components = 2)
+X2Dsl = pca.fit_transform(X)
+print("Check that we get the same")
+print(X2D-X2Dsl)
+
+print(pca.components_.T[:, 0])
+
+
+!ec
+
+
+
 Finally, try out your own PCA function with other data sets.
+
+
 
 
 !split

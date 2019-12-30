@@ -226,13 +226,18 @@ The following Python code aids in setting up the data
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>n <span style="color: #666666">=</span> <span style="color: #666666">1000</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> display
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
 mean <span style="color: #666666">=</span> (<span style="color: #666666">-1</span>, <span style="color: #666666">2</span>)
 cov <span style="color: #666666">=</span> [[<span style="color: #666666">4</span>, <span style="color: #666666">2</span>], [<span style="color: #666666">2</span>, <span style="color: #666666">2</span>]]
 X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>multivariate_normal(mean, cov, n)
+<span style="color: #408080; font-style: italic"># Print the X-matrix</span>
+<span style="color: #008000; font-weight: bold">print</span>(X)
 </pre></div>
 <p>
-Make thereafter a small Python code which plots the data. Note that the function <b>multivariate</b> returns also the covariance discussed above and that it is defined by dividing by \( n-1 \) instead of \( n \).
+Make thereafter a small Python code which writes out the data. Note that the function <b>multivariate</b> returns also the covariance discussed above and that it is defined by dividing by \( n-1 \) instead of \( n \).
 
 <p>
 Now we are going to implement the PCA algorithm. We will break it down into various substeps.
@@ -253,6 +258,20 @@ $$
 When you are done with these steps, print out \( \mu_n \) to verify it is
 close to \( \mu \) and plot your mean centered data to verify it is
 centered at the origin! Compare your code with the functionality from <b>Scikit-Learn</b> discussed above.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>df <span style="color: #666666">=</span> pd<span style="color: #666666">.</span>DataFrame(X)
+<span style="color: #408080; font-style: italic"># Pandas does the centering for us</span>
+df <span style="color: #666666">=</span> df <span style="color: #666666">-</span>df<span style="color: #666666">.</span>mean()
+display(df)
+
+<span style="color: #408080; font-style: italic"># we center it ourselves</span>
+X_centered <span style="color: #666666">=</span> X <span style="color: #666666">-</span> X<span style="color: #666666">.</span>mean(axis<span style="color: #666666">=0</span>)
+<span style="color: #408080; font-style: italic"># test that we get the same as Pandas</span>
+<span style="color: #008000; font-weight: bold">print</span>(X_centered<span style="color: #666666">-</span>df)
+</pre></div>
 
 <h3 id="___sec19" class="anchor">Compute the sample covariance </h3>
 
@@ -296,6 +315,25 @@ Finally, collect all these steps and write your own PCA function and
 compare this with the functionality included in <b>Scikit-Learn</b>.
 Have the input be the data and have the output be the principal components and their associated eigenvalues, sorted in descending order. Can you think of a way to make it more efficient than the algorithm outlined above?
 
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">#Now we do an SVD</span>
+U, s, V <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>svd(X_centered)
+c1 <span style="color: #666666">=</span> V<span style="color: #666666">.</span>T[:, <span style="color: #666666">0</span>]
+c2 <span style="color: #666666">=</span> V<span style="color: #666666">.</span>T[:, <span style="color: #666666">1</span>]
+W2 <span style="color: #666666">=</span> V<span style="color: #666666">.</span>T[:, :<span style="color: #666666">2</span>]
+X2D <span style="color: #666666">=</span> X_centered<span style="color: #666666">.</span>dot(W2)
+<span style="color: #008000; font-weight: bold">print</span>(X2D)
+<span style="color: #408080; font-style: italic">#thereafter we do a PCA with Scikit-learn</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.decomposition</span> <span style="color: #008000; font-weight: bold">import</span> PCA
+pca <span style="color: #666666">=</span> PCA(n_components <span style="color: #666666">=</span> <span style="color: #666666">2</span>)
+X2Dsl <span style="color: #666666">=</span> pca<span style="color: #666666">.</span>fit_transform(X)
+<span style="color: #008000; font-weight: bold">print</span>(<span style="color: #BA2121">&quot;Check that we get the same&quot;</span>)
+<span style="color: #008000; font-weight: bold">print</span>(X2D<span style="color: #666666">-</span>X2Dsl)
+
+<span style="color: #008000; font-weight: bold">print</span>(pca<span style="color: #666666">.</span>components_<span style="color: #666666">.</span>T[:, <span style="color: #666666">0</span>])
+</pre></div>
 <p>
 Finally, try out your own PCA function with other data sets.
 
