@@ -179,7 +179,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Jan 1, 2020</h4></center> <!-- date -->
+<center><h4>Jan 2, 2020</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1019,12 +1019,7 @@ n = <span style="color: #B452CD">100</span>
 mean = (-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">2</span>)
 cov = [[<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>], [<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2</span>]]
 X = np.random.multivariate_normal(mean, cov, n)
-<span style="color: #228B22"># Print the X-matrix</span>
-<span style="color: #8B008B; font-weight: bold">print</span>(X)
 </pre></div>
-<p>
-Try to add to this code your own calculation of the covariance matrix.
-
 <p>
 Now we are going to implement the PCA algorithm. We will break it down into various substeps.
 
@@ -1044,31 +1039,31 @@ $$
 When you are done with these steps, print out \( \mu_n \) to verify it is
 close to \( \mu \) and plot your mean centered data to verify it is
 centered at the origin! Compare your code with the functionality from <b>Scikit-Learn</b> discussed above.
-The following code elements perform these operations using <b>pandas</b> or using our own functionality for doing so. The latter, using <b>numpy</b> is rather simply through the <b>mean()</b> function. 
+The following code elements perform these operations using <b>pandas</b> or using our own functionality for doing so. The latter, using <b>numpy</b> is rather simple through the <b>mean()</b> function. 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
 <div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span>df = pd.DataFrame(X)
 <span style="color: #228B22"># Pandas does the centering for us</span>
 df = df -df.mean()
-display(df)
-
 <span style="color: #228B22"># we center it ourselves</span>
 X_centered = X - X.mean(axis=<span style="color: #B452CD">0</span>)
-<span style="color: #228B22"># test that we get the same as Pandas</span>
-<span style="color: #8B008B; font-weight: bold">print</span>(X_centered-df)
 </pre></div>
 <p>
-Alternatively, you could also have used the functions we discussed earlier for scaling the data set. 
-That is, we could have used the <b>StandardScaler</b> function in <b>Scikit-Learn</b>, a function which 
-ensures that for each feature/predictor we study the mean value is
-zero and the variance is one (every column in the design/feature
-matrix).  You would then not get the same results, since we divide by the variance. For diagonal covariance matrix elements will then be one, while the non-diagonal ones will be divided by \( 2\sqrt{2} \) for our specific case.
+Alternatively, we could use the functions we discussed
+earlier for scaling the data set.  That is, we could have used the
+<b>StandardScaler</b> function in <b>Scikit-Learn</b>, a function which ensures
+that for each feature/predictor we study the mean value is zero and
+the variance is one (every column in the design/feature matrix).  You
+would then not get the same results, since we divide by the
+variance. The diagonal covariance matrix elements will then be one,
+while the non-diagonal ones need to be divided by \( 2\sqrt{2} \) for our
+specific case.
 
 <h3 id="___sec19">Compute the sample covariance </h3>
 
 <p>
-Now we are going to use the mean centered data to compute the sample covariance of the data. Recall it is given by:
+Now we are going to use the mean centered data to compute the sample covariance of the data. 
 $$
 \begin{equation*}
 \Sigma_n = \frac{1}{n-1} \sum_{i=1}^n \bar{x}_i^T \bar{x}_i = \frac{1}{n-1} \sum_{i=1}^n (x_i - \mu_n)^T (x_i - \mu_n)
@@ -1080,9 +1075,27 @@ We can write our own code or simply use either the functionaly of <b>numpy</b> o
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">print</span>(np.cov(X.T))
-<span style="color: #8B008B; font-weight: bold">print</span>(df.cov())
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">print</span>(df.cov())
 <span style="color: #8B008B; font-weight: bold">print</span>(np.cov(X_centered.T))
+</pre></div>
+<p>
+Note that the way we define the covariance matrix here has a factor \( n-1 \) instead of \( n \).
+Our own code here is not very elegant and asks for improvements. 
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%"><span></span><span style="color: #228B22"># extract the relevant columns from the centered design matrix of dim n x 2                                                      x = X_centered[:,[0]]</span>
+y = X_centered[:,[<span style="color: #B452CD">1</span>]]
+Cov = np.zeros((<span style="color: #B452CD">2</span>,<span style="color: #B452CD">2</span>))
+Cov[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">1</span>] = np.sum(x.T<span style="color: #707a7c">@y</span>)/(n-<span style="color: #B452CD">1.0</span>)
+Cov[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>] = np.sum(x.T<span style="color: #707a7c">@x</span>)/(n-<span style="color: #B452CD">1.0</span>)
+Cov[<span style="color: #B452CD">1</span>,<span style="color: #B452CD">1</span>] = np.sum(y.T<span style="color: #707a7c">@y</span>)/(n-<span style="color: #B452CD">1.0</span>)
+Cov[<span style="color: #B452CD">1</span>,<span style="color: #B452CD">0</span>]= Cov[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">1</span>]
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Centered covariance using own code&quot;</span>)
+<span style="color: #8B008B; font-weight: bold">print</span>(Cov)
+plt.plot(x, y, <span style="color: #CD5555">&#39;x&#39;</span>)
+plt.axis(<span style="color: #CD5555">&#39;equal&#39;</span>)
+plt.show()
 </pre></div>
 <p>
 Depending on the number of points \( n \), we will get results that are close to the covariance values defined above.
