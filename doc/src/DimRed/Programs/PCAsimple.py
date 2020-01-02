@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 n = 1000
 mean = (-1, 2)
-cov = [[4, 2], [2, 2]]
+cov = [[10, 1], [1, 0.5]]
 X = np.random.multivariate_normal(mean, cov, n)
 
 df = pd.DataFrame(X)
@@ -21,8 +21,8 @@ X_centered = X - X.mean(axis=0)
 print("Centered covariance using numpy")
 print(np.cov(X_centered.T))
 # extract the relevant columns from the centered design matrix
-x = X_centered[:,[0]]
-y = X_centered[:,[1]]
+x = X_centered[:,0]
+y = X_centered[:,1]
 Cov = np.zeros((2,2))
 Cov[0,1] = np.sum(x.T@y)/(n-1.0)
 Cov[0,0] = np.sum(x.T@x)/(n-1.0)
