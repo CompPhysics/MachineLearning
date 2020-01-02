@@ -24,13 +24,9 @@ print(np.cov(X_centered.T))
 x = X_centered[:,[0]]
 y = X_centered[:,[1]]
 Cov = np.zeros((2,2))
-cov_xy = np.sum(x.T@y)/(n-1.0)
-cov_xx = np.sum(x.T@x)/(n-1.0)
-cov_yy = np.sum(y.T@y)/(n-1.0)
-
-Cov[0,0]= cov_xx
-Cov[1,1]= cov_yy
-Cov[0,1]= cov_xy
+Cov[0,1] = np.sum(x.T@y)/(n-1.0)
+Cov[0,0] = np.sum(x.T@x)/(n-1.0)
+Cov[1,1] = np.sum(y.T@y)/(n-1.0)
 Cov[1,0]= Cov[0,1]
 print("Centered covariance using own code")
 print(Cov)
@@ -39,24 +35,27 @@ plt.plot(x, y, 'x')
 plt.axis('equal')
 plt.show()
 
-
-
-
-"""
-#Now we do an SVD
-U, s, V = np.linalg.svd(X_centered)
-c1 = V.T[:, 0]
-c2 = V.T[:, 1]
-W2 = V.T[:, :2]
-X2D = X_centered.dot(W2)
+# diagonalize and obtain eigenvalues, not necessarily sorted
+EigValues, EigVectors = np.linalg.eig(Cov)
+# sort eigenvectors and eigenvalues
+#permute = EigValues.argsort()
+#EigValues = EigValues[permute]
+#EigVectors = EigVectors[:,permute]
+print("Eigenvalues of Covariance matrix")
+for i in range(2):
+    print(EigValues[i])
+FirstEigvector = EigVectors[:,0]
+SecondEigvector = EigVectors[:,1]
+print("First eigenvector")
+print(FirstEigvector)
+print("Second eigenvector")
+print(SecondEigvector)
 #thereafter we do a PCA with Scikit-learn
 from sklearn.decomposition import PCA
 pca = PCA(n_components = 2)
 X2Dsl = pca.fit_transform(X)
-print("Check that we get the same")
-print(X2D-X2Dsl)
-
+print("Eigenvector of largest eigenvalue")
 print(pca.components_.T[:, 0])
-"""
+
 
 

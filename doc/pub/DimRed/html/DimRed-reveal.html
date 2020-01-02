@@ -1035,7 +1035,7 @@ Note that the function <b>multivariate</b> returns also the covariance discussed
 <div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">IPython.display</span> <span style="color: #8B008B; font-weight: bold">import</span> display
-n = <span style="color: #B452CD">100</span>
+n = <span style="color: #B452CD">10000</span>
 mean = (-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">2</span>)
 cov = [[<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>], [<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2</span>]]
 X = np.random.multivariate_normal(mean, cov, n)
@@ -1125,14 +1125,15 @@ plt.show()
 </pre></div>
 <p>
 Depending on the number of points \( n \), we will get results that are close to the covariance values defined above.
+The plot shows how the data are clustered around a line with slope close to one. Is this expected?
 
 <h3 id="___sec20">Diagonalize the sample covariance matrix to obtain the principal components </h3>
 
 <p>
 Now we are ready to solve for the principal components! To do so we
-diagonalize the sample covariance matrix \( \Sigma_n \). We can use the
+diagonalize the sample covariance matrix \( \Sigma \). We can use the
 function <b>np.linalg.eig</b> to do so. It will return the eigenvalues and
-eigenvectors of \( \Sigma_n \). Once we have these we can perform the 
+eigenvectors of \( \Sigma \). Once we have these we can perform the 
 following tasks:
 
 <ul>
@@ -1156,26 +1157,37 @@ Collecting all these steps we can write our own PCA function and
 compare this with the functionality included in <b>Scikit-Learn</b>.
 
 <p>
-The code here outlines some of the elements we could include in the analysis. Feel free to extend upon this.
+The code here outlines some of the elements we could include in the
+analysis. Feel free to extend upon this in order to address the above
+questions.
+
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22">#Now we do an SVD</span>
-U, s, V = np.linalg.svd(X_centered)
-c1 = V.T[:, <span style="color: #B452CD">0</span>]
-c2 = V.T[:, <span style="color: #B452CD">1</span>]
-W2 = V.T[:, :<span style="color: #B452CD">2</span>]
-X2D = X_centered.dot(W2)
-<span style="color: #8B008B; font-weight: bold">print</span>(X2D)
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># diagonalize and obtain eigenvalues, not necessarily sorted</span>
+EigValues, EigVectors = np.linalg.eig(Cov)
+<span style="color: #228B22"># sort eigenvectors and eigenvalues</span>
+<span style="color: #228B22">#permute = EigValues.argsort()</span>
+<span style="color: #228B22">#EigValues = EigValues[permute]</span>
+<span style="color: #228B22">#EigVectors = EigVectors[:,permute]</span>
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Eigenvalues of Covariance matrix&quot;</span>)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">2</span>):
+    <span style="color: #8B008B; font-weight: bold">print</span>(EigValues[i])
+FirstEigvector = EigVectors[:,<span style="color: #B452CD">0</span>]
+SecondEigvector = EigVectors[:,<span style="color: #B452CD">1</span>]
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;First eigenvector&quot;</span>)
+<span style="color: #8B008B; font-weight: bold">print</span>(FirstEigvector)
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Second eigenvector&quot;</span>)
+<span style="color: #8B008B; font-weight: bold">print</span>(SecondEigvector)
 <span style="color: #228B22">#thereafter we do a PCA with Scikit-learn</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.decomposition</span> <span style="color: #8B008B; font-weight: bold">import</span> PCA
 pca = PCA(n_components = <span style="color: #B452CD">2</span>)
 X2Dsl = pca.fit_transform(X)
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Check that we get the same&quot;</span>)
-<span style="color: #8B008B; font-weight: bold">print</span>(X2D-X2Dsl)
-
+<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Eigenvector of largest eigenvalue&quot;</span>)
 <span style="color: #8B008B; font-weight: bold">print</span>(pca.components_.T[:, <span style="color: #B452CD">0</span>])
 </pre></div>
+<p>
+This code does not contain all the above elements, but it shows how we can use <b>Scikit-Learn</b> to extract the eigenvector which corresponds to the largest eigenvalue. Try to, based on the above, to address the questions above.
 </section>
 
 

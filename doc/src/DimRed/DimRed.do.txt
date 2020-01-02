@@ -782,7 +782,7 @@ Note that the function _multivariate_ returns also the covariance discussed abov
 import numpy as np
 import pandas as pd
 from IPython.display import display
-n = 100
+n = 10000
 mean = (-1, 2)
 cov = [[4, 2], [2, 2]]
 X = np.random.multivariate_normal(mean, cov, n)
@@ -858,14 +858,14 @@ plt.show()
 !ec
 
 Depending on the number of points $n$, we will get results that are close to the covariance values defined above.
-
+The plot shows how the data are clustered around a line with slope close to one. Is this expected?
 
 === Diagonalize the sample covariance matrix to obtain the principal components ===
 
 Now we are ready to solve for the principal components! To do so we
-diagonalize the sample covariance matrix $\Sigma_n$. We can use the
+diagonalize the sample covariance matrix $\Sigma$. We can use the
 function _np.linalg.eig_ to do so. It will return the eigenvalues and
-eigenvectors of $\Sigma_n$. Once we have these we can perform the 
+eigenvectors of $\Sigma$. Once we have these we can perform the 
 following tasks:
 
 * We compute the percentage of the total variance captured by the first principal component
@@ -883,27 +883,35 @@ where $v_0$ is the first principal component.
 Collecting all these steps we can write our own PCA function and
 compare this with the functionality included in _Scikit-Learn_.  
 
-The code here outlines some of the elements we could include in the analysis. Feel free to extend upon this.
+The code here outlines some of the elements we could include in the
+analysis. Feel free to extend upon this in order to address the above
+questions.
+
 !bc pycod
-#Now we do an SVD
-U, s, V = np.linalg.svd(X_centered)
-c1 = V.T[:, 0]
-c2 = V.T[:, 1]
-W2 = V.T[:, :2]
-X2D = X_centered.dot(W2)
-print(X2D)
+# diagonalize and obtain eigenvalues, not necessarily sorted
+EigValues, EigVectors = np.linalg.eig(Cov)
+# sort eigenvectors and eigenvalues
+#permute = EigValues.argsort()
+#EigValues = EigValues[permute]
+#EigVectors = EigVectors[:,permute]
+print("Eigenvalues of Covariance matrix")
+for i in range(2):
+    print(EigValues[i])
+FirstEigvector = EigVectors[:,0]
+SecondEigvector = EigVectors[:,1]
+print("First eigenvector")
+print(FirstEigvector)
+print("Second eigenvector")
+print(SecondEigvector)
 #thereafter we do a PCA with Scikit-learn
 from sklearn.decomposition import PCA
 pca = PCA(n_components = 2)
 X2Dsl = pca.fit_transform(X)
-print("Check that we get the same")
-print(X2D-X2Dsl)
-
+print("Eigenvector of largest eigenvalue")
 print(pca.components_.T[:, 0])
 
-
 !ec
-
+This code does not contain all the above elements, but it shows how we can use _Scikit-Learn_ to extract the eigenvector which corresponds to the largest eigenvalue. Try to, based on the above, to address the questions above. 
 
 !split
 ===== Classical PCA Theorem   =====
