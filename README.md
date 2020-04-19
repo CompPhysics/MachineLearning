@@ -61,11 +61,11 @@ The following topics will be covered
 - Boltzmann Machines
 - Dimensionality reduction, from PCA to cluster models
 
-Hands-on demonstrations, exercises and projects aim at deepining your understanding of these topics.
+Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
 
 Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
-the theory and methods. We recommend strongly to form small projects of 2-3 participants. 
+the theory and varous algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants. 
 
 
 
