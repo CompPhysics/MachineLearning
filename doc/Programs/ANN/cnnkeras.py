@@ -51,7 +51,10 @@ test_size = 1 - train_size
 X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
                                                     test_size=test_size)
 
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+tf.reset_default_graph()
 
 
 from keras.models import Sequential
@@ -90,7 +93,7 @@ eta_vals = np.logspace(-5, 1, 7)
 lmbd_vals = np.logspace(-5, 1, 7)
 
 CNN_keras = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-        
+
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
         CNN = create_convolutional_neural_network_keras(input_shape, receptive_field,
@@ -122,7 +125,7 @@ for i in range(len(eta_vals)):
         train_accuracy[i][j] = CNN.evaluate(X_train, Y_train)[1]
         test_accuracy[i][j] = CNN.evaluate(X_test, Y_test)[1]
 
-        
+
 fig, ax = plt.subplots(figsize = (10, 10))
 sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
 ax.set_title("Training Accuracy")
