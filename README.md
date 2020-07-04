@@ -20,10 +20,11 @@ This course aims at giving you insights and knowledge about  many of the central
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
 - Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
-- Learn about various neural networks and deep  learning methods for supervised and unsupervised learning;
-- Learn about about decision trees, random forests, bagging and boosting methods
-- Learn about support vector machines and kernel transformations
-- Reduction of data sets, from PCA to clustering, supervised and unsupervised methods
+- Learn about neural networks and deep  learning methods for supervised and unsupervised learning. Emphasis on feed forward neural networks and convolutional neural networks; 
+- Learn about about decision trees, random forests, bagging and boosting methods;
+- Learn about support vector machines and kernel transformations;
+- Reduction of data sets, from PCA to clustering;
+- Autoencoders and Reinforcement Learning;
 - Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++.  
 
 ## Prerequisites
