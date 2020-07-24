@@ -1,7 +1,7 @@
 # FYS-STK3155/4155 Applied Data Analysis and Machine Learning, http://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/index-eng.html
 
 
-This site contains all material relevant for the course on Applied Data Analysis and Machine Learning, FYS-STK3155/4155 at the University of Oslo, Norway.
+This site contains all material relevant for the course on Applied Data Analysis and Machine Learning FYS-STK3155/4155 at the University of Oslo, Norway.
 
 ## Introduction
 
@@ -53,14 +53,14 @@ The following topics will be covered
 
 ### Machine learning
 
-The following topics will be covered
+The following topics are planned for the fall semester 2020
 - Linear Regression and Logistic Regression;
-- Neural networks and deep learning;
+- Neural networks and deep learning, including convolutional and recurrent neural networks
 - Decisions trees and nearest neighbor algorithms
 - Support vector machines
-- Bayesian Neural Networks
+- Bayesian linear and logistic regression
 - Boltzmann Machines
-- Dimensionality reduction, from PCA to cluster models
+- Unsupervised learning Dimensionality reduction, from PCA to cluster models
 
 Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
 
