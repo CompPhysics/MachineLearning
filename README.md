@@ -47,16 +47,15 @@ The following topics will be covered
 - Central elements of Bayesian statistics and modeling;
 - Gradient methods for data optimization
 - Monte Carlo methods, Markov chains, Metropolis-Hastings algorithm;
-- Linear methods for regression and classification;
 - Estimation of errors using cross-validation, blocking, bootstrapping and jackknife methods;
 - Principal Component Analysis and its mathematical foundation
 
 ### Machine learning
 
-The following topics are planned for the fall semester 2020
+The following topics will be covered
 - Linear Regression and Logistic Regression;
 - Neural networks and deep learning, including convolutional and recurrent neural networks
-- Decisions trees and nearest neighbor algorithms
+- Decisions trees, Random Forests, Bagging and Boosting
 - Support vector machines
 - Bayesian linear and logistic regression
 - Boltzmann Machines
