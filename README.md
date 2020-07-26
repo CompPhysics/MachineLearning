@@ -37,7 +37,7 @@ Basic knowledge in programming and mathematics, with an emphasis on linear algeb
 1. Statistical analysis and optimization of data
 2. Machine learning
 
-These topics will be scattered thorughout the course and may not  necessarily be taught separately. Rather, we will often take an approach (during the lectures and project/exercise sessions where say elements from statistical data analysis are mixed with specific Machine Learning algorithms. 
+These topics will be scattered thorughout the course and may not  necessarily be taught separately. Rather, we will often take an approach (during the lectures and project/exercise sessions) where say elements from statistical data analysis are mixed with specific Machine Learning algorithms. 
 
 ### Statistical analysis and optimization of data
 
