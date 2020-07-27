@@ -67,7 +67,15 @@ Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
 the theory and varous algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants. 
 
+## Instructor information
+***Name: 
+*** Office: 
+*** Office hours: In FS20, all office hours must be via computer or telephone. No matter what the modality of the course, instructors are required to hold the number of office hours specified by their college. Indicate the platform office hours will be held on and how appointments can be made outside office hours. Be explicit about communication channels and expectations, e.g. if you'll need 24 hours to reply to student emails. We suggest Zoom meetings and the use of a Zoom waiting room. ***
 
+***Phone: (Specify if the office phone will be forwarded to the instructor's personal phone or if some other means of communication is to be used)
+***E-mail: 
+
+##  Teaching Assistants FS20
 
 ## Practicalities
 
@@ -79,6 +87,29 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 7. Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail;
 8. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
 9. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course. Slack is also used for course communication. The Slack link is machinelearninguio.slack.com ;
+
+## Required Technologies: 
+Specify any additional materials, including software, and hardware, and Internet connection, that students must purchase (or have access to) for the course. State if any hardware or software is required for assessment (e.g. a webcam). In selecting/preparing materials abide by the MSU Accessibility Policies.
+•	If you use any special technology e.g. clickers, Tophat etc, please add instructions here. ***If there is a cost, this must be indicated in the Schedule of Courses.***
+•	Consider including pointers for which browsers and internet speeds are best for working with D2L:
+o	Browser/mobile support for D2L:https://documentation.brightspace.com/EN/brightspace/requirements/all/browser_support.htm
+•	Consider including a guide for internet speed:  https://broadbandnow.com/guides/how-much-internet-speed-do-i-need. For most courses, 25 Mbps should work. If there is no mandatory video component, then students may be able to interact with the course with a slower connection. Most courses have a generic statement that says the course requires access to "high speed" internet. 
+•	Consider including information about how students can access internet connections, including those companies offering students free or reduced cost internet: https://remote.msu.edu/learning/internet.html
+•	Remember that not all students have access to reliable internet. Specify your expectations if students encounter difficulties--including outages--during synchronous sessions, exams, etc.
+
+## Personal Hygiene:
+Washing hands Personal Hygiene. All students must maintain proper hygiene and health practices, including:
+•	frequently with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol
+•	Routinely cleaning and sanitizing living spaces and/or workspace
+•	Using the bend of the elbow or shoulder to shield a cough or sneeze
+•	Refraining from shaking hands
+
+Adherence to Signage and Instructions. Students will (a) look for instructional signs posted by MSU or public health authorities, (b) observe instructions from MSU or public health authorities that are emailed to my “msu.edu” account, and (c) follow those instructions.
+Self-Monitoring. Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
+Exposure to COVID-19. If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations.
+Compliance and reporting. Those who come to MSU facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines outlined in this syllabus and provided by MSU more broadly (see below). There may be times when action will be necessary to reinforce expectations. If you do not wear appropriate face coverings (see MSU’s guidelines), do not wear your face covering appropriately (i.e., over your mouth and nose), or do not adhere to physical distancing guidelines (i.e., six feet apart), you will be asked to correct the situation or leave the facility. In addition, MSU will utilize the processes already in place to respond to any issues of noncompliance with standards established for the health and safety of our community. For classroom disruptions or issues, the responses and processes that have been used previously remain the first line of action. If necessary, the student conduct system will be the avenue used to adjudicate student disciplinary situations. 
+
+Additional information. See https://msu.edu/together-we-will/keeping-spartans-safe/ for details about these new policies and procedures and see https://ehs.msu.edu/_assets/docs/fact-sheets/cloth-face-covering-fact-sheet.pdf for more details about the cloth face coverings guidelines.***
 
 
 ## Possible textbooks
@@ -111,3 +142,29 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 - _TEK5040 Deep learning for autonomous systems_ https://www.uio.no/studier/emner/matnat/its/TEK5040/. The course addresses advanced algorithms and architectures for deep learning with neural networks. The course provides an introduction to how deep-learning techniques can be used in the construction of key parts of advanced autonomous systems that exist in physical environments and cyber environments.
 - _STK4051 Computational Statistics_ https://www.uio.no/studier/emner/matnat/math/STK4051/index-eng.html
 - _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/i
+
+***Course platforms/Structure:
+Include information about the online course management system you will use. For example:***
+This course will be delivered online through the course management system and you will need your MSU NetID to login to the course from the D2L homepage (http://d2l.msu.edu). 
+
+In D2L, you will access online lessons, course materials, and additional resources. Activities may consist of readings, discussion forums, email, journaling, wikis, and other online activities. Add and remove listed activities as appropriate to your course. Include information regarding the synchronous or asynchronous elements of your online course. 
+
+OR
+
+This course will be delivered in a hybrid mode. The online components of the class will be [list activities here] and will be accessible here [add information such as the materials and lectures will be on D2L]. The in-person components of the class include [list activities here] and will be held at [include relevant location, time, dates and activities information here].
+
+OR
+
+This course will be delivered face to face until Thanksgiving (November 26, 2020), after which all instruction will be fully online. When transitioning to online after Thanksgiving we will be doing [list activities here] using [list platform information here]. 
+ 
+Technical Assistance:
+Information helpful for the use of required software, including D2L: Include information on how to navigate necessary software, expectations, instructions on how to access course material, and where to find technical and online course development assistance. For example: If you need technical assistance at any time during the course or to report a problem you can:
+
+• Visit the MSU Help site at http://help.msu.edu
+• Visit the Desire2Learn Help Site at http://help.d2l.msu.edu
+• Call the MSU IT Service Desk at (517)432-6200, (844)678-6200, or e-mail at ithelp@msu.edu
+• Request assistance navigating and requesting instructional design help: https://tech.msu.edu/service-catalog/teaching/instructional-design-development/
+Consider including pointers for which browsers and internet speeds are best for working with D2L:
+Browser/mobile support for D2L: https://documentation.brightspace.com/EN/brightspace/requirements/all/browser_support.htm
+Guide for internet speed:  https://broadbandnow.com/guides/how-much-internet-speed-do-i-need. For most courses, 25 Mbps should work. If there is no mandatory video component, then students may be able to interact with the course with a slower connection. Most courses have a generic statement that says the course requires access to "high speed" internet. 
+
