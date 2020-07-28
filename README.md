@@ -68,19 +68,23 @@ expected to work on numerical examples and projects which illustrate
 the theory and varous algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants. 
 
 ## Instructor information
-***Name: 
-*** Office: 
-*** Office hours: In FS20, all office hours must be via computer or telephone. No matter what the modality of the course, instructors are required to hold the number of office hours specified by their college. Indicate the platform office hours will be held on and how appointments can be made outside office hours. Be explicit about communication channels and expectations, e.g. if you'll need 24 hours to reply to student emails. We suggest Zoom meetings and the use of a Zoom waiting room. ***
+* _Name_: Morten Hjorth-Jensen
+* _Email_: morten.hjorth-jensen@fys.uio.no
+* _Phone_: +47-48257387
+* _Office_: Department of Physics, University of Oslo, Eastern wing room 470 
+* _Office hours_: *Almost anytime*! In Fall Semester 2020 (FS20), as a rule of thumb office hours are planned via computer or telephone. Individual or group office hours will be performed via zoom. Feel free to send an email for planning. 
 
-***Phone: (Specify if the office phone will be forwarded to the instructor's personal phone or if some other means of communication is to be used)
-***E-mail: 
 
 ##  Teaching Assistants FS20
+* Øyvind Sigmundson Schøyen 	 
+* Michael Bitney
+* Kristian Wold
+* Nicolai Haug
 
 ## Practicalities
 
-1. Four lectures per week, Fall semester, 10 ECTS;
-2. Four hours of laboratory sessions for work on computational projects;
+1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be fully online, they will be recorded and linked to this site and the official University of Oslo website for the course.
+2. Two hours of laboratory sessions for work on computational projects for each group. Due to social distancing, at most 15 participants can attend. There are also fully digital laboratory sessions;
 3. Three projects which are graded and count 1/3 each of the final grade;
 4. A selected number of weekly assignments;
 6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
@@ -98,13 +102,14 @@ o	Browser/mobile support for D2L:https://documentation.brightspace.com/EN/bright
 •	Remember that not all students have access to reliable internet. Specify your expectations if students encounter difficulties--including outages--during synchronous sessions, exams, etc.
 
 ## Personal Hygiene:
-Washing hands Personal Hygiene. All students must maintain proper hygiene and health practices, including:
+All participants attending the laboratory sessions must maintain proper hygiene and health practices, including:
 •	frequently with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol
 •	Routinely cleaning and sanitizing living spaces and/or workspace
 •	Using the bend of the elbow or shoulder to shield a cough or sneeze
 •	Refraining from shaking hands
 
-Adherence to Signage and Instructions. Students will (a) look for instructional signs posted by MSU or public health authorities, (b) observe instructions from MSU or public health authorities that are emailed to my “msu.edu” account, and (c) follow those instructions.
+## Adherence to Signage and Instructions: 
+Course participants  will (a) look for instructional signs posted by UiO or public health authorities, (b) observe instructions from UiO or public health authorities that are emailed to my “uio.no” account, and (c) follow those instructions.
 Self-Monitoring. Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
 Exposure to COVID-19. If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations.
 Compliance and reporting. Those who come to MSU facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines outlined in this syllabus and provided by MSU more broadly (see below). There may be times when action will be necessary to reinforce expectations. If you do not wear appropriate face coverings (see MSU’s guidelines), do not wear your face covering appropriately (i.e., over your mouth and nose), or do not adhere to physical distancing guidelines (i.e., six feet apart), you will be asked to correct the situation or leave the facility. In addition, MSU will utilize the processes already in place to respond to any issues of noncompliance with standards established for the health and safety of our community. For classroom disruptions or issues, the responses and processes that have been used previously remain the first line of action. If necessary, the student conduct system will be the avenue used to adjudicate student disciplinary situations. 
