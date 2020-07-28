@@ -14,18 +14,18 @@ which is exactly what machine learning aims at providing.
 
 ## Learning outcomes
 
-This course aims at giving you insights and knowledge about  many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. You will learn to develop and structure large codes for studying different cases where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
+This course aims at giving you insights and knowledge about  many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. The emphasis is on a frequentist approach, although we will try to link it with a Bayesian approach as well. You will learn to develop and structure large codes for studying different cases where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
 - Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
 - Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
-- Learn about neural networks and deep  learning methods for supervised and unsupervised learning. Emphasis on feed forward neural networks and convolutional neural networks; 
+- Learn about neural networks and deep  learning methods for supervised and unsupervised learning. Emphasis on feed forward neural networks, convolutional and recurrent neural networks; 
 - Learn about about decision trees, random forests, bagging and boosting methods;
 - Learn about support vector machines and kernel transformations;
 - Reduction of data sets, from PCA to clustering;
 - Autoencoders and Reinforcement Learning;
-- Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++.  
+- Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++ and/or Fortran (Fortran2003 or later).  
 
 ## Prerequisites
 
@@ -45,10 +45,10 @@ The following topics will be covered
 - Basic concepts, expectation values, variance, covariance, correlation functions and errors;
 - Simpler models, binomial distribution, the Poisson distribution, simple and multivariate normal distributions;
 - Central elements of Bayesian statistics and modeling;
-- Gradient methods for data optimization
-- Monte Carlo methods, Markov chains, Metropolis-Hastings algorithm;
-- Estimation of errors using cross-validation, blocking, bootstrapping and jackknife methods;
-- Principal Component Analysis and its mathematical foundation
+- Gradient methods for data optimization, 
+- Monte Carlo methods, Markov chains, Gibbs sampling and Metropolis-Hastings sampling;
+- Estimation of errors and resampling techniques such as the cross-validation, blocking, bootstrapping and jackknife methods;
+- Principal Component Analysis (PCA) and its mathematical foundation
 
 ### Machine learning
 
