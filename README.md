@@ -166,40 +166,18 @@ no setup and runs entirely in the cloud. Try it out!
 ### Useful Python libraries
 Here we list several useful Python libraries we strongly recommend (if you use anaconda many of these are already there)
 
-* "NumPy":"https://www.numpy.org/" is a highly popular library for large, multi-dimensional arrays and matrices, along with a large collection of high-level mathematical functions to operate on these arrays
-* "The pandas":"https://pandas.pydata.org/" library provides high-performance, easy-to-use data structures and data analysis tools 
-* "Xarray":"http://xarray.pydata.org/en/stable/" is a Python package that makes working with labelled multi-dimensional arrays simple, efficient, and fun!
-* "Scipy":"https://www.scipy.org/" (pronounced “Sigh Pie”) is a Python-based ecosystem of open-source software for mathematics, science, and engineering. 
-* "Matplotlib":"https://matplotlib.org/" is a Python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms.
-* "Autograd":"https://github.com/HIPS/autograd" can automatically differentiate native Python and Numpy code. It can handle a large subset of Python's features, including loops, ifs, recursion and closures, and it can even take derivatives of derivatives of derivatives
-* "SymPy":"https://www.sympy.org/en/index.html" is a Python library for symbolic mathematics. 
-* "scikit-learn":"https://scikit-learn.org/stable/" has simple and efficient tools for machine learning, data mining and data analysis
-* "TensorFlow":"https://www.tensorflow.org/" is a Python library for fast numerical computing created and released by Google
-* "Keras":"https://keras.io/" is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
-* And many more such as "pytorch":"https://pytorch.org/",  "Theano":"https://pypi.org/project/Theano/" etc 
+* _NumPy_:https://www.numpy.org/ is a highly popular library for large, multi-dimensional arrays and matrices, along with a large collection of high-level mathematical functions to operate on these arrays
+* _The pandas_:https://pandas.pydata.org/ library provides high-performance, easy-to-use data structures and data analysis tools 
+* _Xarray_:http://xarray.pydata.org/en/stable/ is a Python package that makes working with labelled multi-dimensional arrays simple, efficient, and fun!
+* _Scipy_:https://www.scipy.org/ (pronounced “Sigh Pie”) is a Python-based ecosystem of open-source software for mathematics, science, and engineering. 
+* _Matplotlib_:https://matplotlib.org/ is a Python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms.
+* _Autograd_:https://github.com/HIPS/autograd can automatically differentiate native Python and Numpy code. It can handle a large subset of Python's features, including loops, ifs, recursion and closures, and it can even take derivatives of derivatives of derivatives
+* _SymPy_:https://www.sympy.org/en/index.html is a Python library for symbolic mathematics. 
+* _scikit-learn_:https://scikit-learn.org/stable/ has simple and efficient tools for machine learning, data mining and data analysis
+* _TensorFlow_:https://www.tensorflow.org/ is a Python library for fast numerical computing created and released by Google
+* _Keras_:https://keras.io/ is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
+* And many more such as _pytorch_:https://pytorch.org/,  _Theano_:https://pypi.org/project/Theano/ etc 
 
-
-
-## Personal Hygiene
-All participants attending the laboratory sessions must maintain proper hygiene and health practices, including:
-* frequently with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol;
-* Routinely cleaning and sanitizing living spaces and/or workspace;
-* Using the bend of the elbow or shoulder to shield a cough or sneeze;
-* Refraining from shaking hands;
-
-## Adherence to Signage and Instructions 
-Course participants  will (a) look for instructional signs posted by UiO or public health authorities, (b) observe instructions from UiO or public health authorities that are emailed to my “uio.no” account, and (c) follow those instructions.
-The relevant links are https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html
-
-## Self-Monitoring
-Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
-## Exposure to COVID-19 
-If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations.
-## Compliance and reporting 
-Those who come to UiO facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines outlined in this syllabus and provided by UiO more broadly (see links above). 
-
-## Additional information
-See https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html. For English version, click on the relevant link.
 ## Possible textbooks
 
 _Recommended textbooks_:
@@ -229,30 +207,27 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 - _IN5400/INF5860 Machine Learning for Image Analysis_ https://www.uio.no/studier/emner/matnat/ifi/IN5400/. An introduction to deep learning with particular emphasis on applications within Image analysis, but useful for other application areas too.
 - _TEK5040 Deep learning for autonomous systems_ https://www.uio.no/studier/emner/matnat/its/TEK5040/. The course addresses advanced algorithms and architectures for deep learning with neural networks. The course provides an introduction to how deep-learning techniques can be used in the construction of key parts of advanced autonomous systems that exist in physical environments and cyber environments.
 - _STK4051 Computational Statistics_ https://www.uio.no/studier/emner/matnat/math/STK4051/index-eng.html
-- _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/i
+- _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/
 
-***Course platforms/Structure:
-Include information about the online course management system you will use. For example:***
-This course will be delivered online through the course management system and you will need your MSU NetID to login to the course from the D2L homepage (http://d2l.msu.edu). 
 
-In D2L, you will access online lessons, course materials, and additional resources. Activities may consist of readings, discussion forums, email, journaling, wikis, and other online activities. Add and remove listed activities as appropriate to your course. Include information regarding the synchronous or asynchronous elements of your online course. 
 
-OR
+## Personal Hygiene
+All participants attending the laboratory sessions must maintain proper hygiene and health practices, including:
+* frequently with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol;
+* Routinely cleaning and sanitizing living spaces and/or workspace;
+* Using the bend of the elbow or shoulder to shield a cough or sneeze;
+* Refraining from shaking hands;
 
-The online components of the class will be [list activities here] and will be accessible here [add information such as the materials and lectures will be on D2L]. The in-person components of the class include [list activities here] and will be held at [include relevant location, time, dates and activities information here].
+## Adherence to Signage and Instructions 
+Course participants  will (a) look for instructional signs posted by UiO or public health authorities, (b) observe instructions from UiO or public health authorities that are emailed to my “uio.no” account, and (c) follow those instructions.
+The relevant links are https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html
 
-OR
+## Self-Monitoring
+Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
+## Exposure to COVID-19 
+If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations.
+## Compliance and reporting 
+Those who come to UiO facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines outlined in this syllabus and provided by UiO more broadly (see links below here). 
 
-This course will be delivered face to face until Thanksgiving (November 26, 2020), after which all instruction will be fully online. When transitioning to online after Thanksgiving we will be doing [list activities here] using [list platform information here]. 
- 
-Technical Assistance:
-Information helpful for the use of required software, including D2L: Include information on how to navigate necessary software, expectations, instructions on how to access course material, and where to find technical and online course development assistance. For example: If you need technical assistance at any time during the course or to report a problem you can:
-
-• Visit the MSU Help site at http://help.msu.edu
-• Visit the Desire2Learn Help Site at http://help.d2l.msu.edu
-• Call the MSU IT Service Desk at (517)432-6200, (844)678-6200, or e-mail at ithelp@msu.edu
-• Request assistance navigating and requesting instructional design help: https://tech.msu.edu/service-catalog/teaching/instructional-design-development/
-Consider including pointers for which browsers and internet speeds are best for working with D2L:
-Browser/mobile support for D2L: https://documentation.brightspace.com/EN/brightspace/requirements/all/browser_support.htm
-Guide for internet speed:  https://broadbandnow.com/guides/how-much-internet-speed-do-i-need. For most courses, 25 Mbps should work. If there is no mandatory video component, then students may be able to interact with the course with a slower connection. Most courses have a generic statement that says the course requires access to "high speed" internet. 
-
+## Additional information
+See https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html. For English version, click on the relevant link.
