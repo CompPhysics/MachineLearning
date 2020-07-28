@@ -82,41 +82,124 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 * Nicolai Haug
 
 ## Practicalities
+This course will be delivered in a hybrid mode, with online lectures and on site or online laboratory sessions. 
 
-1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be fully online, they will be recorded and linked to this site and the official University of Oslo website for the course.
-2. Two hours of laboratory sessions for work on computational projects for each group. Due to social distancing, at most 15 participants can attend. There are also fully digital laboratory sessions;
+1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be fully online. The lectures will be recorded and linked to this site and the official University of Oslo website for the course.
+2. Two hours of laboratory sessions for work on computational projects for each group. Due to social distancing, at most 15 participants can attend. There are also fully digital laboratory sessions for those who cannot attend physically;
 3. Three projects which are graded and count 1/3 each of the final grade;
 4. A selected number of weekly assignments;
 6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
-7. Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail;
 8. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
 9. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course. Slack is also used for course communication. The Slack link is machinelearninguio.slack.com ;
+10. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
+11. Weekly emails with summary of activities will be mailed to all participants;
 
-## Required Technologies: 
-Specify any additional materials, including software, and hardware, and Internet connection, that students must purchase (or have access to) for the course. State if any hardware or software is required for assessment (e.g. a webcam). In selecting/preparing materials abide by the MSU Accessibility Policies.
-•	If you use any special technology e.g. clickers, Tophat etc, please add instructions here. ***If there is a cost, this must be indicated in the Schedule of Courses.***
-•	Consider including pointers for which browsers and internet speeds are best for working with D2L:
-o	Browser/mobile support for D2L:https://documentation.brightspace.com/EN/brightspace/requirements/all/browser_support.htm
-•	Consider including a guide for internet speed:  https://broadbandnow.com/guides/how-much-internet-speed-do-i-need. For most courses, 25 Mbps should work. If there is no mandatory video component, then students may be able to interact with the course with a slower connection. Most courses have a generic statement that says the course requires access to "high speed" internet. 
-•	Consider including information about how students can access internet connections, including those companies offering students free or reduced cost internet: https://remote.msu.edu/learning/internet.html
-•	Remember that not all students have access to reliable internet. Specify your expectations if students encounter difficulties--including outages--during synchronous sessions, exams, etc.
+## Grading
+Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail;
 
-## Personal Hygiene:
+The final number of points is based on the average of all projects (including eventual additional points) and the grade follows the following table:
+
+ * 92-100 points: A
+ * 77-91 points: B
+ * 58-76 points: C
+ * 46-57 points: D
+ * 40-45 points: E
+ * 0-39 points: F-failed
+
+## Required Technologies
+
+Course participants are expected to have their own laptops/PCs. We use _Git_ as version control software and the usage of providers like _GitHub_, _GitLab_ or similar are strongly recommended.
+
+We will make extensive use of Python as programming language and its
+myriad of available libraries.  You will find
+Jupyter notebooks invaluable in your work.  You can run _R_
+codes in the Jupyter/IPython notebooks, with the immediate benefit of
+visualizing your data. You can also use compiled languages like C++,
+Rust, Julia, Fortran etc if you prefer. The focus in these lectures will be
+on Python.
+
+
+If you have Python installed (we strongly recommend Python3) and you feel
+pretty familiar with installing different packages, we recommend that
+you install the following Python packages via _pip_ as 
+
+* pip install numpy scipy matplotlib ipython scikit-learn mglearn sympy pandas pillow 
+
+For Python3, replace _pip_ with _pip3_.
+
+For OSX users we recommend, after having installed Xcode, to
+install _brew_. Brew allows for a seamless installation of additional
+software via for example 
+
+* brew install python3
+
+For Linux users, with its variety of distributions like for example the widely popular Ubuntu distribution,
+you can use _pip_ as well and simply install Python as 
+
+* sudo apt-get install python3  (or python for pyhton2.7)
+
+### Python installers
+
+If you don't want to perform these operations separately and venture
+into the hassle of exploring how to set up dependencies and paths, we
+recommend two widely used distrubutions which set up all relevant
+dependencies for Python, namely 
+
+* Anaconda:https://docs.anaconda.com/, 
+
+which is an open source
+distribution of the Python and R programming languages for large-scale
+data processing, predictive analytics, and scientific computing, that
+aims to simplify package management and deployment. Package versions
+are managed by the package management system _conda_. 
+
+* Enthought canopy:https://www.enthought.com/product/canopy/ 
+
+is a Python
+distribution for scientific and analytic computing distribution and
+analysis environment, available for free and under a commercial
+license.
+
+Furthermore, Google's Colab:https://colab.research.google.com/notebooks/welcome.ipynb is a free Jupyter notebook environment that requires 
+no setup and runs entirely in the cloud. Try it out!
+
+### Useful Python libraries
+Here we list several useful Python libraries we strongly recommend (if you use anaconda many of these are already there)
+
+* "NumPy":"https://www.numpy.org/" is a highly popular library for large, multi-dimensional arrays and matrices, along with a large collection of high-level mathematical functions to operate on these arrays
+* "The pandas":"https://pandas.pydata.org/" library provides high-performance, easy-to-use data structures and data analysis tools 
+* "Xarray":"http://xarray.pydata.org/en/stable/" is a Python package that makes working with labelled multi-dimensional arrays simple, efficient, and fun!
+* "Scipy":"https://www.scipy.org/" (pronounced “Sigh Pie”) is a Python-based ecosystem of open-source software for mathematics, science, and engineering. 
+* "Matplotlib":"https://matplotlib.org/" is a Python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms.
+* "Autograd":"https://github.com/HIPS/autograd" can automatically differentiate native Python and Numpy code. It can handle a large subset of Python's features, including loops, ifs, recursion and closures, and it can even take derivatives of derivatives of derivatives
+* "SymPy":"https://www.sympy.org/en/index.html" is a Python library for symbolic mathematics. 
+* "scikit-learn":"https://scikit-learn.org/stable/" has simple and efficient tools for machine learning, data mining and data analysis
+* "TensorFlow":"https://www.tensorflow.org/" is a Python library for fast numerical computing created and released by Google
+* "Keras":"https://keras.io/" is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
+* And many more such as "pytorch":"https://pytorch.org/",  "Theano":"https://pypi.org/project/Theano/" etc 
+
+
+
+## Personal Hygiene
 All participants attending the laboratory sessions must maintain proper hygiene and health practices, including:
-•	frequently with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol
-•	Routinely cleaning and sanitizing living spaces and/or workspace
-•	Using the bend of the elbow or shoulder to shield a cough or sneeze
-•	Refraining from shaking hands
+* frequently with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol;
+* Routinely cleaning and sanitizing living spaces and/or workspace;
+* Using the bend of the elbow or shoulder to shield a cough or sneeze;
+* Refraining from shaking hands;
 
-## Adherence to Signage and Instructions: 
+## Adherence to Signage and Instructions 
 Course participants  will (a) look for instructional signs posted by UiO or public health authorities, (b) observe instructions from UiO or public health authorities that are emailed to my “uio.no” account, and (c) follow those instructions.
-Self-Monitoring. Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
-Exposure to COVID-19. If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations.
-Compliance and reporting. Those who come to MSU facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines outlined in this syllabus and provided by MSU more broadly (see below). There may be times when action will be necessary to reinforce expectations. If you do not wear appropriate face coverings (see MSU’s guidelines), do not wear your face covering appropriately (i.e., over your mouth and nose), or do not adhere to physical distancing guidelines (i.e., six feet apart), you will be asked to correct the situation or leave the facility. In addition, MSU will utilize the processes already in place to respond to any issues of noncompliance with standards established for the health and safety of our community. For classroom disruptions or issues, the responses and processes that have been used previously remain the first line of action. If necessary, the student conduct system will be the avenue used to adjudicate student disciplinary situations. 
+The relevant links are https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html
 
-Additional information. See https://msu.edu/together-we-will/keeping-spartans-safe/ for details about these new policies and procedures and see https://ehs.msu.edu/_assets/docs/fact-sheets/cloth-face-covering-fact-sheet.pdf for more details about the cloth face coverings guidelines.***
+## Self-Monitoring
+Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
+## Exposure to COVID-19 
+If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations.
+## Compliance and reporting 
+Those who come to UiO facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines outlined in this syllabus and provided by UiO more broadly (see links above). 
 
-
+## Additional information
+See https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html. For English version, click on the relevant link.
 ## Possible textbooks
 
 _Recommended textbooks_:
@@ -156,7 +239,7 @@ In D2L, you will access online lessons, course materials, and additional resourc
 
 OR
 
-This course will be delivered in a hybrid mode. The online components of the class will be [list activities here] and will be accessible here [add information such as the materials and lectures will be on D2L]. The in-person components of the class include [list activities here] and will be held at [include relevant location, time, dates and activities information here].
+The online components of the class will be [list activities here] and will be accessible here [add information such as the materials and lectures will be on D2L]. The in-person components of the class include [list activities here] and will be held at [include relevant location, time, dates and activities information here].
 
 OR
 
