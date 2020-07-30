@@ -84,18 +84,18 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 ## Practicalities
 This course will be delivered in a hybrid mode, with online lectures and on site or online laboratory sessions. 
 
-1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be fully online. The lectures will be recorded and linked to this site and the official University of Oslo website for the course.
-2. Two hours of laboratory sessions for work on computational projects for each group. Due to social distancing, at most 15 participants can attend. There are also fully digital laboratory sessions for those who cannot attend physically;
+1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be fully online. The lectures will be recorded and linked to this site and the official University of Oslo website for the course;
+2. Two hours of laboratory sessions for work on computational projects for each group. Due to social distancing, at most 15 participants can attend. There will  also be fully digital laboratory sessions for those who cannot attend physically;
 3. Three projects which are graded and count 1/3 each of the final grade;
 4. A selected number of weekly assignments;
 6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
 8. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
-9. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course. Slack is also used for course communication. The Slack link is machinelearninguio.slack.com ;
+9. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course or just use the link here https://piazza.com/uio.no/fall2020/fysstk4155. Slack is also used for course communication. The Slack link is https://machinelearninguio.slack.com ;
 10. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
 11. Weekly emails with summary of activities will be mailed to all participants;
 
 ## Grading
-Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail;
+Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail. There are three projects which are graded and each project counts 1/3 of the final grade. The total score is thus the average from all three projects.
 
 The final number of points is based on the average of all projects (including eventual additional points) and the grade follows the following table:
 
@@ -125,8 +125,6 @@ you install the following Python packages via _pip_ as
 
 * pip install numpy scipy matplotlib ipython scikit-learn mglearn sympy pandas pillow 
 
-For Python3, replace _pip_ with _pip3_.
-
 For OSX users we recommend, after having installed Xcode, to
 install _brew_. Brew allows for a seamless installation of additional
 software via for example 
@@ -136,7 +134,7 @@ software via for example
 For Linux users, with its variety of distributions like for example the widely popular Ubuntu distribution,
 you can use _pip_ as well and simply install Python as 
 
-* sudo apt-get install python3  (or python for pyhton2.7)
+* sudo apt-get install python3
 
 ### Python installers
 
