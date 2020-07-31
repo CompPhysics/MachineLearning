@@ -72,7 +72,7 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 * _Email_: morten.hjorth-jensen@fys.uio.no
 * _Phone_: +47-48257387
 * _Office_: Department of Physics, University of Oslo, Eastern wing room 470 
-* _Office hours_: *Almost anytime*! In Fall Semester 2020 (FS20), as a rule of thumb office hours are planned via computer or telephone. Individual or group office hours will be performed via zoom. Feel free to send an email for planning. In person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
+* _Office hours_: *Anytime*! In Fall Semester 2020 (FS20), as a rule of thumb office hours are planned via computer or telephone. Individual or group office hours will be performed via zoom. Feel free to send an email for planning. In person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
 
 
 ##  Teaching Assistants FS20
