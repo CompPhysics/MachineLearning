@@ -211,7 +211,7 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
 ## Personal Hygiene
 All participants attending the laboratory sessions must maintain proper hygiene and health practices, including:
-* frequently with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol;
+* frequently wash with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol;
 * Routinely cleaning and sanitizing living spaces and/or workspace;
 * Using the bend of the elbow or shoulder to shield a cough or sneeze;
 * Refraining from shaking hands;
@@ -223,7 +223,7 @@ The relevant links are https://www.uio.no/om/hms/korona/index.html and https://w
 ## Self-Monitoring
 Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
 ## Exposure to COVID-19 
-If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations.
+If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations. You may also contact the study administration of the department where you are registered as student. 
 ## Compliance and reporting 
 Those who come to UiO facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines outlined in this syllabus and provided by UiO more broadly (see links below here). 
 
