@@ -76,16 +76,16 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 
 
 ##  Teaching Assistants FS20
-* Øyvind Sigmundson Schøyen 	 
-* Michael Bitney
-* Kristian Wold
-* Nicolai Haug
+* Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no 	 
+* Michael Bitney, m.s.bitney@fys.uio.no
+* Kristian Wold, kriswold@student.matnat.uio.no
+* Nicolai Haug, nicoha@student.matnat.uio.no
 
 ## Practicalities
 This course will be delivered in a hybrid mode, with online lectures and on site or online laboratory sessions. 
 
 1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be fully online. The lectures will be recorded and linked to this site and the official University of Oslo website for the course;
-2. Two hours of laboratory sessions for work on computational projects for each group. Due to social distancing, at most 15 participants can attend. There will  also be fully digital laboratory sessions for those who cannot attend physically;
+2. Two hours of laboratory sessions for work on computational projects and exercises for each group. Due to social distancing, at most 15 participants can attend. There will  also be fully digital laboratory sessions for those who cannot attend;
 3. Three projects which are graded and count 1/3 each of the final grade;
 4. A selected number of weekly assignments;
 6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
