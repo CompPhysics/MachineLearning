@@ -52,7 +52,7 @@ The following topics will be covered
 
 ### Machine learning
 
-The following topics will be covered
+The following topics will be covered:
 - Linear Regression and Logistic Regression;
 - Neural networks and deep learning, including convolutional and recurrent neural networks
 - Decisions trees, Random Forests, Bagging and Boosting
@@ -65,13 +65,13 @@ Hands-on demonstrations, exercises and projects aim at deepening your understand
 
 Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
-the theory and varous algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants. 
+the theory and varous algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants, if possible. 
 
 ## Instructor information
 * _Name_: Morten Hjorth-Jensen
 * _Email_: morten.hjorth-jensen@fys.uio.no
 * _Phone_: +47-48257387
-* _Office_: Department of Physics, University of Oslo, Eastern wing room 470 
+* _Office_: Department of Physics, University of Oslo, Eastern wing, room FØ470 
 * _Office hours_: *Anytime*! In Fall Semester 2020 (FS20), as a rule of thumb office hours are planned via computer or telephone. Individual or group office hours will be performed via zoom. Feel free to send an email for planning. In person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
 
 
@@ -80,6 +80,7 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 * Michael Bitney, m.s.bitney@fys.uio.no
 * Kristian Wold, kriswold@student.matnat.uio.no
 * Nicolai Haug, nicoha@student.matnat.uio.no
+* Per-Dimitri Sønsteland, perdimitri.bs@gmail.com
 
 ## Practicalities
 This course will be delivered in a hybrid mode, with online lectures and on site or online laboratory sessions. 
@@ -88,11 +89,11 @@ This course will be delivered in a hybrid mode, with online lectures and on site
 2. Two hours of laboratory sessions for work on computational projects and exercises for each group. Due to social distancing, at most 15 participants can attend. There will  also be fully digital laboratory sessions for those who cannot attend;
 3. Three projects which are graded and count 1/3 each of the final grade;
 4. A selected number of weekly assignments;
-6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
-8. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
-9. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course or just use the link here https://piazza.com/uio.no/fall2020/fysstk4155. Slack is also used for course communication. The Slack link is https://machinelearninguio.slack.com ;
-10. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
-11. Weekly emails with summary of activities will be mailed to all participants;
+5. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
+6. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
+7. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course or just use the link here https://piazza.com/uio.no/fall2020/fysstk4155. Slack is also used for course communication. The Slack link is https://machinelearninguio.slack.com ;
+8. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
+9. Weekly emails with summary of activities will be mailed to all participants;
 
 ## Grading
 Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail. There are three projects which are graded and each project counts 1/3 of the final grade. The total score is thus the average from all three projects.
