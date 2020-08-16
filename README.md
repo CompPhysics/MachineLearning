@@ -177,7 +177,7 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 * _Keras_:https://keras.io/ is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
 * And many more such as _pytorch_:https://pytorch.org/,  _Theano_:https://pypi.org/project/Theano/ etc 
 
-## Possible textbooks
+## Textbooks
 
 _Recommended textbooks_:
 - Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer
@@ -208,6 +208,12 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 - _STK4051 Computational Statistics_ https://www.uio.no/studier/emner/matnat/math/STK4051/index-eng.html
 - _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/
 
+
+## Face coverings. 
+As of now this is not required, but the situation may change. If face covering will be required during the semester, we will fill in more details. 
+
+## Physical distancing 
+We will be practicing physical distancing in the classroom dedicated to the lab sessions. Thus, everybody should maintain at least one meter distance between themselves and others (excluding those with whom they live). This applies to all aspects of the classroom setting, including seating arrangements, informal conversations, and dialogue between teachers and students.
 
 
 ## Personal Hygiene
