@@ -91,7 +91,7 @@ This course will be delivered in a hybrid mode, with online lectures and on site
 4. A selected number of weekly assignments;
 5. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
 6. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
-7. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course or just use the link here https://piazza.com/uio.no/fall2020/fysstk4155. Slack is also used for course communication. The Slack link is https://machinelearninguio.slack.com ;
+7. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course or just use the link here https://piazza.com/uio.no/fall2020/fysstk4155. Canvas is used for communication and delivery and grading of projects, with feedback;
 8. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
 9. Weekly emails with summary of activities will be mailed to all participants;
 
