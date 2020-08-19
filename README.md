@@ -180,8 +180,10 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 ## Textbooks
 
 _Recommended textbooks_:
-- Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer
-- Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly
+- Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer, https://www.springer.com/gp/book/9780387848570
+- Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly, https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/
+
+
 
 _General learning book on statistical analysis_:
 - Christian Robert and George Casella, Monte Carlo Statistical Methods, Springer
