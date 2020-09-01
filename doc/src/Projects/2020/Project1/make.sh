@@ -38,7 +38,7 @@ system doconce split_html $html.html --method=split --pagination --nav_button=bo
 
 # Ordinary plain LaTeX document
 system doconce format pdflatex $name --print_latex_style=trac --latex_admon=paragraph $opt
-system doconce ptex2tex $name envir=print
+system doconce ptex2tex $name envir=verbatim
 # Add special packages
 doconce subst "% Add user's preamble" "\g<1>\n\\usepackage{simplewick}" $name.tex
 doconce replace 'section{' 'section*{' $name.tex
