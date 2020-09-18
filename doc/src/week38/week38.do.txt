@@ -1423,6 +1423,12 @@ This will be discussed next week. Before we develop our own codes for logistic r
 
 !split
 =====  Wisconsin Cancer Data  =====
+
+We show here how we can use a simple regression case on the breast
+cancer data using Logistic regression as our algorithm for
+classification.
+
+
 !bc pycod
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1450,6 +1456,81 @@ X_test_scaled = scaler.transform(X_test)
 logreg.fit(X_train_scaled, y_train)
 print("Test set accuracy Logistic Regression with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
 !ec
+
+!split
+===== Using the correlation matrix =====
+
+In addition to the above scores, we could also study the covariance (and the correlation matrix).
+We use _Pandas_ to compute the correlation matrix.
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.linear_model import LogisticRegression
+cancer = load_breast_cancer()
+import pandas as pd
+# Making a data frame
+cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
+
+fig, axes = plt.subplots(15,2,figsize=(10,20))
+malignant = cancer.data[cancer.target == 0]
+benign = cancer.data[cancer.target == 1]
+ax = axes.ravel()
+
+for i in range(30):
+    _, bins = np.histogram(cancer.data[:,i], bins =50)
+    ax[i].hist(malignant[:,i], bins = bins, alpha = 0.5)
+    ax[i].hist(benign[:,i], bins = bins, alpha = 0.5)
+    ax[i].set_title(cancer.feature_names[i])
+    ax[i].set_yticks(())
+ax[0].set_xlabel("Feature magnitude")
+ax[0].set_ylabel("Frequency")
+ax[0].legend(["Malignant", "Benign"], loc ="best")
+fig.tight_layout()
+plt.show()
+
+import seaborn as sns
+correlation_matrix = cancerpd.corr().round(1)
+# use the heatmap function from seaborn to plot the correlation matrix
+# annot = True to print the values inside the square
+sns.heatmap(data=correlation_matrix, annot=True)
+plt.show()
+
+#print eigvalues of correlation matrix
+EigValues, EigVectors = np.linalg.eig(correlation_matrix)
+print(EigValues)
+!ec
+
+!split
+===== Discussing the correlation data =====
+
+In the above example we note two things. In the first plot we display
+the overlap of benign and malignant tumors as functions of the various
+features in the Wisconsing breast cancer data set. We see that for
+some of the features we can distinguish clearly the benign and
+malignant cases while for other features we cannot. This can point to
+us which features may be of greater interest when we wish to classify
+a benign or not benign tumour.
+
+In the second figure we have computed the so-called correlation
+matrix, which in our case with thirty features becomes a $30\times 30$
+matrix.
+
+We constructed this matrix using _pandas_ via the statements
+!bc pycod
+cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
+!ec
+and then
+!bc pycod
+correlation_matrix = cancerpd.corr().round(1)
+!ec
+
+Diagonalizing this matrix we can in turn say something about which
+features are of relevance and which are not. This leads  us to
+the classical Principal Component Analysis (PCA) theorem with
+applications. This will be discussed later this semester ("week 43":"https://compphysics.github.io/MachineLearning/doc/pub/week43/html/week43-bs.html").
+
 
 
 !split
@@ -1501,6 +1582,13 @@ skplt.metrics.plot_cumulative_gain(y_test, y_probas)
 plt.show()
 
 !ec
+
+
+
+
+
+
+
 
 
 
