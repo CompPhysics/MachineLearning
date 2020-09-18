@@ -1040,6 +1040,93 @@ literature. This model is extremely simple. However, in many cases it is more
 favorable to use a ``soft" classifier that outputs
 the probability of a given category. This leads us to the logistic function.
 
+!split
+===== Simple example =====
+
+The following example on data for coronary heart disease (CHD) as function of age may serve as an illustration. In the code here we read and plot for whether a person has had CHD (output = 1) or not (output = 0) is plotted against age. Clearly, the figure shows that attempting to make a standard lineae regression fit may not be very meaningful.
+
+!bc pycod
+# Common imports
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
+from sklearn.metrics import mean_squared_error
+from IPython.display import display
+from pylab import plt, mpl
+plt.style.use('seaborn')
+mpl.rcParams['font.family'] = 'serif'
+
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+infile = open(data_path("chddata.csv"),'r')
+
+# Read the chd data as  csv file and organize the data into arrays with age group, age, and chd
+chd = pd.read_csv(infile, names=('ID', 'Age', 'Agegroup', 'CHD'))
+chd.columns = ['ID', 'Age', 'Agegroup', 'CHD']
+output = chd['CHD']
+age = chd['Age']
+agegroup = chd['Agegroup']
+numberID  = chd['ID'] 
+display(chd)
+
+plt.scatter(age, output, marker='o')
+plt.axis([18,70.0,-0.1, 1.2])
+plt.xlabel(r'Age')
+plt.ylabel(r'CHD')
+plt.title(r'Age distribution and Coronary heart disease')
+plt.show()
+!ec
+
+!split
+===== Plotting the mean value for each group =====
+
+What we could attempt however is to plot the mean value for each group.
+
+!bc pycod
+agegroupmean = np.array([0.1, 0.133, 0.250, 0.333, 0.462, 0.625, 0.765, 0.800])
+group = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+plt.plot(group, agegroupmean, "r-")
+plt.axis([0,9,0, 1.0])
+plt.xlabel(r'Age group')
+plt.ylabel(r'CHD mean values')
+plt.title(r'Mean values for each age group')
+plt.show()
+!ec
+
+We are now trying to find a function $f(y\vert x)$, that is a function which gives us an expected value for the output $y$ with a given input $x$.
+In standard linear regression with a linear dependence on $x$, we would write this in terms of our model
+!bt
+\[
+f(y_i\vert x_i)=\beta_0+\beta_1 x_i.
+\]
+!et
+
+This expression implies however that $f(y_i\vert x_i)$ could take any value from minus infinity to plus infinity. If we however let $f(y\vert y)$ be represented by the mean value, the above example shows us that we can constain to be between zero and one, that is we have $0 \le f(y_i\vert x_i) \le 1$. Looking at our last curve we see also that it has an S-shaped form. This leads us to a very popular model for the function $f$, namely the so-called Sigmoid function or logistic model. We will consider this function as representing the probability for finding a value of $y_i$ with a given $x_i$. 
 
 !split
 ===== The logistic function =====
@@ -1318,57 +1405,9 @@ descent method.  Newton's method and gradient descent methods are
 discussed in the material on "optimization
 methods":"https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html".
 
+This will be discussed next week.
 
 
-
-!split
-===== A simple classification problem =====
-!bc pycod
-import numpy as np
-from sklearn import datasets, linear_model
-import matplotlib.pyplot as plt
-
-
-def generate_data():
-    np.random.seed(0)
-    X, y = datasets.make_moons(200, noise=0.20)
-    return X, y
-
-
-def visualize(X, y, clf):
-    plot_decision_boundary(lambda x: clf.predict(x), X, y)
-
-def plot_decision_boundary(pred_func, X, y):
-    # Set min and max values and give it some padding
-    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
-    h = 0.01
-    # Generate a grid of points with distance h between them
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-    # Predict the function value for the whole gid
-    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-    # Plot the contour and training examples
-    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
-    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
-    plt.show()
-
-
-def classify(X, y):
-    clf = linear_model.LogisticRegressionCV()
-    clf.fit(X, y)
-    return clf
-
-
-def main():
-    X, y = generate_data()
-    # visualize(X, y)
-    clf = classify(X, y)
-    visualize(X, y, clf)
-
-if __name__ == "__main__":
-    main()
-!ec
 
 
 
