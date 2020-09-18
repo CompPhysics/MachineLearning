@@ -1774,6 +1774,12 @@ This will be discussed next week. Before we develop our own codes for logistic r
 
 <section>
 <h2 id="___sec38">Wisconsin Cancer Data  </h2>
+
+<p>
+We show here how we can use a simple regression case on the breast
+cancer data using Logistic regression as our algorithm for
+classification.
+
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -1807,7 +1813,96 @@ logreg.fit(X_train_scaled, y_train)
 
 
 <section>
-<h2 id="___sec39">Other measures in classification studies: Cancer Data  again </h2>
+<h2 id="___sec39">Using the correlation matrix </h2>
+
+<p>
+In addition to the above scores, we could also study the covariance (and the correlation matrix).
+We use <b>Pandas</b> to compute the correlation matrix.
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span>  train_test_split 
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> load_breast_cancer
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LogisticRegression
+cancer = load_breast_cancer()
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #228B22"># Making a data frame</span>
+cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
+
+fig, axes = plt.subplots(<span style="color: #B452CD">15</span>,<span style="color: #B452CD">2</span>,figsize=(<span style="color: #B452CD">10</span>,<span style="color: #B452CD">20</span>))
+malignant = cancer.data[cancer.target == <span style="color: #B452CD">0</span>]
+benign = cancer.data[cancer.target == <span style="color: #B452CD">1</span>]
+ax = axes.ravel()
+
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">30</span>):
+    _, bins = np.histogram(cancer.data[:,i], bins =<span style="color: #B452CD">50</span>)
+    ax[i].hist(malignant[:,i], bins = bins, alpha = <span style="color: #B452CD">0.5</span>)
+    ax[i].hist(benign[:,i], bins = bins, alpha = <span style="color: #B452CD">0.5</span>)
+    ax[i].set_title(cancer.feature_names[i])
+    ax[i].set_yticks(())
+ax[<span style="color: #B452CD">0</span>].set_xlabel(<span style="color: #CD5555">&quot;Feature magnitude&quot;</span>)
+ax[<span style="color: #B452CD">0</span>].set_ylabel(<span style="color: #CD5555">&quot;Frequency&quot;</span>)
+ax[<span style="color: #B452CD">0</span>].legend([<span style="color: #CD5555">&quot;Malignant&quot;</span>, <span style="color: #CD5555">&quot;Benign&quot;</span>], loc =<span style="color: #CD5555">&quot;best&quot;</span>)
+fig.tight_layout()
+plt.show()
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
+correlation_matrix = cancerpd.corr().round(<span style="color: #B452CD">1</span>)
+<span style="color: #228B22"># use the heatmap function from seaborn to plot the correlation matrix</span>
+<span style="color: #228B22"># annot = True to print the values inside the square</span>
+sns.heatmap(data=correlation_matrix, annot=<span style="color: #658b00">True</span>)
+plt.show()
+
+<span style="color: #228B22">#print eigvalues of correlation matrix</span>
+EigValues, EigVectors = np.linalg.eig(correlation_matrix)
+<span style="color: #8B008B; font-weight: bold">print</span>(EigValues)
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec40">Discussing the correlation data </h2>
+
+<p>
+In the above example we note two things. In the first plot we display
+the overlap of benign and malignant tumors as functions of the various
+features in the Wisconsing breast cancer data set. We see that for
+some of the features we can distinguish clearly the benign and
+malignant cases while for other features we cannot. This can point to
+us which features may be of greater interest when we wish to classify
+a benign or not benign tumour.
+
+<p>
+In the second figure we have computed the so-called correlation
+matrix, which in our case with thirty features becomes a \( 30\times 30 \)
+matrix.
+
+<p>
+We constructed this matrix using <b>pandas</b> via the statements
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
+</pre></div>
+<p>
+and then
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>correlation_matrix = cancerpd.corr().round(<span style="color: #B452CD">1</span>)
+</pre></div>
+<p>
+Diagonalizing this matrix we can in turn say something about which
+features are of relevance and which are not. This leads  us to
+the classical Principal Component Analysis (PCA) theorem with
+applications. This will be discussed later this semester (<a href="https://compphysics.github.io/MachineLearning/doc/pub/week43/html/week43-bs.html" target="_blank">week 43</a>).
+</section>
+
+
+<section>
+<h2 id="___sec41">Other measures in classification studies: Cancer Data  again </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
