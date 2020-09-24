@@ -1,0 +1,165 @@
+Traceback (most recent call last):
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/site-packages/nbclient/client.py", line 1082, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/site-packages/nbclient/util.py", line 74, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/site-packages/nbclient/util.py", line 53, in just_run
+    return loop.run_until_complete(coro)
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/asyncio/base_events.py", line 616, in run_until_complete
+    return future.result()
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/site-packages/nbclient/client.py", line 535, in async_execute
+    await self.async_execute_cell(
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/site-packages/nbclient/client.py", line 827, in async_execute_cell
+    self._check_raise_for_error(cell, exec_reply)
+  File "/Users/hjensen/opt/anaconda3/lib/python3.8/site-packages/nbclient/client.py", line 735, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply['content'])
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import pandas as pd
+import os
+import numpy as np
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score
+
+# Trying to set the seed
+np.random.seed(0)
+import random
+random.seed(0)
+
+# Reading file into data frame
+cwd = os.getcwd()
+filename = cwd + '/default of credit card clients.xls'
+nanDict = {}
+df = pd.read_excel(filename, header=1, skiprows=0, index_col=0, na_values=nanDict)
+
+df.rename(index=str, columns={"default payment next month": "defaultPaymentNextMonth"}, inplace=True)
+
+# Features and targets 
+X = df.loc[:, df.columns != 'defaultPaymentNextMonth'].values
+y = df.loc[:, df.columns == 'defaultPaymentNextMonth'].values
+
+# Categorical variables to one-hot's
+onehotencoder = OneHotEncoder(categories="auto")
+
+X = ColumnTransformer(
+    [("", onehotencoder, [3]),],
+    remainder="passthrough"
+).fit_transform(X)
+
+y.shape
+
+# Train-test split
+trainingShare = 0.5 
+seed  = 1
+XTrain, XTest, yTrain, yTest=train_test_split(X, y, train_size=trainingShare, \
+                                              test_size = 1-trainingShare,
+                                             random_state=seed)
+
+# Input Scaling
+sc = StandardScaler()
+XTrain = sc.fit_transform(XTrain)
+XTest = sc.transform(XTest)
+
+# One-hot's of the target vector
+Y_train_onehot, Y_test_onehot = onehotencoder.fit_transform(yTrain), onehotencoder.fit_transform(yTest)
+
+# Remove instances with zeros only for past bill statements or paid amounts
+'''
+df = df.drop(df[(df.BILL_AMT1 == 0) &
+                (df.BILL_AMT2 == 0) &
+                (df.BILL_AMT3 == 0) &
+                (df.BILL_AMT4 == 0) &
+                (df.BILL_AMT5 == 0) &
+                (df.BILL_AMT6 == 0) &
+                (df.PAY_AMT1 == 0) &
+                (df.PAY_AMT2 == 0) &
+                (df.PAY_AMT3 == 0) &
+                (df.PAY_AMT4 == 0) &
+                (df.PAY_AMT5 == 0) &
+                (df.PAY_AMT6 == 0)].index)
+'''
+df = df.drop(df[(df.BILL_AMT1 == 0) &
+                (df.BILL_AMT2 == 0) &
+                (df.BILL_AMT3 == 0) &
+                (df.BILL_AMT4 == 0) &
+                (df.BILL_AMT5 == 0) &
+                (df.BILL_AMT6 == 0)].index)
+
+df = df.drop(df[(df.PAY_AMT1 == 0) &
+                (df.PAY_AMT2 == 0) &
+                (df.PAY_AMT3 == 0) &
+                (df.PAY_AMT4 == 0) &
+                (df.PAY_AMT5 == 0) &
+                (df.PAY_AMT6 == 0)].index)
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+
+lambdas=np.logspace(-5,7,13)
+parameters = [{'C': 1./lambdas, "solver":["lbfgs"]}]#*len(parameters)}]
+scoring = ['accuracy', 'roc_auc']
+logReg = LogisticRegression()
+gridSearch = GridSearchCV(logReg, parameters, cv=5, scoring=scoring, refit='roc_auc')
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mFileNotFoundError[0m                         Traceback (most recent call last)
+[0;32m<ipython-input-4-4edad39a9543>[0m in [0;36m<module>[0;34m[0m
+[1;32m     19[0m [0mfilename[0m [0;34m=[0m [0mcwd[0m [0;34m+[0m [0;34m'/default of credit card clients.xls'[0m[0;34m[0m[0;34m[0m[0m
+[1;32m     20[0m [0mnanDict[0m [0;34m=[0m [0;34m{[0m[0;34m}[0m[0;34m[0m[0;34m[0m[0m
+[0;32m---> 21[0;31m [0mdf[0m [0;34m=[0m [0mpd[0m[0;34m.[0m[0mread_excel[0m[0;34m([0m[0mfilename[0m[0;34m,[0m [0mheader[0m[0;34m=[0m[0;36m1[0m[0;34m,[0m [0mskiprows[0m[0;34m=[0m[0;36m0[0m[0;34m,[0m [0mindex_col[0m[0;34m=[0m[0;36m0[0m[0;34m,[0m [0mna_values[0m[0;34m=[0m[0mnanDict[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m     22[0m [0;34m[0m[0m
+[1;32m     23[0m [0mdf[0m[0;34m.[0m[0mrename[0m[0;34m([0m[0mindex[0m[0;34m=[0m[0mstr[0m[0;34m,[0m [0mcolumns[0m[0;34m=[0m[0;34m{[0m[0;34m"default payment next month"[0m[0;34m:[0m [0;34m"defaultPaymentNextMonth"[0m[0;34m}[0m[0;34m,[0m [0minplace[0m[0;34m=[0m[0;32mTrue[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+
+[0;32m~/opt/anaconda3/lib/python3.8/site-packages/pandas/io/excel/_base.py[0m in [0;36mread_excel[0;34m(io, sheet_name, header, names, index_col, usecols, squeeze, dtype, engine, converters, true_values, false_values, skiprows, nrows, na_values, keep_default_na, verbose, parse_dates, date_parser, thousands, comment, skipfooter, convert_float, mangle_dupe_cols, **kwds)[0m
+[1;32m    302[0m [0;34m[0m[0m
+[1;32m    303[0m     [0;32mif[0m [0;32mnot[0m [0misinstance[0m[0;34m([0m[0mio[0m[0;34m,[0m [0mExcelFile[0m[0;34m)[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[0;32m--> 304[0;31m         [0mio[0m [0;34m=[0m [0mExcelFile[0m[0;34m([0m[0mio[0m[0;34m,[0m [0mengine[0m[0;34m=[0m[0mengine[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m    305[0m     [0;32melif[0m [0mengine[0m [0;32mand[0m [0mengine[0m [0;34m!=[0m [0mio[0m[0;34m.[0m[0mengine[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[1;32m    306[0m         raise ValueError(
+
+[0;32m~/opt/anaconda3/lib/python3.8/site-packages/pandas/io/excel/_base.py[0m in [0;36m__init__[0;34m(self, io, engine)[0m
+[1;32m    822[0m         [0mself[0m[0;34m.[0m[0m_io[0m [0;34m=[0m [0mstringify_path[0m[0;34m([0m[0mio[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[1;32m    823[0m [0;34m[0m[0m
+[0;32m--> 824[0;31m         [0mself[0m[0;34m.[0m[0m_reader[0m [0;34m=[0m [0mself[0m[0;34m.[0m[0m_engines[0m[0;34m[[0m[0mengine[0m[0;34m][0m[0;34m([0m[0mself[0m[0;34m.[0m[0m_io[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m    825[0m [0;34m[0m[0m
+[1;32m    826[0m     [0;32mdef[0m [0m__fspath__[0m[0;34m([0m[0mself[0m[0;34m)[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+
+[0;32m~/opt/anaconda3/lib/python3.8/site-packages/pandas/io/excel/_xlrd.py[0m in [0;36m__init__[0;34m(self, filepath_or_buffer)[0m
+[1;32m     19[0m         [0merr_msg[0m [0;34m=[0m [0;34m"Install xlrd >= 1.0.0 for Excel support"[0m[0;34m[0m[0;34m[0m[0m
+[1;32m     20[0m         [0mimport_optional_dependency[0m[0;34m([0m[0;34m"xlrd"[0m[0;34m,[0m [0mextra[0m[0;34m=[0m[0merr_msg[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0;32m---> 21[0;31m         [0msuper[0m[0;34m([0m[0;34m)[0m[0;34m.[0m[0m__init__[0m[0;34m([0m[0mfilepath_or_buffer[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m     22[0m [0;34m[0m[0m
+[1;32m     23[0m     [0;34m@[0m[0mproperty[0m[0;34m[0m[0;34m[0m[0m
+
+[0;32m~/opt/anaconda3/lib/python3.8/site-packages/pandas/io/excel/_base.py[0m in [0;36m__init__[0;34m(self, filepath_or_buffer)[0m
+[1;32m    351[0m             [0mself[0m[0;34m.[0m[0mbook[0m [0;34m=[0m [0mself[0m[0;34m.[0m[0mload_workbook[0m[0;34m([0m[0mfilepath_or_buffer[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[1;32m    352[0m         [0;32melif[0m [0misinstance[0m[0;34m([0m[0mfilepath_or_buffer[0m[0;34m,[0m [0mstr[0m[0;34m)[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[0;32m--> 353[0;31m             [0mself[0m[0;34m.[0m[0mbook[0m [0;34m=[0m [0mself[0m[0;34m.[0m[0mload_workbook[0m[0;34m([0m[0mfilepath_or_buffer[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m    354[0m         [0;32melif[0m [0misinstance[0m[0;34m([0m[0mfilepath_or_buffer[0m[0;34m,[0m [0mbytes[0m[0;34m)[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[1;32m    355[0m             [0mself[0m[0;34m.[0m[0mbook[0m [0;34m=[0m [0mself[0m[0;34m.[0m[0mload_workbook[0m[0;34m([0m[0mBytesIO[0m[0;34m([0m[0mfilepath_or_buffer[0m[0;34m)[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+
+[0;32m~/opt/anaconda3/lib/python3.8/site-packages/pandas/io/excel/_xlrd.py[0m in [0;36mload_workbook[0;34m(self, filepath_or_buffer)[0m
+[1;32m     34[0m             [0;32mreturn[0m [0mopen_workbook[0m[0;34m([0m[0mfile_contents[0m[0;34m=[0m[0mdata[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[1;32m     35[0m         [0;32melse[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[0;32m---> 36[0;31m             [0;32mreturn[0m [0mopen_workbook[0m[0;34m([0m[0mfilepath_or_buffer[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m     37[0m [0;34m[0m[0m
+[1;32m     38[0m     [0;34m@[0m[0mproperty[0m[0;34m[0m[0;34m[0m[0m
+
+[0;32m~/opt/anaconda3/lib/python3.8/site-packages/xlrd/__init__.py[0m in [0;36mopen_workbook[0;34m(filename, logfile, verbosity, use_mmap, file_contents, encoding_override, formatting_info, on_demand, ragged_rows)[0m
+[1;32m    109[0m     [0;32melse[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[1;32m    110[0m         [0mfilename[0m [0;34m=[0m [0mos[0m[0;34m.[0m[0mpath[0m[0;34m.[0m[0mexpanduser[0m[0;34m([0m[0mfilename[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0;32m--> 111[0;31m         [0;32mwith[0m [0mopen[0m[0;34m([0m[0mfilename[0m[0;34m,[0m [0;34m"rb"[0m[0;34m)[0m [0;32mas[0m [0mf[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m    112[0m             [0mpeek[0m [0;34m=[0m [0mf[0m[0;34m.[0m[0mread[0m[0;34m([0m[0mpeeksz[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[1;32m    113[0m     [0;32mif[0m [0mpeek[0m [0;34m==[0m [0;34mb"PK\x03\x04"[0m[0;34m:[0m [0;31m# a ZIP file[0m[0;34m[0m[0;34m[0m[0m
+
+[0;31mFileNotFoundError[0m: [Errno 2] No such file or directory: '/Users/hjensen/Teaching/FYS-STK4150/doc/src/LectureNotes/default of credit card clients.xls'
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/hjensen/Teaching/FYS-STK4150/doc/src/LectureNotes/default of credit card clients.xls'
+
