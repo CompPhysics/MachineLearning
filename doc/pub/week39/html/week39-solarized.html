@@ -1283,11 +1283,12 @@ plt.show()
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> SGDRegressor
 
-x = <span style="color: #B452CD">2</span>*np.random.rand(<span style="color: #B452CD">100</span>,<span style="color: #B452CD">1</span>)
-y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(<span style="color: #B452CD">100</span>,<span style="color: #B452CD">1</span>)
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
 
-xb = np.c_[np.ones((<span style="color: #B452CD">100</span>,<span style="color: #B452CD">1</span>)), x]
-beta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+beta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
 <span style="color: #658b00">print</span>(beta_linreg)
 sgdreg = SGDRegressor(max_iter = <span style="color: #B452CD">50</span>, penalty=<span style="color: #8B008B; font-weight: bold">None</span>, eta0=<span style="color: #B452CD">0.1</span>)
 sgdreg.fit(x,y.ravel())
@@ -1301,13 +1302,13 @@ sgdreg.fit(x,y.ravel())
 <p>
 We have also discussed Ridge regression where the loss function contains a regularized term given by the \( L_2 \) norm of \( \beta \), 
 $$
-C_{\text{ridge}}(\beta) = ||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
+C_{\text{ridge}}(\beta) = \frac{1}{n}||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
 $$
 
 <p>
 In order to minimize \( C_{\text{ridge}}(\beta) \) using GD we only have adjust the gradient as follows 
 $$
-\nabla_\beta C_{\text{ridge}}(\beta)  = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\nabla_\beta C_{\text{ridge}}(\beta)  = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
 \sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
 \end{bmatrix} + 2\lambda\begin{bmatrix} \beta_0 \\ \beta_1\end{bmatrix} = 2 (X^T(X\beta - \mathbf{y})+\lambda \beta).
 $$
@@ -1334,18 +1335,18 @@ $$
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sys</span>
 
 <span style="color: #228B22"># the number of datapoints</span>
-m = <span style="color: #B452CD">100</span>
+n = <span style="color: #B452CD">100</span>
 x = <span style="color: #B452CD">2</span>*np.random.rand(m,<span style="color: #B452CD">1</span>)
 y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(m,<span style="color: #B452CD">1</span>)
 
-xb = np.c_[np.ones((m,<span style="color: #B452CD">1</span>)), x]
-XT_X = xb.T @ xb
+X = np.c_[np.ones((m,<span style="color: #B452CD">1</span>)), x]
+XT_X = X.T @ X
 
 <span style="color: #228B22">#Ridge parameter lambda</span>
 lmbda  = <span style="color: #B452CD">0.001</span>
 Id = lmbda* np.eye(XT_X.shape[<span style="color: #B452CD">0</span>])
 
-beta_linreg = np.linalg.inv(XT_X+Id) @ xb.T @ y
+beta_linreg = np.linalg.inv(XT_X+Id) @ X.T @ y
 <span style="color: #658b00">print</span>(beta_linreg)
 <span style="color: #228B22"># Start plain gradient descent</span>
 beta = np.random.randn(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)
@@ -1354,12 +1355,12 @@ eta = <span style="color: #B452CD">0.1</span>
 Niterations = <span style="color: #B452CD">100</span>
 
 <span style="color: #8B008B; font-weight: bold">for</span> <span style="color: #658b00">iter</span> <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Niterations):
-    gradients = <span style="color: #B452CD">2.0</span>/m*xb.T @ (xb @ (beta)-y)+<span style="color: #B452CD">2</span>*lmbda*beta
+    gradients = <span style="color: #B452CD">2.0</span>/n*X.T @ (X @ (beta)-y)+<span style="color: #B452CD">2</span>*lmbda*beta
     beta -= eta*gradients
 
 <span style="color: #658b00">print</span>(beta)
-ypredict = xb @ beta
-ypredict2 = xb @ beta_linreg
+ypredict = X @ beta
+ypredict2 = X @ beta_linreg
 plt.plot(x, ypredict, <span style="color: #CD5555">&quot;r-&quot;</span>)
 plt.plot(x, ypredict2, <span style="color: #CD5555">&quot;b-&quot;</span>)
 plt.plot(x, y ,<span style="color: #CD5555">&#39;ro&#39;</span>)
@@ -1584,8 +1585,8 @@ m = <span style="color: #B452CD">100</span>
 x = <span style="color: #B452CD">2</span>*np.random.rand(m,<span style="color: #B452CD">1</span>)
 y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(m,<span style="color: #B452CD">1</span>)
 
-xb = np.c_[np.ones((m,<span style="color: #B452CD">1</span>)), x]
-theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+X = np.c_[np.ones((m,<span style="color: #B452CD">1</span>)), x]
+theta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
 <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Own inversion&quot;</span>)
 <span style="color: #658b00">print</span>(theta_linreg)
 sgdreg = SGDRegressor(max_iter = <span style="color: #B452CD">50</span>, penalty=<span style="color: #8B008B; font-weight: bold">None</span>, eta0=<span style="color: #B452CD">0.1</span>)
@@ -1600,15 +1601,15 @@ Niterations = <span style="color: #B452CD">1000</span>
 
 
 <span style="color: #8B008B; font-weight: bold">for</span> <span style="color: #658b00">iter</span> <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Niterations):
-    gradients = <span style="color: #B452CD">2.0</span>/m*xb.T @ ((xb @ theta)-y)
+    gradients = <span style="color: #B452CD">2.0</span>/m*X.T @ ((X @ theta)-y)
     theta -= eta*gradients
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;theta frm own gd&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;theta from own gd&quot;</span>)
 <span style="color: #658b00">print</span>(theta)
 
 xnew = np.array([[<span style="color: #B452CD">0</span>],[<span style="color: #B452CD">2</span>]])
-xbnew = np.c_[np.ones((<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)), xnew]
-ypredict = xbnew.dot(theta)
-ypredict2 = xbnew.dot(theta_linreg)
+Xnew = np.c_[np.ones((<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)), xnew]
+ypredict = Xnew.dot(theta)
+ypredict2 = Xnew.dot(theta_linreg)
 
 
 n_epochs = <span style="color: #B452CD">50</span>
@@ -1621,7 +1622,7 @@ theta = np.random.randn(<span style="color: #B452CD">2</span>,<span style="color
 <span style="color: #8B008B; font-weight: bold">for</span> epoch <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_epochs):
     <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(m):
         random_index = np.random.randint(m)
-        xi = xb[random_index:random_index+<span style="color: #B452CD">1</span>]
+        xi = X[random_index:random_index+<span style="color: #B452CD">1</span>]
         yi = y[random_index:random_index+<span style="color: #B452CD">1</span>]
         gradients = <span style="color: #B452CD">2</span> * xi.T @ ((xi @ theta)-yi)
         eta = learning_schedule(epoch*m+i)

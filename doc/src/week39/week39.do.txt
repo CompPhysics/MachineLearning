@@ -913,11 +913,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import SGDRegressor
 
-x = 2*np.random.rand(100,1)
-y = 4+3*x+np.random.randn(100,1)
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
 
-xb = np.c_[np.ones((100,1)), x]
-beta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+X = np.c_[np.ones((n,1)), x]
+beta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
 print(beta_linreg)
 sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
 sgdreg.fit(x,y.ravel())
@@ -933,14 +934,14 @@ print(sgdreg.intercept_, sgdreg.coef_)
 We have also discussed Ridge regression where the loss function contains a regularized term given by the $L_2$ norm of $\beta$, 
 !bt
 \[
-C_{\text{ridge}}(\beta) = ||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
+C_{\text{ridge}}(\beta) = \frac{1}{n}||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
 \]
 !et
 
 In order to minimize $C_{\text{ridge}}(\beta)$ using GD we only have adjust the gradient as follows 
 !bt
 \[
-\nabla_\beta C_{\text{ridge}}(\beta)  = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\nabla_\beta C_{\text{ridge}}(\beta)  = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
 \sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
 \end{bmatrix} + 2\lambda\begin{bmatrix} \beta_0 \\ \beta_1\end{bmatrix} = 2 (X^T(X\beta - \mathbf{y})+\lambda \beta).
 \]
@@ -966,18 +967,18 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import sys
 
 # the number of datapoints
-m = 100
+n = 100
 x = 2*np.random.rand(m,1)
 y = 4+3*x+np.random.randn(m,1)
 
-xb = np.c_[np.ones((m,1)), x]
-XT_X = xb.T @ xb
+X = np.c_[np.ones((m,1)), x]
+XT_X = X.T @ X
 
 #Ridge parameter lambda
 lmbda  = 0.001
 Id = lmbda* np.eye(XT_X.shape[0])
 
-beta_linreg = np.linalg.inv(XT_X+Id) @ xb.T @ y
+beta_linreg = np.linalg.inv(XT_X+Id) @ X.T @ y
 print(beta_linreg)
 # Start plain gradient descent
 beta = np.random.randn(2,1)
@@ -986,12 +987,12 @@ eta = 0.1
 Niterations = 100
 
 for iter in range(Niterations):
-    gradients = 2.0/m*xb.T @ (xb @ (beta)-y)+2*lmbda*beta
+    gradients = 2.0/n*X.T @ (X @ (beta)-y)+2*lmbda*beta
     beta -= eta*gradients
 
 print(beta)
-ypredict = xb @ beta
-ypredict2 = xb @ beta_linreg
+ypredict = X @ beta
+ypredict2 = X @ beta_linreg
 plt.plot(x, ypredict, "r-")
 plt.plot(x, ypredict2, "b-")
 plt.plot(x, y ,'ro')
@@ -1201,8 +1202,8 @@ m = 100
 x = 2*np.random.rand(m,1)
 y = 4+3*x+np.random.randn(m,1)
 
-xb = np.c_[np.ones((m,1)), x]
-theta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+X = np.c_[np.ones((m,1)), x]
+theta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
 print("Own inversion")
 print(theta_linreg)
 sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
@@ -1217,15 +1218,15 @@ Niterations = 1000
 
 
 for iter in range(Niterations):
-    gradients = 2.0/m*xb.T @ ((xb @ theta)-y)
+    gradients = 2.0/m*X.T @ ((X @ theta)-y)
     theta -= eta*gradients
-print("theta frm own gd")
+print("theta from own gd")
 print(theta)
 
 xnew = np.array([[0],[2]])
-xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(theta)
-ypredict2 = xbnew.dot(theta_linreg)
+Xnew = np.c_[np.ones((2,1)), xnew]
+ypredict = Xnew.dot(theta)
+ypredict2 = Xnew.dot(theta_linreg)
 
 
 n_epochs = 50
@@ -1238,7 +1239,7 @@ theta = np.random.randn(2,1)
 for epoch in range(n_epochs):
     for i in range(m):
         random_index = np.random.randint(m)
-        xi = xb[random_index:random_index+1]
+        xi = X[random_index:random_index+1]
         yi = y[random_index:random_index+1]
         gradients = 2 * xi.T @ ((xi @ theta)-yi)
         eta = learning_schedule(epoch*m+i)
