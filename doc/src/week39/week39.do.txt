@@ -766,13 +766,13 @@ o An analytical solution (recall homework set 1).
 o The gradient can be computed analytically.
 o The cost function is convex which guarantees that gradient descent converges for small enough learning rates
 
-We revisit the example from homework set 1 where we had 
-!bt
-\[
-y_i = 5x_i^2 + 0.1\xi_i, \ i=1,\cdots,100
-\]
-!et
-with $x_i \in [0,1] $ chosen randomly with a uniform distribution. Additionally $\xi_i$ represents stochastic noise chosen according to a normal distribution $\cal {N}(0,1)$. 
+We revisitan example similar to what we had in the first homework set. We had a function  of the type
+
+!bc pycod
+x = 2*np.random.rand(m,1)
+y = 4+3*x+np.random.randn(m,1)
+!ec
+with $x_i \in [0,1] $ is chosen randomly using a uniform distribution. Additionally we have a stochastic noise chosen according to a normal distribution $\cal {N}(0,1)$. 
 The linear regression model is given by 
 !bt
 \[
@@ -791,20 +791,20 @@ such that
 
 Let $\mathbf{y} = (y_1,\cdots,y_n)^T$, $\mathbf{\bm{y}} = (\bm{y}_1,\cdots,\bm{y}_n)^T$ and $\beta = (\beta_0, \beta_1)^T$
 
-It is convenient to write $\mathbf{\bm{y}} = X\beta$ where $X \in \mathbb{R}^{100 \times 2} $ is the design matrix given by
+It is convenient to write $\mathbf{\bm{y}} = X\beta$ where $X \in \mathbb{R}^{100 \times 2} $ is the design matrix given by (we keep the intercept here)
 !bt
 \[
 X \equiv \begin{bmatrix}
-1 &; x_1  \\
-\vdots &; \vdots  \\
-1 &; x_{100} &;  \\
+1 & x_1  \\
+\vdots & \vdots  \\
+1 & x_{100} &  \\
 \end{bmatrix}.
 \]
 !et
-The loss function is given by 
+The cost/loss/risk function is given by (
 !bt
 \[
-C(\beta) = ||X\beta-\mathbf{y}||^2 = ||X\beta||^2 - 2 \mathbf{y}^T X\beta + ||\mathbf{y}||^2 = \sum_{i=1}^{100} (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2 
+C(\beta) = \frac{1}{n}||X\beta-\mathbf{y}||_{2}^{2} = \frac{1}{n}\sum_{i=1}^{100}\left[ (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2\right] 
 \]
 !et
 and we want to find $\beta$ such that $C(\beta)$ is minimized.
@@ -815,9 +815,9 @@ and we want to find $\beta$ such that $C(\beta)$ is minimized.
 Computing $\partial C(\beta) / \partial \beta_0$ and $\partial C(\beta) / \partial \beta_1$ we can show  that the gradient can be written as
 !bt
 \[
-\nabla_{\beta} C(\beta) = (\partial C(\beta) / \partial \beta_0, \partial C(\beta) / \partial \beta_1)^T = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\nabla_{\beta} C(\beta) = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
 \sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
-\end{bmatrix} = 2X^T(X\beta - \mathbf{y}), 
+\end{bmatrix} = \frac{2}{n}X^T(X\beta - \mathbf{y}), 
 \]
 !et
 where $X$ is the design matrix defined above.
@@ -828,9 +828,9 @@ The Hessian matrix of $C(\beta)$ is given by
 !bt
 \[
 \bm{H} \equiv \begin{bmatrix}
-\frac{\partial^2 C(\beta)}{\partial \beta_0^2} &; \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
-\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} &; \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &;  \\
-\end{bmatrix} = 2X^T X.
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X.
 \]
 !et
 This result implies that $C(\beta)$ is a convex function since the matrix $X^T X$ always is positive semi-definite.
@@ -850,7 +850,7 @@ We can now write a program that minimizes $C(\beta)$ using the gradient descent 
 
 We can use the expression we computed for the gradient and let use a
 $\beta_0$ be chosen randomly and let $\gamma = 0.001$. Stop iterating
-when $||\nabla_\beta C(\beta_k) || \leq \epsilon = 10^{-8}$. 
+when $||\nabla_\beta C(\beta_k) || \leq \epsilon = 10^{-8}$. _Note that the code below does not include the latter stop criterion_.
 
 And finally we can compare our solution for $\beta$ with the analytic result given by 
 $\beta= (X^TX)^{-1} X^T \mathbf{y}$.
@@ -871,12 +871,12 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import sys
 
 # the number of datapoints
-m = 100
-x = 2*np.random.rand(m,1)
-y = 4+3*x+np.random.randn(m,1)
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
 
-xb = np.c_[np.ones((m,1)), x]
-beta_linreg = np.linalg.inv(xb.T.dot(xb)).dot(xb.T).dot(y)
+X = np.c_[np.ones((n,1)), x]
+beta_linreg = np.linalg.inv(X.T @ X) @ X.T @ y
 print(beta_linreg)
 beta = np.random.randn(2,1)
 
@@ -884,8 +884,8 @@ eta = 0.1
 Niterations = 1000
 
 for iter in range(Niterations):
-    gradients = 2.0/m*xb.T.dot(xb.dot(beta)-y)
-    beta -= eta*gradients
+    gradient = (2.0/n)*X.T @ (X @ beta-y)
+    beta -= eta*gradient
 
 print(beta)
 xnew = np.array([[0],[2]])

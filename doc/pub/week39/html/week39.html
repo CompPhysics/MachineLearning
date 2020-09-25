@@ -1130,12 +1130,16 @@ desirable properties such as:
 <li> The cost function is convex which guarantees that gradient descent converges for small enough learning rates</li>
 </ol>
 
-We revisit the example from homework set 1 where we had 
-$$
-y_i = 5x_i^2 + 0.1\xi_i, \ i=1,\cdots,100
-$$
+We revisitan example similar to what we had in the first homework set. We had a function  of the type
 
-with \( x_i \in [0,1]  \) chosen randomly with a uniform distribution. Additionally \( \xi_i \) represents stochastic noise chosen according to a normal distribution \( \cal {N}(0,1) \). 
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(m,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(m,<span style="color: #666666">1</span>)
+</pre></div>
+<p>
+with \( x_i \in [0,1]  \) is chosen randomly using a uniform distribution. Additionally we have a stochastic noise chosen according to a normal distribution \( \cal {N}(0,1) \). 
 The linear regression model is given by 
 $$
 h_\beta(x) = \boldsymbol{y} = \beta_0 + \beta_1 x,
@@ -1155,18 +1159,18 @@ $$
 Let \( \mathbf{y} = (y_1,\cdots,y_n)^T \), \( \mathbf{\boldsymbol{y}} = (\boldsymbol{y}_1,\cdots,\boldsymbol{y}_n)^T \) and \( \beta = (\beta_0, \beta_1)^T \)
 
 <p>
-It is convenient to write \( \mathbf{\boldsymbol{y}} = X\beta \) where \( X \in \mathbb{R}^{100 \times 2}  \) is the design matrix given by
+It is convenient to write \( \mathbf{\boldsymbol{y}} = X\beta \) where \( X \in \mathbb{R}^{100 \times 2}  \) is the design matrix given by (we keep the intercept here)
 $$
 X \equiv \begin{bmatrix}
-1 &; x_1  \\
-\vdots &; \vdots  \\
-1 &; x_{100} &;  \\
+1 & x_1  \\
+\vdots & \vdots  \\
+1 & x_{100} &  \\
 \end{bmatrix}.
 $$
 
-The loss function is given by 
+The cost/loss/risk function is given by (
 $$
-C(\beta) = ||X\beta-\mathbf{y}||^2 = ||X\beta||^2 - 2 \mathbf{y}^T X\beta + ||\mathbf{y}||^2 = \sum_{i=1}^{100} (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2 
+C(\beta) = \frac{1}{n}||X\beta-\mathbf{y}||_{2}^{2} = \frac{1}{n}\sum_{i=1}^{100}\left[ (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2\right] 
 $$
 
 and we want to find \( \beta \) such that \( C(\beta) \) is minimized.
@@ -1179,9 +1183,9 @@ and we want to find \( \beta \) such that \( C(\beta) \) is minimized.
 <p>
 Computing \( \partial C(\beta) / \partial \beta_0 \) and \( \partial C(\beta) / \partial \beta_1 \) we can show  that the gradient can be written as
 $$
-\nabla_{\beta} C(\beta) = (\partial C(\beta) / \partial \beta_0, \partial C(\beta) / \partial \beta_1)^T = 2\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\nabla_{\beta} C(\beta) = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
 \sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
-\end{bmatrix} = 2X^T(X\beta - \mathbf{y}), 
+\end{bmatrix} = \frac{2}{n}X^T(X\beta - \mathbf{y}), 
 $$
 
 where \( X \) is the design matrix defined above.
@@ -1193,9 +1197,9 @@ where \( X \) is the design matrix defined above.
 The Hessian matrix of \( C(\beta) \) is given by 
 $$
 \boldsymbol{H} \equiv \begin{bmatrix}
-\frac{\partial^2 C(\beta)}{\partial \beta_0^2} &; \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
-\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} &; \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &;  \\
-\end{bmatrix} = 2X^T X.
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X.
 $$
 
 This result implies that \( C(\beta) \) is a convex function since the matrix \( X^T X \) always is positive semi-definite.
@@ -1214,7 +1218,7 @@ $$
 <p>
 We can use the expression we computed for the gradient and let use a
 \( \beta_0 \) be chosen randomly and let \( \gamma = 0.001 \). Stop iterating
-when \( ||\nabla_\beta C(\beta_k) || \leq \epsilon = 10^{-8} \).
+when \( ||\nabla_\beta C(\beta_k) || \leq \epsilon = 10^{-8} \). <b>Note that the code below does not include the latter stop criterion</b>.
 
 <p>
 And finally we can compare our solution for \( \beta \) with the analytic result given by 
@@ -1240,12 +1244,12 @@ Here our simple example
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">sys</span>
 
 <span style="color: #408080; font-style: italic"># the number of datapoints</span>
-m <span style="color: #666666">=</span> <span style="color: #666666">100</span>
-x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(m,<span style="color: #666666">1</span>)
-y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(m,<span style="color: #666666">1</span>)
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n,<span style="color: #666666">1</span>)
 
-xb <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((m,<span style="color: #666666">1</span>)), x]
-beta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(xb<span style="color: #666666">.</span>T<span style="color: #666666">.</span>dot(xb))<span style="color: #666666">.</span>dot(xb<span style="color: #666666">.</span>T)<span style="color: #666666">.</span>dot(y)
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x]
+beta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X) <span style="color: #666666">@</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y
 <span style="color: #008000">print</span>(beta_linreg)
 beta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
 
@@ -1253,8 +1257,8 @@ eta <span style="color: #666666">=</span> <span style="color: #666666">0.1</span
 Niterations <span style="color: #666666">=</span> <span style="color: #666666">1000</span>
 
 <span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
-    gradients <span style="color: #666666">=</span> <span style="color: #666666">2.0/</span>m<span style="color: #666666">*</span>xb<span style="color: #666666">.</span>T<span style="color: #666666">.</span>dot(xb<span style="color: #666666">.</span>dot(beta)<span style="color: #666666">-</span>y)
-    beta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
+    gradient <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span>X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> (X <span style="color: #666666">@</span> beta<span style="color: #666666">-</span>y)
+    beta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradient
 
 <span style="color: #008000">print</span>(beta)
 xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([[<span style="color: #666666">0</span>],[<span style="color: #666666">2</span>]])
