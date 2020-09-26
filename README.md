@@ -81,6 +81,7 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 * Kristian Wold, kriswold@student.matnat.uio.no
 * Nicolai Haug, nicoha@student.matnat.uio.no
 * Per-Dimitri Sønsteland, perdimitri.bs@gmail.com
+* Stian Bilek, stian.bilek@fys.uio.no
 
 ## Practicalities
 This course will be delivered in a hybrid mode, with online lectures and on site or online laboratory sessions. 
