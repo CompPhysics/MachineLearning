@@ -1,4 +1,4 @@
-TITLE: Weeke 40: Neural networks, from the simple perceptron to deep learning
+TITLE: Week 40: From Stochastic Gradient Descent to Neural networks
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 DATE: today
 
@@ -9,13 +9,857 @@ DATE: today
 * Thursday: Stochastic Gradient descent with examples and automatic differeantion and begin Neural Networks 
 * Friday: Neural Networks, setting up the basic steps
 
-
 Reading suggestions for both days: "Aurelien Geron's chapter 10":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf" and Hastie et al chapter 11.
+For Stochastic Gradient Descent, we recommend chapter 4 of Geron's text. 
 
 !split
 ===== Overview video for week 40 =====
 
-"Overview Video, fro Stochastic Gradient methods to Neural Networks":"https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/OverarchingAimsWeek40.mp4?vrtx=view-as-webpage"
+"Overview Video, from Stochastic Gradient methods to Neural Networks":"https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/OverarchingAimsWeek40.mp4?vrtx=view-as-webpage"
+
+!split
+===== Stochastic Gradient Descent =====
+
+Stochastic gradient descent (SGD) and variants thereof address some of
+the shortcomings of the Gradient descent method discussed above.
+
+The underlying idea of SGD comes from the observation that the cost
+function, which we want to minimize, can almost always be written as a
+sum over $n$ data points $\{\mathbf{x}_i\}_{i=1}^n$,
+!bt
+\[
+C(\mathbf{\beta}) = \sum_{i=1}^n c_i(\mathbf{x}_i,
+\mathbf{\beta}). 
+\]
+!et
+
+!split
+===== Computation of gradients =====
+
+This in turn means that the gradient can be
+computed as a sum over $i$-gradients 
+!bt
+\[
+\nabla_\beta C(\mathbf{\beta}) = \sum_i^n \nabla_\beta c_i(\mathbf{x}_i,
+\mathbf{\beta}).
+\]
+!et
+
+Stochasticity/randomness is introduced by only taking the
+gradient on a subset of the data called minibatches.  If there are $n$
+data points and the size of each minibatch is $M$, there will be $n/M$
+minibatches. We denote these minibatches by $B_k$ where
+$k=1,\cdots,n/M$.
+
+!split
+===== SGD example =====
+As an example, suppose we have $10$ data points $(\mathbf{x}_1,\cdots, \mathbf{x}_{10})$ 
+and we choose to have $M=5$ minibathces,
+then each minibatch contains two data points. In particular we have
+$B_1 = (\mathbf{x}_1,\mathbf{x}_2), \cdots, B_5 =
+(\mathbf{x}_9,\mathbf{x}_{10})$. Note that if you choose $M=1$ you
+have only a single batch with all data points and on the other extreme,
+you may choose $M=n$ resulting in a minibatch for each datapoint, i.e
+$B_k = \mathbf{x}_k$.
+
+The idea is now to approximate the gradient by replacing the sum over
+all data points with a sum over the data points in one the minibatches
+picked at random in each gradient descent step 
+!bt
+\[
+\nabla_{\beta}
+C(\mathbf{\beta}) = \sum_{i=1}^n \nabla_\beta c_i(\mathbf{x}_i,
+\mathbf{\beta}) \rightarrow \sum_{i \in B_k}^n \nabla_\beta
+c_i(\mathbf{x}_i, \mathbf{\beta}).
+\]
+!et
+
+!split
+===== The gradient step =====
+
+Thus a gradient descent step now looks like 
+!bt
+\[
+\beta_{j+1} = \beta_j - \gamma_j \sum_{i \in B_k}^n \nabla_\beta c_i(\mathbf{x}_i,
+\mathbf{\beta})
+\]
+!et
+
+where $k$ is picked at random with equal
+probability from $[1,n/M]$. An iteration over the number of
+minibathces (n/M) is commonly referred to as an epoch. Thus it is
+typical to choose a number of epochs and for each epoch iterate over
+the number of minibatches, as exemplified in the code below.
+
+!split
+===== Simple example code =====
+
+!bc pycod
+import numpy as np 
+
+n = 100 #100 datapoints 
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
+n_epochs = 10 #number of epochs
+
+j = 0
+for epoch in range(1,n_epochs+1):
+    for i in range(m):
+        k = np.random.randint(m) #Pick the k-th minibatch at random
+        #Compute the gradient using the data in minibatch Bk
+        #Compute new suggestion for 
+        j += 1
+!ec
+
+Taking the gradient only on a subset of the data has two important
+benefits. First, it introduces randomness which decreases the chance
+that our opmization scheme gets stuck in a local minima. Second, if
+the size of the minibatches are small relative to the number of
+datapoints ($M <  n$), the computation of the gradient is much
+cheaper since we sum over the datapoints in the $k-th$ minibatch and not
+all $n$ datapoints.
+
+!split
+===== When do we stop? =====
+
+A natural question is when do we stop the search for a new minimum?
+One possibility is to compute the full gradient after a given number
+of epochs and check if the norm of the gradient is smaller than some
+threshold and stop if true. However, the condition that the gradient
+is zero is valid also for local minima, so this would only tell us
+that we are close to a local/global minimum. However, we could also
+evaluate the cost function at this point, store the result and
+continue the search. If the test kicks in at a later stage we can
+compare the values of the cost function and keep the $\beta$ that
+gave the lowest value.
+
+!split
+===== Slightly different approach =====
+
+Another approach is to let the step length $\gamma_j$ depend on the
+number of epochs in such a way that it becomes very small after a
+reasonable time such that we do not move at all.
+
+As an example, let $e = 0,1,2,3,\cdots$ denote the current epoch and let $t_0, t_1 > 0$ be two fixed numbers. Furthermore, let $t = e \cdot m + i$ where $m$ is the number of minibatches and $i=0,\cdots,m-1$. Then the function $$\gamma_j(t; t_0, t_1) = \frac{t_0}{t+t_1} $$ goes to zero as the number of epochs gets large. I.e. we start with a step length $\gamma_j (0; t_0, t_1) = t_0/t_1$ which decays in *time* $t$.
+
+In this way we can fix the number of epochs, compute $\beta$ and
+evaluate the cost function at the end. Repeating the computation will
+give a different result since the scheme is random by design. Then we
+pick the final $\beta$ that gives the lowest value of the cost
+function.
+
+!bc pycod
+import numpy as np 
+
+def step_length(t,t0,t1):
+    return t0/(t+t1)
+
+n = 100 #100 datapoints 
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
+n_epochs = 500 #number of epochs
+t0 = 1.0
+t1 = 10
+
+gamma_j = t0/t1
+j = 0
+for epoch in range(1,n_epochs+1):
+    for i in range(m):
+        k = np.random.randint(m) #Pick the k-th minibatch at random
+        #Compute the gradient using the data in minibatch Bk
+        #Compute new suggestion for beta
+        t = epoch*m+i
+        gamma_j = step_length(t,t0,t1)
+        j += 1
+
+print("gamma_j after %d epochs: %g" % (n_epochs,gamma_j))
+!ec
+
+
+
+
+
+!split
+=====  Program for stochastic gradient =====
+
+!bc pycod
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import SGDRegressor
+
+m = 100
+x = 2*np.random.rand(m,1)
+y = 4+3*x+np.random.randn(m,1)
+
+X = np.c_[np.ones((m,1)), x]
+theta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
+print("Own inversion")
+print(theta_linreg)
+sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
+sgdreg.fit(x,y.ravel())
+print("sgdreg from scikit")
+print(sgdreg.intercept_, sgdreg.coef_)
+
+
+theta = np.random.randn(2,1)
+eta = 0.1
+Niterations = 1000
+
+
+for iter in range(Niterations):
+    gradients = 2.0/m*X.T @ ((X @ theta)-y)
+    theta -= eta*gradients
+print("theta from own gd")
+print(theta)
+
+xnew = np.array([[0],[2]])
+Xnew = np.c_[np.ones((2,1)), xnew]
+ypredict = Xnew.dot(theta)
+ypredict2 = Xnew.dot(theta_linreg)
+
+
+n_epochs = 50
+t0, t1 = 5, 50
+def learning_schedule(t):
+    return t0/(t+t1)
+
+theta = np.random.randn(2,1)
+
+for epoch in range(n_epochs):
+    for i in range(m):
+        random_index = np.random.randint(m)
+        xi = X[random_index:random_index+1]
+        yi = y[random_index:random_index+1]
+        gradients = 2 * xi.T @ ((xi @ theta)-yi)
+        eta = learning_schedule(epoch*m+i)
+        theta = theta - eta*gradients
+print("theta from own sdg")
+print(theta)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(xnew, ypredict2, "b-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Random numbers ')
+plt.show()
+
+!ec
+
+_Challenge_: try to write a similar code for a Logistic Regression case.
+
+
+!split
+===== Momentum based GD =====
+
+The stochastic gradient descent (SGD) is almost always used with a
+*momentum* or inertia term that serves as a memory of the direction we
+are moving in parameter space.  This is typically implemented as
+follows
+
+!bt
+\begin{align}
+\mathbf{v}_{t}&=\gamma \mathbf{v}_{t-1}+\eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t) \nonumber \\
+\boldsymbol{\theta}_{t+1}&= \boldsymbol{\theta}_t -\mathbf{v}_{t},
+\end{align}
+!et
+
+where we have introduced a momentum parameter $\gamma$, with
+$0\le\gamma\le 1$, and for brevity we dropped the explicit notation to
+indicate the gradient is to be taken over a different mini-batch at
+each step. We call this algorithm gradient descent with momentum
+(GDM). From these equations, it is clear that $\mathbf{v}_t$ is a
+running average of recently encountered gradients and
+$(1-\gamma)^{-1}$ sets the characteristic time scale for the memory
+used in the averaging procedure. Consistent with this, when
+$\gamma=0$, this just reduces down to ordinary SGD as discussed
+earlier. An equivalent way of writing the updates is
+
+!bt
+\[
+\Delta \boldsymbol{\theta}_{t+1} = \gamma \Delta \boldsymbol{\theta}_t -\ \eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t),
+\]
+!et
+where we have defined $\Delta \boldsymbol{\theta}_{t}= \boldsymbol{\theta}_t-\boldsymbol{\theta}_{t-1}$.
+
+!split
+===== More on momentum based approaches =====
+
+Let us try to get more intuition from these equations. It is helpful
+to consider a simple physical analogy with a particle of mass $m$
+moving in a viscous medium with drag coefficient $\mu$ and potential
+$E(\mathbf{w})$. If we denote the particle's position by $\mathbf{w}$,
+then its motion is described by
+
+!bt
+\[
+m {d^2 \mathbf{w} \over dt^2} + \mu {d \mathbf{w} \over dt }= -\nabla_w E(\mathbf{w}).
+\]
+!et
+
+We can discretize this equation in the usual way to get
+
+!bt
+\[
+m { \mathbf{w}_{t+\Delta t}-2 \mathbf{w}_{t} +\mathbf{w}_{t-\Delta t} \over (\Delta t)^2}+\mu {\mathbf{w}_{t+\Delta t}- \mathbf{w}_{t} \over \Delta t} = -\nabla_w E(\mathbf{w}).
+\]
+!et
+
+Rearranging this equation, we can rewrite this as
+
+!bt
+\[
+\Delta \mathbf{w}_{t +\Delta t}= - { (\Delta t)^2 \over m +\mu \Delta t} \nabla_w E(\mathbf{w})+ {m \over m +\mu \Delta t} \Delta \mathbf{w}_t.
+\]
+!et
+
+!split
+===== Momentum parameter =====
+
+Notice that this equation is identical to previous one if we identify
+the position of the particle, $\mathbf{w}$, with the parameters
+$\boldsymbol{\theta}$. This allows us to identify the momentum
+parameter and learning rate with the mass of the particle and the
+viscous drag as:
+
+!bt
+\[
+\gamma= {m \over m +\mu \Delta t }, \qquad \eta = {(\Delta t)^2 \over m +\mu \Delta t}.
+\]
+!et
+
+Thus, as the name suggests, the momentum parameter is proportional to
+the mass of the particle and effectively provides inertia.
+Furthermore, in the large viscosity/small learning rate limit, our
+memory time scales as $(1-\gamma)^{-1} \approx m/(\mu \Delta t)$.
+
+Why is momentum useful? SGD momentum helps the gradient descent
+algorithm gain speed in directions with persistent but small gradients
+even in the presence of stochasticity, while suppressing oscillations
+in high-curvature directions. This becomes especially important in
+situations where the landscape is shallow and flat in some directions
+and narrow and steep in others. It has been argued that first-order
+methods (with appropriate initial conditions) can perform comparable
+to more expensive second order methods, especially in the context of
+complex deep learning models.
+
+These beneficial properties of momentum can sometimes become even more
+pronounced by using a slight modification of the classical momentum
+algorithm called Nesterov Accelerated Gradient (NAG).
+
+In the NAG algorithm, rather than calculating the gradient at the
+current parameters, $\nabla_\theta E(\boldsymbol{\theta}_t)$, one
+calculates the gradient at the expected value of the parameters given
+our current momentum, $\nabla_\theta E(\boldsymbol{\theta}_t +\gamma
+\mathbf{v}_{t-1})$. This yields the NAG update rule
+
+!bt
+\begin{align}
+\mathbf{v}_{t}&=\gamma \mathbf{v}_{t-1}+\eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t +\gamma \mathbf{v}_{t-1}) \nonumber \\
+\boldsymbol{\theta}_{t+1}&= \boldsymbol{\theta}_t -\mathbf{v}_{t}.
+\end{align}
+!et
+
+One of the major advantages of NAG is that it allows for the use of a larger learning rate than GDM for the same choice of $\gamma$.
+
+
+!split
+===== Second moment of the gradient =====
+
+
+In stochastic gradient descent, with and without momentum, we still
+have to specify a schedule for tuning the learning rates $\eta_t$
+as a function of time.  As discussed in the context of Newton's
+method, this presents a number of dilemmas. The learning rate is
+limited by the steepest direction which can change depending on the
+current position in the landscape. To circumvent this problem, ideally
+our algorithm would keep track of curvature and take large steps in
+shallow, flat directions and small steps in steep, narrow directions.
+Second-order methods accomplish this by calculating or approximating
+the Hessian and normalizing the learning rate by the
+curvature. However, this is very computationally expensive for
+extremely large models. Ideally, we would like to be able to
+adaptively change the step size to match the landscape without paying
+the steep computational price of calculating or approximating
+Hessians.
+
+Recently, a number of methods have been introduced that accomplish
+this by tracking not only the gradient, but also the second moment of
+the gradient. These methods include AdaGrad, AdaDelta, RMS-Prop, and
+ADAM.
+
+!split
+===== RMS prop =====
+
+In RMS prop, in addition to keeping a running average of the first
+moment of the gradient, we also keep track of the second moment
+denoted by $\mathbf{s}_t=\mathbb{E}[\mathbf{g}_t^2]$. The update rule
+for RMS prop is given by
+
+!bt
+\begin{align}
+\mathbf{g}_t &= \nabla_\theta E(\boldsymbol{\theta}) \\
+\mathbf{s}_t &=\beta \mathbf{s}_{t-1} +(1-\beta)\mathbf{g}_t^2 \nonumber \\
+\boldsymbol{\theta}_{t+1}&=&\boldsymbol{\theta}_t - \eta_t { \mathbf{g}_t \over \sqrt{\mathbf{s}_t +\epsilon}}, \nonumber
+\end{align}
+!et
+
+where $\beta$ controls the averaging time of the second moment and is
+typically taken to be about $\beta=0.9$, $\eta_t$ is a learning rate
+typically chosen to be $10^{-3}$, and $\epsilon\sim 10^{-8} $ is a
+small regularization constant to prevent divergences. Multiplication
+and division by vectors is understood as an element-wise operation. It
+is clear from this formula that the learning rate is reduced in
+directions where the norm of the gradient is consistently large. This
+greatly speeds up the convergence by allowing us to use a larger
+learning rate for flat directions.
+
+
+!split
+===== ADAM optimizer =====
+
+A related algorithm is the ADAM optimizer. In ADAM, we keep a running
+average of both the first and second moment of the gradient and use
+this information to adaptively change the learning rate for different
+parameters. In addition to keeping a running average of the first and
+second moments of the gradient
+(i.e. $\mathbf{m}_t=\mathbb{E}[\mathbf{g}_t]$ and
+$\mathbf{s}_t=\mathbb{E}[\mathbf{g}^2_t]$, respectively), ADAM
+performs an additional bias correction to account for the fact that we
+are estimating the first two moments of the gradient using a running
+average (denoted by the hats in the update rule below). The update
+rule for ADAM is given by (where multiplication and division are once
+again understood to be element-wise operations below)
+
+!bt
+\begin{align}
+\mathbf{g}_t &= \nabla_\theta E(\boldsymbol{\theta}) \\
+\mathbf{m}_t &= \beta_1 \mathbf{m}_{t-1} + (1-\beta_1) \mathbf{g}_t \nonumber \\
+\mathbf{s}_t &=\beta_2 \mathbf{s}_{t-1} +(1-\beta_2)\mathbf{g}_t^2 \nonumber \\
+\bm{\mathbf{m}}_t&={\mathbf{m}_t \over 1-\beta_1^t} \nonumber \\
+\bm{\mathbf{s}}_t &={\mathbf{s}_t \over1-\beta_2^t} \nonumber \\
+\boldsymbol{\theta}_{t+1}&=\boldsymbol{\theta}_t - \eta_t { \bm{\mathbf{m}}_t \over \sqrt{\bm{\mathbf{s}}_t} +\epsilon}, \nonumber \\
+\end{align}
+!et
+
+where $\beta_1$ and $\beta_2$ set the memory lifetime of the first and
+second moment and are typically taken to be $0.9$ and $0.99$
+respectively, and $\eta$ and $\epsilon$ are identical to RMSprop.
+
+Like in RMSprop, the effective step size of a parameter depends on the
+magnitude of its gradient squared.  To understand this better, let us
+rewrite this expression in terms of the variance
+$\boldsymbol{\sigma}_t^2 = \bm{\mathbf{s}}_t -
+(\bm{\mathbf{m}}_t)^2$. Consider a single parameter $\theta_t$. The
+update rule for this parameter is given by
+
+!bt
+\[
+\Delta \theta_{t+1}= -\eta_t { \bm{m}_t \over \sqrt{\sigma_t^2 +  m_t^2 }+\epsilon}.
+\]
+!et
+
+
+
+
+!split
+===== Practical tips =====
+
+* _Randomize the data when making mini-batches_. It is always important to randomly shuffle the data when forming mini-batches. Otherwise, the gradient descent method can fit spurious correlations resulting from the order in which data is presented.
+
+* _Transform your inputs_. Learning becomes difficult when our landscape has a mixture of steep and flat directions. One simple trick for minimizing these situations is to standardize the data by subtracting the mean and normalizing the variance of input variables. Whenever possible, also decorrelate the inputs. To understand why this is helpful, consider the case of linear regression. It is easy to show that for the squared error cost function, the Hessian of the cost function is just the correlation matrix between the inputs. Thus, by standardizing the inputs, we are ensuring that the landscape looks homogeneous in all directions in parameter space. Since most deep networks can be viewed as linear transformations followed by a non-linearity at each layer, we expect this intuition to hold beyond the linear case.
+
+* _Monitor the out-of-sample performance._ Always monitor the performance of your model on a validation set (a small portion of the training data that is held out of the training process to serve as a proxy for the test set. If the validation error starts increasing, then the model is beginning to overfit. Terminate the learning process. This *early stopping* significantly improves performance in many settings.
+	
+* _Adaptive optimization methods don't always have good generalization._ Recent studies have shown that adaptive methods such as ADAM, RMSPorp, and AdaGrad tend to have poor generalization compared to SGD or SGD with momentum, particularly in the high-dimensional limit (i.e. the number of parameters exceeds the number of data points). Although it is not clear at this stage why these methods perform so well in training deep neural networks, simpler procedures like properly-tuned SGD may work as well or better in these applications.
+
+Geron's text, see chapter 11, has several interesting discussions.
+
+
+
+!split
+===== Automatic differentiation =====
+
+"Automatic differentiation (AD)":"https://en.wikipedia.org/wiki/Automatic_differentiation", 
+also called algorithmic
+differentiation or computational differentiation,is a set of
+techniques to numerically evaluate the derivative of a function
+specified by a computer program. AD exploits the fact that every
+computer program, no matter how complicated, executes a sequence of
+elementary arithmetic operations (addition, subtraction,
+multiplication, division, etc.) and elementary functions (exp, log,
+sin, cos, etc.). By applying the chain rule repeatedly to these
+operations, derivatives of arbitrary order can be computed
+automatically, accurately to working precision, and using at most a
+small constant factor more arithmetic operations than the original
+program.
+
+Automatic differentiation is neither:
+
+* Symbolic differentiation, nor
+* Numerical differentiation (the method of finite differences).
+
+Symbolic differentiation can lead to inefficient code and faces the
+difficulty of converting a computer program into a single expression,
+while numerical differentiation can introduce round-off errors in the
+discretization process and cancellation
+
+
+
+Python has tools for so-called _automatic differentiation_.
+Consider the following example
+!bt
+\[
+f(x) = \sin\left(2\pi x + x^2\right)
+\]
+!et
+which has the following derivative
+!bt
+\[
+f'(x) = \cos\left(2\pi x + x^2\right)\left(2\pi + 2x\right) 
+\]
+!et
+Using _autograd_ we have
+
+!bc pycod
+import autograd.numpy as np
+
+# To do elementwise differentiation:
+from autograd import elementwise_grad as egrad 
+
+# To plot:
+import matplotlib.pyplot as plt 
+
+
+def f(x):
+    return np.sin(2*np.pi*x + x**2)
+
+def f_grad_analytic(x):
+    return np.cos(2*np.pi*x + x**2)*(2*np.pi + 2*x)
+
+# Do the comparison:
+x = np.linspace(0,1,1000)
+
+f_grad = egrad(f)
+
+computed = f_grad(x)
+analytic = f_grad_analytic(x)
+
+plt.title('Derivative computed from Autograd compared with the analytical derivative')
+plt.plot(x,computed,label='autograd')
+plt.plot(x,analytic,label='analytic')
+
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+
+plt.show()
+
+print("The max absolute difference is: %g"%(np.max(np.abs(computed - analytic))))
+!ec
+
+!split 
+===== Using autograd =====
+
+Here we
+experiment with what kind of functions Autograd is capable
+of finding the gradient of. The following Python functions are just
+meant to illustrate what Autograd can do, but please feel free to
+experiment with other, possibly more complicated, functions as well.
+
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+
+def f1(x):
+    return x**3 + 1
+
+f1_grad = grad(f1)
+
+# Remember to send in float as argument to the computed gradient from Autograd!
+a = 1.0
+
+# See the evaluated gradient at a using autograd:
+print("The gradient of f1 evaluated at a = %g using autograd is: %g"%(a,f1_grad(a)))
+
+# Compare with the analytical derivative, that is f1'(x) = 3*x**2 
+grad_analytical = 3*a**2
+print("The gradient of f1 evaluated at a = %g by finding the analytic expression is: %g"%(a,grad_analytical))
+!ec
+
+
+!split
+===== Autograd with more complicated functions =====
+
+To differentiate with respect to two (or more) arguments of a Python
+function, Autograd need to know at which variable the function if
+being differentiated with respect to.
+
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f2(x1,x2):
+    return 3*x1**3 + x2*(x1 - 5) + 1
+
+# By sending the argument 0, Autograd will compute the derivative w.r.t the first variable, in this case x1
+f2_grad_x1 = grad(f2,0)
+
+# ... and differentiate w.r.t x2 by sending 1 as an additional arugment to grad
+f2_grad_x2 = grad(f2,1)
+
+x1 = 1.0
+x2 = 3.0 
+
+print("Evaluating at x1 = %g, x2 = %g"%(x1,x2))
+print("-"*30)
+
+# Compare with the analytical derivatives:
+
+# Derivative of f2 w.r.t x1 is: 9*x1**2 + x2:
+f2_grad_x1_analytical = 9*x1**2 + x2
+
+# Derivative of f2 w.r.t x2 is: x1 - 5:
+f2_grad_x2_analytical = x1 - 5
+
+# See the evaluated derivations:
+print("The derivative of f2 w.r.t x1: %g"%( f2_grad_x1(x1,x2) ))
+print("The analytical derivative of f2 w.r.t x1: %g"%( f2_grad_x1(x1,x2) ))
+
+print()
+
+print("The derivative of f2 w.r.t x2: %g"%( f2_grad_x2(x1,x2) ))
+print("The analytical derivative of f2 w.r.t x2: %g"%( f2_grad_x2(x1,x2) ))
+!ec
+
+Note that the grad function will not produce the true gradient of the function. The true gradient of a function with two or more variables will produce a vector, where each element is the function differentiated w.r.t a variable.
+
+
+!split
+=====  More complicated functions using the elements of their arguments directly =====
+
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f3(x): # Assumes x is an array of length 5 or higher
+    return 2*x[0] + 3*x[1] + 5*x[2] + 7*x[3] + 11*x[4]**2
+
+f3_grad = grad(f3)
+
+x = np.linspace(0,4,5)
+
+# Print the computed gradient:
+print("The computed gradient of f3 is: ", f3_grad(x))
+
+# The analytical gradient is: (2, 3, 5, 7, 22*x[4])
+f3_grad_analytical = np.array([2, 3, 5, 7, 22*x[4]])
+
+# Print the analytical gradient:
+print("The analytical gradient of f3 is: ", f3_grad_analytical)
+!ec
+
+Note that in this case, when sending an array as input argument, the
+output from Autograd is another array. This is the true gradient of
+the function, as opposed to the function in the previous example. By
+using arrays to represent the variables, the output from Autograd
+might be easier to work with, as the output is closer to what one
+could expect form a gradient-evaluting function.
+
+!split 
+===== Functions using mathematical functions from Numpy =====
+
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f4(x):
+    return np.sqrt(1+x**2) + np.exp(x) + np.sin(2*np.pi*x)
+
+f4_grad = grad(f4)
+
+x = 2.7
+
+# Print the computed derivative:
+print("The computed derivative of f4 at x = %g is: %g"%(x,f4_grad(x)))
+
+# The analytical derivative is: x/sqrt(1 + x**2) + exp(x) + cos(2*pi*x)*2*pi
+f4_grad_analytical = x/np.sqrt(1 + x**2) + np.exp(x) + np.cos(2*np.pi*x)*2*np.pi
+
+# Print the analytical gradient:
+print("The analytical gradient of f4 at x = %g is: %g"%(x,f4_grad_analytical))
+!ec
+
+
+!split
+===== More autograd =====
+
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f5(x):
+    if x >= 0:
+        return x**2
+    else:
+        return -3*x + 1
+
+f5_grad = grad(f5)
+
+x = 2.7
+
+# Print the computed derivative:
+print("The computed derivative of f5 at x = %g is: %g"%(x,f5_grad(x)))
+!ec
+
+
+!split
+===== And  with loops =====
+
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f6_for(x):
+    val = 0
+    for i in range(10):
+        val = val + x**i
+    return val
+
+def f6_while(x):
+    val = 0
+    i = 0
+    while i < 10:
+        val = val + x**i
+        i = i + 1
+    return val
+
+f6_for_grad = grad(f6_for)
+f6_while_grad = grad(f6_while)
+
+x = 0.5
+
+# Print the computed derivaties of f6_for and f6_while
+print("The computed derivative of f6_for at x = %g is: %g"%(x,f6_for_grad(x)))
+print("The computed derivative of f6_while at x = %g is: %g"%(x,f6_while_grad(x)))
+!ec
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+# Both of the functions are implementation of the sum: sum(x**i) for i = 0, ..., 9
+# The analytical derivative is: sum(i*x**(i-1)) 
+f6_grad_analytical = 0
+for i in range(10):
+    f6_grad_analytical += i*x**(i-1)
+
+print("The analytical derivative of f6 at x = %g is: %g"%(x,f6_grad_analytical))
+!ec
+
+!split
+===== Using recursion =====
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+
+def f7(n): # Assume that n is an integer
+    if n == 1 or n == 0:
+        return 1
+    else:
+        return n*f7(n-1)
+
+f7_grad = grad(f7)
+
+n = 2.0
+
+print("The computed derivative of f7 at n = %d is: %g"%(n,f7_grad(n)))
+
+# The function f7 is an implementation of the factorial of n.
+# By using the product rule, one can find that the derivative is:
+
+f7_grad_analytical = 0
+for i in range(int(n)-1):
+    tmp = 1
+    for k in range(int(n)-1):
+        if k != i:
+            tmp *= (n - k)
+    f7_grad_analytical += tmp
+
+print("The analytical derivative of f7 at n = %d is: %g"%(n,f7_grad_analytical))
+
+!ec
+Note that if n is equal to zero or one, Autograd will give an error message. This message appears when the output is independent on input.
+
+!split
+===== Unsupported functions =====
+Autograd supports many features. However, there are some functions that is not supported (yet) by Autograd.
+
+Assigning a value to the variable being differentiated with respect to
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f8(x): # Assume x is an array
+    x[2] = 3
+    return x*2
+
+f8_grad = grad(f8)
+
+x = 8.4
+
+print("The derivative of f8 is:",f8_grad(x))
+!ec
+Here, Autograd tells us that an 'ArrayBox' does not support item assignment. The item assignment is done when the program tries to assign x[2] to the value 3. However, Autograd has implemented the computation of the derivative such that this assignment is not possible.
+
+!split
+===== The syntax a.dot(b) when finding the dot product =====
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f9(a): # Assume a is an array with 2 elements
+    b = np.array([1.0,2.0])
+    return a.dot(b)
+
+f9_grad = grad(f9)
+
+x = np.array([1.0,0.0])
+
+print("The derivative of f9 is:",f9_grad(x))
+!ec
+
+Here we are told that the 'dot' function does not belong to Autograd's
+version of a Numpy array.  To overcome this, an alternative syntax
+which also computed the dot product can be used:
+
+!bc pycod
+import autograd.numpy as np
+from autograd import grad
+def f9_alternative(x): # Assume a is an array with 2 elements
+    b = np.array([1.0,2.0])
+    return np.dot(x,b) # The same as x_1*b_1 + x_2*b_2
+
+f9_alternative_grad = grad(f9_alternative)
+
+x = np.array([3.0,0.0])
+
+print("The gradient of f9 is:",f9_alternative_grad(x))
+
+# The analytical gradient of the dot product of vectors x and b with two elements (x_1,x_2) and (b_1, b_2) respectively
+# w.r.t x is (b_1, b_2).
+!ec
+
+!split
+===== Recommended to avoid =====
+The documentation recommends to avoid inplace operations such as
+!bc pycod
+a += b
+a -= b
+a*= b
+a /=b
+!ec
+
+
+
+
+
+
 
 
 
@@ -553,7 +1397,6 @@ the potential of being universal approximators.
 =====  Deriving the back propagation code for a multilayer perceptron model =====
 
 
-_Note: figures will be inserted later!_
 
 As we have seen now in a feed forward network, we can express the final output of our network in terms of basic matrix-vector multiplications.
 The unknowwn quantities are our weights $w_{ij}$ and we need to find an algorithm for changing them so that our errors are as small as possible.
@@ -876,1599 +1719,5 @@ b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta 
 
 The parameter $\eta$ is the learning parameter discussed in connection with the gradient descent methods.
 Here it is convenient to use stochastic gradient descent (see the examples below) with mini-batches with an outer loop that steps through multiple epochs of training.
-
-
-!split 
-===== Setting up a Multi-layer perceptron model for classification  =====
-
-We are now gong to develop an example based on the MNIST data
-base. This is a classification problem and we need to use our
-cross-entropy function we discussed in connection with logistic
-regression. The cross-entropy defines our cost function for the
-classificaton problems with neural networks.
-  
-In binary classification with two classes $(0, 1)$ we define the
-logistic/sigmoid function as the probability that a particular input
-is in class $0$ or $1$.  This is possible because the logistic
-function takes any input from the real numbers and inputs a number
-between 0 and 1, and can therefore be interpreted as a probability. It
-also has other nice properties, such as a derivative that is simple to
-calculate.
-  
-For an input $\boldsymbol{a}$ from the hidden layer, the probability that the input $\boldsymbol{x}$
-is in class 0 or 1 is just. We let $\theta$ represent the unknown weights and biases to be adjusted by our equations). The variable $x$
-represents our activation values $z$. We have
-!bt
-\[
-P(y = 0 \mid \hat{x}, \hat{\theta}) = \frac{1}{1 + \exp{(- \hat{x}})} ,
-\]
-!et
-and
-!bt
-\[
-P(y = 1 \mid \hat{x}, \hat{\theta}) = 1 - P(y = 0 \mid \hat{x}, \hat{\theta}) ,
-\]
-!et
-  
-where $y \in \{0, 1\}$  and $\hat{\theta}$ represents the weights and biases
-of our network.
-  
-
-!split
-===== Defining the cost function =====
-
-Our cost function is given as (see the Logistic regression lectures)
-!bt
-\[
-\mathcal{C}(\hat{\theta}) = - \ln P(\mathcal{D} \mid \hat{\theta}) = - \sum_{i=1}^n
-y_i \ln[P(y_i = 0)] + (1 - y_i) \ln [1 - P(y_i = 0)] = \sum_{i=1}^n \mathcal{L}_i(\hat{\theta}) .
-\]
-!et
-  
-This last equality means that we can interpret our *cost* function as a sum over the *loss* function
-for each point in the dataset $\mathcal{L}_i(\hat{\theta})$.  
-The negative sign is just so that we can think about our algorithm as minimizing a positive number, rather
-than maximizing a negative number.  
-  
-In *multiclass* classification it is common to treat each integer label as a so called *one-hot* vector:  
-  
-$y = 5 \quad \rightarrow \quad \hat{y} = (0, 0, 0, 0, 0, 1, 0, 0, 0, 0) ,$ and
-
-  
-$y = 1 \quad \rightarrow \quad \hat{y} = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0) ,$ 
-  
-  
-i.e. a binary bit string of length $C$, where $C = 10$ is the number of classes in the MNIST dataset (numbers from $0$ to $9$)..  
-  
-If $\hat{x}_i$ is the $i$-th input (image), $y_{ic}$ refers to the $c$-th component of the $i$-th
-output vector $\hat{y}_i$.  
-The probability of $\hat{x}_i$ being in class $c$ will be given by the softmax function:  
-  
-!bt
-\[
-P(y_{ic} = 1 \mid \hat{x}_i, \hat{\theta}) = \frac{\exp{((\hat{a}_i^{hidden})^T \hat{w}_c)}}
-{\sum_{c'=0}^{C-1} \exp{((\hat{a}_i^{hidden})^T \hat{w}_{c'})}} ,
-\]
-!et
-  
-which reduces to the logistic function in the binary case.  
-The likelihood of this $C$-class classifier
-is now given as:  
-  
-!bt
-\[
-P(\mathcal{D} \mid \hat{\theta}) = \prod_{i=1}^n \prod_{c=0}^{C-1} [P(y_{ic} = 1)]^{y_{ic}} .
-\]
-!et
-Again we take the negative log-likelihood to define our cost function:  
-  
-!bt
-\[
-\mathcal{C}(\hat{\theta}) = - \log{P(\mathcal{D} \mid \hat{\theta})}.
-\]
-!et
-See the logistic regression lectures for a full definition of the cost function.
-
-The back propagation equations need now only a small change, namely the definition of a new cost function. We are thus ready to use the same equations as before!
-
-!split
-===== Example: binary classification problem =====
-
-As an example of the above, relevant for project 2 as well, let us consider a binary class. As discussed in our logistic regression lectures, we defined a cost function in terms of the parameters $\beta$ as
-!bt
-\[
-\mathcal{C}(\hat{\beta}) = - \sum_{i=1}^n \left(y_i\log{p(y_i \vert x_i,\hat{\beta})}+(1-y_i)\log{1-p(y_i \vert x_i,\hat{\beta})}\right),
-\]
-!et
-where we had defined the logistic (sigmoid) function
-!bt
-\[
-p(y_i =1\vert x_i,\hat{\beta})=\frac{\exp{(\beta_0+\beta_1 x_i)}}{1+\exp{(\beta_0+\beta_1 x_i)}},
-\]
-!et
-and
-!bt
-\[
-p(y_i =0\vert x_i,\hat{\beta})=1-p(y_i =1\vert x_i,\hat{\beta}).
-\]
-!et
-The parameters $\hat{\beta}$ were defined using a minimization method like gradient descent or Newton-Raphson's method. 
-
-Now we replace $x_i$ with the activation $z_i^l$ for a given layer $l$ and the outputs as $y_i=a_i^l=f(z_i^l)$, with $z_i^l$ now being a function of the weights $w_{ij}^l$ and biases $b_i^l$. 
-We have then
-!bt
-\[
-a_i^l = y_i = \frac{\exp{(z_i^l)}}{1+\exp{(z_i^l)}},
-\]
-!et
-with 
-!bt
-\[
-z_i^l = \sum_{j}w_{ij}^l a_j^{l-1}+b_i^l,
-\]
-!et
-where the superscript $l-1$ indicates that these are the outputs from layer $l-1$.
-Our cost function at the final layer $l=L$ is now
-!bt
-\[
-\mathcal{C}(\hat{W}) = - \sum_{i=1}^n \left(t_i\log{a_i^L}+(1-t_i)\log{(1-a_i^L)}\right),
-\]
-!et
-where we have defined the targets $t_i$. The derivatives of the cost function with respect to the output $a_i^L$ are then easily calculated and we get
-!bt
-\[
-\frac{\partial \mathcal{C}(\hat{W})}{\partial a_i^L} = \frac{a_i^L-t_i}{a_i^L(1-a_i^L)}. 
-\]
-!et
-In case we use another activation function than the logistic one, we need to evaluate other derivatives. 
-
-
-!split
-===== The Softmax function =====
-In case we employ the more general case given by the Softmax equation, we need to evaluate the derivative of the activation function with respect to the activation $z_i^l$, that is we need
-!bt
-\[
-\frac{\partial f(z_i^l)}{\partial w_{jk}^l} =
-\frac{\partial f(z_i^l)}{\partial z_j^l} \frac{\partial z_j^l}{\partial w_{jk}^l}= \frac{\partial f(z_i^l)}{\partial z_j^l}a_k^{l-1}.
-\]
-!et
-For the Softmax function we have
-!bt
-\[
-f(z_i^l) = \frac{\exp{(z_i^l)}}{\sum_{m=1}^K\exp{(z_m^l)}}.
-\]
-!et
-Its derivative with respect to $z_j^l$ gives 
-!bt
-\[
-\frac{\partial f(z_i^l)}{\partial z_j^l}= f(z_i^l)\left(\delta_{ij}-f(z_j^l)\right), 
-\]
-!et
-which in case of the simply binary model reduces to  having $i=j$. 
-
-!split 
-===== Developing a code for doing neural networks with back propagation =====
-
-  
-One can identify a set of key steps when using neural networks to solve supervised learning problems:  
-  
-o Collect and pre-process data  
-o Define model and architecture  
-o Choose cost function and optimizer  
-o Train the model  
-o Evaluate model performance on test data  
-o Adjust hyperparameters (if necessary, network architecture)
-
-!split
-===== Collect and pre-process data =====
-  
-Here we will be using the MNIST dataset, which is readily available through the _scikit-learn_
-package. You may also find it for example "here":"http://yann.lecun.com/exdb/mnist/".  
-The *MNIST* (Modified National Institute of Standards and Technology) database is a large database
-of handwritten digits that is commonly used for training various image processing systems.  
-The MNIST dataset consists of 70 000 images of size $28\times 28$ pixels, each labeled from 0 to 9.  
-The scikit-learn dataset we will use consists of a selection of 1797 images of size $8\times 8$ collected and processed from this database.  
-  
-To feed data into a feed-forward neural network we need to represent
-the inputs as a design/feature matrix $X = (n_{inputs}, n_{features})$.  Each
-row represents an *input*, in this case a handwritten digit, and
-each column represents a *feature*, in this case a pixel.  The
-correct answers, also known as *labels* or *targets* are
-represented as a 1D array of integers 
-$Y = (n_{inputs}) = (5, 3, 1, 8,...)$.
-  
-As an example, say we want to build a neural network using supervised learning to predict Body-Mass Index (BMI) from
-measurements of height (in m)  
-and weight (in kg). If we have measurements of 5 people the design/feature matrix could be for example:  
-  
-$$ X = \begin{bmatrix}
-1.85 & 81\\
-1.71 & 65\\
-1.95 & 103\\
-1.55 & 42\\
-1.63 & 56
-\end{bmatrix} ,$$  
-  
-and the targets would be:  
-  
-$$ Y = (23.7, 22.2, 27.1, 17.5, 21.1) $$  
-  
-Since each input image is a 2D matrix, we need to flatten the image
-(i.e. "unravel" the 2D matrix into a 1D array) to turn the data into a
-design/feature matrix. This means we lose all spatial information in the
-image, such as locality and translational invariance. More complicated
-architectures such as Convolutional Neural Networks can take advantage
-of such information, and are most commonly applied when analyzing
-images.
-
-
-!bc pycod
-# import necessary packages
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import datasets
-
-
-# ensure the same random numbers appear every time
-np.random.seed(0)
-
-# display images in notebook
-%matplotlib inline
-plt.rcParams['figure.figsize'] = (12,12)
-
-
-# download MNIST dataset
-digits = datasets.load_digits()
-
-# define inputs and labels
-inputs = digits.images
-labels = digits.target
-
-print("inputs = (n_inputs, pixel_width, pixel_height) = " + str(inputs.shape))
-print("labels = (n_inputs) = " + str(labels.shape))
-
-
-# flatten the image
-# the value -1 means dimension is inferred from the remaining dimensions: 8x8 = 64
-n_inputs = len(inputs)
-inputs = inputs.reshape(n_inputs, -1)
-print("X = (n_inputs, n_features) = " + str(inputs.shape))
-
-
-# choose some random images to display
-indices = np.arange(n_inputs)
-random_indices = np.random.choice(indices, size=5)
-
-for i, image in enumerate(digits.images[random_indices]):
-    plt.subplot(1, 5, i+1)
-    plt.axis('off')
-    plt.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
-    plt.title("Label: %d" % digits.target[random_indices[i]])
-plt.show()
-!ec
-
-!split
-===== Train and test datasets =====
-
-Performing analysis before partitioning the dataset is a major error, that can lead to incorrect conclusions.  
-  
-We will reserve $80 \%$ of our dataset for training and $20 \%$ for testing.  
-  
-It is important that the train and test datasets are drawn randomly from our dataset, to ensure
-no bias in the sampling.  
-Say you are taking measurements of weather data to predict the weather in the coming 5 days.
-You don't want to train your model on measurements taken from the hours 00.00 to 12.00, and then test it on data
-collected from 12.00 to 24.00.
-
-
-!bc pycod
-from sklearn.model_selection import train_test_split
-
-# one-liner from scikit-learn library
-train_size = 0.8
-test_size = 1 - train_size
-X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
-                                                    test_size=test_size)
-
-# equivalently in numpy
-def train_test_split_numpy(inputs, labels, train_size, test_size):
-    n_inputs = len(inputs)
-    inputs_shuffled = inputs.copy()
-    labels_shuffled = labels.copy()
-    
-    np.random.shuffle(inputs_shuffled)
-    np.random.shuffle(labels_shuffled)
-    
-    train_end = int(n_inputs*train_size)
-    X_train, X_test = inputs_shuffled[:train_end], inputs_shuffled[train_end:]
-    Y_train, Y_test = labels_shuffled[:train_end], labels_shuffled[train_end:]
-    
-    return X_train, X_test, Y_train, Y_test
-
-#X_train, X_test, Y_train, Y_test = train_test_split_numpy(inputs, labels, train_size, test_size)
-
-print("Number of training images: " + str(len(X_train)))
-print("Number of test images: " + str(len(X_test)))
-!ec
-
-!split
-===== Define model and architecture =====
-  
-Our simple feed-forward neural network will consist of an *input* layer, a single *hidden* layer and an *output* layer. The activation $y$ of each neuron is a weighted sum of inputs, passed through an activation function. In case of the simple perceptron model we have 
-  
-$$ z = \sum_{i=1}^n w_i a_i ,$$
-  
-$$ y = f(z) ,$$
-  
-where $f$ is the activation function, $a_i$ represents input from neuron $i$ in the preceding layer
-and $w_i$ is the weight to input $i$.  
-The activation of the neurons in the input layer is just the features (e.g. a pixel value).  
-  
-The simplest activation function for a neuron is the *Heaviside* function:
-  
-$$ f(z) = 
-\begin{cases}
-1,  &  z > 0\\
-0,  & \text{otherwise}
-\end{cases}
-$$
-  
-A feed-forward neural network with this activation is known as a *perceptron*.  
-For a binary classifier (i.e. two classes, 0 or 1, dog or not-dog) we can also use this in our output layer.  
-This activation can be generalized to $k$ classes (using e.g. the *one-against-all* strategy), 
-and we call these architectures *multiclass perceptrons*.  
-  
-However, it is now common to use the terms Single Layer Perceptron (SLP) (1 hidden layer) and  
-Multilayer Perceptron (MLP) (2 or more hidden layers) to refer to feed-forward neural networks with any activation function.  
-  
-Typical choices for activation functions include the sigmoid function, hyperbolic tangent, and Rectified Linear Unit (ReLU).  
-We will be using the sigmoid function $\sigma(x)$:  
-  
-$$ f(x) = \sigma(x) = \frac{1}{1 + e^{-x}} ,$$
-  
-which is inspired by probability theory (see logistic regression) and was most commonly used until about 2011. See the discussion below concerning other activation functions.
-
-!split  
-===== Layers =====
-  
-* Input 
-Since each input image has 8x8 = 64 pixels or features, we have an input layer of 64 neurons.  
-  
-* Hidden layer
-We will use 50 neurons in the hidden layer receiving input from the neurons in the input layer.  
-Since each neuron in the hidden layer is connected to the 64 inputs we have 64x50 = 3200 weights to the hidden layer.  
-  
-* Output
-If we were building a binary classifier, it would be sufficient with a single neuron in the output layer,
-which could output 0 or 1 according to the Heaviside function. This would be an example of a *hard* classifier, meaning it outputs the class of the input directly. However, if we are dealing with noisy data it is often beneficial to use a *soft* classifier, which outputs the probability of being in class 0 or 1.  
-  
-For a soft binary classifier, we could use a single neuron and interpret the output as either being the probability of being in class 0 or the probability of being in class 1. Alternatively we could use 2 neurons, and interpret each neuron as the probability of being in each class.  
-  
-Since we are doing multiclass classification, with 10 categories, it is natural to use 10 neurons in the output layer. We number the neurons $j = 0,1,...,9$. The activation of each output neuron $j$ will be according to the *softmax* function:  
-  
-$$ P(\text{class $j$} \mid \text{input $\hat{a}$}) = \frac{\exp{(\hat{a}^T \hat{w}_j)}}
-{\sum_{c=0}^{9} \exp{(\hat{a}^T \hat{w}_c)}} ,$$  
-  
-i.e. each neuron $j$ outputs the probability of being in class $j$ given an input from the hidden layer $\hat{a}$, with $\hat{w}_j$ the weights of neuron $j$ to the inputs.  
-The denominator is a normalization factor to ensure the outputs (probabilities) sum up to 1.  
-The exponent is just the weighted sum of inputs as before:  
-  
-$$ z_j = \sum_{i=1}^n w_ {ij} a_i+b_j.$$  
-  
-Since each neuron in the output layer is connected to the 50 inputs from the hidden layer we have 50x10 = 500
-weights to the output layer.
-
-!split  
-===== Weights and biases =====
-  
-Typically weights are initialized with small values distributed around zero, drawn from a uniform
-or normal distribution. Setting all weights to zero means all neurons give the same output, making the network useless.  
-  
-Adding a bias value to the weighted sum of inputs allows the neural network to represent a greater range
-of values. Without it, any input with the value 0 will be mapped to zero (before being passed through the activation). The bias unit has an output of 1, and a weight to each neuron $j$, $b_j$:  
-  
-$$ z_j = \sum_{i=1}^n w_ {ij} a_i + b_j.$$  
-  
-The bias weights $\hat{b}$ are often initialized to zero, but a small value like $0.01$ ensures all neurons have some output which can be backpropagated in the first training cycle.
-!bc pycod
-# building our neural network
-
-n_inputs, n_features = X_train.shape
-n_hidden_neurons = 50
-n_categories = 10
-
-# we make the weights normally distributed using numpy.random.randn
-
-# weights and bias in the hidden layer
-hidden_weights = np.random.randn(n_features, n_hidden_neurons)
-hidden_bias = np.zeros(n_hidden_neurons) + 0.01
-
-# weights and bias in the output layer
-output_weights = np.random.randn(n_hidden_neurons, n_categories)
-output_bias = np.zeros(n_categories) + 0.01
-!ec
-
-!split
-===== Feed-forward pass =====
-
-Denote $F$ the number of features, $H$ the number of hidden neurons and $C$ the number of categories.  
-For each input image we calculate a weighted sum of input features (pixel values) to each neuron $j$ in the hidden layer $l$:  
-  
-$$ z_{j}^{l} = \sum_{i=1}^{F} w_{ij}^{l} x_i + b_{j}^{l},$$
-  
-this is then passed through our activation function  
-  
-$$ a_{j}^{l} = f(z_{j}^{l}) .$$  
-  
-We calculate a weighted sum of inputs (activations in the hidden layer) to each neuron $j$ in the output layer:  
-  
-$$ z_{j}^{L} = \sum_{i=1}^{H} w_{ij}^{L} a_{i}^{l} + b_{j}^{L}.$$  
-  
-Finally we calculate the output of neuron $j$ in the output layer using the softmax function:  
-  
-$$ a_{j}^{L} = \frac{\exp{(z_j^{L})}}
-{\sum_{c=0}^{C-1} \exp{(z_c^{L})}} .$$  
-
-!split   
-===== Matrix multiplications =====
-  
-Since our data has the dimensions $X = (n_{inputs}, n_{features})$ and our weights to the hidden
-layer have the dimensions  
-$W_{hidden} = (n_{features}, n_{hidden})$,
-we can easily feed the network all our training data in one go by taking the matrix product  
-  
-$$ X W^{h} = (n_{inputs}, n_{hidden}),$$ 
-  
-and obtain a matrix that holds the weighted sum of inputs to the hidden layer
-for each input image and each hidden neuron.    
-We also add the bias to obtain a matrix of weighted sums to the hidden layer $Z^{h}$:  
-  
-$$ \hat{z}^{l} = \hat{X} \hat{W}^{l} + \hat{b}^{l} ,$$
-  
-meaning the same bias (1D array with size equal number of hidden neurons) is added to each input image.  
-This is then passed through the activation:  
-  
-$$ \hat{a}^{l} = f(\hat{z}^l) .$$  
-  
-This is fed to the output layer:  
-  
-$$ \hat{z}^{L} = \hat{a}^{L} \hat{W}^{L} + \hat{b}^{L} .$$
-  
-Finally we receive our output values for each image and each category by passing it through the softmax function:  
-  
-$$ output = softmax (\hat{z}^{L}) = (n_{inputs}, n_{categories}) .$$
-
-
-!bc pycod
-# setup the feed-forward pass, subscript h = hidden layer
-
-def sigmoid(x):
-    return 1/(1 + np.exp(-x))
-
-def feed_forward(X):
-    # weighted sum of inputs to the hidden layer
-    z_h = np.matmul(X, hidden_weights) + hidden_bias
-    # activation in the hidden layer
-    a_h = sigmoid(z_h)
-    
-    # weighted sum of inputs to the output layer
-    z_o = np.matmul(a_h, output_weights) + output_bias
-    # softmax output
-    # axis 0 holds each input and axis 1 the probabilities of each category
-    exp_term = np.exp(z_o)
-    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
-    
-    return probabilities
-
-probabilities = feed_forward(X_train)
-print("probabilities = (n_inputs, n_categories) = " + str(probabilities.shape))
-print("probability that image 0 is in category 0,1,2,...,9 = \n" + str(probabilities[0]))
-print("probabilities sum up to: " + str(probabilities[0].sum()))
-print()
-
-# we obtain a prediction by taking the class with the highest likelihood
-def predict(X):
-    probabilities = feed_forward(X)
-    return np.argmax(probabilities, axis=1)
-
-predictions = predict(X_train)
-print("predictions = (n_inputs) = " + str(predictions.shape))
-print("prediction for image 0: " + str(predictions[0]))
-print("correct label for image 0: " + str(Y_train[0]))
-!ec
-
-!split
-===== Choose cost function and optimizer =====
-  
-To measure how well our neural network is doing we need to introduce a cost function.  
-We will call the function that gives the error of a single sample output the *loss* function, and the function
-that gives the total error of our network across all samples the *cost* function.
-A typical choice for multiclass classification is the *cross-entropy* loss, also known as the negative log likelihood.  
-  
-In *multiclass* classification it is common to treat each integer label as a so called *one-hot* vector:  
-  
-$$ y = 5 \quad \rightarrow \quad \hat{y} = (0, 0, 0, 0, 0, 1, 0, 0, 0, 0) ,$$  
-
-  
-$$ y = 1 \quad \rightarrow \quad \hat{y} = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0) ,$$  
-  
-  
-i.e. a binary bit string of length $C$, where $C = 10$ is the number of classes in the MNIST dataset.  
-  
-Let $y_{ic}$ denote the $c$-th component of the $i$-th one-hot vector.  
-We define the cost function $\mathcal{C}$ as a sum over the cross-entropy loss for each point $\hat{x}_i$ in the dataset.
-  
-In the one-hot representation only one of the terms in the loss function is non-zero, namely the
-probability of the correct category $c'$  
-(i.e. the category $c'$ such that $y_{ic'} = 1$). This means that the cross entropy loss only punishes you for how wrong
-you got the correct label. The probability of category $c$ is given by the softmax function. The vector $\hat{\theta}$ represents the parameters of our network, i.e. all the weights and biases.  
-  
-  
-!split
-===== Optimizing the cost function =====
-  
-The network is trained by finding the weights and biases that minimize the cost function. One of the most widely used classes of methods is *gradient descent* and its generalizations. The idea behind gradient descent
-is simply to adjust the weights in the direction where the gradient of the cost function is large and negative. This ensures we flow toward a *local* minimum of the cost function.  
-Each parameter $\theta$ is iteratively adjusted according to the rule  
-  
-$$ \theta_{i+1} = \theta_i - \eta \nabla \mathcal{C}(\theta_i) ,$$
-
-where $\eta$ is known as the *learning rate*, which controls how big a step we take towards the minimum.  
-This update can be repeated for any number of iterations, or until we are satisfied with the result.  
-  
-A simple and effective improvement is a variant called *Batch Gradient Descent*.  
-Instead of calculating the gradient on the whole dataset, we calculate an approximation of the gradient
-on a subset of the data called a *minibatch*.  
-If there are $N$ data points and we have a minibatch size of $M$, the total number of batches
-is $N/M$.  
-We denote each minibatch $B_k$, with $k = 1, 2,...,N/M$. The gradient then becomes:  
-  
-$$ \nabla \mathcal{C}(\theta) = \frac{1}{N} \sum_{i=1}^N \nabla \mathcal{L}_i(\theta) \quad \rightarrow \quad
-\frac{1}{M} \sum_{i \in B_k} \nabla \mathcal{L}_i(\theta) ,$$
-  
-i.e. instead of averaging the loss over the entire dataset, we average over a minibatch.  
-  
-This has two important benefits:  
-o Introducing stochasticity decreases the chance that the algorithm becomes stuck in a local minima.  
-o It significantly speeds up the calculation, since we do not have to use the entire dataset to calculate the gradient.  
-
-The various optmization  methods, with codes and algorithms,  are discussed in our lectures on "Gradient descent approaches":"https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html".
-
-!split  
-=====  Regularization =====
-  
-It is common to add an extra term to the cost function, proportional
-to the size of the weights.  This is equivalent to constraining the
-size of the weights, so that they do not grow out of control.
-Constraining the size of the weights means that the weights cannot
-grow arbitrarily large to fit the training data, and in this way
-reduces *overfitting*.
-  
-We will measure the size of the weights using the so called *L2-norm*, meaning our cost function becomes:  
-  
-$$  \mathcal{C}(\theta) = \frac{1}{N} \sum_{i=1}^N \mathcal{L}_i(\theta) \quad \rightarrow \quad
-\frac{1}{N} \sum_{i=1}^N  \mathcal{L}_i(\theta) + \lambda \lvert \lvert \hat{w} \rvert \rvert_2^2 
-= \frac{1}{N} \sum_{i=1}^N  \mathcal{L}(\theta) + \lambda \sum_{ij} w_{ij}^2,$$  
-  
-i.e. we sum up all the weights squared. The factor $\lambda$ is known as a regularization parameter.
-
-  
-In order to train the model, we need to calculate the derivative of
-the cost function with respect to every bias and weight in the
-network.  In total our network has $(64 + 1)\times 50=3250$ weights in
-the hidden layer and $(50 + 1)\times 10=510$ weights to the output
-layer ($+1$ for the bias), and the gradient must be calculated for
-every parameter.  We use the *backpropagation* algorithm discussed
-above. This is a clever use of the chain rule that allows us to
-calculate the gradient efficently. 
-
-  
-!split
-===== Matrix  multiplication =====
-  
-To more efficently train our network these equations are implemented using matrix operations.  
-The error in the output layer is calculated simply as, with $\hat{t}$ being our targets,  
-  
-$$ \delta_L = \hat{t} - \hat{y} = (n_{inputs}, n_{categories}) .$$  
-  
-The gradient for the output weights is calculated as  
-  
-$$ \nabla W_{L} = \hat{a}^T \delta_L   = (n_{hidden}, n_{categories}) ,$$
-  
-where $\hat{a} = (n_{inputs}, n_{hidden})$. This simply means that we are summing up the gradients for each input.  
-Since we are going backwards we have to transpose the activation matrix.  
-  
-The gradient with respect to the output bias is then  
-  
-$$ \nabla \hat{b}_{L} = \sum_{i=1}^{n_{inputs}} \delta_L = (n_{categories}) .$$  
-  
-The error in the hidden layer is  
-  
-$$ \Delta_h = \delta_L W_{L}^T \circ f'(z_{h}) = \delta_L W_{L}^T \circ a_{h} \circ (1 - a_{h}) = (n_{inputs}, n_{hidden}) ,$$  
-  
-where $f'(a_{h})$ is the derivative of the activation in the hidden layer. The matrix products mean
-that we are summing up the products for each neuron in the output layer. The symbol $\circ$ denotes
-the *Hadamard product*, meaning element-wise multiplication.  
-  
-This again gives us the gradients in the hidden layer:  
-  
-$$ \nabla W_{h} = X^T \delta_h = (n_{features}, n_{hidden}) ,$$  
-  
-$$ \nabla b_{h} = \sum_{i=1}^{n_{inputs}} \delta_h = (n_{hidden}) .$$
-
-
-!bc pycod
-# to categorical turns our integer vector into a onehot representation
-from sklearn.metrics import accuracy_score
-
-# one-hot in numpy
-def to_categorical_numpy(integer_vector):
-    n_inputs = len(integer_vector)
-    n_categories = np.max(integer_vector) + 1
-    onehot_vector = np.zeros((n_inputs, n_categories))
-    onehot_vector[range(n_inputs), integer_vector] = 1
-    
-    return onehot_vector
-
-#Y_train_onehot, Y_test_onehot = to_categorical(Y_train), to_categorical(Y_test)
-Y_train_onehot, Y_test_onehot = to_categorical_numpy(Y_train), to_categorical_numpy(Y_test)
-
-def feed_forward_train(X):
-    # weighted sum of inputs to the hidden layer
-    z_h = np.matmul(X, hidden_weights) + hidden_bias
-    # activation in the hidden layer
-    a_h = sigmoid(z_h)
-    
-    # weighted sum of inputs to the output layer
-    z_o = np.matmul(a_h, output_weights) + output_bias
-    # softmax output
-    # axis 0 holds each input and axis 1 the probabilities of each category
-    exp_term = np.exp(z_o)
-    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
-    
-    # for backpropagation need activations in hidden and output layers
-    return a_h, probabilities
-
-def backpropagation(X, Y):
-    a_h, probabilities = feed_forward_train(X)
-    
-    # error in the output layer
-    error_output = probabilities - Y
-    # error in the hidden layer
-    error_hidden = np.matmul(error_output, output_weights.T) * a_h * (1 - a_h)
-    
-    # gradients for the output layer
-    output_weights_gradient = np.matmul(a_h.T, error_output)
-    output_bias_gradient = np.sum(error_output, axis=0)
-    
-    # gradient for the hidden layer
-    hidden_weights_gradient = np.matmul(X.T, error_hidden)
-    hidden_bias_gradient = np.sum(error_hidden, axis=0)
-
-    return output_weights_gradient, output_bias_gradient, hidden_weights_gradient, hidden_bias_gradient
-
-print("Old accuracy on training data: " + str(accuracy_score(predict(X_train), Y_train)))
-
-eta = 0.01
-lmbd = 0.01
-for i in range(1000):
-    # calculate gradients
-    dWo, dBo, dWh, dBh = backpropagation(X_train, Y_train_onehot)
-    
-    # regularization term gradients
-    dWo += lmbd * output_weights
-    dWh += lmbd * hidden_weights
-    
-    # update weights and biases
-    output_weights -= eta * dWo
-    output_bias -= eta * dBo
-    hidden_weights -= eta * dWh
-    hidden_bias -= eta * dBh
-
-print("New accuracy on training data: " + str(accuracy_score(predict(X_train), Y_train)))
-!ec
-
-!split
-===== Improving performance =====
-  
-As we can see the network does not seem to be learning at all. It seems to be just guessing the label for each image.  
-In order to obtain a network that does something useful, we will have to do a bit more work.  
-  
-The choice of *hyperparameters* such as learning rate and regularization parameter is hugely influential for the performance of the network. Typically a *grid-search* is performed, wherein we test different hyperparameters separated by orders of magnitude. For example we could test the learning rates $\eta = 10^{-6}, 10^{-5},...,10^{-1}$ with different regularization parameters $\lambda = 10^{-6},...,10^{-0}$.  
-  
-Next, we haven't implemented minibatching yet, which introduces stochasticity and is though to act as an important regularizer on the weights. We call a feed-forward + backward pass with a minibatch an *iteration*, and a full training period
-going through the entire dataset ($n/M$ batches) an *epoch*.
-  
-If this does not improve network performance, you may want to consider altering the network architecture, adding more neurons or hidden layers.  
-Andrew Ng goes through some of these considerations in this "video":"https://youtu.be/F1ka6a13S9I". You can find a summary of the video "here":"https://kevinzakka.github.io/2016/09/26/applying-deep-learning/".  
-  
-!split
-===== Full object-oriented implementation =====
-  
-It is very natural to think of the network as an object, with specific instances of the network
-being realizations of this object with different hyperparameters. An implementation using Python classes provides a clean structure and interface, and the full implementation of our neural network is given below.
-
-
-!bc pycod
-class NeuralNetwork:
-    def __init__(
-            self,
-            X_data,
-            Y_data,
-            n_hidden_neurons=50,
-            n_categories=10,
-            epochs=10,
-            batch_size=100,
-            eta=0.1,
-            lmbd=0.0):
-
-        self.X_data_full = X_data
-        self.Y_data_full = Y_data
-
-        self.n_inputs = X_data.shape[0]
-        self.n_features = X_data.shape[1]
-        self.n_hidden_neurons = n_hidden_neurons
-        self.n_categories = n_categories
-
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.iterations = self.n_inputs // self.batch_size
-        self.eta = eta
-        self.lmbd = lmbd
-
-        self.create_biases_and_weights()
-
-    def create_biases_and_weights(self):
-        self.hidden_weights = np.random.randn(self.n_features, self.n_hidden_neurons)
-        self.hidden_bias = np.zeros(self.n_hidden_neurons) + 0.01
-
-        self.output_weights = np.random.randn(self.n_hidden_neurons, self.n_categories)
-        self.output_bias = np.zeros(self.n_categories) + 0.01
-
-    def feed_forward(self):
-        # feed-forward for training
-        self.z_h = np.matmul(self.X_data, self.hidden_weights) + self.hidden_bias
-        self.a_h = sigmoid(self.z_h)
-
-        self.z_o = np.matmul(self.a_h, self.output_weights) + self.output_bias
-
-        exp_term = np.exp(self.z_o)
-        self.probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
-
-    def feed_forward_out(self, X):
-        # feed-forward for output
-        z_h = np.matmul(X, self.hidden_weights) + self.hidden_bias
-        a_h = sigmoid(z_h)
-
-        z_o = np.matmul(a_h, self.output_weights) + self.output_bias
-        
-        exp_term = np.exp(z_o)
-        probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
-        return probabilities
-
-    def backpropagation(self):
-        error_output = self.probabilities - self.Y_data
-        error_hidden = np.matmul(error_output, self.output_weights.T) * self.a_h * (1 - self.a_h)
-
-        self.output_weights_gradient = np.matmul(self.a_h.T, error_output)
-        self.output_bias_gradient = np.sum(error_output, axis=0)
-
-        self.hidden_weights_gradient = np.matmul(self.X_data.T, error_hidden)
-        self.hidden_bias_gradient = np.sum(error_hidden, axis=0)
-
-        if self.lmbd > 0.0:
-            self.output_weights_gradient += self.lmbd * self.output_weights
-            self.hidden_weights_gradient += self.lmbd * self.hidden_weights
-
-        self.output_weights -= self.eta * self.output_weights_gradient
-        self.output_bias -= self.eta * self.output_bias_gradient
-        self.hidden_weights -= self.eta * self.hidden_weights_gradient
-        self.hidden_bias -= self.eta * self.hidden_bias_gradient
-
-    def predict(self, X):
-        probabilities = self.feed_forward_out(X)
-        return np.argmax(probabilities, axis=1)
-
-    def predict_probabilities(self, X):
-        probabilities = self.feed_forward_out(X)
-        return probabilities
-
-    def train(self):
-        data_indices = np.arange(self.n_inputs)
-
-        for i in range(self.epochs):
-            for j in range(self.iterations):
-                # pick datapoints with replacement
-                chosen_datapoints = np.random.choice(
-                    data_indices, size=self.batch_size, replace=False
-                )
-
-                # minibatch training data
-                self.X_data = self.X_data_full[chosen_datapoints]
-                self.Y_data = self.Y_data_full[chosen_datapoints]
-
-                self.feed_forward()
-                self.backpropagation()
-!ec
-
-!split
-===== Evaluate model performance on test data =====
-  
-To measure the performance of our network we evaluate how well it does it data it has never seen before, i.e. the test data.  
-We measure the performance of the network using the *accuracy* score.  
-The accuracy is as you would expect just the number of images correctly labeled divided by the total number of images. A perfect classifier will have an accuracy score of $1$.  
-  
-$$ \text{Accuracy} = \frac{\sum_{i=1}^n I(\hat{y}_i = y_i)}{n} ,$$  
-  
-where $I$ is the indicator function, $1$ if $\hat{y}_i = y_i$ and $0$ otherwise.
-
-
-!bc pycod
-epochs = 100
-batch_size = 100
-
-dnn = NeuralNetwork(X_train, Y_train_onehot, eta=eta, lmbd=lmbd, epochs=epochs, batch_size=batch_size,
-                    n_hidden_neurons=n_hidden_neurons, n_categories=n_categories)
-dnn.train()
-test_predict = dnn.predict(X_test)
-
-# accuracy score from scikit library
-print("Accuracy score on test set: ", accuracy_score(Y_test, test_predict))
-
-# equivalent in numpy
-def accuracy_score_numpy(Y_test, Y_pred):
-    return np.sum(Y_test == Y_pred) / len(Y_test)
-
-#print("Accuracy score on test set: ", accuracy_score_numpy(Y_test, test_predict))
-!ec
-
-!split
-===== Adjust hyperparameters =====
-  
-We now perform a grid search to find the optimal hyperparameters for the network.  
-Note that we are only using 1 layer with 50 neurons, and human performance is estimated to be around $98\%$ ($2\%$ error rate).
-
-!bc pycod
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
-# store the models for later use
-DNN_numpy = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-
-# grid search
-for i, eta in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals):
-        dnn = NeuralNetwork(X_train, Y_train_onehot, eta=eta, lmbd=lmbd, epochs=epochs, batch_size=batch_size,
-                            n_hidden_neurons=n_hidden_neurons, n_categories=n_categories)
-        dnn.train()
-        
-        DNN_numpy[i][j] = dnn
-        
-        test_predict = dnn.predict(X_test)
-        
-        print("Learning rate  = ", eta)
-        print("Lambda = ", lmbd)
-        print("Accuracy score on test set: ", accuracy_score(Y_test, test_predict))
-        print()
-!ec
-
-!split
-===== Visualization =====
-
-!bc pycod
-# visual representation of grid search
-# uses seaborn heatmap, you can also do this with matplotlib imshow
-import seaborn as sns
-
-sns.set()
-
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-
-for i in range(len(eta_vals)):
-    for j in range(len(lmbd_vals)):
-        dnn = DNN_numpy[i][j]
-        
-        train_pred = dnn.predict(X_train) 
-        test_pred = dnn.predict(X_test)
-
-        train_accuracy[i][j] = accuracy_score(Y_train, train_pred)
-        test_accuracy[i][j] = accuracy_score(Y_test, test_pred)
-
-        
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Test Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-!ec
-
-!split
-===== scikit-learn implementation =====
-  
-_scikit-learn_ focuses more
-on traditional machine learning methods, such as regression,
-clustering, decision trees, etc. As such, it has only two types of
-neural networks: Multi Layer Perceptron outputting continuous values,
-*MPLRegressor*, and Multi Layer Perceptron outputting labels,
-*MLPClassifier*. We will see how simple it is to use these classes.
-  
-_scikit-learn_ implements a few improvements from our neural network,
-such as early stopping, a varying learning rate, different
-optimization methods, etc. We would therefore expect a better
-performance overall.
-
-!bc pycod
-from sklearn.neural_network import MLPClassifier
-# store models for later use
-DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-
-for i, eta in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals):
-        dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons), activation='logistic',
-                            alpha=lmbd, learning_rate_init=eta, max_iter=epochs)
-        dnn.fit(X_train, Y_train)
-        
-        DNN_scikit[i][j] = dnn
-        
-        print("Learning rate  = ", eta)
-        print("Lambda = ", lmbd)
-        print("Accuracy score on test set: ", dnn.score(X_test, Y_test))
-        print()
-!ec
-
-
-!split
-===== Visualization =====
-!bc pycod
-# optional
-# visual representation of grid search
-# uses seaborn heatmap, could probably do this in matplotlib
-import seaborn as sns
-
-sns.set()
-
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-
-for i in range(len(eta_vals)):
-    for j in range(len(lmbd_vals)):
-        dnn = DNN_scikit[i][j]
-        
-        train_pred = dnn.predict(X_train) 
-        test_pred = dnn.predict(X_test)
-
-        train_accuracy[i][j] = accuracy_score(Y_train, train_pred)
-        test_accuracy[i][j] = accuracy_score(Y_test, test_pred)
-
-        
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Test Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-!ec
-
-
-!split
-===== Building neural networks in Tensorflow and Keras =====
-
-Now we want  to build on the experience gained from our neural network implementation in NumPy and scikit-learn
-and use it to construct a neural network in Tensorflow. Once we have constructed a neural network in NumPy
-and Tensorflow, building one in Keras is really quite trivial, though the performance may suffer.  
-  
-In our previous example we used only one hidden layer, and in this we will use two. From this it should be quite
-clear how to build one using an arbitrary number of hidden layers, using data structures such as Python lists or
-NumPy arrays.
-
-!split
-===== Tensorflow =====
-  
-Tensorflow is an open source library machine learning library
-developed by the Google Brain team for internal use. It was released
-under the Apache 2.0 open source license in November 9, 2015.
-  
-Tensorflow is a computational framework that allows you to construct
-machine learning models at different levels of abstraction, from
-high-level, object-oriented APIs like Keras, down to the C++ kernels
-that Tensorflow is built upon. The higher levels of abstraction are
-simpler to use, but less flexible, and our choice of implementation
-should reflect the problems we are trying to solve.
-  
-"Tensorflow uses":"https://www.tensorflow.org/guide/graphs" so-called graphs to represent your computation
-in terms of the dependencies between individual operations, such that you first build a Tensorflow *graph*
-to represent your model, and then create a Tensorflow *session* to run the graph.
-  
-In this guide we will analyze the same data as we did in our NumPy and
-scikit-learn tutorial, gathered from the MNIST database of images. We
-will give an introduction to the lower level Python Application
-Program Interfaces (APIs), and see how we use them to build our graph.
-Then we will build (effectively) the same graph in Keras, to see just
-how simple solving a machine learning problem can be.
-  
-To install tensorflow on Unix/Linux systems, use pip as
-!bc pycod
-pip3 install tensorflow
-!ec
-and/or if you use _anaconda_, just write (or install from the graphical user interface)
-!bc pycod
-conda install tensorflow
-!ec
-
-!split
-===== Collect and pre-process data =====
-
-!bc pycod
-# import necessary packages
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import datasets
-
-
-# ensure the same random numbers appear every time
-np.random.seed(0)
-
-# display images in notebook
-%matplotlib inline
-plt.rcParams['figure.figsize'] = (12,12)
-
-
-# download MNIST dataset
-digits = datasets.load_digits()
-
-# define inputs and labels
-inputs = digits.images
-labels = digits.target
-
-print("inputs = (n_inputs, pixel_width, pixel_height) = " + str(inputs.shape))
-print("labels = (n_inputs) = " + str(labels.shape))
-
-
-# flatten the image
-# the value -1 means dimension is inferred from the remaining dimensions: 8x8 = 64
-n_inputs = len(inputs)
-inputs = inputs.reshape(n_inputs, -1)
-print("X = (n_inputs, n_features) = " + str(inputs.shape))
-
-
-# choose some random images to display
-indices = np.arange(n_inputs)
-random_indices = np.random.choice(indices, size=5)
-
-for i, image in enumerate(digits.images[random_indices]):
-    plt.subplot(1, 5, i+1)
-    plt.axis('off')
-    plt.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
-    plt.title("Label: %d" % digits.target[random_indices[i]])
-plt.show()
-!ec
-
-!bc pycod
-from keras.utils import to_categorical
-from sklearn.model_selection import train_test_split
-
-# one-hot representation of labels
-labels = to_categorical(labels)
-
-# split into train and test data
-train_size = 0.8
-test_size = 1 - train_size
-X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
-                                                    test_size=test_size)
-!ec
-
-!split
-===== Using TensorFlow backend =====
-
-o Define model and architecture
-o Choose cost function and optimizer
-
-!bc pycod
-import tensorflow as tf
-
-class NeuralNetworkTensorflow:
-    def __init__(
-            self,
-            X_train,
-            Y_train,
-            X_test,
-            Y_test,
-            n_neurons_layer1=100,
-            n_neurons_layer2=50,
-            n_categories=2,
-            epochs=10,
-            batch_size=100,
-            eta=0.1,
-            lmbd=0.0):
-        
-        # keep track of number of steps
-        self.global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
-        
-        self.X_train = X_train
-        self.Y_train = Y_train
-        self.X_test = X_test
-        self.Y_test = Y_test
-        
-        self.n_inputs = X_train.shape[0]
-        self.n_features = X_train.shape[1]
-        self.n_neurons_layer1 = n_neurons_layer1
-        self.n_neurons_layer2 = n_neurons_layer2
-        self.n_categories = n_categories
-        
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.iterations = self.n_inputs // self.batch_size
-        self.eta = eta
-        self.lmbd = lmbd
-        
-        # build network piece by piece
-        # name scopes (with) are used to enforce creation of new variables
-        # https://www.tensorflow.org/guide/variables
-        self.create_placeholders()
-        self.create_DNN()
-        self.create_loss()
-        self.create_optimiser()
-        self.create_accuracy()
-    
-    def create_placeholders(self):
-        # placeholders are fine here, but "Datasets" are the preferred method
-        # of streaming data into a model
-        with tf.name_scope('data'):
-            self.X = tf.placeholder(tf.float32, shape=(None, self.n_features), name='X_data')
-            self.Y = tf.placeholder(tf.float32, shape=(None, self.n_categories), name='Y_data')
-    
-    def create_DNN(self):
-        with tf.name_scope('DNN'):
-            # the weights are stored to calculate regularization loss later
-            
-            # Fully connected layer 1
-            self.W_fc1 = self.weight_variable([self.n_features, self.n_neurons_layer1], name='fc1', dtype=tf.float32)
-            b_fc1 = self.bias_variable([self.n_neurons_layer1], name='fc1', dtype=tf.float32)
-            a_fc1 = tf.nn.sigmoid(tf.matmul(self.X, self.W_fc1) + b_fc1)
-            
-            # Fully connected layer 2
-            self.W_fc2 = self.weight_variable([self.n_neurons_layer1, self.n_neurons_layer2], name='fc2', dtype=tf.float32)
-            b_fc2 = self.bias_variable([self.n_neurons_layer2], name='fc2', dtype=tf.float32)
-            a_fc2 = tf.nn.sigmoid(tf.matmul(a_fc1, self.W_fc2) + b_fc2)
-            
-            # Output layer
-            self.W_out = self.weight_variable([self.n_neurons_layer2, self.n_categories], name='out', dtype=tf.float32)
-            b_out = self.bias_variable([self.n_categories], name='out', dtype=tf.float32)
-            self.z_out = tf.matmul(a_fc2, self.W_out) + b_out
-    
-    def create_loss(self):
-        with tf.name_scope('loss'):
-            softmax_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.Y, logits=self.z_out))
-            
-            regularizer_loss_fc1 = tf.nn.l2_loss(self.W_fc1)
-            regularizer_loss_fc2 = tf.nn.l2_loss(self.W_fc2)
-            regularizer_loss_out = tf.nn.l2_loss(self.W_out)
-            regularizer_loss = self.lmbd*(regularizer_loss_fc1 + regularizer_loss_fc2 + regularizer_loss_out)
-            
-            self.loss = softmax_loss + regularizer_loss
-
-    def create_accuracy(self):
-        with tf.name_scope('accuracy'):
-            probabilities = tf.nn.softmax(self.z_out)
-            predictions = tf.argmax(probabilities, axis=1)
-            labels = tf.argmax(self.Y, axis=1)
-            
-            correct_predictions = tf.equal(predictions, labels)
-            correct_predictions = tf.cast(correct_predictions, tf.float32)
-            self.accuracy = tf.reduce_mean(correct_predictions)
-    
-    def create_optimiser(self):
-        with tf.name_scope('optimizer'):
-            self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.eta).minimize(self.loss, global_step=self.global_step)
-            
-    def weight_variable(self, shape, name='', dtype=tf.float32):
-        initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial, name=name, dtype=dtype)
-    
-    def bias_variable(self, shape, name='', dtype=tf.float32):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial, name=name, dtype=dtype)
-    
-    def fit(self):
-        data_indices = np.arange(self.n_inputs)
-
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            for i in range(self.epochs):
-                for j in range(self.iterations):
-                    chosen_datapoints = np.random.choice(data_indices, size=self.batch_size, replace=False)
-                    batch_X, batch_Y = self.X_train[chosen_datapoints], self.Y_train[chosen_datapoints]
-            
-                    sess.run([DNN.loss, DNN.optimizer],
-                        feed_dict={DNN.X: batch_X,
-                                   DNN.Y: batch_Y})
-                    accuracy = sess.run(DNN.accuracy,
-                        feed_dict={DNN.X: batch_X,
-                                   DNN.Y: batch_Y})
-                    step = sess.run(DNN.global_step)
-    
-            self.train_loss, self.train_accuracy = sess.run([DNN.loss, DNN.accuracy],
-                feed_dict={DNN.X: self.X_train,
-                           DNN.Y: self.Y_train})
-        
-            self.test_loss, self.test_accuracy = sess.run([DNN.loss, DNN.accuracy],
-                feed_dict={DNN.X: self.X_test,
-                           DNN.Y: self.Y_test})
-!ec
-
-
-!split
-===== Optimizing and using gradient descent =====
-
-!bc pycod
-epochs = 100
-batch_size = 100
-n_neurons_layer1 = 100
-n_neurons_layer2 = 50
-n_categories = 10
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
-!ec
-
-
-!bc pycod
-DNN_tf = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-        
-for i, eta in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals):
-        DNN = NeuralNetworkTensorflow(X_train, Y_train, X_test, Y_test,
-                                      n_neurons_layer1, n_neurons_layer2, n_categories,
-                                      epochs=epochs, batch_size=batch_size, eta=eta, lmbd=lmbd)
-        DNN.fit()
-        
-        DNN_tf[i][j] = DNN
-        
-        print("Learning rate = ", eta)
-        print("Lambda = ", lmbd)
-        print("Test accuracy: %.3f" % DNN.test_accuracy)
-        print()
-!ec
-
-!bc pycod
-# optional
-# visual representation of grid search
-# uses seaborn heatmap, could probably do this in matplotlib
-import seaborn as sns
-
-sns.set()
-
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-
-for i in range(len(eta_vals)):
-    for j in range(len(lmbd_vals)):
-        DNN = DNN_tf[i][j]
-
-        train_accuracy[i][j] = DNN.train_accuracy
-        test_accuracy[i][j] = DNN.test_accuracy
-
-        
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Test Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-!ec
-
-!bc pycod
-# optional
-# we can use log files to visualize our graph in Tensorboard
-writer = tf.summary.FileWriter('logs/')
-writer.add_graph(tf.get_default_graph())
-!ec
-
-
-!split
-===== Using Keras =====
-  
-Keras is a high level "neural network":"https://en.wikipedia.org/wiki/Application_programming_interface"
-that supports Tensorflow, CTNK and Theano as backends.  
-If you have Tensorflow installed Keras is available through the *tf.keras* module.  
-If you have Anaconda installed you may run the following command
-!bc pycod
-conda install keras
-!ec
-  
-Alternatively, if you have Tensorflow or one of the other supported backends install you may use the pip package manager: 
-
-!bc pycod
-pip3 install keras
-!ec
-or look up the "instructions here":"https://keras.io/".
-
-!bc pycod
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.regularizers import l2
-from keras.optimizers import SGD
-
-def create_neural_network_keras(n_neurons_layer1, n_neurons_layer2, n_categories, eta, lmbd):
-    model = Sequential()
-    model.add(Dense(n_neurons_layer1, activation='sigmoid', kernel_regularizer=l2(lmbd)))
-    model.add(Dense(n_neurons_layer2, activation='sigmoid', kernel_regularizer=l2(lmbd)))
-    model.add(Dense(n_categories, activation='softmax'))
-    
-    sgd = SGD(lr=eta)
-    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-    
-    return model
-!ec
-
-!bc pycod
-DNN_keras = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-        
-for i, eta in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals):
-        DNN = create_neural_network_keras(n_neurons_layer1, n_neurons_layer2, n_categories,
-                                         eta=eta, lmbd=lmbd)
-        DNN.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, verbose=0)
-        scores = DNN.evaluate(X_test, Y_test)
-        
-        DNN_keras[i][j] = DNN
-        
-        print("Learning rate = ", eta)
-        print("Lambda = ", lmbd)
-        print("Test accuracy: %.3f" % scores[1])
-        print()
-!ec
-
-!bc pycod
-# optional
-# visual representation of grid search
-# uses seaborn heatmap, could probably do this in matplotlib
-import seaborn as sns
-
-sns.set()
-
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-
-for i in range(len(eta_vals)):
-    for j in range(len(lmbd_vals)):
-        DNN = DNN_keras[i][j]
-
-        train_accuracy[i][j] = DNN.evaluate(X_train, Y_train)[1]
-        test_accuracy[i][j] = DNN.evaluate(X_test, Y_test)[1]
-
-        
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Test Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-!ec
-
-
-
-
-!split 
-===== Which activation function should I use? =====
-
-The Back propagation algorithm we derived above works by going from
-the output layer to the input layer, propagating the error gradient on
-the way. Once the algorithm has computed the gradient of the cost
-function with regards to each parameter in the network, it uses these
-gradients to update each parameter with a Gradient Descent (GD) step.
-
-
-Unfortunately for us, the gradients often get smaller and smaller as the
-algorithm progresses down to the first hidden layers. As a result, the
-GD update leaves the lower layer connection weights
-virtually unchanged, and training never converges to a good
-solution. This is known in the literature as 
-_the vanishing gradients problem_. 
-
-In other cases, the opposite can happen, namely the the gradients can grow bigger and
-bigger. The result is that many of the layers get large updates of the 
-weights the
-algorithm diverges. This is the _exploding gradients problem_, which is
-mostly encountered in recurrent neural networks. More generally, deep
-neural networks suffer from unstable gradients, different layers may
-learn at widely different speeds
-
-!split 
-===== Is the Logistic activation function (Sigmoid)  our choice? =====
-
-Although this unfortunate behavior has been empirically observed for
-quite a while (it was one of the reasons why deep neural networks were
-mostly abandoned for a long time), it is only around 2010 that
-significant progress was made in understanding it.
-
-A paper titled "Understanding the Difficulty of Training Deep
-Feedforward Neural Networks by Xavier Glorot and Yoshua Bengio":"http://proceedings.mlr.press/v9/glorot10a.html" found that
-the problems with the popular logistic
-sigmoid activation function and the weight initialization technique
-that was most popular at the time, namely random initialization using
-a normal distribution with a mean of 0 and a standard deviation of
-1. 
-
-They showed that with this activation function and this
-initialization scheme, the variance of the outputs of each layer is
-much greater than the variance of its inputs. Going forward in the
-network, the variance keeps increasing after each layer until the
-activation function saturates at the top layers. This is actually made
-worse by the fact that the logistic function has a mean of 0.5, not 0
-(the hyperbolic tangent function has a mean of 0 and behaves slightly
-better than the logistic function in deep networks).
-
-
-!split
-===== The derivative of the Logistic funtion =====
-
-Looking at the logistic activation function, when inputs become large
-(negative or positive), the function saturates at 0 or 1, with a
-derivative extremely close to 0. Thus when backpropagation kicks in,
-it has virtually no gradient to propagate back through the network,
-and what little gradient exists keeps getting diluted as
-backpropagation progresses down through the top layers, so there is
-really nothing left for the lower layers.
-
-In their paper, Glorot and Bengio propose a way to significantly
-alleviate this problem. We need the signal to flow properly in both
-directions: in the forward direction when making predictions, and in
-the reverse direction when backpropagating gradients. We don’t want
-the signal to die out, nor do we want it to explode and saturate. For
-the signal to flow properly, the authors argue that we need the
-variance of the outputs of each layer to be equal to the variance of
-its inputs, and we also need the gradients to have equal variance
-before and after flowing through a layer in the reverse direction.
-
-
-
-One of the insights in the 2010 paper by Glorot and Bengio was that
-the vanishing/exploding gradients problems were in part due to a poor
-choice of activation function. Until then most people had assumed that
-if Nature had chosen to use roughly sigmoid activation functions in
-biological neurons, they must be an excellent choice. But it turns out
-that other activation functions behave much better in deep neural
-networks, in particular the ReLU activation function, mostly because
-it does not saturate for positive values (and also because it is quite
-fast to compute).
-
-
-!split
-===== The RELU function family =====
-
-The ReLU activation function suffers from a problem known as the dying
-ReLUs: during training, some neurons effectively die, meaning they
-stop outputting anything other than 0.
-
-In some cases, you may find that half of your network’s neurons are
-dead, especially if you used a large learning rate. During training,
-if a neuron’s weights get updated such that the weighted sum of the
-neuron’s inputs is negative, it will start outputting 0. When this
-happen, the neuron is unlikely to come back to life since the gradient
-of the ReLU function is 0 when its input is negative.
-
-To solve this problem, nowadays practitioners use a  variant of the ReLU
-function, such as the leaky ReLU discussed above or the so-called
-exponential linear unit (ELU) function
-
-
-!bt
-\[
-ELU(z) = \left\{\begin{array}{cc} \alpha\left( \exp{(z)}-1\right) & z < 0,\\  z & z \ge 0.\end{array}\right. 
-\]
-!et
-
-!split
-===== Which activation function should we use? =====
-
-In general it seems that the ELU activation function is better than
-the leaky ReLU function (and its variants), which is better than
-ReLU. ReLU performs better than $\tanh$ which in turn performs better
-than the logistic function. 
-
-If runtime
-performance is an issue, then you may opt for the  leaky ReLU function  over the 
-ELU function If you don’t
-want to tweak yet another hyperparameter, you may just use the default
-$\alpha$ of $0.01$ for the leaky ReLU, and $1$ for ELU. If you have
-spare time and computing power, you can use cross-validation or
-bootstrap to evaluate other activation functions.
-
-
-!split 
-===== A top-down perspective on Neural networks =====
-
-
-The first thing we would like to do is divide the data into two or three
-parts. A training set, a validation or dev (development) set, and a
-test set. The test set is the data on which we want to make
-predictions. The dev set is a subset of the training data we use to
-check how well we are doing out-of-sample, after training the model on
-the training dataset. We use the validation error as a proxy for the
-test error in order to make tweaks to our model. It is crucial that we
-do not use any of the test data to train the algorithm. This is a
-cardinal sin in ML. Then:
-
- 
-* Estimate optimal error rate
-
-* Minimize underfitting (bias) on training data set.
-
-* Make sure you are not overfitting.
-
-If the validation and test sets are drawn from the same distributions,
-then a good performance on the validation set should lead to similarly
-good performance on the test set. 
-
-However, sometimes
-the training data and test data differ in subtle ways because, for
-example, they are collected using slightly different methods, or
-because it is cheaper to collect data in one way versus another. In
-this case, there can be a mismatch between the training and test
-data. This can lead to the neural network overfitting these small
-differences between the test and training sets, and a poor performance
-on the test set despite having a good performance on the validation
-set. To rectify this, Andrew Ng suggests making two validation or dev
-sets, one constructed from the training data and one constructed from
-the test data. The difference between the performance of the algorithm
-on these two validation sets quantifies the train-test mismatch. This
-can serve as another important diagnostic when using DNNs for
-supervised learning.
-
-!split
-===== Limitations of supervised learning with deep networks =====
-
-Like all statistical methods, supervised learning using neural
-networks has important limitations. This is especially important when
-one seeks to apply these methods, especially to physics problems. Like
-all tools, DNNs are not a universal solution. Often, the same or
-better performance on a task can be achieved by using a few
-hand-engineered features (or even a collection of random
-features). 
-
-Here we list some of the important limitations of supervised neural network based models. 
-
-
-
-* _Need labeled data_. All supervised learning methods, DNNs for supervised learning require labeled data. Often, labeled data is harder to acquire than unlabeled data (e.g. one must pay for human experts to label images).
-* _Supervised neural networks are extremely data intensive._ DNNs are data hungry. They perform best when data is plentiful. This is doubly so for supervised methods where the data must also be labeled. The utility of DNNs is extremely limited if data is hard to acquire or the datasets are small (hundreds to a few thousand samples). In this case, the performance of other methods that utilize hand-engineered features can exceed that of DNNs.
-* _Homogeneous data._ Almost all DNNs deal with homogeneous data of one type. It is very hard to design architectures that mix and match data types (i.e.~some continuous variables, some discrete variables, some time series). In applications beyond images, video, and language, this is often what is required. In contrast, ensemble models like random forests or gradient-boosted trees have no difficulty handling mixed data types.
-* _Many problems are not about prediction._ In natural science we are often interested in learning something about the underlying distribution that generates the data. In this case, it is often difficult to cast these ideas in a supervised learning setting. While the problems are related, it is possible to make good predictions with a *wrong* model. The model might or might not be useful for understanding the underlying science.
-
-Some of these remarks are particular to DNNs, others are shared by all supervised learning methods. This motivates the use of unsupervised methods which in part circumvent these problems.
-
-
-
-
-
 
 
