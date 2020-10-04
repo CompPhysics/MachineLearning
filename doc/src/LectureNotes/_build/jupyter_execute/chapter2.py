@@ -1,17 +1,4 @@
-<!-- dom:TITLE: Data Analysis and Machine Learning: Getting started, our first data and Machine Learning encounters -->
-# Data Analysis and Machine Learning: Getting started, our first data and Machine Learning encounters
-<!-- dom:AUTHOR: Morten Hjorth-Jensen at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University -->
-<!-- Author: -->  
-**Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
-
-Date: **Dec 25, 2019**
-
-Copyright 1999-2019, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
-
-
-
-
-
+# Getting started, our first data and Machine Learning encounters
 
 ## Introduction
 
@@ -395,7 +382,6 @@ Here follows a simple example where we set up an array of ten elements, all dete
 n = 10
 x = np.random.normal(size=n)
 print(x)
-print(x[1])
 
 We defined a vector $x$ with $n=10$ elements with its values given by the Normal distribution $N(0,1)$.
 Another alternative is to declare a vector as follows
@@ -436,13 +422,13 @@ print(x)
 or simply write them as double precision numbers (Python uses 64 bits as default for floating point type variables), that is
 
 import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0]))
+x = np.log(np.array([4.0, 7.0, 8.0])
 print(x)
 
 To check the number of bytes (remember that one byte contains eight bits for double precision variables), you can use simple use the **itemsize** functionality (the array $x$ is actually an object which inherits the functionalities defined in Numpy) as
 
 import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0]))
+x = np.log(np.array([4.0, 7.0, 8.0])
 print(x.itemsize)
 
 ## Matrices in Python
@@ -482,7 +468,7 @@ or initializing all elements to
 import numpy as np
 n = 10
 # define a matrix of dimension 10 x 10 and set all elements to one
-A = np.eye( n )
+A = np.ones( (n, n) )
 print(A)
 
 or as unitarily distributed random numbers (see the material on random number generators in the statistics part)
@@ -628,8 +614,6 @@ display(df)
 print(df.mean())
 print(df.std())
 display(df**2)
-print(df-df.mean())
-
 
 Thereafter we can select specific columns only and plot final results
 
@@ -755,14 +739,13 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
 x = np.random.rand(100,1)
-y = 2*x+0.01*np.random.randn(100,1)
+y = 2*x+np.random.randn(100,1)
 linreg = LinearRegression()
 linreg.fit(x,y)
-#ynew = linreg.predict(x)
-#xnew = np.array([[0],[1]])
-ypredict = linreg.predict(x)
+xnew = np.array([[0],[1]])
+ypredict = linreg.predict(xnew)
 
-plt.plot(x, ypredict, "r-")
+plt.plot(xnew, ypredict, "r-")
 plt.plot(x, y ,'ro')
 plt.axis([0,1.0,0, 5.0])
 plt.xlabel(r'$x$')
