@@ -1,16 +1,21 @@
-TITLE: Convolutional Neural Networks
+TITLE: Week 42 Convolutional and Recurrent Neural Networks and Autoencoders
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 DATE: today
 
-!split
-===== To do list =====
 
-* add material about the mathematics, with more explanations
-* update codes to tensorflow 2
-* add more elaborated examples
-* update keras codes and think of pytorch examples?
-* Example on pollen cases  https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0229751
-* Example on nuclear physics experiments
+!split
+===== Plan for week 42 =====
+
+* Thursday: Convolutional Neural Networks and examples
+* Friday: Recurrent Neural Networks and Autoencoders
+
+Reading suggestions for both days: "Aurelien Geron's chapters 13 and 14":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/T\
+extbooks/TensorflowML.pdf". Autoencoders are discussed in chapter 15 of Geron's text.
+
+
+
+
+
 !split
 ===== Convolutional Neural Networks (recognizing images) =====
 
@@ -18,7 +23,7 @@ DATE: today
 Convolutional neural networks (CNNs) were developed during the last
 decade of the previous century, with a focus on character recognition
 tasks. Nowadays, CNNs are a central element in the spectacular success
-of dee learning methods. The success in for example image
+of deep learning methods. The success in for example image
 classifications have made them a central tool for most machine
 learning practitioners.
 
@@ -147,6 +152,7 @@ the course
 and the slides of "CS231":"http://cs231n.github.io/convolutional-networks/" which is taught at Stanford University (consistently ranked as one of the top computer science programs in the world). "Michael Nielsen's book is a must read, in particular chapter 6 which deals with CNNs":"http://neuralnetworksanddeeplearning.com/chap6.html".
 
 
+
 !split
 ===== CNNs in more detail, building convolutional neural networks in Tensorflow and Keras =====
 
@@ -189,6 +195,7 @@ single neuron in the first hidden layer.
 
 !split
 ===== Strong correlations =====
+
 Images typically have strong local correlations, meaning that a small
 part of the image varies little from its neighboring regions. If for
 example we have an image of a blue car, we can roughly assume that a
@@ -283,7 +290,17 @@ plt.show()
 !split
 ===== Importing Keras and Tensorflow =====
 !bc pycod
-from keras.utils import to_categorical
+from tensorflow.keras import datasets, layers, models
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Sequential      #This allows appending layers to existing models
+from tensorflow.keras.layers import Dense           #This allows defining the characteristics of a particular layer
+from tensorflow.keras import optimizers             #This allows using whichever optimiser we want (sgd,adam,RMSprop)
+from tensorflow.keras import regularizers           #This allows using whichever regularizer we want (l1,l2,l1_l2)
+from tensorflow.keras.utils import to_categorical   #This allows using categorical cross entropy as the cost function
+#from tensorflow.keras import Conv2D
+#from tensorflow.keras import MaxPooling2D
+#from tensorflow.keras import Flatten
+
 from sklearn.model_selection import train_test_split
 
 # representation of labels
@@ -297,242 +314,22 @@ X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=t
                                                     test_size=test_size)
 !ec
 
-!split
-===== Using TensorFlow backend =====
-
-We need to define model and architecture and choose cost function and optmizer.
-!bc pycid
-
-import tensorflow as tf
-
-class ConvolutionalNeuralNetworkTensorflow:
-    def __init__(
-            self,
-            X_train,
-            Y_train,
-            X_test,
-            Y_test,
-            n_filters=10,
-            n_neurons_connected=50,
-            n_categories=10,
-            receptive_field=3,
-            stride=1,
-            padding=1,
-            epochs=10,
-            batch_size=100,
-            eta=0.1,
-            lmbd=0.0):
-        
-        self.global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
-        
-        self.X_train = X_train
-        self.Y_train = Y_train
-        self.X_test = X_test
-        self.Y_test = Y_test
-        
-        self.n_inputs, self.input_width, self.input_height, self.depth = X_train.shape
-        
-        self.n_filters = n_filters
-        self.n_downsampled = int(self.input_width*self.input_height*n_filters / 4)
-        self.n_neurons_connected = n_neurons_connected
-        self.n_categories = n_categories
-        
-        self.receptive_field = receptive_field
-        self.stride = stride
-        self.strides = [stride, stride, stride, stride]
-        self.padding = padding
-        
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.iterations = self.n_inputs // self.batch_size
-        self.eta = eta
-        self.lmbd = lmbd
-        
-        self.create_placeholders()
-        self.create_CNN()
-        self.create_loss()
-        self.create_optimiser()
-        self.create_accuracy()
-    
-    def create_placeholders(self):
-        with tf.name_scope('data'):
-            self.X = tf.placeholder(tf.float32, shape=(None, self.input_width, self.input_height, self.depth), name='X_data')
-            self.Y = tf.placeholder(tf.float32, shape=(None, self.n_categories), name='Y_data')
-    
-    def create_CNN(self):
-        with tf.name_scope('CNN'):
-            
-            # Convolutional layer
-            self.W_conv = self.weight_variable([self.receptive_field, self.receptive_field, self.depth, self.n_filters], name='conv', dtype=tf.float32)
-            b_conv = self.weight_variable([self.n_filters], name='conv', dtype=tf.float32)
-            z_conv = tf.nn.conv2d(self.X, self.W_conv, self.strides, padding='SAME', name='conv') + b_conv
-            a_conv = tf.nn.relu(z_conv)
-            
-            # 2x2 max pooling
-            a_pool = tf.nn.max_pool(a_conv, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME', name='pool')
-            
-            # Fully connected layer
-            a_pool_flat = tf.reshape(a_pool, [-1, self.n_downsampled])
-            self.W_fc = self.weight_variable([self.n_downsampled, self.n_neurons_connected], name='fc', dtype=tf.float32)
-            b_fc = self.bias_variable([self.n_neurons_connected], name='fc', dtype=tf.float32)
-            a_fc = tf.nn.relu(tf.matmul(a_pool_flat, self.W_fc) + b_fc)
-            
-            # Output layer
-            self.W_out = self.weight_variable([self.n_neurons_connected, self.n_categories], name='out', dtype=tf.float32)
-            b_out = self.bias_variable([self.n_categories], name='out', dtype=tf.float32)
-            self.z_out = tf.matmul(a_fc, self.W_out) + b_out
-    
-    def create_loss(self):
-        with tf.name_scope('loss'):
-            softmax_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.Y, logits=self.z_out))
-            
-            regularizer_loss_conv = tf.nn.l2_loss(self.W_conv)
-            regularizer_loss_fc = tf.nn.l2_loss(self.W_fc)
-            regularizer_loss_out = tf.nn.l2_loss(self.W_out)
-            regularizer_loss = self.lmbd*(regularizer_loss_conv + regularizer_loss_fc + regularizer_loss_out)
-            
-            self.loss = softmax_loss + regularizer_loss
-
-    def create_accuracy(self):
-        with tf.name_scope('accuracy'):
-            probabilities = tf.nn.softmax(self.z_out)
-            predictions = tf.argmax(probabilities, 1)
-            labels = tf.argmax(self.Y, 1)
-            
-            correct_predictions = tf.equal(predictions, labels)
-            correct_predictions = tf.cast(correct_predictions, tf.float32)
-            self.accuracy = tf.reduce_mean(correct_predictions)
-    
-    def create_optimiser(self):
-        with tf.name_scope('optimizer'):
-            self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.eta).minimize(self.loss, global_step=self.global_step)
-            
-    def weight_variable(self, shape, name='', dtype=tf.float32):
-        initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial, name=name, dtype=dtype)
-    
-    def bias_variable(self, shape, name='', dtype=tf.float32):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial, name=name, dtype=dtype)
-
-    def fit(self):
-        data_indices = np.arange(self.n_inputs)
-
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            for i in range(self.epochs):
-                for j in range(self.iterations):
-                    chosen_datapoints = np.random.choice(data_indices, size=self.batch_size, replace=False)
-                    batch_X, batch_Y = self.X_train[chosen_datapoints], self.Y_train[chosen_datapoints]
-            
-                    sess.run([CNN.loss, CNN.optimizer],
-                        feed_dict={CNN.X: batch_X,
-                                   CNN.Y: batch_Y})
-                    accuracy = sess.run(CNN.accuracy,
-                        feed_dict={CNN.X: batch_X,
-                                   CNN.Y: batch_Y})
-                    step = sess.run(CNN.global_step)
-    
-            self.train_loss, self.train_accuracy = sess.run([CNN.loss, CNN.accuracy],
-                feed_dict={CNN.X: self.X_train,
-                           CNN.Y: self.Y_train})
-        
-            self.test_loss, self.test_accuracy = sess.run([CNN.loss, CNN.accuracy],
-                feed_dict={CNN.X: self.X_test,
-                           CNN.Y: self.Y_test})
-!ec
-
-!split
-===== Train the model =====
-
-We need now to train the model, evaluate it and test its performance on test data, and eventually include hyperparameters.
-!bc pycod
-epochs = 100
-batch_size = 100
-n_filters = 10
-n_neurons_connected = 50
-n_categories = 10
-
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
-CNN_tf = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-        
-for i, eta in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals):
-        CNN = ConvolutionalNeuralNetworkTensorflow(X_train, Y_train, X_test, Y_test,
-                                      n_filters=n_filters, n_neurons_connected=n_neurons_connected,
-                                      n_categories=n_categories, epochs=epochs, batch_size=batch_size,
-                                      eta=eta, lmbd=lmbd)
-        CNN.fit()
-        
-        print("Learning rate = ", eta)
-        print("Lambda = ", lmbd)
-        print("Test accuracy: %.3f" % CNN.test_accuracy)
-        print()
-            
-        CNN_tf[i][j] = CNN
-!ec
-
-!split
-===== Visualizing the results =====
-
-!bc pycod
-# visual representation of grid search
-# uses seaborn heatmap, could probably do this in matplotlib
-import seaborn as sns
-
-sns.set()
-
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-
-for i in range(len(eta_vals)):
-    for j in range(len(lmbd_vals)):
-        CNN = CNN_tf[i][j]
-
-        train_accuracy[i][j] = CNN.train_accuracy
-        test_accuracy[i][j] = CNN.test_accuracy
-
-        
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Test Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-!ec
-
 !split 
 ===== Running with Keras =====
 
 !bc pycod
-from keras.models import Sequential
-from keras.layers.convolutional import Conv2D
-from keras.layers.convolutional import MaxPooling2D
-from keras.layers import Flatten
-from keras.layers import Dense
-from keras.regularizers import l2
-from keras.optimizers import SGD
-
 def create_convolutional_neural_network_keras(input_shape, receptive_field,
                                               n_filters, n_neurons_connected, n_categories,
                                               eta, lmbd):
     model = Sequential()
-    model.add(Conv2D(n_filters, (receptive_field, receptive_field), input_shape=input_shape, padding='same',
-              activation='relu', kernel_regularizer=l2(lmbd)))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Flatten())
-    model.add(Dense(n_neurons_connected, activation='relu', kernel_regularizer=l2(lmbd)))
-    model.add(Dense(n_categories, activation='softmax', kernel_regularizer=l2(lmbd)))
+    model.add(layers.Conv2D(n_filters, (receptive_field, receptive_field), input_shape=input_shape, padding='same',
+              activation='relu', kernel_regularizer=regularizers.l2(lmbd)))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(n_neurons_connected, activation='relu', kernel_regularizer=regularizers.l2(lmbd)))
+    model.add(layers.Dense(n_categories, activation='softmax', kernel_regularizer=regularizers.l2(lmbd)))
     
-    sgd = SGD(lr=eta)
+    sgd = optimizers.SGD(lr=eta)
     model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
     
     return model
@@ -574,7 +371,7 @@ for i, eta in enumerate(eta_vals):
 !split
 ===== Final visualization =====
 
-!bc
+!bc pycod
 # visual representation of grid search
 # uses seaborn heatmap, could probably do this in matplotlib
 import seaborn as sns
@@ -607,10 +404,99 @@ ax.set_xlabel("$\lambda$")
 plt.show()
 !ec
 
+
+
 !split
-===== Fun links =====
-  
-o "Self-Driving cars using a convolutional neural network":"https://arxiv.org/abs/1604.07316"
-o "Abstract art using convolutional neural networks":"https://deepdreamgenerator.com/"
+===== Recurrent neural networks: Overarching view =====
+
+Till now our focus has been, including convolutional neural networks
+as well, on feedforward neural networks. The output or the activations
+flow only in one direction, from the input layer to the output layer.
+
+A recurrent neural network (RNN) looks very much like a feedforward
+neural network, except that it also has connections pointing
+backward. 
+
+RNNs are used to analyze time series data such as stock prices, and
+tell you when to buy or sell. In autonomous driving systems, they can
+anticipate car trajectories and help avoid accidents. More generally,
+they can work on sequences of arbitrary lengths, rather than on
+fixed-sized inputs like all the nets we have discussed so far. For
+example, they can take sentences, documents, or audio samples as
+input, making them extremely useful for natural language processing
+systems such as automatic translation and speech-to-text.
+
+
+
+!split
+=====  Set up of an RNN =====
+
+The figure here displays a simple example of an RNN, with inputs $x_t$
+at a given time $t$ and outputs $y_t$.  Introducing time as a variable
+offers an intutitive way of understanding these networks. In addition
+to the inputs $x_t$, the layer at a time $t$ receives also as input
+the output from the previous layer $t-1$, that is $y_{t1}$.
+
+This means also that we need to have weights that link both the inputs
+$x_t$ to the outputs $y_t$ as well as weights that link the output
+from the previous time $y_{t-1}$ and $y_t$.  The figure here shows an
+example of a simple RNN.
+
+
+
+!split
+===== Solving differential equations and eigenvalue problems with RNNs =====
+
+
+
+In our discussions of ordinary differential equations and partial
+differential equations using neural networks. Here we will discuss how
+we can solve say ordinary differential equations and eigenvalue
+problems using RNNs. Eigenvalue problems can be solved using RNNs by
+rewriting such a problems as a non-linear differential equation.
+
+Instead of starting with a well-known ordinary differential equation,
+we start directly with an eigenvaule problem.
+
+
+
+!split
+===== Long-Short Time Memory =====
+
+Discussions about dynamic unrolling through time. discuss memory cells, input and output
+
+
+
+
+!split
+===== Autoencoders: Overarching view =====
+
+Autoencoders are artificial neural networks capable of learning
+efficient representations of the input data (these representations are called codings)  without
+any supervision (i.e., the training set is unlabeled). These codings
+typically have a much lower dimensionality than the input data, making
+autoencoders useful for dimensionality reduction. 
+
+More importantly, autoencoders act as powerful feature detectors, and
+they can be used for unsupervised pretraining of deep neural networks.
+
+Lastly, they are capable of randomly generating new data that looks
+very similar to the training data; this is called a generative
+model. For example, you could train an autoencoder on pictures of
+faces, and it would then be able to generate new faces.  Surprisingly,
+autoencoders work by simply learning to copy their inputs to their
+outputs. This may sound like a trivial task, but we will see that
+constraining the network in various ways can make it rather
+difficult. For example, you can limit the size of the internal
+representation, or you can add noise to the inputs and train the
+network to recover the original inputs. These constraints prevent the
+autoencoder from trivially copying the inputs directly to the outputs,
+which forces it to learn efficient ways of representing the data. In
+short, the codings are byproducts of the autoencoder’s attempt to
+learn the identity function under some constraints.
+
+!split
+===== Simple examples of Autoencoders =====
+
 
 
