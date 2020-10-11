@@ -148,7 +148,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Oct 10, 2020</h4></center> <!-- date -->
+<center><h4>Oct 11, 2020</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -631,7 +631,151 @@ plt.show()
 
 
 <section>
-<h2 id="___sec18">Recurrent neural networks: Overarching view </h2>
+<h2 id="___sec18">The CIFAR01 data set </h2>
+
+<p>
+The CIFAR10 dataset contains 60,000 color images in 10 classes, with
+6,000 images in each class. The dataset is divided into 50,000
+training images and 10,000 testing images. The classes are mutually
+exclusive and there is no overlap between them.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tensorflow</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">tf</span>
+
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets, layers, models
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+
+<span style="color: #228B22"># We import the data set</span>
+(train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data()
+
+<span style="color: #228B22"># Normalize pixel values to be between 0 and 1 by dividing by 255. </span>
+train_images, test_images = train_images / <span style="color: #B452CD">255.0</span>, test_images / <span style="color: #B452CD">255.0</span>
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec19">Verifying the data set </h2>
+
+<p>
+To verify that the dataset looks correct, let's plot the first 25 images from the training set and display the class name below each image.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>class_names = [<span style="color: #CD5555">&#39;airplane&#39;</span>, <span style="color: #CD5555">&#39;automobile&#39;</span>, <span style="color: #CD5555">&#39;bird&#39;</span>, <span style="color: #CD5555">&#39;cat&#39;</span>, <span style="color: #CD5555">&#39;deer&#39;</span>,
+               <span style="color: #CD5555">&#39;dog&#39;</span>, <span style="color: #CD5555">&#39;frog&#39;</span>, <span style="color: #CD5555">&#39;horse&#39;</span>, <span style="color: #CD5555">&#39;ship&#39;</span>, <span style="color: #CD5555">&#39;truck&#39;</span>]
+<span style="color: #a61717; background-color: #e3d2d2">​</span>
+plt.figure(figsize=(<span style="color: #B452CD">10</span>,<span style="color: #B452CD">10</span>))
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">25</span>):
+    plt.subplot(<span style="color: #B452CD">5</span>,<span style="color: #B452CD">5</span>,i+<span style="color: #B452CD">1</span>)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(<span style="color: #8B008B; font-weight: bold">False</span>)
+    plt.imshow(train_images[i], cmap=plt.cm.binary)
+    <span style="color: #228B22"># The CIFAR labels happen to be arrays, </span>
+    <span style="color: #228B22"># which is why you need the extra index</span>
+    plt.xlabel(class_names[train_labels[i][<span style="color: #B452CD">0</span>]])
+plt.show()
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec20">Set up  the model </h2>
+
+<p>
+The 6 lines of code below define the convolutional base using a common pattern: a stack of Conv2D and MaxPooling2D layers.
+
+<p>
+As input, a CNN takes tensors of shape (image_height, image_width, color_channels), ignoring the batch size. If you are new to these dimensions, color_channels refers to (R,G,B). In this example, you will configure our CNN to process inputs of shape (32, 32, 3), which is the format of CIFAR images. You can do this by passing the argument input_shape to our first layer.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>model = models.Sequential()
+model.add(layers.Conv2D(<span style="color: #B452CD">32</span>, (<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>), activation=<span style="color: #CD5555">&#39;relu&#39;</span>, input_shape=(<span style="color: #B452CD">32</span>, <span style="color: #B452CD">32</span>, <span style="color: #B452CD">3</span>)))
+model.add(layers.MaxPooling2D((<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2</span>)))
+model.add(layers.Conv2D(<span style="color: #B452CD">64</span>, (<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>), activation=<span style="color: #CD5555">&#39;relu&#39;</span>))
+model.add(layers.MaxPooling2D((<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2</span>)))
+model.add(layers.Conv2D(<span style="color: #B452CD">64</span>, (<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>), activation=<span style="color: #CD5555">&#39;relu&#39;</span>))
+
+<span style="color: #228B22"># Let&#39;s display the architecture of our model so far.</span>
+
+model.summary()
+</pre></div>
+<p>
+You can see that the output of every Conv2D and MaxPooling2D layer is a 3D tensor of shape (height, width, channels). The width and height dimensions tend to shrink as you go deeper in the network. The number of output channels for each Conv2D layer is controlled by the first argument (e.g., 32 or 64). Typically, as the width and height shrink, you can afford (computationally) to add more output channels in each Conv2D layer.
+</section>
+
+
+<section>
+<h2 id="___sec21">Add Dense layers on top </h2>
+
+<p>
+To complete our model, you will feed the last output tensor from the
+convolutional base (of shape (4, 4, 64)) into one or more Dense layers
+to perform classification. Dense layers take vectors as input (which
+are 1D), while the current output is a 3D tensor. First, you will
+flatten (or unroll) the 3D output to 1D, then add one or more Dense
+layers on top. CIFAR has 10 output classes, so you use a final Dense
+layer with 10 outputs and a softmax activation.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>model.add(layers.Flatten())
+model.add(layers.Dense(<span style="color: #B452CD">64</span>, activation=<span style="color: #CD5555">&#39;relu&#39;</span>))
+model.add(layers.Dense(<span style="color: #B452CD">10</span>))
+Here<span style="color: #CD5555">&#39;s the complete architecture of our model.</span>
+
+model.summary()
+</pre></div>
+<p>
+As you can see, our (4, 4, 64) outputs were flattened into vectors of shape (1024) before going through two Dense layers.
+</section>
+
+
+<section>
+<h2 id="___sec22">Compile and train the model </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>model.compile(optimizer=<span style="color: #CD5555">&#39;adam&#39;</span>,
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=<span style="color: #8B008B; font-weight: bold">True</span>),
+              metrics=[<span style="color: #CD5555">&#39;accuracy&#39;</span>])
+<span style="color: #a61717; background-color: #e3d2d2">​</span>
+history = model.fit(train_images, train_labels, epochs=<span style="color: #B452CD">10</span>, 
+                    validation_data=(test_images, test_labels))
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec23">Finally, evaluate the model </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span>plt.plot(history.history[<span style="color: #CD5555">&#39;accuracy&#39;</span>], label=<span style="color: #CD5555">&#39;accuracy&#39;</span>)
+plt.plot(history.history[<span style="color: #CD5555">&#39;val_accuracy&#39;</span>], label = <span style="color: #CD5555">&#39;val_accuracy&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;Epoch&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;Accuracy&#39;</span>)
+plt.ylim([<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">1</span>])
+plt.legend(loc=<span style="color: #CD5555">&#39;lower right&#39;</span>)
+
+test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=<span style="color: #B452CD">2</span>)
+
+<span style="color: #658b00">print</span>(test_acc)
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="___sec24">Recurrent neural networks: Overarching view </h2>
 
 <p>
 Till now our focus has been, including convolutional neural networks
@@ -656,7 +800,7 @@ systems such as automatic translation and speech-to-text.
 
 
 <section>
-<h2 id="___sec19">Set up of an RNN </h2>
+<h2 id="___sec25">Set up of an RNN </h2>
 
 <p>
 The figure here displays a simple example of an RNN, with inputs \( x_t \)
@@ -670,11 +814,14 @@ This means also that we need to have weights that link both the inputs
 \( x_t \) to the outputs \( y_t \) as well as weights that link the output
 from the previous time \( y_{t-1} \) and \( y_t \).  The figure here shows an
 example of a simple RNN.
+
+<p>
+More material will be added here.
 </section>
 
 
 <section>
-<h2 id="___sec20">Solving differential equations and eigenvalue problems with RNNs </h2>
+<h2 id="___sec26">Solving differential equations and eigenvalue problems with RNNs </h2>
 
 <p>
 In our discussions of ordinary differential equations and partial
@@ -690,7 +837,7 @@ we start directly with an eigenvaule problem.
 
 
 <section>
-<h2 id="___sec21">Long-Short Time Memory </h2>
+<h2 id="___sec27">Long-Short Time Memory </h2>
 
 <p>
 Discussions about dynamic unrolling through time. discuss memory cells, input and output
@@ -698,7 +845,7 @@ Discussions about dynamic unrolling through time. discuss memory cells, input an
 
 
 <section>
-<h2 id="___sec22">Autoencoders: Overarching view </h2>
+<h2 id="___sec28">Autoencoders: Overarching view </h2>
 
 <p>
 Autoencoders are artificial neural networks capable of learning
@@ -730,7 +877,7 @@ learn the identity function under some constraints.
 
 
 <section>
-<h2 id="___sec23">Simple examples of Autoencoders </h2>
+<h2 id="___sec29">Simple examples of Autoencoders </h2>
 </section>
 
 
