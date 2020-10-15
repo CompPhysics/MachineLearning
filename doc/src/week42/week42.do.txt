@@ -9,8 +9,7 @@ DATE: today
 * Thursday: Convolutional Neural Networks and examples
 * Friday: Recurrent Neural Networks and Autoencoders
 
-Reading suggestions for both days: "Aurelien Geron's chapters 13 and 14":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/T\
-extbooks/TensorflowML.pdf". Autoencoders are discussed in chapter 15 of Geron's text.
+Reading suggestions for both days: "Aurelien Geron's chapters 13 and 14":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf". Autoencoders are discussed in chapter 15 of Geron's text.
 
 
 
@@ -62,6 +61,10 @@ through a nonlinear activation function). This is applicable to any type of inpu
 image, a sound clip or an unordered collection of features: whatever their
 dimensionality, their representation can always be flattened into a vector
 before the transformation.
+
+
+!split
+===== Why CNNS for images, sound files, medical images from CT scans etc? =====
 
 However, when we consider images, sound clips and many other similar kinds of data, these data  have an intrinsic
 structure. More formally, they share these important properties:
@@ -563,6 +566,8 @@ test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
 print(test_acc)
 
 !ec
+
+
 !split
 ===== Recurrent neural networks: Overarching view =====
 
@@ -583,6 +588,80 @@ example, they can take sentences, documents, or audio samples as
 input, making them extremely useful for natural language processing
 systems such as automatic translation and speech-to-text.
 
+
+!split
+===== A simple example =====
+
+!bc pycod
+# Start importing packages
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras import datasets, layers, models
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model, Sequential 
+from tensorflow.keras.layers import Dense, SimpleRNN, LSTM, GRU
+from tensorflow.keras import optimizers     
+from tensorflow.keras import regularizers           
+from tensorflow.keras.utils import to_categorical 
+
+
+
+# convert into dataset matrix
+def convertToMatrix(data, step):
+ X, Y =[], []
+ for i in range(len(data)-step):
+  d=i+step  
+  X.append(data[i:d,])
+  Y.append(data[d,])
+ return np.array(X), np.array(Y)
+
+step = 4
+N = 1000    
+Tp = 800    
+
+t=np.arange(0,N)
+x=np.sin(0.02*t)+2*np.random.rand(N)
+df = pd.DataFrame(x)
+df.head()
+
+plt.plot(df)
+plt.show()
+
+values=df.values
+train,test = values[0:Tp,:], values[Tp:N,:]
+
+# add step elements into train and test
+test = np.append(test,np.repeat(test[-1,],step))
+train = np.append(train,np.repeat(train[-1,],step))
+ 
+trainX,trainY =convertToMatrix(train,step)
+testX,testY =convertToMatrix(test,step)
+trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
+testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
+
+model = Sequential()
+model.add(SimpleRNN(units=32, input_shape=(1,step), activation="relu"))
+model.add(Dense(8, activation="relu")) 
+model.add(Dense(1))
+model.compile(loss='mean_squared_error', optimizer='rmsprop')
+model.summary()
+
+model.fit(trainX,trainY, epochs=100, batch_size=16, verbose=2)
+trainPredict = model.predict(trainX)
+testPredict= model.predict(testX)
+predicted=np.concatenate((trainPredict,testPredict),axis=0)
+
+trainScore = model.evaluate(trainX, trainY, verbose=0)
+print(trainScore)
+
+index = df.index.values
+plt.plot(index,df)
+plt.plot(index,predicted)
+plt.axvline(df.index[Tp], c="r")
+plt.show()
+!ec
 
 
 !split
