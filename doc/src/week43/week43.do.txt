@@ -16,6 +16,360 @@ Reading suggestions for both days: "Aurelien Geron's chapters 8
 !split
 ===== Solving ODEs with Deep Learning =====
 
+The Universal Approximation Theorem states that a neural network can
+approximate any function at a single hidden layer along with one input
+and output layer to any given precision.  
+
+
+!split
+===== Ordinary Differential Equations =====
+
+An ordinary differential equation (ODE) is an equation involving functions having one variable.
+
+In general, an ordinary differential equation looks like
+
+!bt
+\begin{equation} \label{ode}
+f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right) = 0
+\end{equation}
+!et
+
+where $g(x)$ is the function to find, and $g^{(n)}(x)$ is the $n$-th derivative of $g(x)$.
+
+The $f\left(x, g(x), g'(x), g''(x), \, \dots \, , g^{(n)}(x)\right)$ is just a way to write that there is an expression involving $x$ and $g(x), \ g'(x), \ g''(x), \, \dots \, , \text{ and } g^{(n)}(x)$ on the left side of the equality sign in (ref{ode}).
+The highest order of derivative, that is the value of $n$, determines to the order of the equation.
+The equation is referred to as a $n$-th order ODE.
+Along with (ref{ode}), some additional conditions of the function $g(x)$ are typically given
+for the solution to be unique.
+
+!split
+===== The trial solution =====
+
+Let the trial solution $g_t(x)$ be
+
+!bt
+\begin{equation}
+	g_t(x) = h_1(x) + h_2(x,N(x,P))
+\end{equation}
+!et
+
+where $h_1(x)$ is a function that makes $g_t(x)$ satisfy a given set of conditions, $N(x,P)$ a neural network with weights and biases described by $P$ and $h_2(x, N(x,P))$ some expression involving the neural network.
+The role of the function $h_2(x, N(x,P))$, is to ensure that the output from $N(x,P)$ is zero when $g_t(x)$ is evaluated at the values of $x$ where the given conditions must be satisfied.
+The function $h_1(x)$ should alone make $g_t(x)$ satisfy the conditions.
+
+But what about the network $N(x,P)$?
+As described previously, an optimization method could be used to minimize the parameters of a neural network, that being its weights and biases, through backward propagation.
+
+
+split
+===== Minimization process =====
+
+For the minimization to be defined, we need to have a cost function at hand to minimize.
+
+It is given that $f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right)$ should be equal to zero in (ref{ode}).
+We can choose to consider the mean squared error as the cost function for an input $x$.
+Since we are looking at one input, the cost function is just $f$ squared.
+The cost function $c\left(x, P \right)$ can therefore be expressed as
+
+!bt
+c\left(x, P\right) = \big(f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right)\big)^2
+!et
+
+If $N$ inputs are given as a vector $\vec x$ with elements $x_i$ for $i = 1,\dots,N$,
+the cost function becomes
+
+!bt
+\begin{equation} \label{cost}
+	c\left(\vec x, P\right) = \frac{1}{N} \sum_{i=1}^N \big(f\left(x_i, \, g(x_i), \, g'(x_i), \, g''(x_i), \, \dots \, , \, g^{(n)}(x_i)\right)\big)^2
+\end{equation}
+!et
+
+The neural net should then find some parameters $P$ that minimizes the cost function in
+(ref{cost}) for a set of $N$ training samples $x_i$.
+
+!split
+===== Minimizing the cost function using gradient descent and automatic differentiation =====
+To perform the minimization using gradient descent, the gradient of $c\left(\vec x, P\right)$ is needed.
+It might happen so that finding an analytical expression of the gradient of $c(\vec x, P)$ from (ref{cost}) gets too messy, depending on which cost function one desires to use.
+
+Luckily, there exists libraries that makes the job for us through automatic differentiation.
+Automatic differentiation is a method of finding the derivatives numerically with very high precision.
+
+In the forthcoming examples presenting possible usages of Autograd and TensorFlow,
+it is shown how one could set up a neural network using gradient descent solving a differential
+equation.
+
+!split
+===== Example: Exponential decay and setting up the network using Autograd =====
+An exponential decay of a quantity $g(x)$ is described by the equation
+
+!bt
+\begin{equation} \label{solve_expdec}
+  g'(x) = -\gamma g(x)
+\end{equation}
+!et
+
+with $g(0) = g_0$ for some chosen initial value $g_0$.
+
+The analytical solution of (ref{solve_expdec}) is
+
+!bt
+\begin{equation}
+  g(x) = g_0 \exp\left(-\gamma x\right)
+\end{equation}
+!et
+
+Having an analytical solution at hand, it is possible to use it to compare how well a neural network finds a solution of (ref{solve_expdec}).
+
+In this example, a neural network will be implemented using Autograd in order to perform backpropagation.
+
+!split
+===== The function to solve for =====
+
+The program will use a neural network to solve
+
+!bt
+\begin{equation} \label{solveode}
+g'(x) = -\gamma g(x)
+\end{equation}
+!et
+
+where $g(0) = g_0$ with $\gamma$ and $g_0$ being some chosen values.
+
+In this example, $\gamma = 2$ and $g_0 = 10$.
+
+!split
+===== The trial solution =====
+To begin with, a trial solution $g_t(t)$ must be chosen. A general trial solution for ordinary differential equations could be
+
+!bt
+g_t(x, P) = h_1(x) + h_2(x, N(x, P))
+!et
+
+with $h_1(x)$ ensuring that $g_t(x)$ satisfies some conditions and $h_2(x,N(x, P))$ an expression involving $x$ and the output from the neural network $N(x,P)$ with $P $ being the collection of the weights and biases for each layer. For now, it is assumed that the network consists of one input layer, one hidden layer, and one output layer.
+
+In this network, there are no weights and bias at the input layer, so $P = \{ P_{\text{hidden}},  P_{\text{output}} \}$.
+If there are $N_{\text{hidden} }$ neurons in the hidden layer, then $P_{\text{hidden}}$ is a $N_{\text{hidden} } \times (1 + N_{\text{input}})$ matrix, given that there are $N_{\text{input}}$ neurons in the input layer.
+
+The first column in $P_{\text{hidden} }$ represents the bias for each neuron in the hidden layer and the second column represents the weights for each neuron in the hidden layer from the input layer.
+If there are $N_{\text{output} }$ neurons in the output layer, then $P_{\text{output}} $ is a $N_{\text{output} } \times (1 + N_{\text{hidden} })$ matrix.
+
+Its first column represents the bias of each neuron and the remaining columns represents the weights to each neuron.
+
+It is given that $g(0) = g_0$. The trial solution must fulfill this condition to be a proper solution of (ref{solveode}). A possible way to ensure that $g_t(0, P) = g_0$, is to let $F(N(x,P)) = x \cdot N(x,P)$ and $A(x) = g_0$. This gives the following trial solution:
+
+!bt
+\begin{equation} \label{trial}
+g_t(x, P) = g_0 + x \cdot N(x, P)
+\end{equation}
+!et
+
+!split
+===== Reformulating the problem =====
+We wish that our neural network manages to minimize a given cost function.
+
+A reformulation of out equation, (ref{solveode}), must therefore be done,
+such that it describes the problem a neural network can solve for.
+
+The neural network must find the set of weights and biases $P$ such that the trial solution in (ref{trial}) satisfies (ref{solveode}).
+
+The trial solution
+
+!bt
+g_t(x, P) = g_0 + x \cdot N(x, P)
+!et
+
+has been chosen such that it already solves the condition $g(0) = g_0$. What remains, is to find $P$ such that
+
+!bt
+\begin{equation} \label{nnmin}
+g_t'(x, P) = - \gamma g_t(x, P)
+\end{equation}
+!et
+
+is fulfilled as *best as possible*.
+
+The left hand side and right hand side of (ref{nnmin}) must be computed separately, and then the neural network must choose weights and biases, contained in $P$, such that the sides are equal as best as possible.
+This means that the absolute or squared difference between the sides must be as close to zero, ideally equal to zero.
+In this case, the difference squared shows to be an appropriate measurement of how erroneous the trial solution is with respect to $P$ of the neural network.
+
+This gives the following cost function our neural network must solve for:
+
+!bt
+\min_{P}\Big\{ \big(g_t'(x, P) - ( -\gamma g_t(x, P) \big)^2 \Big\}
+!et
+
+(the notation $\min_{P}\{ f(x, P) \}$ means that we desire to find $P$ that yields the minimum of $f(x, P)$)
+
+or, in terms of weights and biases for the hidden and output layer in our network:
+
+!bt
+\min_{P_{\text{hidden} }, \ P_{\text{output} }}\Big\{ \big(g_t'(x, \{ P_{\text{hidden} }, P_{\text{output} }\}) - ( -\gamma g_t(x, \{ P_{\text{hidden} }, P_{\text{output} }\}) \big)^2 \Big\}
+!et
+
+for an input value $x$.
+
+If the neural network evaluates $g_t(x, P)$ at more values for $x$, say $N$ values $x_i$ for $i = 1, \dots, N$, then the *total* error to minimize becomes
+
+!bt
+\begin{equation} \label{min}
+\min_{P}\Big\{\frac{1}{N} \sum_{i=1}^N  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2 \Big\}
+\end{equation}
+!et
+
+Letting $\vec x$ be a vector with elements $x_i$ and $c(\vec x, P) = \frac{1}{N} \sum_i  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2$ denote the cost function, the minimization problem that our network must solve, becomes
+
+!bt
+\min_{P} c(\vec x, P)
+!et
+
+In terms of $P_{\text{hidden} }$ and $P_{\text{output} }$, this could also be expressed as
+
+$$
+\min_{P_{\text{hidden} }, \ P_{\text{output} }} c(\vec x, \{P_{\text{hidden} }, P_{\text{output} }\})
+$$
+
+!split
+===== A possible implementation of a neural network using Autograd =====
+
+For simplicity, it is assumed that the input is an array $\vec x = (x_1, \dots, x_N)$ with $N$ elements. It is at these points the neural network should find $P$ such that it fulfills (ref{min}).
+
+First, the neural network must feed forward the inputs.
+This means that $\vec x$ must be passed through an input layer, a hidden layer and a output layer. The input layer in this case, does not need to process the data any further.
+The input layer will consist of $N_{\text{input} }$ neurons, passing its element to each neuron in the hidden layer.  The number of neurons in the hidden layer will be $N_{\text{hidden} }$.
+
+For the $i$-th in the hidden layer with weight $w_i^{\text{hidden} }$ and bias $b_i^{\text{hidden} }$, the weighting from the $j$-th neuron at the input layer is:
+
+!bt
+\begin{aligned}
+z_{i,j}^{\text{hidden}} &= b_i^{\text{hidden}} + w_i^{\text{hidden}}x_j \\
+&=
+\begin{pmatrix}
+b_i^{\text{hidden}} & w_i^{\text{hidden}}
+\end{pmatrix}
+\begin{pmatrix}
+1 \\
+x_j
+\end{pmatrix}
+\end{aligned}
+!et
+
+The result after weighting the inputs at the $i$-th hidden neuron can be written as a vector:
+
+!bt
+\begin{aligned}
+\vec{z}_{i}^{\text{hidden}} &= \Big( b_i^{\text{hidden}} + w_i^{\text{hidden}}x_1 , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_2, \ \dots \, , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_N\Big)  \\
+&=
+\begin{pmatrix}
+ b_i^{\text{hidden}}  & w_i^{\text{hidden}}
+\end{pmatrix}
+\begin{pmatrix}
+1  & 1 & \dots & 1 \\
+x_1 & x_2 & \dots & x_N
+\end{pmatrix} \\
+&= \vec{p}_{i, \text{hidden}}^T X
+\end{aligned}
+!et
+
+The vector $\vec{p}_{i, \text{hidden}}^T$ constitutes each row in $P_{\text{hidden} }$, which contains the weights for the neural network to minimize according to (ref{min}).
+
+After having found $\vec{z}_{i}^{\text{hidden}} $ for every $i$-th neuron within the hidden layer, the vector will be sent to an activation function $a_i(\vec{z})$.
+
+In this example, the sigmoid function has been chosen to be the activation function for each hidden neuron:
+
+!bt
+f(z) = \frac{1}{1 + \exp{(-z)}}
+!et
+
+It is possible to use other activations functions for the hidden layer also.
+
+The output $\vec{x}_i^{\text{hidden} }$from each $i$-th hidden neuron is:
+
+$$
+\vec{x}_i^{\text{hidden} } = f\big(  \vec{z}_{i}^{\text{hidden}} \big)
+$$
+
+The outputs $\vec{x}_i^{\text{hidden} } $ are then sent to the output layer.
+
+The output layer consists of one neuron in this case, and combines the output from each of the neurons in the hidden layers. The output layer combines the results from the hidden layer using some weights $ w_i^{\text{output}}$ and biases $b_i^{\text{output}}$. In this case, it is assumes that the number of neurons in the output layer is one.
+
+The procedure of weighting the output neuron $j$ in the hidden layer to the $i$-th neuron in the output layer is similar as for the hidden layer described previously.
+
+!bt
+\begin{aligned}
+z_{1,j}^{\text{output}} & =
+\begin{pmatrix}
+b_1^{\text{output}} & \vec{w}_1^{\text{output}}
+\end{pmatrix}
+\begin{pmatrix}
+1 \\
+\vec{x}_j^{\text{hidden}}
+\end{pmatrix}
+\end{aligned}
+!et
+
+Expressing $z_{1,j}^{\text{output}}$ as a vector gives the following way of weighting the inputs from the hidden layer:
+
+!bt
+\vec{z}_{1}^{\text{output}} =
+\begin{pmatrix}
+b_1^{\text{output}} & \vec{w}_1^{\text{output}}
+\end{pmatrix}
+\begin{pmatrix}
+1  & 1 & \dots & 1 \\
+\vec{x}_1^{\text{hidden}} & \vec{x}_2^{\text{hidden}} & \dots & \vec{x}_N^{\text{hidden}}
+\end{pmatrix}
+!et
+
+In this case we seek a continuous range of values since we are approximating a function. This means that after computing $\vec{z}_{1}^{\text{output}}$ the neural network has finished its feed forward step, and $\vec{z}_{1}^{\text{output}}$ is the final output of the network.
+
+!split
+===== Backpropagation using Autograd =====
+The next step is to decide how the parameters should be changed such that they minimize the cost function.
+
+The chosen cost function for this problem is
+
+!bt
+c(\vec x, P) = \frac{1}{N} \sum_i  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2
+!et
+
+In order to minimize the cost function, an optimization method must be chosen.
+
+Here, gradient descent with a constant step size has been chosen.
+
+!split
+===== Gradient descent =====
+The idea of the gradient descent algorithm is to update parameters in direction where the cost function decreases goes to a minimum.
+
+In general, the update of some parameters $\vec \omega$ given a cost function defined by some weights $\vec \omega$, $c(\vec x, \vec \omega)$, goes as follows:
+
+!bt
+\vec \omega_{\text{new} } = \vec \omega - \lambda \nabla_{\vec \omega} c(\vec x, \vec \omega)
+!et
+
+for a number of iterations or until $ \big|\big| \vec \omega_{\text{new} } - \vec \omega \big|\big|$ becomes smaller than some given tolerance.
+
+The value of $\lambda$ decides how large steps the algorithm must take in the direction of $ \nabla_{\vec \omega} c(\vec x, \vec \omega)$.
+The notation $\nabla_{\vec \omega}$ express the gradient with respect to the elements in $\vec \omega$.
+
+In our case, we have to minimize the cost function $c(\vec x, P)$ with respect to the two sets of weights and biases, that is for the hidden layer $P_{\text{hidden} }$ and for the output layer $P_{\text{output} }$ .
+
+This means that $P_{\text{hidden} }$ and $P_{\text{output} }$ is updated by
+
+!bt
+\begin{aligned}
+P_{\text{hidden},\text{new}} &= P_{\text{hidden}} - \lambda \nabla_{P_{\text{hidden}}} c(\vec x, P)  \\
+P_{\text{output},\text{new}} &= P_{\text{output}} - \lambda \nabla_{P_{\text{output}}} c(\vec x, P)
+\end{aligned}
+!et
+
+In general, one could risk using a cost function having gradients that are cumbersome to derive analytically.
+For our case, the cost functions are just the mean squared error.
+One could employ an implementation of the back propagation for this case, but we will emphasis
+on how one could use automatic differentiation in order to train the network.
+
+However, it might be useful to know how automatic differentiation can be used, e.g through Autograd, in order to test an implementation.
+
 
 
 
@@ -952,382 +1306,6 @@ Here are some of the most popular:
 * _t-Distributed Stochastic Neighbor Embedding_ (t-SNE) reduces dimensionality while trying to keep similar instances close and dissimilar instances apart. It is mostly used for visualization, in particular to visualize clusters of instances in high-dimensional space (e.g., to visualize the MNIST images in 2D).
 * Linear Discriminant Analysis (LDA) is actually a classification algorithm, but during training it learns the most discriminative axes between the classes, and these axes can then be used to define a hyperplane onto which to project the data. The benefit is that the projection will keep classes as far apart as possible, so LDA is a good technique to reduce dimensionality before running another classification algorithm such as a Support Vector Machine (SVM) classifier discussed in the SVM lectures.
 
-
-!split
-===== Differential equations =====
-
-The Universal Approximation Theorem states that a neural network can
-approximate any function at a single hidden layer along with one input
-and output layer to any given precision.  Having this in mind, we will
-look closer at whether a neural network manages to solve for a
-function in an equation.
-
-
-!split
-===== Description of the equation to solve for =====
-A differential equation is a equation where the solution is a function.
-The equation describes how the derivatives of the function behaves in a given domain along with some conditions.
-
-Given a differential equation, it is desirable to know how to
-reformulate it into an equation a neural network can solve.  Having
-decided on which activation functions each layer should use, along
-with the number of hidden layers and neurons within each layer, the
-changeable parameters of a neural network are the weights and biases
-for each neuron in every layer in the net.  If a differential equation
-is reformulated into an equation where minimization of some parameters
-must be done, a neural net could possibly solve this equation.
-
-A trial solution might be tricky to find in general.  Due to the
-Universal Approximation Theorem, one could hope that outcome of the
-deep neural net might solve a given differential equation, even though
-it is used in a simple trial solution.  Let us try this idea on some
-well-known ordinary differential equations and thereafter try to solve
-for functions defined by two variables, giving partial differential
-equations.
-
-!split
-===== Ordinary Differential Equations =====
-
-An ordinary differential equation (ODE) is an equation involving functions having one variable.
-
-In general, an ordinary differential equation looks like
-
-!bt
-\begin{equation} \label{ode}
-f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right) = 0
-\end{equation}
-!et
-
-where $g(x)$ is the function to find, and $g^{(n)}(x)$ is the $n$-th derivative of $g(x)$.
-
-The $f\left(x, g(x), g'(x), g''(x), \, \dots \, , g^{(n)}(x)\right)$ is just a way to write that there is an expression involving $x$ and $g(x), \ g'(x), \ g''(x), \, \dots \, , \text{ and } g^{(n)}(x)$ on the left side of the equality sign in (ref{ode}).
-The highest order of derivative, that is the value of $n$, determines to the order of the equation.
-The equation is referred to as a $n$-th order ODE.
-Along with (ref{ode}), some additional conditions of the function $g(x)$ are typically given
-for the solution to be unique.
-
-!split
-===== The trial solution =====
-
-Let the trial solution $g_t(x)$ be
-
-!bt
-\begin{equation}
-	g_t(x) = h_1(x) + h_2(x,N(x,P))
-\end{equation}
-!et
-
-where $h_1(x)$ is a function that makes $g_t(x)$ satisfy a given set of conditions, $N(x,P)$ a neural network with weights and biases described by $P$ and $h_2(x, N(x,P))$ some expression involving the neural network.
-The role of the function $h_2(x, N(x,P))$, is to ensure that the output from $N(x,P)$ is zero when $g_t(x)$ is evaluated at the values of $x$ where the given conditions must be satisfied.
-The function $h_1(x)$ should alone make $g_t(x)$ satisfy the conditions.
-
-But what about the network $N(x,P)$?
-As described previously, an optimization method could be used to minimize the parameters of a neural network, that being its weights and biases, through backward propagation.
-For the minimization to be defined, we need to have a cost function at hand to minimize.
-
-It is given that $f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right)$ should be equal to zero in (ref{ode}).
-We can choose to consider the mean squared error as the cost function for an input $x$.
-Since we are looking at one input, the cost function is just $f$ squared.
-The cost function $c\left(x, P \right)$ can therefore be expressed as
-
-!bt
-c\left(x, P\right) = \big(f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right)\big)^2
-!et
-
-If $N$ inputs are given as a vector $\vec x$ with elements $x_i$ for $i = 1,\dots,N$,
-the cost function becomes
-
-!bt
-\begin{equation} \label{cost}
-	c\left(\vec x, P\right) = \frac{1}{N} \sum_{i=1}^N \big(f\left(x_i, \, g(x_i), \, g'(x_i), \, g''(x_i), \, \dots \, , \, g^{(n)}(x_i)\right)\big)^2
-\end{equation}
-!et
-
-The neural net should then find some parameters $P$ that minimizes the cost function in
-(ref{cost}) for a set of $N$ training samples $x_i$.
-
-!split
-===== Minimizing the cost function using gradient descent and automatic differentiation =====
-To perform the minimization using gradient descent, the gradient of $c\left(\vec x, P\right)$ is needed.
-It might happen so that finding an analytical expression of the gradient of $c(\vec x, P)$ from (ref{cost}) gets too messy, depending on which cost function one desires to use.
-
-Luckily, there exists libraries that makes the job for us through automatic differentiation.
-Automatic differentiation is a method of finding the derivatives numerically with very high precision.
-
-In the forthcoming examples presenting possible usages of Autograd and TensorFlow,
-it is shown how one could set up a neural network using gradient descent solving a differential
-equation.
-
-!split
-===== Example: Exponential decay and setting up the network using Autograd =====
-An exponential decay of a quantity $g(x)$ is described by the equation
-
-!bt
-\begin{equation} \label{solve_expdec}
-  g'(x) = -\gamma g(x)
-\end{equation}
-!et
-
-with $g(0) = g_0$ for some chosen initial value $g_0$.
-
-The analytical solution of (ref{solve_expdec}) is
-
-!bt
-\begin{equation}
-  g(x) = g_0 \exp\left(-\gamma x\right)
-\end{equation}
-!et
-
-Having an analytical solution at hand, it is possible to use it to compare how well a neural network finds a solution of (ref{solve_expdec}).
-
-In this example, a neural network will be implemented using Autograd in order to perform backpropagation.
-
-!split
-===== The function to solve for =====
-
-The program will use a neural network to solve
-
-!bt
-\begin{equation} \label{solveode}
-g'(x) = -\gamma g(x)
-\end{equation}
-!et
-
-where $g(0) = g_0$ with $\gamma$ and $g_0$ being some chosen values.
-
-In this example, $\gamma = 2$ and $g_0 = 10$.
-
-!split
-===== The trial solution =====
-To begin with, a trial solution $g_t(t)$ must be chosen. A general trial solution for ordinary differential equations could be
-
-!bt
-g_t(x, P) = h_1(x) + h_2(x, N(x, P))
-!et
-
-with $h_1(x)$ ensuring that $g_t(x)$ satisfies some conditions and $h_2(x,N(x, P))$ an expression involving $x$ and the output from the neural network $N(x,P)$ with $P $ being the collection of the weights and biases for each layer. For now, it is assumed that the network consists of one input layer, one hidden layer, and one output layer.
-
-In this network, there are no weights and bias at the input layer, so $P = \{ P_{\text{hidden}},  P_{\text{output}} \}$.
-If there are $N_{\text{hidden} }$ neurons in the hidden layer, then $P_{\text{hidden}}$ is a $N_{\text{hidden} } \times (1 + N_{\text{input}})$ matrix, given that there are $N_{\text{input}}$ neurons in the input layer.
-
-The first column in $P_{\text{hidden} }$ represents the bias for each neuron in the hidden layer and the second column represents the weights for each neuron in the hidden layer from the input layer.
-If there are $N_{\text{output} }$ neurons in the output layer, then $P_{\text{output}} $ is a $N_{\text{output} } \times (1 + N_{\text{hidden} })$ matrix.
-
-Its first column represents the bias of each neuron and the remaining columns represents the weights to each neuron.
-
-It is given that $g(0) = g_0$. The trial solution must fulfill this condition to be a proper solution of (ref{solveode}). A possible way to ensure that $g_t(0, P) = g_0$, is to let $F(N(x,P)) = x \cdot N(x,P)$ and $A(x) = g_0$. This gives the following trial solution:
-
-!bt
-\begin{equation} \label{trial}
-g_t(x, P) = g_0 + x \cdot N(x, P)
-\end{equation}
-!et
-
-!split
-===== Reformulating the problem =====
-We wish that our neural network manages to minimize a given cost function.
-
-A reformulation of out equation, (ref{solveode}), must therefore be done,
-such that it describes the problem a neural network can solve for.
-
-The neural network must find the set of weights and biases $P$ such that the trial solution in (ref{trial}) satisfies (ref{solveode}).
-
-The trial solution
-
-!bt
-g_t(x, P) = g_0 + x \cdot N(x, P)
-!et
-
-has been chosen such that it already solves the condition $g(0) = g_0$. What remains, is to find $P$ such that
-
-!bt
-\begin{equation} \label{nnmin}
-g_t'(x, P) = - \gamma g_t(x, P)
-\end{equation}
-!et
-
-is fulfilled as *best as possible*.
-
-The left hand side and right hand side of (ref{nnmin}) must be computed separately, and then the neural network must choose weights and biases, contained in $P$, such that the sides are equal as best as possible.
-This means that the absolute or squared difference between the sides must be as close to zero, ideally equal to zero.
-In this case, the difference squared shows to be an appropriate measurement of how erroneous the trial solution is with respect to $P$ of the neural network.
-
-This gives the following cost function our neural network must solve for:
-
-!bt
-\min_{P}\Big\{ \big(g_t'(x, P) - ( -\gamma g_t(x, P) \big)^2 \Big\}
-!et
-
-(the notation $\min_{P}\{ f(x, P) \}$ means that we desire to find $P$ that yields the minimum of $f(x, P)$)
-
-or, in terms of weights and biases for the hidden and output layer in our network:
-
-!bt
-\min_{P_{\text{hidden} }, \ P_{\text{output} }}\Big\{ \big(g_t'(x, \{ P_{\text{hidden} }, P_{\text{output} }\}) - ( -\gamma g_t(x, \{ P_{\text{hidden} }, P_{\text{output} }\}) \big)^2 \Big\}
-!et
-
-for an input value $x$.
-
-If the neural network evaluates $g_t(x, P)$ at more values for $x$, say $N$ values $x_i$ for $i = 1, \dots, N$, then the *total* error to minimize becomes
-
-!bt
-\begin{equation} \label{min}
-\min_{P}\Big\{\frac{1}{N} \sum_{i=1}^N  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2 \Big\}
-\end{equation}
-!et
-
-Letting $\vec x$ be a vector with elements $x_i$ and $c(\vec x, P) = \frac{1}{N} \sum_i  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2$ denote the cost function, the minimization problem that our network must solve, becomes
-
-!bt
-\min_{P} c(\vec x, P)
-!et
-
-In terms of $P_{\text{hidden} }$ and $P_{\text{output} }$, this could also be expressed as
-
-$$
-\min_{P_{\text{hidden} }, \ P_{\text{output} }} c(\vec x, \{P_{\text{hidden} }, P_{\text{output} }\})
-$$
-
-!split
-===== A possible implementation of a neural network using Autograd =====
-
-For simplicity, it is assumed that the input is an array $\vec x = (x_1, \dots, x_N)$ with $N$ elements. It is at these points the neural network should find $P$ such that it fulfills (ref{min}).
-
-First, the neural network must feed forward the inputs.
-This means that $\vec x$ must be passed through an input layer, a hidden layer and a output layer. The input layer in this case, does not need to process the data any further.
-The input layer will consist of $N_{\text{input} }$ neurons, passing its element to each neuron in the hidden layer.  The number of neurons in the hidden layer will be $N_{\text{hidden} }$.
-
-For the $i$-th in the hidden layer with weight $w_i^{\text{hidden} }$ and bias $b_i^{\text{hidden} }$, the weighting from the $j$-th neuron at the input layer is:
-
-!bt
-\begin{aligned}
-z_{i,j}^{\text{hidden}} &= b_i^{\text{hidden}} + w_i^{\text{hidden}}x_j \\
-&=
-\begin{pmatrix}
-b_i^{\text{hidden}} & w_i^{\text{hidden}}
-\end{pmatrix}
-\begin{pmatrix}
-1 \\
-x_j
-\end{pmatrix}
-\end{aligned}
-!et
-
-The result after weighting the inputs at the $i$-th hidden neuron can be written as a vector:
-
-!bt
-\begin{aligned}
-\vec{z}_{i}^{\text{hidden}} &= \Big( b_i^{\text{hidden}} + w_i^{\text{hidden}}x_1 , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_2, \ \dots \, , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_N\Big)  \\
-&=
-\begin{pmatrix}
- b_i^{\text{hidden}}  & w_i^{\text{hidden}}
-\end{pmatrix}
-\begin{pmatrix}
-1  & 1 & \dots & 1 \\
-x_1 & x_2 & \dots & x_N
-\end{pmatrix} \\
-&= \vec{p}_{i, \text{hidden}}^T X
-\end{aligned}
-!et
-
-The vector $\vec{p}_{i, \text{hidden}}^T$ constitutes each row in $P_{\text{hidden} }$, which contains the weights for the neural network to minimize according to (ref{min}).
-
-After having found $\vec{z}_{i}^{\text{hidden}} $ for every $i$-th neuron within the hidden layer, the vector will be sent to an activation function $a_i(\vec{z})$.
-
-In this example, the sigmoid function has been chosen to be the activation function for each hidden neuron:
-
-!bt
-f(z) = \frac{1}{1 + \exp{(-z)}}
-!et
-
-It is possible to use other activations functions for the hidden layer also.
-
-The output $\vec{x}_i^{\text{hidden} }$from each $i$-th hidden neuron is:
-
-$$
-\vec{x}_i^{\text{hidden} } = f\big(  \vec{z}_{i}^{\text{hidden}} \big)
-$$
-
-The outputs $\vec{x}_i^{\text{hidden} } $ are then sent to the output layer.
-
-The output layer consists of one neuron in this case, and combines the output from each of the neurons in the hidden layers. The output layer combines the results from the hidden layer using some weights $ w_i^{\text{output}}$ and biases $b_i^{\text{output}}$. In this case, it is assumes that the number of neurons in the output layer is one.
-
-The procedure of weighting the output neuron $j$ in the hidden layer to the $i$-th neuron in the output layer is similar as for the hidden layer described previously.
-
-!bt
-\begin{aligned}
-z_{1,j}^{\text{output}} & =
-\begin{pmatrix}
-b_1^{\text{output}} & \vec{w}_1^{\text{output}}
-\end{pmatrix}
-\begin{pmatrix}
-1 \\
-\vec{x}_j^{\text{hidden}}
-\end{pmatrix}
-\end{aligned}
-!et
-
-Expressing $z_{1,j}^{\text{output}}$ as a vector gives the following way of weighting the inputs from the hidden layer:
-
-!bt
-\vec{z}_{1}^{\text{output}} =
-\begin{pmatrix}
-b_1^{\text{output}} & \vec{w}_1^{\text{output}}
-\end{pmatrix}
-\begin{pmatrix}
-1  & 1 & \dots & 1 \\
-\vec{x}_1^{\text{hidden}} & \vec{x}_2^{\text{hidden}} & \dots & \vec{x}_N^{\text{hidden}}
-\end{pmatrix}
-!et
-
-In this case we seek a continuous range of values since we are approximating a function. This means that after computing $\vec{z}_{1}^{\text{output}}$ the neural network has finished its feed forward step, and $\vec{z}_{1}^{\text{output}}$ is the final output of the network.
-
-!split
-===== Backpropagation using Autograd =====
-The next step is to decide how the parameters should be changed such that they minimize the cost function.
-
-The chosen cost function for this problem is
-
-!bt
-c(\vec x, P) = \frac{1}{N} \sum_i  \big(g_t'(x_i, P) - ( -\gamma g_t(x_i, P) \big)^2
-!et
-
-In order to minimize the cost function, an optimization method must be chosen.
-
-Here, gradient descent with a constant step size has been chosen.
-
-!split
-===== Gradient descent =====
-The idea of the gradient descent algorithm is to update parameters in direction where the cost function decreases goes to a minimum.
-
-In general, the update of some parameters $\vec \omega$ given a cost function defined by some weights $\vec \omega$, $c(\vec x, \vec \omega)$, goes as follows:
-
-!bt
-\vec \omega_{\text{new} } = \vec \omega - \lambda \nabla_{\vec \omega} c(\vec x, \vec \omega)
-!et
-
-for a number of iterations or until $ \big|\big| \vec \omega_{\text{new} } - \vec \omega \big|\big|$ becomes smaller than some given tolerance.
-
-The value of $\lambda$ decides how large steps the algorithm must take in the direction of $ \nabla_{\vec \omega} c(\vec x, \vec \omega)$.
-The notation $\nabla_{\vec \omega}$ express the gradient with respect to the elements in $\vec \omega$.
-
-In our case, we have to minimize the cost function $c(\vec x, P)$ with respect to the two sets of weights and biases, that is for the hidden layer $P_{\text{hidden} }$ and for the output layer $P_{\text{output} }$ .
-
-This means that $P_{\text{hidden} }$ and $P_{\text{output} }$ is updated by
-
-!bt
-\begin{aligned}
-P_{\text{hidden},\text{new}} &= P_{\text{hidden}} - \lambda \nabla_{P_{\text{hidden}}} c(\vec x, P)  \\
-P_{\text{output},\text{new}} &= P_{\text{output}} - \lambda \nabla_{P_{\text{output}}} c(\vec x, P)
-\end{aligned}
-!et
-
-In general, one could risk using a cost function having gradients that are cumbersome to derive analytically.
-For our case, the cost functions are just the mean squared error.
-One could employ an implementation of the back propagation for this case, but we will emphasis
-on how one could use automatic differentiation in order to train the network.
-
-However, it might be useful to know how automatic differentiation can be used, e.g through Autograd, in order to test an implementation.
 
 !split
 ===== The network with one input, hidden, and output layer =====
