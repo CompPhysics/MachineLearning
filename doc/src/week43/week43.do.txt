@@ -53,15 +53,23 @@ Let the trial solution $g_t(x)$ be
 \end{equation}
 !et
 
-where $h_1(x)$ is a function that makes $g_t(x)$ satisfy a given set of conditions, $N(x,P)$ a neural network with weights and biases described by $P$ and $h_2(x, N(x,P))$ some expression involving the neural network.
-The role of the function $h_2(x, N(x,P))$, is to ensure that the output from $N(x,P)$ is zero when $g_t(x)$ is evaluated at the values of $x$ where the given conditions must be satisfied.
-The function $h_1(x)$ should alone make $g_t(x)$ satisfy the conditions.
+
+where $h_1(x)$ is a function that makes $g_t(x)$ satisfy a given set
+of conditions, $N(x,P)$ a neural network with weights and biases
+described by $P$ and $h_2(x, N(x,P))$ some expression involving the
+neural network.  The role of the function $h_2(x, N(x,P))$, is to
+ensure that the output from $N(x,P)$ is zero when $g_t(x)$ is
+evaluated at the values of $x$ where the given conditions must be
+satisfied.  The function $h_1(x)$ should alone make $g_t(x)$ satisfy
+the conditions.
 
 But what about the network $N(x,P)$?
+
+
 As described previously, an optimization method could be used to minimize the parameters of a neural network, that being its weights and biases, through backward propagation.
 
 
-split
+!split
 ===== Minimization process =====
 
 For the minimization to be defined, we need to have a cost function at hand to minimize.
@@ -72,7 +80,7 @@ Since we are looking at one input, the cost function is just $f$ squared.
 The cost function $c\left(x, P \right)$ can therefore be expressed as
 
 !bt
-c\left(x, P\right) = \big(f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right)\big)^2
+C\left(x, P\right) = \big(f\left(x, \, g(x), \, g'(x), \, g''(x), \, \dots \, , \, g^{(n)}(x)\right)\big)^2
 !et
 
 If $N$ inputs are given as a vector $\bm{x}$ with elements $x_i$ for $i = 1,\dots,N$,
@@ -80,27 +88,26 @@ the cost function becomes
 
 !bt
 \begin{equation} \label{cost}
-	c\left(\bm{x}, P\right) = \frac{1}{N} \sum_{i=1}^N \big(f\left(x_i, \, g(x_i), \, g'(x_i), \, g''(x_i), \, \dots \, , \, g^{(n)}(x_i)\right)\big)^2
+	C\left(\bm{x}, P\right) = \frac{1}{N} \sum_{i=1}^N \big(f\left(x_i, \, g(x_i), \, g'(x_i), \, g''(x_i), \, \dots \, , \, g^{(n)}(x_i)\right)\big)^2
 \end{equation}
 !et
 
-The neural net should then find some parameters $P$ that minimizes the cost function in
+The neural net should then find the parameters $P$ that minimizes the cost function in
 (ref{cost}) for a set of $N$ training samples $x_i$.
 
 !split
 ===== Minimizing the cost function using gradient descent and automatic differentiation =====
-To perform the minimization using gradient descent, the gradient of $c\left(\bm{x}, P\right)$ is needed.
-It might happen so that finding an analytical expression of the gradient of $c(\bm{x}, P)$ from (ref{cost}) gets too messy, depending on which cost function one desires to use.
+
+To perform the minimization using gradient descent, the gradient of $C\left(\bm{x}, P\right)$ is needed.
+It might happen so that finding an analytical expression of the gradient of $C(\bm{x}, P)$ from (ref{cost}) gets too messy, depending on which cost function one desires to use.
 
 Luckily, there exists libraries that makes the job for us through automatic differentiation.
 Automatic differentiation is a method of finding the derivatives numerically with very high precision.
 
-In the forthcoming examples presenting possible usages of Autograd and TensorFlow,
-it is shown how one could set up a neural network using gradient descent solving a differential
-equation.
 
 !split
-===== Example: Exponential decay and setting up the network using Autograd =====
+===== Example: Exponential decay =====
+
 An exponential decay of a quantity $g(x)$ is described by the equation
 
 !bt
@@ -121,7 +128,6 @@ The analytical solution of (ref{solve_expdec}) is
 
 Having an analytical solution at hand, it is possible to use it to compare how well a neural network finds a solution of (ref{solve_expdec}).
 
-In this example, a neural network will be implemented using Autograd in order to perform backpropagation.
 
 !split
 ===== The function to solve for =====
@@ -148,6 +154,9 @@ g_t(x, P) = h_1(x) + h_2(x, N(x, P))
 
 with $h_1(x)$ ensuring that $g_t(x)$ satisfies some conditions and $h_2(x,N(x, P))$ an expression involving $x$ and the output from the neural network $N(x,P)$ with $P $ being the collection of the weights and biases for each layer. For now, it is assumed that the network consists of one input layer, one hidden layer, and one output layer.
 
+!split
+===== Setup of Network =====
+
 In this network, there are no weights and bias at the input layer, so $P = \{ P_{\text{hidden}},  P_{\text{output}} \}$.
 If there are $N_{\text{hidden} }$ neurons in the hidden layer, then $P_{\text{hidden}}$ is a $N_{\text{hidden} } \times (1 + N_{\text{input}})$ matrix, given that there are $N_{\text{input}}$ neurons in the input layer.
 
@@ -166,6 +175,7 @@ g_t(x, P) = g_0 + x \cdot N(x, P)
 
 !split
 ===== Reformulating the problem =====
+
 We wish that our neural network manages to minimize a given cost function.
 
 A reformulation of out equation, (ref{solveode}), must therefore be done,
@@ -189,6 +199,9 @@ g_t'(x, P) = - \gamma g_t(x, P)
 
 is fulfilled as *best as possible*.
 
+!split
+===== More technicalities =====
+
 The left hand side and right hand side of (ref{nnmin}) must be computed separately, and then the neural network must choose weights and biases, contained in $P$, such that the sides are equal as best as possible.
 This means that the absolute or squared difference between the sides must be as close to zero, ideally equal to zero.
 In this case, the difference squared shows to be an appropriate measurement of how erroneous the trial solution is with respect to $P$ of the neural network.
@@ -208,6 +221,9 @@ or, in terms of weights and biases for the hidden and output layer in our networ
 !et
 
 for an input value $x$.
+
+!split
+=====  More details =====
 
 If the neural network evaluates $g_t(x, P)$ at more values for $x$, say $N$ values $x_i$ for $i = 1, \dots, N$, then the *total* error to minimize becomes
 
@@ -230,13 +246,16 @@ $$
 $$
 
 !split
-===== A possible implementation of a neural network using Autograd =====
+===== A possible implementation of a neural network =====
 
 For simplicity, it is assumed that the input is an array $\bm{x} = (x_1, \dots, x_N)$ with $N$ elements. It is at these points the neural network should find $P$ such that it fulfills (ref{min}).
 
 First, the neural network must feed forward the inputs.
 This means that $\bm{x}s$ must be passed through an input layer, a hidden layer and a output layer. The input layer in this case, does not need to process the data any further.
 The input layer will consist of $N_{\text{input} }$ neurons, passing its element to each neuron in the hidden layer.  The number of neurons in the hidden layer will be $N_{\text{hidden} }$.
+
+!split
+===== Technicalities =====
 
 For the $i$-th in the hidden layer with weight $w_i^{\text{hidden} }$ and bias $b_i^{\text{hidden} }$, the weighting from the $j$-th neuron at the input layer is:
 
@@ -254,11 +273,14 @@ x_j
 \end{aligned}
 !et
 
+!split
+=====  Final technicalities I =====
+
 The result after weighting the inputs at the $i$-th hidden neuron can be written as a vector:
 
 !bt
 \begin{aligned}
-\vec{z}_{i}^{\text{hidden}} &= \Big( b_i^{\text{hidden}} + w_i^{\text{hidden}}x_1 , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_2, \ \dots \, , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_N\Big)  \\
+\bm{z}_{i}^{\text{hidden}} &= \Big( b_i^{\text{hidden}} + w_i^{\text{hidden}}x_1 , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_2, \ \dots \, , \ b_i^{\text{hidden}} + w_i^{\text{hidden}} x_N\Big)  \\
 &=
 \begin{pmatrix}
  b_i^{\text{hidden}}  & w_i^{\text{hidden}}
@@ -267,13 +289,16 @@ The result after weighting the inputs at the $i$-th hidden neuron can be written
 1  & 1 & \dots & 1 \\
 x_1 & x_2 & \dots & x_N
 \end{pmatrix} \\
-&= \vec{p}_{i, \text{hidden}}^T X
+&= \bm{p}_{i, \text{hidden}}^T X
 \end{aligned}
 !et
 
-The vector $\vec{p}_{i, \text{hidden}}^T$ constitutes each row in $P_{\text{hidden} }$, which contains the weights for the neural network to minimize according to (ref{min}).
+!split
+=====  Final technicalities II =====
 
-After having found $\vec{z}_{i}^{\text{hidden}} $ for every $i$-th neuron within the hidden layer, the vector will be sent to an activation function $a_i(\vec{z})$.
+The vector $\bm{p}_{i, \text{hidden}}^T$ constitutes each row in $P_{\text{hidden} }$, which contains the weights for the neural network to minimize according to (ref{min}).
+
+After having found $\bm{z}_{i}^{\text{hidden}} $ for every $i$-th neuron within the hidden layer, the vector will be sent to an activation function $a_i(\bm{z})$.
 
 In this example, the sigmoid function has been chosen to be the activation function for each hidden neuron:
 
@@ -283,15 +308,19 @@ f(z) = \frac{1}{1 + \exp{(-z)}}
 
 It is possible to use other activations functions for the hidden layer also.
 
-The output $\vec{x}_i^{\text{hidden} }$from each $i$-th hidden neuron is:
+The output $\bm{x}_i^{\text{hidden} }$from each $i$-th hidden neuron is:
 
 $$
-\vec{x}_i^{\text{hidden} } = f\big(  \vec{z}_{i}^{\text{hidden}} \big)
+\bm{x}_i^{\text{hidden} } = f\big(  \bm{z}_{i}^{\text{hidden}} \big)
 $$
 
-The outputs $\vec{x}_i^{\text{hidden} } $ are then sent to the output layer.
+The outputs $\bm{x}_i^{\text{hidden} } $ are then sent to the output layer.
 
 The output layer consists of one neuron in this case, and combines the output from each of the neurons in the hidden layers. The output layer combines the results from the hidden layer using some weights $ w_i^{\text{output}}$ and biases $b_i^{\text{output}}$. In this case, it is assumes that the number of neurons in the output layer is one.
+
+!split
+=====  Final technicalities III =====
+
 
 The procedure of weighting the output neuron $j$ in the hidden layer to the $i$-th neuron in the output layer is similar as for the hidden layer described previously.
 
@@ -299,32 +328,36 @@ The procedure of weighting the output neuron $j$ in the hidden layer to the $i$-
 \begin{aligned}
 z_{1,j}^{\text{output}} & =
 \begin{pmatrix}
-b_1^{\text{output}} & \vec{w}_1^{\text{output}}
+b_1^{\text{output}} & \bm{w}_1^{\text{output}}
 \end{pmatrix}
 \begin{pmatrix}
 1 \\
-\vec{x}_j^{\text{hidden}}
+\bm{x}_j^{\text{hidden}}
 \end{pmatrix}
 \end{aligned}
 !et
 
+!split
+=====  Final technicalities IV =====
+
 Expressing $z_{1,j}^{\text{output}}$ as a vector gives the following way of weighting the inputs from the hidden layer:
 
 !bt
-\vec{z}_{1}^{\text{output}} =
+\bm{z}_{1}^{\text{output}} =
 \begin{pmatrix}
-b_1^{\text{output}} & \vec{w}_1^{\text{output}}
+b_1^{\text{output}} & \bm{w}_1^{\text{output}}
 \end{pmatrix}
 \begin{pmatrix}
 1  & 1 & \dots & 1 \\
-\vec{x}_1^{\text{hidden}} & \vec{x}_2^{\text{hidden}} & \dots & \vec{x}_N^{\text{hidden}}
+\bm{x}_1^{\text{hidden}} & \bm{x}_2^{\text{hidden}} & \dots & \bm{x}_N^{\text{hidden}}
 \end{pmatrix}
 !et
 
-In this case we seek a continuous range of values since we are approximating a function. This means that after computing $\vec{z}_{1}^{\text{output}}$ the neural network has finished its feed forward step, and $\vec{z}_{1}^{\text{output}}$ is the final output of the network.
+In this case we seek a continuous range of values since we are approximating a function. This means that after computing $\bm{z}_{1}^{\text{output}}$ the neural network has finished its feed forward step, and $\bm{z}_{1}^{\text{output}}$ is the final output of the network.
 
 !split
-===== Backpropagation using Autograd =====
+===== Backpropagation =====
+
 The next step is to decide how the parameters should be changed such that they minimize the cost function.
 
 The chosen cost function for this problem is
@@ -339,12 +372,16 @@ Here, gradient descent with a constant step size has been chosen.
 
 !split
 ===== Gradient descent =====
-The idea of the gradient descent algorithm is to update parameters in direction where the cost function decreases goes to a minimum.
 
-In general, the update of some parameters $\bm{\omega}$ given a cost function defined by some weights $\bm{\omega}$, $c(\bm{x}, \bm{\omega})$, goes as follows:
+The idea of the gradient descent algorithm is to update parameters in
+a direction where the cost function decreases goes to a minimum.
+
+In general, the update of some parameters $\bm{\omega}$ given a cost
+function defined by some weights $\bm{\omega}$, $c(\bm{x},
+\bm{\omega})$, goes as follows:
 
 !bt
-\bm{\omega}_{\text{new} } = \bm{\omega} - \lambda \nabla_{\bm{\omega}} c(\bm{x, \bm{\omega})
+\bm{\omega}_{\text{new} } = \bm{\omega} - \lambda \nabla_{\bm{\omega}} C(\bm{x}, \bm{\omega})
 !et
 
 for a number of iterations or until $ \big|\big| \bm{\omega}_{\text{new} } - \bm{\omega} \big|\big|$ becomes smaller than some given tolerance.
@@ -2426,11 +2463,11 @@ f(x_2) \\
 f(x_{N_x - 3}) \\
 f(x_{N_x - 2})
 \end{pmatrix} \\
-A\vec{g} &= \vec{f}
+A\bm{g} &= \bm{f}
 \end{aligned}
 !et
 
-which makes it possible to solve for the vector $\vec{g}$.
+which makes it possible to solve for the vector $\bm{g}$.
 
 We can then compare the result from this numerical scheme with the output from our network using Autograd:
 
@@ -2826,14 +2863,14 @@ c\left(x_1, \dots, x_N, P\right) = \left(  f\left(x_1, \, \dots \, , x_N, \frac{
 If we let $\bm{x = \big( x_1, \dots, x_N \big)$ be an array containing the values for $x_1, \dots, x_N$ respectively, the cost function can be reformulated into the following:
 !bt
 \begin{equation*}
-	c\left(\vec{x}, P\right) = f\left( \left( \vec{x}, \frac{\partial g(\bm{x) }{\partial x_1}, \dots , \frac{\partial g(\bm{x) }{\partial x_N}, \frac{\partial g(\bm{x) }{\partial x_1\partial x_2}, \, \dots \, , \frac{\partial^n g(\bm{x) }{\partial x_N^n} \right) \right)^2
+	c\left(\bm{x}, P\right) = f\left( \left( \bm{x}, \frac{\partial g(\bm{x) }{\partial x_1}, \dots , \frac{\partial g(\bm{x) }{\partial x_N}, \frac{\partial g(\bm{x) }{\partial x_1\partial x_2}, \, \dots \, , \frac{\partial^n g(\bm{x) }{\partial x_N^n} \right) \right)^2
 \end{equation*}
 !et
 
-If we also have $M$ different sets of values for $x_1, \dots, x_N$, that is $\vec{x}_i = \big(x_1^{(i)}, \dots, x_N^{(i)}\big)$ for $i = 1,\dots,M$ being the rows in matrix $X$, the cost function can be generalized into
+If we also have $M$ different sets of values for $x_1, \dots, x_N$, that is $\bm{x}_i = \big(x_1^{(i)}, \dots, x_N^{(i)}\big)$ for $i = 1,\dots,M$ being the rows in matrix $X$, the cost function can be generalized into
 !bt
 \begin{equation*}
-c\left(X, P \right) = \sum_{i=1}^M f\left( \left( \vec{x}_i, \frac{\partial g(\vec{x}_i) }{\partial x_1}, \dots , \frac{\partial g(\vec{x}_i) }{\partial x_N}, \frac{\partial g(\vec{x}_i) }{\partial x_1\partial x_2}, \, \dots \, , \frac{\partial^n g(\vec{x}_i) }{\partial x_N^n} \right) \right)^2
+c\left(X, P \right) = \sum_{i=1}^M f\left( \left( \bm{x}_i, \frac{\partial g(\bm{x}_i) }{\partial x_1}, \dots , \frac{\partial g(\bm{x}_i) }{\partial x_N}, \frac{\partial g(\bm{x}_i) }{\partial x_1\partial x_2}, \, \dots \, , \frac{\partial^n g(\bm{x}_i) }{\partial x_N^n} \right) \right)^2
 \end{equation*}
 !et
 
