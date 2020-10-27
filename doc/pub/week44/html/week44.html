@@ -107,37 +107,36 @@ div { text-align: justify; text-justify: inter-word; }
                '___sec25'),
               ('Computing the Gini Factor', 2, None, '___sec26'),
               ('Entropy and the ID3 algorithm', 2, None, '___sec27'),
-              ('Implementing the ID3 Algorithm', 2, None, '___sec28'),
               ('Cancer Data again now with Decision Trees and other Methods',
                2,
                None,
-               '___sec29'),
-              ('Another example, the moons again', 2, None, '___sec30'),
-              ('Playing around with regions', 2, None, '___sec31'),
-              ('Regression trees', 2, None, '___sec32'),
-              ('Final regressor code', 2, None, '___sec33'),
-              ('Pros and cons of trees, pros', 2, None, '___sec34'),
-              ('Disadvantages', 2, None, '___sec35'),
+               '___sec28'),
+              ('Another example, the moons again', 2, None, '___sec29'),
+              ('Playing around with regions', 2, None, '___sec30'),
+              ('Regression trees', 2, None, '___sec31'),
+              ('Final regressor code', 2, None, '___sec32'),
+              ('Pros and cons of trees, pros', 2, None, '___sec33'),
+              ('Disadvantages', 2, None, '___sec34'),
               ('Ensemble Methods: From a Single Tree to Many Trees and Extreme '
                'Boosting, Meet the Jungle of Methods',
                2,
                None,
-               '___sec36'),
-              ('An Overview of Ensemble Methods', 2, None, '___sec37'),
-              ('Bagging', 2, None, '___sec38'),
-              ('More bagging', 2, None, '___sec39'),
-              ('Simple Voting Example, head or tail', 2, None, '___sec40'),
-              ('Using the Voting Classifier', 2, None, '___sec41'),
+               '___sec35'),
+              ('An Overview of Ensemble Methods', 2, None, '___sec36'),
+              ('Bagging', 2, None, '___sec37'),
+              ('More bagging', 2, None, '___sec38'),
+              ('Simple Voting Example, head or tail', 2, None, '___sec39'),
+              ('Using the Voting Classifier', 2, None, '___sec40'),
               ('Please, not the moons again! Voting and Bagging',
                2,
                None,
-               '___sec42'),
-              ('Bagging Examples', 2, None, '___sec43'),
+               '___sec41'),
+              ('Bagging Examples', 2, None, '___sec42'),
               ('Making your own Bootstrap: Changing the Level of the Decision '
                'Tree',
                2,
                None,
-               '___sec44')]}
+               '___sec43')]}
 end of tocinfo -->
 
 <body>
@@ -1020,8 +1019,8 @@ split <span style="color: #666666">=</span> get_split(dataset)
 <h2 id="___sec27">Entropy and the ID3 algorithm </h2>
 
 <p>
-ID3, learns decision trees by constructing
-them topdown, beginning with the question <b>which attribute should be tested at the root of the tree</b>?
+The ID3 algorithm  learns decision trees by constructing
+them in a top down way, beginning with the question <b>which attribute should be tested at the root of the tree</b>?
 
 <ol>
 <li> Each instance attribute is evaluated using a statistical test to determine how well it alone classifies the training examples.</li>
@@ -1032,7 +1031,7 @@ them topdown, beginning with the question <b>which attribute should be tested at
 <li> This forms a greedy search for an acceptable decision tree, in which the algorithm never backtracks to reconsider earlier choices.</li> 
 </ol>
 
-The ID3 algorithm selects, which attribute to test at each node in the
+The ID3 algorithm selects which attribute to test at each node in the
 tree.
 
 <p>
@@ -1053,203 +1052,7 @@ attributes at each step while growing the tree.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec28">Implementing the ID3 Algorithm </h2>
-
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">re</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">math</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">collections</span> <span style="color: #008000; font-weight: bold">import</span> deque
-
-<span style="color: #408080; font-style: italic"># x is examples in training set</span>
-<span style="color: #408080; font-style: italic"># y is set of targets</span>
-<span style="color: #408080; font-style: italic"># label is target attributes</span>
-<span style="color: #408080; font-style: italic"># Node is a class which has properties values, childs, and next</span>
-<span style="color: #408080; font-style: italic"># root is top node in the decision tree</span>
-
-<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">Node</span>(<span style="color: #008000">object</span>):
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(<span style="color: #008000">self</span>):
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>value <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>next <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>childs <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
-
-<span style="color: #408080; font-style: italic"># Simple class of Decision Tree</span>
-<span style="color: #408080; font-style: italic"># Aimed for who want to learn Decision Tree, so it is not optimized</span>
-<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">DecisionTree</span>(<span style="color: #008000">object</span>):
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(<span style="color: #008000">self</span>, sample, attributes, labels):
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>sample <span style="color: #666666">=</span> sample
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>attributes <span style="color: #666666">=</span> attributes
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>labels <span style="color: #666666">=</span> labels
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodesCount <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>initLabelCodes()
-		<span style="color: #408080; font-style: italic"># print(self.labelCodes)</span>
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>root <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>entropy <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getEntropy([x <span style="color: #008000; font-weight: bold">for</span> x <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>labels))])
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">initLabelCodes</span>(<span style="color: #008000">self</span>):
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes <span style="color: #666666">=</span> []
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodesCount <span style="color: #666666">=</span> []
-		<span style="color: #008000; font-weight: bold">for</span> l <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labels:
-			<span style="color: #008000; font-weight: bold">if</span> l <span style="color: #AA22FF; font-weight: bold">not</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes:
-				<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes<span style="color: #666666">.</span>append(l)
-				<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodesCount<span style="color: #666666">.</span>append(<span style="color: #666666">0</span>)
-			<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodesCount[<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes<span style="color: #666666">.</span>index(l)] <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">getLabelCodeId</span>(<span style="color: #008000">self</span>, sampleId):
-		<span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes<span style="color: #666666">.</span>index(<span style="color: #008000">self</span><span style="color: #666666">.</span>labels[sampleId])
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">getAttributeValues</span>(<span style="color: #008000">self</span>, sampleIds, attributeId):
-		vals <span style="color: #666666">=</span> []
-		<span style="color: #008000; font-weight: bold">for</span> sid <span style="color: #AA22FF; font-weight: bold">in</span> sampleIds:
-			val <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>sample[sid][attributeId]
-			<span style="color: #008000; font-weight: bold">if</span> val <span style="color: #AA22FF; font-weight: bold">not</span> <span style="color: #AA22FF; font-weight: bold">in</span> vals:
-				vals<span style="color: #666666">.</span>append(val)
-		<span style="color: #408080; font-style: italic"># print(vals)</span>
-		<span style="color: #008000; font-weight: bold">return</span> vals
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">getEntropy</span>(<span style="color: #008000">self</span>, sampleIds):
-		entropy <span style="color: #666666">=</span> <span style="color: #666666">0</span>
-		labelCount <span style="color: #666666">=</span> [<span style="color: #666666">0</span>] <span style="color: #666666">*</span> <span style="color: #008000">len</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes)
-		<span style="color: #008000; font-weight: bold">for</span> sid <span style="color: #AA22FF; font-weight: bold">in</span> sampleIds:
-			labelCount[<span style="color: #008000">self</span><span style="color: #666666">.</span>getLabelCodeId(sid)] <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-		<span style="color: #408080; font-style: italic"># print(&quot;-ge&quot;, labelCount)</span>
-		<span style="color: #008000; font-weight: bold">for</span> lv <span style="color: #AA22FF; font-weight: bold">in</span> labelCount:
-			<span style="color: #408080; font-style: italic"># print(lv)</span>
-			<span style="color: #008000; font-weight: bold">if</span> lv <span style="color: #666666">!=</span> <span style="color: #666666">0</span>:
-				entropy <span style="color: #666666">+=</span> <span style="color: #666666">-</span>lv<span style="color: #666666">/</span><span style="color: #008000">len</span>(sampleIds) <span style="color: #666666">*</span> math<span style="color: #666666">.</span>log(lv<span style="color: #666666">/</span><span style="color: #008000">len</span>(sampleIds), <span style="color: #666666">2</span>)
-			<span style="color: #008000; font-weight: bold">else</span>:
-				entropy <span style="color: #666666">+=</span> <span style="color: #666666">0</span>
-		<span style="color: #008000; font-weight: bold">return</span> entropy
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">getDominantLabel</span>(<span style="color: #008000">self</span>, sampleIds):
-		labelCodesCount <span style="color: #666666">=</span> [<span style="color: #666666">0</span>] <span style="color: #666666">*</span> <span style="color: #008000">len</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes)
-		<span style="color: #008000; font-weight: bold">for</span> sid <span style="color: #AA22FF; font-weight: bold">in</span> sampleIds:
-			labelCodesCount[<span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes<span style="color: #666666">.</span>index(<span style="color: #008000">self</span><span style="color: #666666">.</span>labels[sid])] <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-		<span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labelCodes[labelCodesCount<span style="color: #666666">.</span>index(<span style="color: #008000">max</span>(labelCodesCount))]
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">getInformationGain</span>(<span style="color: #008000">self</span>, sampleIds, attributeId):
-		gain <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getEntropy(sampleIds)
-		attributeVals <span style="color: #666666">=</span> []
-		attributeValsCount <span style="color: #666666">=</span> []
-		attributeValsIds <span style="color: #666666">=</span> []
-		<span style="color: #008000; font-weight: bold">for</span> sid <span style="color: #AA22FF; font-weight: bold">in</span> sampleIds:
-			val <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>sample[sid][attributeId]
-			<span style="color: #008000; font-weight: bold">if</span> val <span style="color: #AA22FF; font-weight: bold">not</span> <span style="color: #AA22FF; font-weight: bold">in</span> attributeVals:
-				attributeVals<span style="color: #666666">.</span>append(val)
-				attributeValsCount<span style="color: #666666">.</span>append(<span style="color: #666666">0</span>)
-				attributeValsIds<span style="color: #666666">.</span>append([])
-			vid <span style="color: #666666">=</span> attributeVals<span style="color: #666666">.</span>index(val)
-			attributeValsCount[vid] <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-			attributeValsIds[vid]<span style="color: #666666">.</span>append(sid)
-		<span style="color: #408080; font-style: italic"># print(&quot;-gig&quot;, self.attributes[attributeId])</span>
-		<span style="color: #008000; font-weight: bold">for</span> vc, vids <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">zip</span>(attributeValsCount, attributeValsIds):
-			<span style="color: #408080; font-style: italic"># print(&quot;-gig&quot;, vids)</span>
-			gain <span style="color: #666666">-=</span> vc<span style="color: #666666">/</span><span style="color: #008000">len</span>(sampleIds) <span style="color: #666666">*</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getEntropy(vids)
-		<span style="color: #008000; font-weight: bold">return</span> gain
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">getAttributeMaxInformationGain</span>(<span style="color: #008000">self</span>, sampleIds, attributeIds):
-		attributesEntropy <span style="color: #666666">=</span> [<span style="color: #666666">0</span>] <span style="color: #666666">*</span> <span style="color: #008000">len</span>(attributeIds)
-		<span style="color: #008000; font-weight: bold">for</span> i, attId <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">zip</span>(<span style="color: #008000">range</span>(<span style="color: #008000">len</span>(attributeIds)), attributeIds):
-			attributesEntropy[i] <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getInformationGain(sampleIds, attId)
-		maxId <span style="color: #666666">=</span> attributeIds[attributesEntropy<span style="color: #666666">.</span>index(<span style="color: #008000">max</span>(attributesEntropy))]
-		<span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>attributes[maxId], maxId
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">isSingleLabeled</span>(<span style="color: #008000">self</span>, sampleIds):
-		label <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labels[sampleIds[<span style="color: #666666">0</span>]]
-		<span style="color: #008000; font-weight: bold">for</span> sid <span style="color: #AA22FF; font-weight: bold">in</span> sampleIds:
-			<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labels[sid] <span style="color: #666666">!=</span> label:
-				<span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">False</span>
-		<span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">True</span>
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">getLabel</span>(<span style="color: #008000">self</span>, sampleId):
-		<span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labels[sampleId]
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">id3</span>(<span style="color: #008000">self</span>):
-		sampleIds <span style="color: #666666">=</span> [x <span style="color: #008000; font-weight: bold">for</span> x <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>sample))]
-		attributeIds <span style="color: #666666">=</span> [x <span style="color: #008000; font-weight: bold">for</span> x <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>attributes))]
-		<span style="color: #008000">self</span><span style="color: #666666">.</span>root <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>id3Recv(sampleIds, attributeIds, <span style="color: #008000">self</span><span style="color: #666666">.</span>root)
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">id3Recv</span>(<span style="color: #008000">self</span>, sampleIds, attributeIds, root):
-		root <span style="color: #666666">=</span> Node() <span style="color: #408080; font-style: italic"># Initialize current root</span>
-		<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>isSingleLabeled(sampleIds):
-			root<span style="color: #666666">.</span>value <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>labels[sampleIds[<span style="color: #666666">0</span>]]
-			<span style="color: #008000; font-weight: bold">return</span> root
-		<span style="color: #408080; font-style: italic"># print(attributeIds)</span>
-		<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">len</span>(attributeIds) <span style="color: #666666">==</span> <span style="color: #666666">0</span>:
-			root<span style="color: #666666">.</span>value <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getDominantLabel(sampleIds)
-			<span style="color: #008000; font-weight: bold">return</span> root
-		bestAttrName, bestAttrId <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getAttributeMaxInformationGain(
-			sampleIds, attributeIds)
-		<span style="color: #408080; font-style: italic"># print(bestAttrName)</span>
-		root<span style="color: #666666">.</span>value <span style="color: #666666">=</span> bestAttrName
-		root<span style="color: #666666">.</span>childs <span style="color: #666666">=</span> []  <span style="color: #408080; font-style: italic"># Create list of children</span>
-		<span style="color: #008000; font-weight: bold">for</span> value <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getAttributeValues(sampleIds, bestAttrId):
-			<span style="color: #408080; font-style: italic"># print(value)</span>
-			child <span style="color: #666666">=</span> Node()
-			child<span style="color: #666666">.</span>value <span style="color: #666666">=</span> value
-			root<span style="color: #666666">.</span>childs<span style="color: #666666">.</span>append(child)  <span style="color: #408080; font-style: italic"># Append new child node to current</span>
-									   <span style="color: #408080; font-style: italic"># root</span>
-			childSampleIds <span style="color: #666666">=</span> []
-			<span style="color: #008000; font-weight: bold">for</span> sid <span style="color: #AA22FF; font-weight: bold">in</span> sampleIds:
-				<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>sample[sid][bestAttrId] <span style="color: #666666">==</span> value:
-					childSampleIds<span style="color: #666666">.</span>append(sid)
-			<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">len</span>(childSampleIds) <span style="color: #666666">==</span> <span style="color: #666666">0</span>:
-				child<span style="color: #666666">.</span>next <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>getDominantLabel(sampleIds)
-			<span style="color: #008000; font-weight: bold">else</span>:
-				<span style="color: #408080; font-style: italic"># print(bestAttrName, bestAttrId)</span>
-				<span style="color: #408080; font-style: italic"># print(attributeIds)</span>
-				<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">len</span>(attributeIds) <span style="color: #666666">&gt;</span> <span style="color: #666666">0</span> <span style="color: #AA22FF; font-weight: bold">and</span> bestAttrId <span style="color: #AA22FF; font-weight: bold">in</span> attributeIds:
-					toRemove <span style="color: #666666">=</span> attributeIds<span style="color: #666666">.</span>index(bestAttrId)
-					attributeIds<span style="color: #666666">.</span>pop(toRemove)
-				child<span style="color: #666666">.</span>next <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>id3Recv(
-					childSampleIds, attributeIds, child<span style="color: #666666">.</span>next)
-		<span style="color: #008000; font-weight: bold">return</span> root
-
-	<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">printTree</span>(<span style="color: #008000">self</span>):
-		<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>root:
-			roots <span style="color: #666666">=</span> deque()
-			roots<span style="color: #666666">.</span>append(<span style="color: #008000">self</span><span style="color: #666666">.</span>root)
-			<span style="color: #008000; font-weight: bold">while</span> <span style="color: #008000">len</span>(roots) <span style="color: #666666">&gt;</span> <span style="color: #666666">0</span>:
-				root <span style="color: #666666">=</span> roots<span style="color: #666666">.</span>popleft()
-				<span style="color: #008000">print</span>(root<span style="color: #666666">.</span>value)
-				<span style="color: #008000; font-weight: bold">if</span> root<span style="color: #666666">.</span>childs:
-					<span style="color: #008000; font-weight: bold">for</span> child <span style="color: #AA22FF; font-weight: bold">in</span> root<span style="color: #666666">.</span>childs:
-						<span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;(</span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121">)&#39;</span><span style="color: #666666">.</span>format(child<span style="color: #666666">.</span>value))
-						roots<span style="color: #666666">.</span>append(child<span style="color: #666666">.</span>next)
-				<span style="color: #008000; font-weight: bold">elif</span> root<span style="color: #666666">.</span>next:
-					<span style="color: #008000">print</span>(root<span style="color: #666666">.</span>next)
-
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">test</span>():
-	f <span style="color: #666666">=</span> <span style="color: #008000">open</span>(<span style="color: #BA2121">&#39;DataFiles/rideclass.csv&#39;</span>)
-	attributes <span style="color: #666666">=</span> f<span style="color: #666666">.</span>readline()<span style="color: #666666">.</span>split(<span style="color: #BA2121">&#39;,&#39;</span>)
-	attributes <span style="color: #666666">=</span> attributes[<span style="color: #666666">1</span>:<span style="color: #008000">len</span>(attributes)<span style="color: #666666">-1</span>]
-	<span style="color: #008000">print</span>(attributes)
-	sample <span style="color: #666666">=</span> f<span style="color: #666666">.</span>readlines()
-	f<span style="color: #666666">.</span>close()
-	<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(sample)):
-		sample[i] <span style="color: #666666">=</span> re<span style="color: #666666">.</span>sub(<span style="color: #BA2121">&#39;\d+,&#39;</span>, <span style="color: #BA2121">&#39;&#39;</span>, sample[i])
-		sample[i] <span style="color: #666666">=</span> sample[i]<span style="color: #666666">.</span>strip()<span style="color: #666666">.</span>split(<span style="color: #BA2121">&#39;,&#39;</span>)
-	labels <span style="color: #666666">=</span> []
-	<span style="color: #008000; font-weight: bold">for</span> s <span style="color: #AA22FF; font-weight: bold">in</span> sample:
-		labels<span style="color: #666666">.</span>append(s<span style="color: #666666">.</span>pop())
-	<span style="color: #408080; font-style: italic"># print(sample)</span>
-	<span style="color: #408080; font-style: italic"># print(labels)</span>
-	decisionTree <span style="color: #666666">=</span> DecisionTree(sample, attributes, labels)
-	<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;System entropy </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121">&quot;</span><span style="color: #666666">.</span>format(decisionTree<span style="color: #666666">.</span>entropy))
-	decisionTree<span style="color: #666666">.</span>id3()
-	decisionTree<span style="color: #666666">.</span>printTree()
-
-
-<span style="color: #008000; font-weight: bold">if</span> <span style="color: #19177C">__name__</span> <span style="color: #666666">==</span> <span style="color: #BA2121">&#39;__main__&#39;</span>:
-	test()
-</pre></div>
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="___sec29">Cancer Data again now with Decision Trees and other Methods </h2>
+<h2 id="___sec28">Cancer Data again now with Decision Trees and other Methods </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1298,7 +1101,7 @@ deep_tree_clf<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec30">Another example, the moons again </h2>
+<h2 id="___sec29">Another example, the moons again </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1370,7 +1173,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec31">Playing around with regions </h2>
+<h2 id="___sec30">Playing around with regions </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1398,7 +1201,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec32">Regression trees </h2>
+<h2 id="___sec31">Regression trees </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1420,7 +1223,7 @@ tree_reg<span style="color: #666666">.</span>fit(X, y)
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec33">Final regressor code </h2>
+<h2 id="___sec32">Final regressor code </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1498,7 +1301,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec34">Pros and cons of trees, pros </h2>
+<h2 id="___sec33">Pros and cons of trees, pros </h2>
 
 <ul>
 <li> White box, easy to interpret model. Some people believe that decision trees more closely mirror human decision-making than do the regression and classification approaches discussed earlier (think of support vector machines)</li>
@@ -1512,7 +1315,7 @@ plt<span style="color: #666666">.</span>show()
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec35">Disadvantages </h2>
+<h2 id="___sec34">Disadvantages </h2>
 
 <ul>
 <li> Unfortunately, trees generally do not have the same level of predictive accuracy as some of the other regression and classification approaches</li>
@@ -1531,7 +1334,7 @@ trees can be substantially improved.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec36">Ensemble Methods: From a Single Tree to Many Trees and Extreme Boosting, Meet the Jungle of Methods </h2>
+<h2 id="___sec35">Ensemble Methods: From a Single Tree to Many Trees and Extreme Boosting, Meet the Jungle of Methods </h2>
 
 <p>
 As stated above and seen in many of the examples discussed here about
@@ -1558,7 +1361,7 @@ We discuss these methods here.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec37">An Overview of Ensemble Methods  </h2>
+<h2 id="___sec36">An Overview of Ensemble Methods  </h2>
 
 <p>
 <br /><br /><center><p><img src="DataFiles/ensembleoverview.png" align="bottom" width=600></p></center><br /><br />
@@ -1566,7 +1369,7 @@ We discuss these methods here.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec38">Bagging </h2>
+<h2 id="___sec37">Bagging </h2>
 
 <p>
 The <b>plain</b> decision trees suffer from high
@@ -1585,7 +1388,7 @@ learning method.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec39">More bagging </h2>
+<h2 id="___sec38">More bagging </h2>
 
 <p>
 Bagging typically results in improved accuracy
@@ -1614,7 +1417,7 @@ predictor, averaged over all \( B \) trees.
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec40">Simple Voting Example, head or tail </h2>
+<h2 id="___sec39">Simple Voting Example, head or tail </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1635,7 +1438,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec41">Using the Voting Classifier </h2>
+<h2 id="___sec40">Using the Voting Classifier </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1686,7 +1489,7 @@ voting_clf<span style="color: #666666">.</span>fit(X_train, y_train)
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec42">Please, not the moons again! Voting and Bagging </h2>
+<h2 id="___sec41">Please, not the moons again! Voting and Bagging </h2>
 
 <p>
 
@@ -1745,7 +1548,7 @@ voting_clf<span style="color: #666666">.</span>fit(X_train, y_train)
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec43">Bagging Examples  </h2>
+<h2 id="___sec42">Bagging Examples  </h2>
 
 <p>
 
@@ -1807,7 +1610,7 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="___sec44">Making your own Bootstrap: Changing the Level of the Decision Tree </h2>
+<h2 id="___sec43">Making your own Bootstrap: Changing the Level of the Decision Tree </h2>
 
 <p>
 Let us bring up our good old boostrap example from the linear regression lectures. We change the linerar regression algorithm with
