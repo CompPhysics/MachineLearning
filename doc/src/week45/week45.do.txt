@@ -5,7 +5,7 @@ DATE: today
 !split
 ===== Overview of week 45 =====
 
-* "Thursday: Wrapping up from last week. Bagging and Random forests.
+* "Thursday: Wrapping up from last week. Bagging and Random forests. Boosting methods.
 * "Friday: Boosting and gradient boosting
 
 
@@ -17,6 +17,171 @@ Geron's chapter 7. See also lecture from "STK-IN4300, lecture 9":"https://www.ui
 
 Bagging, voting and random forests.
 The material on bagging and voting is a repeat from last week and can be found in the slides from week 44.
+We repeat here the voting approach since this will serve as a motivation for boosting methods later.
+
+!split
+=====  Why Voting? =====
+
+The idea behind boosting, and voting as well can be phrased as follows:
+_Can a group of people somehow arrive at highly
+reasoned decisions, despite the weak judgement of the individual
+members?_
+
+The aim is to create a good classifier by combining several weak classifiers.
+_A weak classifier is a classifier which is able to produce results that are only slightly better than guessing at random._
+
+The basic approach is to apply repeatedly (in boosting this is done in an iterative way) a weak classifier to modifications of the data.
+In voting we simply apply the law of large numbers while in boosting we give more weight to misclassified data in
+each iteration.  
+
+Decision trees play an important role as our weak classifier. They serve as the basic method. 
+
+!split
+===== Tossing coins =====
+The simplest case is a so-called voting ensemble. To illustrate this, Think of you tossing coins with a biased outcome of 51 per cent for heads and 49% for tails.
+With only few tosses, you may not clearly see this distribution. However, after some thousands of tosses (sounds like you may have some spare time problems), there will be a clear majority of heads.
+With 2000 tosses you should see approximately 1020 heads and 980 tails.
+
+We can then state that the outcome is a clear majority of heads. If you do this ten thousand times, it is easy to see that there is a 97% likelihood of a majority of heads.
+
+Another example would be to collect all polls before an
+election. Different polls may show different likelihoods for a
+candidate winning with say a majority  of the popular vote. The majority vote
+would then consist in many polls indicating that this candidate will
+actually win.
+
+The example here shows how we can implement the coin tossing case, clealry demostrating that after some tosses we see the law of large numbers kicking in.
+
+!split
+===== Simple Voting Example, head or tail =====
+!bc pycod
+heads_proba = 0.51
+coin_tosses = (np.random.rand(10000, 10) < heads_proba).astype(np.int32)
+cumulative_heads_ratio = np.cumsum(coin_tosses, axis=0) / np.arange(1, 10001).reshape(-1, 1)
+plt.figure(figsize=(8,3.5))
+plt.plot(cumulative_heads_ratio)
+plt.plot([0, 10000], [0.51, 0.51], "k--", linewidth=2, label="51%")
+plt.plot([0, 10000], [0.5, 0.5], "k-", label="50%")
+plt.xlabel("Number of coin tosses")
+plt.ylabel("Heads ratio")
+plt.legend(loc="lower right")
+plt.axis([0, 10000, 0.42, 0.58])
+save_fig("votingsimple")
+plt.show()
+
+!ec
+
+
+!split
+===== Using the Voting Classifier =====
+
+We can use the voting classifier on other data sets, here the excting binary case of two distinct objects using the make moons functionality of -Scikit-Learn-.
+!bc pycod
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_moons
+
+X, y = make_moons(n_samples=500, noise=0.30, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
+log_clf = LogisticRegression(solver="liblinear", random_state=42)
+rnd_clf = RandomForestClassifier(n_estimators=10, random_state=42)
+svm_clf = SVC(gamma="auto", random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='hard')
+
+voting_clf.fit(X_train, y_train)
+
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+
+log_clf = LogisticRegression(solver="liblinear", random_state=42)
+rnd_clf = RandomForestClassifier(n_estimators=10, random_state=42)
+svm_clf = SVC(gamma="auto", probability=True, random_state=42)
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='soft')
+voting_clf.fit(X_train, y_train)
+
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+
+!ec
+
+
+
+
+!split
+===== Please, not the moons again! Voting and Bagging =====
+
+!bc pycod
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_moons
+
+X, y = make_moons(n_samples=500, noise=0.30, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
+log_clf = LogisticRegression(random_state=42)
+rnd_clf = RandomForestClassifier(random_state=42)
+svm_clf = SVC(random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='hard')
+voting_clf.fit(X_train, y_train)
+!ec
+
+!bc pycod 
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+!ec
+
+!bc pycod 
+log_clf = LogisticRegression(random_state=42)
+rnd_clf = RandomForestClassifier(random_state=42)
+svm_clf = SVC(probability=True, random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='soft')
+voting_clf.fit(X_train, y_train)
+!ec
+
+!bc pycod 
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+!ec
+
+
+
+
+
 
 !split
 ===== Random forests =====
@@ -827,3 +992,6 @@ save_fig("xgparams")
 plt.show()
 
 !ec
+
+
+
