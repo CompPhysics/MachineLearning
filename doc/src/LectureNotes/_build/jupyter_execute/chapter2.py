@@ -1,522 +1,937 @@
-# Getting started, our first data and Machine Learning encounters
+# Elements of Probability Theory and Statistical Data Analysis
 
-## Introduction
 
-Our emphasis throughout this series of lectures  
-is on understanding the mathematical aspects of
-different algorithms used in the fields of data analysis and machine learning. 
 
-However, where possible we will emphasize the
-importance of using available software. We start thus with a hands-on
-and top-down approach to machine learning. The aim is thus to start with
-relevant data or data we have produced 
-and use these to introduce statistical data analysis
-concepts and machine learning algorithms before we delve into the
-algorithms themselves. The examples we will use in the beginning, start with simple
-polynomials with random noise added. We will use the Python
-software package [Scikit-Learn](http://scikit-learn.org/stable/) and
-introduce various machine learning algorithms to make fits of
-the data and predictions. We move thereafter to more interesting
-cases such as data from say experiments (below we will look at experimental nuclear binding energies as an example).
-These are examples where we can easily set up the data and
-then use machine learning algorithms included in for example
-**Scikit-Learn**. 
+* add math about MVN and define MLE and other quantities
 
-These examples will serve us the purpose of getting
-started. Furthermore, they allow us to catch more than two birds with
-a stone. They will allow us to bring in some programming specific
-topics and tools as well as showing the power of various Python 
-libraries for machine learning and statistical data analysis.  
+* rewrite about covariance matrix
 
-Here, we will mainly focus on two
-specific Python packages for Machine Learning, Scikit-Learn and
-Tensorflow (see below for links etc).  Moreover, the examples we
-introduce will serve as inputs to many of our discussions later, as
-well as allowing you to set up models and produce your own data and
-get started with programming.
+* add KL theorem
 
-
-
-## What is Machine Learning?
-
-Statistics, data science and machine learning form important fields of
-research in modern science.  They describe how to learn and make
-predictions from data, as well as allowing us to extract important
-correlations about physical process and the underlying laws of motion
-in large data sets. The latter, big data sets, appear frequently in
-essentially all disciplines, from the traditional Science, Technology,
-Mathematics and Engineering fields to Life Science, Law, education
-research, the Humanities and the Social Sciences. 
-
-It has become more
-and more common to see research projects on big data in for example
-the Social Sciences where extracting patterns from complicated survey
-data is one of many research directions.  Having a solid grasp of data
-analysis and machine learning is thus becoming central to scientific
-computing in many fields, and competences and skills within the fields
-of machine learning and scientific computing are nowadays strongly
-requested by many potential employers. The latter cannot be
-overstated, familiarity with machine learning has almost become a
-prerequisite for many of the most exciting employment opportunities,
-whether they are in bioinformatics, life science, physics or finance,
-in the private or the public sector. This author has had several
-students or met students who have been hired recently based on their
-skills and competences in scientific computing and data science, often
-with marginal knowledge of machine learning.
-
-Machine learning is a subfield of computer science, and is closely
-related to computational statistics.  It evolved from the study of
-pattern recognition in artificial intelligence (AI) research, and has
-made contributions to AI tasks like computer vision, natural language
-processing and speech recognition. Many of the methods we will study are also 
-strongly rooted in basic mathematics and physics research. 
-
-Ideally, machine learning represents the science of giving computers
-the ability to learn without being explicitly programmed.  The idea is
-that there exist generic algorithms which can be used to find patterns
-in a broad class of data sets without having to write code
-specifically for each problem. The algorithm will build its own logic
-based on the data.  You should however always keep in mind that
-machines and algorithms are to a large extent developed by humans. The
-insights and knowledge we have about a specific system, play a central
-role when we develop a specific machine learning algorithm. 
-
-Machine learning is an extremely rich field, in spite of its young
-age. The increases we have seen during the last three decades in
-computational capabilities have been followed by developments of
-methods and techniques for analyzing and handling large date sets,
-relying heavily on statistics, computer science and mathematics.  The
-field is rather new and developing rapidly. Popular software packages
-written in Python for machine learning like
-[Scikit-learn](http://scikit-learn.org/stable/),
-[Tensorflow](https://www.tensorflow.org/),
-[PyTorch](http://pytorch.org/) and [Keras](https://keras.io/), all
-freely available at their respective GitHub sites, encompass
-communities of developers in the thousands or more. And the number of
-code developers and contributors keeps increasing. Not all the
-algorithms and methods can be given a rigorous mathematical
-justification, opening up thereby large rooms for experimenting and
-trial and error and thereby exciting new developments.  However, a
-solid command of linear algebra, multivariate theory, probability
-theory, statistical data analysis, understanding errors and Monte
-Carlo methods are central elements in a proper understanding of many
-of algorithms and methods we will discuss.
-
-
-
-## Types of Machine Learning
-
-
-The approaches to machine learning are many, but are often split into
-two main categories.  In *supervised learning* we know the answer to a
-problem, and let the computer deduce the logic behind it. On the other
-hand, *unsupervised learning* is a method for finding patterns and
-relationship in data sets without any prior knowledge of the system.
-Some authours also operate with a third category, namely
-*reinforcement learning*. This is a paradigm of learning inspired by
-behavioral psychology, where learning is achieved by trial-and-error,
-solely from rewards and punishment.
-
-Another way to categorize machine learning tasks is to consider the
-desired output of a system.  Some of the most common tasks are:
-
-  * Classification: Outputs are divided into two or more classes. The goal is to   produce a model that assigns inputs into one of these classes. An example is to identify  digits based on pictures of hand-written ones. Classification is typically supervised learning.
-
-  * Regression: Finding a functional relationship between an input data set and a reference data set.   The goal is to construct a function that maps input data to continuous output values.
-
-  * Clustering: Data are divided into groups with certain common traits, without knowing the different groups beforehand.  It is thus a form of unsupervised learning.
-
-The methods we cover have three main topics in common, irrespective of
-whether we deal with supervised or unsupervised learning. The first
-ingredient is normally our data set (which can be subdivided into
-training and test data), the second item is a model which is normally a
-function of some parameters.  The model reflects our knowledge of the system (or lack thereof). As an example, if we know that our data show a behavior similar to what would be predicted by a polynomial, fitting our data to a polynomial of some degree would then determin our model. 
-
-The last ingredient is a so-called **cost**
-function which allows us to present an estimate on how good our model
-is in reproducing the data it is supposed to train.  
-At the heart of basically all ML algorithms there are so-called minimization algorithms, often we end up with various variants of **gradient** methods.
-
-
-
-
-
-
-
-## Software and needed installations
-
-We will make extensive use of Python as programming language and its
-myriad of available libraries.  You will find
-Jupyter notebooks invaluable in your work.  You can run **R**
-codes in the Jupyter/IPython notebooks, with the immediate benefit of
-visualizing your data. You can also use compiled languages like C++,
-Rust, Julia, Fortran etc if you prefer. The focus in these lectures will be
-on Python.
-
-
-If you have Python installed (we strongly recommend Python3) and you feel
-pretty familiar with installing different packages, we recommend that
-you install the following Python packages via **pip** as 
-
-1. pip install numpy scipy matplotlib ipython scikit-learn mglearn sympy pandas pillow 
-
-For Python3, replace **pip** with **pip3**.
-
-For OSX users we recommend, after having installed Xcode, to
-install **brew**. Brew allows for a seamless installation of additional
-software via for example 
-
-1. brew install python3
-
-For Linux users, with its variety of distributions like for example the widely popular Ubuntu distribution,
-you can use **pip** as well and simply install Python as 
-
-1. sudo apt-get install python3  (or python for pyhton2.7)
-
-etc etc. 
-
-
-
-## Python installers
-
-If you don't want to perform these operations separately and venture
-into the hassle of exploring how to set up dependencies and paths, we
-recommend two widely used distrubutions which set up all relevant
-dependencies for Python, namely 
-
-* [Anaconda](https://docs.anaconda.com/), 
-
-which is an open source
-distribution of the Python and R programming languages for large-scale
-data processing, predictive analytics, and scientific computing, that
-aims to simplify package management and deployment. Package versions
-are managed by the package management system **conda**. 
-
-* [Enthought canopy](https://www.enthought.com/product/canopy/) 
-
-is a Python
-distribution for scientific and analytic computing distribution and
-analysis environment, available for free and under a commercial
-license.
-
-Furthermore, [Google's Colab](https://colab.research.google.com/notebooks/welcome.ipynb) is a free Jupyter notebook environment that requires 
-no setup and runs entirely in the cloud. Try it out!
-
-## Useful Python libraries
-Here we list several useful Python libraries we strongly recommend (if you use anaconda many of these are already there)
-
-* [NumPy](https://www.numpy.org/) is a highly popular library for large, multi-dimensional arrays and matrices, along with a large collection of high-level mathematical functions to operate on these arrays
-
-* [The pandas](https://pandas.pydata.org/) library provides high-performance, easy-to-use data structures and data analysis tools 
-
-* [Xarray](http://xarray.pydata.org/en/stable/) is a Python package that makes working with labelled multi-dimensional arrays simple, efficient, and fun!
-
-* [Scipy](https://www.scipy.org/) (pronounced “Sigh Pie”) is a Python-based ecosystem of open-source software for mathematics, science, and engineering. 
-
-* [Matplotlib](https://matplotlib.org/) is a Python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms.
-
-* [Autograd](https://github.com/HIPS/autograd) can automatically differentiate native Python and Numpy code. It can handle a large subset of Python's features, including loops, ifs, recursion and closures, and it can even take derivatives of derivatives of derivatives
-
-* [SymPy](https://www.sympy.org/en/index.html) is a Python library for symbolic mathematics. 
-
-* [scikit-learn](https://scikit-learn.org/stable/) has simple and efficient tools for machine learning, data mining and data analysis
-
-* [TensorFlow](https://www.tensorflow.org/) is a Python library for fast numerical computing created and released by Google
-
-* [Keras](https://keras.io/) is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
-
-* And many more such as [pytorch](https://pytorch.org/),  [Theano](https://pypi.org/project/Theano/) etc 
-
-## Installing R, C++, cython or Julia
-
-You will also find it convenient to utilize **R**. We will mainly
-use Python during our lectures and in various projects and exercises.
-Those of you
-already familiar with **R** should feel free to continue using **R**, keeping
-however an eye on the parallel Python set ups. Similarly, if you are a
-Python afecionado, feel free to explore **R** as well.  Jupyter/Ipython
-notebook allows you to run **R** codes interactively in your
-browser. The software library **R** is really tailored  for statistical data analysis
-and allows for an easy usage of the tools and algorithms we will discuss in these
-lectures.
-
-To install **R** with Jupyter notebook 
-[follow the link here](https://mpacer.org/maths/r-kernel-for-ipython-notebook)
-
-
-
-
-## Installing R, C++, cython, Numba etc
-
-
-For the C++ aficionados, Jupyter/IPython notebook allows you also to
-install C++ and run codes written in this language interactively in
-the browser. Since we will emphasize writing many of the algorithms
-yourself, you can thus opt for either Python or C++ (or Fortran or other compiled languages) as programming
-languages.
-
-To add more entropy, **cython** can also be used when running your
-notebooks. It means that Python with the jupyter notebook
-setup allows you to integrate widely popular softwares and tools for
-scientific computing. Similarly, the 
-[Numba Python package](https://numba.pydata.org/) delivers increased performance
-capabilities with minimal rewrites of your codes.  With its
-versatility, including symbolic operations, Python offers a unique
-computational environment. Your jupyter notebook can easily be
-converted into a nicely rendered **PDF** file or a Latex file for
-further processing. For example, convert to latex as
-
-        pycod jupyter nbconvert filename.ipynb --to latex 
-
-
-And to add more versatility, the Python package [SymPy](http://www.sympy.org/en/index.html) is a Python library for symbolic mathematics. It aims to become a full-featured computer algebra system (CAS)  and is entirely written in Python. 
-
-Finally, if you wish to use the light mark-up language 
-[doconce](https://github.com/hplgit/doconce) you can convert a standard ascii text file into various HTML 
-formats, ipython notebooks, latex files, pdf files etc with minimal edits. These lectures were generated using **doconce**.
-
-
-
-## Numpy examples and Important Matrix and vector handling packages
-
-There are several central software libraries for linear algebra and eigenvalue problems. Several of the more
-popular ones have been wrapped into ofter software packages like those from the widely used text **Numerical Recipes**. The original source codes in many of the available packages are often taken from the widely used
-software package LAPACK, which follows two other popular packages
-developed in the 1970s, namely EISPACK and LINPACK.  We describe them shortly here.
-
-  * LINPACK: package for linear equations and least square problems.
-
-  * LAPACK:package for solving symmetric, unsymmetric and generalized eigenvalue problems. From LAPACK's website <http://www.netlib.org> it is possible to download for free all source codes from this library. Both C/C++ and Fortran versions are available.
-
-  * BLAS (I, II and III): (Basic Linear Algebra Subprograms) are routines that provide standard building blocks for performing basic vector and matrix operations. Blas I is vector operations, II vector-matrix operations and III matrix-matrix operations. Highly parallelized and efficient codes, all available for download from <http://www.netlib.org>.
-
-## Basic Matrix Features
-
-**Matrix properties reminder.**
+## Domains and probabilities
+Consider the following simple example, namely the tossing of two dice, resulting in  the following possible values
 
 $$
-\mathbf{A} =
-      \begin{bmatrix} a_{11} & a_{12} & a_{13} & a_{14} \\
-                                 a_{21} & a_{22} & a_{23} & a_{24} \\
-                                   a_{31} & a_{32} & a_{33} & a_{34} \\
-                                  a_{41} & a_{42} & a_{43} & a_{44}
-             \end{bmatrix}\qquad
-\mathbf{I} =
-      \begin{bmatrix} 1 & 0 & 0 & 0 \\
-                                 0 & 1 & 0 & 0 \\
-                                 0 & 0 & 1 & 0 \\
-                                 0 & 0 & 0 & 1
-             \end{bmatrix}
+\{2,3,4,5,6,7,8,9,10,11,12\}.
 $$
 
-The inverse of a matrix is defined by
+These values are called the *domain*. 
+To this domain we have the corresponding *probabilities*
 
 $$
-\mathbf{A}^{-1} \cdot \mathbf{A} = I
+\{1/36,2/36/,3/36,4/36,5/36,6/36,5/36,4/36,3/36,2/36,1/36\}.
 $$
+
+## Tossing  the dice
+The numbers in the domain are the outcomes of the physical process of tossing say two dice.
+We cannot tell beforehand whether the outcome is 3 or 5 or any other number in this domain.
+This defines the randomness of the outcome, or unexpectedness or any other synonimous word which
+encompasses the uncertitude of the final outcome. 
+
+The only thing we can tell beforehand
+is that say the outcome 2 has a certain probability.  
+If our favorite hobby is to  spend an hour every evening throwing dice and 
+registering the sequence of outcomes, we will note that the numbers in the above domain
+
+$$
+\{2,3,4,5,6,7,8,9,10,11,12\},
+$$
+
+appear in a random order. After 11 throws the results may look like
+
+$$
+\{10,8,6,3,6,9,11,8,12,4,5\}.
+$$
+
+## Stochastic variables
+
+**Random variables are characterized by a domain which contains all possible values that the random value may take. This domain has a corresponding probability distribution function(PDF)**.
+
+
+
+
+## Stochastic variables and the main concepts, the discrete case
+There are two main concepts associated with a stochastic variable. The
+*domain* is the set $\mathbb D = \{x\}$ of all accessible values
+the variable can assume, so that $X \in \mathbb D$. An example of a
+discrete domain is the set of six different numbers that we may get by
+throwing of a dice, $x\in\{1,\,2,\,3,\,4,\,5,\,6\}$.
+
+The *probability distribution function (PDF)* is a function
+$p(x)$ on the domain which, in the discrete case, gives us the
+probability or relative frequency with which these values of $X$
+occur
+
+$$
+p(x) = \mathrm{Prob}(X=x).
+$$
+
+## Stochastic variables and the main concepts, the continuous case
+In the continuous case, the PDF does not directly depict the
+actual probability. Instead we define the probability for the
+stochastic variable to assume any value on an infinitesimal interval
+around $x$ to be $p(x)dx$. The continuous function $p(x)$ then gives us
+the *density* of the probability rather than the probability
+itself. The probability for a stochastic variable to assume any value
+on a non-infinitesimal interval $[a,\,b]$ is then just the integral
+
+$$
+\mathrm{Prob}(a\leq X\leq b) = \int_a^b p(x)dx.
+$$
+
+Qualitatively speaking, a stochastic variable represents the values of
+numbers chosen as if by chance from some specified PDF so that the
+selection of a large set of these numbers reproduces this PDF.
+
+
+
+
+## The cumulative probability
+Of interest to us is the *cumulative probability
+distribution function* (**CDF**), $P(x)$, which is just the probability
+for a stochastic variable $X$ to assume any value less than $x$
+
+$$
+P(x)=\mathrm{Prob(}X\leq x\mathrm{)} =
+\int_{-\infty}^x p(x^{\prime})dx^{\prime}.
+$$
+
+The relation between a CDF and its corresponding PDF is then
+
+$$
+p(x) = \frac{d}{dx}P(x).
+$$
+
+## Properties of PDFs
+
+There are two properties that all PDFs must satisfy. The first one is
+positivity (assuming that the PDF is normalized)
+
+$$
+0 \leq p(x) \leq 1.
+$$
+
+Naturally, it would be nonsensical for any of the values of the domain
+to occur with a probability greater than $1$ or less than $0$. Also,
+the PDF must be normalized. That is, all the probabilities must add up
+to unity.  The probability of "anything" to happen is always unity. For
+both discrete and continuous PDFs, this condition is
+
+$$
+\begin{align*}
+\sum_{x_i\in\mathbb D} p(x_i) & =  1,\\
+\int_{x\in\mathbb D} p(x)\,dx & =  1.
+\end{align*}
+$$
+
+## Important distributions, the uniform distribution
+The first one
+is the most basic PDF; namely the uniform distribution
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:unifromPDF"></div>
+
+$$
+\begin{equation}
+p(x) = \frac{1}{b-a}\theta(x-a)\theta(b-x).
+\label{eq:unifromPDF} \tag{1}
+\end{equation}
+$$
+
+For $a=0$ and $b=1$ we have
+
+$$
+\begin{array}{ll}
+p(x)dx = dx & \in [0,1].
+\end{array}
+$$
+
+The latter distribution is used to generate random numbers. For other PDFs, one needs normally a mapping from this distribution to say for example the exponential distribution.
+
+
+
+
+## Gaussian distribution
+The second one is the Gaussian Distribution
+
+$$
+p(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp{(-\frac{(x-\mu)^2}{2\sigma^2})},
+$$
+
+with mean value $\mu$ and standard deviation $\sigma$. If $\mu=0$ and $\sigma=1$, it is normally called the **standard normal distribution**
+
+$$
+p(x) = \frac{1}{\sqrt{2\pi}} \exp{(-\frac{x^2}{2})},
+$$
+
+The following simple Python code plots the above distribution for different values of $\mu$ and $\sigma$.
+
+%matplotlib inline
+
+import numpy as np
+from math import acos, exp, sqrt
+from  matplotlib import pyplot as plt
+from matplotlib import rc, rcParams
+import matplotlib.units as units
+import matplotlib.ticker as ticker
+rc('text',usetex=True)
+rc('font',**{'family':'serif','serif':['Gaussian distribution']})
+font = {'family' : 'serif',
+        'color'  : 'darkred',
+        'weight' : 'normal',
+        'size'   : 16,
+        }
+pi = acos(-1.0)
+mu0 = 0.0
+sigma0 = 1.0
+mu1= 1.0
+sigma1 = 2.0
+mu2 = 2.0
+sigma2 = 4.0
+
+x = np.linspace(-20.0, 20.0)
+v0 = np.exp(-(x*x-2*x*mu0+mu0*mu0)/(2*sigma0*sigma0))/sqrt(2*pi*sigma0*sigma0)
+v1 = np.exp(-(x*x-2*x*mu1+mu1*mu1)/(2*sigma1*sigma1))/sqrt(2*pi*sigma1*sigma1)
+v2 = np.exp(-(x*x-2*x*mu2+mu2*mu2)/(2*sigma2*sigma2))/sqrt(2*pi*sigma2*sigma2)
+plt.plot(x, v0, 'b-', x, v1, 'r-', x, v2, 'g-')
+plt.title(r'{\bf Gaussian distributions}', fontsize=20)
+plt.text(-19, 0.3, r'Parameters: $\mu = 0$, $\sigma = 1$', fontdict=font)
+plt.text(-19, 0.18, r'Parameters: $\mu = 1$, $\sigma = 2$', fontdict=font)
+plt.text(-19, 0.08, r'Parameters: $\mu = 2$, $\sigma = 4$', fontdict=font)
+plt.xlabel(r'$x$',fontsize=20)
+plt.ylabel(r'$p(x)$ [MeV]',fontsize=20)
+
+# Tweak spacing to prevent clipping of ylabel                                                                       
+plt.subplots_adjust(left=0.15)
+plt.savefig('gaussian.pdf', format='pdf')
+plt.show()
+
+## Exponential distribution
+Another important distribution in science is the exponential distribution
+
+$$
+p(x) = \alpha\exp{-(\alpha x)}.
+$$
+
+## Expectation values
+Let $h(x)$ be an arbitrary continuous function on the domain of the stochastic
+variable $X$ whose PDF is $p(x)$. We define the *expectation value*
+of $h$ with respect to $p$ as follows
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:expectation_value_of_h_wrt_p"></div>
+
+$$
+\begin{equation}
+\langle h \rangle_X \equiv \int\! h(x)p(x)\,dx
+\label{eq:expectation_value_of_h_wrt_p} \tag{2}
+\end{equation}
+$$
+
+Whenever the PDF is known implicitly, like in this case, we will drop
+the index $X$ for clarity.  
+A particularly useful class of special expectation values are the
+*moments*. The $n$-th moment of the PDF $p$ is defined as
+follows
+
+$$
+\langle x^n \rangle \equiv \int\! x^n p(x)\,dx
+$$
+
+## Stochastic variables and the main concepts, mean values
+The zero-th moment $\langle 1\rangle$ is just the normalization condition of
+$p$. The first moment, $\langle x\rangle$, is called the *mean* of $p$
+and often denoted by the letter $\mu$
+
+$$
+\langle x\rangle  = \mu \equiv \int x p(x)dx,
+$$
+
+for a continuous distribution and
+
+$$
+\langle x\rangle  = \mu \equiv \sum_{i=1}^N x_i p(x_i),
+$$
+
+for a discrete distribution. 
+Qualitatively it represents the centroid or the average value of the
+PDF and is therefore simply called the expectation value of $p(x)$.
+
+
+
+
+## Stochastic variables and the main concepts, central moments, the variance
+
+A special version of the moments is the set of *central moments*, the n-th central moment defined as
+
+$$
+\langle (x-\langle x\rangle )^n\rangle  \equiv \int\! (x-\langle x\rangle)^n p(x)\,dx
+$$
+
+The zero-th and first central moments are both trivial, equal $1$ and
+$0$, respectively. But the second central moment, known as the
+*variance* of $p$, is of particular interest. For the stochastic
+variable $X$, the variance is denoted as $\sigma^2_X$ or $\mathrm{Var}(X)$
+
+$$
+\begin{align*}
+\sigma^2_X &=\mathrm{Var}(X) =  \langle (x-\langle x\rangle)^2\rangle  =
+\int (x-\langle x\rangle)^2 p(x)dx\\
+& =  \int\left(x^2 - 2 x \langle x\rangle^{2} +\langle x\rangle^2\right)p(x)dx\\
+& =  \langle x^2\rangle - 2 \langle x\rangle\langle x\rangle + \langle x\rangle^2\\
+& =  \langle x^2 \rangle - \langle x\rangle^2
+\end{align*}
+$$
+
+The square root of the variance, $\sigma =\sqrt{\langle (x-\langle x\rangle)^2\rangle}$ is called the 
+**standard deviation** of $p$. It is the RMS (root-mean-square)
+value of the deviation of the PDF from its mean value, interpreted
+qualitatively as the "spread" of $p$ around its mean.
+
+
+
+
+
+
+## Probability Distribution Functions
+
+The following table collects properties of probability distribution functions.
+In our notation we reserve the label $p(x)$ for the probability of a certain event,
+while $P(x)$ is the cumulative probability. 
+
 
 <table border="1">
 <thead>
-<tr><th align="center">              Relations               </th> <th align="center">      Name     </th> <th align="center">                            matrix elements                            </th> </tr>
+<tr><th align="center">             </th> <th align="center">               Discrete PDF               </th> <th align="center">           Continuous PDF           </th> </tr>
 </thead>
 <tbody>
-<tr><td align="center">   $A = A^{T}$                               </td> <td align="center">   symmetric          </td> <td align="center">   $a_{ij} = a_{ji}$                                                          </td> </tr>
-<tr><td align="center">   $A = \left (A^{T} \right )^{-1}$          </td> <td align="center">   real orthogonal    </td> <td align="center">   $\sum_k a_{ik} a_{jk} = \sum_k a_{ki} a_{kj} = \delta_{ij}$                </td> </tr>
-<tr><td align="center">   $A = A^{ * }$                             </td> <td align="center">   real matrix        </td> <td align="center">   $a_{ij} = a_{ij}^{ * }$                                                    </td> </tr>
-<tr><td align="center">   $A = A^{\dagger}$                         </td> <td align="center">   hermitian          </td> <td align="center">   $a_{ij} = a_{ji}^{ * }$                                                    </td> </tr>
-<tr><td align="center">   $A = \left (A^{\dagger} \right )^{-1}$    </td> <td align="center">   unitary            </td> <td align="center">   $\sum_k a_{ik} a_{jk}^{ * } = \sum_k a_{ki}^{ * } a_{kj} = \delta_{ij}$    </td> </tr>
+<tr><td align="left">   Domain           </td> <td align="center">   $\left\{x_1, x_2, x_3, \dots, x_N\right\}$    </td> <td align="center">   $[a,b]$                                 </td> </tr>
+<tr><td align="left">   Probability      </td> <td align="center">   $p(x_i)$                                      </td> <td align="center">   $p(x)dx$                                </td> </tr>
+<tr><td align="left">   Cumulative       </td> <td align="center">   $P_i=\sum_{l=1}^ip(x_l)$                      </td> <td align="center">   $P(x)=\int_a^xp(t)dt$                   </td> </tr>
+<tr><td align="left">   Positivity       </td> <td align="center">   $0 \le p(x_i) \le 1$                          </td> <td align="center">   $p(x) \ge 0$                            </td> </tr>
+<tr><td align="left">   Positivity       </td> <td align="center">   $0 \le P_i \le 1$                             </td> <td align="center">   $0 \le P(x) \le 1$                      </td> </tr>
+<tr><td align="left">   Monotonic        </td> <td align="center">   $P_i \ge P_j$ if $x_i \ge x_j$                </td> <td align="center">   $P(x_i) \ge P(x_j)$ if $x_i \ge x_j$    </td> </tr>
+<tr><td align="left">   Normalization    </td> <td align="center">   $P_N=1$                                       </td> <td align="center">   $P(b)=1$                                </td> </tr>
 </tbody>
 </table>
 
 
 
 
-### Some famous Matrices
 
-  * Diagonal if $a_{ij}=0$ for $i\ne j$
-
-  * Upper triangular if $a_{ij}=0$ for $i > j$
-
-  * Lower triangular if $a_{ij}=0$ for $i < j$
-
-  * Upper Hessenberg if $a_{ij}=0$ for $i > j+1$
-
-  * Lower Hessenberg if $a_{ij}=0$ for $i < j+1$
-
-  * Tridiagonal if $a_{ij}=0$ for $|i -j| > 1$
-
-  * Lower banded with bandwidth $p$: $a_{ij}=0$ for $i > j+p$
-
-  * Upper banded with bandwidth $p$: $a_{ij}=0$ for $i < j+p$
-
-  * Banded, block upper triangular, block lower triangular....
-
-### More Basic Matrix Features
-
-**Some Equivalent Statements.**
-
-For an $N\times N$ matrix  $\mathbf{A}$ the following properties are all equivalent
-
-  * If the inverse of $\mathbf{A}$ exists, $\mathbf{A}$ is nonsingular.
-
-  * The equation $\mathbf{Ax}=0$ implies $\mathbf{x}=0$.
-
-  * The rows of $\mathbf{A}$ form a basis of $R^N$.
-
-  * The columns of $\mathbf{A}$ form a basis of $R^N$.
-
-  * $\mathbf{A}$ is a product of elementary matrices.
-
-  * $0$ is not eigenvalue of $\mathbf{A}$.
-
-
-
-
-## Numpy and arrays
-[Numpy](http://www.numpy.org/) provides an easy way to handle arrays in Python. The standard way to import this library is as
-
-import numpy as np
-
-Here follows a simple example where we set up an array of ten elements, all determined by random numbers drawn according to the normal distribution,
-
-n = 10
-x = np.random.normal(size=n)
-print(x)
-
-We defined a vector $x$ with $n=10$ elements with its values given by the Normal distribution $N(0,1)$.
-Another alternative is to declare a vector as follows
-
-import numpy as np
-x = np.array([1, 2, 3])
-print(x)
-
-Here we have defined a vector with three elements, with $x_0=1$, $x_1=2$ and $x_2=3$. Note that both Python and C++
-start numbering array elements from $0$ and on. This means that a vector with $n$ elements has a sequence of entities $x_0, x_1, x_2, \dots, x_{n-1}$. We could also let (recommended) Numpy to compute the logarithms of a specific array as
-
-import numpy as np
-x = np.log(np.array([4, 7, 8]))
-print(x)
-
-In the last example we used Numpy's unary function $np.log$. This function is
-highly tuned to compute array elements since the code is vectorized
-and does not require looping. We normaly recommend that you use the
-Numpy intrinsic functions instead of the corresponding **log** function
-from Python's **math** module. The looping is done explicitely by the
-**np.log** function. The alternative, and slower way to compute the
-logarithms of a vector would be to write
-
-import numpy as np
-from math import log
-x = np.array([4, 7, 8])
-for i in range(0, len(x)):
-    x[i] = log(x[i])
-print(x)
-
-We note that our code is much longer already and we need to import the **log** function from the **math** module. 
-The attentive reader will also notice that the output is $[1, 1, 2]$. Python interprets automagically our numbers as integers (like the **automatic** keyword in C++). To change this we could define our array elements to be double precision numbers as
-
-import numpy as np
-x = np.log(np.array([4, 7, 8], dtype = np.float64))
-print(x)
-
-or simply write them as double precision numbers (Python uses 64 bits as default for floating point type variables), that is
-
-import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0])
-print(x)
-
-To check the number of bytes (remember that one byte contains eight bits for double precision variables), you can use simple use the **itemsize** functionality (the array $x$ is actually an object which inherits the functionalities defined in Numpy) as
-
-import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0])
-print(x.itemsize)
-
-## Matrices in Python
-
-Having defined vectors, we are now ready to try out matrices. We can
-define a $3 \times 3 $ real matrix $\hat{A}$ as (recall that we user
-lowercase letters for vectors and uppercase letters for matrices)
-
-import numpy as np
-A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
-print(A)
-
-If we use the **shape** function we would get $(3, 3)$ as output, that is verifying that our matrix is a $3\times 3$ matrix. We can slice the matrix and print for example the first column (Python organized matrix elements in a row-major order, see below) as
-
-import numpy as np
-A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
-# print the first column, row-major order and elements start with 0
-print(A[:,0])
-
-We can continue this was by printing out other columns or rows. The example here prints out the second column
-
-import numpy as np
-A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
-# print the first column, row-major order and elements start with 0
-print(A[1,:])
-
-Numpy contains many other functionalities that allow us to slice, subdivide etc etc arrays. We strongly recommend that you look up the [Numpy website for more details](http://www.numpy.org/). Useful functions when defining a matrix are the **np.zeros** function which declares a matrix of a given dimension and sets all elements to zero
-
-import numpy as np
-n = 10
-# define a matrix of dimension 10 x 10 and set all elements to zero
-A = np.zeros( (n, n) )
-print(A)
-
-or initializing all elements to
-
-import numpy as np
-n = 10
-# define a matrix of dimension 10 x 10 and set all elements to one
-A = np.ones( (n, n) )
-print(A)
-
-or as unitarily distributed random numbers (see the material on random number generators in the statistics part)
-
-import numpy as np
-n = 10
-# define a matrix of dimension 10 x 10 and set all elements to random numbers with x \in [0, 1]
-A = np.random.rand(n, n)
-print(A)
-
-As we will see throughout these lectures, there are several extremely useful functionalities in Numpy.
-As an example, consider the discussion of the covariance matrix. Suppose we have defined three vectors
-$\hat{x}, \hat{y}, \hat{z}$ with $n$ elements each. The covariance matrix is defined as
+## Probability Distribution Functions
+With a PDF we can compute expectation values of selected quantities such as
 
 $$
-\hat{\Sigma} = \begin{bmatrix} \sigma_{xx} & \sigma_{xy} & \sigma_{xz} \\
-                              \sigma_{yx} & \sigma_{yy} & \sigma_{yz} \\
-                              \sigma_{zx} & \sigma_{zy} & \sigma_{zz} 
-             \end{bmatrix},
+\langle x^k\rangle=\sum_{i=1}^{N}x_i^kp(x_i),
 $$
 
-where for example
+if we have a discrete PDF or
 
 $$
-\sigma_{xy} =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
+\langle x^k\rangle=\int_a^b x^kp(x)dx,
 $$
 
-The Numpy function **np.cov** calculates the covariance elements using the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have the exact mean values. 
-The following simple function uses the **np.vstack** function which takes each vector of dimension $1\times n$ and produces a $3\times n$ matrix $\hat{W}$
+in the case of a continuous PDF. We have already defined the mean value $\mu$
+and the variance $\sigma^2$.
+
+
+
+
+## The three famous Probability Distribution Functions
+
+There are at least three PDFs which one may encounter. These are the
+
+**Uniform distribution**
 
 $$
-\hat{W} = \begin{bmatrix} x_0 & y_0 & z_0 \\
-                          x_1 & y_1 & z_1 \\
-                          x_2 & y_2 & z_2 \\
-                          \dots & \dots & \dots \\
-                          x_{n-2} & y_{n-2} & z_{n-2} \\
-                          x_{n-1} & y_{n-1} & z_{n-1}
-             \end{bmatrix},
+p(x)=\frac{1}{b-a}\Theta(x-a)\Theta(b-x),
 $$
 
-which in turn is converted into into the $3\times 3$ covariance matrix
-$\hat{\Sigma}$ via the Numpy function **np.cov()**. We note that we can also calculate
-the mean value of each set of samples $\hat{x}$ etc using the Numpy
-function **np.mean(x)**. We can also extract the eigenvalues of the
-covariance matrix through the **np.linalg.eig()** function.
+yielding probabilities different from zero in the interval $[a,b]$.
+
+**The exponential distribution**
+
+$$
+p(x)=\alpha \exp{(-\alpha x)},
+$$
+
+yielding probabilities different from zero in the interval $[0,\infty)$ and with mean value
+
+$$
+\mu = \int_0^{\infty}xp(x)dx=\int_0^{\infty}x\alpha \exp{(-\alpha x)}dx=\frac{1}{\alpha},
+$$
+
+with variance
+
+$$
+\sigma^2=\int_0^{\infty}x^2p(x)dx-\mu^2 = \frac{1}{\alpha^2}.
+$$
+
+## Probability Distribution Functions, the normal distribution
+Finally, we have the so-called univariate normal  distribution, or just the **normal distribution**
+
+$$
+p(x)=\frac{1}{b\sqrt{2\pi}}\exp{\left(-\frac{(x-a)^2}{2b^2}\right)}
+$$
+
+with probabilities different from zero in the interval $(-\infty,\infty)$.
+The integral $\int_{-\infty}^{\infty}\exp{\left(-(x^2\right)}dx$ appears in many calculations, its value
+is $\sqrt{\pi}$,  a result we will need when we compute the mean value and the variance.
+The mean value is
+
+$$
+\mu = \int_0^{\infty}xp(x)dx=\frac{1}{b\sqrt{2\pi}}\int_{-\infty}^{\infty}x \exp{\left(-\frac{(x-a)^2}{2b^2}\right)}dx,
+$$
+
+which becomes with a suitable change of variables
+
+$$
+\mu =\frac{1}{b\sqrt{2\pi}}\int_{-\infty}^{\infty}b\sqrt{2}(a+b\sqrt{2}y)\exp{-y^2}dy=a.
+$$
+
+## Probability Distribution Functions, the normal distribution
+Similarly, the variance becomes
+
+$$
+\sigma^2 = \frac{1}{b\sqrt{2\pi}}\int_{-\infty}^{\infty}(x-\mu)^2 \exp{\left(-\frac{(x-a)^2}{2b^2}\right)}dx,
+$$
+
+and inserting the mean value and performing a variable change we obtain
+
+$$
+\sigma^2 = \frac{1}{b\sqrt{2\pi}}\int_{-\infty}^{\infty}b\sqrt{2}(b\sqrt{2}y)^2\exp{\left(-y^2\right)}dy=
+\frac{2b^2}{\sqrt{\pi}}\int_{-\infty}^{\infty}y^2\exp{\left(-y^2\right)}dy,
+$$
+
+and performing a final integration by parts we obtain the well-known result $\sigma^2=b^2$.
+It is useful to introduce the standard normal distribution as well, defined by $\mu=a=0$, viz. a distribution
+centered around zero and with a variance $\sigma^2=1$, leading to
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto1"></div>
+
+$$
+\begin{equation}
+   p(x)=\frac{1}{\sqrt{2\pi}}\exp{\left(-\frac{x^2}{2}\right)}.
+\label{_auto1} \tag{3}
+\end{equation}
+$$
+
+## Probability Distribution Functions, the cumulative distribution
+
+The exponential and uniform distributions have simple cumulative functions,
+whereas the normal distribution does not, being proportional to the so-called
+error function $erf(x)$, given by
+
+$$
+P(x) = \frac{1}{\sqrt{2\pi}}\int_{-\infty}^x\exp{\left(-\frac{t^2}{2}\right)}dt,
+$$
+
+which is difficult to evaluate in a quick way.
+
+
+
+
+
+## Probability Distribution Functions, other important distribution
+
+Some other PDFs which one encounters often in the natural sciences are the binomial distribution
+
+$$
+p(x) = \left(\begin{array}{c} n \\ x\end{array}\right)y^x(1-y)^{n-x} \hspace{0.5cm}x=0,1,\dots,n,
+$$
+
+where $y$ is the probability for a specific event, such as the tossing of a coin or moving left or right
+in case of a random walker. Note that $x$ is a discrete stochastic variable. 
+
+The sequence of binomial trials is characterized by the following definitions
+
+  * Every experiment is thought to consist of $N$ independent trials.
+
+  * In every independent trial one registers if a specific situation happens or not, such as the  jump to the left or right of a random walker.
+
+  * The probability for every outcome in a single trial has the same value, for example the outcome of tossing (either heads or tails) a coin is always $1/2$.
+
+
+
+
+## Probability Distribution Functions, the binomial distribution
+
+In order to compute the mean and variance we need to recall Newton's binomial
+formula
+
+$$
+(a+b)^m=\sum_{n=0}^m \left(\begin{array}{c} m \\ n\end{array}\right)a^nb^{m-n},
+$$
+
+which can be used to show that
+
+$$
+\sum_{x=0}^n\left(\begin{array}{c} n \\ x\end{array}\right)y^x(1-y)^{n-x} = (y+1-y)^n = 1,
+$$
+
+the PDF is normalized to one. 
+The mean value is
+
+$$
+\mu = \sum_{x=0}^n x\left(\begin{array}{c} n \\ x\end{array}\right)y^x(1-y)^{n-x} =
+\sum_{x=0}^n x\frac{n!}{x!(n-x)!}y^x(1-y)^{n-x},
+$$
+
+resulting in
+
+$$
+\mu = 
+\sum_{x=0}^n x\frac{(n-1)!}{(x-1)!(n-1-(x-1))!}y^{x-1}(1-y)^{n-1-(x-1)},
+$$
+
+which we rewrite as
+
+$$
+\mu=ny\sum_{\nu=0}^n\left(\begin{array}{c} n-1 \\ \nu\end{array}\right)y^{\nu}(1-y)^{n-1-\nu} =ny(y+1-y)^{n-1}=ny.
+$$
+
+The variance is slightly trickier to get. It reads $\sigma^2=ny(1-y)$. 
+
+
+## Probability Distribution Functions, Poisson's  distribution
+
+Another important distribution with discrete stochastic variables $x$ is  
+the Poisson model, which resembles the exponential distribution and reads
+
+$$
+p(x) = \frac{\lambda^x}{x!} e^{-\lambda} \hspace{0.5cm}x=0,1,\dots,;\lambda > 0.
+$$
+
+In this case both the mean value and the variance are easier to calculate,
+
+$$
+\mu = \sum_{x=0}^{\infty} x \frac{\lambda^x}{x!} e^{-\lambda} = \lambda e^{-\lambda}\sum_{x=1}^{\infty}
+\frac{\lambda^{x-1}}{(x-1)!}=\lambda,
+$$
+
+and the variance is $\sigma^2=\lambda$.
+
+
+
+
+
+
+## Probability Distribution Functions, Poisson's  distribution
+An example of applications of the Poisson distribution could be the counting
+of the number of $\alpha$-particles emitted from a radioactive source in a given time interval.
+In the limit of $n\rightarrow \infty$ and for small probabilities $y$, the binomial distribution
+approaches the Poisson distribution. Setting $\lambda = ny$, with $y$ the probability for an event in
+the binomial distribution we can show that
+
+$$
+\lim_{n\rightarrow \infty}\left(\begin{array}{c} n \\ x\end{array}\right)y^x(1-y)^{n-x} e^{-\lambda}=\sum_{x=1}^{\infty}\frac{\lambda^x}{x!} e^{-\lambda}.
+$$
+
+## Meet the  covariance!
+An important quantity in a statistical analysis is the so-called covariance. 
+
+Consider the set $\{X_i\}$ of $n$
+stochastic variables (not necessarily uncorrelated) with the
+multivariate PDF $P(x_1,\dots,x_n)$. The *covariance* of two
+of the stochastic variables, $X_i$ and $X_j$, is defined as follows
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto2"></div>
+
+$$
+\begin{equation}
+\mathrm{Cov}(X_i,\,X_j)  = \langle (x_i-\langle x_i\rangle)(x_j-\langle x_j\rangle)\rangle 
+\label{_auto2} \tag{4}
+\end{equation}
+$$
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:def_covariance"></div>
+
+$$
+\begin{equation} 
+=\int\cdots\int (x_i-\langle x_i\rangle)(x_j-\langle x_j\rangle)P(x_1,\dots,x_n)\,dx_1\dots dx_n,
+\label{eq:def_covariance} \tag{5}
+\end{equation}
+$$
+
+with
+
+$$
+\langle x_i\rangle =
+\int\cdots\int x_i P(x_1,\dots,x_n)\,dx_1\dots dx_n.
+$$
+
+## Meet the  covariance in matrix disguise
+If we consider the above covariance as a matrix
+
+$$
+C_{ij} =\mathrm{Cov}(X_i,\,X_j),
+$$
+
+then the diagonal elements are just the familiar
+variances, $C_{ii} = \mathrm{Cov}(X_i,\,X_i) = \mathrm{Var}(X_i)$. It turns out that
+all the off-diagonal elements are zero if the stochastic variables are
+uncorrelated.
+
+
+
+
+## Covariance
 
 # Importing various packages
+from math import exp, sqrt
+from random import random, seed
 import numpy as np
+import matplotlib.pyplot as plt
+
+def covariance(x, y, n):
+    sum = 0.0
+    mean_x = np.mean(x)
+    mean_y = np.mean(y)
+    for i in range(0, n):
+        sum += (x[(i)]-mean_x)*(y[i]-mean_y)
+    return  sum/n
+
+n = 10
+
+x=np.random.normal(size=n)
+y = 4+3*x+np.random.normal(size=n)
+covxy = covariance(x,y,n)
+print(covxy)
+z = np.vstack((x, y))
+c = np.cov(z.T)
+
+print(c)
+
+## Meet the  covariance, uncorrelated events
+
+Consider the stochastic variables $X_i$ and $X_j$, ($i\neq j$). We have
+
+$$
+\begin{align*}
+Cov(X_i,\,X_j) &= \langle (x_i-\langle x_i\rangle)(x_j-\langle x_j\rangle)\rangle\\
+&=\langle x_i x_j - x_i\langle x_j\rangle - \langle x_i\rangle x_j + \langle x_i\rangle\langle x_j\rangle\rangle\\
+&=\langle x_i x_j\rangle - \langle x_i\langle x_j\rangle\rangle - \langle \langle x_i\rangle x_j \rangle +
+\langle \langle x_i\rangle\langle x_j\rangle\rangle \\
+&=\langle x_i x_j\rangle - \langle x_i\rangle\langle x_j\rangle - \langle x_i\rangle\langle x_j\rangle +
+\langle x_i\rangle\langle x_j\rangle \\
+&=\langle x_i x_j\rangle - \langle x_i\rangle\langle x_j\rangle
+\end{align*}
+$$
+
+If $X_i$ and $X_j$ are independent (assuming $i \neq j$), we have that
+
+$$
+\langle x_i x_j\rangle = \langle x_i\rangle\langle x_j\rangle,
+$$
+
+leading to
+
+$$
+Cov(X_i, X_j) = 0 \hspace{0.1cm} (i\neq j).
+$$
+
+## Numerical experiments and the covariance
+
+Now that we have constructed an idealized mathematical framework, let
+us try to apply it to empirical observations. Examples of relevant
+physical phenomena may be spontaneous decays of nuclei, or a purely
+mathematical set of numbers produced by some deterministic
+mechanism. It is the latter we will deal with, using so-called pseudo-random
+number generators.  In general our observations will contain only a limited set of
+observables. We remind the reader that
+a *stochastic process* is a process that produces sequentially a
+chain of values
+
+$$
+\{x_1, x_2,\dots\,x_k,\dots\}.
+$$
+
+## Numerical experiments and the covariance
+We will call these
+values our *measurements* and the entire set as our measured
+*sample*.  The action of measuring all the elements of a sample
+we will call a stochastic *experiment* (since, operationally,
+they are often associated with results of empirical observation of
+some physical or mathematical phenomena; precisely an experiment). We
+assume that these values are distributed according to some 
+PDF $p_X^{\phantom X}(x)$, where $X$ is just the formal symbol for the
+stochastic variable whose PDF is $p_X^{\phantom X}(x)$. Instead of
+trying to determine the full distribution $p$ we are often only
+interested in finding the few lowest moments, like the mean
+$\mu_X^{\phantom X}$ and the variance $\sigma_X^{\phantom X}$.
+
+
+
+
+
+## Numerical experiments and the covariance, actual situations
+In practical situations however, a sample is always of finite size. Let that
+size be $n$. The expectation value of a sample $\alpha$, the **sample mean**, is then defined as follows
+
+$$
+\langle x_{\alpha} \rangle \equiv \frac{1}{n}\sum_{k=1}^n x_{\alpha,k}.
+$$
+
+The *sample variance* is:
+
+$$
+\mathrm{Var}(x) \equiv \frac{1}{n}\sum_{k=1}^n (x_{\alpha,k} - \langle x_{\alpha} \rangle)^2,
+$$
+
+with its square root being the *standard deviation of the sample*.
+
+
+
+
+
+## Numerical experiments and the covariance, our observables
+You can think of the above observables as a set of quantities which define
+a given experiment. This experiment is then repeated several times, say $m$ times.
+The total average is then
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:exptmean"></div>
+
+$$
+\begin{equation}
+\langle X_m \rangle= \frac{1}{m}\sum_{\alpha=1}^mx_{\alpha}=\frac{1}{mn}\sum_{\alpha, k} x_{\alpha,k},
+\label{eq:exptmean} \tag{6}
+\end{equation}
+$$
+
+where the last sums end at $m$ and $n$.
+The total variance is
+
+$$
+\sigma^2_m= \frac{1}{mn^2}\sum_{\alpha=1}^m(\langle x_{\alpha} \rangle-\langle X_m \rangle)^2,
+$$
+
+which we rewrite as
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:exptvariance"></div>
+
+$$
+\begin{equation}
+\sigma^2_m=\frac{1}{m}\sum_{\alpha=1}^m\sum_{kl=1}^n (x_{\alpha,k}-\langle X_m \rangle)(x_{\alpha,l}-\langle X_m \rangle).
+\label{eq:exptvariance} \tag{7}
+\end{equation}
+$$
+
+## Numerical experiments and the covariance, the sample variance
+
+We define also the sample variance $\sigma^2$ of all $mn$ individual experiments as
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:sampleexptvariance"></div>
+
+$$
+\begin{equation}
+\sigma^2=\frac{1}{mn}\sum_{\alpha=1}^m\sum_{k=1}^n (x_{\alpha,k}-\langle X_m \rangle)^2.
+\label{eq:sampleexptvariance} \tag{8}
+\end{equation}
+$$
+
+These quantities, being known experimental values or the results from our calculations, 
+may differ, in some cases
+significantly,  from the similarly named
+exact values for the mean value $\mu_X$, the variance $\mathrm{Var}(X)$
+and the covariance $\mathrm{Cov}(X,Y)$.
+
+
+
+
+## Numerical experiments and the covariance, central limit theorem
+
+The central limit theorem states that the PDF $\tilde{p}(z)$ of
+the average of $m$ random values corresponding to a PDF $p(x)$ 
+is a normal distribution whose mean is the 
+mean value of the PDF $p(x)$ and whose variance is the variance
+of the PDF $p(x)$ divided by $m$, the number of values used to compute $z$.
+
+The central limit theorem leads then to the well-known expression for the
+standard deviation, given by
+
+$$
+\sigma_m=
+\frac{\sigma}{\sqrt{m}}.
+$$
+
+In many cases the above estimate for the standard deviation, in particular if correlations are strong, may be too simplistic.  We need therefore a more precise defintion of the error and the variance in our results.
+
+
+
+
+## Definition of Correlation Functions and Standard Deviation
+Our estimate of the true average $\mu_{X}$ is the sample mean $\langle X_m \rangle$
+
+$$
+\mu_{X}^{\phantom X} \approx X_m=\frac{1}{mn}\sum_{\alpha=1}^m\sum_{k=1}^n x_{\alpha,k}.
+$$
+
+We can then use Eq. ([7](#eq:exptvariance))
+
+$$
+\sigma^2_m=\frac{1}{mn^2}\sum_{\alpha=1}^m\sum_{kl=1}^n (x_{\alpha,k}-\langle X_m \rangle)(x_{\alpha,l}-\langle X_m \rangle),
+$$
+
+and rewrite it as
+
+$$
+\sigma^2_m=\frac{\sigma^2}{n}+\frac{2}{mn^2}\sum_{\alpha=1}^m\sum_{k<l}^n (x_{\alpha,k}-\langle X_m \rangle)(x_{\alpha,l}-\langle X_m \rangle),
+$$
+
+where the first term is the sample variance of all $mn$ experiments divided by $n$
+and the last term is nothing but the covariance which arises when $k\ne l$.
+
+
+
+
+
+
+
+
+## Definition of Correlation Functions and Standard Deviation
+Our estimate of the true average $\mu_{X}$ is the sample mean $\langle X_m \rangle$
+
+If the 
+observables are uncorrelated, then the covariance is zero and we obtain a total variance
+which agrees with the central limit theorem. Correlations may often be present in our data set, resulting in a non-zero covariance.  The first term is normally called the uncorrelated 
+contribution.
+Computationally the uncorrelated first term is much easier to treat
+efficiently than the second.
+We just accumulate separately the values $x^2$ and $x$ for every
+measurement $x$ we receive. The correlation term, though, has to be
+calculated at the end of the experiment since we need all the
+measurements to calculate the cross terms. Therefore, all measurements
+have to be stored throughout the experiment.
+
+
+
+
+## Definition of Correlation Functions and Standard Deviation
+
+Let us analyze the problem by splitting up the correlation term into
+partial sums of the form
+
+$$
+f_d = \frac{1}{nm}\sum_{\alpha=1}^m\sum_{k=1}^{n-d}(x_{\alpha,k}-\langle X_m \rangle)(x_{\alpha,k+d}-\langle X_m \rangle),
+$$
+
+The correlation term of the total variance can now be rewritten in terms of
+$f_d$
+
+$$
+\frac{2}{mn^2}\sum_{\alpha=1}^m\sum_{k<l}^n (x_{\alpha,k}-\langle X_m \rangle)(x_{\alpha,l}-\langle X_m \rangle)=
+\frac{2}{n}\sum_{d=1}^{n-1} f_d
+$$
+
+## Definition of Correlation Functions and Standard Deviation
+The value of $f_d$ reflects the correlation between measurements
+separated by the distance $d$ in the samples.  Notice that for
+$d=0$, $f$ is just the sample variance, $\sigma^2$. If we divide $f_d$
+by $\sigma^2$, we arrive at the so called **autocorrelation function**
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:autocorrelformal"></div>
+
+$$
+\begin{equation}
+\kappa_d = \frac{f_d}{\sigma^2}
+\label{eq:autocorrelformal} \tag{9}
+\end{equation}
+$$
+
+which gives us a useful measure of the correlation pair correlation
+starting always at $1$ for $d=0$.
+
+
+
+
+## Definition of Correlation Functions and Standard Deviation, sample variance
+
+The sample variance of the $mn$ experiments can now be
+written in terms of the autocorrelation function
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:error_estimate_corr_time"></div>
+
+$$
+\begin{equation}
+\sigma_m^2=\frac{\sigma^2}{n}+\frac{2}{n}\cdot\sigma^2\sum_{d=1}^{n-1}
+\frac{f_d}{\sigma^2}=\left(1+2\sum_{d=1}^{n-1}\kappa_d\right)\frac{1}{n}\sigma^2=\frac{\tau}{n}\cdot\sigma^2
+\label{eq:error_estimate_corr_time} \tag{10}
+\end{equation}
+$$
+
+and we see that $\sigma_m$ can be expressed in terms of the
+uncorrelated sample variance times a correction factor $\tau$ which
+accounts for the correlation between measurements. We call this
+correction factor the *autocorrelation time*
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:autocorrelation_time"></div>
+
+$$
+\begin{equation}
+\tau = 1+2\sum_{d=1}^{n-1}\kappa_d
+\label{eq:autocorrelation_time} \tag{11}
+\end{equation}
+$$
+
+<!-- It is closely related to the area under the graph of the -->
+<!-- autocorrelation function. -->
+For a correlation free experiment, $\tau$
+equals 1.
+
+
+
+
+
+
+## Definition of Correlation Functions and Standard Deviation
+From the point of view of
+Eq. ([10](#eq:error_estimate_corr_time)) we can interpret a sequential
+correlation as an effective reduction of the number of measurements by
+a factor $\tau$. The effective number of measurements becomes
+
+$$
+n_\mathrm{eff} = \frac{n}{\tau}
+$$
+
+To neglect the autocorrelation time $\tau$ will always cause our
+simple uncorrelated estimate of $\sigma_m^2\approx \sigma^2/n$ to
+be less than the true sample error. The estimate of the error will be
+too "good". On the other hand, the calculation of the full
+autocorrelation time poses an efficiency problem if the set of
+measurements is very large.  The solution to this problem is given by 
+more practically oriented methods like the blocking technique.
+<!-- add ref here to flybjerg -->
+
+
+
+
+
+## Code to compute the Covariance matrix and the Covariance
+
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sample covariance, note the factor 1/(n-1)
+def covariance(x, y, n):
+    sum = 0.0
+    mean_x = np.mean(x)
+    mean_y = np.mean(y)
+    for i in range(0, n):
+        sum += (x[(i)]-mean_x)*(y[i]-mean_y)
+    return  sum/(n-1.)
 
 n = 100
 x = np.random.normal(size=n)
@@ -525,779 +940,892 @@ y = 4+3*x+np.random.normal(size=n)
 print(np.mean(y))
 z = x**3+np.random.normal(size=n)
 print(np.mean(z))
-W = np.vstack((x, y, z))
-Sigma = np.cov(W)
-print(Sigma)
-Eigvals, Eigvecs = np.linalg.eig(Sigma)
+covxx = covariance(x,x,n)
+covyy = covariance(y,y,n)
+covzz = covariance(z,z,n)
+covxy = covariance(x,y,n)
+covxz = covariance(x,z,n)
+covyz = covariance(y,z,n)
+print(covxx,covyy, covzz)
+print(covxy,covxz, covyz)
+w = np.vstack((x, y, z))
+#print(w)
+c = np.cov(w)
+print(c)
+#eigen = np.zeros(n)
+Eigvals, Eigvecs = np.linalg.eig(c)
 print(Eigvals)
 
-%matplotlib inline
+# Random Numbers
 
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import sparse
-eye = np.eye(4)
-print(eye)
-sparse_mtx = sparse.csr_matrix(eye)
-print(sparse_mtx)
-x = np.linspace(-10,10,100)
-y = np.sin(x)
-plt.plot(x,y,marker='x')
-plt.show()
-
-## Meet the Pandas
-
-
-<!-- dom:FIGURE: [fig/pandas.jpg, width=600 frac=0.8] -->
-<!-- begin figure -->
-
-<p></p>
-<img src="fig/pandas.jpg" width=600>
-
-<!-- end figure -->
-
-
-Another useful Python package is
-[pandas](https://pandas.pydata.org/), which is an open source library
-providing high-performance, easy-to-use data structures and data
-analysis tools for Python. **pandas** stands for panel data, a term borrowed from econometrics and is an efficient library for data analysis with an emphasis on tabular data.
-**pandas** has two major classes, the **DataFrame** class with two-dimensional data objects and tabular data organized in columns and the class **Series** with a focus on one-dimensional data objects. Both classes allow you to index data easily as we will see in the examples below. 
-**pandas** allows you also to perform mathematical operations on the data, spanning from simple reshapings of vectors and matrices to statistical operations. 
-
-The following simple example shows how we can, in an easy way make tables of our data. Here we define a data set which includes names, place of birth and date of birth, and displays the data in an easy to read way. We will see repeated use of **pandas**, in particular in connection with classification of data.
-
-import pandas as pd
-from IPython.display import display
-data = {'First Name': ["Frodo", "Bilbo", "Aragorn II", "Samwise"],
-        'Last Name': ["Baggins", "Baggins","Elessar","Gamgee"],
-        'Place of birth': ["Shire", "Shire", "Eriador", "Shire"],
-        'Date of Birth T.A.': [2968, 2890, 2931, 2980]
-        }
-data_pandas = pd.DataFrame(data)
-display(data_pandas)
-
-In the above we have imported **pandas** with the shorthand **pd**, the latter has become the standard way we import **pandas**. We make then a list of various variables
-and reorganize the aboves lists into a **DataFrame** and then print out  a neat table with specific column labels as *Name*, *place of birth* and *date of birth*.
-Displaying these results, we see that the indices are given by the default numbers from zero to three.
-**pandas** is extremely flexible and we can easily change the above indices by defining a new type of indexing as
-
-data_pandas = pd.DataFrame(data,index=['Frodo','Bilbo','Aragorn','Sam'])
-display(data_pandas)
-
-Thereafter we display the content of the row which begins with the index **Aragorn**
-
-display(data_pandas.loc['Aragorn'])
-
-We can easily append data to this, for example
-
-new_hobbit = {'First Name': ["Peregrin"],
-              'Last Name': ["Took"],
-              'Place of birth': ["Shire"],
-              'Date of Birth T.A.': [2990]
-              }
-data_pandas=data_pandas.append(pd.DataFrame(new_hobbit, index=['Pippin']))
-display(data_pandas)
-
-Here are other examples where we use the **DataFrame** functionality to handle arrays, now with more interesting features for us, namely numbers. We set up a matrix 
-of dimensionality $10\times 5$ and compute the mean value and standard deviation of each column. Similarly, we can perform mathematial operations like squaring the matrix elements and many other operations.
-
-import numpy as np
-import pandas as pd
-from IPython.display import display
-np.random.seed(100)
-# setting up a 10 x 5 matrix
-rows = 10
-cols = 5
-a = np.random.randn(rows,cols)
-df = pd.DataFrame(a)
-display(df)
-print(df.mean())
-print(df.std())
-display(df**2)
-
-Thereafter we can select specific columns only and plot final results
-
-df.columns = ['First', 'Second', 'Third', 'Fourth', 'Fifth']
-df.index = np.arange(10)
-
-display(df)
-print(df['Second'].mean() )
-print(df.info())
-print(df.describe())
-
-from pylab import plt, mpl
-plt.style.use('seaborn')
-mpl.rcParams['font.family'] = 'serif'
-
-df.cumsum().plot(lw=2.0, figsize=(10,6))
-plt.show()
-
-
-df.plot.bar(figsize=(10,6), rot=15)
-plt.show()
-
-We can produce a $4\times 4$ matrix
-
-b = np.arange(16).reshape((4,4))
-print(b)
-df1 = pd.DataFrame(b)
-print(df1)
-
-and many other operations. 
-
-The **Series** class is another important class included in
-**pandas**. You can view it as a specialization of **DataFrame** but where
-we have just a single column of data. It shares many of the same features as _DataFrame. As with **DataFrame**,
-most operations are vectorized, achieving thereby a high performance when dealing with computations of arrays, in particular labeled arrays.
-As we will see below it leads also to a very concice code close to the mathematical operations we may be interested in.
-For multidimensional arrays, we recommend strongly [xarray](http://xarray.pydata.org/en/stable/). **xarray** has much of the same flexibility as **pandas**, but allows for the extension to higher dimensions than two. We will see examples later of the usage of both **pandas** and **xarray**. 
+Uniform deviates are just random numbers that lie within a specified range
+(typically 0 to 1), with any one number in the range just as likely as any other. They
+are, in other words, what you probably think random numbers are. However,
+we want to distinguish uniform deviates from other sorts of random numbers, for
+example numbers drawn from a normal (Gaussian) distribution of specified mean
+and standard deviation. These other sorts of deviates are almost always generated by
+performing appropriate operations on one or more uniform deviates, as we will see
+in subsequent sections. So, a reliable source of random uniform deviates, the subject
+of this section, is an essential building block for any sort of stochastic modeling
+or Monte Carlo computer work.
 
 
 
-## Reading Data and fitting
-
-In order to study various Machine Learning algorithms, we need to
-access data. Acccessing data is an essential step in all machine
-learning algorithms. In particular, setting up the so-called **design
-matrix** (to be defined below) is often the first element we need in
-order to perform our calculations. To set up the design matrix means
-reading (and later, when the calculations are done, writing) data
-in various formats, The formats span from reading files from disk,
-loading data from databases and interacting with online sources
-like web application programming interfaces (APIs).
-
-In handling various input formats, as discussed above, we will mainly stay with **pandas**,
-a Python package which allows us, in a seamless and painless way, to
-deal with a multitude of formats, from standard **csv** (comma separated
-values) files, via **excel**, **html** to **hdf5** formats.  With **pandas**
-and the **DataFrame**  and **Series** functionalities we are able to convert text data
-into the calculational formats we need for a specific algorithm. And our code is going to be 
-pretty close the basic mathematical expressions.
-
-Our first data set is going to be a classic from nuclear physics, namely all
-available data on binding energies. Don't be intimidated if you are not familiar with nuclear physics. It serves simply as an example here of a data set. 
-
-We will show some of the
-strengths of packages like **Scikit-Learn** in fitting nuclear binding energies to
-specific functions using linear regression first. Then, as a teaser, we will show you how 
-you can easily implement other algorithms like decision trees and random forests and neural networks.
-
-But before we really start with nuclear physics data, let's just look at some simpler polynomial fitting cases, such as,
-(don't be offended) fitting straight lines!
 
 
-### Simple linear regression model using **scikit-learn**
+# Random Numbers, better name: pseudo random numbers
 
-We start with perhaps our simplest possible example, using **Scikit-Learn** to perform linear regression analysis on a data set produced by us. 
+A disclaimer is however appropriate. It should be fairly obvious that 
+something as deterministic as a computer cannot generate purely random numbers.
 
-What follows is a simple Python code where we have defined a function
-$y$ in terms of the variable $x$. Both are defined as vectors with  $100$ entries. 
-The numbers in the vector $\hat{x}$ are given
-by random numbers generated with a uniform distribution with entries
-$x_i \in [0,1]$ (more about probability distribution functions
-later). These values are then used to define a function $y(x)$
-(tabulated again as a vector) with a linear dependence on $x$ plus a
-random noise added via the normal distribution.
+Numbers generated by any of the standard algorithms are in reality pseudo random
+numbers, hopefully abiding to the following criteria:
+
+  * they produce a uniform distribution in the interval [0,1].
+
+  * correlations between random numbers are negligible
+
+  * the period before the same sequence of random numbers is repeated   is as large as possible and finally
+
+  * the algorithm should be fast.
 
 
-The Numpy functions are imported used the **import numpy as np**
-statement and the random number generator for the uniform distribution
-is called using the function **np.random.rand()**, where we specificy
-that we want $100$ random variables.  Using Numpy we define
-automatically an array with the specified number of elements, $100$ in
-our case.  With the Numpy function **randn()** we can compute random
-numbers with the normal distribution (mean value $\mu$ equal to zero and
-variance $\sigma^2$ set to one) and produce the values of $y$ assuming a linear
-dependence as function of $x$
+
+
+
+# Random number generator RNG
+ The most common random number generators are based on so-called
+Linear congruential relations of the type
 
 $$
-y = 2x+N(0,1),
+N_i=(aN_{i-1}+c) \mathrm{MOD} (M),
 $$
 
-where $N(0,1)$ represents random numbers generated by the normal
-distribution.  From **Scikit-Learn** we import then the
-**LinearRegression** functionality and make a prediction $\tilde{y} =
-\alpha + \beta x$ using the function **fit(x,y)**. We call the set of
-data $(\hat{x},\hat{y})$ for our training data. The Python package
-**scikit-learn** has also a functionality which extracts the above
-fitting parameters $\alpha$ and $\beta$ (see below). Later we will
-distinguish between training data and test data.
-
-For plotting we use the Python package
-[matplotlib](https://matplotlib.org/) which produces publication
-quality figures. Feel free to explore the extensive
-[gallery](https://matplotlib.org/gallery/index.html) of examples. In
-this example we plot our original values of $x$ and $y$ as well as the
-prediction **ypredict** ($\tilde{y}$), which attempts at fitting our
-data with a straight line.
-
-The Python code follows here.
-
-# Importing various packages
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-
-x = np.random.rand(100,1)
-y = 2*x+np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-xnew = np.array([[0],[1]])
-ypredict = linreg.predict(xnew)
-
-plt.plot(xnew, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0,1.0,0, 5.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Simple Linear Regression')
-plt.show()
-
-This example serves several aims. It allows us to demonstrate several
-aspects of data analysis and later machine learning algorithms. The
-immediate visualization shows that our linear fit is not
-impressive. It goes through the data points, but there are many
-outliers which are not reproduced by our linear regression.  We could
-now play around with this small program and change for example the
-factor in front of $x$ and the normal distribution.  Try to change the
-function $y$ to
+which yield a number in the interval [0,1] through
 
 $$
-y = 10x+0.01 \times N(0,1),
+x_i=N_i/M
 $$
 
-where $x$ is defined as before.  Does the fit look better? Indeed, by
-reducing the role of the noise given by the normal distribution we see immediately that
-our linear prediction seemingly reproduces better the training
-set. However, this testing 'by the eye' is obviouly not satisfactory in the
-long run. Here we have only defined the training data and our model, and 
-have not discussed a more rigorous approach to the **cost** function.
+The number 
+$M$ is called the period and it should be as large as possible 
+ and 
+$N_0$ is the starting value, or seed. The function $\mathrm{MOD}$ means the remainder,
+that is if we were to evaluate $(13)\mathrm{MOD}(9)$, the outcome is the remainder
+of the division $13/9$, namely $4$.
 
-We need more rigorous criteria in defining whether we have succeeded or
-not in modeling our training data.  You will be surprised to see that
-many scientists seldomly venture beyond this 'by the eye' approach. A
-standard approach for the *cost* function is the so-called $\chi^2$
-function (a variant of the mean-squared error (MSE))
 
-$$
-\chi^2 = \frac{1}{n}
-\sum_{i=0}^{n-1}\frac{(y_i-\tilde{y}_i)^2}{\sigma_i^2},
-$$
 
-where $\sigma_i^2$ is the variance (to be defined later) of the entry
-$y_i$.  We may not know the explicit value of $\sigma_i^2$, it serves
-however the aim of scaling the equations and make the cost function
-dimensionless.  
 
-Minimizing the cost function is a central aspect of
-our discussions to come. Finding its minima as function of the model
-parameters ($\alpha$ and $\beta$ in our case) will be a recurring
-theme in these series of lectures. Essentially all machine learning
-algorithms we will discuss center around the minimization of the
-chosen cost function. This depends in turn on our specific
-model for describing the data, a typical situation in supervised
-learning. Automatizing the search for the minima of the cost function is a
-central ingredient in all algorithms. Typical methods which are
-employed are various variants of **gradient** methods. These will be
-discussed in more detail later. Again, you'll be surprised to hear that
-many practitioners minimize the above function ''by the eye', popularly dubbed as 
-'chi by the eye'. That is, change a parameter and see (visually and numerically) that 
-the  $\chi^2$ function becomes smaller. 
+# Random number generator RNG and periodic outputs
 
-There are many ways to define the cost function. A simpler approach is to look at the relative difference between the training data and the predicted data, that is we define 
-the relative error (why would we prefer the MSE instead of the relative error?) as
+The problem with such generators is that their outputs are periodic;
+they 
+will start to repeat themselves with a period that is at most $M$. If however
+the parameters $a$ and $c$ are badly chosen, the period may be even shorter.
+
+Consider the following example
 
 $$
-\epsilon_{\mathrm{relative}}= \frac{\vert \hat{y} -\hat{\tilde{y}}\vert}{\vert \hat{y}\vert}.
+N_i=(6N_{i-1}+7) \mathrm{MOD} (5),
 $$
 
-The squared cost function results in an arithmetic mean-unbiased
-estimator, and the absolute-value cost function results in a
-median-unbiased estimator (in the one-dimensional case, and a
-geometric median-unbiased estimator for the multi-dimensional
-case). The squared cost function has the disadvantage that it has the tendency
-to be dominated by outliers.
-
-We can modify easily the above Python code and plot the relative error instead
-
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-
-x = np.random.rand(100,1)
-y = 5*x+0.01*np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-ypredict = linreg.predict(x)
-
-plt.plot(x, np.abs(ypredict-y)/abs(y), "ro")
-plt.axis([0,1.0,0.0, 0.5])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$\epsilon_{\mathrm{relative}}$')
-plt.title(r'Relative error')
-plt.show()
-
-Depending on the parameter in front of the normal distribution, we may
-have a small or larger relative error. Try to play around with
-different training data sets and study (graphically) the value of the
-relative error.
-
-As mentioned above, **Scikit-Learn** has an impressive functionality.
-We can for example extract the values of $\alpha$ and $\beta$ and
-their error estimates, or the variance and standard deviation and many
-other properties from the statistical data analysis. 
-
-Here we show an
-example of the functionality of **Scikit-Learn**.
-
-import numpy as np 
-import matplotlib.pyplot as plt 
-from sklearn.linear_model import LinearRegression 
-from sklearn.metrics import mean_squared_error, r2_score, mean_squared_log_error, mean_absolute_error
-
-x = np.random.rand(100,1)
-y = 2.0+ 5*x+0.5*np.random.randn(100,1)
-linreg = LinearRegression()
-linreg.fit(x,y)
-ypredict = linreg.predict(x)
-print('The intercept alpha: \n', linreg.intercept_)
-print('Coefficient beta : \n', linreg.coef_)
-# The mean squared error                               
-print("Mean squared error: %.2f" % mean_squared_error(y, ypredict))
-# Explained variance score: 1 is perfect prediction                                 
-print('Variance score: %.2f' % r2_score(y, ypredict))
-# Mean squared log error                                                        
-print('Mean squared log error: %.2f' % mean_squared_log_error(y, ypredict) )
-# Mean absolute error                                                           
-print('Mean absolute error: %.2f' % mean_absolute_error(y, ypredict))
-plt.plot(x, ypredict, "r-")
-plt.plot(x, y ,'ro')
-plt.axis([0.0,1.0,1.5, 7.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Linear Regression fit ')
-plt.show()
-
-The function **coef** gives us the parameter $\beta$ of our fit while **intercept** yields 
-$\alpha$. Depending on the constant in front of the normal distribution, we get values near or far from $alpha =2$ and $\beta =5$. Try to play around with different parameters in front of the normal distribution. The function **meansquarederror** gives us the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error or loss defined as
+with a seed $N_0=2$. This generator produces the sequence
+$4,1,3,0,2,4,1,3,0,2,...\dots$, i.e., a sequence with period $5$.
+However, increasing $M$ may not guarantee a larger period as the following
+example shows
 
 $$
-MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
-\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2,
+N_i=(27N_{i-1}+11) \mathrm{MOD} (54),
 $$
 
-The smaller the value, the better the fit. Ideally we would like to
-have an MSE equal zero.  The attentive reader has probably recognized
-this function as being similar to the $\chi^2$ function defined above.
+which still, with $N_0=2$, results in $11,38,11,38,11,38,\dots$, a period of
+just $2$.
 
-The **r2score** function computes $R^2$, the coefficient of
-determination. It provides a measure of how well future samples are
-likely to be predicted by the model. Best possible score is 1.0 and it
-can be negative (because the model can be arbitrarily worse). A
-constant model that always predicts the expected value of $\hat{y}$,
-disregarding the input features, would get a $R^2$ score of $0.0$.
 
-If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
 
-$$
-R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
-$$
 
-where we have defined the mean value  of $\hat{y}$ as
+# Random number generator RNG and its period
+Typical periods for the random generators provided in the program library 
+are of the order of $\sim 10^9$ or larger. Other random number generators which have
+become increasingly popular are so-called shift-register generators.
+In these generators each successive number depends on many preceding
+values (rather than the last values as in the linear congruential
+generator).
+For example, you could make a shift register generator whose $l$th 
+number is the sum of the $l-i$th and $l-j$th values with modulo $M$,
 
 $$
-\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+N_l=(aN_{l-i}+cN_{l-j})\mathrm{MOD}(M).
 $$
 
-Another quantity taht we will meet again in our discussions of regression analysis is 
- the mean absolute error (MAE), a risk metric corresponding to the expected value of the absolute error loss or what we call the $l1$-norm loss. In our discussion above we presented the relative error.
-The MAE is defined as follows
+# Random number generator RNG, other examples
+Such a generator again produces a sequence of pseudorandom numbers
+but this time with a period much larger than $M$.
+It is also possible to construct more elaborate algorithms by including
+more than two past terms in the sum of each iteration.
+One example is the generator of [Marsaglia and Zaman](http://dl.acm.org/citation.cfm?id=187154)
+which consists of two congruential relations
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:mz1"></div>
 
 $$
-\text{MAE}(\hat{y}, \hat{\tilde{y}}) = \frac{1}{n} \sum_{i=0}^{n-1} \left| y_i - \tilde{y}_i \right|.
+\begin{equation}
+   N_l=(N_{l-3}-N_{l-1})\mathrm{MOD}(2^{31}-69),
+\label{eq:mz1} \tag{12}
+\end{equation}
 $$
 
-We present the 
-squared logarithmic (quadratic) error
+followed by
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:mz2"></div>
 
 $$
-\text{MSLE}(\hat{y}, \hat{\tilde{y}}) = \frac{1}{n} \sum_{i=0}^{n - 1} (\log_e (1 + y_i) - \log_e (1 + \tilde{y}_i) )^2,
+\begin{equation}
+   N_l=(69069N_{l-1}+1013904243)\mathrm{MOD}(2^{32}),
+\label{eq:mz2} \tag{13}
+\end{equation}
 $$
 
-where $\log_e (x)$ stands for the natural logarithm of $x$. This error
-estimate is best to use when targets having exponential growth, such
-as population counts, average sales of a commodity over a span of
-years etc. 
+which according to the authors has a period larger than $2^{94}$.
 
 
-Finally, another cost function is the Huber cost function used in robust regression.
 
-The rationale behind this possible cost function is its reduced
-sensitivity to outliers in the data set. In our discussions on
-dimensionality reduction and normalization of data we will meet other
-ways of dealing with outliers.
 
-The Huber cost function is defined as
+# Random number generator RNG, other examples
+Instead of  using modular addition, we could use the bitwise
+exclusive-OR ($\oplus$) operation so that
 
 $$
-H_{\delta}(a)={\begin{cases}{\frac {1}{2}}{a^{2}}&{\text{for }}|a|\leq \delta ,\\\delta (|a|-{\frac {1}{2}}\delta ),&{\text{otherwise.}}\end{cases}}}.
+N_l=(N_{l-i})\oplus (N_{l-j})
 $$
 
-Here $a=\boldsymbol{y} - \boldsymbol{\tilde{y}}$.
-We will discuss in more
-detail these and other functions in the various lectures.  We conclude this part with another example. Instead of 
-a linear $x$-dependence we study now a cubic polynomial and use the polynomial regression analysis tools of scikit-learn.
+where the bitwise action of $\oplus$ means that if $N_{l-i}=N_{l-j}$ the result is
+$0$ whereas if $N_{l-i}\ne N_{l-j}$ the result is
+$1$. As an example, consider the case where  $N_{l-i}=6$ and $N_{l-j}=11$. The first
+one has a bit representation (using 4 bits only) which reads $0110$ whereas the 
+second number is $1011$. Employing the $\oplus$ operator yields 
+$1101$, or $2^3+2^2+2^0=13$.
 
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-from sklearn.linear_model import Ridge
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import LinearRegression
+In Fortran90, the bitwise $\oplus$ operation is coded through the intrinsic
+function $\mathrm{IEOR}(m,n)$ where $m$ and $n$ are the input numbers, while in $C$
+it is given by $m\wedge n$.
 
-x=np.linspace(0.02,0.98,200)
-noise = np.asarray(random.sample((range(200)),200))
-y=x**3*noise
-yn=x**3*100
-poly3 = PolynomialFeatures(degree=3)
-X = poly3.fit_transform(x[:,np.newaxis])
-clf3 = LinearRegression()
-clf3.fit(X,y)
 
-Xplot=poly3.fit_transform(x[:,np.newaxis])
-poly3_plot=plt.plot(x, clf3.predict(Xplot), label='Cubic Fit')
-plt.plot(x,yn, color='red', label="True Cubic")
-plt.scatter(x, y, label='Data', color='orange', s=15)
-plt.legend()
-plt.show()
 
-def error(a):
-    for i in y:
-        err=(y-yn)/yn
-    return abs(np.sum(err))/len(err)
 
-print (error(y))
 
-### To our real data: nuclear binding energies. Brief reminder on masses and binding energies
+# Random number generator RNG, RAN0
 
-Let us now dive into  nuclear physics and remind ourselves briefly about some basic features about binding
-energies.  A basic quantity which can be measured for the ground
-states of nuclei is the atomic mass $M(N, Z)$ of the neutral atom with
-atomic mass number $A$ and charge $Z$. The number of neutrons is $N$. There are indeed several sophisticated experiments worldwide which allow us to measure this quantity to high precision (parts per million even). 
-
-Atomic masses are usually tabulated in terms of the mass excess defined by
+We show here how the linear congruential algorithm can be implemented, namely
 
 $$
-\Delta M(N, Z) =  M(N, Z) - uA,
+N_i=(aN_{i-1}) \mathrm{MOD} (M).
 $$
 
-where $u$ is the Atomic Mass Unit
+However, since $a$ and $N_{i-1}$ are integers and their multiplication 
+could become greater than the standard 32 bit integer, there is a trick via 
+Schrage's algorithm which approximates the multiplication
+of large integers through the factorization
 
 $$
-u = M(^{12}\mathrm{C})/12 = 931.4940954(57) \hspace{0.1cm} \mathrm{MeV}/c^2.
+M=aq+r,
 $$
 
-The nucleon masses are
+where we have defined
 
 $$
-m_p =  1.00727646693(9)u,
+q=[M/a],
 $$
 
 and
 
 $$
-m_n = 939.56536(8)\hspace{0.1cm} \mathrm{MeV}/c^2 = 1.0086649156(6)u.
+r = M\hspace{0.1cm}\mathrm{MOD} \hspace{0.1cm}a.
 $$
 
-In the [2016 mass evaluation of by W.J.Huang, G.Audi, M.Wang, F.G.Kondev, S.Naimi and X.Xu](http://nuclearmasses.org/resources_folder/Wang_2017_Chinese_Phys_C_41_030003.pdf)
-there are data on masses and decays of 3437 nuclei.
-
-The nuclear binding energy is defined as the energy required to break
-up a given nucleus into its constituent parts of $N$ neutrons and $Z$
-protons. In terms of the atomic masses $M(N, Z)$ the binding energy is
-defined by
-
-$$
-BE(N, Z) = ZM_H c^2 + Nm_n c^2 - M(N, Z)c^2 ,
-$$
-
-where $M_H$ is the mass of the hydrogen atom and $m_n$ is the mass of the neutron.
-In terms of the mass excess the binding energy is given by
-
-$$
-BE(N, Z) = Z\Delta_H c^2 + N\Delta_n c^2 -\Delta(N, Z)c^2 ,
-$$
-
-where $\Delta_H c^2 = 7.2890$ MeV and $\Delta_n c^2 = 8.0713$ MeV.
+where the brackets denote integer division. In the code below the numbers 
+$q$ and $r$ are chosen so that $r < q$.
 
 
-A popular and physically intuitive model which can be used to parametrize 
-the experimental binding energies as function of $A$, is the so-called 
-**liquid drop model**. The ansatz is based on the following expression
+
+
+
+
+# Random number generator RNG, RAN0
+
+To see how this works we note first that
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:rntrick1"></div>
 
 $$
-BE(N,Z) = a_1A-a_2A^{2/3}-a_3\frac{Z^2}{A^{1/3}}-a_4\frac{(N-Z)^2}{A},
+\begin{equation}
+(aN_{i-1}) \mathrm{MOD} (M)= (aN_{i-1}-[N_{i-1}/q]M)\mathrm{MOD} (M),
+\label{eq:rntrick1} \tag{14}
+\end{equation}
 $$
 
-where $A$ stands for the number of nucleons and the $a_i$s are parameters which are determined by a fit 
-to the experimental data.  
+since we can add or subtract any integer multiple of $M$ from $aN_{i-1}$.
+The last term $[N_{i-1}/q]M\mathrm{MOD}(M)$ is zero since the integer division 
+$[N_{i-1}/q]$ just yields a constant which is multiplied with $M$.
 
 
 
 
-To arrive at the above expression we have assumed that we can make the following assumptions:
 
- * There is a volume term $a_1A$ proportional with the number of nucleons (the energy is also an extensive quantity). When an assembly of nucleons of the same size is packed together into the smallest volume, each interior nucleon has a certain number of other nucleons in contact with it. This contribution is proportional to the volume.
+# Random number generator RNG, RAN0
+We can now rewrite Eq. ([14](#eq:rntrick1)) as
 
- * There is a surface energy term $a_2A^{2/3}$. The assumption here is that a nucleon at the surface of a nucleus interacts with fewer other nucleons than one in the interior of the nucleus and hence its binding energy is less. This surface energy term takes that into account and is therefore negative and is proportional to the surface area.
+<!-- Equation labels as ordinary links -->
+<div id="eq:rntrick2"></div>
 
- * There is a Coulomb energy term $a_3\frac{Z^2}{A^{1/3}}$. The electric repulsion between each pair of protons in a nucleus yields less binding. 
+$$
+\begin{equation}
+(aN_{i-1}) \mathrm{MOD} (M)= (aN_{i-1}-[N_{i-1}/q](aq+r))\mathrm{MOD} (M),
+\label{eq:rntrick2} \tag{15}
+\end{equation}
+$$
 
- * There is an asymmetry term $a_4\frac{(N-Z)^2}{A}$. This term is associated with the Pauli exclusion principle and reflects the fact that the proton-neutron interaction is more attractive on the average than the neutron-neutron and proton-proton interactions.
+which results
+in
 
-We could also add a so-called pairing term, which is a correction term that
-arises from the tendency of proton pairs and neutron pairs to
-occur. An even number of particles is more stable than an odd number. 
+<!-- Equation labels as ordinary links -->
+<div id="eq:rntrick3"></div>
+
+$$
+\begin{equation}
+(aN_{i-1}) \mathrm{MOD} (M)= \left(a(N_{i-1}-[N_{i-1}/q]q)-[N_{i-1}/q]r)\right)\mathrm{MOD} (M),
+\label{eq:rntrick3} \tag{16}
+\end{equation}
+$$
+
+yielding
+
+<!-- Equation labels as ordinary links -->
+<div id="eq:rntrick4"></div>
+
+$$
+\begin{equation}
+(aN_{i-1}) \mathrm{MOD} (M)= \left(a(N_{i-1}\mathrm{MOD} (q)) -[N_{i-1}/q]r)\right)\mathrm{MOD} (M).
+\label{eq:rntrick4} \tag{17}
+\end{equation}
+$$
+
+# Random number generator RNG, RAN0
+The term $[N_{i-1}/q]r$ is always smaller or equal $N_{i-1}(r/q)$ and with $r < q$ we obtain always a 
+number smaller than $N_{i-1}$, which is smaller than $M$. 
+And since the number $N_{i-1}\mathrm{MOD} (q)$ is between zero and $q-1$ then
+$a(N_{i-1}\mathrm{MOD} (q))< aq$. Combined with our definition of $q=[M/a]$ ensures that 
+this term is also smaller than $M$ meaning that both terms fit into a
+32-bit signed integer. None of these two terms can be negative, but their difference could.
+The algorithm below adds $M$ if their difference is negative.
+Note that the program uses the bitwise $\oplus$ operator to generate
+the starting point for each generation of a random number. The period
+of $ran0$ is $\sim 2.1\times 10^{9}$. A special feature of this
+algorithm is that is should never be called with the initial seed 
+set to $0$.
 
 
-### Organizing our data
-
-Let us start with reading and organizing our data. 
-We start with the compilation of masses and binding energies from 2016.
-After having downloaded this file to our own computer, we are now ready to read the file and start structuring our data.
 
 
-We start with preparing folders for storing our calculations and the data file over masses and binding energies. We import also various modules that we will find useful in order to present various Machine Learning methods. Here we focus mainly on the functionality of **scikit-learn**.
 
-# Common imports
+# Random number generator RNG, RAN0 code
+
+            /*
+             ** The function
+             **           ran0()
+             ** is an "Minimal" random number generator of Park and Miller
+             ** Set or reset the input value
+             ** idum to any integer value (except the unlikely value MASK)
+             ** to initialize the sequence; idum must not be altered between
+             ** calls for sucessive deviates in a sequence.
+             ** The function returns a uniform deviate between 0.0 and 1.0.
+             */
+        double ran0(long &idum)
+        {
+           const int a = 16807, m = 2147483647, q = 127773;
+           const int r = 2836, MASK = 123459876;
+           const double am = 1./m;
+           long     k;
+           double   ans;
+           idum ^= MASK;
+           k = (*idum)/q;
+           idum = a*(idum - k*q) - r*k;
+           // add m if negative difference
+           if(idum < 0) idum += m;
+           ans=am*(idum);
+           idum ^= MASK;
+           return ans;
+        } // End: function ran0() 
+
+
+## Properties of Selected Random Number Generators
+
+As mentioned previously, the underlying PDF for the generation of
+random numbers is the uniform distribution, meaning that the 
+probability for finding a number $x$ in the interval [0,1] is $p(x)=1$.
+
+A random number generator should produce numbers which are uniformly distributed
+in this interval. The table  shows the distribution of $N=10000$ random
+numbers generated by the functions in the program library.
+We note in this table that the number of points in the various
+intervals $0.0-0.1$, $0.1-0.2$ etc are fairly close to $1000$, with some minor
+deviations. 
+
+Two additional measures are the standard deviation $\sigma$ and the mean
+$\mu=\langle x\rangle$.
+
+
+
+
+## Properties of Selected Random Number Generators
+For the uniform distribution, the mean value $\mu$ is then
+
+$$
+\mu=\langle x\rangle=\frac{1}{2}
+$$
+
+while the standard deviation is
+
+$$
+\sigma=\sqrt{\langle x^2\rangle-\mu^2}=\frac{1}{\sqrt{12}}=0.2886.
+$$
+
+## Properties of Selected Random Number Generators
+The various random number generators produce results which agree rather well with
+these limiting values. 
+
+<table border="1">
+<thead>
+<tr><th align="center">$x$-bin </th> <th align="center"> ran0 </th> <th align="center"> ran1 </th> <th align="center"> ran2 </th> <th align="center"> ran3 </th> </tr>
+</thead>
+<tbody>
+<tr><td align="center">   0.0-0.1     </td> <td align="right">   1013      </td> <td align="right">   991       </td> <td align="right">   938       </td> <td align="right">   1047      </td> </tr>
+<tr><td align="center">   0.1-0.2     </td> <td align="right">   1002      </td> <td align="right">   1009      </td> <td align="right">   1040      </td> <td align="right">   1030      </td> </tr>
+<tr><td align="center">   0.2-0.3     </td> <td align="right">   989       </td> <td align="right">   999       </td> <td align="right">   1030      </td> <td align="right">   993       </td> </tr>
+<tr><td align="center">   0.3-0.4     </td> <td align="right">   939       </td> <td align="right">   960       </td> <td align="right">   1023      </td> <td align="right">   937       </td> </tr>
+<tr><td align="center">   0.4-0.5     </td> <td align="right">   1038      </td> <td align="right">   1001      </td> <td align="right">   1002      </td> <td align="right">   992       </td> </tr>
+<tr><td align="center">   0.5-0.6     </td> <td align="right">   1037      </td> <td align="right">   1047      </td> <td align="right">   1009      </td> <td align="right">   1009      </td> </tr>
+<tr><td align="center">   0.6-0.7     </td> <td align="right">   1005      </td> <td align="right">   989       </td> <td align="right">   1003      </td> <td align="right">   989       </td> </tr>
+<tr><td align="center">   0.7-0.8     </td> <td align="right">   986       </td> <td align="right">   962       </td> <td align="right">   985       </td> <td align="right">   954       </td> </tr>
+<tr><td align="center">   0.8-0.9     </td> <td align="right">   1000      </td> <td align="right">   1027      </td> <td align="right">   1009      </td> <td align="right">   1023      </td> </tr>
+<tr><td align="center">   0.9-1.0     </td> <td align="right">   991       </td> <td align="right">   1015      </td> <td align="right">   961       </td> <td align="right">   1026      </td> </tr>
+<tr><td align="center">   $\mu$       </td> <td align="right">   0.4997    </td> <td align="right">   0.5018    </td> <td align="right">   0.4992    </td> <td align="right">   0.4990    </td> </tr>
+<tr><td align="center">   $\sigma$    </td> <td align="right">   0.2882    </td> <td align="right">   0.2892    </td> <td align="right">   0.2861    </td> <td align="right">   0.2915    </td> </tr>
+</tbody>
+</table>
+
+
+
+
+## Simple demonstration of RNGs using python
+The following simple Python code plots the distribution of the produced random numbers using the linear congruential RNG employed by Python. The trend displayed in the previous table is seen rather clearly.
+
+#!/usr/bin/env python
 import numpy as np
-import pandas as pd
+import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
-import sklearn.linear_model as skl
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-import os
+import random
 
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
+# initialize the rng with a seed
+random.seed() 
+counts = 10000
+values = np.zeros(counts)   
+for i in range (1, counts, 1):
+    values[i] = random.random()
 
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
+# the histogram of the data
+n, bins, patches = plt.hist(values, 10, facecolor='green')
 
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
-
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
-
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
-
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
-
-infile = open(data_path("MassEval2016.dat"),'r')
-
-Before we proceed, we define also a function for making our plots. You can obviously avoid this and simply set up various **matplotlib** commands every time you need them. You may however find it convenient to collect all such commands in one function and simply call this function.
-
-from pylab import plt, mpl
-plt.style.use('seaborn')
-mpl.rcParams['font.family'] = 'serif'
-
-def MakePlot(x,y, styles, labels, axlabels):
-    plt.figure(figsize=(10,6))
-    for i in range(len(x)):
-        plt.plot(x[i], y[i], styles[i], label = labels[i])
-        plt.xlabel(axlabels[0])
-        plt.ylabel(axlabels[1])
-    plt.legend(loc=0)
-
-Our next step is to read the data on experimental binding energies and
-reorganize them as functions of the mass number $A$, the number of
-protons $Z$ and neutrons $N$ using **pandas**.  Before we do this it is
-always useful (unless you have a binary file or other types of compressed
-data) to actually open the file and simply take a look at it!
-
-
-In particular, the program that outputs the final nuclear masses is written in Fortran with a specific format. It means that we need to figure out the format and which columns contain the data we are interested in. Pandas comes with a function that reads formatted output. After having admired the file, we are now ready to start massaging it with **pandas**. The file begins with some basic format information.
-
-"""                                                                                                                         
-This is taken from the data file of the mass 2016 evaluation.                                                               
-All files are 3436 lines long with 124 character per line.                                                                  
-       Headers are 39 lines long.                                                                                           
-   col 1     :  Fortran character control: 1 = page feed  0 = line feed                                                     
-   format    :  a1,i3,i5,i5,i5,1x,a3,a4,1x,f13.5,f11.5,f11.3,f9.3,1x,a2,f11.3,f9.3,1x,i3,1x,f12.5,f11.5                     
-   These formats are reflected in the pandas widths variable below, see the statement                                       
-   widths=(1,3,5,5,5,1,3,4,1,13,11,11,9,1,2,11,9,1,3,1,12,11,1),                                                            
-   Pandas has also a variable header, with length 39 in this case.                                                          
-"""
-
-The data we are interested in are in columns 2, 3, 4 and 11, giving us
-the number of neutrons, protons, mass numbers and binding energies,
-respectively. We add also for the sake of completeness the element name. The data are in fixed-width formatted lines and we will
-covert them into the **pandas** DataFrame structure.
-
-# Read the experimental data with Pandas
-Masses = pd.read_fwf(infile, usecols=(2,3,4,6,11),
-              names=('N', 'Z', 'A', 'Element', 'Ebinding'),
-              widths=(1,3,5,5,5,1,3,4,1,13,11,11,9,1,2,11,9,1,3,1,12,11,1),
-              header=39,
-              index_col=False)
-
-# Extrapolated values are indicated by '#' in place of the decimal place, so
-# the Ebinding column won't be numeric. Coerce to float and drop these entries.
-Masses['Ebinding'] = pd.to_numeric(Masses['Ebinding'], errors='coerce')
-Masses = Masses.dropna()
-# Convert from keV to MeV.
-Masses['Ebinding'] /= 1000
-
-# Group the DataFrame by nucleon number, A.
-Masses = Masses.groupby('A')
-# Find the rows of the grouped DataFrame with the maximum binding energy.
-Masses = Masses.apply(lambda t: t[t.Ebinding==t.Ebinding.max()])
-
-We have now read in the data, grouped them according to the variables we are interested in. 
-We see how easy it is to reorganize the data using **pandas**. If we
-were to do these operations in C/C++ or Fortran, we would have had to
-write various functions/subroutines which perform the above
-reorganizations for us.  Having reorganized the data, we can now start
-to make some simple fits using both the functionalities in **numpy** and
-**Scikit-Learn** afterwards. 
-
-Now we define five variables which contain
-the number of nucleons $A$, the number of protons $Z$ and the number of neutrons $N$, the element name and finally the energies themselves.
-
-A = Masses['A']
-Z = Masses['Z']
-N = Masses['N']
-Element = Masses['Element']
-Energies = Masses['Ebinding']
-print(Masses)
-
-The next step, and we will define this mathematically later, is to set up the so-called **design matrix**. We will throughout call this matrix $\boldsymbol{X}$.
-It has dimensionality $p\times n$, where $n$ is the number of data points and $p$ are the so-called predictors. In our case here they are given by the number of polynomials in $A$ we wish to include in the fit.
-
-# Now we set up the design matrix X
-X = np.zeros((len(A),5))
-X[:,0] = 1
-X[:,1] = A
-X[:,2] = A**(2.0/3.0)
-X[:,3] = A**(-1.0/3.0)
-X[:,4] = A**(-1.0)
-
-With **scikitlearn** we are now ready to use linear regression and fit our data.
-
-clf = skl.LinearRegression().fit(X, Energies)
-fity = clf.predict(X)
-
-Pretty simple!  
-Now we can print measures of how our fit is doing, the coefficients from the fits and plot the final fit together with our data.
-
-# The mean squared error                               
-print("Mean squared error: %.2f" % mean_squared_error(Energies, fity))
-# Explained variance score: 1 is perfect prediction                                 
-print('Variance score: %.2f' % r2_score(Energies, fity))
-# Mean absolute error                                                           
-print('Mean absolute error: %.2f' % mean_absolute_error(Energies, fity))
-print(clf.coef_, clf.intercept_)
-
-Masses['Eapprox']  = fity
-# Generate a plot comparing the experimental with the fitted values values.
-fig, ax = plt.subplots()
-ax.set_xlabel(r'$A = N + Z$')
-ax.set_ylabel(r'$E_\mathrm{bind}\,/\mathrm{MeV}$')
-ax.plot(Masses['A'], Masses['Ebinding'], alpha=0.7, lw=2,
-            label='Ame2016')
-ax.plot(Masses['A'], Masses['Eapprox'], alpha=0.7, lw=2, c='m',
-            label='Fit')
-ax.legend()
-save_fig("Masses2016")
+plt.xlabel('$x$')
+plt.ylabel('Number of counts')
+plt.title(r'Test of uniform distribution')
+plt.axis([0, 1, 0, 1100])
+plt.grid(True)
 plt.show()
 
-### Seeing the wood for the trees
+## Properties of Selected Random Number Generators
+Since our random numbers, which are typically generated via a linear congruential algorithm,
+are never fully independent, we can then define 
+an important test which measures the degree of correlation, namely the  so-called  
+auto-correlation function defined previously, see again Eq. ([9](#eq:autocorrelformal)).
+We rewrite it here as
 
-As a teaser, let us now see how we can do this with decision trees using **scikit-learn**. Later we will switch to so-called **random forests**!
+$$
+C_k=\frac{f_d}
+             {\sigma^2},
+$$
+
+with $C_0=1$. Recall that 
+$\sigma^2=\langle x_i^2\rangle-\langle x_i\rangle^2$ and that
+
+$$
+f_d = \frac{1}{nm}\sum_{\alpha=1}^m\sum_{k=1}^{n-d}(x_{\alpha,k}-\langle X_m \rangle)(x_{\alpha,k+d}-\langle X_m \rangle),
+$$
+
+The non-vanishing of $C_k$ for $k\ne 0$ means that the random
+numbers are not independent. The independence of the random numbers is crucial 
+in the evaluation of other expectation values. If they are not independent, our
+assumption for approximating $\sigma_N$ is no longer valid.
 
 
-#Decision Tree Regression
-from sklearn.tree import DecisionTreeRegressor
-regr_1=DecisionTreeRegressor(max_depth=5)
-regr_2=DecisionTreeRegressor(max_depth=7)
-regr_3=DecisionTreeRegressor(max_depth=9)
-regr_1.fit(X, Energies)
-regr_2.fit(X, Energies)
-regr_3.fit(X, Energies)
 
 
-y_1 = regr_1.predict(X)
-y_2 = regr_2.predict(X)
-y_3=regr_3.predict(X)
-Masses['Eapprox'] = y_3
-# Plot the results
-plt.figure()
-plt.plot(A, Energies, color="blue", label="Data", linewidth=2)
-plt.plot(A, y_1, color="red", label="max_depth=5", linewidth=2)
-plt.plot(A, y_2, color="green", label="max_depth=7", linewidth=2)
-plt.plot(A, y_3, color="m", label="max_depth=9", linewidth=2)
 
-plt.xlabel("$A$")
-plt.ylabel("$E$[MeV]")
-plt.title("Decision Tree Regression")
-plt.legend()
-save_fig("Masses2016Trees")
-plt.show()
-print(Masses)
-print(np.mean( (Energies-y_1)**2))
+## Autocorrelation function
+This program computes the autocorrelation function as discussed in the equation on the previous slide for random numbers generated with the normal distribution $N(0,1)$.
 
-### And what about using neural networks?
+# Importing various packages
+from math import exp, sqrt
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
 
-The **seaborn** package allows us to visualize data in an efficient way. Note that we use **scikit-learn**'s multi-layer perceptron (or feed forward neural network) 
-functionality.
+def autocovariance(x, n, k, mean_x):
+    sum = 0.0
+    for i in range(0, n-k):
+        sum += (x[(i+k)]-mean_x)*(x[i]-mean_x)
+    return  sum/n
 
-from sklearn.neural_network import MLPRegressor
-from sklearn.metrics import accuracy_score
-import seaborn as sns
+n = 1000
+x=np.random.normal(size=n)
+autocor = np.zeros(n)
+figaxis = np.zeros(n)
+mean_x=np.mean(x)
+var_x = np.var(x)
+print(mean_x, var_x)
+for i in range (0, n):
+    figaxis[i] = i
+    autocor[i]=(autocovariance(x, n, i, mean_x))/var_x    
 
-X_train = X
-Y_train = Energies
-n_hidden_neurons = 100
-epochs = 100
-# store models for later use
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
-# store the models for later use
-DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-sns.set()
-for i, eta in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals):
-        dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons), activation='logistic',
-                            alpha=lmbd, learning_rate_init=eta, max_iter=epochs)
-        dnn.fit(X_train, Y_train)
-        DNN_scikit[i][j] = dnn
-        train_accuracy[i][j] = dnn.score(X_train, Y_train)
-
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
+plt.plot(figaxis, autocor, "r-")
+plt.axis([0,n,-0.1, 1.0])
+plt.xlabel(r'$i$')
+plt.ylabel(r'$\gamma_i$')
+plt.title(r'Autocorrelation function')
 plt.show()
 
-## A first summary
+As can be seen from the plot, the first point gives back the variance and a value of one. 
+For the remaining values we notice that there are still non-zero values for the auto-correlation function.
 
-The aim behind these introductory words was to present to you various
-Python libraries and their functionalities, in particular libraries like
-**numpy**, **pandas**, **xarray** and **matplotlib** and other that make our life much easier
-in handling various data sets and visualizing data. 
 
-Furthermore,
-**Scikit-Learn** allows us with few lines of code to implement popular
-Machine Learning algorithms for supervised learning. Later we will meet **Tensorflow**, a powerful library for deep learning. 
-Now it is time to dive more into the details of various methods. We will start with linear regression and try to take a deeper look at what it entails.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Correlation function and which random number generators should I use
+The program here computes the correlation function for one of the standard functions included with the c++ compiler.
+
+        //  This function computes the autocorrelation function for 
+        //  the standard c++ random number generator
+        
+        #include <fstream>
+        #include <iomanip>
+        #include <iostream>
+        #include <cmath>
+        using namespace std;
+        // output file as global variable
+        ofstream ofile;  
+        
+        //     Main function begins here     
+        int main(int argc, char* argv[])
+        {
+             int n;
+             char *outfilename;
+        
+             cin >> n;
+             double MCint = 0.;      double MCintsqr2=0.;
+             double invers_period = 1./RAND_MAX; // initialise the random number generator
+             srand(time(NULL));  // This produces the so-called seed in MC jargon
+             // Compute the variance and the mean value of the uniform distribution
+             // Compute also the specific values x for each cycle in order to be able to
+             // the covariance and the correlation function  
+             // Read in output file, abort if there are too few command-line arguments
+             if( argc <= 2 ){
+               cout << "Bad Usage: " << argv[0] << 
+        	 " read also output file and number of cycles on same line" << endl;
+               exit(1);
+             }
+             else{
+               outfilename=argv[1];
+             }
+             ofile.open(outfilename); 
+             // Get  the number of Monte-Carlo samples
+             n = atoi(argv[2]);
+             double *X;  
+             X = new double[n];
+             for (int i = 0;  i < n; i++){
+                   double x = double(rand())*invers_period; 
+                   X[i] = x;
+                   MCint += x;
+                   MCintsqr2 += x*x;
+             }
+             double Mean = MCint/((double) n );
+             MCintsqr2 = MCintsqr2/((double) n );
+             double STDev = sqrt(MCintsqr2-Mean*Mean);
+             double Variance = MCintsqr2-Mean*Mean;
+        //   Write mean value and standard deviation 
+             cout << " Standard deviation= " << STDev << " Integral = " << Mean << endl;
+        
+             // Now we compute the autocorrelation function
+             double *autocor;  autocor = new double[n];
+             for (int j = 0; j < n; j++){
+               double sum = 0.0;
+               for (int k = 0; k < (n-j); k++){
+        	 sum  += (X[k]-Mean)*(X[k+j]-Mean); 
+               }
+               autocor[j] = sum/Variance/((double) n );
+               ofile << setiosflags(ios::showpoint | ios::uppercase);
+               ofile << setw(15) << setprecision(8) << j;
+               ofile << setw(15) << setprecision(8) << autocor[j] << endl;
+             }
+             ofile.close();  // close output file
+             return 0;
+        }  // end of main program 
+
+
+# Which RNG should I use?
+* C++ has a class called **random**. The [random class](http://www.cplusplus.com/reference/random/) contains a large selection of RNGs and is highly recommended. Some of these RNGs have very large periods making it thereby very safe to use these RNGs in case one is performing large calculations. In particular, the [Mersenne twister random number engine](http://www.cplusplus.com/reference/random/mersenne_twister_engine/) has a period of $2^{19937}$. 
+
+* Add RNGs in Python
+
+
+
+
+
+## How to use the Mersenne generator
+The following part of a c++ code (from project 4) sets up the uniform distribution for $x\in [0,1]$.
+
+        /*
+        
+        //  You need this 
+        #include <random>
+        
+        // Initialize the seed and call the Mersienne algo
+        std::random_device rd;
+        std::mt19937_64 gen(rd());
+        // Set up the uniform distribution for x \in [[0, 1]
+        std::uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
+        
+        // Now use the RNG
+        int ix = (int) (RandomNumberGenerator(gen)*NSpins);
+
+
+## Why blocking?
+**Statistical analysis.**
+
+    * Monte Carlo simulations can be treated as *computer experiments*
+
+    * The results can be analysed with the same statistical tools as we would use analysing experimental data.
+
+    * As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
+
+A very good article which explains blocking is H. Flyvbjerg and H. G. Petersen, *Error estimates on averages of correlated data*,  [Journal of Chemical Physics 91, 461-466 (1989)](http://scitation.aip.org/content/aip/journal/jcp/91/1/10.1063/1.457480).
+
+    
+
+
+
+
+## Why blocking?
+**Statistical analysis.**
+
+    * As in other experiments, Monte Carlo experiments have two classes of errors:
+
+      * Statistical errors
+
+      * Systematical errors
+
+
+    * Statistical errors can be estimated using standard tools from statistics
+
+    * Systematical errors are method specific and must be treated differently from case to case. (In VMC a common source is the step length or time step in importance sampling)
+
+    
+
+
+
+## Code to demonstrate the calculation of the autocorrelation function
+The following code computes the autocorrelation function, the covariance and the standard deviation
+for standard RNG. 
+The [following  file](https://github.com/CompPhysics/ComputationalPhysics2/tree/gh-pages/doc/Programs/LecturePrograms/programs/Blocking/autocorrelation.cpp) gives the code.
+
+        //  This function computes the autocorrelation function for 
+        //  the Mersenne random number generator with a uniform distribution
+        #include <iostream>
+        #include <fstream>
+        #include <iomanip>
+        #include <cstdlib>
+        #include <random>
+        #include <armadillo>
+        #include <string>
+        #include <cmath>
+        using namespace  std;
+        using namespace arma;
+        // output file
+        ofstream ofile;
+        
+        //     Main function begins here     
+        int main(int argc, char* argv[])
+        {
+          int MonteCarloCycles;
+          string filename;
+          if (argc > 1) {
+            filename=argv[1];
+            MonteCarloCycles = atoi(argv[2]);
+            string fileout = filename;
+            string argument = to_string(MonteCarloCycles);
+            fileout.append(argument);
+            ofile.open(fileout);
+          }
+        
+          // Compute the variance and the mean value of the uniform distribution
+          // Compute also the specific values x for each cycle in order to be able to
+          // compute the covariance and the correlation function  
+        
+          vec X  = zeros<vec>(MonteCarloCycles);
+          double MCint = 0.;      double MCintsqr2=0.;
+          std::random_device rd;
+          std::mt19937_64 gen(rd());
+          // Set up the uniform distribution for x \in [[0, 1]
+          std::uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
+          for (int i = 0;  i < MonteCarloCycles; i++){
+            double x =   RandomNumberGenerator(gen); 
+            X(i) = x;
+            MCint += x;
+            MCintsqr2 += x*x;
+          }
+          double Mean = MCint/((double) MonteCarloCycles );
+          MCintsqr2 = MCintsqr2/((double) MonteCarloCycles );
+          double STDev = sqrt(MCintsqr2-Mean*Mean);
+          double Variance = MCintsqr2-Mean*Mean;
+          //   Write mean value and variance
+          cout << " Sample variance= " << Variance  << " Mean value = " << Mean << endl;
+          // Now we compute the autocorrelation function
+          vec autocorrelation = zeros<vec>(MonteCarloCycles);
+          for (int j = 0; j < MonteCarloCycles; j++){
+            double sum = 0.0;
+            for (int k = 0; k < (MonteCarloCycles-j); k++){
+              sum  += (X(k)-Mean)*(X(k+j)-Mean); 
+            }
+            autocorrelation(j) = sum/Variance/((double) MonteCarloCycles );
+            ofile << setiosflags(ios::showpoint | ios::uppercase);
+            ofile << setw(15) << setprecision(8) << j;
+            ofile << setw(15) << setprecision(8) << autocorrelation(j) << endl;
+          }
+          // Now compute the exact covariance using the autocorrelation function
+          double Covariance = 0.0;
+          for (int j = 0; j < MonteCarloCycles; j++){
+            Covariance  += autocorrelation(j);
+          }
+          Covariance *=  2.0/((double) MonteCarloCycles);
+          // Compute now the total variance, including the covariance, and obtain the standard deviation
+          double TotalVariance = (Variance/((double) MonteCarloCycles ))+Covariance;
+          cout << "Covariance =" << Covariance << "Totalvariance= " << TotalVariance << "Sample Variance/n= " << (Variance/((double) MonteCarloCycles )) << endl;
+          cout << " STD from sample variance= " << sqrt(Variance/((double) MonteCarloCycles )) << " STD with covariance = " << sqrt(TotalVariance) << endl;
+        
+          ofile.close();  // close output file
+          return 0;
+        }  // end of main program 
+        
+        
+
+
+## What is blocking?
+**Blocking.**
+
+    * Say that we have a set of samples from a Monte Carlo experiment
+
+    * Assuming (wrongly) that our samples are uncorrelated our best estimate of the standard deviation of the mean $\langle \mathbf{M}\rangle$ is given by
+
+$$
+\sigma=\sqrt{\frac{1}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)}
+$$
+
+* If the samples are correlated we can rewrite our results to show  that
+
+$$
+\sigma=\sqrt{\frac{1+2\tau/\Delta t}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)}
+$$
+
+where $\tau$ is the correlation time (the time between a sample and the next uncorrelated sample) and $\Delta t$ is time between each sample
+
+    
+
+
+## What is blocking?
+**Blocking.**
+
+    * If $\Delta t\gg\tau$ our first estimate of $\sigma$ still holds
+
+    * Much more common that $\Delta t<\tau$
+
+    * In the method of data blocking we divide the sequence of samples into blocks
+
+    * We then take the mean $\langle \mathbf{M}_i\rangle$ of block $i=1\ldots n_{blocks}$ to calculate the total mean and variance
+
+    * The size of each block must be so large that sample $j$ of block $i$ is not correlated with sample $j$ of block $i+1$
+
+    * The correlation time $\tau$ would be a good choice
+
+
+
+
+## What is blocking?
+**Blocking.**
+
+    * Problem: We don't know $\tau$ or it is too expensive to compute
+
+    * Solution: Make a plot of std. dev. as a function of blocksize
+
+    * The estimate of std. dev. of correlated data is too low $\to$ the error will increase with increasing block size until the blocks are uncorrelated, where we reach a plateau
+
+    * When the std. dev. stops increasing the blocks are uncorrelated
+
+
+
+
+## Implementation
+    * Do a Monte Carlo simulation, storing all samples to file
+
+    * Do the statistical analysis on this file, independently of your Monte Carlo program
+
+    * Read the file into an array
+
+    * Loop over various block sizes
+
+    * For each block size $n_b$, loop over the array in steps of $n_b$ taking the mean of elements $i n_b,\ldots,(i+1) n_b$
+
+    * Take the mean and variance of the resulting array
+
+    * Write the results for each block size to file for later
+      analysis
+
+
+
+
+
+
+
+
+## Actual implementation with code, main function
+When the file gets large, it can be useful to write your data in binary mode instead of ascii characters.
+The [following python file](https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py)   reads data from file with the output from every Monte Carlo cycle.
+
+# Blocking
+    @timeFunction
+    def blocking(self, blockSizeMax = 500):
+        blockSizeMin = 1
+
+        self.blockSizes = []
+        self.meanVec = []
+        self.varVec = []
+
+        for i in range(blockSizeMin, blockSizeMax):
+            if(len(self.data) % i != 0):
+                pass#continue
+            blockSize = i
+            meanTempVec = []
+            varTempVec = []
+            startPoint = 0
+            endPoint = blockSize
+
+            while endPoint <= len(self.data):
+                meanTempVec.append(np.average(self.data[startPoint:endPoint]))
+                startPoint = endPoint
+                endPoint += blockSize
+            mean, var = np.average(meanTempVec), np.var(meanTempVec)/len(meanTempVec)
+            self.meanVec.append(mean)
+            self.varVec.append(var)
+            self.blockSizes.append(blockSize)
+
+        self.blockingAvg = np.average(self.meanVec[-200:])
+        self.blockingVar = (np.average(self.varVec[-200:]))
+        self.blockingStd = np.sqrt(self.blockingVar)
+
+## The Bootstrap method
+
+The Bootstrap  resampling method is also very popular. It is very simple:
+
+1. Start with your sample of measurements and compute the sample variance and the mean values
+
+2. Then start again but pick in a random way the numbers in the sample and recalculate the mean and the sample variance.
+
+3. Repeat this $K$ times.
+
+It can be shown, see the article by [Efron](https://projecteuclid.org/download/pdf_1/euclid.aos/1176344552)
+that it produces the correct standard deviation.
+
+This method is very useful for small ensembles of data points.  
+
+
+## Bootstrapping
+Given a set of $N$ data, assume that we are interested in some 
+observable $\theta$ which may be estimated from that set. This observable can also be for example the result of a fit based on all $N$ raw data. 
+Let us call the value of the observable obtained from the original 
+data set $\hat{\theta}$. One recreates from the sample repeatedly 
+other samples by choosing randomly $N$ data out of the original set. 
+This costs essentially nothing, since we just recycle the original data set for the building of new sets. 
+
+
+## Bootstrapping, recipe
+Let us assume we have done this $K$ times and thus have $K$ sets of $N$ 
+data values each. 
+Of course some values will enter more than once in the new sets. For each of these sets one computes the observable $\theta$ resulting in values $\theta_k$ with $k = 1,...,K$. Then one determines
+
+$$
+\tilde{\theta} = \frac{1}{K} \sum_{k=1}^K \theta_k,
+$$
+
+and
+
+$$
+sigma^2_{\tilde{\theta}} = \frac{1}{K} \sum_{k=1}^K \left(\theta_k-\tilde{\theta}\right)^2.
+$$
+
+These are estimators for $\angle\theta\rangle$ and its variance. They are not unbiased and therefore 
+$\tilde{\theta}\neq\hat{\theta}$  for finite K. 
+
+The difference is called bias and gives an idea on how far away the result may be from 
+the true $\angle\theta\rangle$. As final result for the observable one quotes $\angle\theta\rangle = \tilde{\theta} \pm \sigma_{\tilde{\theta}}$ .
+
+
+
+## Bootstrapping, [code](https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py)
+
+        # Bootstrap
+            @timeFunction
+            def bootstrap(self, nBoots = 1000):
+                bootVec = np.zeros(nBoots)
+                for k in range(0,nBoots):
+                    bootVec[k] = np.average(np.random.choice(self.data, len(self.data)))
+                self.bootAvg = np.average(bootVec)
+                self.bootVar = np.var(bootVec)
+                self.bootStd = np.std(bootVec)
+
+
+## Jackknife, [code](https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py)
+
+        # Jackknife
+            @timeFunction
+            def jackknife(self):
+                jackknVec = np.zeros(len(self.data))
+                for k in range(0,len(self.data)):
+                    jackknVec[k] = np.average(np.delete(self.data, k))
+                self.jackknAvg = self.avg - (len(self.data) - 1) * (np.average(jackknVec) - self.avg)
+                self.jackknVar = float(len(self.data) - 1) * np.var(jackknVec)
+                self.jackknStd = np.sqrt(self.jackknVar)
