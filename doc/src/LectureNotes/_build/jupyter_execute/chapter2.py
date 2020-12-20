@@ -956,7 +956,7 @@ print(c)
 Eigvals, Eigvecs = np.linalg.eig(c)
 print(Eigvals)
 
-# Random Numbers
+## Random Numbers
 
 Uniform deviates are just random numbers that lie within a specified range
 (typically 0 to 1), with any one number in the range just as likely as any other. They
@@ -973,7 +973,7 @@ or Monte Carlo computer work.
 
 
 
-# Random Numbers, better name: pseudo random numbers
+## Random Numbers, better name: pseudo random numbers
 
 A disclaimer is however appropriate. It should be fairly obvious that 
 something as deterministic as a computer cannot generate purely random numbers.
@@ -993,7 +993,7 @@ numbers, hopefully abiding to the following criteria:
 
 
 
-# Random number generator RNG
+## Random number generator RNG
  The most common random number generators are based on so-called
 Linear congruential relations of the type
 
@@ -1017,7 +1017,7 @@ of the division $13/9$, namely $4$.
 
 
 
-# Random number generator RNG and periodic outputs
+## Random number generator RNG and periodic outputs
 
 The problem with such generators is that their outputs are periodic;
 they 
@@ -1045,7 +1045,7 @@ just $2$.
 
 
 
-# Random number generator RNG and its period
+## Random number generator RNG and its period
 Typical periods for the random generators provided in the program library 
 are of the order of $\sim 10^9$ or larger. Other random number generators which have
 become increasingly popular are so-called shift-register generators.
@@ -1059,7 +1059,7 @@ $$
 N_l=(aN_{l-i}+cN_{l-j})\mathrm{MOD}(M).
 $$
 
-# Random number generator RNG, other examples
+## Random number generator RNG, other examples
 Such a generator again produces a sequence of pseudorandom numbers
 but this time with a period much larger than $M$.
 It is also possible to construct more elaborate algorithms by including
@@ -1094,7 +1094,7 @@ which according to the authors has a period larger than $2^{94}$.
 
 
 
-# Random number generator RNG, other examples
+## Random number generator RNG, other examples
 Instead of  using modular addition, we could use the bitwise
 exclusive-OR ($\oplus$) operation so that
 
@@ -1117,7 +1117,7 @@ it is given by $m\wedge n$.
 
 
 
-# Random number generator RNG, RAN0
+## Random number generator RNG, RAN0
 
 We show here how the linear congruential algorithm can be implemented, namely
 
@@ -1154,7 +1154,7 @@ $q$ and $r$ are chosen so that $r < q$.
 
 
 
-# Random number generator RNG, RAN0
+## Random number generator RNG, RAN0
 
 To see how this works we note first that
 
@@ -1176,7 +1176,7 @@ $[N_{i-1}/q]$ just yields a constant which is multiplied with $M$.
 
 
 
-# Random number generator RNG, RAN0
+## Random number generator RNG, RAN0
 We can now rewrite Eq. ([14](#eq:rntrick1)) as
 
 <!-- Equation labels as ordinary links -->
@@ -1214,7 +1214,7 @@ $$
 \end{equation}
 $$
 
-# Random number generator RNG, RAN0
+## Random number generator RNG, RAN0
 The term $[N_{i-1}/q]r$ is always smaller or equal $N_{i-1}(r/q)$ and with $r < q$ we obtain always a 
 number smaller than $N_{i-1}$, which is smaller than $M$. 
 And since the number $N_{i-1}\mathrm{MOD} (q)$ is between zero and $q-1$ then
@@ -1232,7 +1232,7 @@ set to $0$.
 
 
 
-# Random number generator RNG, RAN0 code
+## Random number generator RNG, RAN0 code
 
             /*
              ** The function
@@ -1498,7 +1498,7 @@ The program here computes the correlation function for one of the standard funct
         }  // end of main program 
 
 
-# Which RNG should I use?
+## Which RNG should I use?
 * C++ has a class called **random**. The [random class](http://www.cplusplus.com/reference/random/) contains a large selection of RNGs and is highly recommended. Some of these RNGs have very large periods making it thereby very safe to use these RNGs in case one is performing large calculations. In particular, the [Mersenne twister random number engine](http://www.cplusplus.com/reference/random/mersenne_twister_engine/) has a period of $2^{19937}$. 
 
 * Add RNGs in Python
