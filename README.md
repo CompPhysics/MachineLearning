@@ -60,6 +60,7 @@ The following topics will be covered:
 - Bayesian linear and logistic regression
 - Boltzmann Machines
 - Unsupervised learning Dimensionality reduction, from PCA to cluster models
+- Autoenconders
 
 Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
 
@@ -75,26 +76,22 @@ the theory and varous algorithms discussed during the lectures. We recommend str
 * _Office hours_: *Anytime*! In Fall Semester 2020 (FS20), as a rule of thumb office hours are planned via computer or telephone. Individual or group office hours will be performed via zoom. Feel free to send an email for planning. In person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
 
 
-##  Teaching Assistants FS20
+##  Teaching Assistants FS21
 * Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no 	 
-* Michael Bitney, m.s.bitney@fys.uio.no
-* Kristian Wold, kriswold@student.matnat.uio.no
-* Nicolai Haug, nicoha@student.matnat.uio.no
-* Per-Dimitri Sønsteland, perdimitri.bs@gmail.com
 * Stian Bilek, stian.bilek@fys.uio.no
 
 ## Practicalities
-This course will be delivered in a hybrid mode, with online lectures and on site or online laboratory sessions. 
+It is not yet decided how the fall semester 2021 may be organized. We hope to be able to have in-person classes or a hybrid mode
+with online and in-person lectures and on site or online laboratory sessions. 
 
-1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be fully online. The lectures will be recorded and linked to this site and the official University of Oslo website for the course;
+1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be recorded and linked to this site and the official University of Oslo website for the course;
 2. Two hours of laboratory sessions for work on computational projects and exercises for each group. Due to social distancing, at most 15 participants can attend. There will  also be fully digital laboratory sessions for those who cannot attend;
 3. Three projects which are graded and count 1/3 each of the final grade;
 4. A selected number of weekly assignments;
 5. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
-6. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
-7. We use Piazza for course communication, a special link on how to register to Piazza can be found at the official University of Oslo page for the course or just use the link here https://piazza.com/uio.no/fall2020/fysstk4155. Canvas is used for communication and delivery and grading of projects, with feedback;
-8. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
-9. Weekly emails with summary of activities will be mailed to all participants;
+6. The course is offered as a FYS-STK4155 (Master of Science level) and a FYS-STK3155 (senior undergraduate) course;
+7. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
+8. Weekly emails with summary of activities will be mailed to all participants;
 
 ## Grading
 Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail. There are three projects which are graded and each project counts 1/3 of the final grade. The total score is thus the average from all three projects.
@@ -181,11 +178,14 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 ## Textbooks
 
 _Recommended textbooks_:
+The books of Bishop and Goodfellow et are the recommended text. We will follow these texts closely and the weekly reading assignments refer to these two texts.
 - Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. 
-- Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer, https://www.springer.com/gp/book/9780387848570. This is a well-known text and serves as additional text.
+- We recommend also the text of Ian Goodfellow and Yoshua Bengio and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended.
+
+_Additional textbooks_:
+- Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer, https://www.springer.com/gp/book/9780387848570. This is a well-known text and serves as additional literature.
 - Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly, https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/. This text is very useful since it contains many code examples.
 
-The books by Bishop and Hastie et al. can be downloaded for free if you access the university library via an IP number of your home university.
 
 
 
@@ -195,7 +195,6 @@ _General learning book on statistical analysis_:
 
 _General Machine Learning Books_:
 - Kevin Murphy, Machine Learning: A Probabilistic Perspective, MIT Press
-- Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer
 - David J.C. MacKay, Information Theory, Inference, and Learning Algorithms, Cambridge University Press
 - David Barber, Bayesian Reasoning and Machine Learning, Cambridge University Press 
 
@@ -213,6 +212,88 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 - _TEK5040 Deep learning for autonomous systems_ https://www.uio.no/studier/emner/matnat/its/TEK5040/. The course addresses advanced algorithms and architectures for deep learning with neural networks. The course provides an introduction to how deep-learning techniques can be used in the construction of key parts of advanced autonomous systems that exist in physical environments and cyber environments.
 - _STK4051 Computational Statistics_ https://www.uio.no/studier/emner/matnat/math/STK4051/index-eng.html
 - _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/
+
+
+
+##  Weekly Schedule
+
+###  Week 35 August 23-27
+- Lab Wednesday: Introduction to software and repetition of Python Programming
+- Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression
+- Lecture Friday: Basics of Linear Regression
+
+###  Week 36 August 30-September 3
+- Lab Wednesday: 
+- Lecture Thursday: Linear Regression
+- Lecture Friday: Linear Regression
+
+###  Week 37 September 6-10
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 38 September 13-17
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 39 September 20-24
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 40 September 27- October 1
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 41 October 4-8
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 42 October 11-15
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 43 October 18-22
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 44 October 25-29
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 45 November 1-5
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 46 November 8-12 
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 47 November 15-19
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 48 November 22-26
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+###  Week 49 November 29- December 2
+- Lab Wednesday: 
+- Lecture Thursday: 
+- Lecture Friday:
+
+
+ 
 
 
 ## Face coverings. 
@@ -242,3 +323,5 @@ Those who come to UiO facilities must commit to the personal responsibility nece
 
 ## Additional information
 See https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html. For English version, click on the relevant link.
+
+
