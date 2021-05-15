@@ -1,4 +1,4 @@
-# FYS-STK3155/4155 Applied Data Analysis and Machine Learning, see for the official websitehttp://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/index-eng.html
+# Applied Data Analysis and Machine Learning
 
 
 This site contains all material relevant for the course on Applied Data Analysis and Machine Learning FYS-STK3155/4155 at the University of Oslo, Norway.
@@ -91,7 +91,8 @@ with online and in-person lectures and on site or online laboratory sessions.
 5. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
 6. The course is offered as a FYS-STK4155 (Master of Science level) and a FYS-STK3155 (senior undergraduate) course;
 7. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
-8. Weekly emails with summary of activities will be mailed to all participants;
+8. Weekly email with summary of activities will be mailed to all participants;
+Official university of Oslo website at http://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/index-eng.html
 
 ## Grading
 Grading scale: Grades are awarded on a scale from A to F, where A is the best grade and F is a fail. There are three projects which are graded and each project counts 1/3 of the final grade. The total score is thus the average from all three projects.
