@@ -6,7 +6,7 @@ This site contains all material relevant for the course on Applied Data Analysis
 ## Introduction
 
 Probability theory and statistical methods play a central role in science. Nowadays we are
-surrounded by huge amounts of data. For example, there are about one trillion web pages; more than one
+surrounded by huge amounts of data. For example, there are more than one trillion web pages; more than one
 hour of video is uploaded to YouTube every second, amounting to years of content every
 day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
 been sequenced by various labs and so on. This deluge of data calls for automated methods of data analysis,
@@ -29,7 +29,7 @@ This course aims at giving you insights and knowledge about  many of the central
 
 ## Prerequisites
 
-Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is strongly recommended and experience with Jupiter notebook is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. Most universities offer nowadays a basic programming course (often compulsory) where Python is the recurring programming language.
+Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is strongly recommended and experience with Jupyter notebooks is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. Most universities offer nowadays a basic programming course (often compulsory) where Python is the recurring programming language.
 We recommend also refreshing your knowledge on Statistics and Probability theory. The lecture notes at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html offer a review of Statistics and Probability theory.
 
 ## The course has two central parts
@@ -66,14 +66,14 @@ Hands-on demonstrations, exercises and projects aim at deepening your understand
 
 Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
-the theory and varous algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants, if possible. 
+the theory and various algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants, if possible. 
 
 ## Instructor information
 * _Name_: Morten Hjorth-Jensen
 * _Email_: morten.hjorth-jensen@fys.uio.no
 * _Phone_: +47-48257387
 * _Office_: Department of Physics, University of Oslo, Eastern wing, room FØ470 
-* _Office hours_: *Anytime*! In Fall Semester 2021 we hope to be able to meet in person. Individual or group office hours will be performed either in person or via zoom. Feel free to send an email for planning. In person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
+* _Office hours_: *Anytime*! In Fall Semester 2021 we hope to be able to meet in person. Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning. In-person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
 
 
 ##  Teaching Assistants FS21
