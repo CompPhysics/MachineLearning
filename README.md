@@ -115,7 +115,7 @@ myriad of available libraries.  You will find
 Jupyter notebooks invaluable in your work.  You can run _R_
 codes in the Jupyter/IPython notebooks, with the immediate benefit of
 visualizing your data. You can also use compiled languages like C++,
-Rust, Julia, Fortran etc if you prefer. The focus in these lectures will be mainly 
+Rust, Julia, Fortran etc if you prefer. The focus in these lectures will be 
 on Python.
 
 
