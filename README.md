@@ -1,7 +1,8 @@
 # Applied Data Analysis and Machine Learning
 
 
-This site contains all material relevant for the course on Applied Data Analysis and Machine Learning FYS-STK3155/4155 at the University of Oslo, Norway.
+This site contains all material relevant for the course on Applied
+Data Analysis and Machine Learning.
 
 ## Introduction
 
