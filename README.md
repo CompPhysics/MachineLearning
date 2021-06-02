@@ -6,7 +6,7 @@ Data Analysis and Machine Learning.
 
 ## Introduction
 
-Probability theory and statistical methods play a central role in science. Nowadays we are
+Probability theory and statistical methods play a central role in Science. Nowadays we are
 surrounded by huge amounts of data. For example, there are more than one trillion web pages; more than one
 hour of video is uploaded to YouTube every second, amounting to years of content every
 day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
@@ -15,7 +15,7 @@ which is exactly what machine learning aims at providing.
 
 ## Learning outcomes
 
-This course aims at giving you insights and knowledge about  many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. The emphasis is on a frequentist approach, although we will try to link it with a Bayesian approach as well. You will learn to develop and structure large codes for studying different cases where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
+This course aims at giving you insights and knowledge about  many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects and weekly exercises you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. The emphasis is on a frequentist approach, although we will try to link it with a Bayesian approach as well. You will learn to develop and structure large codes for studying different cases where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
 - Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
@@ -59,7 +59,7 @@ The following topics will be covered:
 - Support vector machines
 - Bayesian linear and logistic regression
 - Boltzmann Machines
-- Unsupervised learning Dimensionality reduction, from PCA to cluster models
+- Unsupervised learning Dimensionality reduction, from PCA to clustering
 - Autoenconders
 
 Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
