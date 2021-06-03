@@ -20,7 +20,7 @@ This course aims at giving you insights and knowledge about  many of the central
 - Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
-- Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
+- Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression and Kernel regression;
 - Learn about neural networks and deep  learning methods for supervised and unsupervised learning. Emphasis on feed forward neural networks, convolutional and recurrent neural networks; 
 - Learn about about decision trees, random forests, bagging and boosting methods;
 - Learn about support vector machines and kernel transformations;
