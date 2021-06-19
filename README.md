@@ -183,7 +183,7 @@ The lecture notes are collected as a jupyter-book at https://compphysics.github.
 the books of Bishop and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
 - Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. 
 - We recommend also the text of Ian Goodfellow and Yoshua Bengio and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended.
-
+The weekly plans will include reading suggestions from these two textbooks.
 _Additional textbooks_:
 - Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer, https://www.springer.com/gp/book/9780387848570. This is a well-known text and serves as additional literature.
 - Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly, https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/. This text is very useful since it contains many code examples.
