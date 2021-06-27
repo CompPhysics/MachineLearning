@@ -227,8 +227,8 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
   - Chapter
 ###  Week 36 August 30-September 3
 - Lab Wednesday: 
-- Lecture Thursday: Linear Regression
-- Lecture Friday: Linear Regression
+- Lecture Thursday: Linear Regression, from ordinary linear regression to Ridge regression
+- Lecture Friday: Linear Regression, Linear algebra and Ridge Regression
 - Reading recommendations:
   - Chapter
 ###  Week 37 September 6-10
