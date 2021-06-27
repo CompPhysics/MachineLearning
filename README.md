@@ -229,71 +229,86 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 - Lab Wednesday: 
 - Lecture Thursday: Linear Regression
 - Lecture Friday: Linear Regression
-
+- Reading recommendations:
+  - Chapter
 ###  Week 37 September 6-10
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 38 September 13-17
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 39 September 20-24
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 40 September 27- October 1
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 41 October 4-8
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 42 October 11-15
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 43 October 18-22
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 44 October 25-29
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 45 November 1-5
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 46 November 8-12 
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 47 November 15-19
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 48 November 22-26
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
-
+- Reading recommendations:
+  - Chapter
 ###  Week 49 November 29- December 2
 - Lab Wednesday: 
 - Lecture Thursday: 
 - Lecture Friday:
+- Reading recommendations:
+  - Chapter
 
 
  
