@@ -233,80 +233,80 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
   - Chapter
 ###  Week 37 September 6-10
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Statistical interpretation of Linear Regression
+- Lecture Friday: Bias-Variance tradeoff
 - Reading recommendations:
   - Chapter
 ###  Week 38 September 13-17
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Resampling methods, cross-validation and Bootstrap
+- Lecture Friday: More on Resampling methods
 - Reading recommendations:
   - Chapter
 ###  Week 39 September 20-24
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday:  Classification problems and Logistic Regression
+- Lecture Friday: Logistic Regression and gradient optimization
 - Reading recommendations:
   - Chapter
 ###  Week 40 September 27- October 1
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Gradient Optimization methods
+- Lecture Friday:  Deep Learning and Neural Networks
 - Reading recommendations:
   - Chapter
 ###  Week 41 October 4-8
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Writing a feed-forward Neural Network code for regression and classification
+- Lecture Friday:  Deep Learning and Tensor flow
 - Reading recommendations:
   - Chapter
 ###  Week 42 October 11-15
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Deep learning and Neural Networks
+- Lecture Friday: Convolutional Neural Networks, basics
 - Reading recommendations:
   - Chapter
 ###  Week 43 October 18-22
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Convolutional Neural Networks and classification problems
+- Lecture Friday: Convolutional Neural Networks and classification problems
 - Reading recommendations:
   - Chapter
 ###  Week 44 October 25-29
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday:  Recurrent Neural Networks
+- Lecture Friday: Recurrent Neural Networks and time series
 - Reading recommendations:
   - Chapter
 ###  Week 45 November 1-5
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Decision trees, classification and regression
+- Lecture Friday: Decision trees, basic algorithms
 - Reading recommendations:
   - Chapter
 ###  Week 46 November 8-12 
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Ensemble methods, bagging and random forests
+- Lecture Friday: Boosting and gradient boosting
 - Reading recommendations:
   - Chapter
 ###  Week 47 November 15-19
 - Lab Wednesday: 
 - Lecture Thursday: 
-- Lecture Friday:
+- Lecture Friday: Unsupervised Learning, k-means
 - Reading recommendations:
   - Chapter
 ###  Week 48 November 22-26
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Unsupervised Learning, Principal Component Analysis (PCA)
+- Lecture Friday:  Unsupervised Learning and PCA and clustering
 - Reading recommendations:
   - Chapter
 ###  Week 49 November 29- December 2
 - Lab Wednesday: 
-- Lecture Thursday: 
-- Lecture Friday:
+- Lecture Thursday: Unsupervised Learning and Clustering
+- Lecture Friday:  Summary of course
 - Reading recommendations:
   - Chapter
 
