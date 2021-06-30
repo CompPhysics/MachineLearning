@@ -179,8 +179,7 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 ## Textbooks
 
 _Recommended textbooks_:
-The lecture notes are collected as a jupyter-book at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In addition to th electure notes, we recommend
-the books of Bishop and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
+The lecture notes are collected as a jupyter-book at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In addition to the electure notes, we recommend the books of Bishop and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
 - Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. 
 - We recommend also the text of Ian Goodfellow and Yoshua Bengio and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended.
 The weekly plans will include reading suggestions from these two textbooks.
@@ -218,12 +217,12 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
 
 ##  Weekly Schedule
-
+### Recommended prereading before the first lecture: Bishop chapters 1-2 
 ###  Week 35 August 23-27
 - Lab Wednesday: Introduction to software and repetition of Python Programming
 - Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression
 - Lecture Friday: Basics of Linear Regression
-- Reading recommendations:
+- Reading recommendations: Bishop
   - Chapter
 ###  Week 36 August 30-September 3
 - Lab Wednesday: 
@@ -300,7 +299,7 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 ###  Week 48 November 22-26
 - Lab Wednesday: 
 - Lecture Thursday: Unsupervised Learning, Principal Component Analysis (PCA)
-- Lecture Friday:  Unsupervised Learning and PCA and clustering
+- Lecture Friday:  Unsupervised Learning and PCA and Clustering
 - Reading recommendations:
   - Chapter
 ###  Week 49 November 29- December 2
@@ -319,7 +318,7 @@ We hope the fall semester will allow for more in-person sessions/lectures. The a
 As of now this is not required, but the situation may change. If face covering will be required during the semester, we will fill in more details. 
 
 ## Physical distancing 
-We will be practicing physical distancing in the classroom dedicated to the lab sessions. Thus, everybody should maintain at least one meter distance between themselves and others (excluding those with whom they live). This applies to all aspects of the classroom setting, including seating arrangements, informal conversations, and dialogue between teachers and students.
+We will be practicing physical distancing in the classroom dedicated to the lab sessions. Thus, everybody should maintain at least a distance of one meter between themselves and others (excluding those with whom they live). This applies to all aspects of the classroom setting, including seating arrangements, informal conversations, and dialogue between teachers and students.
 
 
 ## Personal Hygiene
