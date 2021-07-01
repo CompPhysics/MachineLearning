@@ -180,12 +180,12 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 
 _Recommended textbooks_:
 The lecture notes are collected as a jupyter-book at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In addition to the electure notes, we recommend the books of Bishop and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
-- Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. 
+- Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. If you login to the University Library or access this site via a University IP number, you can download for free the textbook in PDF format or epub format.
 - We recommend also the text of Ian Goodfellow and Yoshua Bengio and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended.
 The weekly plans will include reading suggestions from these two textbooks.
 _Additional textbooks_:
 - Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer, https://www.springer.com/gp/book/9780387848570. This is a well-known text and serves as additional literature.
-- Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly, https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/. This text is very useful since it contains many code examples.
+- Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly, https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/. This text is very useful since it contains many code examples and hands-on applications of all algorithms discussed in this course.
 
 
 
@@ -217,7 +217,7 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
 
 ##  Weekly Schedule
-### Recommended prereading before the first lecture: Bishop chapters 1-2 
+### Recommended prereading before the first lecture: Bishop chapters 1-2 (the material here will also be discussed in various lectures) and Goodfellow et al chapters 1-2.
 ###  Week 35 August 23-27
 - Lab Wednesday: Introduction to software and repetition of Python Programming
 - Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression
