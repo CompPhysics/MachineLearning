@@ -216,8 +216,11 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
 
 
+### Recommended prereading before the first lecture: Chapter 1-2 (linear algebra) and chapter 3 (statistics) of Goodfellow et al. 
+
+
 ##  Weekly Schedule
-### Recommended prereading before the first lecture: Bishop chapters 1-2 (the material here will also be discussed in various lectures) and Goodfellow et al chapters 1-2.
+
 ###  Week 35 August 23-27
 - Lab Wednesday: Introduction to software and repetition of Python Programming
 - Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression
