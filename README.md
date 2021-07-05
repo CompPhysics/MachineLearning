@@ -225,7 +225,7 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 - Lab Wednesday: Introduction to software and repetition of Python Programming
 - Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression
 - Lecture Friday: Basics of Linear Regression
-- Reading recommendations: Bishop
+- Reading recommendations: Goodfellow et al Chapter 4
   - Chapter
 ###  Week 36 August 30-September 3
 - Lab Wednesday: 
