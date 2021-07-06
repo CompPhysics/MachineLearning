@@ -315,7 +315,7 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
  
 #  Covid-19 recommendations
-We hope the fall semester will allow for more in-person sessions/lectures. The advices here are from the spring semester of 2021. They will most likely be revised for the fall semester of 2021.
+We hope the fall semester will allow for mainly in-person sessions/lectures. The advices here are from the spring semester of 2021. They will most likely be revised for the fall semester of 2021.
 
 ## Face coverings. 
 As of now this is not required, but the situation may change. If face covering will be required during the semester, we will fill in more details. 
