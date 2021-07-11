@@ -24,7 +24,7 @@ This course aims at giving you insights and knowledge about  many of the central
 - Learn about neural networks and deep  learning methods for supervised and unsupervised learning. Emphasis on feed forward neural networks, convolutional and recurrent neural networks; 
 - Learn about about decision trees, random forests, bagging and boosting methods;
 - Learn about support vector machines and kernel transformations;
-- Reduction of data sets, from PCA to clustering;
+- Reduction of data sets and unsupervised learning, from PCA to clustering;
 - Autoencoders and Reinforcement Learning;
 - Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++ and/or Fortran (Fortran2003 or later).  
 
