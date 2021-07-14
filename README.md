@@ -216,7 +216,7 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
 
 
-### Recommended prereading before the first lecture: Chapter 1-2 (linear algebra) and chapter 3 (statistics) of Goodfellow et al. and Bishop chapter 1
+### Recommended prereading before the first lecture: Chapter 1-2 (linear algebra) and chapter 3 (statistics) of Goodfellow et al. and Bishop chapter 1 and chapter 2
 
 
 ##  Weekly Schedule
