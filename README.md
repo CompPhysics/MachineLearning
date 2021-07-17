@@ -59,7 +59,7 @@ The following topics will be covered:
 - Support vector machines
 - Bayesian linear and logistic regression
 - Boltzmann Machines
-- Unsupervised learning Dimensionality reduction, from PCA to clustering
+- Unsupervised learning Dimensionality reduction, PCA, k-means and  clustering
 - Autoenconders
 
 Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
