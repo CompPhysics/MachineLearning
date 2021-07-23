@@ -229,8 +229,8 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
   - Chapter
 ###  Week 36 August 30-September 3
 - Lab Wednesday: 
-- Lecture Thursday: Linear Regression, from ordinary linear regression to Ridge regression
-- Lecture Friday: Linear Regression, Linear algebra and Ridge Regression
+- Lecture Thursday: Linear Regression, from ordinary linear regression to Ridge and Lasso regression
+- Lecture Friday: Linear Regression, Linear algebra and Ridge and Lasso Regression
 - Reading recommendations:
   - Chapter
 ###  Week 37 September 6-10
@@ -242,12 +242,12 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 ###  Week 38 September 13-17
 - Lab Wednesday: 
 - Lecture Thursday: Resampling methods, cross-validation and Bootstrap
-- Lecture Friday: More on Resampling methods
+- Lecture Friday: More on Resampling methods and summary of linear regression
 - Reading recommendations:
   - Chapter
 ###  Week 39 September 20-24
 - Lab Wednesday: 
-- Lecture Thursday:  Classification problems and Logistic Regression
+- Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
 - Lecture Friday: Logistic Regression and gradient optimization
 - Reading recommendations:
   - Chapter
@@ -260,13 +260,13 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 ###  Week 41 October 4-8
 - Lab Wednesday: 
 - Lecture Thursday: Writing a feed-forward Neural Network code for regression and classification
-- Lecture Friday:  Deep Learning and Tensor flow
+- Lecture Friday:  Deep Learning and TensorFlow and Keras
 - Reading recommendations:
   - Chapter
 ###  Week 42 October 11-15
 - Lab Wednesday: 
 - Lecture Thursday: Deep learning and Neural Networks
-- Lecture Friday: Convolutional Neural Networks, basics
+- Lecture Friday: Convolutional Neural Networks, basic elements
 - Reading recommendations:
   - GoodFellow et al, Chapter 9
 ###  Week 43 October 18-22
