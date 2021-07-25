@@ -108,7 +108,7 @@ The final number of points is based on the average of all projects (including ev
 
 ## Required Technologies
 
-Course participants are expected to have their own laptops/PCs. We use _Git_ as version control software and the usage of providers like _GitHub_, _GitLab_ or similar are strongly recommended.
+Course participants are expected to have their own laptops/PCs. We use _Git_ as version control software and the usage of providers like _GitHub_, _GitLab_ or similar are strongly recommended. If you are not familiar with Git as version control software, the following video may be of interest, see 
 
 We will make extensive use of Python as programming language and its
 myriad of available libraries.  You will find
