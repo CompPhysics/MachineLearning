@@ -79,6 +79,8 @@ the theory and various algorithms discussed during the lectures. We recommend st
 ##  Teaching Assistants FS21
 * Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no 	 
 * Stian Bilek, stian.bilek@fys.uio.no
+* Linus Ekstrøm
+
 
 ## Practicalities
 It is not yet decided how the fall semester 2021 may be organized. We hope to be able to have in-person classes or a hybrid mode
