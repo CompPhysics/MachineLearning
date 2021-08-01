@@ -79,7 +79,10 @@ the theory and various algorithms discussed during the lectures. We recommend st
 ##  Teaching Assistants FS21
 * Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no 	 
 * Stian Bilek, stian.bilek@fys.uio.no
-* Linus Ekstrøm
+* Linus Ekstrøm, linueks@gmail.com, linus.ekstrom@fys.uio.no
+* Nicholas Karlsen, nicholaskarlsen1102@gmail.com, nicholas.karlsen@fys.uio.no
+* Bendik Steinsvåg Dalen, b.s.dalen@fys.uio.no
+* Philip Karim Sørli Niane, p.k.s.niane@fys.uio.no
 
 
 ## Practicalities
