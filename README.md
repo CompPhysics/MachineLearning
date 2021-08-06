@@ -87,7 +87,7 @@ the theory and various algorithms discussed during the lectures. We recommend st
 
 ## Practicalities
 It is not yet decided how the fall semester 2021 may be organized. We hope to be able to have in-person classes or a hybrid mode
-with online and in-person lectures and on site or online laboratory sessions. 
+with online and in-person lectures and on site or online laboratory sessions. Please follow updates on the covid-19 situation from Norwegian authorities and the University of Oslo.
 
 1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be recorded and linked to this site and the official University of Oslo website for the course;
 2. Two hours of laboratory sessions for work on computational projects and exercises for each group. Due to social distancing, at most 15 participants can attend. There will  also be fully digital laboratory sessions for those who cannot attend;
