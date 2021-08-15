@@ -319,35 +319,3 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
 
  
-#  Covid-19 recommendations
-We hope the fall semester will allow for mainly in-person sessions/lectures. The advices here are from the spring semester of 2021. They will most likely be revised for the fall semester of 2021.
-
-## Face coverings. 
-As of now this is not required, but the situation may change. If face covering will be required during the semester, we will fill in more details. 
-
-## Physical distancing 
-We will be practicing physical distancing in the classroom dedicated to the lab sessions. Thus, everybody should maintain at least a distance of one meter between themselves and others (excluding those with whom they live). This applies to all aspects of the classroom setting, including seating arrangements, informal conversations, and dialogue between teachers and students.
-
-
-## Personal Hygiene
-All participants attending the laboratory sessions must maintain proper hygiene and health practices, including:
-* frequently wash with soap and water or, if soap is unavailable, using hand sanitizer with at least 60% alcohol;
-* Routinely cleaning and sanitizing living spaces and/or workspace;
-* Using the bend of the elbow or shoulder to shield a cough or sneeze;
-* Refraining from shaking hands;
-
-## Adherence to Signage and Instructions 
-Course participants  will (a) look for instructional signs posted by UiO or public health authorities, (b) observe instructions from UiO or public health authorities that are emailed to my “uio.no” account, and (c) follow those instructions.
-The relevant links are https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html
-
-## Self-Monitoring
-Students will self-monitor for flu-like symptoms (for example, cough, shortness of breath, difficulty breathing, fever, sore throat or loss of taste or smell). If a student experiences any flu-like symptoms, they will stay home and contact a health care provider to determine what steps should be taken.
-## Exposure to COVID-19 
-If a student is exposed to someone who is ill or has tested positive for the COVID-19 virus, they will stay home, contact a health care provider and follow all public health recommendations. You may also contact the study administration of the department where you are registered as student. 
-## Compliance and reporting 
-Those who come to UiO facilities must commit to the personal responsibility necessary for us to remain as safe as possible, including following the specific guidelines provided by UiO more broadly (see links below here). 
-
-## Additional information
-See https://www.uio.no/om/hms/korona/index.html and https://www.uio.no/om/hms/korona/retningslinjer/veileder-smittevern.html. For English version, click on the relevant link.
-
-
