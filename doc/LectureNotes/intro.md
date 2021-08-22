@@ -1,10 +1,9 @@
-# Applied Data Analysis and Machine Learning
-
+# Applied Data Analysis and Machine Learning, FYS-STK3155/4155 at the University of Oslo, Norway
 
 ## Introduction
 
-Probability theory and statistical methods play a central role in science. Nowadays we are
-surrounded by huge amounts of data. For example, there are about one trillion web pages; more than one
+Probability theory and statistical methods play a central role in Science. Nowadays we are
+surrounded by huge amounts of data. For example, there are more than one trillion web pages; more than one
 hour of video is uploaded to YouTube every second, amounting to years of content every
 day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
 been sequenced by various labs and so on. This deluge of data calls for automated methods of data analysis,
@@ -12,38 +11,29 @@ which is exactly what machine learning aims at providing.
 
 ## Learning outcomes
 
-This course aims at giving you insights and knowledge about  many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects, normally three, you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. The emphasis is on a frequentist approach, although we will try to link it with a Bayesian approach as well. You will learn to develop and structure large codes for studying different cases where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
+This course aims at giving you insights and knowledge about  many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects and weekly exercises you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. The emphasis is on a frequentist approach with an emphasis on predictions and correaltions. However, we will try, where appropriate, to link our machine learning models with a Bayesian approach as well. You will learn to develop and structure large codes for studying different cases where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
 
 - Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
 - Have an understanding of central algorithms used in data analysis and machine learning;
-- Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression;
+- Understand linear methods for regression and classification, from ordinary least squares, via Lasso and Ridge to Logistic regression and Kernel regression;
 - Learn about neural networks and deep  learning methods for supervised and unsupervised learning. Emphasis on feed forward neural networks, convolutional and recurrent neural networks; 
 - Learn about about decision trees, random forests, bagging and boosting methods;
 - Learn about support vector machines and kernel transformations;
-- Reduction of data sets, from PCA to clustering;
+- Reduction of data sets and unsupervised learning, from PCA to clustering;
 - Autoencoders and Reinforcement Learning;
 - Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++ and/or Fortran (Fortran2003 or later).  
 
-## Prerequisites
+## Prerequisites and background
 
-Basic knowledge in programming and mathematics, with an emphasis on
-linear algebra. Knowledge of Python or/and C++ as programming
-languages is strongly recommended and experience with Jupiter notebook
-is recommended. Required courses are the equivalents to the University
-of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one
-of the corresponding computing and programming courses INF1000/INF1110
-or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. Most universities
-offer nowadays a basic programming course (often compulsory) where
-Python is the recurring programming language.
-
+Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is strongly recommended and experience with Jupyter notebooks is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. Most universities offer nowadays a basic programming course (often compulsory) where Python is the recurring programming language.
+We recommend also refreshing your knowledge on Statistics and Probability theory. The lecture notes at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html offer a review of Statistics and Probability theory.
 
 ## The course has two central parts
 
 1. Statistical analysis and optimization of data
 2. Machine learning
 
-These topics will be scattered thorughout the course and may not  necessarily be taught separately. Rather, we will often take an approach (during the lectures and project/exercise sessions) where say elements from statistical data analysis are mixed with specific Machine Learning algorithms. 
 
 ### Statistical analysis and optimization of data
 
@@ -65,24 +55,27 @@ The following topics will be covered:
 - Support vector machines
 - Bayesian linear and logistic regression
 - Boltzmann Machines
-- Unsupervised learning Dimensionality reduction, from PCA to cluster models
+- Unsupervised learning Dimensionality reduction, PCA, k-means and  clustering
+- Autoenconders
 
 Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
 
 Computational aspects play a central role and you are
 expected to work on numerical examples and projects which illustrate
-the theory and varous algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants, if possible. 
+the theory and various algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants, if possible. 
+
+
 
 ## Required Technologies
 
-Course participants are expected to have their own laptops/PCs. We use _Git_ as version control software and the usage of providers like _GitHub_, _GitLab_ or similar are strongly recommended.
+Course participants are expected to have their own laptops/PCs. We use _Git_ as version control software and the usage of providers like _GitHub_, _GitLab_ or similar are strongly recommended. If you are not familiar with Git as version control software, the following video may be of interest, see https://www.youtube.com/watch?v=RGOj5yH7evk&ab_channel=freeCodeCamp.org
 
 We will make extensive use of Python as programming language and its
 myriad of available libraries.  You will find
 Jupyter notebooks invaluable in your work.  You can run _R_
 codes in the Jupyter/IPython notebooks, with the immediate benefit of
 visualizing your data. You can also use compiled languages like C++,
-Rust, Julia, Fortran etc if you prefer. The focus in these lectures will be mainly 
+Rust, Julia, Fortran etc if you prefer. The focus in these lectures will be 
 on Python.
 
 
@@ -143,3 +136,6 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 * _Keras_:https://keras.io/ is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
 * And many more such as _pytorch_:https://pytorch.org/,  _Theano_:https://pypi.org/project/Theano/ etc 
 
+
+
+ 

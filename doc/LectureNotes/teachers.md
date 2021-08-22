@@ -6,7 +6,16 @@
 * _Email_: morten.hjorth-jensen@fys.uio.no
 * _Phone_: +47-48257387
 * _Office_: Department of Physics, University of Oslo, Eastern wing, room FØ470 
-* _Office hours_: *Anytime*! In Fall Semester 2020 (FS20), as a rule of thumb office hours are planned via computer or telephone. Individual or group office hours will be performed via zoom. Feel free to send an email for planning. In person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
+* _Office hours_: *Anytime*! Feel free to send an email for planning. Both in person meetings or digital meetings are possible.
+
+##  Teaching Assistants Fall semester 2021
+* Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no 	 
+* Stian Bilek, stian.bilek@fys.uio.no
+* Linus Ekstrøm, linueks@gmail.com, linus.ekstrom@fys.uio.no
+* Nicholas Karlsen, nicholaskarlsen1102@gmail.com, nicholas.karlsen@fys.uio.no
+* Bendik Steinsvåg Dalen, b.s.dalen@fys.uio.no
+* Philip Karim Sørli Niane, p.k.s.niane@fys.uio.no
+
 
 
 ## Grading
@@ -20,4 +29,8 @@ The final number of points is based on the average of all projects (including ev
  * 46-57 points: D
  * 40-45 points: E
  * 0-39 points: F-failed
+
+
+
+
 
