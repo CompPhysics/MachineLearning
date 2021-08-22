@@ -185,7 +185,7 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 
 _Recommended textbooks_:
 The lecture notes are collected as a jupyter-book at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In addition to the electure notes, we recommend the books of Bishop and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
-- Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. If you login to the University Library or access this site via a University IP number, you can download for free the textbook in PDF format or epub format.
+- Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. You can download for free the textbook in PDF format at https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf
 - Ian Goodfellow, Yoshua Bengio, and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended. The lectures follow to a larg extent this text.
 The weekly plans will include reading suggestions from these two textbooks.
 _Additional textbooks_:
@@ -226,41 +226,47 @@ The link here https://www.mn.uio.no/english/research/about/centre-focus/innovati
 
 ##  Weekly Schedule
 
+For the reading assignments we use the following abbreviations:
+- GBC: Goodfellow, Bengio, and Courville, Deep Learning
+- CMB: Christopher M. Bishop, Pattern Recognition and Machine Learning
+- HTF: Hastie, Tibshirani, and Friedman, The Elements of Statistical Learning
+- AG: Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow
+
 ###  Week 35 August 23-27
 - Lab Wednesday: Introduction to software and repetition of Python Programming
 - Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression
 - Lecture Friday: Basics of Linear Regression
-- Reading recommendations: Goodfellow et al Chapters 1 and 4 and Bishop chapter 1.
-  - Chapter
+- Reading recommendations: Refresh linear algebra, GBC chapters 1 and 2. CMB sections 1.1 and 3.1. HTF chapters 2 and 3. Install scikit-learn. See lecture notes for week 35 at https://compphysics.github.io/MachineLearning/doc/web/course.html
+
 ###  Week 36 August 30-September 3
 - Lab Wednesday: 
-- Lecture Thursday: Linear Regression, from ordinary linear regression to Ridge and Lasso regression
-- Lecture Friday: Linear Regression, Linear algebra and Ridge and Lasso Regression
-- Reading recommendations:
-  - Chapter
+- Lecture Thursday: Linear Regression, from ordinary linear regression to Ridge and Lasso regression, linear algebra analysis, examples and discussions of codes
+- Lecture Friday: Linear Regression, Linear algebra and Ridge and Lasso Regression, linear algebra analysis, examples and discussions of codes
+- Reading recommendations: See lecture notes for week 36 at https://compphysics.github.io/MachineLearning/doc/web/course.html. HTF chapter 3. GBC chapters 1 and and sections 3.1-3.11 and 5.1 and CMB sections 1.1 and 3.1
+
 ###  Week 37 September 6-10
 - Lab Wednesday: 
 - Lecture Thursday: Statistical interpretation of Linear Regression
 - Lecture Friday: Bias-Variance tradeoff
-- Reading recommendations:
+- Reading recommendations: See lecture notes for week 37 at https://compphysics.github.io/MachineLearning/doc/web/course.html. GBC sections 5.2-5.5, CMB section 3.2
   - Chapter
 ###  Week 38 September 13-17
 - Lab Wednesday: 
 - Lecture Thursday: Resampling methods, cross-validation and Bootstrap
 - Lecture Friday: More on Resampling methods and summary of linear regression
-- Reading recommendations:
+- Reading recommendations: See lecture notes for week 38 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Chapter
 ###  Week 39 September 20-24
 - Lab Wednesday: 
 - Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
 - Lecture Friday: Logistic Regression and gradient optimization
-- Reading recommendations:
+- Reading recommendations: See lecture notes for week 39 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Chapter
 ###  Week 40 September 27- October 1
 - Lab Wednesday: 
 - Lecture Thursday: Gradient Optimization methods
 - Lecture Friday:  Deep Learning and Neural Networks
-- Reading recommendations:
+- Reading recommendations: See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Chapter
 ###  Week 41 October 4-8
 - Lab Wednesday: 
