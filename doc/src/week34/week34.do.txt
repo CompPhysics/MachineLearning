@@ -1690,6 +1690,10 @@ Now it is time to dive more into the details of various methods. We will start w
 
 
 !split
+===== Exercises for week 36 =====
+Here are three possible exercises for week 36 and the lab sessions of Wednesday September 1..
+
+
 ===== Exercise: Setting up various Python environments  =====
 
 The first exercise here is of a mere technical art. We want you to have 
@@ -1748,7 +1752,9 @@ distribution for scientific and analytic computing distribution and
 analysis environment, available for free and under a commercial
 license.
 
-We recommend using _Anaconda_.
+We recommend using _Anaconda_ if you are not too familiar with setting paths in a terminal environment.
+
+
 
 
 ===== Exercise: making your own data and exploring scikit-learn =====
@@ -1761,7 +1767,7 @@ x = np.random.rand(100,1)
 y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 !ec
 
-o Write your own code (following the examples under the "regression slides":"https://compphysics.github.io/MachineLearningECT/doc/pub/Day1/html/Day1-bs.html") for computing the parametrization of the data set fitting a second-order polynomial. 
+o Write your own code (following the examples under the "regression notes":"https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter1.html") for computing the parametrization of the data set fitting a second-order polynomial. 
 o Use thereafter _scikit-learn_ (see again the examples in the regression slides) and compare with your own code.   
 o Using scikit-learn, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
 !bt 
@@ -1831,4 +1837,94 @@ print(MSE(y_test,ypredict))
 !ec
 !esol
 
+
+
+===== Exercise: Normalizing our data  =====
+
+
+A much used approach before starting to train the data is  to preprocess our
+data. Normally the data may need a rescaling and/or may be sensitive
+to extreme values. Scaling the data renders our inputs much more
+suitable for the algorithms we want to employ.
+
+_Scikit-Learn_ has several functions which allow us to rescale the
+data, normally resulting in much better results in terms of various
+accuracy scores.  The _StandardScaler_ function in _Scikit-Learn_
+ensures that for each feature/predictor we study the mean value is
+zero and the variance is one (every column in the design/feature
+matrix).  This scaling has the drawback that it does not ensure that
+we have a particular maximum or minimum in our data set. Another
+function included in _Scikit-Learn_ is the _MinMaxScaler_ which
+ensures that all features are exactly between $0$ and $1$. The
+
+
+The _Normalizer_ scales each data
+point such that the feature vector has a euclidean length of one. In other words, it
+projects a data point on the circle (or sphere in the case of higher dimensions) with a
+radius of 1. This means every data point is scaled by a different number (by the
+inverse of it’s length).
+This normalization is often used when only the direction (or angle) of the data matters,
+not the length of the feature vector.
+
+The _RobustScaler_ works similarly to the StandardScaler in that it
+ensures statistical properties for each feature that guarantee that
+they are on the same scale. However, the RobustScaler uses the median
+and quartiles, instead of mean and variance. This makes the
+RobustScaler ignore data points that are very different from the rest
+(like measurement errors). These odd data points are also called
+outliers, and might often lead to trouble for other scaling
+techniques.
+
+
+It also common to split the data in a _training_ set and a _testing_ set. A typical split is to use $80\%$ of the data for training and the rest
+for testing. This can be done as follows with our design matrix $\bm{X}$ and data $\bm{y}$ (remember to import _scikit-learn_)
+!bc pycod
+# split in training and test data
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+!ec
+Then we can use the standard scaler to scale our data as
+!bc pycod
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+!ec
+
+
+In this exercise we want you to to compute the MSE for the training
+data and the test data as function of the complexity of a polynomial,
+that is the degree of a given polynomial. We want you also to compute the $R2$ score as function of the complexity of the model for both training data and test data.  You should also run the calculation with and without scaling. 
+
+One of 
+the aims is to reproduce Figure 2.11 of "Hastie et al":"https://github.com/CompPhysics/MLErasmus/blob/master/doc/Textbooks/elementsstat.pdf".
+
+
+
+Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
+!bc pycod
+np.random.seed()
+n = 100
+maxdegree = 14
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+!ec
+where $y$ is the function we want to fit with a given polynomial.
+!bsubex
+Write a first code which sets up a design matrix $X$ defined by a fifth-order polynomial.  Scale your data and split it in training and test data. 
+!esubex
+
+!bsubex
+Perform an ordinary least squares and compute the means squared error and the $R2$ factor for the training data and the test data, with and without scaling.
+!bsol
+This requires a simple extension to the above code where you simply add a statement calling the $R2$ function included in the same code.
+!esol
+!esubex
+
+!bsubex
+Add now a model which allows you to make polynomials up to degree $15$.  Perform a standard OLS fitting of the training data and compute the MSE and $R2$ for the training and test data and plot both test and training data MSE and $R2$ as functions of the polynomial degree. Compare what you see with Figure 2.11 of Hastie et al. Comment your results. For which polynomial degree do you find an optimal MSE (smallest value)?
+!bsol
+Here you simply need to change the degree of the polynomial in the above code to $n=15$.
+!esol
+!esubex
 
