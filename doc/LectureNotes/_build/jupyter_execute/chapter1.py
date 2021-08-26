@@ -1,4 +1,4 @@
-# Linear Regression, basic Elements
+# Linear Regression
 
 [Video of Lecture](https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/LectureAug21.mp4?vrtx=view-as-webpage)
 
@@ -9,7 +9,7 @@
 
 
 
-Our emphasis throughout this series of lectures  
+Our emphasis throughout this series of lectures (small change)  
 is on understanding the mathematical aspects of
 different algorithms used in the fields of data analysis and machine learning. 
 
@@ -131,552 +131,98 @@ desired output of a system.  Some of the most common tasks are:
   * Clustering: Data are divided into groups with certain common traits, without knowing the different groups beforehand.  It is thus a form of unsupervised learning.
 
 The methods we cover have three main topics in common, irrespective of
-whether we deal with supervised or unsupervised learning. The first
-ingredient is normally our data set (which can be subdivided into
-training and test data), the second item is a model which is normally a
-function of some parameters.  The model reflects our knowledge of the system (or lack thereof). As an example, if we know that our data show a behavior similar to what would be predicted by a polynomial, fitting our data to a polynomial of some degree would then determin our model. 
+whether we deal with supervised or unsupervised learning.
+* The first ingredient is normally our data set (which can be subdivided into training, validation  and test data). Many find the most difficult part of using Machine Learning to be the set up of your data in a meaningful way. 
 
-The last ingredient is a so-called **cost**
-function which allows us to present an estimate on how good our model
-is in reproducing the data it is supposed to train.  
-At the heart of basically all ML algorithms there are so-called minimization algorithms, often we end up with various variants of **gradient** methods.
+* The second item is a model which is normally a function of some parameters.  The model reflects our knowledge of the system (or lack thereof). As an example, if we know that our data show a behavior similar to what would be predicted by a polynomial, fitting our data to a polynomial of some degree would then determin our model. 
 
+* The last ingredient is a so-called **cost/loss** function (or error or risk function) which allows us to present an estimate on how good our model is in reproducing the data it is supposed to train.  
 
 
 
+At the heart of basically all Machine Learning algorithms we will encounter so-called minimization or optimization algorithms. A large family of such methods are so-called **gradient methods**.
 
 
+### A Frequentist approach to data analysis
 
-## Software and needed installations
+When you hear phrases like **predictions and estimations** and
+**correlations and causations**, what do you think of?  May be you think
+of the difference between classifying new data points and generating
+new data points.
+Or perhaps you consider that correlations represent some kind of symmetric statements like
+if $A$ is correlated with $B$, then $B$ is correlated with
+$A$. Causation on the other hand is directional, that is if $A$ causes $B$, $B$ does not
+necessarily cause $A$.
 
-We will make extensive use of Python as programming language and its
-myriad of available libraries.  You will find
-Jupyter notebooks invaluable in your work.  You can run **R**
-codes in the Jupyter/IPython notebooks, with the immediate benefit of
-visualizing your data. You can also use compiled languages like C++,
-Rust, Julia, Fortran etc if you prefer. The focus in these lectures will be
-on Python.
+These concepts are in some sense the difference between machine
+learning and statistics. In machine learning and prediction based
+tasks, we are often interested in developing algorithms that are
+capable of learning patterns from given data in an automated fashion,
+and then using these learned patterns to make predictions or
+assessments of newly given data. In many cases, our primary concern
+is the quality of the predictions or assessments, and we are less
+concerned about the underlying patterns that were learned in order
+to make these predictions.
 
+In machine learning we normally use [a so-called frequentist approach](https://en.wikipedia.org/wiki/Frequentist_inference),
+where the aim is to make predictions and find correlations. We focus
+less on for example extracting a probability distribution function (PDF). The PDF can be
+used in turn to make estimations and find causations such as given $A$
+what is the likelihood of finding $B$.
 
-If you have Python installed (we strongly recommend Python3) and you feel
-pretty familiar with installing different packages, we recommend that
-you install the following Python packages via **pip** as 
 
-1. pip install numpy scipy matplotlib ipython scikit-learn mglearn sympy pandas pillow 
+### What is a good model?
 
-For Python3, replace **pip** with **pip3**.
+In science and engineering we often end up in situations where we want to infer (or learn) a
+quantitative model $M$ for a given set of sample points $\boldsymbol{X} \in [x_1, x_2,\dots x_N]$.
 
-For OSX users we recommend, after having installed Xcode, to
-install **brew**. Brew allows for a seamless installation of additional
-software via for example 
+As we will see repeatedely in these lectures, we could try to fit these data points to a model given by a
+straight line, or if we wish to be more sophisticated to a more complex
+function.
 
-1. brew install python3
+The reason for inferring such a model is that it
+serves many useful purposes. On the one hand, the model can reveal information
+encoded in the data or underlying mechanisms from which the data were generated. For instance, we could discover important
+corelations that relate interesting physics interpretations.
 
-For Linux users, with its variety of distributions like for example the widely popular Ubuntu distribution,
-you can use **pip** as well and simply install Python as 
+In addition, it can simplify the representation of the given data set and help
+us in making predictions about  future data samples.
 
-1. sudo apt-get install python3  (or python for pyhton2.7)
+A first important consideration to keep in mind is that inferring the *correct* model
+for a given data set is an elusive, if not impossible, task. The fundamental difficulty
+is that if we are not specific about what we mean by a *correct* model, there
+could easily be many different models that fit the given data set *equally well*.
 
-etc etc. 
 
 
 
-## Python installers
+The central question is this: what leads us to say that a model is correct or
+optimal for a given data set? To make the model inference problem well posed, i.e.,
+to guarantee that there is a unique optimal model for the given data, we need to
+impose additional assumptions or restrictions on the class of models considered. To
+this end, we should not be looking for just any model that can describe the data.
+Instead, we should look for a **model** $M$ that is the best among a restricted class
+of models. In addition, to make the model inference problem computationally
+tractable, we need to specify how restricted the class of models needs to be. A
+common strategy is to start 
+with the simplest possible class of models that is just necessary to describe the data
+or solve the problem at hand. More precisely, the model class should be rich enough
+to contain at least one model that can fit the data to a desired accuracy and yet be
+restricted enough that it is relatively simple to find the best model for the given data.
 
-If you don't want to perform these operations separately and venture
-into the hassle of exploring how to set up dependencies and paths, we
-recommend two widely used distrubutions which set up all relevant
-dependencies for Python, namely 
+Thus, the most popular strategy is to start from the
+simplest class of models and increase the complexity of the models only when the
+simpler models become inadequate. For instance, if we work with a regression problem to fit a set of sample points, one
+may first try the simplest class of models, namely linear models, followed obviously by more complex models.
 
-* [Anaconda](https://docs.anaconda.com/), 
+How to evaluate which model fits best the data is something we will come back to over and over again in these sets of lectures.
 
-which is an open source
-distribution of the Python and R programming languages for large-scale
-data processing, predictive analytics, and scientific computing, that
-aims to simplify package management and deployment. Package versions
-are managed by the package management system **conda**. 
 
-* [Enthought canopy](https://www.enthought.com/product/canopy/) 
 
-is a Python
-distribution for scientific and analytic computing distribution and
-analysis environment, available for free and under a commercial
-license.
 
-Furthermore, [Google's Colab](https://colab.research.google.com/notebooks/welcome.ipynb) is a free Jupyter notebook environment that requires 
-no setup and runs entirely in the cloud. Try it out!
 
 
-## Useful Python libraries
-Here we list several useful Python libraries we strongly recommend (if you use anaconda many of these are already there)
 
-* [NumPy](https://www.numpy.org/) is a highly popular library for large, multi-dimensional arrays and matrices, along with a large collection of high-level mathematical functions to operate on these arrays
-
-* [The pandas](https://pandas.pydata.org/) library provides high-performance, easy-to-use data structures and data analysis tools 
-
-* [Xarray](http://xarray.pydata.org/en/stable/) is a Python package that makes working with labelled multi-dimensional arrays simple, efficient, and fun!
-
-* [Scipy](https://www.scipy.org/) (pronounced “Sigh Pie”) is a Python-based ecosystem of open-source software for mathematics, science, and engineering. 
-
-* [Matplotlib](https://matplotlib.org/) is a Python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms.
-
-* [Autograd](https://github.com/HIPS/autograd) can automatically differentiate native Python and Numpy code. It can handle a large subset of Python's features, including loops, ifs, recursion and closures, and it can even take derivatives of derivatives of derivatives
-
-* [SymPy](https://www.sympy.org/en/index.html) is a Python library for symbolic mathematics. 
-
-* [scikit-learn](https://scikit-learn.org/stable/) has simple and efficient tools for machine learning, data mining and data analysis
-
-* [TensorFlow](https://www.tensorflow.org/) is a Python library for fast numerical computing created and released by Google
-
-* [Keras](https://keras.io/) is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
-
-* And many more such as [pytorch](https://pytorch.org/),  [Theano](https://pypi.org/project/Theano/) etc 
-
-## Installing R, C++, cython or Julia
-
-You will also find it convenient to utilize **R**. We will mainly
-use Python during our lectures and in various projects and exercises.
-Those of you
-already familiar with **R** should feel free to continue using **R**, keeping
-however an eye on the parallel Python set ups. Similarly, if you are a
-Python afecionado, feel free to explore **R** as well.  Jupyter/Ipython
-notebook allows you to run **R** codes interactively in your
-browser. The software library **R** is really tailored  for statistical data analysis
-and allows for an easy usage of the tools and algorithms we will discuss in these
-lectures.
-
-To install **R** with Jupyter notebook 
-[follow the link here](https://mpacer.org/maths/r-kernel-for-ipython-notebook)
-
-
-
-
-## Installing R, C++, cython, Numba etc
-
-
-For the C++ aficionados, Jupyter/IPython notebook allows you also to
-install C++ and run codes written in this language interactively in
-the browser. Since we will emphasize writing many of the algorithms
-yourself, you can thus opt for either Python or C++ (or Fortran or other compiled languages) as programming
-languages.
-
-To add more entropy, **cython** can also be used when running your
-notebooks. It means that Python with the jupyter notebook
-setup allows you to integrate widely popular softwares and tools for
-scientific computing. Similarly, the 
-[Numba Python package](https://numba.pydata.org/) delivers increased performance
-capabilities with minimal rewrites of your codes.  With its
-versatility, including symbolic operations, Python offers a unique
-computational environment. Your jupyter notebook can easily be
-converted into a nicely rendered **PDF** file or a Latex file for
-further processing. For example, convert to latex as
-
-        pycod jupyter nbconvert filename.ipynb --to latex 
-
-
-And to add more versatility, the Python package [SymPy](http://www.sympy.org/en/index.html) is a Python library for symbolic mathematics. It aims to become a full-featured computer algebra system (CAS)  and is entirely written in Python. 
-
-Finally, if you wish to use the light mark-up language 
-[doconce](https://github.com/hplgit/doconce) you can convert a standard ascii text file into various HTML 
-formats, ipython notebooks, latex files, pdf files etc with minimal edits. These lectures were generated using **doconce**.
-
-
-
-## Numpy examples and Important Matrix and vector handling packages
-
-There are several central software libraries for linear algebra and eigenvalue problems. Several of the more
-popular ones have been wrapped into ofter software packages like those from the widely used text **Numerical Recipes**. The original source codes in many of the available packages are often taken from the widely used
-software package LAPACK, which follows two other popular packages
-developed in the 1970s, namely EISPACK and LINPACK.  We describe them shortly here.
-
-  * LINPACK: package for linear equations and least square problems.
-
-  * LAPACK:package for solving symmetric, unsymmetric and generalized eigenvalue problems. From LAPACK's website <http://www.netlib.org> it is possible to download for free all source codes from this library. Both C/C++ and Fortran versions are available.
-
-  * BLAS (I, II and III): (Basic Linear Algebra Subprograms) are routines that provide standard building blocks for performing basic vector and matrix operations. Blas I is vector operations, II vector-matrix operations and III matrix-matrix operations. Highly parallelized and efficient codes, all available for download from <http://www.netlib.org>.
-
-## Basic Matrix Features
-
-Matrix properties reminder
-
-$$
-\mathbf{A} =
-      \begin{bmatrix} a_{11} & a_{12} & a_{13} & a_{14} \\
-                                 a_{21} & a_{22} & a_{23} & a_{24} \\
-                                   a_{31} & a_{32} & a_{33} & a_{34} \\
-                                  a_{41} & a_{42} & a_{43} & a_{44}
-             \end{bmatrix}\qquad
-\mathbf{I} =
-      \begin{bmatrix} 1 & 0 & 0 & 0 \\
-                                 0 & 1 & 0 & 0 \\
-                                 0 & 0 & 1 & 0 \\
-                                 0 & 0 & 0 & 1
-             \end{bmatrix}
-$$
-
-The inverse of a matrix is defined by
-
-$$
-\mathbf{A}^{-1} \cdot \mathbf{A} = I
-$$
-
-<table border="1">
-<thead>
-<tr><th align="center">              Relations               </th> <th align="center">      Name     </th> <th align="center">                            matrix elements                            </th> </tr>
-</thead>
-<tbody>
-<tr><td align="center">   $A = A^{T}$                               </td> <td align="center">   symmetric          </td> <td align="center">   $a_{ij} = a_{ji}$                                                          </td> </tr>
-<tr><td align="center">   $A = \left (A^{T} \right )^{-1}$          </td> <td align="center">   real orthogonal    </td> <td align="center">   $\sum_k a_{ik} a_{jk} = \sum_k a_{ki} a_{kj} = \delta_{ij}$                </td> </tr>
-<tr><td align="center">   $A = A^{ * }$                             </td> <td align="center">   real matrix        </td> <td align="center">   $a_{ij} = a_{ij}^{ * }$                                                    </td> </tr>
-<tr><td align="center">   $A = A^{\dagger}$                         </td> <td align="center">   hermitian          </td> <td align="center">   $a_{ij} = a_{ji}^{ * }$                                                    </td> </tr>
-<tr><td align="center">   $A = \left (A^{\dagger} \right )^{-1}$    </td> <td align="center">   unitary            </td> <td align="center">   $\sum_k a_{ik} a_{jk}^{ * } = \sum_k a_{ki}^{ * } a_{kj} = \delta_{ij}$    </td> </tr>
-</tbody>
-</table>
-
-
-### Some famous Matrices
-
-  * Diagonal if $a_{ij}=0$ for $i\ne j$
-
-  * Upper triangular if $a_{ij}=0$ for $i > j$
-
-  * Lower triangular if $a_{ij}=0$ for $i < j$
-
-  * Upper Hessenberg if $a_{ij}=0$ for $i > j+1$
-
-  * Lower Hessenberg if $a_{ij}=0$ for $i < j+1$
-
-  * Tridiagonal if $a_{ij}=0$ for $|i -j| > 1$
-
-  * Lower banded with bandwidth $p$: $a_{ij}=0$ for $i > j+p$
-
-  * Upper banded with bandwidth $p$: $a_{ij}=0$ for $i < j+p$
-
-  * Banded, block upper triangular, block lower triangular....
-
-### More Basic Matrix Features
-
-Some Equivalent Statements
-For an $N\times N$ matrix  $\mathbf{A}$ the following properties are all equivalent
-
-  * If the inverse of $\mathbf{A}$ exists, $\mathbf{A}$ is nonsingular.
-
-  * The equation $\mathbf{Ax}=0$ implies $\mathbf{x}=0$.
-
-  * The rows of $\mathbf{A}$ form a basis of $R^N$.
-
-  * The columns of $\mathbf{A}$ form a basis of $R^N$.
-
-  * $\mathbf{A}$ is a product of elementary matrices.
-
-  * $0$ is not eigenvalue of $\mathbf{A}$.
-
-## Numpy and arrays
-[Numpy](http://www.numpy.org/) provides an easy way to handle arrays in Python. The standard way to import this library is as
-
-import numpy as np
-
-Here follows a simple example where we set up an array of ten elements, all determined by random numbers drawn according to the normal distribution,
-
-n = 10
-x = np.random.normal(size=n)
-print(x)
-
-We defined a vector $x$ with $n=10$ elements with its values given by the Normal distribution $N(0,1)$.
-Another alternative is to declare a vector as follows
-
-import numpy as np
-x = np.array([1, 2, 3])
-print(x)
-
-Here we have defined a vector with three elements, with $x_0=1$, $x_1=2$ and $x_2=3$. Note that both Python and C++
-start numbering array elements from $0$ and on. This means that a vector with $n$ elements has a sequence of entities $x_0, x_1, x_2, \dots, x_{n-1}$. We could also let (recommended) Numpy to compute the logarithms of a specific array as
-
-import numpy as np
-x = np.log(np.array([4, 7, 8]))
-print(x)
-
-In the last example we used Numpy's unary function $np.log$. This function is
-highly tuned to compute array elements since the code is vectorized
-and does not require looping. We normaly recommend that you use the
-Numpy intrinsic functions instead of the corresponding **log** function
-from Python's **math** module. The looping is done explicitely by the
-**np.log** function. The alternative, and slower way to compute the
-logarithms of a vector would be to write
-
-import numpy as np
-from math import log
-x = np.array([4, 7, 8])
-for i in range(0, len(x)):
-    x[i] = log(x[i])
-print(x)
-
-We note that our code is much longer already and we need to import the **log** function from the **math** module. 
-The attentive reader will also notice that the output is $[1, 1, 2]$. Python interprets automagically our numbers as integers (like the **automatic** keyword in C++). To change this we could define our array elements to be double precision numbers as
-
-import numpy as np
-x = np.log(np.array([4, 7, 8], dtype = np.float64))
-print(x)
-
-or simply write them as double precision numbers (Python uses 64 bits as default for floating point type variables), that is
-
-import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0])
-print(x)
-
-To check the number of bytes (remember that one byte contains eight bits for double precision variables), you can use simple use the **itemsize** functionality (the array $x$ is actually an object which inherits the functionalities defined in Numpy) as
-
-import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0])
-print(x.itemsize)
-
-## Matrices in Python
-
-Having defined vectors, we are now ready to try out matrices. We can
-define a $3 \times 3 $ real matrix $\hat{A}$ as (recall that we user
-lowercase letters for vectors and uppercase letters for matrices)
-
-import numpy as np
-A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
-print(A)
-
-If we use the **shape** function we would get $(3, 3)$ as output, that is verifying that our matrix is a $3\times 3$ matrix. We can slice the matrix and print for example the first column (Python organized matrix elements in a row-major order, see below) as
-
-import numpy as np
-A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
-# print the first column, row-major order and elements start with 0
-print(A[:,0])
-
-We can continue this was by printing out other columns or rows. The example here prints out the second column
-
-import numpy as np
-A = np.log(np.array([ [4.0, 7.0, 8.0], [3.0, 10.0, 11.0], [4.0, 5.0, 7.0] ]))
-# print the first column, row-major order and elements start with 0
-print(A[1,:])
-
-Numpy contains many other functionalities that allow us to slice, subdivide etc etc arrays. We strongly recommend that you look up the [Numpy website for more details](http://www.numpy.org/). Useful functions when defining a matrix are the **np.zeros** function which declares a matrix of a given dimension and sets all elements to zero
-
-import numpy as np
-n = 10
-# define a matrix of dimension 10 x 10 and set all elements to zero
-A = np.zeros( (n, n) )
-print(A)
-
-or initializing all elements to
-
-import numpy as np
-n = 10
-# define a matrix of dimension 10 x 10 and set all elements to one
-A = np.ones( (n, n) )
-print(A)
-
-or as unitarily distributed random numbers (see the material on random number generators in the statistics part)
-
-import numpy as np
-n = 10
-# define a matrix of dimension 10 x 10 and set all elements to random numbers with x \in [0, 1]
-A = np.random.rand(n, n)
-print(A)
-
-As we will see throughout these lectures, there are several extremely useful functionalities in Numpy.
-As an example, consider the discussion of the covariance matrix. Suppose we have defined three vectors
-$\hat{x}, \hat{y}, \hat{z}$ with $n$ elements each. The covariance matrix is defined as
-
-$$
-\hat{\Sigma} = \begin{bmatrix} \sigma_{xx} & \sigma_{xy} & \sigma_{xz} \\
-                              \sigma_{yx} & \sigma_{yy} & \sigma_{yz} \\
-                              \sigma_{zx} & \sigma_{zy} & \sigma_{zz} 
-             \end{bmatrix},
-$$
-
-where for example
-
-$$
-\sigma_{xy} =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
-$$
-
-The Numpy function **np.cov** calculates the covariance elements using the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have the exact mean values. 
-The following simple function uses the **np.vstack** function which takes each vector of dimension $1\times n$ and produces a $3\times n$ matrix $\hat{W}$
-
-$$
-\hat{W} = \begin{bmatrix} x_0 & y_0 & z_0 \\
-                          x_1 & y_1 & z_1 \\
-                          x_2 & y_2 & z_2 \\
-                          \dots & \dots & \dots \\
-                          x_{n-2} & y_{n-2} & z_{n-2} \\
-                          x_{n-1} & y_{n-1} & z_{n-1}
-             \end{bmatrix},
-$$
-
-which in turn is converted into into the $3\times 3$ covariance matrix
-$\hat{\Sigma}$ via the Numpy function **np.cov()**. We note that we can also calculate
-the mean value of each set of samples $\hat{x}$ etc using the Numpy
-function **np.mean(x)**. We can also extract the eigenvalues of the
-covariance matrix through the **np.linalg.eig()** function.
-
-# Importing various packages
-import numpy as np
-
-n = 100
-x = np.random.normal(size=n)
-print(np.mean(x))
-y = 4+3*x+np.random.normal(size=n)
-print(np.mean(y))
-z = x**3+np.random.normal(size=n)
-print(np.mean(z))
-W = np.vstack((x, y, z))
-Sigma = np.cov(W)
-print(Sigma)
-Eigvals, Eigvecs = np.linalg.eig(Sigma)
-print(Eigvals)
-
-%matplotlib inline
-
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import sparse
-eye = np.eye(4)
-print(eye)
-sparse_mtx = sparse.csr_matrix(eye)
-print(sparse_mtx)
-x = np.linspace(-10,10,100)
-y = np.sin(x)
-plt.plot(x,y,marker='x')
-plt.show()
-
-## Meet the Pandas
-
-
-<!-- FIGURE: [fig/pandas.jpg, width=600 frac=0.8] -->
-
-Another useful Python package is
-[pandas](https://pandas.pydata.org/), which is an open source library
-providing high-performance, easy-to-use data structures and data
-analysis tools for Python. **pandas** stands for panel data, a term borrowed from econometrics and is an efficient library for data analysis with an emphasis on tabular data.
-**pandas** has two major classes, the **DataFrame** class with two-dimensional data objects and tabular data organized in columns and the class **Series** with a focus on one-dimensional data objects. Both classes allow you to index data easily as we will see in the examples below. 
-**pandas** allows you also to perform mathematical operations on the data, spanning from simple reshapings of vectors and matrices to statistical operations. 
-
-The following simple example shows how we can, in an easy way make tables of our data. Here we define a data set which includes names, place of birth and date of birth, and displays the data in an easy to read way. We will see repeated use of **pandas**, in particular in connection with classification of data.
-
-import pandas as pd
-from IPython.display import display
-data = {'First Name': ["Frodo", "Bilbo", "Aragorn II", "Samwise"],
-        'Last Name': ["Baggins", "Baggins","Elessar","Gamgee"],
-        'Place of birth': ["Shire", "Shire", "Eriador", "Shire"],
-        'Date of Birth T.A.': [2968, 2890, 2931, 2980]
-        }
-data_pandas = pd.DataFrame(data)
-display(data_pandas)
-
-In the above we have imported **pandas** with the shorthand **pd**, the latter has become the standard way we import **pandas**. We make then a list of various variables
-and reorganize the aboves lists into a **DataFrame** and then print out  a neat table with specific column labels as *Name*, *place of birth* and *date of birth*.
-Displaying these results, we see that the indices are given by the default numbers from zero to three.
-**pandas** is extremely flexible and we can easily change the above indices by defining a new type of indexing as
-
-data_pandas = pd.DataFrame(data,index=['Frodo','Bilbo','Aragorn','Sam'])
-display(data_pandas)
-
-Thereafter we display the content of the row which begins with the index **Aragorn**
-
-display(data_pandas.loc['Aragorn'])
-
-We can easily append data to this, for example
-
-new_hobbit = {'First Name': ["Peregrin"],
-              'Last Name': ["Took"],
-              'Place of birth': ["Shire"],
-              'Date of Birth T.A.': [2990]
-              }
-data_pandas=data_pandas.append(pd.DataFrame(new_hobbit, index=['Pippin']))
-display(data_pandas)
-
-Here are other examples where we use the **DataFrame** functionality to handle arrays, now with more interesting features for us, namely numbers. We set up a matrix 
-of dimensionality $10\times 5$ and compute the mean value and standard deviation of each column. Similarly, we can perform mathematial operations like squaring the matrix elements and many other operations.
-
-import numpy as np
-import pandas as pd
-from IPython.display import display
-np.random.seed(100)
-# setting up a 10 x 5 matrix
-rows = 10
-cols = 5
-a = np.random.randn(rows,cols)
-df = pd.DataFrame(a)
-display(df)
-print(df.mean())
-print(df.std())
-display(df**2)
-
-Thereafter we can select specific columns only and plot final results
-
-df.columns = ['First', 'Second', 'Third', 'Fourth', 'Fifth']
-df.index = np.arange(10)
-
-display(df)
-print(df['Second'].mean() )
-print(df.info())
-print(df.describe())
-
-from pylab import plt, mpl
-plt.style.use('seaborn')
-mpl.rcParams['font.family'] = 'serif'
-
-df.cumsum().plot(lw=2.0, figsize=(10,6))
-plt.show()
-
-
-df.plot.bar(figsize=(10,6), rot=15)
-plt.show()
-
-We can produce a $4\times 4$ matrix
-
-b = np.arange(16).reshape((4,4))
-print(b)
-df1 = pd.DataFrame(b)
-print(df1)
-
-and many other operations. 
-
-The **Series** class is another important class included in
-**pandas**. You can view it as a specialization of **DataFrame** but where
-we have just a single column of data. It shares many of the same features as _DataFrame. As with **DataFrame**,
-most operations are vectorized, achieving thereby a high performance when dealing with computations of arrays, in particular labeled arrays.
-As we will see below it leads also to a very concice code close to the mathematical operations we may be interested in.
-For multidimensional arrays, we recommend strongly [xarray](http://xarray.pydata.org/en/stable/). **xarray** has much of the same flexibility as **pandas**, but allows for the extension to higher dimensions than two. We will see examples later of the usage of both **pandas** and **xarray**. 
-
-
-
-
-
-
-In order to study various Machine Learning algorithms, we need to
-access data. Acccessing data is an essential step in all machine
-learning algorithms. In particular, setting up the so-called **design
-matrix** (to be defined below) is often the first element we need in
-order to perform our calculations. To set up the design matrix means
-reading (and later, when the calculations are done, writing) data
-in various formats, The formats span from reading files from disk,
-loading data from databases and interacting with online sources
-like web application programming interfaces (APIs).
-
-In handling various input formats, as discussed above, we will mainly stay with **pandas**,
-a Python package which allows us, in a seamless and painless way, to
-deal with a multitude of formats, from standard **csv** (comma separated
-values) files, via **excel**, **html** to **hdf5** formats.  With **pandas**
-and the **DataFrame**  and **Series** functionalities we are able to convert text data
-into the calculational formats we need for a specific algorithm. And our code is going to be 
-pretty close the basic mathematical expressions.
-
-Our first data set is going to be a classic from nuclear physics, namely all
-available data on binding energies. Don't be intimidated if you are not familiar with nuclear physics. It serves simply as an example here of a data set. 
-
-We will show some of the
-strengths of packages like **Scikit-Learn** in fitting nuclear binding energies to
-specific functions using linear regression first. Then, as a teaser, we will show you how 
-you can easily implement other algorithms like decision trees and random forests and neural networks.
-
-But before we really start with nuclear physics data, let's just look at some simpler polynomial fitting cases, such as,
-(don't be offended) fitting straight lines!
 
 
 
@@ -727,6 +273,8 @@ prediction **ypredict** ($\tilde{y}$), which attempts at fitting our
 data with a straight line.
 
 The Python code follows here.
+
+%matplotlib inline
 
 # Importing various packages
 import numpy as np
@@ -935,7 +483,8 @@ ways of dealing with outliers.
 The Huber cost function is defined as
 
 $$
-H_{\delta}(a)={\begin{cases}{\frac {1}{2}}{a^{2}}&{\text{for }}|a|\leq \delta ,\\\delta (|a|-{\frac {1}{2}}\delta ),&{\text{otherwise.}}\end{cases}}}.
+H_{\delta}(a)=\left\{\begin{array}\frac{1}{2}a^{2}&{\text{for }}|a|\leq \delta ,\\ \delta (|a|-\frac {1}{2}\del\
+ta ),&{\text{otherwise.}\end{array}\right.
 $$
 
 Here $a=\boldsymbol{y} - \boldsymbol{\tilde{y}}$.
@@ -1676,7 +1225,7 @@ The following matrix and vector relation will be useful here and for the rest of
 matrices as upper case boldfaced letters.
 
 4
-8
+3
  
 <
 <
@@ -1695,7 +1244,7 @@ C
 K
 
 4
-9
+4
  
 <
 <
@@ -1713,8 +1262,8 @@ O
 C
 K
 
+4
 5
-0
  
 <
 <
@@ -2452,3 +2001,235 @@ clf = skl.LinearRegression().fit(X_train_scaled, y_train)
 
 print("MSE after  scaling: {:.2f}".format(mean_squared_error(clf.predict(X_test_scaled), y_test)))
 print("R2 score for  scaled data: {:.2f}".format(clf.score(X_test_scaled,y_test)))
+
+## Exercises
+
+### Exercise: Setting up various Python environments
+
+The first exercise here is of a mere technical art. We want you to have 
+* git as a version control software and to establish a user account on a provider like GitHub. Other providers like GitLab etc are equally fine. You can also use the University of Oslo [GitHub facilities](https://www.uio.no/tjenester/it/maskin/filer/versjonskontroll/github.html). 
+
+* Install various Python packages
+
+We will make extensive use of Python as programming language and its
+myriad of available libraries.  You will find
+IPython/Jupyter notebooks invaluable in your work.  You can run **R**
+codes in the Jupyter/IPython notebooks, with the immediate benefit of
+visualizing your data. You can also use compiled languages like C++,
+Rust, Fortran etc if you prefer. The focus in these lectures will be
+on Python.
+
+If you have Python installed (we recommend Python3) and you feel
+pretty familiar with installing different packages, we recommend that
+you install the following Python packages via **pip** as 
+
+1. pip install numpy scipy matplotlib ipython scikit-learn sympy pandas pillow 
+
+For **Tensorflow**, we recommend following the instructions in the text of 
+[Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly](http://shop.oreilly.com/product/0636920052289.do)
+
+We will come back to **tensorflow** later. 
+
+For Python3, replace **pip** with **pip3**.
+
+For OSX users we recommend, after having installed Xcode, to
+install **brew**. Brew allows for a seamless installation of additional
+software via for example 
+
+1. brew install python3
+
+For Linux users, with its variety of distributions like for example the widely popular Ubuntu distribution,
+you can use **pip** as well and simply install Python as 
+
+1. sudo apt-get install python3  (or python for Python2.7)
+
+If you don't want to perform these operations separately and venture
+into the hassle of exploring how to set up dependencies and paths, we
+recommend two widely used distrubutions which set up all relevant
+dependencies for Python, namely 
+
+* [Anaconda](https://docs.anaconda.com/), 
+
+which is an open source
+distribution of the Python and R programming languages for large-scale
+data processing, predictive analytics, and scientific computing, that
+aims to simplify package management and deployment. Package versions
+are managed by the package management system **conda**. 
+
+* [Enthought canopy](https://www.enthought.com/product/canopy/) 
+
+is a Python
+distribution for scientific and analytic computing distribution and
+analysis environment, available for free and under a commercial
+license.
+
+We recommend using **Anaconda** if you are not too familiar with setting paths in a terminal environment.
+
+
+
+
+### Exercise: making your own data and exploring scikit-learn
+
+We will generate our own dataset for a function $y(x)$ where $x \in [0,1]$ and defined by random numbers computed with the uniform distribution. The function $y$ is a quadratic polynomial in $x$ with added stochastic noise according to the normal distribution $\cal {N}(0,1)$.
+The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
+
+x = np.random.rand(100,1)
+y = 2.0+5*x*x+0.1*np.random.randn(100,1)
+
+1. Write your own code (following the examples under the [regression notes](https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter1.html)) for computing the parametrization of the data set fitting a second-order polynomial. 
+
+2. Use thereafter **scikit-learn** (see again the examples in the regression slides) and compare with your own code.   
+
+3. Using scikit-learn, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+
+$$
+MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2,
+$$
+
+and the $R^2$ score function.
+If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+
+$$
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+$$
+
+where we have defined the mean value  of $\hat{y}$ as
+
+$$
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+$$
+
+You can use the functionality included in scikit-learn. If you feel for it, you can use your own program and define functions which compute the above two functions. 
+Discuss the meaning of these results. Try also to vary the coefficient in front of the added stochastic noise term and discuss the quality of the fits.
+
+!bsol
+The code here is an example of where we define our own design matrix and fit parameters $\beta$.
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),3))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x**2
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# matrix inversion to find beta
+beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(beta)
+# and then make the prediction
+ytilde = X_train @ beta
+print("Training R2")
+print(R2(y_train,ytilde))
+print("Training MSE")
+print(MSE(y_train,ytilde))
+ypredict = X_test @ beta
+print("Test R2")
+print(R2(y_test,ypredict))
+print("Test MSE")
+print(MSE(y_test,ypredict))
+
+!esol
+
+
+
+### Exercise: Normalizing our data
+
+A much used approach before starting to train the data is  to preprocess our
+data. Normally the data may need a rescaling and/or may be sensitive
+to extreme values. Scaling the data renders our inputs much more
+suitable for the algorithms we want to employ.
+
+**Scikit-Learn** has several functions which allow us to rescale the
+data, normally resulting in much better results in terms of various
+accuracy scores.  The **StandardScaler** function in **Scikit-Learn**
+ensures that for each feature/predictor we study the mean value is
+zero and the variance is one (every column in the design/feature
+matrix).  This scaling has the drawback that it does not ensure that
+we have a particular maximum or minimum in our data set. Another
+function included in **Scikit-Learn** is the **MinMaxScaler** which
+ensures that all features are exactly between $0$ and $1$. The
+
+
+The **Normalizer** scales each data
+point such that the feature vector has a euclidean length of one. In other words, it
+projects a data point on the circle (or sphere in the case of higher dimensions) with a
+radius of 1. This means every data point is scaled by a different number (by the
+inverse of it’s length).
+This normalization is often used when only the direction (or angle) of the data matters,
+not the length of the feature vector.
+
+The **RobustScaler** works similarly to the StandardScaler in that it
+ensures statistical properties for each feature that guarantee that
+they are on the same scale. However, the RobustScaler uses the median
+and quartiles, instead of mean and variance. This makes the
+RobustScaler ignore data points that are very different from the rest
+(like measurement errors). These odd data points are also called
+outliers, and might often lead to trouble for other scaling
+techniques.
+
+
+It also common to split the data in a **training** set and a **testing** set. A typical split is to use $80\%$ of the data for training and the rest
+for testing. This can be done as follows with our design matrix $\boldsymbol{X}$ and data $\boldsymbol{y}$ (remember to import **scikit-learn**)
+
+# split in training and test data
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+
+Then we can use the standard scaler to scale our data as
+
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+In this exercise we want you to to compute the MSE for the training
+data and the test data as function of the complexity of a polynomial,
+that is the degree of a given polynomial. We want you also to compute the $R2$ score as function of the complexity of the model for both training data and test data.  You should also run the calculation with and without scaling. 
+
+One of 
+the aims is to reproduce Figure 2.11 of [Hastie et al](https://github.com/CompPhysics/MLErasmus/blob/master/doc/Textbooks/elementsstat.pdf).
+
+
+
+Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
+
+np.random.seed()
+n = 100
+maxdegree = 14
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+
+where $y$ is the function we want to fit with a given polynomial.
+!bsubex
+Write a first code which sets up a design matrix $X$ defined by a fifth-order polynomial.  Scale your data and split it in training and test data. 
+!esubex
+
+!bsubex
+Perform an ordinary least squares and compute the means squared error and the $R2$ factor for the training data and the test data, with and without scaling.
+!esubex
+
+!bsubex
+Add now a model which allows you to make polynomials up to degree $15$.  Perform a standard OLS fitting of the training data and compute the MSE and $R2$ for the training and test data and plot both test and training data MSE and $R2$ as functions of the polynomial degree. Compare what you see with Figure 2.11 of Hastie et al. Comment your results. For which polynomial degree do you find an optimal MSE (smallest value)?
+!bsol
+Here you simply need to change the degree of the polynomial in the above code to $n=15$.
+!esol
+!esubex
