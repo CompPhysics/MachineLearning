@@ -10,11 +10,11 @@ In linear regression our main interest was centered on learning the
 coefficients of a functional fit (say a polynomial) in order to be
 able to predict the response of a continuous variable on some unseen
 data. The fit to the continuous variable $y_i$ is based on some
-independent variables $\hat{x}_i$. Linear regression resulted in
+independent variables $x_i$. Linear regression resulted in
 analytical expressions for standard ordinary Least Squares or Ridge
 regression (in terms of matrices to invert) for several quantities,
 ranging from the variance and thereby the confidence intervals of the
-parameters $\hat{\beta}$ to the mean squared error. If we can invert
+optimal parameters $\hat{\beta}$ to the mean squared error. If we can invert
 the product of the design matrices, linear regression gives then a
 simple recipe for fitting our data.
 
@@ -59,7 +59,7 @@ responses or the outcomes, $y_i$ are discrete and only take values
 from $k=0,\dots,K-1$ (i.e. $K$ classes).
 
 The goal is to predict the
-output classes from the design matrix $\hat{X}\in\mathbb{R}^{n\times p}$
+output classes from the design matrix $\boldsymbol{X}\in\mathbb{R}^{n\times p}$
 made of $n$ samples, each of which carries $p$ features or predictors. The
 primary goal is to identify the classes to which new unseen samples
 belong.
@@ -86,13 +86,13 @@ weighted linear combination, namely
 
 $$
 \begin{equation}
-\hat{y} = \hat{X}^T\hat{\beta} +  \hat{\epsilon},
+\boldsymbol{y} = \boldsymbol{X}^T\boldsymbol{\beta} +  \boldsymbol{\epsilon},
 \label{_auto1} \tag{1}
 \end{equation}
 $$
 
-where $\hat{y}$ is a vector representing the possible outcomes, $\hat{X}$ is our
-$n\times p$ design matrix and $\hat{\beta}$ represents our estimators/predictors.
+where $\boldsymbol{y}$ is a vector representing the possible outcomes, $\boldsymbol{X}$ is our
+$n\times p$ design matrix and $\boldsymbol{\beta}$ represents our estimators/predictors.
 
 
 The main problem with our function is that it takes values on the
@@ -284,17 +284,17 @@ We assume now that we have two classes with $y_i$ either $0$ or $1$. Furthermore
 
 $$
 \begin{align*}
-p(y_i=1|x_i,\hat{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
-p(y_i=0|x_i,\hat{\beta}) &= 1 - p(y_i=1|x_i,\hat{\beta}),
+p(y_i=1|x_i,\boldsymbol{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
+p(y_i=0|x_i,\boldsymbol{\beta}) &= 1 - p(y_i=1|x_i,\boldsymbol{\beta}),
 \end{align*}
 $$
 
-where $\hat{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
+where $\boldsymbol{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
 
 Note that we used
 
 $$
-p(y_i=0\vert x_i, \hat{\beta}) = 1-p(y_i=1\vert x_i, \hat{\beta}).
+p(y_i=0\vert x_i, \boldsymbol{\beta}) = 1-p(y_i=1\vert x_i, \boldsymbol{\beta}).
 $$
 
 In order to define the total likelihood for all possible outcomes from a  
@@ -306,34 +306,34 @@ likelihood in terms of the product of the individual probabilities of a specific
 
 $$
 \begin{align*}
-P(\mathcal{D}|\hat{\beta})& = \prod_{i=1}^n \left[p(y_i=1|x_i,\hat{\beta})\right]^{y_i}\left[1-p(y_i=1|x_i,\hat{\beta}))\right]^{1-y_i}\nonumber \\
+P(\mathcal{D}|\boldsymbol{\beta})& = \prod_{i=1}^n \left[p(y_i=1|x_i,\boldsymbol{\beta})\right]^{y_i}\left[1-p(y_i=1|x_i,\boldsymbol{\beta}))\right]^{1-y_i}\nonumber \\
 \end{align*}
 $$
 
 from which we obtain the log-likelihood and our **cost/loss** function
 
 $$
-\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n \left( y_i\log{p(y_i=1|x_i,\hat{\beta})} + (1-y_i)\log\left[1-p(y_i=1|x_i,\hat{\beta}))\right]\right).
+\mathcal{C}(\boldsymbol{\beta}) = \sum_{i=1}^n \left( y_i\log{p(y_i=1|x_i,\boldsymbol{\beta})} + (1-y_i)\log\left[1-p(y_i=1|x_i,\boldsymbol{\beta}))\right]\right).
 $$
 
 Reordering the logarithms, we can rewrite the **cost/loss** function as
 
 $$
-\mathcal{C}(\hat{\beta}) = \sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
+\mathcal{C}(\boldsymbol{\beta}) = \sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
 $$
 
 The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to $\beta$.
 Since the cost (error) function is just the negative log-likelihood, for logistic regression we have that
 
 $$
-\mathcal{C}(\hat{\beta})=-\sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
+\mathcal{C}(\boldsymbol{\beta})=-\sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
 $$
 
 This equation is known in statistics as the **cross entropy**. Finally, we note that just as in linear regression, 
 in practice we often supplement the cross-entropy with additional regularization terms, usually $L_1$ and $L_2$ regularization as we did for Ridge and Lasso regression.
 
 
-The cross entropy is a convex function of the weights $\hat{\beta}$ and,
+The cross entropy is a convex function of the weights $\boldsymbol{\beta}$ and,
 therefore, any local minimizer is a global minimizer. 
 
 
@@ -341,41 +341,41 @@ Minimizing this
 cost function with respect to the two parameters $\beta_0$ and $\beta_1$ we obtain
 
 $$
-\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \beta_0} = -\sum_{i=1}^n  \left(y_i -\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right),
+\frac{\partial \mathcal{C}(\boldsymbol{\beta})}{\partial \beta_0} = -\sum_{i=1}^n  \left(y_i -\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right),
 $$
 
 and
 
 $$
-\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \beta_1} = -\sum_{i=1}^n  \left(y_ix_i -x_i\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right).
+\frac{\partial \mathcal{C}(\boldsymbol{\beta})}{\partial \beta_1} = -\sum_{i=1}^n  \left(y_ix_i -x_i\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right).
 $$
 
-Let us now define a vector $\hat{y}$ with $n$ elements $y_i$, an
-$n\times p$ matrix $\hat{X}$ which contains the $x_i$ values and a
-vector $\hat{p}$ of fitted probabilities $p(y_i\vert x_i,\hat{\beta})$. We can rewrite in a more compact form the first
+Let us now define a vector $\boldsymbol{y}$ with $n$ elements $y_i$, an
+$n\times p$ matrix $\boldsymbol{X}$ which contains the $x_i$ values and a
+vector $\boldsymbol{p}$ of fitted probabilities $p(y_i\vert x_i,\boldsymbol{\beta})$. We can rewrite in a more compact form the first
 derivative of cost function as
 
 $$
-\frac{\partial \mathcal{C}(\hat{\beta})}{\partial \hat{\beta}} = -\hat{X}^T\left(\hat{y}-\hat{p}\right).
+\frac{\partial \mathcal{C}(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}} = -\boldsymbol{X}^T\left(\boldsymbol{y}-\boldsymbol{p}\right).
 $$
 
-If we in addition define a diagonal matrix $\hat{W}$ with elements 
-$p(y_i\vert x_i,\hat{\beta})(1-p(y_i\vert x_i,\hat{\beta})$, we can obtain a compact expression of the second derivative as
+If we in addition define a diagonal matrix $\boldsymbol{W}$ with elements 
+$p(y_i\vert x_i,\boldsymbol{\beta})(1-p(y_i\vert x_i,\boldsymbol{\beta})$, we can obtain a compact expression of the second derivative as
 
 $$
-\frac{\partial^2 \mathcal{C}(\hat{\beta})}{\partial \hat{\beta}\partial \hat{\beta}^T} = \hat{X}^T\hat{W}\hat{X}.
+\frac{\partial^2 \mathcal{C}(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}\partial \boldsymbol{\beta}^T} = \boldsymbol{X}^T\boldsymbol{W}\boldsymbol{X}.
 $$
 
 Within a binary classification problem, we can easily expand our model to include multiple predictors. Our ratio between likelihoods is then with $p$ predictors
 
 $$
-\log{ \frac{p(\hat{\beta}\hat{x})}{1-p(\hat{\beta}\hat{x})}} = \beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p.
+\log{ \frac{p(\boldsymbol{\beta}\boldsymbol{x})}{1-p(\boldsymbol{\beta}\boldsymbol{x})}} = \beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p.
 $$
 
-Here we defined $\hat{x}=[1,x_1,x_2,\dots,x_p]$ and $\hat{\beta}=[\beta_0, \beta_1, \dots, \beta_p]$ leading to
+Here we defined $\boldsymbol{x}=[1,x_1,x_2,\dots,x_p]$ and $\boldsymbol{\beta}=[\beta_0, \beta_1, \dots, \beta_p]$ leading to
 
 $$
-p(\hat{\beta}\hat{x})=\frac{ \exp{(\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p)}}{1+\exp{(\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p)}}.
+p(\boldsymbol{\beta}\boldsymbol{x})=\frac{ \exp{(\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p)}}{1+\exp{(\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p)}}.
 $$
 
 Till now we have mainly focused on two classes, the so-called binary
@@ -413,7 +413,7 @@ Bayes classifiers, and artificial neural networks.  Specifically, in
 multinomial logistic regression and linear discriminant analysis, the
 input to the function is the result of $K$ distinct linear functions,
 and the predicted probability for the $k$-th class given a sample
-vector $\hat{x}$ and a weighting vector $\hat{\beta}$ is (with two
+vector $\boldsymbol{x}$ and a weighting vector $\boldsymbol{\beta}$ is (with two
 predictors):
 
 $$
@@ -737,10 +737,10 @@ $$
                        \end{array}.
 $$
 
-Defining the Jacobian matrix ${\bf \boldsymbol{J}}$ we have
+Defining the Jacobian matrix $\boldsymbol{J}$ we have
 
 $$
-{\bf \boldsymbol{J}}=\left( \begin{array}{cc}
+\boldsymbol{J}=\left( \begin{array}{cc}
                          \partial f_1/\partial x_1  & \partial f_1/\partial x_2 \\
                           \partial f_2/\partial x_1     &\partial f_2/\partial x_2
              \end{array} \right),
@@ -758,13 +758,13 @@ where we have defined
 
 $$
 \left(\begin{array}{c} h_1^{n} \\ h_2^{n} \end{array} \right)=
-   -{\bf \boldsymbol{J}}^{-1}
+   -\boldsymbol{J}^{-1}
    \left(\begin{array}{c} f_1(x_1^{n},x_2^{n}) \\ f_2(x_1^{n},x_2^{n}) \end{array} \right).
 $$
 
 We need thus to compute the inverse of the Jacobian matrix and it
 is to understand that difficulties  may
-arise in case ${\bf \boldsymbol{J}}$ is nearly singular.
+arise in case $\boldsymbol{J}$ is nearly singular.
 
 It is rather straightforward to extend the above scheme to systems of
 more than two non-linear equations. In our case, the Jacobian matrix is given by the Hessian that represents the second derivative of cost function. 
