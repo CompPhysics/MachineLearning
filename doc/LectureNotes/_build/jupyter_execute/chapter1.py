@@ -483,11 +483,13 @@ ways of dealing with outliers.
 The Huber cost function is defined as
 
 $$
-H_{\delta}(a)=\left\{\begin{array}\frac{1}{2}a^{2}&{\text{for }}|a|\leq \delta ,\\ \delta (|a|-\frac {1}{2}\del\
-ta ),&{\text{otherwise.}\end{array}\right.
+H_{\delta}(\boldsymbol{a})=\left\{\begin{array}{cc}\frac{1}{2} \boldsymbol{a}^{2}& \text{for }|\boldsymbol{a}|\leq \delta\\ \delta (|\b\
+m{a}|-\frac{1}{2}\delta ),&\text{otherwise}.\end{array}\right.
 $$
 
-Here $a=\boldsymbol{y} - \boldsymbol{\tilde{y}}$.
+Here $\boldsymbol{a}=\boldsymbol{y} - \boldsymbol{\tilde{y}}$.
+
+
 We will discuss in more
 detail these and other functions in the various lectures.  We conclude this part with another example. Instead of 
 a linear $x$-dependence we study now a cubic polynomial and use the polynomial regression analysis tools of scikit-learn.
@@ -2146,7 +2148,7 @@ It also common to split the data in a **training** set and a **testing** set. A 
 for testing. This can be done as follows with our design matrix $\boldsymbol{X}$ and data $\boldsymbol{y}$ (remember to import **scikit-learn**)
 
 # split in training and test data
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+# X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
 Then we can use the standard scaler to scale our data as
 
@@ -2174,15 +2176,24 @@ x = np.linspace(-3, 3, n).reshape(-1, 1)
 y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
 
 where $y$ is the function we want to fit with a given polynomial.
-!bsubex
-Write a first code which sets up a design matrix $X$ defined by a fifth-order polynomial.  Scale your data and split it in training and test data. 
-!esubex
 
-!bsubex
-Perform an ordinary least squares and compute the means squared error and the $R2$ factor for the training data and the test data, with and without scaling.
-!esubex
 
-!bsubex
-Add now a model which allows you to make polynomials up to degree $15$.  Perform a standard OLS fitting of the training data and compute the MSE and $R2$ for the training and test data and plot both test and training data MSE and $R2$ as functions of the polynomial degree. Compare what you see with Figure 2.11 of Hastie et al. Comment your results. For which polynomial degree do you find an optimal MSE (smallest value)?
+Write a first code which sets up a design matrix $X$ defined by a
+fifth-order polynomial.  Scale your data and split it in training and
+test data.
 
-!esubex
+
+
+Perform an ordinary least squares and compute the means squared error
+and the $R2$ factor for the training data and the test data, with and
+without scaling.
+
+
+
+Add now a model which allows you to make polynomials up to degree
+$15$.  Perform a standard OLS fitting of the training data and compute
+the MSE and $R2$ for the training and test data and plot both test and
+training data MSE and $R2$ as functions of the polynomial
+degree. Compare what you see with Figure 2.11 of Hastie et al. Comment
+your results. For which polynomial degree do you find an optimal MSE
+(smallest value)?
