@@ -502,6 +502,7 @@ matrices as upper case boldfaced letters.
 \frac{\partial \log{\vert\bm{A}\vert}}{\partial \bm{A}} = (\bm{A}^{-1})^T.
 \]
 !et
+
 !split
 ===== Interpretations and optimizing our parameters  =====
 !bblock
@@ -527,8 +528,6 @@ meaning that the solution for $\bm{\beta}$ is the one which minimizes the residu
 
 !eblock
 
-
-Let us now return to our nuclear binding energies and simply code the above equations. 
 
 !split
 ===== Own code for Ordinary Least Squares =====
@@ -593,129 +592,10 @@ print(RelativeError(Energies, ytilde))
 !ec
 
 
-
-
-!split
-===== Fitting an Equation of State for Dense Nuclear Matter =====
-
-Before we continue, let us introduce yet another example. We are going to fit the
-nuclear equation of state using results from many-body calculations.
-The equation of state we have made available here, as function of
-density, has been derived using modern nucleon-nucleon potentials with
-"the addition of three-body
-forces":"https://www.sciencedirect.com/science/article/pii/S0370157399001106". This
-time the file is presented as a standard _csv_ file.
-
-The beginning of the Python code here is similar to what you have seen
-before, with the same initializations and declarations. We use also
-_pandas_ again, rather extensively in order to organize our data.
-
-The difference now is that we use _Scikit-Learn's_ regression tools
-instead of our own matrix inversion implementation. Furthermore, we
-sneak in _Ridge_ regression (to be discussed below) which includes a
-hyperparameter $\lambda$, also to be explained below.
-
-!split
-=====  The code =====
-
-!bc pycod 
-# Common imports
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
-import sklearn.linear_model as skl
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
-
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
-
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
-
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
-
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
-
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
-
-infile = open(data_path("EoS.csv"),'r')
-
-# Read the EoS data as  csv file and organize the data into two arrays with density and energies
-EoS = pd.read_csv(infile, names=('Density', 'Energy'))
-EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
-EoS = EoS.dropna()
-Energies = EoS['Energy']
-Density = EoS['Density']
-#  The design matrix now as function of various polytrops
-X = np.zeros((len(Density),4))
-X[:,3] = Density**(4.0/3.0)
-X[:,2] = Density
-X[:,1] = Density**(2.0/3.0)
-X[:,0] = 1
-
-# We use now Scikit-Learn's linear regressor and ridge regressor
-# OLS part
-clf = skl.LinearRegression().fit(X, Energies)
-ytilde = clf.predict(X)
-EoS['Eols']  = ytilde
-# The mean squared error                               
-print("Mean squared error: %.2f" % mean_squared_error(Energies, ytilde))
-# Explained variance score: 1 is perfect prediction                                 
-print('Variance score: %.2f' % r2_score(Energies, ytilde))
-# Mean absolute error                                                           
-print('Mean absolute error: %.2f' % mean_absolute_error(Energies, ytilde))
-print(clf.coef_, clf.intercept_)
-
-# The Ridge regression with a hyperparameter lambda = 0.1
-_lambda = 0.1
-clf_ridge = skl.Ridge(alpha=_lambda).fit(X, Energies)
-yridge = clf_ridge.predict(X)
-EoS['Eridge']  = yridge
-# The mean squared error                               
-print("Mean squared error: %.2f" % mean_squared_error(Energies, yridge))
-# Explained variance score: 1 is perfect prediction                                 
-print('Variance score: %.2f' % r2_score(Energies, yridge))
-# Mean absolute error                                                           
-print('Mean absolute error: %.2f' % mean_absolute_error(Energies, yridge))
-print(clf_ridge.coef_, clf_ridge.intercept_)
-
-fig, ax = plt.subplots()
-ax.set_xlabel(r'$\rho[\mathrm{fm}^{-3}]$')
-ax.set_ylabel(r'Energy per particle')
-ax.plot(EoS['Density'], EoS['Energy'], alpha=0.7, lw=2,
-            label='Theoretical data')
-ax.plot(EoS['Density'], EoS['Eols'], alpha=0.7, lw=2, c='m',
-            label='OLS')
-ax.plot(EoS['Density'], EoS['Eridge'], alpha=0.7, lw=2, c='g',
-            label='Ridge $\lambda = 0.1$')
-ax.legend()
-save_fig("EoSfitting")
-plt.show()
-!ec
-
-The above simple polynomial in density $\rho$ gives an excellent fit
-to the data. 
-
-We note also that there is a small deviation between the
-standard OLS and the Ridge regression at higher densities. We discuss this in more detail
-below.
-
-
 !split
 ===== Splitting our Data in Training and Test data =====
+
+!bblock
 
 It is normal in essentially all Machine Learning studies to split the
 data in a training set and a test set (sometimes also an additional
@@ -728,34 +608,19 @@ our discussion of the so-called _bias-variance_ tradeoff. Here we
 limit ourselves to repeat the above equation of state fitting example
 but now splitting the data into a training set and a test set.
 
-!bc pycod 
+!eblock
+
+
+!split
+===== Examples =====
+
+!bc pycod
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
 
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
-
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
-
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
-
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
-
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
 
 def R2(y_data, y_model):
     return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
@@ -763,25 +628,20 @@ def MSE(y_data,y_model):
     n = np.size(y_model)
     return np.sum((y_data-y_model)**2)/n
 
-infile = open(data_path("EoS.csv"),'r')
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
 
-# Read the EoS data as  csv file and organized into two arrays with density and energies
-EoS = pd.read_csv(infile, names=('Density', 'Energy'))
-EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
-EoS = EoS.dropna()
-Energies = EoS['Energy']
-Density = EoS['Density']
-#  The design matrix now as function of various polytrops
-X = np.zeros((len(Density),5))
-X[:,0] = 1
-X[:,1] = Density**(2.0/3.0)
-X[:,2] = Density
-X[:,3] = Density**(4.0/3.0)
-X[:,4] = Density**(5.0/3.0)
+
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),3))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x**2
 # We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, Energies, test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 # matrix inversion to find beta
-beta = np.linalg.inv(X_train.T.dot(X_train)).dot(X_train.T).dot(y_train)
+beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(beta)
 # and then make the prediction
 ytilde = X_train @ beta
 print("Training R2")
@@ -794,6 +654,32 @@ print(R2(y_test,ypredict))
 print("Test MSE")
 print(MSE(y_test,ypredict))
 !ec
+
+
+
+!split
+===== Making your own test-train splitting =====
+
+!bc pycod
+# equivalently in numpy
+def train_test_split_numpy(inputs, labels, train_size, test_size):
+    n_inputs = len(inputs)
+    inputs_shuffled = inputs.copy()
+    labels_shuffled = labels.copy()
+
+    np.random.shuffle(inputs_shuffled)
+    np.random.shuffle(labels_shuffled)
+
+    train_end = int(n_inputs*train_size)
+    X_train, X_test = inputs_shuffled[:train_end], inputs_shuffled[train_end:]
+    Y_train, Y_test = labels_shuffled[:train_end], labels_shuffled[train_end:]
+
+    return X_train, X_test, Y_train, Y_test
+!ec
+
+But since _scikit-learn_ has its own function for doing this and since
+it interfaces easily with _tensorflow_ and other libraries, we
+normally recommend using the latter functionality.
 
 
 !split 
@@ -988,6 +874,20 @@ data. Normally the data may need a rescaling and/or may be sensitive
 to extreme values. Scaling the data renders our inputs much more
 suitable for the algorithms we want to employ.
 
+For data sets gathered for real world applications, it is rather normal that
+different features have very different units and
+numerical scales. For example, a data set detailing health habits may include
+features such as _age_ in the range $0-80$, and _caloric intake_ of order $2000$.
+Many machine learning methods sensitive to the scales of the features and may perform poorly if they
+are very different scales. Therefore, it is typical to scale
+the features in a way to avoid such outlier values.
+
+!eblock
+
+
+!split
+===== Functionality in Scikit-Learn =====
+
 _Scikit-Learn_ has several functions which allow us to rescale the
 data, normally resulting in much better results in terms of various
 accuracy scores.  The _StandardScaler_ function in _Scikit-Learn_
@@ -1001,7 +901,7 @@ ensures that all features are exactly between $0$ and $1$. The
 !split
 ===== More preprocessing =====
 
-
+!bblock
 The _Normalizer_ scales each data
 point such that the feature vector has a euclidean length of one. In other words, it
 projects a data point on the circle (or sphere in the case of higher dimensions) with a
@@ -1020,6 +920,75 @@ outliers, and might often lead to trouble for other scaling
 techniques.
 
 !eblock
+
+
+!split
+===== Frequently used scaling functions =====
+
+
+Many features are often scaled using standardization to improve performance. In _Scikit-Learn_ this is given by the _StandardScaler_ function as discussed above. It is easy however to write your own. 
+Mathematically, this involves subtracting the mean and divide by the standard deviation over the data set, for each feature:
+
+!bt
+\[
+    x_j^{(i)} \rightarrow \frac{x_j^{(i)} - \overline{x}_j}{\sigma(x_j)},
+\]
+!et
+where $\overline{x}_j$ and $\sigma(x_j)$ are the mean and standard deviation, respectively,  of the feature $x_j$.
+This ensures that each feature has zero mean and unit standard deviation.  For data sets where  we do not have the standard deviation or don't wish to calculate it,  it is then common to simply set it to one.
+
+
+
+!split
+=====  Example of own Standard scaling =====
+
+Let us consider the following vanilla example where we use both
+_Scikit-Learn_ and write our own function as well.  We produce a
+simple test design matrix with random numbers. Each column could then
+represent a specific feature whose mean value is subracted.
+
+
+!bc pycod
+import sklearn.linear_model as skl
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import  train_test_split
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, Normalizer
+import numpy as np
+import pandas as pd
+from IPython.display import display
+np.random.seed(100)
+# setting up a 10 x 5 matrix
+rows = 10
+cols = 5
+X = np.random.randn(rows,cols)
+XPandas = pd.DataFrame(X)
+display(XPandas)
+print(XPandas.mean())
+print(XPandas.std())
+XPandas = XPandas -XPandas,mean()
+display(XPandas)
+scaler = StandardScaler()
+Xscaled = scaler.transform(a)
+print(Xscaled)
+!ec
+
+
+
+!split
+===== Min-Max Scaling =====
+
+Another commonly used scaling method is min-max scaling. This is very
+useful for when we want the features to lie in a certain interval. To
+scale the feature $x_j$ to the interval $[a, b]$, we can apply the
+transformation
+
+!bt
+\[
+x_j^{(i)} \rightarrow (b-a)\frac{x_j^{(i)} - \min(x_j)}{\max(x_j) - \min(x_j)} - a
+\]
+!et
+where $\min(x_j)$ and $\max(x_j)$ return the minimum and maximum value of $x_j$ over the data set, respectively.
+
 
 !split
 ===== Simple preprocessing examples, Franke function and regression =====
