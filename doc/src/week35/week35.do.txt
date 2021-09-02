@@ -973,7 +973,7 @@ Xscaled = scaler.transform(X)
 display(XPandas-Xscaled)
 !ec
 
-Small exercise: perform the standars scaling by including the standard deviation.
+Small exercise: perform the standard scaling by including the standard deviation.
 
 !split
 ===== Min-Max Scaling =====
@@ -1030,13 +1030,13 @@ TrainError = np.zeros(maxdegree)
 polydegree = np.zeros(maxdegree)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 scaler = StandardScaler()
-scaler.fit(X_train)
+scaler.fit(x_train)
 x_train_scaled = scaler.transform(x_train)
 x_test_scaled = scaler.transform(x_test)
 
 for degree in range(maxdegree):
     model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
-    clf = model.fit(x_train_scale,y_train)
+    clf = model.fit(x_train_scaled,y_train)
     y_fit = clf.predict(x_train_scaled)
     y_pred = clf.predict(x_test_scaled) 
     polydegree[degree] = degree
@@ -1322,7 +1322,7 @@ As an example, the above defective matrix can be decomposed as
 
 !bt
 \[
-\bm{X} = \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  1 \\ 1& -1\\ \end{bmatrix} \begin{bmatrix}  2&  0 \\ 0& 0\\ \end{bmatrix}    \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  -1 \\ 1& 1\\ \end{bmatrix}=\bm{U}\bm{\Sigma}\bm{V}^T, 
+\bm{X} = \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  1 \\ 1& -1\\ \end{bmatrix} \begin{bmatrix}  4&  0 \\ 0& 0\\ \end{bmatrix}    \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  -1 \\ 1& 1\\ \end{bmatrix}=\bm{U}\bm{\Sigma}\bm{V}^T, 
 \]
 !et
 
@@ -1378,32 +1378,28 @@ def SVDinv(A):
     SVD is numerically more stable than the inversion algorithms provided by
     numpy and scipy.linalg at the cost of being slower.
     '''
-    U, s, VT = np.linalg.svd(A)
-#    print('test U')
-#    print( (np.transpose(U) @ U - U @np.transpose(U)))
-#    print('test VT')
-#    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
+    U, S, VT = np.linalg.svd(A)
+    print('test U')
+    print( (np.transpose(U) @ U - U @np.transpose(U)))
+    print('test VT')
+    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
     print(U)
-    print(s)
+    print(S)
     print(VT)
 
     D = np.zeros((len(U),len(VT)))
     for i in range(0,len(VT)):
-        D[i,i]=s[i]
-    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
-    return np.matmul(V,np.matmul(invD,UT))
+        D[i,i]=S[i]
+    return U @ D @ VT
 
 
-X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
+X = np.array([ [1.0,-1.0], [1.0,-1.0]])
 print(X)
 A = np.transpose(X) @ X
 print(A)
-# Brute force inversion of super-collinear matrix
-#B = np.linalg.inv(A)
-#print(B)
 C = SVDinv(A)
-print(C)
-
+# Print the difference between the original matrix and the SVD one
+print(C-A)
 !ec
 
 The matrix $\bm{X}$ has columns that are linearly dependent. The first
