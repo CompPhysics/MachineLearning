@@ -172,11 +172,18 @@ div { text-align: justify; text-justify: inter-word; }
                None,
                'example-of-own-standard-scaling'),
               ('Min-Max Scaling', 2, None, 'min-max-scaling'),
-              ('Simple preprocessing examples, Franke function and regression',
+              ('Testing the Means Squared Error as function of Complexity',
                2,
                None,
-               'simple-preprocessing-examples-franke-function-and-regression'),
-              ('Friday September 3', 2, None, 'friday-september-3'),
+               'testing-the-means-squared-error-as-function-of-complexity'),
+              ('More preprocessing examples, Franke function and regression',
+               2,
+               None,
+               'more-preprocessing-examples-franke-function-and-regression'),
+              ('Mathematical Interpretation of Ordinary Least Squares',
+               2,
+               None,
+               'mathematical-interpretation-of-ordinary-least-squares'),
               ('The singular value decomposition',
                2,
                None,
@@ -194,7 +201,7 @@ div { text-align: justify; text-justify: inter-word; }
               ('Economy-size SVD', 2, None, 'economy-size-svd'),
               ('Codes for the SVD', 2, None, 'codes-for-the-svd'),
               ('Mathematical Properties', 2, None, 'mathematical-properties'),
-              ('Friday September 12', 2, None, 'friday-september-12'),
+              ('Friday September 3', 2, None, 'friday-september-3'),
               ('Ridge and LASSO Regression',
                2,
                None,
@@ -238,7 +245,19 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'rewriting-the-covariance-and-or-correlation-matrix'),
-              ('Linking with SVD', 2, None, 'linking-with-svd')]}
+              ('Linking with SVD', 2, None, 'linking-with-svd'),
+              ('Exercises for week 37, September 6-10',
+               2,
+               None,
+               'exercises-for-week-37-september-6-10'),
+              ('Exercise 1: Adding Ridge and Lasso Regression',
+               2,
+               None,
+               'exercise-1-adding-ridge-and-lasso-regression'),
+              ('Exercise: Linear Regression for  a two-dimensional function',
+               3,
+               None,
+               'exercise-linear-regression-for-a-two-dimensional-function')]}
 end of tocinfo -->
 
 <body>
@@ -1399,12 +1418,16 @@ XPandas <span style="color: #666666">=</span> pd<span style="color: #666666">.</
 display(XPandas)
 <span style="color: #008000">print</span>(XPandas<span style="color: #666666">.</span>mean())
 <span style="color: #008000">print</span>(XPandas<span style="color: #666666">.</span>std())
-XPandas <span style="color: #666666">=</span> XPandas <span style="color: #666666">-</span>XPandas,mean()
+XPandas <span style="color: #666666">=</span> (XPandas <span style="color: #666666">-</span>XPandas<span style="color: #666666">.</span>mean())
 display(XPandas)
-scaler <span style="color: #666666">=</span> StandardScaler()
-Xscaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(a)
-<span style="color: #008000">print</span>(Xscaled)
+scaler <span style="color: #666666">=</span> StandardScaler(with_std<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)
+scaler<span style="color: #666666">.</span>fit(X)
+Xscaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X)
+display(XPandas<span style="color: #666666">-</span>Xscaled)
 </pre></div>
+<p>
+Small exercise: perform the standars scaling by including the standard deviation.
+
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
@@ -1425,7 +1448,72 @@ where \( \min(x_j) \) and \( \max(x_j) \) return the minimum and maximum value o
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="simple-preprocessing-examples-franke-function-and-regression">Simple preprocessing examples, Franke function and regression </h2>
+<h2 id="testing-the-means-squared-error-as-function-of-complexity">Testing the Means Squared Error as function of Complexity </h2>
+One of 
+the aims is to reproduce Figure 2.11 of <a href="https://github.com/CompPhysics/MLErasmus/blob/master/doc/Textbooks/elementsstat.pdf" target="_blank">Hastie et al</a>.
+We will also use Ridge and Lasso regression.
+
+<p>
+Our data is defined by \( x\in [-3,3] \) with a total of for example \( 100 \) data points.
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed()
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+maxdegree <span style="color: #666666">=</span> <span style="color: #666666">14</span>
+<span style="color: #408080; font-style: italic"># Make data set.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
+</pre></div>
+<p>
+where \( y \) is the function we want to fit with a given polynomial.
+
+<p>
+Write a first code which sets up a design matrix \( X \) defined by a fifth-order polynomial.  Scale your data and split it in training and test data. 
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> PolynomialFeatures
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.pipeline</span> <span style="color: #008000; font-weight: bold">import</span> make_pipeline
+
+
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">2018</span>)
+n <span style="color: #666666">=</span> <span style="color: #666666">50</span>
+maxdegree <span style="color: #666666">=</span> <span style="color: #666666">5</span>
+<span style="color: #408080; font-style: italic"># Make data set.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
+TestError <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+TrainError <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+polydegree <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+x_train, x_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(x, y, test_size<span style="color: #666666">=0.2</span>)
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+x_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(x_train)
+x_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(x_test)
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(maxdegree):
+    model <span style="color: #666666">=</span> make_pipeline(PolynomialFeatures(degree<span style="color: #666666">=</span>degree), LinearRegression(fit_intercept<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>))
+    clf <span style="color: #666666">=</span> model<span style="color: #666666">.</span>fit(x_train_scale,y_train)
+    y_fit <span style="color: #666666">=</span> clf<span style="color: #666666">.</span>predict(x_train_scaled)
+    y_pred <span style="color: #666666">=</span> clf<span style="color: #666666">.</span>predict(x_test_scaled) 
+    polydegree[degree] <span style="color: #666666">=</span> degree
+    TestError[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_test <span style="color: #666666">-</span> y_pred)<span style="color: #666666">**2</span>) )
+    TrainError[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_train <span style="color: #666666">-</span> y_fit)<span style="color: #666666">**2</span>) )
+
+plt<span style="color: #666666">.</span>plot(polydegree, TestError, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Test Error&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, TrainError, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Train Error&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="more-preprocessing-examples-franke-function-and-regression">More preprocessing examples, Franke function and regression </h2>
 
 <p>
 
@@ -1526,10 +1614,10 @@ clf <span style="color: #666666">=</span> skl<span style="color: #666666">.</spa
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="friday-september-3">Friday September 3  </h2>
+<h2 id="mathematical-interpretation-of-ordinary-least-squares">Mathematical Interpretation of Ordinary Least Squares </h2>
 
 <p>
-Lasso and Ridge regression
+What is presented here is a mathematical analysis of various regression algorithms (ordinary least  squares, Ridge and Lasso Regression). The analysis is based on an important algorithm in linear algebra, the so-called Singular Value Decomposition (SVD).
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1544,12 +1632,15 @@ Lasso and Ridge regression
 <p>
 The examples we have looked at so far are cases where we normally can
 invert the matrix \( \boldsymbol{X}^T\boldsymbol{X} \). Using a polynomial expansion as we
-did both for the masses and the fitting of the equation of state,
-leads to row vectors of the design matrix which are essentially
-orthogonal due to the polynomial character of our model. Obtaining the inverse of the design matrix is then often done via a so-called LU, QR or Cholesky decomposition.
+did both for the masses and the fitting of various functions leads to
+row vectors of the design matrix which are essentially orthogonal due
+to the polynomial character of our model. Obtaining the inverse of the
+design matrix is then often done via a so-called LU, QR or Cholesky
+decomposition.
 
 <p>
-This may
+As we will also see in the first project, 
+this may
 however not the be case in general and a standard matrix inversion
 algorithm based on say LU, QR or Cholesky decomposition may lead to singularities. We will see examples of this below.
 
@@ -1877,10 +1968,10 @@ Here we have that $${\bf X} = {\bf U}{\bf \Sigma}{\bf V}^T$$, with $$\Sigma$$ be
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="friday-september-12">Friday September 12  </h2>
+<h2 id="friday-september-3">Friday September 3  </h2>
 
 <p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember11.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember11.pdf" target="_blank">handwritten notes</a>
+<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember11.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture from 2020</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember11.pdf" target="_blank">handwritten notes</a>
 
 <p>
 More material will be added here, see handwritten notes also.
@@ -2451,6 +2542,318 @@ It is easy to generalize this to a matrix \( \boldsymbol{X}\in {\mathbb{R}}^{n\t
 <h2 id="linking-with-svd">Linking with SVD  </h2>
 
 <p>
+More material will be added here.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="exercises-for-week-37-september-6-10">Exercises for week 37, September 6-10 </h2>
+
+<p>
+The exercises here are meant to prepare you for work with project 1. The first exercise is a follow-up of exercise 2 from week 36 August 30-September 3).
+
+<p>
+<!-- --- begin exercise --- -->
+
+<h2 id="exercise-1-adding-ridge-and-lasso-regression">Exercise 1: Adding Ridge and Lasso Regression </h2>
+
+<p>
+This exercise is a continuation of exercise 2 from exercise set 1 (week 36, August 30-September 3)). We will
+use the same function to generate our data set, still staying with a
+simple function \( y(x) \) which we want to fit using linear regression,
+but now extending the analysis to include the Ridge and the Lasso
+regression methods.
+
+<p>
+We will thus again generate our own dataset for a function \( y(x) \) where 
+\( x \in [0,1] \) and defined by random numbers computed with the uniform
+distribution. The function \( y \) is a quadratic polynomial in \( x \) with
+added stochastic noise according to the normal distribution \( \cal{N}(0,1) \).
+
+<p>
+The following simple Python instructions define our \( x \) and \( y \) values (with 100 data points).
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">100</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">2.0+5*</span>x<span style="color: #666666">*</span>x<span style="color: #666666">+0.1*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">100</span>)
+</pre></div>
+<p>
+Write your own code for the Ridge method (see chapter 3.4 of Hastie <em>et al.</em>, equations (3.43) and (3.44)) and compute the parametrization for different values of \( \lambda \). Compare and analyze your results with those from exercise 3. Study the dependence on \( \lambda \) while also varying the strength of the noise in your expression for \( y(x) \).
+
+<p>
+The code here allows you to perform your own Ridge calculation and perform calculations for various values of the regularization parameter \( \lambda \). This program can easily be extended upon.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">os</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">R2</span>(y_data, y_model):
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> y_model) <span style="color: #666666">**</span> <span style="color: #666666">2</span>) <span style="color: #666666">/</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_data)) <span style="color: #666666">**</span> <span style="color: #666666">2</span>)
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
+
+
+<span style="color: #408080; font-style: italic"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #408080; font-style: italic"># Useful for eventual debugging.</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">3155</span>)
+
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(<span style="color: #666666">100</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">2.0+5*</span>x<span style="color: #666666">*</span>x<span style="color: #666666">+0.1*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">100</span>)
+
+<span style="color: #408080; font-style: italic"># number of features p (here degree of polynomial</span>
+p <span style="color: #666666">=</span> <span style="color: #666666">3</span>
+<span style="color: #408080; font-style: italic">#  The design matrix now as function of a given polynomial</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(x),p))
+X[:,<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>
+X[:,<span style="color: #666666">1</span>] <span style="color: #666666">=</span> x
+X[:,<span style="color: #666666">2</span>] <span style="color: #666666">=</span> x<span style="color: #666666">*</span>x
+<span style="color: #408080; font-style: italic"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.2</span>)
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
+X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
+
+<span style="color: #408080; font-style: italic"># matrix inversion to find beta</span>
+OLSbeta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X_train) <span style="color: #666666">@</span> X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y_train
+<span style="color: #008000">print</span>(OLSbeta)
+<span style="color: #408080; font-style: italic"># and then make the prediction</span>
+ytildeOLS <span style="color: #666666">=</span> X_train <span style="color: #666666">@</span> OLSbeta
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Training R2 for OLS&quot;</span>)
+<span style="color: #008000">print</span>(R2(y_train,ytildeOLS))
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #008000">print</span>(MSE(y_train,ytildeOLS))
+ypredictOLS <span style="color: #666666">=</span> X_test <span style="color: #666666">@</span> OLSbeta
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Test R2 for OLS&quot;</span>)
+<span style="color: #008000">print</span>(R2(y_test,ypredictOLS))
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Test MSE OLS&quot;</span>)
+<span style="color: #008000">print</span>(MSE(y_test,ypredictOLS))
+
+<span style="color: #408080; font-style: italic"># Repeat now for Ridge regression and various values of the regularization parameter</span>
+I <span style="color: #666666">=</span> np<span style="color: #666666">.</span>eye(p,p)
+<span style="color: #408080; font-style: italic"># Decide which values of lambda to use</span>
+nlambdas <span style="color: #666666">=</span> <span style="color: #666666">20</span>
+MSEPredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+MSETrain <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-4</span>, <span style="color: #666666">1</span>, nlambdas)
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(nlambdas):
+    lmb <span style="color: #666666">=</span> lambdas[i]
+    Ridgebeta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X_train<span style="color: #666666">+</span>lmb<span style="color: #666666">*</span>I) <span style="color: #666666">@</span> X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y_train
+    <span style="color: #408080; font-style: italic"># and then make the prediction</span>
+    ytildeRidge <span style="color: #666666">=</span> X_train <span style="color: #666666">@</span> Ridgebeta
+    ypredictRidge <span style="color: #666666">=</span> X_test <span style="color: #666666">@</span> Ridgebeta
+    MSEPredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictRidge)
+    MSETrain[i] <span style="color: #666666">=</span> MSE(y_train,ytildeRidge)
+<span style="color: #408080; font-style: italic"># Now plot the results</span>
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSETrain, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE Ridge train&#39;</span>)
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSEPredict, <span style="color: #BA2121">&#39;r--&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE Ridge Test&#39;</span>)
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;log10(lambda)&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+Repeat the above but using the functionality of <b>Scikit-Learn</b>. Compare your code with the results from <b>Scikit-Learn</b>. Remember to run with the same random numbers for generating \( x \) and \( y \).
+
+<p>
+Finally, using <b>Scikit-Learn</b> or your own code, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+$$ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+$$
+
+and the \( R^2 \) score function.
+If \( \tilde{\hat{y}}_i \) is the predicted value of the \( i-th \) sample and \( y_i \) is the corresponding true value, then the score \( R^2 \) is defined as
+$$
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+$$
+
+where we have defined the mean value  of \( \hat{y} \) as
+$$
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+$$
+
+Discuss these quantities as functions of the variable \( \lambda \) in the Ridge and Lasso regression methods.
+
+<h3 id="exercise-linear-regression-for-a-two-dimensional-function">Exercise: Linear Regression for  a two-dimensional function  </h3>
+
+<p>
+This is a longer  exercise and the aim is to study in more detail various
+regression methods, including the Ordinary Least Squares (OLS) method,
+Ridge regression and finally Lasso regression.
+This exercise forms a part of project 1.
+
+<p>
+We will study how to fit polynomials to a specific
+two-dimensional function called <a href="http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf" target="_blank">Franke's
+function</a>.  This
+is a function which has been widely used when testing various
+interpolation and fitting algorithms.
+
+<p>
+The Franke function, which is a weighted sum of four exponentials  reads as follows
+$$
+\begin{align*}
+f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
+&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
+\end{align*}
+$$
+
+<p>
+The function will be defined for \( x,y\in [0,1] \).  Our first step will
+be to perform an OLS regression analysis of this function, trying out
+a polynomial fit with an \( x \) and \( y \) dependence of the form \( [x, y,
+x^2, y^2, xy, \dots] \).   We will fit a
+function (for example a polynomial) of \( x \) and \( y \).  Thereafter we
+will repeat much of the same procedure using the Ridge and Lasso
+regression methods, introducing thus a dependence on the bias
+(penalty) \( \lambda \).
+
+<p>
+The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">mpl_toolkits.mplot3d</span> <span style="color: #008000; font-weight: bold">import</span> Axes3D
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">matplotlib</span> <span style="color: #008000; font-weight: bold">import</span> cm
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">matplotlib.ticker</span> <span style="color: #008000; font-weight: bold">import</span> LinearLocator, FormatStrFormatter
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+
+fig <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>figure()
+ax <span style="color: #666666">=</span> fig<span style="color: #666666">.</span>gca(projection<span style="color: #666666">=</span><span style="color: #BA2121">&#39;3d&#39;</span>)
+
+<span style="color: #408080; font-style: italic"># Make data.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">0.05</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">0.05</span>)
+x, y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>meshgrid(x,y)
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">FrankeFunction</span>(x,y):
+    term1 <span style="color: #666666">=</span> <span style="color: #666666">0.75*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">0.25*</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>) <span style="color: #666666">-</span> <span style="color: #666666">0.25*</span>((<span style="color: #666666">9*</span>y<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>))
+    term2 <span style="color: #666666">=</span> <span style="color: #666666">0.75*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>((<span style="color: #666666">9*</span>x<span style="color: #666666">+1</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">/49.0</span> <span style="color: #666666">-</span> <span style="color: #666666">0.1*</span>(<span style="color: #666666">9*</span>y<span style="color: #666666">+1</span>))
+    term3 <span style="color: #666666">=</span> <span style="color: #666666">0.5*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-7</span>)<span style="color: #666666">**2/4.0</span> <span style="color: #666666">-</span> <span style="color: #666666">0.25*</span>((<span style="color: #666666">9*</span>y<span style="color: #666666">-3</span>)<span style="color: #666666">**2</span>))
+    term4 <span style="color: #666666">=</span> <span style="color: #666666">-0.2*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-4</span>)<span style="color: #666666">**2</span> <span style="color: #666666">-</span> (<span style="color: #666666">9*</span>y<span style="color: #666666">-7</span>)<span style="color: #666666">**2</span>)
+    <span style="color: #008000; font-weight: bold">return</span> term1 <span style="color: #666666">+</span> term2 <span style="color: #666666">+</span> term3 <span style="color: #666666">+</span> term4
+
+
+z <span style="color: #666666">=</span> FrankeFunction(x, y)
+
+<span style="color: #408080; font-style: italic"># Plot the surface.</span>
+surf <span style="color: #666666">=</span> ax<span style="color: #666666">.</span>plot_surface(x, y, z, cmap<span style="color: #666666">=</span>cm<span style="color: #666666">.</span>coolwarm,
+                       linewidth<span style="color: #666666">=0</span>, antialiased<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)
+
+<span style="color: #408080; font-style: italic"># Customize the z axis.</span>
+ax<span style="color: #666666">.</span>set_zlim(<span style="color: #666666">-0.10</span>, <span style="color: #666666">1.40</span>)
+ax<span style="color: #666666">.</span>zaxis<span style="color: #666666">.</span>set_major_locator(LinearLocator(<span style="color: #666666">10</span>))
+ax<span style="color: #666666">.</span>zaxis<span style="color: #666666">.</span>set_major_formatter(FormatStrFormatter(<span style="color: #BA2121">&#39;</span><span style="color: #BB6688; font-weight: bold">%.02f</span><span style="color: #BA2121">&#39;</span>))
+
+<span style="color: #408080; font-style: italic"># Add a color bar which maps values to colors.</span>
+fig<span style="color: #666666">.</span>colorbar(surf, shrink<span style="color: #666666">=0.5</span>, aspect<span style="color: #666666">=5</span>)
+
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+We will generate our own dataset for a function
+\( \mathrm{FrankeFunction}(x,y) \) with \( x,y \in [0,1] \). The function
+\( f(x,y) \) is the Franke function. You should explore also the addition
+an added stochastic noise to this function using the normal
+distribution \( \cal{N}(0,1) \).
+
+<p>
+Write your own code (using either a matrix inversion or a singular
+value decomposition from e.g., <b>numpy</b> ) or use your code and perform a standard least square regression
+analysis using polynomials in \( x \) and \( y \) up to fifth order. You can use <b>scikit-learn</b> as well.
+
+<p>
+Evaluate the Mean Squared error (MSE)
+
+$$ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+$$
+
+<p>
+and the \( R^2 \) score function.  If \( \tilde{\hat{y}}_i \) is the predicted
+value of the \( i-th \) sample and \( y_i \) is the corresponding true value,
+then the score \( R^2 \) is defined as
+
+$$
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+$$
+
+<p>
+where we have defined the mean value  of \( \hat{y} \) as
+
+$$
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+$$
+
+<p>
+You should split your data in train and test and also consider scaling the data.
+
+<p>
+To set up the design matrix, the following code can be used
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">FrankeFunction</span>(x,y):
+	term1 <span style="color: #666666">=</span> <span style="color: #666666">0.75*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">0.25*</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>) <span style="color: #666666">-</span> <span style="color: #666666">0.25*</span>((<span style="color: #666666">9*</span>y<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>))
+	term2 <span style="color: #666666">=</span> <span style="color: #666666">0.75*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>((<span style="color: #666666">9*</span>x<span style="color: #666666">+1</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">/49.0</span> <span style="color: #666666">-</span> <span style="color: #666666">0.1*</span>(<span style="color: #666666">9*</span>y<span style="color: #666666">+1</span>))
+	term3 <span style="color: #666666">=</span> <span style="color: #666666">0.5*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-7</span>)<span style="color: #666666">**2/4.0</span> <span style="color: #666666">-</span> <span style="color: #666666">0.25*</span>((<span style="color: #666666">9*</span>y<span style="color: #666666">-3</span>)<span style="color: #666666">**2</span>))
+	term4 <span style="color: #666666">=</span> <span style="color: #666666">-0.2*</span>np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(<span style="color: #666666">9*</span>x<span style="color: #666666">-4</span>)<span style="color: #666666">**2</span> <span style="color: #666666">-</span> (<span style="color: #666666">9*</span>y<span style="color: #666666">-7</span>)<span style="color: #666666">**2</span>)
+	<span style="color: #008000; font-weight: bold">return</span> term1 <span style="color: #666666">+</span> term2 <span style="color: #666666">+</span> term3 <span style="color: #666666">+</span> term4
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_X</span>(x, y, n ):
+	<span style="color: #008000; font-weight: bold">if</span> <span style="color: #008000">len</span>(x<span style="color: #666666">.</span>shape) <span style="color: #666666">&gt;</span> <span style="color: #666666">1</span>:
+		x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>ravel(x)
+		y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>ravel(y)
+
+	N <span style="color: #666666">=</span> <span style="color: #008000">len</span>(x)
+	l <span style="color: #666666">=</span> <span style="color: #008000">int</span>((n<span style="color: #666666">+1</span>)<span style="color: #666666">*</span>(n<span style="color: #666666">+2</span>)<span style="color: #666666">/2</span>)		<span style="color: #408080; font-style: italic"># Number of elements in beta</span>
+	X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>ones((N,l))
+
+	<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,n<span style="color: #666666">+1</span>):
+		q <span style="color: #666666">=</span> <span style="color: #008000">int</span>((i)<span style="color: #666666">*</span>(i<span style="color: #666666">+1</span>)<span style="color: #666666">/2</span>)
+		<span style="color: #008000; font-weight: bold">for</span> k <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(i<span style="color: #666666">+1</span>):
+			X[:,q<span style="color: #666666">+</span>k] <span style="color: #666666">=</span> (x<span style="color: #666666">**</span>(i<span style="color: #666666">-</span>k))<span style="color: #666666">*</span>(y<span style="color: #666666">**</span>k)
+
+	<span style="color: #008000; font-weight: bold">return</span> X
+
+
+<span style="color: #408080; font-style: italic"># Making meshgrid of datapoints and compute Franke&#39;s function</span>
+n <span style="color: #666666">=</span> <span style="color: #666666">5</span>
+N <span style="color: #666666">=</span> <span style="color: #666666">1000</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>sort(np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>uniform(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, N))
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>sort(np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>uniform(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, N))
+z <span style="color: #666666">=</span> FrankeFunction(x, y)
+X <span style="color: #666666">=</span> create_X(x, y, n<span style="color: #666666">=</span>n)    
+</pre></div>
+<p>
+Write then your own code for the Ridge method or use <b>Scikit-Learn</b>.
+Perform the same analysis as you did for ordinary Least Squares (for the same polynomials) but now for different values of \( \lambda \). Compare and
+analyze your results with those obtained with ordinary Least Squares. Study the
+dependence on \( \lambda \).
+
+<p>
+This part is essentially a repeat of the previous ones, but now
+with Lasso regression. Write either your own code or
+use the functionalities of <b>Scikit-Learn</b> (recommended). 
+Give a
+critical discussion of the three methods and a judgement of which
+model fits the data best.
+
+<p>
+<!-- --- end exercise --- -->
 
 <!-- ------------------- end of main content --------------- -->
 

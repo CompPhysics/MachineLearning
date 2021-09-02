@@ -965,14 +965,15 @@ XPandas = pd.DataFrame(X)
 display(XPandas)
 print(XPandas.mean())
 print(XPandas.std())
-XPandas = XPandas -XPandas,mean()
+XPandas = (XPandas -XPandas.mean())
 display(XPandas)
-scaler = StandardScaler()
-Xscaled = scaler.transform(a)
-print(Xscaled)
+scaler = StandardScaler(with_std=False)
+scaler.fit(X)
+Xscaled = scaler.transform(X)
+display(XPandas-Xscaled)
 !ec
 
-
+Small exercise: perform the standars scaling by including the standard deviation.
 
 !split
 ===== Min-Max Scaling =====
@@ -991,7 +992,67 @@ where $\min(x_j)$ and $\max(x_j)$ return the minimum and maximum value of $x_j$ 
 
 
 !split
-===== Simple preprocessing examples, Franke function and regression =====
+===== Testing the Means Squared Error as function of Complexity =====
+One of 
+the aims is to reproduce Figure 2.11 of "Hastie et al":"https://github.com/CompPhysics/MLErasmus/blob/master/doc/Textbooks/elementsstat.pdf".
+We will also use Ridge and Lasso regression. 
+
+
+Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
+!bc pycod
+np.random.seed()
+n = 100
+maxdegree = 14
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+!ec
+where $y$ is the function we want to fit with a given polynomial.
+
+Write a first code which sets up a design matrix $X$ defined by a fifth-order polynomial.  Scale your data and split it in training and test data. 
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+
+
+np.random.seed(2018)
+n = 50
+maxdegree = 5
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+TestError = np.zeros(maxdegree)
+TrainError = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+scaler = StandardScaler()
+scaler.fit(X_train)
+x_train_scaled = scaler.transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+
+for degree in range(maxdegree):
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
+    clf = model.fit(x_train_scale,y_train)
+    y_fit = clf.predict(x_train_scaled)
+    y_pred = clf.predict(x_test_scaled) 
+    polydegree[degree] = degree
+    TestError[degree] = np.mean( np.mean((y_test - y_pred)**2) )
+    TrainError[degree] = np.mean( np.mean((y_train - y_fit)**2) )
+
+plt.plot(polydegree, TestError, label='Test Error')
+plt.plot(polydegree, TrainError, label='Train Error')
+plt.legend()
+plt.show()
+!ec
+
+
+
+!split
+===== More preprocessing examples, Franke function and regression =====
 
 !bc pycod
 # Common imports
@@ -1091,10 +1152,9 @@ print("R2 score for  scaled data: {:.2f}".format(clf.score(X_test_scaled,y_test)
 
 
 !split
-===== Friday September 3  =====
+===== Mathematical Interpretation of Ordinary Least Squares =====
 
-Lasso and Ridge regression
-
+What is presented here is a mathematical analysis of various regression algorithms (ordinary least  squares, Ridge and Lasso Regression). The analysis is based on an important algorithm in linear algebra, the so-called Singular Value Decomposition (SVD). 
 
 
 !split
@@ -1104,13 +1164,15 @@ Lasso and Ridge regression
 
 The examples we have looked at so far are cases where we normally can
 invert the matrix $\bm{X}^T\bm{X}$. Using a polynomial expansion as we
-did both for the masses and the fitting of the equation of state,
-leads to row vectors of the design matrix which are essentially
-orthogonal due to the polynomial character of our model. Obtaining the inverse of the design matrix is then often done via a so-called LU, QR or Cholesky decomposition. 
+did both for the masses and the fitting of various functions leads to
+row vectors of the design matrix which are essentially orthogonal due
+to the polynomial character of our model. Obtaining the inverse of the
+design matrix is then often done via a so-called LU, QR or Cholesky
+decomposition.
 
 
-
-This may
+As we will also see in the first project, 
+this may
 however not the be case in general and a standard matrix inversion
 algorithm based on say LU, QR or Cholesky decomposition may lead to singularities. We will see examples of this below.
 
@@ -1419,9 +1481,9 @@ Here we have that $${\bf X} = {\bf U}{\bf \Sigma}{\bf V}^T$$, with $$\Sigma$$ be
 
 
 !split
-===== Friday September 12  =====
+===== Friday September 3  =====
 
-"Video of Lecture":"https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember11.mp4?vrtx=view-as-webpage" and "handwritten notes":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember11.pdf"
+"Video of Lecture from 2020":"https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember11.mp4?vrtx=view-as-webpage" and "handwritten notes":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember11.pdf"
 
 More material will be added here, see handwritten notes also.
 
@@ -1979,5 +2041,328 @@ It is easy to generalize this to a matrix $\bm{X}\in {\mathbb{R}}^{n\times p}$.
 
 !split
 ===== Linking with SVD  =====
+
+More material will be added here.
+
+
+!split
+===== Exercises for week 37, September 6-10 =====
+
+The exercises here are meant to prepare you for work with project 1. The first exercise is a follow-up of exercise 2 from week 36 August 30-September 3).
+
+
+===== Exercise: Adding Ridge and Lasso Regression  =====
+
+
+This exercise is a continuation of exercise 2 from exercise set 1 (week 36, August 30-September 3)). We will
+use the same function to generate our data set, still staying with a
+simple function $y(x)$ which we want to fit using linear regression,
+but now extending the analysis to include the Ridge and the Lasso
+regression methods. 
+
+We will thus again generate our own dataset for a function $y(x)$ where 
+$x \in [0,1]$ and defined by random numbers computed with the uniform
+distribution. The function $y$ is a quadratic polynomial in $x$ with
+added stochastic noise according to the normal distribution $\cal{N}(0,1)$.
+
+The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
+!bc pycod
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+!ec
+
+
+Write your own code for the Ridge method (see chapter 3.4 of Hastie *et al.*, equations (3.43) and (3.44)) and compute the parametrization for different values of $\lambda$. Compare and analyze your results with those from exercise 3. Study the dependence on $\lambda$ while also varying the strength of the noise in your expression for $y(x)$. 
+
+
+The code here allows you to perform your own Ridge calculation and perform calculations for various values of the regularization parameter $\lambda$. This program can easily be extended upon.
+
+!bc pycod
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+# number of features p (here degree of polynomial
+p = 3
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),p))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x*x
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X_train @ OLSbeta
+print("Training R2 for OLS")
+print(R2(y_train,ytildeOLS))
+print("Training MSE for OLS")
+print(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+print("Test R2 for OLS")
+print(R2(y_test,ypredictOLS))
+print("Test MSE OLS")
+print(MSE(y_test,ypredictOLS))
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 20
+MSEPredict = np.zeros(nlambdas)
+MSETrain = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 1, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    # and then make the prediction
+    ytildeRidge = X_train @ Ridgebeta
+    ypredictRidge = X_test @ Ridgebeta
+    MSEPredict[i] = MSE(y_test,ypredictRidge)
+    MSETrain[i] = MSE(y_train,ytildeRidge)
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSETrain, label = 'MSE Ridge train')
+plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Test')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+!ec
+
+
+
+Repeat the above but using the functionality of _Scikit-Learn_. Compare your code with the results from _Scikit-Learn_. Remember to run with the same random numbers for generating $x$ and $y$. 
+
+
+
+Finally, using _Scikit-Learn_ or your own code, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+!bt 
+\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+\] 
+!et 
+and the $R^2$ score function.
+If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+!bt
+\[
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\]
+!et
+where we have defined the mean value  of $\hat{y}$ as
+!bt
+\[
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\]
+!et
+Discuss these quantities as functions of the variable $\lambda$ in the Ridge and Lasso regression methods.
+
+
+
+
+
+
+
+=== Exercise: Linear Regression for  a two-dimensional function  ===
+
+This is a longer  exercise and the aim is to study in more detail various
+regression methods, including the Ordinary Least Squares (OLS) method,
+Ridge regression and finally Lasso regression.
+This exercise forms a part of project 1.
+
+We will study how to fit polynomials to a specific
+two-dimensional function called "Franke's
+function":"http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf".  This
+is a function which has been widely used when testing various
+interpolation and fitting algorithms. 
+
+The Franke function, which is a weighted sum of four exponentials  reads as follows
+!bt
+\begin{align*}
+f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
+&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
+\end{align*}
+!et
+
+The function will be defined for $x,y\in [0,1]$.  Our first step will
+be to perform an OLS regression analysis of this function, trying out
+a polynomial fit with an $x$ and $y$ dependence of the form $[x, y,
+x^2, y^2, xy, \dots]$.   We will fit a
+function (for example a polynomial) of $x$ and $y$.  Thereafter we
+will repeat much of the same procedure using the Ridge and Lasso
+regression methods, introducing thus a dependence on the bias
+(penalty) $\lambda$.
+
+
+The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
+!bc pycod
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import numpy as np
+from random import random, seed
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+# Make data.
+x = np.arange(0, 1, 0.05)
+y = np.arange(0, 1, 0.05)
+x, y = np.meshgrid(x,y)
+
+
+def FrankeFunction(x,y):
+    term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
+    term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
+    term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
+    term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+    return term1 + term2 + term3 + term4
+
+
+z = FrankeFunction(x, y)
+
+# Plot the surface.
+surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+
+# Customize the z axis.
+ax.set_zlim(-0.10, 1.40)
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
+
+plt.show()
+
+!ec
+
+
+
+We will generate our own dataset for a function
+$\mathrm{FrankeFunction}(x,y)$ with $x,y \in [0,1]$. The function
+$f(x,y)$ is the Franke function. You should explore also the addition
+an added stochastic noise to this function using the normal
+distribution $\cal{N}(0,1)$.
+
+Write your own code (using either a matrix inversion or a singular
+value decomposition from e.g., _numpy_ ) or use your code and perform a standard least square regression
+analysis using polynomials in $x$ and $y$ up to fifth order. You can use _scikit-learn_ as well.
+
+
+Evaluate the Mean Squared error (MSE)
+
+!bt 
+\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+\] 
+!et 
+
+and the $R^2$ score function.  If $\tilde{\hat{y}}_i$ is the predicted
+value of the $i-th$ sample and $y_i$ is the corresponding true value,
+then the score $R^2$ is defined as
+
+!bt
+\[
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\]
+!et
+
+where we have defined the mean value  of $\hat{y}$ as
+
+!bt
+\[
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\]
+!et
+
+
+You should split your data in train and test and also consider scaling the data.
+
+To set up the design matrix, the following code can be used
+!bc pycod
+def FrankeFunction(x,y):
+	term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
+	term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
+	term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
+	term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+	return term1 + term2 + term3 + term4
+
+
+def create_X(x, y, n ):
+	if len(x.shape) > 1:
+		x = np.ravel(x)
+		y = np.ravel(y)
+
+	N = len(x)
+	l = int((n+1)*(n+2)/2)		# Number of elements in beta
+	X = np.ones((N,l))
+
+	for i in range(1,n+1):
+		q = int((i)*(i+1)/2)
+		for k in range(i+1):
+			X[:,q+k] = (x**(i-k))*(y**k)
+
+	return X
+
+
+# Making meshgrid of datapoints and compute Franke's function
+n = 5
+N = 1000
+x = np.sort(np.random.uniform(0, 1, N))
+y = np.sort(np.random.uniform(0, 1, N))
+z = FrankeFunction(x, y)
+X = create_X(x, y, n=n)    
+!ec
+
+
+
+Write then your own code for the Ridge method or use _Scikit-Learn_.
+Perform the same analysis as you did for ordinary Least Squares (for the same polynomials) but now for different values of $\lambda$. Compare and
+analyze your results with those obtained with ordinary Least Squares. Study the
+dependence on $\lambda$.
+
+
+This part is essentially a repeat of the previous ones, but now
+with Lasso regression. Write either your own code or
+use the functionalities of _Scikit-Learn_ (recommended). 
+Give a
+critical discussion of the three methods and a judgement of which
+model fits the data best.
+
+
+
+
+
+
+
+
+
+
+
 
 

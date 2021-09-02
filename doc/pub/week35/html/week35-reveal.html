@@ -1318,12 +1318,15 @@ XPandas = pd.DataFrame(X)
 display(XPandas)
 <span style="color: #658b00">print</span>(XPandas.mean())
 <span style="color: #658b00">print</span>(XPandas.std())
-XPandas = XPandas -XPandas,mean()
+XPandas = (XPandas -XPandas.mean())
 display(XPandas)
-scaler = StandardScaler()
-Xscaled = scaler.transform(a)
-<span style="color: #658b00">print</span>(Xscaled)
+scaler = StandardScaler(with_std=<span style="color: #8B008B; font-weight: bold">False</span>)
+scaler.fit(X)
+Xscaled = scaler.transform(X)
+display(XPandas-Xscaled)
 </pre></div>
+<p>
+Small exercise: perform the standars scaling by including the standard deviation.
 </section>
 
 
@@ -1347,7 +1350,73 @@ where \( \min(x_j) \) and \( \max(x_j) \) return the minimum and maximum value o
 
 
 <section>
-<h2 id="simple-preprocessing-examples-franke-function-and-regression">Simple preprocessing examples, Franke function and regression </h2>
+<h2 id="testing-the-means-squared-error-as-function-of-complexity">Testing the Means Squared Error as function of Complexity </h2>
+One of 
+the aims is to reproduce Figure 2.11 of <a href="https://github.com/CompPhysics/MLErasmus/blob/master/doc/Textbooks/elementsstat.pdf" target="_blank">Hastie et al</a>.
+We will also use Ridge and Lasso regression.
+
+<p>
+Our data is defined by \( x\in [-3,3] \) with a total of for example \( 100 \) data points.
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span>np.random.seed()
+n = <span style="color: #B452CD">100</span>
+maxdegree = <span style="color: #B452CD">14</span>
+<span style="color: #228B22"># Make data set.</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
+</pre></div>
+<p>
+where \( y \) is the function we want to fit with a given polynomial.
+
+<p>
+Write a first code which sets up a design matrix \( X \) defined by a fifth-order polynomial.  Scale your data and split it in training and test data. 
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.pipeline</span> <span style="color: #8B008B; font-weight: bold">import</span> make_pipeline
+
+
+np.random.seed(<span style="color: #B452CD">2018</span>)
+n = <span style="color: #B452CD">50</span>
+maxdegree = <span style="color: #B452CD">5</span>
+<span style="color: #228B22"># Make data set.</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
+TestError = np.zeros(maxdegree)
+TrainError = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=<span style="color: #B452CD">0.2</span>)
+scaler = StandardScaler()
+scaler.fit(X_train)
+x_train_scaled = scaler.transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+
+<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(maxdegree):
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>))
+    clf = model.fit(x_train_scale,y_train)
+    y_fit = clf.predict(x_train_scaled)
+    y_pred = clf.predict(x_test_scaled) 
+    polydegree[degree] = degree
+    TestError[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>) )
+    TrainError[degree] = np.mean( np.mean((y_train - y_fit)**<span style="color: #B452CD">2</span>) )
+
+plt.plot(polydegree, TestError, label=<span style="color: #CD5555">&#39;Test Error&#39;</span>)
+plt.plot(polydegree, TrainError, label=<span style="color: #CD5555">&#39;Train Error&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="more-preprocessing-examples-franke-function-and-regression">More preprocessing examples, Franke function and regression </h2>
 
 <p>
 
@@ -1449,10 +1518,10 @@ clf = skl.LinearRegression().fit(X_train_scaled, y_train)
 
 
 <section>
-<h2 id="friday-september-3">Friday September 3  </h2>
+<h2 id="mathematical-interpretation-of-ordinary-least-squares">Mathematical Interpretation of Ordinary Least Squares </h2>
 
 <p>
-Lasso and Ridge regression
+What is presented here is a mathematical analysis of various regression algorithms (ordinary least  squares, Ridge and Lasso Regression). The analysis is based on an important algorithm in linear algebra, the so-called Singular Value Decomposition (SVD).
 </section>
 
 
@@ -1465,12 +1534,15 @@ Lasso and Ridge regression
 <p>
 The examples we have looked at so far are cases where we normally can
 invert the matrix \( \boldsymbol{X}^T\boldsymbol{X} \). Using a polynomial expansion as we
-did both for the masses and the fitting of the equation of state,
-leads to row vectors of the design matrix which are essentially
-orthogonal due to the polynomial character of our model. Obtaining the inverse of the design matrix is then often done via a so-called LU, QR or Cholesky decomposition.
+did both for the masses and the fitting of various functions leads to
+row vectors of the design matrix which are essentially orthogonal due
+to the polynomial character of our model. Obtaining the inverse of the
+design matrix is then often done via a so-called LU, QR or Cholesky
+decomposition.
 
 <p>
-This may
+As we will also see in the first project, 
+this may
 however not the be case in general and a standard matrix inversion
 algorithm based on say LU, QR or Cholesky decomposition may lead to singularities. We will see examples of this below.
 
@@ -1849,10 +1921,10 @@ $$ n > p$$
 
 
 <section>
-<h2 id="friday-september-12">Friday September 12  </h2>
+<h2 id="friday-september-3">Friday September 3  </h2>
 
 <p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember11.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember11.pdf" target="_blank">handwritten notes</a>
+<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember11.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture from 2020</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember11.pdf" target="_blank">handwritten notes</a>
 
 <p>
 More material will be added here, see handwritten notes also.
@@ -2492,6 +2564,334 @@ It is easy to generalize this to a matrix \( \boldsymbol{X}\in {\mathbb{R}}^{n\t
 
 <section>
 <h2 id="linking-with-svd">Linking with SVD  </h2>
+
+<p>
+More material will be added here.
+</section>
+
+
+<section>
+<h2 id="exercises-for-week-37-september-6-10">Exercises for week 37, September 6-10 </h2>
+
+<p>
+The exercises here are meant to prepare you for work with project 1. The first exercise is a follow-up of exercise 2 from week 36 August 30-September 3).
+
+<p>
+<!-- --- begin exercise --- -->
+
+<h2 id="exercise-1-adding-ridge-and-lasso-regression">Exercise 1: Adding Ridge and Lasso Regression </h2>
+
+<p>
+This exercise is a continuation of exercise 2 from exercise set 1 (week 36, August 30-September 3)). We will
+use the same function to generate our data set, still staying with a
+simple function \( y(x) \) which we want to fit using linear regression,
+but now extending the analysis to include the Ridge and the Lasso
+regression methods.
+
+<p>
+We will thus again generate our own dataset for a function \( y(x) \) where 
+\( x \in [0,1] \) and defined by random numbers computed with the uniform
+distribution. The function \( y \) is a quadratic polynomial in \( x \) with
+added stochastic noise according to the normal distribution \( \cal{N}(0,1) \).
+
+<p>
+The following simple Python instructions define our \( x \) and \( y \) values (with 100 data points).
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span>x = np.random.rand(<span style="color: #B452CD">100</span>)
+y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">5</span>*x*x+<span style="color: #B452CD">0.1</span>*np.random.randn(<span style="color: #B452CD">100</span>)
+</pre></div>
+<p>
+Write your own code for the Ridge method (see chapter 3.4 of Hastie <em>et al.</em>, equations (3.43) and (3.44)) and compute the parametrization for different values of \( \lambda \). Compare and analyze your results with those from exercise 3. Study the dependence on \( \lambda \) while also varying the strength of the noise in your expression for \( y(x) \).
+
+<p>
+The code here allows you to perform your own Ridge calculation and perform calculations for various values of the regularization parameter \( \lambda \). This program can easily be extended upon.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> StandardScaler
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">3155</span>)
+
+x = np.random.rand(<span style="color: #B452CD">100</span>)
+y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">5</span>*x*x+<span style="color: #B452CD">0.1</span>*np.random.randn(<span style="color: #B452CD">100</span>)
+
+<span style="color: #228B22"># number of features p (here degree of polynomial</span>
+p = <span style="color: #B452CD">3</span>
+<span style="color: #228B22">#  The design matrix now as function of a given polynomial</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x),p))
+X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
+X[:,<span style="color: #B452CD">1</span>] = x
+X[:,<span style="color: #B452CD">2</span>] = x*x
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X_train @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training R2 for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(R2(y_train,ytildeOLS))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test R2 for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(R2(y_test,ypredictOLS))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test MSE OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ypredictOLS))
+
+<span style="color: #228B22"># Repeat now for Ridge regression and various values of the regularization parameter</span>
+I = np.eye(p,p)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">20</span>
+MSEPredict = np.zeros(nlambdas)
+MSETrain = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">1</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    <span style="color: #228B22"># and then make the prediction</span>
+    ytildeRidge = X_train @ Ridgebeta
+    ypredictRidge = X_test @ Ridgebeta
+    MSEPredict[i] = MSE(y_test,ypredictRidge)
+    MSETrain[i] = MSE(y_train,ytildeRidge)
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSETrain, label = <span style="color: #CD5555">&#39;MSE Ridge train&#39;</span>)
+plt.plot(np.log10(lambdas), MSEPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
+<p>
+Repeat the above but using the functionality of <b>Scikit-Learn</b>. Compare your code with the results from <b>Scikit-Learn</b>. Remember to run with the same random numbers for generating \( x \) and \( y \).
+
+<p>
+Finally, using <b>Scikit-Learn</b> or your own code, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+<p>&nbsp;<br>
+$$ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+$$
+<p>&nbsp;<br>
+
+and the \( R^2 \) score function.
+If \( \tilde{\hat{y}}_i \) is the predicted value of the \( i-th \) sample and \( y_i \) is the corresponding true value, then the score \( R^2 \) is defined as
+<p>&nbsp;<br>
+$$
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+$$
+<p>&nbsp;<br>
+
+where we have defined the mean value  of \( \hat{y} \) as
+<p>&nbsp;<br>
+$$
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+$$
+<p>&nbsp;<br>
+
+Discuss these quantities as functions of the variable \( \lambda \) in the Ridge and Lasso regression methods.
+
+<h3 id="exercise-linear-regression-for-a-two-dimensional-function">Exercise: Linear Regression for  a two-dimensional function  </h3>
+
+<p>
+This is a longer  exercise and the aim is to study in more detail various
+regression methods, including the Ordinary Least Squares (OLS) method,
+Ridge regression and finally Lasso regression.
+This exercise forms a part of project 1.
+
+<p>
+We will study how to fit polynomials to a specific
+two-dimensional function called <a href="http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf" target="_blank">Franke's
+function</a>.  This
+is a function which has been widely used when testing various
+interpolation and fitting algorithms.
+
+<p>
+The Franke function, which is a weighted sum of four exponentials  reads as follows
+<p>&nbsp;<br>
+$$
+\begin{align*}
+f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
+&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
+\end{align*}
+$$
+<p>&nbsp;<br>
+
+<p>
+The function will be defined for \( x,y\in [0,1] \).  Our first step will
+be to perform an OLS regression analysis of this function, trying out
+a polynomial fit with an \( x \) and \( y \) dependence of the form \( [x, y,
+x^2, y^2, xy, \dots] \).   We will fit a
+function (for example a polynomial) of \( x \) and \( y \).  Thereafter we
+will repeat much of the same procedure using the Ridge and Lasso
+regression methods, introducing thus a dependence on the bias
+(penalty) \( \lambda \).
+
+<p>
+The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">mpl_toolkits.mplot3d</span> <span style="color: #8B008B; font-weight: bold">import</span> Axes3D
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> cm
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib.ticker</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearLocator, FormatStrFormatter
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+
+fig = plt.figure()
+ax = fig.gca(projection=<span style="color: #CD5555">&#39;3d&#39;</span>)
+
+<span style="color: #228B22"># Make data.</span>
+x = np.arange(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">0.05</span>)
+y = np.arange(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">0.05</span>)
+x, y = np.meshgrid(x,y)
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">FrankeFunction</span>(x,y):
+    term1 = <span style="color: #B452CD">0.75</span>*np.exp(-(<span style="color: #B452CD">0.25</span>*(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>) - <span style="color: #B452CD">0.25</span>*((<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>))
+    term2 = <span style="color: #B452CD">0.75</span>*np.exp(-((<span style="color: #B452CD">9</span>*x+<span style="color: #B452CD">1</span>)**<span style="color: #B452CD">2</span>)/<span style="color: #B452CD">49.0</span> - <span style="color: #B452CD">0.1</span>*(<span style="color: #B452CD">9</span>*y+<span style="color: #B452CD">1</span>))
+    term3 = <span style="color: #B452CD">0.5</span>*np.exp(-(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">7</span>)**<span style="color: #B452CD">2</span>/<span style="color: #B452CD">4.0</span> - <span style="color: #B452CD">0.25</span>*((<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">3</span>)**<span style="color: #B452CD">2</span>))
+    term4 = -<span style="color: #B452CD">0.2</span>*np.exp(-(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">4</span>)**<span style="color: #B452CD">2</span> - (<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">7</span>)**<span style="color: #B452CD">2</span>)
+    <span style="color: #8B008B; font-weight: bold">return</span> term1 + term2 + term3 + term4
+
+
+z = FrankeFunction(x, y)
+
+<span style="color: #228B22"># Plot the surface.</span>
+surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                       linewidth=<span style="color: #B452CD">0</span>, antialiased=<span style="color: #8B008B; font-weight: bold">False</span>)
+
+<span style="color: #228B22"># Customize the z axis.</span>
+ax.set_zlim(-<span style="color: #B452CD">0.10</span>, <span style="color: #B452CD">1.40</span>)
+ax.zaxis.set_major_locator(LinearLocator(<span style="color: #B452CD">10</span>))
+ax.zaxis.set_major_formatter(FormatStrFormatter(<span style="color: #CD5555">&#39;%.02f&#39;</span>))
+
+<span style="color: #228B22"># Add a color bar which maps values to colors.</span>
+fig.colorbar(surf, shrink=<span style="color: #B452CD">0.5</span>, aspect=<span style="color: #B452CD">5</span>)
+
+plt.show()
+</pre></div>
+<p>
+We will generate our own dataset for a function
+\( \mathrm{FrankeFunction}(x,y) \) with \( x,y \in [0,1] \). The function
+\( f(x,y) \) is the Franke function. You should explore also the addition
+an added stochastic noise to this function using the normal
+distribution \( \cal{N}(0,1) \).
+
+<p>
+Write your own code (using either a matrix inversion or a singular
+value decomposition from e.g., <b>numpy</b> ) or use your code and perform a standard least square regression
+analysis using polynomials in \( x \) and \( y \) up to fifth order. You can use <b>scikit-learn</b> as well.
+
+<p>
+Evaluate the Mean Squared error (MSE)
+
+<p>&nbsp;<br>
+$$ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+$$
+<p>&nbsp;<br>
+
+<p>
+and the \( R^2 \) score function.  If \( \tilde{\hat{y}}_i \) is the predicted
+value of the \( i-th \) sample and \( y_i \) is the corresponding true value,
+then the score \( R^2 \) is defined as
+
+<p>&nbsp;<br>
+$$
+R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+$$
+<p>&nbsp;<br>
+
+<p>
+where we have defined the mean value  of \( \hat{y} \) as
+
+<p>&nbsp;<br>
+$$
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+$$
+<p>&nbsp;<br>
+
+<p>
+You should split your data in train and test and also consider scaling the data.
+
+<p>
+To set up the design matrix, the following code can be used
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">FrankeFunction</span>(x,y):
+	term1 = <span style="color: #B452CD">0.75</span>*np.exp(-(<span style="color: #B452CD">0.25</span>*(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>) - <span style="color: #B452CD">0.25</span>*((<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>))
+	term2 = <span style="color: #B452CD">0.75</span>*np.exp(-((<span style="color: #B452CD">9</span>*x+<span style="color: #B452CD">1</span>)**<span style="color: #B452CD">2</span>)/<span style="color: #B452CD">49.0</span> - <span style="color: #B452CD">0.1</span>*(<span style="color: #B452CD">9</span>*y+<span style="color: #B452CD">1</span>))
+	term3 = <span style="color: #B452CD">0.5</span>*np.exp(-(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">7</span>)**<span style="color: #B452CD">2</span>/<span style="color: #B452CD">4.0</span> - <span style="color: #B452CD">0.25</span>*((<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">3</span>)**<span style="color: #B452CD">2</span>))
+	term4 = -<span style="color: #B452CD">0.2</span>*np.exp(-(<span style="color: #B452CD">9</span>*x-<span style="color: #B452CD">4</span>)**<span style="color: #B452CD">2</span> - (<span style="color: #B452CD">9</span>*y-<span style="color: #B452CD">7</span>)**<span style="color: #B452CD">2</span>)
+	<span style="color: #8B008B; font-weight: bold">return</span> term1 + term2 + term3 + term4
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_X</span>(x, y, n ):
+	<span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">len</span>(x.shape) &gt; <span style="color: #B452CD">1</span>:
+		x = np.ravel(x)
+		y = np.ravel(y)
+
+	N = <span style="color: #658b00">len</span>(x)
+	l = <span style="color: #658b00">int</span>((n+<span style="color: #B452CD">1</span>)*(n+<span style="color: #B452CD">2</span>)/<span style="color: #B452CD">2</span>)		<span style="color: #228B22"># Number of elements in beta</span>
+	X = np.ones((N,l))
+
+	<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,n+<span style="color: #B452CD">1</span>):
+		q = <span style="color: #658b00">int</span>((i)*(i+<span style="color: #B452CD">1</span>)/<span style="color: #B452CD">2</span>)
+		<span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(i+<span style="color: #B452CD">1</span>):
+			X[:,q+k] = (x**(i-k))*(y**k)
+
+	<span style="color: #8B008B; font-weight: bold">return</span> X
+
+
+<span style="color: #228B22"># Making meshgrid of datapoints and compute Franke&#39;s function</span>
+n = <span style="color: #B452CD">5</span>
+N = <span style="color: #B452CD">1000</span>
+x = np.sort(np.random.uniform(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, N))
+y = np.sort(np.random.uniform(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, N))
+z = FrankeFunction(x, y)
+X = create_X(x, y, n=n)    
+</pre></div>
+<p>
+Write then your own code for the Ridge method or use <b>Scikit-Learn</b>.
+Perform the same analysis as you did for ordinary Least Squares (for the same polynomials) but now for different values of \( \lambda \). Compare and
+analyze your results with those obtained with ordinary Least Squares. Study the
+dependence on \( \lambda \).
+
+<p>
+This part is essentially a repeat of the previous ones, but now
+with Lasso regression. Write either your own code or
+use the functionalities of <b>Scikit-Learn</b> (recommended). 
+Give a
+critical discussion of the three methods and a judgement of which
+model fits the data best.
+
+<p>
+<!-- --- end exercise --- -->
 </section>
 
 
