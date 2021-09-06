@@ -1870,7 +1870,8 @@ of the population standard deviation. If you use a library like
 _Scikit-Learn_ or _nunmpy's_ function calculate the covariance, this
 quantity will be computed with a factor $1/(n-1)$.
 
-
+!split
+===== Covariance and Correlation Matrix =====
 
 The covariance takes values between zero and infinity and may thus
 lead to problems with loss of numerical precision for particularly
@@ -1933,7 +1934,7 @@ with a given vector
 !et
 
 With these definitions, we can now rewrite our $2\times 2$
-correaltion/covariance matrix in terms of a moe general design/feature
+correlation/covariance matrix in terms of a moe general design/feature
 matrix $\bm{X}\in {\mathbb{R}}^{n\times p}$. This leads to a $p\times p$
 covariance matrix for the vectors $\bm{x}_i$ with $i=0,1,\dots,p-1$
 
@@ -1974,15 +1975,11 @@ the exact mean values.  The following simple function uses the
 _np.vstack_ function which takes each vector of dimension $1\times n$
 and produces a $2\times n$ matrix $\bm{W}$
 
-
+Note that this assumes you have the features as the rows, and the inputs as columns, that is
 !bt
 \[
-\bm{W} = \begin{bmatrix} x_0 & y_0 \\
-                          x_1 & y_1 \\
-                          x_2 & y_2\\
-                          \dots & \dots \\
-                          x_{n-2} & y_{n-2}\\
-                          x_{n-1} & y_{n-1} & 
+\bm{W} = \begin{bmatrix} x_0 & x_1 & x_2 & \dots & x_{n-2} & x_{n-1} \\
+                     y_0 & y_1 & y_2 & \dots & y_{n-2} & y_{n-1} \\
              \end{bmatrix},
 \]
 !et
@@ -2057,6 +2054,7 @@ x = np.random.normal(size=n)
 x = x - np.mean(x)
 y = 4+3*x+np.random.normal(size=n)
 y = y - np.mean(y)
+# Note that we transpose the matrix in order to stay with our ordering n x p
 X = (np.vstack((x, y))).T
 print(X)
 Xpd = pd.DataFrame(X)
@@ -2169,6 +2167,55 @@ which is just
 where we wrote $$\bm{C}[\bm{x}_0,\bm{x}_1] = \bm{C}[\bm{x}]$$ to indicate that this the covariance of the vectors $\bm{x}$ of the design/feature matrix $\bm{X}$.
 
 It is easy to generalize this to a matrix $\bm{X}\in {\mathbb{R}}^{n\times p}$.
+
+
+!split
+===== Linking with the SVD =====
+
+We saw earlier that 
+!bt
+\[
+\bm{X}^T\bm{X}=\bm{V}\bm{\Sigma}^T\bm{U}^T\bm{U}\bm{\Sigma}\bm{V}^T=\bm{V}\bm{\Sigma}^T\bm{\Sigma}\bm{V}^T. 
+\]
+!et
+Since the matrices here have dimension $p\times p$, with $p$ corresponding to the singular values, we defined earlier the matrix
+!bt
+\[
+\bm{\Sigma}^T\bm{\Sigma} = \begin{bmatrix} \tilde{\bm{\Sigma}} & \bm{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\bm{\Sigma}} \\ \bm{0}\\ \end{bmatrix},
+\]
+!et
+where the tilde-matrix $\tilde{\bm{\Sigma}}$ is a matrix of dimension $p\times p$ containing only the singular values $\sigma_i$, that is
+
+!bt
+\[
+\tilde{\bm{\Sigma}}=\begin{bmatrix} \sigma_0 & 0 & 0 & \dots & 0 & 0 \\
+                                    0 & \sigma_1 & 0 & \dots & 0 & 0 \\
+				    0 & 0 & \sigma_2 & \dots & 0 & 0 \
+				    0 & 0 & 0 & \dots & \sigma_{p-2} & 0 \\
+				    0 & 0 & 0 & \dots & 0 & \sigma_{p-1} \\
+\end{bmatrix},
+\]
+!et
+meaning we can write
+!bt
+\[
+\bm{X}^T\bm{X}=\bm{V}\tilde{\bm{\Sigma}}^2\bm{V}^T. 
+\]
+!et
+Multiplying from the right with $\bm{V}$ (using the orthogonality of $\bm{V}$) we get
+!bt
+\[
+\left(\bm{X}^T\bm{X}\right)\bm{V}=\bm{V}\tilde{\bm{\Sigma}}^2. 
+\]
+!et
+This means the vectors $\bm{v}_i$ of the orthogonal matrix $\bm{V}$ are the eigenvectors of the matrix $\bm{X}^T\bm{X}$
+with eigenvalues given by the singular values squared, that is
+!bt
+\[
+\left(\bm{X}^T\bm{X}\right)\bm{v}_i=\bm{v}_i\sigma_i^2. 
+\]
+!et
+
 
 
 
