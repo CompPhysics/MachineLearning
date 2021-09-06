@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
+<meta name="generator" content="DocOnce: https://github.com/doconce/doconce/" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Week 36: Resampling techniques and Ordinary Least Square">
+<meta name="description" content="Week 36: Statistical interpretation of Linear Regression and Resampling techniques">
 
-<title>Week 36: Resampling techniques and Ordinary Least Square</title>
-
-
+<title>Week 36: Statistical interpretation of Linear Regression and Resampling techniques</title>
 
 
 
 
 
-<!-- reveal.js: http://lab.hakim.se/reveal-js/ -->
+
+
+<!-- reveal.js: https://lab.hakim.se/reveal-js/ -->
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -76,10 +76,10 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
      .reveal .alert-block > p, .alert-block > ul {margin-bottom:1em}
      /*.reveal .alert li {margin-top: 1em}*/
      .reveal .alert-block p+p {margin-top:5px}
-     /*.reveal .alert-notice { background-image: url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_notice.png); }
-     .reveal .alert-summary  { background-image:url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_summary.png); }
-     .reveal .alert-warning { background-image: url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_warning.png); }
-     .reveal .alert-question {background-image:url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_question.png); } */
+     /*.reveal .alert-notice { background-image: url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_notice.png); }
+     .reveal .alert-summary  { background-image:url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_summary.png); }
+     .reveal .alert-warning { background-image: url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_warning.png); }
+     .reveal .alert-question {background-image:url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_question.png); } */
 
 </style>
 
@@ -132,7 +132,7 @@ MathJax.Hub.Config({
 
 
 
-<center><h1 style="text-align: center;">Week 36: Resampling techniques and Ordinary Least Square</h1></center>  <!-- document title -->
+<center><h1 style="text-align: center;">Week 36: Statistical interpretation of Linear Regression and Resampling techniques</h1></center>  <!-- document title -->
 
 <p>
 <!-- author(s): Morten Hjorth-Jensen -->
@@ -148,149 +148,33 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Sep 16, 2020</h4></center> <!-- date -->
+<center><h4>Sep 6, 2021</h4></center> <!-- date -->
 <br>
 <p>
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2020, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
 </center>
 </section>
 
 
 <section>
-<h2 id="___sec0">Plans for week 36 </h2>
+<h2 id="plans-for-week-36">Plans for week 36 </h2>
 
 <ul>
-<p><li> Thursday: Statistics, probability theory and resampling methods</li>
-<p><li> Friday: Resampling methods and motivation for Ridge Regression</li>
+<p><li> Thursday: Statistics, probability theory and linear regression</li>
+<p><li> Friday: Resampling methods</li>
 </ul>
 </section>
 
 
 <section>
-<h2 id="___sec1">Thursday September 3  </h2>
-
-<p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSept3.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember3.pdf" target="_blank">handwritten notes</a>
-
-<p>
-More material will be added here, see handwritten notes also.
+<h2 id="thursday-september-9">Thursday September 9  </h2>
 </section>
 
 
 <section>
-<h2 id="___sec2">Why resampling methods </h2>
-
-<p>
-Before we proceed, we need to rethink what we have been doing. In our
-eager to fit the data, we have omitted several important elements in
-our regression analysis. In what follows we will
-
-<ol>
-<p><li> look at statistical properties, including a discussion of mean values, variance and the so-called bias-variance tradeoff</li>
-<p><li> introduce resampling techniques like cross-validation, bootstrapping and jackknife and more</li>
-</ol>
-<p>
-
-This will allow us to link the standard linear algebra methods we have discussed above to a statistical interpretation of the methods.
-</section>
-
-
-<section>
-<h2 id="___sec3">Resampling methods </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-Resampling methods are an indispensable tool in modern
-statistics. They involve repeatedly drawing samples from a training
-set and refitting a model of interest on each sample in order to
-obtain additional information about the fitted model. For example, in
-order to estimate the variability of a linear regression fit, we can
-repeatedly draw different samples from the training data, fit a linear
-regression to each new sample, and then examine the extent to which
-the resulting fits differ. Such an approach may allow us to obtain
-information that would not be available from fitting the model only
-once using the original training sample.
-
-<p>
-Two resampling methods are often used in Machine Learning analyses,
-
-<ol>
-<p><li> The <b>bootstrap method</b></li>
-<p><li> and <b>Cross-Validation</b></li>
-</ol>
-<p>
-
-In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
-cross-validation and the bootstrap method.
-
-
-</div>
-</section>
-
-
-<section>
-<h2 id="___sec4">Resampling approaches can be computationally expensive </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-Resampling approaches can be computationally expensive, because they
-involve fitting the same statistical method multiple times using
-different subsets of the training data. However, due to recent
-advances in computing power, the computational requirements of
-resampling methods generally are not prohibitive. In this chapter, we
-discuss two of the most commonly used resampling methods,
-cross-validation and the bootstrap. Both methods are important tools
-in the practical application of many statistical learning
-procedures. For example, cross-validation can be used to estimate the
-test error associated with a given statistical learning method in
-order to evaluate its performance, or to select the appropriate level
-of flexibility. The process of evaluating a model&#8217;s performance is
-known as model assessment, whereas the process of selecting the proper
-level of flexibility for a model is known as model selection. The
-bootstrap is widely used.
-
-
-</div>
-</section>
-
-
-<section>
-<h2 id="___sec5">Why resampling methods ? </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b>Statistical analysis.</b>
-<ul>
-<p><li> Our simulations can be treated as <em>computer experiments</em>. This is particularly the case for Monte Carlo methods</li>
-<p><li> The results can be analysed with the same statistical tools as we would use analysing experimental data.</li>
-<p><li> As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.</li>
-</ul>
-</div>
-</section>
-
-
-<section>
-<h2 id="___sec6">Statistical analysis </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<ul>
-<p><li> As in other experiments, many numerical  experiments have two classes of errors:</li>
-
-<ul>
-
-<p><li> Statistical errors</li>
-
-<p><li> Systematical errors</li>
-</ul>
-<p><li> Statistical errors can be estimated using standard tools from statistics</li>
-<p><li> Systematical errors are method specific and must be treated differently from case to case.</li> 
-</ul>
-</div>
-</section>
-
-
-<section>
-<h2 id="___sec7">Linking the regression analysis with a statistical interpretation </h2>
+<h2 id="linking-the-regression-analysis-with-a-statistical-interpretation">Linking the regression analysis with a statistical interpretation </h2>
 
 <p>
 The
@@ -329,7 +213,7 @@ row number \( i \) and perform a sum over all values \( p \).
 
 
 <section>
-<h2 id="___sec8">Assumptions made </h2>
+<h2 id="assumptions-made">Assumptions made </h2>
 
 <p>
 The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
@@ -353,7 +237,7 @@ $$
 
 
 <section>
-<h2 id="___sec9">Expectation value and variance </h2>
+<h2 id="expectation-value-and-variance">Expectation value and variance </h2>
 
 <p>
 We can calculate the expectation value of \( \boldsymbol{y} \) for a given element \( i \) 
@@ -392,7 +276,7 @@ mean value \( \boldsymbol{X}\boldsymbol{\beta} \) and variance \( \sigma^2 \) (n
 
 
 <section>
-<h2 id="___sec10">Expectation value and variance for \( \boldsymbol{\beta} \) </h2>
+<h2 id="expectation-value-and-variance-for-boldsymbol-beta">Expectation value and variance for \( \boldsymbol{\beta} \) </h2>
 
 <p>
 With the OLS expressions for the parameters \( \boldsymbol{\beta} \) we can evaluate the expectation value
@@ -487,7 +371,122 @@ This means the variance we obtain with the standard OLS will always for \( \lamb
 
 
 <section>
-<h2 id="___sec11">Resampling methods </h2>
+<h2 id="friday-september-10">Friday September 10  </h2>
+</section>
+
+
+<section>
+<h2 id="why-resampling-methods">Why resampling methods </h2>
+
+<p>
+Before we proceed, we need to rethink what we have been doing. In our
+eager to fit the data, we have omitted several important elements in
+our regression analysis. In what follows we will
+
+<ol>
+<p><li> look at statistical properties, including a discussion of mean values, variance and the so-called bias-variance tradeoff</li>
+<p><li> introduce resampling techniques like cross-validation, bootstrapping and jackknife and more</li>
+</ol>
+<p>
+
+This will allow us to link the standard linear algebra methods we have discussed above to a statistical interpretation of the methods.
+</section>
+
+
+<section>
+<h2 id="resampling-methods">Resampling methods </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+Resampling methods are an indispensable tool in modern
+statistics. They involve repeatedly drawing samples from a training
+set and refitting a model of interest on each sample in order to
+obtain additional information about the fitted model. For example, in
+order to estimate the variability of a linear regression fit, we can
+repeatedly draw different samples from the training data, fit a linear
+regression to each new sample, and then examine the extent to which
+the resulting fits differ. Such an approach may allow us to obtain
+information that would not be available from fitting the model only
+once using the original training sample.
+
+<p>
+Two resampling methods are often used in Machine Learning analyses,
+
+<ol>
+<p><li> The <b>bootstrap method</b></li>
+<p><li> and <b>Cross-Validation</b></li>
+</ol>
+<p>
+
+In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
+cross-validation and the bootstrap method.
+
+
+</div>
+</section>
+
+
+<section>
+<h2 id="resampling-approaches-can-be-computationally-expensive">Resampling approaches can be computationally expensive </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+Resampling approaches can be computationally expensive, because they
+involve fitting the same statistical method multiple times using
+different subsets of the training data. However, due to recent
+advances in computing power, the computational requirements of
+resampling methods generally are not prohibitive. In this chapter, we
+discuss two of the most commonly used resampling methods,
+cross-validation and the bootstrap. Both methods are important tools
+in the practical application of many statistical learning
+procedures. For example, cross-validation can be used to estimate the
+test error associated with a given statistical learning method in
+order to evaluate its performance, or to select the appropriate level
+of flexibility. The process of evaluating a model&#8217;s performance is
+known as model assessment, whereas the process of selecting the proper
+level of flexibility for a model is known as model selection. The
+bootstrap is widely used.
+
+
+</div>
+</section>
+
+
+<section>
+<h2 id="why-resampling-methods">Why resampling methods ? </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Statistical analysis</b>
+<ul>
+<p><li> Our simulations can be treated as <em>computer experiments</em>. This is particularly the case for Monte Carlo methods</li>
+<p><li> The results can be analysed with the same statistical tools as we would use analysing experimental data.</li>
+<p><li> As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.</li>
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="statistical-analysis">Statistical analysis </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<ul>
+<p><li> As in other experiments, many numerical  experiments have two classes of errors:</li>
+
+<ul>
+
+<p><li> Statistical errors</li>
+
+<p><li> Systematical errors</li>
+</ul>
+<p><li> Statistical errors can be estimated using standard tools from statistics</li>
+<p><li> Systematical errors are method specific and must be treated differently from case to case.</li> 
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="resampling-methods">Resampling methods </h2>
 
 <p>
 With all these analytical equations for both the OLS and Ridge
@@ -517,7 +516,7 @@ training error reaches a saturation.
 
 
 <section>
-<h2 id="___sec12">Resampling methods: Jackknife and Bootstrap </h2>
+<h2 id="resampling-methods-jackknife-and-bootstrap">Resampling methods: Jackknife and Bootstrap </h2>
 
 <p>
 Two famous
@@ -540,7 +539,7 @@ need for bootstrapping.
 
 
 <section>
-<h2 id="___sec13">Resampling methods: Jackknife </h2>
+<h2 id="resampling-methods-jackknife">Resampling methods: Jackknife </h2>
 
 <p>
 The Jackknife works by making many replicas of the estimator \( \widehat{\theta} \). 
@@ -561,11 +560,11 @@ number \( i \) is left out. Using this notation, define
 
 
 <section>
-<h2 id="___sec14">Jackknife code example </h2>
+<h2 id="jackknife-code-example">Jackknife code example </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> randint, randn
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">time</span> <span style="color: #8B008B; font-weight: bold">import</span> time
 
@@ -576,9 +575,9 @@ number \( i \) is left out. Using this notation, define
         t[i] = stat(delete(data,i) )
 
     <span style="color: #228B22"># analysis                                                                                                                                                                     </span>
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Jackknife Statistics :&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;%8g %14g %15g&quot;</span> % (stat(data),(n-<span style="color: #B452CD">1</span>)*mean(t)/n, (n*var(t))**.<span style="color: #B452CD">5</span>))
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Jackknife Statistics :&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;%8g %14g %15g&quot;</span> % (stat(data),(n-<span style="color: #B452CD">1</span>)*mean(t)/n, (n*var(t))**.<span style="color: #B452CD">5</span>))
 
     <span style="color: #8B008B; font-weight: bold">return</span> t
 
@@ -598,7 +597,7 @@ t = jackknife(x, stat)
 
 
 <section>
-<h2 id="___sec15">Resampling methods: Bootstrap </h2>
+<h2 id="resampling-methods-bootstrap">Resampling methods: Bootstrap </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -620,7 +619,7 @@ advantages:
 
 
 <section>
-<h2 id="___sec16">Resampling methods: Bootstrap background </h2>
+<h2 id="resampling-methods-bootstrap-background">Resampling methods: Bootstrap background </h2>
 
 <p>
 Since \( \widehat{\theta} = \widehat{\theta}(\boldsymbol{X}) \) is a function of random variables,
@@ -636,7 +635,7 @@ estimators.
 
 
 <section>
-<h2 id="___sec17">Resampling methods: More Bootstrap background </h2>
+<h2 id="resampling-methods-more-bootstrap-background">Resampling methods: More Bootstrap background </h2>
 
 <p>
 In the case that \( \widehat{\theta} \) has
@@ -659,7 +658,7 @@ idea is to use the relative frequency of \( \widehat{\theta}^* \)
 
 
 <section>
-<h2 id="___sec18">Resampling methods: Bootstrap approach </h2>
+<h2 id="resampling-methods-bootstrap-approach">Resampling methods: Bootstrap approach </h2>
 
 <p>
 But
@@ -680,7 +679,7 @@ frequency of the observation \( X_i \), just draw the values
 
 
 <section>
-<h2 id="___sec19">Resampling methods: Bootstrap steps </h2>
+<h2 id="resampling-methods-bootstrap-steps">Resampling methods: Bootstrap steps </h2>
 
 <p>
 The independent bootstrap works like this: 
@@ -706,7 +705,7 @@ example, if you are interested in estimating the variance of \( \widehat
 
 
 <section>
-<h2 id="___sec20">Code example for the Bootstrap method </h2>
+<h2 id="code-example-for-the-bootstrap-method">Code example for the Bootstrap method </h2>
 
 <p>
 The following code starts with a Gaussian distribution with mean value
@@ -725,7 +724,7 @@ theorem.
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> randint, randn
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">time</span> <span style="color: #8B008B; font-weight: bold">import</span> time
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.mlab</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">mlab</span>
@@ -743,9 +742,9 @@ theorem.
         t[i] = statistic(data[randint(<span style="color: #B452CD">0</span>,n,n)])
 
     <span style="color: #228B22"># analysis    </span>
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Bootstrap Statistics :&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;%8g %8g %14g %15g&quot;</span> % (statistic(data), std(data),mean(t),std(t)))
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Bootstrap Statistics :&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;%8g %8g %14g %15g&quot;</span> % (statistic(data), std(data),mean(t),std(t)))
     <span style="color: #8B008B; font-weight: bold">return</span> t
 
 
@@ -763,7 +762,7 @@ lt = plt.plot(binsboot, y, <span style="color: #CD5555">&#39;r--&#39;</span>, li
 plt.xlabel(<span style="color: #CD5555">&#39;Smarts&#39;</span>)
 plt.ylabel(<span style="color: #CD5555">&#39;Probability&#39;</span>)
 plt.axis([<span style="color: #B452CD">99.5</span>, <span style="color: #B452CD">100.6</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">3.0</span>])
-plt.grid(<span style="color: #658b00">True</span>)
+plt.grid(<span style="color: #8B008B; font-weight: bold">True</span>)
 
 plt.show()
 </pre></div>
@@ -771,7 +770,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec21">Various steps in cross-validation </h2>
+<h2 id="various-steps-in-cross-validation">Various steps in cross-validation </h2>
 
 <p>
 When the repetitive splitting of the data set is done randomly,
@@ -792,7 +791,7 @@ cross-validation (LOOCV).
 
 
 <section>
-<h2 id="___sec22">How to set up the cross-validation for Ridge and/or Lasso </h2>
+<h2 id="how-to-set-up-the-cross-validation-for-ridge-and-or-lasso">How to set up the cross-validation for Ridge and/or Lasso </h2>
 
 <ul>
 <p><li> Define a range of interest for the penalty parameter.</li>
@@ -826,7 +825,7 @@ $$
 
 
 <section>
-<h2 id="___sec23">Cross-validation in brief </h2>
+<h2 id="cross-validation-in-brief">Cross-validation in brief </h2>
 
 <p>
 For the various values of \( k \)
@@ -848,14 +847,14 @@ For the various values of \( k \)
 
 
 <section>
-<h2 id="___sec24">Code Example for Cross-validation and \( k \)-fold Cross-validation </h2>
+<h2 id="code-example-for-cross-validation-and-k-fold-cross-validation">Code Example for Cross-validation and \( k \)-fold Cross-validation </h2>
 
 <p>
 The code here uses Ridge regression with cross-validation (CV)  resampling and \( k \)-fold CV in order to fit a specific polynomial. 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
@@ -949,7 +948,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec25">The bias-variance tradeoff </h2>
+<h2 id="the-bias-variance-tradeoff">The bias-variance tradeoff </h2>
 
 <p>
 We will discuss the bias-variance tradeoff in the context of
@@ -1027,11 +1026,11 @@ that is the rewriting in terms of the so-called bias, the variance of the model 
 
 
 <section>
-<h2 id="___sec26">Example code for Bias-Variance tradeoff </h2>
+<h2 id="example-code-for-bias-variance-tradeoff">Example code for Bias-Variance tradeoff </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
@@ -1055,7 +1054,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=<span style=
 
 <span style="color: #228B22"># Combine x transformation and model into one operation.</span>
 <span style="color: #228B22"># Not neccesary, but convenient.</span>
-model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #658b00">False</span>))
+model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>))
 
 <span style="color: #228B22"># The following (m x n_bootstraps) matrix holds the column vectors y_pred</span>
 <span style="color: #228B22"># for each bootstrap iteration.</span>
@@ -1072,13 +1071,13 @@ y_pred = np.empty((y_test.shape[<span style="color: #B452CD">0</span>], n_boostr
 <span style="color: #228B22"># calculated per data point in the test set.</span>
 <span style="color: #228B22"># Note 2: The use of keepdims=True is important in the calculation of bias as this </span>
 <span style="color: #228B22"># maintains the column vector form. Dropping this yields very unexpected results.</span>
-error = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-bias = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>))**<span style="color: #B452CD">2</span> )
-variance = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error)
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias)
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance)
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error, bias, variance, bias+variance))
+error = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+bias = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>))**<span style="color: #B452CD">2</span> )
+variance = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error, bias, variance, bias+variance))
 
 plt.plot(x[::<span style="color: #B452CD">5</span>, :], y[::<span style="color: #B452CD">5</span>, :], label=<span style="color: #CD5555">&#39;f(x)&#39;</span>)
 plt.scatter(x_test, y_test, label=<span style="color: #CD5555">&#39;Data points&#39;</span>)
@@ -1090,11 +1089,11 @@ plt.show()
 
 
 <section>
-<h2 id="___sec27">Understanding what happens </h2>
+<h2 id="understanding-what-happens">Understanding what happens </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
@@ -1119,21 +1118,21 @@ polydegree = np.zeros(maxdegree)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=<span style="color: #B452CD">0.2</span>)
 
 <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(maxdegree):
-    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #658b00">False</span>))
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>))
     y_pred = np.empty((y_test.shape[<span style="color: #B452CD">0</span>], n_boostraps))
     <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_boostraps):
         x_, y_ = resample(x_train, y_train)
         y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
 
     polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>))**<span style="color: #B452CD">2</span> )
-    variance[degree] = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Polynomial degree:&#39;</span>, degree)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error[degree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias[degree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+    error[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>))**<span style="color: #B452CD">2</span> )
+    variance[degree] = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Polynomial degree:&#39;</span>, degree)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error[degree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias[degree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
 plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;Error&#39;</span>)
 plt.plot(polydegree, bias, label=<span style="color: #CD5555">&#39;bias&#39;</span>)
@@ -1145,7 +1144,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec28">Summing up </h2>
+<h2 id="summing-up">Summing up </h2>
 
 <p>
 The bias-variance tradeoff summarizes the fundamental tension in
@@ -1182,11 +1181,11 @@ You may also find this recent <a href="https://www.pnas.org/content/116/32/15849
 
 
 <section>
-<h2 id="___sec29">Another Example from Scikit-Learn's Repository </h2>
+<h2 id="another-example-from-scikit-learn-s-repository">Another Example from Scikit-Learn's Repository </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #CD5555">&quot;&quot;&quot;</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #CD5555">&quot;&quot;&quot;</span>
 <span style="color: #CD5555">============================</span>
 <span style="color: #CD5555">Underfitting vs. Overfitting</span>
 <span style="color: #CD5555">============================</span>
@@ -1208,7 +1207,7 @@ You may also find this recent <a href="https://www.pnas.org/content/116/32/15849
 <span style="color: #CD5555">training data.</span>
 <span style="color: #CD5555">&quot;&quot;&quot;</span>
 
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #00688B">__doc__</span>)
+<span style="color: #658b00">print</span>(<span style="color: #00688B">__doc__</span>)
 
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
@@ -1235,7 +1234,7 @@ plt.figure(figsize=(<span style="color: #B452CD">14</span>, <span style="color: 
     plt.setp(ax, xticks=(), yticks=())
 
     polynomial_features = PolynomialFeatures(degree=degrees[i],
-                                             include_bias=<span style="color: #658b00">False</span>)
+                                             include_bias=<span style="color: #8B008B; font-weight: bold">False</span>)
     linear_regression = LinearRegression()
     pipeline = Pipeline([(<span style="color: #CD5555">&quot;polynomial_features&quot;</span>, polynomial_features),
                          (<span style="color: #CD5555">&quot;linear_regression&quot;</span>, linear_regression)])
@@ -1262,12 +1261,12 @@ plt.show()
 
 
 <section>
-<h2 id="___sec30">More examples on bootstrap and cross-validation and errors </h2>
+<h2 id="more-examples-on-bootstrap-and-cross-validation-and-errors">More examples on bootstrap and cross-validation and errors </h2>
 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Common imports</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #228B22"># Common imports</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
@@ -1297,7 +1296,7 @@ DATA_ID = <span style="color: #CD5555">&quot;DataFiles/&quot;</span>
     <span style="color: #8B008B; font-weight: bold">return</span> os.path.join(DATA_ID, dat_id)
 
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">save_fig</span>(fig_id):
-    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, format=<span style="color: #CD5555">&#39;png&#39;</span>)
+    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, <span style="color: #658b00">format</span>=<span style="color: #CD5555">&#39;png&#39;</span>)
 
 infile = <span style="color: #658b00">open</span>(data_path(<span style="color: #CD5555">&quot;EoS.csv&quot;</span>),<span style="color: #CD5555">&#39;r&#39;</span>)
 
@@ -1327,7 +1326,7 @@ trials = <span style="color: #B452CD">100</span>
     trainingerror[polydegree] = <span style="color: #B452CD">0.0</span>
     <span style="color: #8B008B; font-weight: bold">for</span> samples <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(trials):
         x_train, x_test, y_train, y_test = train_test_split(X, Energies, test_size=<span style="color: #B452CD">0.2</span>)
-        model = LinearRegression(fit_intercept=<span style="color: #658b00">True</span>).fit(x_train, y_train)
+        model = LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">True</span>).fit(x_train, y_train)
         ypred = model.predict(x_train)
         ytilde = model.predict(x_test)
         testerror[polydegree] += mean_squared_error(y_test, ytilde)
@@ -1335,9 +1334,9 @@ trials = <span style="color: #B452CD">100</span>
 
     testerror[polydegree] /= trials
     trainingerror[polydegree] /= trials
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Degree of polynomial: %3d&quot;</span>% polynomial[polydegree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Mean squared error on training data: %.8f&quot;</span> % trainingerror[polydegree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Mean squared error on test data: %.8f&quot;</span> % testerror[polydegree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Degree of polynomial: %3d&quot;</span>% polynomial[polydegree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Mean squared error on training data: %.8f&quot;</span> % trainingerror[polydegree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Mean squared error on test data: %.8f&quot;</span> % testerror[polydegree])
 
 plt.plot(polynomial, np.log10(trainingerror), label=<span style="color: #CD5555">&#39;Training Error&#39;</span>)
 plt.plot(polynomial, np.log10(testerror), label=<span style="color: #CD5555">&#39;Test Error&#39;</span>)
@@ -1350,12 +1349,12 @@ plt.show()
 
 
 <section>
-<h2 id="___sec31">The same example but now with cross-validation </h2>
+<h2 id="the-same-example-but-now-with-cross-validation">The same example but now with cross-validation </h2>
 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Common imports</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #228B22"># Common imports</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
@@ -1387,7 +1386,7 @@ DATA_ID = <span style="color: #CD5555">&quot;DataFiles/&quot;</span>
     <span style="color: #8B008B; font-weight: bold">return</span> os.path.join(DATA_ID, dat_id)
 
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">save_fig</span>(fig_id):
-    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, format=<span style="color: #CD5555">&#39;png&#39;</span>)
+    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, <span style="color: #658b00">format</span>=<span style="color: #CD5555">&#39;png&#39;</span>)
 
 infile = <span style="color: #658b00">open</span>(data_path(<span style="color: #CD5555">&quot;EoS.csv&quot;</span>),<span style="color: #CD5555">&#39;r&#39;</span>)
 
@@ -1427,11 +1426,11 @@ plt.show()
 
 
 <section>
-<h2 id="___sec32">Cross-validation with Ridge </h2>
+<h2 id="cross-validation-with-ridge">Cross-validation with Ridge </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
@@ -1467,17 +1466,6 @@ plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
 plt.legend()
 plt.show()
 </pre></div>
-</section>
-
-
-<section>
-<h2 id="___sec33">Friday September 4  </h2>
-
-<p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember4.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember4.pdf" target="_blank">handwritten notes</a>
-
-<p>
-More material will be added here, see handwritten notes also.
 </section>
 
 
