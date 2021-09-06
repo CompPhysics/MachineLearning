@@ -2281,9 +2281,14 @@ $\bm{X}\bm{X}^T$\bm{U}=\bm{U}\begin{bmatrix} \tilde{\bm{\Sigma}} & \bm{0} \\ \bm
 \]
 !et
 
-It means that the eigenvalues of $\bm{X}\bm{X}^T$ are again given by the non-zero singular values plus now a series of zeros. However, when performing the matrix-matrix multiplications. The column vectors of $\bm{U}$ are the eigenvectors of $\bm{X}\bm{X}^T$ and measure how much correlations are contained in the rows of $\m{X}$.
+It means that the eigenvalues of $\bm{X}\bm{X}^T$ are again given by
+the non-zero singular values plus now a series of zeros.  The column
+vectors of $\bm{U}$ are the eigenvectors of $\bm{X}\bm{X}^T$ and
+measure how much correlations are contained in the rows of $\bm{X}$.
 
-Since we will mainly be interested in the correlations among features of our data, the quantity of interest for us are the non-zero singular values and the column vectors of $\bm{V}$.
+Since we will mainly be interested in the correlations among the features
+of our data (the columns of $\bm{X}$, the quantity of interest for us are the non-zero singular
+values and the column vectors of $\bm{V}$.
 
 
 !split
@@ -2350,7 +2355,7 @@ Here we have defined the norm-1 as
 
 
 !split
-===== More on Ridge Regression =====
+===== Deriving the  Ridge Regression Equations =====
 
 Using the matrix-vector expression for Ridge regression,
 
@@ -2363,10 +2368,10 @@ C(\bm{X},\bm{\beta})=\frac{1}{n}\left\{(\bm{y}-\bm{X}\bm{\beta})^T(\bm{y}-\bm{X}
 by taking the derivatives with respect to $\bm{\beta}$ we obtain then
 a slightly modified matrix inversion problem which for finite values
 of $\lambda$ does not suffer from singularity problems. We obtain
-
+the optimal parameters
 !bt
 \[
-\bm{\beta}^{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y},
+\hat{\bm{\beta}}_{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y},
 \]
 !et
 
@@ -2380,22 +2385,26 @@ with $\bm{I}$ being a $p\times p$ identity matrix with the constraint that
 
 with $t$ a finite positive number. 
 
-We see that Ridge regression is nothing but the standard
-OLS with a modified diagonal term added to $\bm{X}^T\bm{X}$. The
-consequences, in particular for our discussion of the bias-variance tradeoff 
-are rather interesting.
-
-Furthermore, if we use the result above in terms of the SVD decomposition (our analysis was done for the OLS method), we had
+When we compare this with the ordinary least squares result we have
 !bt
 \[
-(\bm{X}\bm{X}^T)\bm{U} = \bm{U}\bm{D}.
+\hat{\bm{\beta}}_{\mathrm{OLS}} = \left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y},
 \]
 !et
+which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\bm{X}^T\bm{X}$.
 
-We can  analyse the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\bm{U}$ as
+
+We see that Ridge regression is nothing but the standard OLS with a
+modified diagonal term added to $\bm{X}^T\bm{X}$. The consequences, in
+particular for our discussion of the bias-variance tradeoff are rather
+interesting. We will see that for specific values of $\lambda$, we may
+even reduce the variance of the optimal parameters $\bm{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+
+Using our insights about the SVD of the design matrix $\bm{X}$ 
+We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\bm{U}$ as
 !bt
 \[
-\bm{X}\bm{\beta} = \bm{X}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}\bm{X}^T\bm{y}=\bm{U\Sigma V^T}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\bm{U}\bm{U}^T\bm{y}
+\bm{X}\bm{\beta} = =\bm{U}\bm{U}^T\bm{y}.
 \]
 !et
 
@@ -2404,7 +2413,7 @@ For Ridge regression this becomes
 
 !bt
 \[
-\bm{X}\bm{\beta}^{\mathrm{Ridge}} = \bm{U\Sigma V^T}\left(\bm{V}\bm{D}\bm{V}^T+\lambda\bm{I} \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\sum_{j=0}^{p-1}\bm{u}_j\bm{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\bm{y},
+\bm{X}\bm{\beta}^{\mathrm{Ridge}} = \bm{U\Sigma V^T}\left(\bm{V}\bm{\Sigma}^2\bm{V}^T+\lambda\bm{I} \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\sum_{j=0}^{p-1}\bm{u}_j\bm{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\bm{y},
 \]
 !et
 
@@ -2466,103 +2475,6 @@ We will come back to more interpreations after we have gone through some of the 
 
 For more discussions of Ridge and Lasso regression, "Wessel van Wieringen's":"https://arxiv.org/abs/1509.09169" article is highly recommended.
 Similarly, "Mehta et al's article":"https://arxiv.org/abs/1803.08823" is also recommended.
-
-
-!split 
-===== A better understanding of regularization =====
-
-The parameter $\lambda$ that we have introduced in the Ridge (and
-Lasso as well) regression is often called a regularization parameter
-or shrinkage parameter. It is common to call it a hyperparameter. What does it mean mathemtically?
-
-Here we will first look at how to analyze the difference between the
-standard OLS equations and the Ridge expressions in terms of a linear
-algebra analysis using the SVD algorithm. Thereafter, we will link
-(see the material on the bias-variance tradeoff below) these
-observation to the statisical analysis of the results. In particular
-we consider how the variance of the parameters $\bm{\beta}$ is
-affected by changing the parameter $\lambda$.
-
-!split
-===== Decomposing the OLS and Ridge expressions =====
-
-We have our design matrix
- $\bm{X}\in {\mathbb{R}}^{n\times p}$. With the SVD we decompose it as 
-
-!bt 
-\[
-\bm{X} = \bm{U\Sigma V^T},
-\]
-!et
-
-with $\bm{U}\in {\mathbb{R}}^{n\times n}$, $\bm{\Sigma}\in {\mathbb{R}}^{n\times p}$
-and $\bm{V}\in {\mathbb{R}}^{p\times p}$.
-
-The matrices $\bm{U}$ and $\bm{V}$ are unitary/orthonormal matrices, that is in case the matrices are real we have $\bm{U}^T\bm{U}=\bm{U}\bm{U}^T=\bm{I}$ and $\bm{V}^T\bm{V}=\bm{V}\bm{V}^T=\bm{I}$.
-
-
-
-
-!split
-===== Mathematical Properties =====
-
-There are several interesting mathematical properties which will be
-relevant when we are going to discuss the differences between say
-ordinary least squares (OLS) and _Ridge_ regression.
-
-We have from OLS that the parameters of the linear approximation are given by
-!bt
-\[
-\bm{\tilde{y}} = \bm{X}\bm{\beta} = \bm{X}\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}. 
-\]
-!et
-
-The matrix to invert can be rewritten in terms of our SVD decomposition as
-
-!bt
-\[
-\bm{X}^T\bm{X} = \bm{V}\bm{\Sigma}^T\bm{U}^T\bm{U}\bm{\Sigma}\bm{V}^T.
-\]
-!et
-Using the orthogonality properties of $\bm{U}$ we have
-
-!bt
-\[
-\bm{X}^T\bm{X} = \bm{V}\bm{\Sigma}^T\bm{\Sigma}\bm{V}^T =  \bm{V}\bm{D}\bm{V}^T,
-\]
-!et
-with $\bm{D}$ being a diagonal matrix with values along the diagonal given by the singular values squared. 
-
-This means that
-!bt
-\[
-(\bm{X}^T\bm{X})\bm{V} = \bm{V}\bm{D},
-\]
-!et
-that is the eigenvectors of $(\bm{X}^T\bm{X})$ are given by the columns of the right singular matrix of $\bm{X}$ and the eigenvalues are the squared singular values.  It is easy to show (show this) that
-!bt
-\[
-(\bm{X}\bm{X}^T)\bm{U} = \bm{U}\bm{D},
-\]
-!et
-that is, the eigenvectors of $(\bm{X}\bm{X})^T$ are the columns of the left singular matrix and the eigenvalues are the same. 
-
-Going back to our OLS equation we have
-!bt
-\[
-\bm{X}\bm{\beta} = \bm{X}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}\bm{X}^T\bm{y}=\bm{U\Sigma V^T}\left(\bm{V}\bm{D}\bm{V}^T \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\bm{U}\bm{U}^T\bm{y}.
-\]
-!et
-We will come back to this expression when we discuss Ridge regression. 
-
-
-$$ \tilde{y}^{OLS}={\bf X}\hat{\beta}^{OLS}=\sum_{j=1}^p {\bf u}_j{\bf u}_j^T{\bf y}$$ and for Ridge we have 
-
-$$ \tilde{y}^{Ridge}={\bf X}\hat{\beta}^{Ridge}=\sum_{j=1}^p {\bf u}_j\frac{\sigma_j^2}{\sigma_j^2+\lambda}{\bf u}_j^T{\bf y}$$ . 
-
-It is indeed the economy-sized SVD, note the summation runs up tp $$p$$ only and not $$n$$. 
-
-Here we have that $${\bf X} = {\bf U}{\bf \Sigma}{\bf V}^T$$, with $$\Sigma$$ being an $$ n\times p$$ matrix and $${\bf V}$$ being a $$ p\times p$$ matrix. We also have assumed here that $$ n > p$$. 
 
 
 
