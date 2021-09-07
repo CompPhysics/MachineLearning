@@ -7,7 +7,7 @@ DATE: today
 ===== Plans for week 36 =====
 
 * Thursday: Summary from last week on SVD, Statistics, probability theory and linear regression
-* Friday: Linear Regression and links with Statistics, Resampling methods
+* Friday: Linear Regression and links with Statistics, Resampling methods and presentation of first project.
 
 
 !split
@@ -16,6 +16,346 @@ DATE: today
 
 !split
 ===== Summary from last Week and Examples =====
+
+!split
+===== Linking with the SVD =====
+
+We saw earlier that 
+!bt
+\[
+\bm{X}^T\bm{X}=\bm{V}\bm{\Sigma}^T\bm{U}^T\bm{U}\bm{\Sigma}\bm{V}^T=\bm{V}\bm{\Sigma}^T\bm{\Sigma}\bm{V}^T. 
+\]
+!et
+Since the matrices here have dimension $p\times p$, with $p$ corresponding to the singular values, we defined earlier the matrix
+!bt
+\[
+\bm{\Sigma}^T\bm{\Sigma} = \begin{bmatrix} \tilde{\bm{\Sigma}} & \bm{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\bm{\Sigma}} \\ \bm{0}\\ \end{bmatrix},
+\]
+!et
+where the tilde-matrix $\tilde{\bm{\Sigma}}$ is a matrix of dimension $p\times p$ containing only the singular values $\sigma_i$, that is
+
+!bt
+\[
+\tilde{\bm{\Sigma}}=\begin{bmatrix} \sigma_0 & 0 & 0 & \dots & 0 & 0 \\
+                                    0 & \sigma_1 & 0 & \dots & 0 & 0 \\
+				    0 & 0 & \sigma_2 & \dots & 0 & 0 \\
+				    0 & 0 & 0 & \dots & \sigma_{p-2} & 0 \\
+				    0 & 0 & 0 & \dots & 0 & \sigma_{p-1} \\
+\end{bmatrix},
+\]
+!et
+meaning we can write
+!bt
+\[
+\bm{X}^T\bm{X}=\bm{V}\tilde{\bm{\Sigma}}^2\bm{V}^T. 
+\]
+!et
+Multiplying from the right with $\bm{V}$ (using the orthogonality of $\bm{V}$) we get
+!bt
+\[
+\left(\bm{X}^T\bm{X}\right)\bm{V}=\bm{V}\tilde{\bm{\Sigma}}^2. 
+\]
+!et
+
+!split
+===== What does it mean? =====
+
+This means the vectors $\bm{v}_i$ of the orthogonal matrix $\bm{V}$
+are the eigenvectors of the matrix $\bm{X}^T\bm{X}$ with eigenvalues
+given by the singular values squared, that is
+
+!bt
+\[
+\left(\bm{X}^T\bm{X}\right)\bm{v}_i=\bm{v}_i\sigma_i^2. 
+\]
+!et
+
+In other words, each non-zero singular value of $\bm{X}$ is a positive
+square root of an eigenvalue of $\bm{X}^T\bm{X}$.  It means also that
+the columns of $\bm{V}$ are the eigenvectors of
+$\bm{X}^T\bm{X}$. Since we have ordered the singular values of
+$\bm{X}$ in a descending order, it means that the column vectors
+$\bm{v}_i$ are hierarchically ordered by how much correlation they
+encode from the columns of $\bm{X}$. 
+
+
+Note that these are also the eigenvectors and eigenvalues of the
+Hessian matrix.
+
+If we now recall the definition of the covariance matrix (not using
+Bessel's correction) we have
+
+
+!bt
+\[
+\bm{C}[\bm{X}]=\frac{1}{n}\bm{X}^T\bm{X},
+\]
+!et
+
+meaning that every squared non-singular value of $\bm{X}$ divided by $n$ (
+the number of samples) are the eigenvalues of the covariance
+matrix. Every singular value of $\bm{X}$ is thus a positive square
+root of an eigenvalue of $\bm{X}^T\bm{X}$. If the matrix $\bm{X}$ is
+self-adjoint, the singular values of $\bm{X}$ are equal to the
+absolute value of the eigenvalues of $\bm{X}$.
+
+!split
+===== And finally  $\bm{X}\bm{X}^T$ =====
+
+For $\bm{X}\bm{X}^T$ we found
+
+!bt
+\[
+\bm{X}\bm{X}^T=\bm{U}\bm{\Sigma}\bm{V}^T\bm{V}\bm{\Sigma}^T\bm{U}^T=\bm{U}\bm{\Sigma}^T\bm{\Sigma}\bm{U}^T. 
+\]
+!et
+Since the matrices here have dimension $n\times n$, we have
+!bt
+\[
+\bm{\Sigma}\bm{\Sigma}^T = \begin{bmatrix} \tilde{\bm{\Sigma}} \\ \bm{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\bm{\Sigma}}  \bm{0}\\ \end{bmatrix}=\begin{bmatrix} \tilde{\bm{\Sigma}} & \bm{0} \\ \bm{0} & \bm{0}\\ \end{bmatrix}, 
+\]
+!et
+leading to
+!bt
+\[
+\bm{X}\bm{X}^T=\bm{U}\begin{bmatrix} \tilde{\bm{\Sigma}} & \bm{0} \\ \bm{0} & \bm{0}\\ \end{bmatrix}\bm{U}^T. 
+\]
+!et
+
+Multiplying with $\bm{U}$ from the right gives us the eigenvalue problem
+!bt
+\[
+(\bm{X}\bm{X}^T)\bm{U}=\bm{U}\begin{bmatrix} \tilde{\bm{\Sigma}} & \bm{0} \\ \bm{0} & \bm{0}\\ \end{bmatrix}. 
+\]
+!et
+
+It means that the eigenvalues of $\bm{X}\bm{X}^T$ are again given by
+the non-zero singular values plus now a series of zeros.  The column
+vectors of $\bm{U}$ are the eigenvectors of $\bm{X}\bm{X}^T$ and
+measure how much correlations are contained in the rows of $\bm{X}$.
+
+Since we will mainly be interested in the correlations among the features
+of our data (the columns of $\bm{X}$, the quantity of interest for us are the non-zero singular
+values and the column vectors of $\bm{V}$.
+
+
+!split
+===== Ridge and LASSO Regression =====
+
+Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
+our optimization problem is
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\bm{y}-\bm{X}\bm{\beta}\right)^T\left(\bm{y}-\bm{X}\bm{\beta}\right)\right\}.
+\]
+!et
+or we can state it as
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2,
+\]
+!et
+where we have used the definition of  a norm-2 vector, that is
+!bt
+\[
+\vert\vert \bm{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}. 
+\]
+!et
+
+By minimizing the above equation with respect to the parameters
+$\bm{\beta}$ we could then obtain an analytical expression for the
+parameters $\bm{\beta}$.  We can add a regularization parameter $\lambda$ by
+defining a new cost function to be optimized, that is
+
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2+\lambda\vert\vert \bm{\beta}\vert\vert_2^2
+\]
+!et
+
+which leads to the Ridge regression minimization problem where we
+require that $\vert\vert \bm{\beta}\vert\vert_2^2\le t$, where $t$ is
+a finite number larger than zero. By defining
+
+!bt
+\[
+C(\bm{X},\bm{\beta})=\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2+\lambda\vert\vert \bm{\beta}\vert\vert_1,
+\]
+!et
+
+we have a new optimization equation
+!bt
+\[
+{\displaystyle \min_{\bm{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\beta}\vert\vert_2^2+\lambda\vert\vert \bm{\beta}\vert\vert_1
+\]
+!et
+which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
+
+Here we have defined the norm-1 as 
+!bt
+\[
+\vert\vert \bm{x}\vert\vert_1 = \sum_i \vert x_i\vert. 
+\]
+!et
+
+
+!split
+===== Deriving the  Ridge Regression Equations =====
+
+Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
+
+!bt
+\[
+C(\bm{X},\bm{\beta})=\left\{(\bm{y}-\bm{X}\bm{\beta})^T(\bm{y}-\bm{X}\bm{\beta})\right\}+\lambda\bm{\beta}^T\bm{\beta},
+\]
+!et
+and 
+taking the derivatives with respect to $\bm{\beta}$ we obtain then
+a slightly modified matrix inversion problem which for finite values
+of $\lambda$ does not suffer from singularity problems. We obtain
+the optimal parameters
+!bt
+\[
+\hat{\bm{\beta}}_{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y},
+\]
+!et
+
+with $\bm{I}$ being a $p\times p$ identity matrix with the constraint that
+
+!bt
+\[
+\sum_{i=0}^{p-1} \beta_i^2 \leq t,
+\]
+!et
+
+with $t$ a finite positive number. 
+
+When we compare this with the ordinary least squares result we have
+!bt
+\[
+\hat{\bm{\beta}}_{\mathrm{OLS}} = \left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y},
+\]
+!et
+which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\bm{X}^T\bm{X}$.
+
+
+We see that Ridge regression is nothing but the standard OLS with a
+modified diagonal term added to $\bm{X}^T\bm{X}$. The consequences, in
+particular for our discussion of the bias-variance tradeoff are rather
+interesting. We will see that for specific values of $\lambda$, we may
+even reduce the variance of the optimal parameters $\bm{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+
+Using our insights about the SVD of the design matrix $\bm{X}$ 
+We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\bm{U}$ as
+!bt
+\[
+\tilde{\bm{y}}_{\mathrm{OLS}}=\bm{X}\bm{\beta}  =\bm{U}\bm{U}^T\bm{y}.
+\]
+!et
+
+
+For Ridge regression this becomes
+
+!bt
+\[
+\tilde{\bm{y}}_{\mathrm{Ridge}}=\bm{X}\bm{\beta}_{\mathrm{Ridge}} = \bm{U\Sigma V^T}\left(\bm{V}\bm{\Sigma}^2\bm{V}^T+\lambda\bm{I} \right)^{-1}(\bm{U\Sigma V^T})^T\bm{y}=\sum_{j=0}^{p-1}\bm{u}_j\bm{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\bm{y},
+\]
+!et
+
+with the vectors $\bm{u}_j$ being the columns of $\bm{U}$ from the SVD of the matrix $\bm{X}$. 
+
+!split
+===== Interpreting the Ridge results =====
+
+Since $\lambda \geq 0$, it means that compared to OLS, we have 
+
+!bt
+\[
+\frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1. 
+\]
+!et
+
+Ridge regression finds the coordinates of $\bm{y}$ with respect to the
+orthonormal basis $\bm{U}$, it then shrinks the coordinates by
+$\frac{\sigma_j^2}{\sigma_j^2+\lambda}$. Recall that the SVD has
+eigenvalues ordered in a descending way, that is $\sigma_i \geq
+\sigma_{i+1}$.
+
+For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
+
+
+!split
+===== More interpretations =====
+
+For the sake of simplicity, let us assume that the design matrix is orthonormal, that is 
+
+!bt
+\[
+\bm{X}^T\bm{X}=(\bm{X}^T\bm{X})^{-1} =\bm{I}. 
+\]
+!et
+
+In this case the standard OLS results in 
+!bt
+\[
+\bm{\beta}^{\mathrm{OLS}} = \bm{X}^T\bm{y}=\sum_{i=0}^{p-1}\bm{u}_j\bm{u}_j^T\bm{y},
+\]
+!et
+
+and
+
+!bt
+\[
+\bm{\beta}^{\mathrm{Ridge}} = \left(\bm{I}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y}=\left(1+\lambda\right)^{-1}\bm{\beta}^{\mathrm{OLS}},
+\]
+!et
+
+that is the Ridge estimator scales the OLS estimator by the inverse of a factor $1+\lambda$, and
+the Ridge estimator converges to zero when the hyperparameter goes to
+infinity.
+
+We will come back to more interpreations after we have gone through some of the statistical analysis part. 
+
+For more discussions of Ridge and Lasso regression, "Wessel van Wieringen's":"https://arxiv.org/abs/1509.09169" article is highly recommended.
+Similarly, "Mehta et al's article":"https://arxiv.org/abs/1803.08823" is also recommended.
+
+!split
+===== Deriving the  Lasso Regression Equations =====
+
+Using the matrix-vector expression for Lasso regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have the following _cost_ function
+
+!bt
+\[
+C(\bm{X},\bm{\beta})=\left\{(\bm{y}-\bm{X}\bm{\beta})^T(\bm{y}-\bm{X}\bm{\beta})\right\}+\lambda\vert\vert\bm{\beta}\vert\vert_1,
+\]
+!et
+
+Taking the derivative with respect to $\bm{\beta}$ and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicty)
+!bt
+\[
+\frac{d \vert \beta\vert}{d \bm{\beta}}=\mathrm{sgn}(\bm{\beta})=\left\{\begin{array}{cc} 1 & \beta > 0 \\ 0 & \beta =0\\-1 & \beta < 0, \end{array}\right.
+\]
+!et
+we have that the derivative of the cost function is
+
+!bt
+\[
+\frac{\partial C(\bm{X},\bm{\beta})}{\partial \bm{\beta}}=-2\bm{X}^T(\bm{y}-\bm{X}\bm{\beta})+\lambda sgn(\bm{\beta})=0,
+\]
+!et
+and reordering we have
+!bt
+\[
+\bm{X}^T\bm{X}\bm{\beta})+\lambda sgn(\bm{\beta})=2\bm{X}^T(\bm{y}.
+\]
+!et
+This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package "CVXOPT":"https://cvxopt.org/". We will discuss this later. 
+
+
+
 
 !split
 ===== Simple example to illustrate Ordinary Least Squares, Ridge and Lasso Regression =====
@@ -1218,5 +1558,6 @@ plt.show()
 
 
 !ec
+
 
 
