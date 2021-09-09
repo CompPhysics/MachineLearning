@@ -80,6 +80,10 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'code-for-svd-and-inversion-of-matrices'),
+              ('Inverse of Rectangular Matrix',
+               2,
+               None,
+               'inverse-of-rectangular-matrix'),
               ('Ridge and LASSO Regression',
                2,
                None,
@@ -333,7 +337,7 @@ $$
 
 Since the matrices here have dimension \( p\times p \), with \( p \) corresponding to the singular values, we defined last week the matrix
 $$
-\boldsymbol{\Sigma}^T\boldsymbol{\Sigma} = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\\ \end{bmatrix},
+\boldsymbol{\Sigma}^T\boldsymbol{\Sigma} = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\end{bmatrix},
 $$
 
 where the tilde-matrix \( \tilde{\boldsymbol{\Sigma}} \) is a matrix of dimension \( p\times p \) containing only the singular values \( \sigma_i \), that is
@@ -479,14 +483,69 @@ Let us first look at a matrix which does not causes problems and write our own f
 
 
 <span style="color: #228B22">#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])</span>
-X = np.array( [ [<span style="color: #B452CD">1</span>,<span style="color: #B452CD">2</span>],[<span style="color: #B452CD">2</span>,<span style="color: #B452CD">3</span>]])
+<span style="color: #228B22"># Non-singular square matrix</span>
+X = np.array( [ [<span style="color: #B452CD">1</span>,<span style="color: #B452CD">2</span>,<span style="color: #B452CD">3</span>],[<span style="color: #B452CD">2</span>,<span style="color: #B452CD">4</span>,<span style="color: #B452CD">5</span>],[<span style="color: #B452CD">3</span>,<span style="color: #B452CD">5</span>,<span style="color: #B452CD">6</span>]])
 <span style="color: #658b00">print</span>(X)
 A = np.transpose(X) @ X
 <span style="color: #228B22"># Brute force inversion</span>
-B = np.linalg.inv(A)
+B = np.linalg.inv(A)  <span style="color: #228B22"># here we could use np.linalg.pinv(A)</span>
 C = SVDinv(A)
 <span style="color: #658b00">print</span>(np.abs(B-C))
 </pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="inverse-of-rectangular-matrix">Inverse of Rectangular Matrix </h2>
+
+<p>
+Although our matrix to invert \( \boldsymbol{X}^T\boldsymbol{X} \) is a square matrix, our matrix may be singular.
+
+<p>
+The pseudoinverse is the generalization of the matrix inverse for square matrices to
+rectangular matrices where the number of rows and columns are not equal.
+
+<p>
+It is also called the the Moore-Penrose Inverse after two independent discoverers of the method or the Generalized Inverse.
+It is used for the calculation of the inverse for singular or near singular matrices and for rectangular matrices.
+
+<p>
+Using the SVD we can obtain the pseudoinverse of a matrix \( \boldsymbol{A} \) (labeled here as \( \boldsymbol{A}_{\mathrm{PI}} \)
+$$
+\boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
+$$
+
+where \( \boldsymbol{D}_{\mathrm{PI}} \) can be calculated by creating a diagonal matrix from \( \boldsymbol{Sigma} \) where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #228B22"># SVD inversion</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">SVDinv</span>(A):
+    U, s, VT = np.linalg.svd(A)
+    <span style="color: #228B22"># reciprocals of singular values of s</span>
+    d = <span style="color: #B452CD">1.0</span> / s
+    <span style="color: #228B22"># create m x n D matrix</span>
+    D = np.zeros(A.shape)
+    <span style="color: #228B22"># populate D with n x n diagonal matrix</span>
+    D[:A.shape[<span style="color: #B452CD">1</span>], :A.shape[<span style="color: #B452CD">1</span>]] = np.diag(d)
+    UT = np.transpose(U)
+    V = np.transpose(VT)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.matmul(V,np.matmul(D.T,UT))
+
+
+A = np.array([ [<span style="color: #B452CD">0.3</span>, <span style="color: #B452CD">0.4</span>], [<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">0.6</span>], [<span style="color: #B452CD">0.7</span>, <span style="color: #B452CD">0.8</span>],[<span style="color: #B452CD">0.9</span>, <span style="color: #B452CD">1.0</span>]])
+<span style="color: #658b00">print</span>(A)
+<span style="color: #228B22"># Brute force inversion of super-collinear matrix</span>
+B = np.linalg.pinv(A)
+<span style="color: #658b00">print</span>(B)
+<span style="color: #228B22"># Compare our own algorithm with pinv</span>
+C = SVDinv(A)
+<span style="color: #658b00">print</span>(np.abs(C-B))
+</pre></div>
+<p>
+As you can see from this example, our own decomposition based on the SVD agrees the pseudoinverse algorithm provided by <b>Numpy</b>.
+
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
