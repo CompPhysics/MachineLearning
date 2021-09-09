@@ -118,6 +118,11 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'simple-code-for-solving-the-above-problem'),
+              ('With Lasso Regression', 2, None, 'with-lasso-regression'),
+              ('Another Example, now with a polynomial fit',
+               2,
+               None,
+               'another-example-now-with-a-polynomial-fit'),
               ('Linking the regression analysis with a statistical '
                'interpretation',
                2,
@@ -293,6 +298,14 @@ MathJax.Hub.Config({
 <li> Thursday: Summary from last week on SVD, Statistics, probability theory and linear regression</li>
 <li> Friday: Linear Regression and links with Statistics, Resampling methods and presentation of first project.</li>
 </ul>
+
+Recommended Reading:
+
+<ol>
+<li> Lectures on Regression</li>
+<li> Bishop 1.1, 1.2, 2.1, 2.2, 2.3 and 3.1</li>
+<li> Hastie et al chapter 3</li>
+</ol>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
@@ -879,6 +892,218 @@ Here we set up the OLS, Ridge and Lasso functionality in order to study the abov
 <p>
 First we study and compare the OLS and Ridge results.  The next code compares all three methods.
 
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+
+X = np.array( [ [ <span style="color: #B452CD">2</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>]])
+y = np.array( [<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, <span style="color: #B452CD">3</span>])
+
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+<span style="color: #228B22"># Repeat now for Ridge regression and various values of the regularization parameter</span>
+I = np.eye(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">2</span>)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">100</span>
+MSEPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+<span style="color: #228B22">#    print(Ridgebeta)</span>
+    <span style="color: #228B22"># and then make the prediction</span>
+    ypredictRidge = X @ Ridgebeta
+    MSEPredict[i] = MSE(y,ypredictRidge)
+<span style="color: #228B22">#    print(MSEPredict[i])</span>
+    <span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSEPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
+<p>
+We see here that we reach a plateau. What is actually happening?
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="with-lasso-regression">With Lasso Regression </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+
+X = np.array( [ [ <span style="color: #B452CD">2</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>]])
+y = np.array( [<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, <span style="color: #B452CD">3</span>])
+
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+<span style="color: #228B22"># Repeat now for Ridge regression and various values of the regularization parameter</span>
+I = np.eye(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">2</span>)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">100</span>
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+<span style="color: #228B22">#    print(Ridgebeta)</span>
+    <span style="color: #228B22"># and then make the prediction</span>
+    ypredictRidge = X @ Ridgebeta
+    MSERidgePredict[i] = MSE(y,ypredictRidge)
+<span style="color: #228B22">#    print(MSEPredict[i])</span>
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X,y)
+    ypredictLasso = RegLasso.predict(X)
+    MSELassoPredict[i] = MSE(y,ypredictLasso)
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Train&#39;</span>)
+plt.plot(np.log10(lambdas), MSELassoPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Lasso Train&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="another-example-now-with-a-polynomial-fit">Another Example, now with a polynomial fit </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">3155</span>)
+
+x = np.random.rand(<span style="color: #B452CD">100</span>)
+y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">5</span>*x*x+<span style="color: #B452CD">0.1</span>*np.random.randn(<span style="color: #B452CD">100</span>)
+
+<span style="color: #228B22"># number of features p (here degree of polynomial</span>
+p = <span style="color: #B452CD">3</span>
+<span style="color: #228B22">#  The design matrix now as function of a given polynomial</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x),p))
+X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
+X[:,<span style="color: #B452CD">1</span>] = x
+X[:,<span style="color: #B452CD">2</span>] = x*x
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X_train @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training R2 for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(R2(y_train,ytildeOLS))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test R2 for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(R2(y_test,ypredictOLS))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test MSE OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ypredictOLS))
+
+<span style="color: #228B22"># Repeat now for Lasso and Ridge regression and various values of the regularization parameter</span>
+I = np.eye(p,p)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">100</span>
+MSEPredict = np.zeros(nlambdas)
+MSETrain = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+MSELassoTrain = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    <span style="color: #228B22"># include lasso using Scikit-Learn</span>
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X_train,y_train)
+    <span style="color: #228B22"># and then make the prediction</span>
+    ytildeRidge = X_train @ Ridgebeta
+    ypredictRidge = X_test @ Ridgebeta
+    ytildeLasso = RegLasso.predict(X_train)
+    ypredictLasso = RegLasso.predict(X_test)
+    MSEPredict[i] = MSE(y_test,ypredictRidge)
+    MSETrain[i] = MSE(y_train,ytildeRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    MSELassoTrain[i] = MSE(y_train,ytildeLasso)
+
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSETrain, label = <span style="color: #CD5555">&#39;MSE Ridge train&#39;</span>)
+plt.plot(np.log10(lambdas), MSEPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+plt.plot(np.log10(lambdas), MSELassoTrain, label = <span style="color: #CD5555">&#39;MSE Lasso train&#39;</span>)
+plt.plot(np.log10(lambdas), MSELassoPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Lasso Test&#39;</span>)
+
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
 <p>
 <!-- !split  -->
 

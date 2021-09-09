@@ -9,6 +9,11 @@ DATE: today
 * Thursday: Summary from last week on SVD, Statistics, probability theory and linear regression
 * Friday: Linear Regression and links with Statistics, Resampling methods and presentation of first project.
 
+Recommended Reading:
+o Lectures on Regression
+o Bishop 1.1, 1.2, 2.1, 2.2, 2.3 and 3.1
+o Hastie et al chapter 3
+
 
 !split
 ===== Thursday September 9  =====
@@ -592,6 +597,218 @@ Using the constraint on $\beta_0$ and $\beta_1$ we can then find the optimal val
 Here we set up the OLS, Ridge and Lasso functionality in order to study the above example. Note that here we have opted for a set of values of $\lambda$, meaning that we need to perform a search in order to find the optimal values.
 
 First we study and compare the OLS and Ridge results.  The next code compares all three methods.
+
+
+!bc pycod
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+
+X = np.array( [ [ 2, 0], [0, 1], [0,0]])
+y = np.array( [4, 2, 3])
+
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(2,2)
+# Decide which values of lambda to use
+nlambdas = 100
+MSEPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+#    print(Ridgebeta)
+    # and then make the prediction
+    ypredictRidge = X @ Ridgebeta
+    MSEPredict[i] = MSE(y,ypredictRidge)
+#    print(MSEPredict[i])
+    # Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Test')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+!ec
+
+We see here that we reach a plateau. What is actually happening?
+
+
+!split
+===== With Lasso Regression =====
+
+!bc pycod
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+
+X = np.array( [ [ 2, 0], [0, 1], [0,0]])
+y = np.array( [4, 2, 3])
+
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(2,2)
+# Decide which values of lambda to use
+nlambdas = 100
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+#    print(Ridgebeta)
+    # and then make the prediction
+    ypredictRidge = X @ Ridgebeta
+    MSERidgePredict[i] = MSE(y,ypredictRidge)
+#    print(MSEPredict[i])
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X,y)
+    ypredictLasso = RegLasso.predict(X)
+    MSELassoPredict[i] = MSE(y,ypredictLasso)
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, 'r--', label = 'MSE Ridge Train')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Train')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+!ec
+
+!split
+=====  Another Example, now with a polynomial fit =====
+
+!bc pycod
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+# number of features p (here degree of polynomial
+p = 3
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),p))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x*x
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X_train @ OLSbeta
+print("Training R2 for OLS")
+print(R2(y_train,ytildeOLS))
+print("Training MSE for OLS")
+print(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+print("Test R2 for OLS")
+print(R2(y_test,ypredictOLS))
+print("Test MSE OLS")
+print(MSE(y_test,ypredictOLS))
+
+# Repeat now for Lasso and Ridge regression and various values of the regularization parameter
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 100
+MSEPredict = np.zeros(nlambdas)
+MSETrain = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+MSELassoTrain = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    # include lasso using Scikit-Learn
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X_train,y_train)
+    # and then make the prediction
+    ytildeRidge = X_train @ Ridgebeta
+    ypredictRidge = X_test @ Ridgebeta
+    ytildeLasso = RegLasso.predict(X_train)
+    ypredictLasso = RegLasso.predict(X_test)
+    MSEPredict[i] = MSE(y_test,ypredictRidge)
+    MSETrain[i] = MSE(y_train,ytildeRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    MSELassoTrain[i] = MSE(y_train,ytildeLasso)
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSETrain, label = 'MSE Ridge train')
+plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Test')
+plt.plot(np.log10(lambdas), MSELassoTrain, label = 'MSE Lasso train')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Test')
+
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+
+
+
+!ec
 
 
 !split 
