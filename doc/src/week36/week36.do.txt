@@ -144,6 +144,52 @@ of our data (the columns of $\bm{X}$, the quantity of interest for us are the no
 values and the column vectors of $\bm{V}$.
 
 
+
+!split
+=====  Code for SVD and Inversion of Matrices =====
+
+How do we use the SVD to invert a matrix $\bm{X}^\bm{X}$ which is singular or near singular?
+The simple answer is to use the linear algebra function for pseudoinvers, that is
+!bc pycod
+Ainv = np.linlag.pinv(A)
+!ec
+
+Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
+
+!bc pycod
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
+    SVD is numerically more stable than the inversion algorithms provided by
+    numpy and scipy.linalg at the cost of being slower.
+    '''
+    U, s, VT = np.linalg.svd(A)
+    print('test U')
+    print( (np.transpose(U) @ U - U @np.transpose(U)))
+    print('test VT')
+    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
+
+
+    D = np.zeros((len(U),len(VT)))
+    D = np.diag(s)
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
+    return np.matmul(V,np.matmul(invD,UT))
+
+
+#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
+X = np.array( [ [1,2],[2,3]])
+print(X)
+A = np.transpose(X) @ X
+# Brute force inversion
+B = np.linalg.inv(A)
+C = SVDinv(A)
+print(np.abs(B-C))
+!ec
+
+
+
+
 !split
 ===== Ridge and LASSO Regression =====
 
@@ -698,14 +744,14 @@ lambdas = np.logspace(-4, 4, nlambdas)
 for i in range(nlambdas):
     lmb = lambdas[i]
     Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
-#    print(Ridgebeta)
+    print(Ridgebeta)
     # and then make the prediction
     ypredictRidge = X @ Ridgebeta
     MSERidgePredict[i] = MSE(y,ypredictRidge)
-#    print(MSEPredict[i])
     RegLasso = linear_model.Lasso(lmb)
     RegLasso.fit(X,y)
     ypredictLasso = RegLasso.predict(X)
+    print(RegLasso_coef_)
     MSELassoPredict[i] = MSE(y,ypredictLasso)
 # Now plot the results
 plt.figure()
@@ -758,13 +804,9 @@ OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
 print(OLSbeta)
 # and then make the prediction
 ytildeOLS = X_train @ OLSbeta
-print("Training R2 for OLS")
-print(R2(y_train,ytildeOLS))
 print("Training MSE for OLS")
 print(MSE(y_train,ytildeOLS))
 ypredictOLS = X_test @ OLSbeta
-print("Test R2 for OLS")
-print(R2(y_test,ypredictOLS))
 print("Test MSE OLS")
 print(MSE(y_test,ypredictOLS))
 

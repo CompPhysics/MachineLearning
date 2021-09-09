@@ -81,6 +81,10 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'and-finally-boldsymbol-x-boldsymbol-x-t'),
+              ('Code for SVD and Inversion of Matrices',
+               2,
+               None,
+               'code-for-svd-and-inversion-of-matrices'),
               ('Ridge and LASSO Regression',
                2,
                None,
@@ -440,6 +444,54 @@ Since we will mainly be interested in the correlations among the features
 of our data (the columns of \( \boldsymbol{X} \), the quantity of interest for us are the non-zero singular
 values and the column vectors of \( \boldsymbol{V} \).
 
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="code-for-svd-and-inversion-of-matrices">Code for SVD and Inversion of Matrices </h2>
+
+<p>
+How do we use the SVD to invert a matrix \( \boldsymbol{X}^\boldsymbol{X} \) which is singular or near singular?
+The simple answer is to use the linear algebra function for pseudoinvers, that is
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>Ainv <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linlag<span style="color: #666666">.</span>pinv(A)
+</pre></div>
+<p>
+Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #408080; font-style: italic"># SVD inversion</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">SVDinv</span>(A):
+    <span style="color: #BA2121; font-style: italic">&#39;&#39;&#39; Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).</span>
+<span style="color: #BA2121; font-style: italic">    SVD is numerically more stable than the inversion algorithms provided by</span>
+<span style="color: #BA2121; font-style: italic">    numpy and scipy.linalg at the cost of being slower.</span>
+<span style="color: #BA2121; font-style: italic">    &#39;&#39;&#39;</span>
+    U, s, VT <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>svd(A)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;test U&#39;</span>)
+    <span style="color: #008000">print</span>( (np<span style="color: #666666">.</span>transpose(U) <span style="color: #666666">@</span> U <span style="color: #666666">-</span> U <span style="color: #AA22FF">@np</span><span style="color: #666666">.</span>transpose(U)))
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;test VT&#39;</span>)
+    <span style="color: #008000">print</span>( (np<span style="color: #666666">.</span>transpose(VT) <span style="color: #666666">@</span> VT <span style="color: #666666">-</span> VT <span style="color: #AA22FF">@np</span><span style="color: #666666">.</span>transpose(VT)))
+
+
+    D <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(U),<span style="color: #008000">len</span>(VT)))
+    D <span style="color: #666666">=</span> np<span style="color: #666666">.</span>diag(s)
+    UT <span style="color: #666666">=</span> np<span style="color: #666666">.</span>transpose(U); V <span style="color: #666666">=</span> np<span style="color: #666666">.</span>transpose(VT); invD <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(D)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>matmul(V,np<span style="color: #666666">.</span>matmul(invD,UT))
+
+
+<span style="color: #408080; font-style: italic">#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array( [ [<span style="color: #666666">1</span>,<span style="color: #666666">2</span>],[<span style="color: #666666">2</span>,<span style="color: #666666">3</span>]])
+<span style="color: #008000">print</span>(X)
+A <span style="color: #666666">=</span> np<span style="color: #666666">.</span>transpose(X) <span style="color: #666666">@</span> X
+<span style="color: #408080; font-style: italic"># Brute force inversion</span>
+B <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(A)
+C <span style="color: #666666">=</span> SVDinv(A)
+<span style="color: #008000">print</span>(np<span style="color: #666666">.</span>abs(B<span style="color: #666666">-</span>C))
+</pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
@@ -1000,14 +1052,14 @@ lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</
 <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(nlambdas):
     lmb <span style="color: #666666">=</span> lambdas[i]
     Ridgebeta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X<span style="color: #666666">+</span>lmb<span style="color: #666666">*</span>I) <span style="color: #666666">@</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y
-<span style="color: #408080; font-style: italic">#    print(Ridgebeta)</span>
+    <span style="color: #008000">print</span>(Ridgebeta)
     <span style="color: #408080; font-style: italic"># and then make the prediction</span>
     ypredictRidge <span style="color: #666666">=</span> X <span style="color: #666666">@</span> Ridgebeta
     MSERidgePredict[i] <span style="color: #666666">=</span> MSE(y,ypredictRidge)
-<span style="color: #408080; font-style: italic">#    print(MSEPredict[i])</span>
     RegLasso <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>Lasso(lmb)
     RegLasso<span style="color: #666666">.</span>fit(X,y)
     ypredictLasso <span style="color: #666666">=</span> RegLasso<span style="color: #666666">.</span>predict(X)
+    <span style="color: #008000">print</span>(RegLasso_coef_)
     MSELassoPredict[i] <span style="color: #666666">=</span> MSE(y,ypredictLasso)
 <span style="color: #408080; font-style: italic"># Now plot the results</span>
 plt<span style="color: #666666">.</span>figure()
@@ -1062,13 +1114,9 @@ OLSbeta <span style="color: #666666">=</span> np<span style="color: #666666">.</
 <span style="color: #008000">print</span>(OLSbeta)
 <span style="color: #408080; font-style: italic"># and then make the prediction</span>
 ytildeOLS <span style="color: #666666">=</span> X_train <span style="color: #666666">@</span> OLSbeta
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Training R2 for OLS&quot;</span>)
-<span style="color: #008000">print</span>(R2(y_train,ytildeOLS))
 <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Training MSE for OLS&quot;</span>)
 <span style="color: #008000">print</span>(MSE(y_train,ytildeOLS))
 ypredictOLS <span style="color: #666666">=</span> X_test <span style="color: #666666">@</span> OLSbeta
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Test R2 for OLS&quot;</span>)
-<span style="color: #008000">print</span>(R2(y_test,ypredictOLS))
 <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Test MSE OLS&quot;</span>)
 <span style="color: #008000">print</span>(MSE(y_test,ypredictOLS))
 
