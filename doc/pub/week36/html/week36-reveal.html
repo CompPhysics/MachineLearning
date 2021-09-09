@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
+<meta name="generator" content="DocOnce: https://github.com/doconce/doconce/" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Week 36: Resampling techniques and Ordinary Least Square">
+<meta name="description" content="Week 36: Statistical interpretation of Linear Regression and Resampling techniques">
 
-<title>Week 36: Resampling techniques and Ordinary Least Square</title>
-
-
+<title>Week 36: Statistical interpretation of Linear Regression and Resampling techniques</title>
 
 
 
 
 
-<!-- reveal.js: http://lab.hakim.se/reveal-js/ -->
+
+
+<!-- reveal.js: https://lab.hakim.se/reveal-js/ -->
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -76,10 +76,10 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
      .reveal .alert-block > p, .alert-block > ul {margin-bottom:1em}
      /*.reveal .alert li {margin-top: 1em}*/
      .reveal .alert-block p+p {margin-top:5px}
-     /*.reveal .alert-notice { background-image: url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_notice.png); }
-     .reveal .alert-summary  { background-image:url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_summary.png); }
-     .reveal .alert-warning { background-image: url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_warning.png); }
-     .reveal .alert-question {background-image:url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_question.png); } */
+     /*.reveal .alert-notice { background-image: url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_notice.png); }
+     .reveal .alert-summary  { background-image:url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_summary.png); }
+     .reveal .alert-warning { background-image: url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_warning.png); }
+     .reveal .alert-question {background-image:url(https://hplgit.github.io/doconce/bundled/html_images/small_gray_question.png); } */
 
 </style>
 
@@ -132,7 +132,7 @@ MathJax.Hub.Config({
 
 
 
-<center><h1 style="text-align: center;">Week 36: Resampling techniques and Ordinary Least Square</h1></center>  <!-- document title -->
+<center><h1 style="text-align: center;">Week 36: Statistical interpretation of Linear Regression and Resampling techniques</h1></center>  <!-- document title -->
 
 <p>
 <!-- author(s): Morten Hjorth-Jensen -->
@@ -148,149 +148,995 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Sep 16, 2020</h4></center> <!-- date -->
+<center><h4>Sep 9, 2021</h4></center> <!-- date -->
 <br>
 <p>
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2020, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
 </center>
 </section>
 
 
 <section>
-<h2 id="___sec0">Plans for week 36 </h2>
+<h2 id="plans-for-week-36">Plans for week 36 </h2>
 
 <ul>
-<p><li> Thursday: Statistics, probability theory and resampling methods</li>
-<p><li> Friday: Resampling methods and motivation for Ridge Regression</li>
+<p><li> Thursday: Summary from last week on SVD, Statistics, probability theory and linear regression</li>
+<p><li> Friday: Linear Regression and links with Statistics, Resampling methods and presentation of first project.</li>
 </ul>
-</section>
-
-
-<section>
-<h2 id="___sec1">Thursday September 3  </h2>
-
 <p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSept3.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember3.pdf" target="_blank">handwritten notes</a>
 
-<p>
-More material will be added here, see handwritten notes also.
-</section>
-
-
-<section>
-<h2 id="___sec2">Why resampling methods </h2>
-
-<p>
-Before we proceed, we need to rethink what we have been doing. In our
-eager to fit the data, we have omitted several important elements in
-our regression analysis. In what follows we will
+Recommended Reading:
 
 <ol>
-<p><li> look at statistical properties, including a discussion of mean values, variance and the so-called bias-variance tradeoff</li>
-<p><li> introduce resampling techniques like cross-validation, bootstrapping and jackknife and more</li>
+<p><li> Lectures on Regression</li>
+<p><li> Bishop 1.1, 1.2, 2.1, 2.2, 2.3 and 3.1</li>
+<p><li> Hastie et al chapter 3</li>
 </ol>
-<p>
-
-This will allow us to link the standard linear algebra methods we have discussed above to a statistical interpretation of the methods.
 </section>
 
 
 <section>
-<h2 id="___sec3">Resampling methods </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-Resampling methods are an indispensable tool in modern
-statistics. They involve repeatedly drawing samples from a training
-set and refitting a model of interest on each sample in order to
-obtain additional information about the fitted model. For example, in
-order to estimate the variability of a linear regression fit, we can
-repeatedly draw different samples from the training data, fit a linear
-regression to each new sample, and then examine the extent to which
-the resulting fits differ. Such an approach may allow us to obtain
-information that would not be available from fitting the model only
-once using the original training sample.
+<h2 id="thursday-september-9">Thursday September 9  </h2>
+</section>
+
+
+<section>
+<h2 id="summary-from-last-week-and-examples">Summary from last Week and Examples </h2>
+</section>
+
+
+<section>
+<h2 id="linear-regression-and-the-svd">Linear Regression and  the SVD </h2>
 
 <p>
-Two resampling methods are often used in Machine Learning analyses,
+We used the SVD to analyse the matrix to invert in ordinary lineat regression
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{V}^T. 
+$$
+<p>&nbsp;<br>
+
+Since the matrices here have dimension \( p\times p \), with \( p \) corresponding to the singular values, we defined last week the matrix
+<p>&nbsp;<br>
+$$
+\boldsymbol{\Sigma}^T\boldsymbol{\Sigma} = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\\ \end{bmatrix},
+$$
+<p>&nbsp;<br>
+
+where the tilde-matrix \( \tilde{\boldsymbol{\Sigma}} \) is a matrix of dimension \( p\times p \) containing only the singular values \( \sigma_i \), that is
+
+<p>&nbsp;<br>
+$$
+\tilde{\boldsymbol{\Sigma}}=\begin{bmatrix} \sigma_0 & 0 & 0 & \dots & 0 & 0 \\
+                                    0 & \sigma_1 & 0 & \dots & 0 & 0 \\
+				    0 & 0 & \sigma_2 & \dots & 0 & 0 \\
+				    0 & 0 & 0 & \dots & \sigma_{p-2} & 0 \\
+				    0 & 0 & 0 & \dots & 0 & \sigma_{p-1} \\
+\end{bmatrix},
+$$
+<p>&nbsp;<br>
+
+meaning we can write
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2\boldsymbol{V}^T. 
+$$
+<p>&nbsp;<br>
+
+Multiplying from the right with \( \boldsymbol{V} \) (using the orthogonality of \( \boldsymbol{V} \)) we get
+<p>&nbsp;<br>
+$$
+\left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{V}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2. 
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="what-does-it-mean">What does it mean? </h2>
+
+<p>
+This means the vectors \( \boldsymbol{v}_i \) of the orthogonal matrix \( \boldsymbol{V} \)
+are the eigenvectors of the matrix \( \boldsymbol{X}^T\boldsymbol{X} \) with eigenvalues
+given by the singular values squared, that is
+
+<p>&nbsp;<br>
+$$
+\left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{v}_i=\boldsymbol{v}_i\sigma_i^2. 
+$$
+<p>&nbsp;<br>
+
+<p>
+In other words, each non-zero singular value of \( \boldsymbol{X} \) is a positive
+square root of an eigenvalue of \( \boldsymbol{X}^T\boldsymbol{X} \).  It means also that
+the columns of \( \boldsymbol{V} \) are the eigenvectors of
+\( \boldsymbol{X}^T\boldsymbol{X} \). Since we have ordered the singular values of
+\( \boldsymbol{X} \) in a descending order, it means that the column vectors
+\( \boldsymbol{v}_i \) are hierarchically ordered by how much correlation they
+encode from the columns of \( \boldsymbol{X} \).
+
+<p>
+Note that these are also the eigenvectors and eigenvalues of the
+Hessian matrix.
+
+<p>
+If we now recall the definition of the covariance matrix (not using
+Bessel's correction) we have
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{C}[\boldsymbol{X}]=\frac{1}{n}\boldsymbol{X}^T\boldsymbol{X},
+$$
+<p>&nbsp;<br>
+
+<p>
+meaning that every squared non-singular value of \( \boldsymbol{X} \) divided by \( n \) (
+the number of samples) are the eigenvalues of the covariance
+matrix. Every singular value of \( \boldsymbol{X} \) is thus a positive square
+root of an eigenvalue of \( \boldsymbol{X}^T\boldsymbol{X} \). If the matrix \( \boldsymbol{X} \) is
+self-adjoint, the singular values of \( \boldsymbol{X} \) are equal to the
+absolute value of the eigenvalues of \( \boldsymbol{X} \).
+</section>
+
+
+<section>
+<h2 id="and-finally-boldsymbol-x-boldsymbol-x-t">And finally  \( \boldsymbol{X}\boldsymbol{X}^T \) </h2>
+
+<p>
+For \( \boldsymbol{X}\boldsymbol{X}^T \) we found
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T=\boldsymbol{U}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{U}^T. 
+$$
+<p>&nbsp;<br>
+
+Since the matrices here have dimension \( n\times n \), we have
+<p>&nbsp;<br>
+$$
+\boldsymbol{\Sigma}\boldsymbol{\Sigma}^T = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}}  \boldsymbol{0}\\ \end{bmatrix}=\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}, 
+$$
+<p>&nbsp;<br>
+
+leading to
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}\boldsymbol{U}^T. 
+$$
+<p>&nbsp;<br>
+
+<p>
+Multiplying with \( \boldsymbol{U} \) from the right gives us the eigenvalue problem
+<p>&nbsp;<br>
+$$
+(\boldsymbol{X}\boldsymbol{X}^T)\boldsymbol{U}=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}. 
+$$
+<p>&nbsp;<br>
+
+<p>
+It means that the eigenvalues of \( \boldsymbol{X}\boldsymbol{X}^T \) are again given by
+the non-zero singular values plus now a series of zeros.  The column
+vectors of \( \boldsymbol{U} \) are the eigenvectors of \( \boldsymbol{X}\boldsymbol{X}^T \) and
+measure how much correlations are contained in the rows of \( \boldsymbol{X} \).
+
+<p>
+Since we will mainly be interested in the correlations among the features
+of our data (the columns of \( \boldsymbol{X} \), the quantity of interest for us are the non-zero singular
+values and the column vectors of \( \boldsymbol{V} \).
+</section>
+
+
+<section>
+<h2 id="code-for-svd-and-inversion-of-matrices">Code for SVD and Inversion of Matrices </h2>
+
+<p>
+How do we use the SVD to invert a matrix \( \boldsymbol{X}^\boldsymbol{X} \) which is singular or near singular?
+The simple answer is to use the linear algebra function for pseudoinvers, that is
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span>Ainv = np.linlag.pinv(A)
+</pre></div>
+<p>
+Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #228B22"># SVD inversion</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">SVDinv</span>(A):
+    <span style="color: #CD5555">&#39;&#39;&#39; Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).</span>
+<span style="color: #CD5555">    SVD is numerically more stable than the inversion algorithms provided by</span>
+<span style="color: #CD5555">    numpy and scipy.linalg at the cost of being slower.</span>
+<span style="color: #CD5555">    &#39;&#39;&#39;</span>
+    U, s, VT = np.linalg.svd(A)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;test U&#39;</span>)
+    <span style="color: #658b00">print</span>( (np.transpose(U) @ U - U <span style="color: #707a7c">@np</span>.transpose(U)))
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;test VT&#39;</span>)
+    <span style="color: #658b00">print</span>( (np.transpose(VT) @ VT - VT <span style="color: #707a7c">@np</span>.transpose(VT)))
+
+
+    D = np.zeros((<span style="color: #658b00">len</span>(U),<span style="color: #658b00">len</span>(VT)))
+    D = np.diag(s)
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.matmul(V,np.matmul(invD,UT))
+
+
+<span style="color: #228B22">#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])</span>
+X = np.array( [ [<span style="color: #B452CD">1</span>,<span style="color: #B452CD">2</span>],[<span style="color: #B452CD">2</span>,<span style="color: #B452CD">3</span>]])
+<span style="color: #658b00">print</span>(X)
+A = np.transpose(X) @ X
+<span style="color: #228B22"># Brute force inversion</span>
+B = np.linalg.inv(A)
+C = SVDinv(A)
+<span style="color: #658b00">print</span>(np.abs(B-C))
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="ridge-and-lasso-regression">Ridge and LASSO Regression </h2>
+
+<p>
+Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
+our optimization problem is
+<p>&nbsp;<br>
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right\}.
+$$
+<p>&nbsp;<br>
+
+or we can state it as
+<p>&nbsp;<br>
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2,
+$$
+<p>&nbsp;<br>
+
+where we have used the definition of  a norm-2 vector, that is
+<p>&nbsp;<br>
+$$
+\vert\vert \boldsymbol{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}. 
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="from-ols-to-ridge-and-lasso">From OLS to Ridge and Lasso </h2>
+
+<p>
+By minimizing the above equation with respect to the parameters
+\( \boldsymbol{\beta} \) we could then obtain an analytical expression for the
+parameters \( \boldsymbol{\beta} \).  We can add a regularization parameter \( \lambda \) by
+defining a new cost function to be optimized, that is
+
+<p>&nbsp;<br>
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+$$
+<p>&nbsp;<br>
+
+<p>
+which leads to the Ridge regression minimization problem where we
+require that \( \vert\vert \boldsymbol{\beta}\vert\vert_2^2\le t \), where \( t \) is
+a finite number larger than zero. By defining
+
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1,
+$$
+<p>&nbsp;<br>
+
+<p>
+we have a new optimization equation
+<p>&nbsp;<br>
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1
+$$
+<p>&nbsp;<br>
+
+which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator.
+
+<p>
+Here we have defined the norm-1 as 
+<p>&nbsp;<br>
+$$
+\vert\vert \boldsymbol{x}\vert\vert_1 = \sum_i \vert x_i\vert. 
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="deriving-the-ridge-regression-equations">Deriving the  Ridge Regression Equations </h2>
+
+<p>
+Using the matrix-vector expression for Ridge regression and dropping the parameter \( 1/n \) in front of the standard means squared error equation, we have
+
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\boldsymbol{\beta}^T\boldsymbol{\beta},
+$$
+<p>&nbsp;<br>
+
+and 
+taking the derivatives with respect to \( \boldsymbol{\beta} \) we obtain then
+a slightly modified matrix inversion problem which for finite values
+of \( \lambda \) does not suffer from singularity problems. We obtain
+the optimal parameters
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+$$
+<p>&nbsp;<br>
+
+<p>
+with \( \boldsymbol{I} \) being a \( p\times p \) identity matrix with the constraint that
+
+<p>&nbsp;<br>
+$$
+\sum_{i=0}^{p-1} \beta_i^2 \leq t,
+$$
+<p>&nbsp;<br>
+
+<p>
+with \( t \) a finite positive number.
+
+<p>
+When we compare this with the ordinary least squares result we have
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+$$
+<p>&nbsp;<br>
+
+which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix \( \boldsymbol{X}^T\boldsymbol{X} \).
+
+<p>
+We see that Ridge regression is nothing but the standard OLS with a
+modified diagonal term added to \( \boldsymbol{X}^T\boldsymbol{X} \). The consequences, in
+particular for our discussion of the bias-variance tradeoff are rather
+interesting. We will see that for specific values of \( \lambda \), we may
+even reduce the variance of the optimal parameters \( \boldsymbol{\beta} \). These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+</section>
+
+
+<section>
+<h2 id="svd-analysis">SVD analysis </h2>
+
+<p>
+Using our insights about the SVD of the design matrix \( \boldsymbol{X} \) 
+We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix \( \boldsymbol{U} \) as
+<p>&nbsp;<br>
+$$
+\tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\beta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
+$$
+<p>&nbsp;<br>
+
+<p>
+For Ridge regression this becomes
+
+<p>&nbsp;<br>
+$$
+\tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\beta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
+$$
+<p>&nbsp;<br>
+
+<p>
+with the vectors \( \boldsymbol{u}_j \) being the columns of \( \boldsymbol{U} \) from the SVD of the matrix \( \boldsymbol{X} \).
+</section>
+
+
+<section>
+<h2 id="interpreting-the-ridge-results">Interpreting the Ridge results </h2>
+
+<p>
+Since \( \lambda \geq 0 \), it means that compared to OLS, we have
+
+<p>&nbsp;<br>
+$$
+\frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1. 
+$$
+<p>&nbsp;<br>
+
+<p>
+Ridge regression finds the coordinates of \( \boldsymbol{y} \) with respect to the
+orthonormal basis \( \boldsymbol{U} \), it then shrinks the coordinates by
+\( \frac{\sigma_j^2}{\sigma_j^2+\lambda} \). Recall that the SVD has
+eigenvalues ordered in a descending way, that is \( \sigma_i \geq
+\sigma_{i+1} \).
+
+<p>
+For small eigenvalues \( \sigma_i \) it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
+</section>
+
+
+<section>
+<h2 id="more-interpretations">More interpretations </h2>
+
+<p>
+For the sake of simplicity, let us assume that the design matrix is orthonormal, that is
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}^T\boldsymbol{X}=(\boldsymbol{X}^T\boldsymbol{X})^{-1} =\boldsymbol{I}. 
+$$
+<p>&nbsp;<br>
+
+<p>
+In this case the standard OLS results in 
+<p>&nbsp;<br>
+$$
+\boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\boldsymbol{y},
+$$
+<p>&nbsp;<br>
+
+<p>
+and
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{\beta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\beta}^{\mathrm{OLS}},
+$$
+<p>&nbsp;<br>
+
+<p>
+that is the Ridge estimator scales the OLS estimator by the inverse of a factor \( 1+\lambda \), and
+the Ridge estimator converges to zero when the hyperparameter goes to
+infinity.
+
+<p>
+We will come back to more interpreations after we have gone through some of the statistical analysis part.
+
+<p>
+For more discussions of Ridge and Lasso regression, <a href="https://arxiv.org/abs/1509.09169" target="_blank">Wessel van Wieringen's</a> article is highly recommended.
+Similarly, <a href="https://arxiv.org/abs/1803.08823" target="_blank">Mehta et al's article</a> is also recommended.
+</section>
+
+
+<section>
+<h2 id="deriving-the-lasso-regression-equations">Deriving the  Lasso Regression Equations </h2>
+
+<p>
+Using the matrix-vector expression for Lasso regression and dropping the parameter \( 1/n \) in front of the standard mean squared error equation, we have the following <b>cost</b> function
+
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+$$
+<p>&nbsp;<br>
+
+<p>
+Taking the derivative with respect to \( \boldsymbol{\beta} \) and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicty)
+<p>&nbsp;<br>
+$$
+\frac{d \vert \beta\vert}{d \boldsymbol{\beta}}=\mathrm{sgn}(\boldsymbol{\beta})=\left\{\begin{array}{cc} 1 & \beta > 0 \\ 0 & \beta =0\\-1 & \beta < 0, \end{array}\right.
+$$
+<p>&nbsp;<br>
+
+we have that the derivative of the cost function is
+
+<p>&nbsp;<br>
+$$
+\frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-2\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
+$$
+<p>&nbsp;<br>
+
+and reordering we have
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta}+\lambda sgn(\boldsymbol{\beta})=2\boldsymbol{X}^T\boldsymbol{y}.
+$$
+<p>&nbsp;<br>
+
+This equation does not lead to a nice analytical equation as in Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package <a href="https://cvxopt.org/" target="_blank">CVXOPT</a>. We will discuss this later.
+</section>
+
+
+<section>
+<h2 id="simple-example-to-illustrate-ordinary-least-squares-ridge-and-lasso-regression">Simple example to illustrate Ordinary Least Squares, Ridge and Lasso Regression </h2>
+
+<p>
+Let us assume that our design matrix is given by unit (identity) matrix, that is a square diagonal matrix with ones only along the
+diagonal. In this case we have an equal number of rows and columns \( n=p \).
+
+<p>
+Our model approximation is just \( \tilde{\boldsymbol{y}}=\boldsymbol{\beta} \) and the mean squared error and thereby the cost function for ordinary least sqquares (OLS) is then (we drop the term \( 1/n \)) 
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2,
+$$
+<p>&nbsp;<br>
+
+and minimizing we have that
+<p>&nbsp;<br>
+$$
+\hat{\beta}_i^{\mathrm{OLS}} = y_i.
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="ridge-regression">Ridge Regression </h2>
+
+<p>
+For Ridge regression our cost function is
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\beta_i^2,
+$$
+<p>&nbsp;<br>
+
+and minimizing we have that
+<p>&nbsp;<br>
+$$
+\hat{\beta}_i^{\mathrm{Ridge}} = \frac{y_i}{1+\lambda}.
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="lasso-regression">Lasso Regression </h2>
+
+<p>
+For Lasso regression our cost function is
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\vert\beta_i\vert=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\sqrt{\beta_i^2},
+$$
+<p>&nbsp;<br>
+
+and minimizing we have that
+<p>&nbsp;<br>
+$$
+-2\sum_{i=0}^{p-1}(y_i-\beta_i)+\lambda \sum_{i=0}^{p-1}\frac{(\beta_i)}{\vert\beta_i\vert}=0,
+$$
+<p>&nbsp;<br>
+
+which leads to 
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}_i^{\mathrm{Lasso}} = \left\{\begin{array}{ccc}y_i-\frac{\lambda}{2} &\mathrm{if} & y_i> \frac{\lambda}{2}\\
+                                                          y_i+\frac{\lambda}{2} &\mathrm{if} & y_i < -\frac{\lambda}{2}\\
+							  0 &\mathrm{if} & \vert y_i\vert\le  \frac{\lambda}{2}\end{array}\right.\\.
+$$
+<p>&nbsp;<br>
+
+<p>
+Plotting these results (figure in handwritten notes for week 36) shows clearly that Lasso regression suppresses (sets to zero) values of \( \beta_i \) for specific values of \( \lambda \). Ridge regression reduces on the other hand the values of \( \beta_i \) as function of \( \lambda \).
+
+<p>
+We will now couple the discussions of ordinary least squares, Ridge and Lasso regression with a statistical interpretation, that is we move from a linear algebra analysis to a statistical analysis. In particular, we will focus on what the regularization terms can result in.
+We will amongst other things show that the regularization parameter can reduce considerably the variance of the parameters \( \beta \).
+</section>
+
+
+<section>
+<h2 id="yet-another-example">Yet another Example </h2>
+
+<p>
+Let us assume we have a data set with outputs/targets given by the vector
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{y}=\begin{bmatrix}4 \\ 2 \\3\end{bmatrix},
+$$
+<p>&nbsp;<br>
+
+and our inputs as a \( 3\times 2 \) design matrix
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}=\begin{bmatrix}2 & 0\\ 0 & 1 \\ 0 & 0\end{bmatrix},
+$$
+<p>&nbsp;<br>
+
+meaning that we have two features and two unknown parameters \( \beta_0 \) and \( \beta_1 \) to be determined either by ordinary least squares, Ridge or Lasso regression.
+</section>
+
+
+<section>
+<h2 id="the-ols-case">The OLS case </h2>
+
+<p>
+For ordinary least squares (OLS) we know that the optimal solution is
+
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\left( \boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+$$
+<p>&nbsp;<br>
+
+Inserting the above values we obtain that
+
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\begin{bmatrix}2 \\ 2\end{bmatrix},
+$$
+<p>&nbsp;<br>
+
+<p>
+The code which implements this simpler case is presented after the discussion of Ridge and Lasso.
+</section>
+
+
+<section>
+<h2 id="the-ridge-case">The Ridge case </h2>
+
+<p>
+For Ridge regression we have
+
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\left( \boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+$$
+<p>&nbsp;<br>
+
+Inserting the above values we obtain that
+
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\begin{bmatrix}\frac{8}{4+\lambda} \\ \frac{2}{1+\lambda}\end{bmatrix},
+$$
+<p>&nbsp;<br>
+
+<p>
+There is normally a constraint on the value of \( \vert\vert \boldsymbol{\beta}\vert\vert_2 \) via the parameter \( \lambda \).
+Let us for simplicity assume that \( \beta_0^2+\beta_1^2=1 \) as constraint. This will allow us to find an expression for the optimal values of \( \beta \) and \( \lambda \).
+
+<p>
+To see this, let us write the cost function for Ridge regression.
+</section>
+
+
+<section>
+<h2 id="writing-the-cost-function">Writing the Cost Function </h2>
+
+<p>
+We define the MSE without the \( 1/n \) factor and have then, using that
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}\boldsymbol{\beta}=\begin{bmatrix} 2\beta_0 \\ \beta_1 \\0 \end{bmatrix},
+$$
+<p>&nbsp;<br>
+
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\beta_0^2+\beta_1^2),
+$$
+<p>&nbsp;<br>
+
+and taking the derivative with respect to \( \beta_0 \) we get
+<p>&nbsp;<br>
+$$
+\beta_0=\frac{8}{4+\lambda},
+$$
+<p>&nbsp;<br>
+
+and for \( \beta_1 \) we obtain
+<p>&nbsp;<br>
+$$
+\beta_1=\frac{2}{1+\lambda},
+$$
+<p>&nbsp;<br>
+
+<p>
+Using the constraint for \( \beta_0^2+\beta_1^2=1 \) we can constrain \( \lambda \) by solving
+<p>&nbsp;<br>
+$$
+\left(\frac{8}{4+\lambda}\right)^2+\left(\frac{2}{1+\lambda}\right)^2=1,
+$$
+<p>&nbsp;<br>
+
+which gives \( \lambda=4.571 \) and \( \beta_0=0.933 \) and \( \beta_1=0.359 \).
+</section>
+
+
+<section>
+<h2 id="lasso-case">Lasso case </h2>
+
+<p>
+For Lasso we need now, keeping a  constraint on \( \vert\beta_0\vert+\vert\beta_1\vert=1 \),  to take the derivative of the absolute values of \( \beta_0 \)
+and \( \beta_1 \). This gives us the following derivatives of the cost function
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\vert\beta_0\vert+\vert\beta_1\vert),
+$$
+<p>&nbsp;<br>
+
+<p>&nbsp;<br>
+$$
+\frac{\partial C(\boldsymbol{\beta})}{\partial \beta_0}=-4(4-2\beta_0)+\lambda\mathrm{sgn}(\beta_0)=0,
+$$
+<p>&nbsp;<br>
+
+and
+<p>&nbsp;<br>
+$$
+\frac{\partial C(\boldsymbol{\beta})}{\partial \beta_1}=-2(2-\beta_1)+\lambda\mathrm{sgn}(\beta_1)=0.
+$$
+<p>&nbsp;<br>
+
+We have now four cases to solve besides the trivial cases \( \beta_0 \) and/or \( \beta_1 \) are zero, namely
 
 <ol>
-<p><li> The <b>bootstrap method</b></li>
-<p><li> and <b>Cross-Validation</b></li>
+<p><li> \( \beta_0 > 0 \) and \( \beta_1 > 0 \),</li>
+<p><li> \( \beta_0 > 0 \) and \( \beta_1 < 0 \),</li>
+<p><li> \( \beta_0 < 0 \) and \( \beta_1 > 0 \),</li>
+<p><li> \( \beta_0 < 0 \) and \( \beta_1 < 0 \).</li>
 </ol>
+</section>
+
+
+<section>
+<h2 id="the-first-case">The first Case </h2>
+
+<p>
+If we consider the first case, we have then
+<p>&nbsp;<br>
+$$
+-4(4-2\beta_0)+\lambda=0,
+$$
+<p>&nbsp;<br>
+
+and
+<p>&nbsp;<br>
+$$
+-2(2-\beta_1)+\lambda=0.
+$$
+<p>&nbsp;<br>
+
+which yields
+
+<p>&nbsp;<br>
+$$
+\beta_0=\frac{16+\lambda}{8},
+$$
+<p>&nbsp;<br>
+
+and
+<p>&nbsp;<br>
+$$
+\beta_1=\frac{4+\lambda}{2}.
+$$
+<p>&nbsp;<br>
+
+<p>
+Using the constraint on \( \beta_0 \) and \( \beta_1 \) we can then find the optimal value of \( \lambda \) for the different cases. We leave this as an exercise to you.
+</section>
+
+
+<section>
+<h2 id="simple-code-for-solving-the-above-problem">Simple code for solving the above problem </h2>
+
+<p>
+Here we set up the OLS, Ridge and Lasso functionality in order to study the above example. Note that here we have opted for a set of values of \( \lambda \), meaning that we need to perform a search in order to find the optimal values.
+
+<p>
+First we study and compare the OLS and Ridge results.  The next code compares all three methods.
+
 <p>
 
-In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
-cross-validation and the bootstrap method.
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
 
 
-</div>
-</section>
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+
+X = np.array( [ [ <span style="color: #B452CD">2</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>]])
+y = np.array( [<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, <span style="color: #B452CD">3</span>])
 
 
-<section>
-<h2 id="___sec4">Resampling approaches can be computationally expensive </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+<span style="color: #228B22"># Repeat now for Ridge regression and various values of the regularization parameter</span>
+I = np.eye(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">2</span>)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">100</span>
+MSEPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+<span style="color: #228B22">#    print(Ridgebeta)</span>
+    <span style="color: #228B22"># and then make the prediction</span>
+    ypredictRidge = X @ Ridgebeta
+    MSEPredict[i] = MSE(y,ypredictRidge)
+<span style="color: #228B22">#    print(MSEPredict[i])</span>
+    <span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSEPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
 <p>
-Resampling approaches can be computationally expensive, because they
-involve fitting the same statistical method multiple times using
-different subsets of the training data. However, due to recent
-advances in computing power, the computational requirements of
-resampling methods generally are not prohibitive. In this chapter, we
-discuss two of the most commonly used resampling methods,
-cross-validation and the bootstrap. Both methods are important tools
-in the practical application of many statistical learning
-procedures. For example, cross-validation can be used to estimate the
-test error associated with a given statistical learning method in
-order to evaluate its performance, or to select the appropriate level
-of flexibility. The process of evaluating a model&#8217;s performance is
-known as model assessment, whereas the process of selecting the proper
-level of flexibility for a model is known as model selection. The
-bootstrap is widely used.
-
-
-</div>
+We see here that we reach a plateau. What is actually happening?
 </section>
 
 
 <section>
-<h2 id="___sec5">Why resampling methods ? </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b>Statistical analysis.</b>
-<ul>
-<p><li> Our simulations can be treated as <em>computer experiments</em>. This is particularly the case for Monte Carlo methods</li>
-<p><li> The results can be analysed with the same statistical tools as we would use analysing experimental data.</li>
-<p><li> As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.</li>
-</ul>
-</div>
+<h2 id="with-lasso-regression">With Lasso Regression </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+
+X = np.array( [ [ <span style="color: #B452CD">2</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>]])
+y = np.array( [<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, <span style="color: #B452CD">3</span>])
+
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+<span style="color: #228B22"># Repeat now for Ridge regression and various values of the regularization parameter</span>
+I = np.eye(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">2</span>)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">100</span>
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+    <span style="color: #658b00">print</span>(Ridgebeta)
+    <span style="color: #228B22"># and then make the prediction</span>
+    ypredictRidge = X @ Ridgebeta
+    MSERidgePredict[i] = MSE(y,ypredictRidge)
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X,y)
+    ypredictLasso = RegLasso.predict(X)
+    <span style="color: #658b00">print</span>(RegLasso_coef_)
+    MSELassoPredict[i] = MSE(y,ypredictLasso)
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Train&#39;</span>)
+plt.plot(np.log10(lambdas), MSELassoPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Lasso Train&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
 </section>
 
 
 <section>
-<h2 id="___sec6">Statistical analysis </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<ul>
-<p><li> As in other experiments, many numerical  experiments have two classes of errors:</li>
+<h2 id="another-example-now-with-a-polynomial-fit">Another Example, now with a polynomial fit </h2>
 
-<ul>
+<p>
 
-<p><li> Statistical errors</li>
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
 
-<p><li> Systematical errors</li>
-</ul>
-<p><li> Statistical errors can be estimated using standard tools from statistics</li>
-<p><li> Systematical errors are method specific and must be treated differently from case to case.</li> 
-</ul>
-</div>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">3155</span>)
+
+x = np.random.rand(<span style="color: #B452CD">100</span>)
+y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">5</span>*x*x+<span style="color: #B452CD">0.1</span>*np.random.randn(<span style="color: #B452CD">100</span>)
+
+<span style="color: #228B22"># number of features p (here degree of polynomial</span>
+p = <span style="color: #B452CD">3</span>
+<span style="color: #228B22">#  The design matrix now as function of a given polynomial</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x),p))
+X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
+X[:,<span style="color: #B452CD">1</span>] = x
+X[:,<span style="color: #B452CD">2</span>] = x*x
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X_train @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test MSE OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ypredictOLS))
+
+<span style="color: #228B22"># Repeat now for Lasso and Ridge regression and various values of the regularization parameter</span>
+I = np.eye(p,p)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">100</span>
+MSEPredict = np.zeros(nlambdas)
+MSETrain = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+MSELassoTrain = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    <span style="color: #228B22"># include lasso using Scikit-Learn</span>
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X_train,y_train)
+    <span style="color: #228B22"># and then make the prediction</span>
+    ytildeRidge = X_train @ Ridgebeta
+    ypredictRidge = X_test @ Ridgebeta
+    ytildeLasso = RegLasso.predict(X_train)
+    ypredictLasso = RegLasso.predict(X_test)
+    MSEPredict[i] = MSE(y_test,ypredictRidge)
+    MSETrain[i] = MSE(y_train,ytildeRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    MSELassoTrain[i] = MSE(y_train,ytildeLasso)
+
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSETrain, label = <span style="color: #CD5555">&#39;MSE Ridge train&#39;</span>)
+plt.plot(np.log10(lambdas), MSEPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+plt.plot(np.log10(lambdas), MSELassoTrain, label = <span style="color: #CD5555">&#39;MSE Lasso train&#39;</span>)
+plt.plot(np.log10(lambdas), MSELassoPredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Lasso Test&#39;</span>)
+
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
 </section>
 
 
 <section>
-<h2 id="___sec7">Linking the regression analysis with a statistical interpretation </h2>
+<h2 id="linking-the-regression-analysis-with-a-statistical-interpretation">Linking the regression analysis with a statistical interpretation </h2>
 
 <p>
 The
@@ -329,7 +1175,7 @@ row number \( i \) and perform a sum over all values \( p \).
 
 
 <section>
-<h2 id="___sec8">Assumptions made </h2>
+<h2 id="assumptions-made">Assumptions made </h2>
 
 <p>
 The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
@@ -353,7 +1199,7 @@ $$
 
 
 <section>
-<h2 id="___sec9">Expectation value and variance </h2>
+<h2 id="expectation-value-and-variance">Expectation value and variance </h2>
 
 <p>
 We can calculate the expectation value of \( \boldsymbol{y} \) for a given element \( i \) 
@@ -392,7 +1238,7 @@ mean value \( \boldsymbol{X}\boldsymbol{\beta} \) and variance \( \sigma^2 \) (n
 
 
 <section>
-<h2 id="___sec10">Expectation value and variance for \( \boldsymbol{\beta} \) </h2>
+<h2 id="expectation-value-and-variance-for-boldsymbol-beta">Expectation value and variance for \( \boldsymbol{\beta} \) </h2>
 
 <p>
 With the OLS expressions for the parameters \( \boldsymbol{\beta} \) we can evaluate the expectation value
@@ -487,7 +1333,342 @@ This means the variance we obtain with the standard OLS will always for \( \lamb
 
 
 <section>
-<h2 id="___sec11">Resampling methods </h2>
+<h2 id="deriving-ols-from-a-probability-distribution">Deriving OLS from a probability distribution </h2>
+
+<p>
+Our basic assumption when we derived the OLS equations was to assume
+that our output is determined by a given continuous function
+\( f(\boldsymbol{x}) \) and a random noise \( \boldsymbol{\epsilon} \) given by the normal
+distribution with zero mean value and an undetermined variance
+\( \sigma^2 \).
+
+<p>
+We found above that the outputs \( \boldsymbol{y} \) have a mean value given by
+\( \boldsymbol{X}\hat{\boldsymbol{\beta}} \) and variance \( \sigma^2 \). Since the entries to
+the design matrix are not stochastic variables, we can assume that the
+probability distribution of our targets is also a normal distribution
+but now with mean value \( \boldsymbol{X}\hat{\boldsymbol{\beta}} \). This means that a
+single output \( y_i \) is given by the Gaussian distribution
+
+<p>&nbsp;<br>
+$$
+y_i\sim \mathcal{N}(\boldsymbol{X}_{i,*}\boldsymbol{\beta}, \sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}.
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="independent-and-identically-distrubuted-iid">Independent and Identically Distrubuted (iid) </h2>
+
+<p>
+We assume now that the various \( y_i \) values are stochastically distributed according to the above Gaussian distribution. 
+We define this distribution as
+<p>&nbsp;<br>
+$$
+p(y_i\vert \boldsymbol{X};\boldsymbol{\beta})=\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]},
+$$
+<p>&nbsp;<br>
+
+which reads as finding the likelihood of an event \( y_i \) given the input variables \( \boldsymbol{X} \) and the parameters (to be determined) \( \boldsymbol{\beta} \).
+
+<p>
+Since these events are assumed to be independent and identicall distributed we can build the probability distribution function (PDF) for all possible event \( \boldsymbol{y} \) as the product of the single events, that is we have
+
+<p>&nbsp;<br>
+$$
+p(\boldsymbol{y}\vert \boldsymbol{X};\boldsymbol{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}=\prod_{i=0}^{n-1}p(y_i\vert \boldsymbol{X};\boldsymbol{\beta}).
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="maximum-likelihood-estimation-mle">Maximum Likelihood Estimation (MLE) </h2>
+
+<p>
+In statistics, maximum likelihood estimation (MLE) is a method of
+estimating the parameters of an assumed probability distribution,
+given some observed data. This is achieved by maximizing a likelihood
+function so that, under the assumed statistical model, the observed
+data is the most probable.
+
+<p>
+We will assume here that our events are given by the above Gaussian
+distribution and we will determine the optimal parameters \( \beta \) by
+maximizing the above PDF. However, computing the derivatives of a
+product function is cumbersome and can easily lead to overflow and/or
+underflowproblems, with potentials for loss of numerical precision.
+
+<p>
+In practice, it is more convenient to maximize the logarithm of the
+PDF because it is a monotonically increasing function of the argument.
+Alternatively, and this will be our option, we will minimize the
+negative of the logarithm since this is a monotonically decreasing
+function.
+
+<p>
+Note also that maximization/minimization of the logarithm of the PDF
+is equivalent to the maximization/minimization of the function itself.
+</section>
+
+
+<section>
+<h2 id="a-new-cost-function">A new Cost Function </h2>
+
+<p>
+We could now define a new cost function to minimize, namely the negative logarithm of the above PDF
+
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta}=-\log{\prod_{i=0}^{n-1}p(y_i\vert \boldsymbol{X};\boldsymbol{\beta})}=-\sum_{i=0}^{n-1}\log{p(y_i\vert \boldsymbol{X};\boldsymbol{\beta})},
+$$
+<p>&nbsp;<br>
+
+which becomes
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta}=\frac{n}{2}\log{2\pi\sigma^2}+\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}.
+$$
+<p>&nbsp;<br>
+
+<p>
+Taking the derivative of the <em>new</em> cost function with respect to the parameters \( \beta \) we recognize our familiar OLS equation, namely
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{X}^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right) =0,
+$$
+<p>&nbsp;<br>
+
+which leads to the well-known OLS equation for the optimal paramters \( \beta \)
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}!
+$$
+<p>&nbsp;<br>
+
+<p>
+Before we make a similar analysis for Ridge and Lasso regression, we need a new reminder on statistics.
+</section>
+
+
+<section>
+<h2 id="more-basic-statistics-and-bayes-theorem">More basic Statistics and Bayes' theorem </h2>
+
+<p>
+A central theorem in statistics is Bayes' theorem. This theorem plays a similar role as the good old Pythagoras' theorem in geometry.
+Bayes' theorem is extremely simple to derive. But to do so we need some basic axioms from statistics.
+
+<p>
+Assume we have two domains of events \( X=[x_0,x_1,\dots,x_{n-1}] \) and \( Y=[y_0,y_1,\dots,y_{n-1}] \).
+
+<p>
+We define also the likelihood for \( X \) and \( Y \) as \( p(X) \) and \( p(Y) \) respectively.
+The likelihood of a specific event \( x_i \) (or \( y_i \)) is then written as \( p(X=x_i) \) or just \( p(x_i)=p_i \).
+
+<p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Union of events is given by</b>
+<p>&nbsp;<br>
+$$
+p(X \cup Y)= p(X)+p(Y)-p(X \cap Y).
+$$
+<p>&nbsp;<br>
+</div>
+
+<p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>The product rule (aka joint probability) is given by</b>
+<p>&nbsp;<br>
+$$
+p(X \cup Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(x),
+$$
+<p>&nbsp;<br>
+
+where we read \( p(X\vert Y) \) as the likelihood of obtaining \( X \) given \( Y \).
+</div>
+
+<p>
+If we have independent events then \( p(X,Y)=p(X)p(Y) \).
+</section>
+
+
+<section>
+<h2 id="marginal-probability">Marginal Probability </h2>
+
+<p>
+The marginal probability is defined in terms of only of the set of variables \( X,Y \). For a discrete probability we have
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Discrete Probability</b>
+<p>&nbsp;<br>
+$$
+p(X)=\sum_{i=0}^{n-1}p(X,Y=y_i)=\sum_{i=0}^{n-1}p(X\vert Y=y_i)p(Y=y_i)=\sum_{i=0}^{n-1}p(X\vert y_i)p(y_i).
+$$
+<p>&nbsp;<br>
+</div>
+</section>
+
+
+<section>
+<h2 id="conditional-probability">Conditional  Probability </h2>
+
+<p>
+The conditional  probability, if \( p(Y) > 0 \), is 
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>&nbsp;<br>
+$$
+p(X\vert Y)= \frac{p(X,Y)}{p(Y)}=\frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}.
+$$
+<p>&nbsp;<br>
+</div>
+</section>
+
+
+<section>
+<h2 id="bayes-theorem">Bayes' Theorem </h2>
+
+<p>
+If we combine the conditional probability with the marginal probability and the standard product rule, we have
+<p>&nbsp;<br>
+$$
+p(X\vert Y)= \frac{p(X,Y)}{p(Y)},
+$$
+<p>&nbsp;<br>
+
+which we can rewrite as
+
+<p>&nbsp;<br>
+$$
+p(X\vert Y)= \frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}=\frac{p(Y\vert X)p(X)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)},
+$$
+<p>&nbsp;<br>
+
+which is Bayes' theorem. More text to be added here by Friday September 10.
+</section>
+
+
+<section>
+<h2 id="frliday-september-10">Frliday September 10  </h2>
+
+<p>
+Depending on where we end on Thursday September 9, we will revise the material for Friday. On Friday we will also discuss project 1.
+</section>
+
+
+<section>
+<h2 id="why-resampling-methods">Why resampling methods </h2>
+
+<p>
+Before we proceed, we need to rethink what we have been doing. In our
+eager to fit the data, we have omitted several important elements in
+our regression analysis. In what follows we will
+
+<ol>
+<p><li> look at statistical properties, including a discussion of mean values, variance and the so-called bias-variance tradeoff</li>
+<p><li> introduce resampling techniques like cross-validation, bootstrapping and jackknife and more</li>
+</ol>
+<p>
+
+This will allow us to link the standard linear algebra methods we have discussed above to a statistical interpretation of the methods.
+</section>
+
+
+<section>
+<h2 id="resampling-methods">Resampling methods </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+Resampling methods are an indispensable tool in modern
+statistics. They involve repeatedly drawing samples from a training
+set and refitting a model of interest on each sample in order to
+obtain additional information about the fitted model. For example, in
+order to estimate the variability of a linear regression fit, we can
+repeatedly draw different samples from the training data, fit a linear
+regression to each new sample, and then examine the extent to which
+the resulting fits differ. Such an approach may allow us to obtain
+information that would not be available from fitting the model only
+once using the original training sample.
+
+<p>
+Two resampling methods are often used in Machine Learning analyses,
+
+<ol>
+<p><li> The <b>bootstrap method</b></li>
+<p><li> and <b>Cross-Validation</b></li>
+</ol>
+<p>
+
+In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
+cross-validation and the bootstrap method.
+
+
+</div>
+</section>
+
+
+<section>
+<h2 id="resampling-approaches-can-be-computationally-expensive">Resampling approaches can be computationally expensive </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+Resampling approaches can be computationally expensive, because they
+involve fitting the same statistical method multiple times using
+different subsets of the training data. However, due to recent
+advances in computing power, the computational requirements of
+resampling methods generally are not prohibitive. In this chapter, we
+discuss two of the most commonly used resampling methods,
+cross-validation and the bootstrap. Both methods are important tools
+in the practical application of many statistical learning
+procedures. For example, cross-validation can be used to estimate the
+test error associated with a given statistical learning method in
+order to evaluate its performance, or to select the appropriate level
+of flexibility. The process of evaluating a model&#8217;s performance is
+known as model assessment, whereas the process of selecting the proper
+level of flexibility for a model is known as model selection. The
+bootstrap is widely used.
+
+
+</div>
+</section>
+
+
+<section>
+<h2 id="why-resampling-methods">Why resampling methods ? </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Statistical analysis</b>
+<ul>
+<p><li> Our simulations can be treated as <em>computer experiments</em>. This is particularly the case for Monte Carlo methods</li>
+<p><li> The results can be analysed with the same statistical tools as we would use analysing experimental data.</li>
+<p><li> As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.</li>
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="statistical-analysis">Statistical analysis </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<ul>
+<p><li> As in other experiments, many numerical  experiments have two classes of errors:</li>
+
+<ul>
+
+<p><li> Statistical errors</li>
+
+<p><li> Systematical errors</li>
+</ul>
+<p><li> Statistical errors can be estimated using standard tools from statistics</li>
+<p><li> Systematical errors are method specific and must be treated differently from case to case.</li> 
+</ul>
+</div>
+</section>
+
+
+<section>
+<h2 id="resampling-methods">Resampling methods </h2>
 
 <p>
 With all these analytical equations for both the OLS and Ridge
@@ -517,7 +1698,7 @@ training error reaches a saturation.
 
 
 <section>
-<h2 id="___sec12">Resampling methods: Jackknife and Bootstrap </h2>
+<h2 id="resampling-methods-jackknife-and-bootstrap">Resampling methods: Jackknife and Bootstrap </h2>
 
 <p>
 Two famous
@@ -540,7 +1721,7 @@ need for bootstrapping.
 
 
 <section>
-<h2 id="___sec13">Resampling methods: Jackknife </h2>
+<h2 id="resampling-methods-jackknife">Resampling methods: Jackknife </h2>
 
 <p>
 The Jackknife works by making many replicas of the estimator \( \widehat{\theta} \). 
@@ -561,11 +1742,11 @@ number \( i \) is left out. Using this notation, define
 
 
 <section>
-<h2 id="___sec14">Jackknife code example </h2>
+<h2 id="jackknife-code-example">Jackknife code example </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> randint, randn
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">time</span> <span style="color: #8B008B; font-weight: bold">import</span> time
 
@@ -576,9 +1757,9 @@ number \( i \) is left out. Using this notation, define
         t[i] = stat(delete(data,i) )
 
     <span style="color: #228B22"># analysis                                                                                                                                                                     </span>
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Jackknife Statistics :&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;%8g %14g %15g&quot;</span> % (stat(data),(n-<span style="color: #B452CD">1</span>)*mean(t)/n, (n*var(t))**.<span style="color: #B452CD">5</span>))
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Jackknife Statistics :&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;%8g %14g %15g&quot;</span> % (stat(data),(n-<span style="color: #B452CD">1</span>)*mean(t)/n, (n*var(t))**.<span style="color: #B452CD">5</span>))
 
     <span style="color: #8B008B; font-weight: bold">return</span> t
 
@@ -598,7 +1779,7 @@ t = jackknife(x, stat)
 
 
 <section>
-<h2 id="___sec15">Resampling methods: Bootstrap </h2>
+<h2 id="resampling-methods-bootstrap">Resampling methods: Bootstrap </h2>
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -620,7 +1801,7 @@ advantages:
 
 
 <section>
-<h2 id="___sec16">Resampling methods: Bootstrap background </h2>
+<h2 id="resampling-methods-bootstrap-background">Resampling methods: Bootstrap background </h2>
 
 <p>
 Since \( \widehat{\theta} = \widehat{\theta}(\boldsymbol{X}) \) is a function of random variables,
@@ -636,7 +1817,7 @@ estimators.
 
 
 <section>
-<h2 id="___sec17">Resampling methods: More Bootstrap background </h2>
+<h2 id="resampling-methods-more-bootstrap-background">Resampling methods: More Bootstrap background </h2>
 
 <p>
 In the case that \( \widehat{\theta} \) has
@@ -659,7 +1840,7 @@ idea is to use the relative frequency of \( \widehat{\theta}^* \)
 
 
 <section>
-<h2 id="___sec18">Resampling methods: Bootstrap approach </h2>
+<h2 id="resampling-methods-bootstrap-approach">Resampling methods: Bootstrap approach </h2>
 
 <p>
 But
@@ -680,7 +1861,7 @@ frequency of the observation \( X_i \), just draw the values
 
 
 <section>
-<h2 id="___sec19">Resampling methods: Bootstrap steps </h2>
+<h2 id="resampling-methods-bootstrap-steps">Resampling methods: Bootstrap steps </h2>
 
 <p>
 The independent bootstrap works like this: 
@@ -706,7 +1887,7 @@ example, if you are interested in estimating the variance of \( \widehat
 
 
 <section>
-<h2 id="___sec20">Code example for the Bootstrap method </h2>
+<h2 id="code-example-for-the-bootstrap-method">Code example for the Bootstrap method </h2>
 
 <p>
 The following code starts with a Gaussian distribution with mean value
@@ -725,7 +1906,7 @@ theorem.
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> *
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> randint, randn
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">time</span> <span style="color: #8B008B; font-weight: bold">import</span> time
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.mlab</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">mlab</span>
@@ -743,9 +1924,9 @@ theorem.
         t[i] = statistic(data[randint(<span style="color: #B452CD">0</span>,n,n)])
 
     <span style="color: #228B22"># analysis    </span>
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Bootstrap Statistics :&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;%8g %8g %14g %15g&quot;</span> % (statistic(data), std(data),mean(t),std(t)))
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Runtime: %g sec&quot;</span> % (time()-t0)); <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Bootstrap Statistics :&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;original           bias      std. error&quot;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;%8g %8g %14g %15g&quot;</span> % (statistic(data), std(data),mean(t),std(t)))
     <span style="color: #8B008B; font-weight: bold">return</span> t
 
 
@@ -763,7 +1944,7 @@ lt = plt.plot(binsboot, y, <span style="color: #CD5555">&#39;r--&#39;</span>, li
 plt.xlabel(<span style="color: #CD5555">&#39;Smarts&#39;</span>)
 plt.ylabel(<span style="color: #CD5555">&#39;Probability&#39;</span>)
 plt.axis([<span style="color: #B452CD">99.5</span>, <span style="color: #B452CD">100.6</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">3.0</span>])
-plt.grid(<span style="color: #658b00">True</span>)
+plt.grid(<span style="color: #8B008B; font-weight: bold">True</span>)
 
 plt.show()
 </pre></div>
@@ -771,7 +1952,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec21">Various steps in cross-validation </h2>
+<h2 id="various-steps-in-cross-validation">Various steps in cross-validation </h2>
 
 <p>
 When the repetitive splitting of the data set is done randomly,
@@ -792,7 +1973,7 @@ cross-validation (LOOCV).
 
 
 <section>
-<h2 id="___sec22">How to set up the cross-validation for Ridge and/or Lasso </h2>
+<h2 id="how-to-set-up-the-cross-validation-for-ridge-and-or-lasso">How to set up the cross-validation for Ridge and/or Lasso </h2>
 
 <ul>
 <p><li> Define a range of interest for the penalty parameter.</li>
@@ -826,7 +2007,7 @@ $$
 
 
 <section>
-<h2 id="___sec23">Cross-validation in brief </h2>
+<h2 id="cross-validation-in-brief">Cross-validation in brief </h2>
 
 <p>
 For the various values of \( k \)
@@ -848,14 +2029,14 @@ For the various values of \( k \)
 
 
 <section>
-<h2 id="___sec24">Code Example for Cross-validation and \( k \)-fold Cross-validation </h2>
+<h2 id="code-example-for-cross-validation-and-k-fold-cross-validation">Code Example for Cross-validation and \( k \)-fold Cross-validation </h2>
 
 <p>
 The code here uses Ridge regression with cross-validation (CV)  resampling and \( k \)-fold CV in order to fit a specific polynomial. 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
@@ -949,7 +2130,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec25">The bias-variance tradeoff </h2>
+<h2 id="the-bias-variance-tradeoff">The bias-variance tradeoff </h2>
 
 <p>
 We will discuss the bias-variance tradeoff in the context of
@@ -1027,11 +2208,11 @@ that is the rewriting in terms of the so-called bias, the variance of the model 
 
 
 <section>
-<h2 id="___sec26">Example code for Bias-Variance tradeoff </h2>
+<h2 id="example-code-for-bias-variance-tradeoff">Example code for Bias-Variance tradeoff </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
@@ -1055,7 +2236,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=<span style=
 
 <span style="color: #228B22"># Combine x transformation and model into one operation.</span>
 <span style="color: #228B22"># Not neccesary, but convenient.</span>
-model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #658b00">False</span>))
+model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>))
 
 <span style="color: #228B22"># The following (m x n_bootstraps) matrix holds the column vectors y_pred</span>
 <span style="color: #228B22"># for each bootstrap iteration.</span>
@@ -1072,13 +2253,13 @@ y_pred = np.empty((y_test.shape[<span style="color: #B452CD">0</span>], n_boostr
 <span style="color: #228B22"># calculated per data point in the test set.</span>
 <span style="color: #228B22"># Note 2: The use of keepdims=True is important in the calculation of bias as this </span>
 <span style="color: #228B22"># maintains the column vector form. Dropping this yields very unexpected results.</span>
-error = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-bias = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>))**<span style="color: #B452CD">2</span> )
-variance = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error)
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias)
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance)
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error, bias, variance, bias+variance))
+error = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+bias = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>))**<span style="color: #B452CD">2</span> )
+variance = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error, bias, variance, bias+variance))
 
 plt.plot(x[::<span style="color: #B452CD">5</span>, :], y[::<span style="color: #B452CD">5</span>, :], label=<span style="color: #CD5555">&#39;f(x)&#39;</span>)
 plt.scatter(x_test, y_test, label=<span style="color: #CD5555">&#39;Data points&#39;</span>)
@@ -1090,11 +2271,11 @@ plt.show()
 
 
 <section>
-<h2 id="___sec27">Understanding what happens </h2>
+<h2 id="understanding-what-happens">Understanding what happens </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
@@ -1119,21 +2300,21 @@ polydegree = np.zeros(maxdegree)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=<span style="color: #B452CD">0.2</span>)
 
 <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(maxdegree):
-    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #658b00">False</span>))
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>))
     y_pred = np.empty((y_test.shape[<span style="color: #B452CD">0</span>], n_boostraps))
     <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_boostraps):
         x_, y_ = resample(x_train, y_train)
         y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
 
     polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>))**<span style="color: #B452CD">2</span> )
-    variance[degree] = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #658b00">True</span>) )
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Polynomial degree:&#39;</span>, degree)
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error[degree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias[degree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+    error[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>))**<span style="color: #B452CD">2</span> )
+    variance[degree] = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Polynomial degree:&#39;</span>, degree)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error[degree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias[degree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
 plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;Error&#39;</span>)
 plt.plot(polydegree, bias, label=<span style="color: #CD5555">&#39;bias&#39;</span>)
@@ -1145,7 +2326,7 @@ plt.show()
 
 
 <section>
-<h2 id="___sec28">Summing up </h2>
+<h2 id="summing-up">Summing up </h2>
 
 <p>
 The bias-variance tradeoff summarizes the fundamental tension in
@@ -1182,11 +2363,11 @@ You may also find this recent <a href="https://www.pnas.org/content/116/32/15849
 
 
 <section>
-<h2 id="___sec29">Another Example from Scikit-Learn's Repository </h2>
+<h2 id="another-example-from-scikit-learn-s-repository">Another Example from Scikit-Learn's Repository </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #CD5555">&quot;&quot;&quot;</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #CD5555">&quot;&quot;&quot;</span>
 <span style="color: #CD5555">============================</span>
 <span style="color: #CD5555">Underfitting vs. Overfitting</span>
 <span style="color: #CD5555">============================</span>
@@ -1208,7 +2389,7 @@ You may also find this recent <a href="https://www.pnas.org/content/116/32/15849
 <span style="color: #CD5555">training data.</span>
 <span style="color: #CD5555">&quot;&quot;&quot;</span>
 
-<span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #00688B">__doc__</span>)
+<span style="color: #658b00">print</span>(<span style="color: #00688B">__doc__</span>)
 
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
@@ -1235,7 +2416,7 @@ plt.figure(figsize=(<span style="color: #B452CD">14</span>, <span style="color: 
     plt.setp(ax, xticks=(), yticks=())
 
     polynomial_features = PolynomialFeatures(degree=degrees[i],
-                                             include_bias=<span style="color: #658b00">False</span>)
+                                             include_bias=<span style="color: #8B008B; font-weight: bold">False</span>)
     linear_regression = LinearRegression()
     pipeline = Pipeline([(<span style="color: #CD5555">&quot;polynomial_features&quot;</span>, polynomial_features),
                          (<span style="color: #CD5555">&quot;linear_regression&quot;</span>, linear_regression)])
@@ -1262,12 +2443,12 @@ plt.show()
 
 
 <section>
-<h2 id="___sec30">More examples on bootstrap and cross-validation and errors </h2>
+<h2 id="more-examples-on-bootstrap-and-cross-validation-and-errors">More examples on bootstrap and cross-validation and errors </h2>
 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Common imports</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #228B22"># Common imports</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
@@ -1297,7 +2478,7 @@ DATA_ID = <span style="color: #CD5555">&quot;DataFiles/&quot;</span>
     <span style="color: #8B008B; font-weight: bold">return</span> os.path.join(DATA_ID, dat_id)
 
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">save_fig</span>(fig_id):
-    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, format=<span style="color: #CD5555">&#39;png&#39;</span>)
+    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, <span style="color: #658b00">format</span>=<span style="color: #CD5555">&#39;png&#39;</span>)
 
 infile = <span style="color: #658b00">open</span>(data_path(<span style="color: #CD5555">&quot;EoS.csv&quot;</span>),<span style="color: #CD5555">&#39;r&#39;</span>)
 
@@ -1327,7 +2508,7 @@ trials = <span style="color: #B452CD">100</span>
     trainingerror[polydegree] = <span style="color: #B452CD">0.0</span>
     <span style="color: #8B008B; font-weight: bold">for</span> samples <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(trials):
         x_train, x_test, y_train, y_test = train_test_split(X, Energies, test_size=<span style="color: #B452CD">0.2</span>)
-        model = LinearRegression(fit_intercept=<span style="color: #658b00">True</span>).fit(x_train, y_train)
+        model = LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">True</span>).fit(x_train, y_train)
         ypred = model.predict(x_train)
         ytilde = model.predict(x_test)
         testerror[polydegree] += mean_squared_error(y_test, ytilde)
@@ -1335,9 +2516,9 @@ trials = <span style="color: #B452CD">100</span>
 
     testerror[polydegree] /= trials
     trainingerror[polydegree] /= trials
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Degree of polynomial: %3d&quot;</span>% polynomial[polydegree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Mean squared error on training data: %.8f&quot;</span> % trainingerror[polydegree])
-    <span style="color: #8B008B; font-weight: bold">print</span>(<span style="color: #CD5555">&quot;Mean squared error on test data: %.8f&quot;</span> % testerror[polydegree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Degree of polynomial: %3d&quot;</span>% polynomial[polydegree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Mean squared error on training data: %.8f&quot;</span> % trainingerror[polydegree])
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Mean squared error on test data: %.8f&quot;</span> % testerror[polydegree])
 
 plt.plot(polynomial, np.log10(trainingerror), label=<span style="color: #CD5555">&#39;Training Error&#39;</span>)
 plt.plot(polynomial, np.log10(testerror), label=<span style="color: #CD5555">&#39;Test Error&#39;</span>)
@@ -1350,12 +2531,12 @@ plt.show()
 
 
 <section>
-<h2 id="___sec31">The same example but now with cross-validation </h2>
+<h2 id="the-same-example-but-now-with-cross-validation">The same example but now with cross-validation </h2>
 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #228B22"># Common imports</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #228B22"># Common imports</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
@@ -1387,7 +2568,7 @@ DATA_ID = <span style="color: #CD5555">&quot;DataFiles/&quot;</span>
     <span style="color: #8B008B; font-weight: bold">return</span> os.path.join(DATA_ID, dat_id)
 
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">save_fig</span>(fig_id):
-    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, format=<span style="color: #CD5555">&#39;png&#39;</span>)
+    plt.savefig(image_path(fig_id) + <span style="color: #CD5555">&quot;.png&quot;</span>, <span style="color: #658b00">format</span>=<span style="color: #CD5555">&#39;png&#39;</span>)
 
 infile = <span style="color: #658b00">open</span>(data_path(<span style="color: #CD5555">&quot;EoS.csv&quot;</span>),<span style="color: #CD5555">&#39;r&#39;</span>)
 
@@ -1427,11 +2608,11 @@ plt.show()
 
 
 <section>
-<h2 id="___sec32">Cross-validation with Ridge </h2>
+<h2 id="cross-validation-with-ridge">Cross-validation with Ridge </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
@@ -1467,17 +2648,6 @@ plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
 plt.legend()
 plt.show()
 </pre></div>
-</section>
-
-
-<section>
-<h2 id="___sec33">Friday September 4  </h2>
-
-<p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember4.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember4.pdf" target="_blank">handwritten notes</a>
-
-<p>
-More material will be added here, see handwritten notes also.
 </section>
 
 
