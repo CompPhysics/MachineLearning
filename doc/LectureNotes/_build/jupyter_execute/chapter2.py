@@ -1,63 +1,1822 @@
-# Resampling Methods
-
-## Introduction
-
-Resampling methods are an indispensable tool in modern
-statistics. They involve repeatedly drawing samples from a training
-set and refitting a model of interest on each sample in order to
-obtain additional information about the fitted model. For example, in
-order to estimate the variability of a linear regression fit, we can
-repeatedly draw different samples from the training data, fit a linear
-regression to each new sample, and then examine the extent to which
-the resulting fits differ. Such an approach may allow us to obtain
-information that would not be available from fitting the model only
-once using the original training sample.
-
-Two resampling methods are often used in Machine Learning analyses,
-1. The **bootstrap method**
-
-2. and **Cross-Validation**
-
-In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
-cross-validation and the bootstrap method. 
+# Ridge and Lasso Regression
 
 
-Resampling approaches can be computationally expensive, because they
-involve fitting the same statistical method multiple times using
-different subsets of the training data. However, due to recent
-advances in computing power, the computational requirements of
-resampling methods generally are not prohibitive. In this chapter, we
-discuss two of the most commonly used resampling methods,
-cross-validation and the bootstrap. Both methods are important tools
-in the practical application of many statistical learning
-procedures. For example, cross-validation can be used to estimate the
-test error associated with a given statistical learning method in
-order to evaluate its performance, or to select the appropriate level
-of flexibility. The process of evaluating a model’s performance is
-known as model assessment, whereas the process of selecting the proper
-level of flexibility for a model is known as model selection. The
-bootstrap is widely used.
+
+## Mathematical Interpretation of Ordinary Least Squares
+
+What is presented here is a mathematical analysis of various regression algorithms (ordinary least  squares, Ridge and Lasso Regression). The analysis is based on an important algorithm in linear algebra, the so-called Singular Value Decomposition (SVD). 
 
 
-* Our simulations can be treated as *computer experiments*. This is particularly the case for Monte Carlo methods
+We have shown that in ordinary least squares the optimal parameters $\beta$ are given by
 
-* The results can be analysed with the same statistical tools as we would use analysing experimental data.
+$$
+\hat{\boldsymbol{\beta}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+$$
 
-* As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
+The **hat** over $\boldsymbol{\beta}$ means we have the optimal parameters after minimization of the cost function.
 
-## Reminder on Statistics
+This means that our best model is defined as
+
+$$
+\tilde{\boldsymbol{y}}=\boldsymbol{X}\hat{\boldsymbol{\beta}} = \boldsymbol{X}\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+$$
+
+We now define a matrix
+
+$$
+\boldsymbol{A}=\boldsymbol{X}\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T.
+$$
+
+We can rewrite
+
+$$
+\tilde{\boldsymbol{y}}=\boldsymbol{X}\hat{\boldsymbol{\beta}} = \boldsymbol{A}\boldsymbol{y}.
+$$
+
+The matrix $\boldsymbol{A}$ has the important property that $\boldsymbol{A}^2=\boldsymbol{A}$. This is the definition of a projection matrix.
+We can then interpret our optimal model $\tilde{\boldsymbol{y}}$ as being represented  by an orthogonal  projection of $\boldsymbol{y}$ onto a space defined by the column vectors of $\boldsymbol{X}$.  In our case here the matrix $\boldsymbol{A}$ is a square matrix. If it is a general rectangular matrix we have an oblique projection matrix.
 
 
-* As in other experiments, many numerical  experiments have two classes of errors:
-
-  * Statistical errors
-
-  * Systematical errors
 
 
-* Statistical errors can be estimated using standard tools from statistics
+We have defined the residual error as
 
-* Systematical errors are method specific and must be treated differently from case to case. 
+$$
+\boldsymbol{\epsilon}=\boldsymbol{y}-\tilde{\boldsymbol{y}}=\left[\boldsymbol{I}-\boldsymbol{X}\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\right]\boldsymbol{y}.
+$$
+
+The residual errors are then the projections of $\boldsymbol{y}$ onto the orthogonal component of the space defined by the column vectors of $\boldsymbol{X}$.
+
+
+If the matrix $\boldsymbol{X}$ is an orthogonal (or unitary in case of complex values) matrix, we have
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{X}\boldsymbol{X}^T = \boldsymbol{I}.
+$$
+
+In this case the matrix $\boldsymbol{A}$ becomes
+
+$$
+\boldsymbol{A}=\boldsymbol{X}\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T)=\boldsymbol{I},
+$$
+
+and we have the obvious case
+
+$$
+\boldsymbol{\epsilon}=\boldsymbol{y}-\tilde{\boldsymbol{y}}=0.
+$$
+
+This serves also as a useful test of our codes. 
+
+
+
+
+## The singular value decomposition
+
+
+The examples we have looked at so far are cases where we normally can
+invert the matrix $\boldsymbol{X}^T\boldsymbol{X}$. Using a polynomial expansion where we fit of various functions leads to
+row vectors of the design matrix which are essentially orthogonal due
+to the polynomial character of our model. Obtaining the inverse of the
+design matrix is then often done via a so-called LU, QR or Cholesky
+decomposition.
+
+
+As we will also see in the first project, 
+this may
+however not the be case in general and a standard matrix inversion
+algorithm based on say LU, QR or Cholesky decomposition may lead to singularities. We will see examples of this below.
+
+There is however a way to circumvent this problem and also
+gain some insights about the ordinary least squares approach, and
+later shrinkage methods like Ridge and Lasso regressions.
+
+This is given by the **Singular Value Decomposition** (SVD) algorithm,
+perhaps the most powerful linear algebra algorithm.  The SVD provides
+a numerically stable matrix decomposition that is used in a large
+swath oc applications and the decomposition is always stable
+numerically.
+
+In machine learning it plays a central role in dealing with for
+example design matrices that may be near singular or singular.
+Furthermore, as we will see here, the singular values can be related
+to the covariance matrix (and thereby the correlation matrix) and in
+turn the variance of a given quantity. It plays also an important role
+in the principal component analysis where high-dimensional data can be
+reduced to the statistically relevant features.
+
+
+
+
+One of the typical problems we encounter with linear regression, in particular 
+when the matrix $\boldsymbol{X}$ (our so-called design matrix) is high-dimensional, 
+are problems with near singular or singular matrices. The column vectors of $\boldsymbol{X}$ 
+may be linearly dependent, normally referred to as super-collinearity.  
+This means that the matrix may be rank deficient and it is basically impossible to 
+to model the data using linear regression. As an example, consider the matrix
+
+$$
+\begin{align*}
+\mathbf{X} & =  \left[
+\begin{array}{rrr}
+1 & -1 & 2
+\\
+1 & 0 & 1
+\\
+1 & 2  & -1
+\\
+1 & 1  & 0
+\end{array} \right]
+\end{align*}
+$$
+
+The columns of $\boldsymbol{X}$ are linearly dependent. We see this easily since the 
+the first column is the row-wise sum of the other two columns. The rank (more correct,
+the column rank) of a matrix is the dimension of the space spanned by the
+column vectors. Hence, the rank of $\mathbf{X}$ is equal to the number
+of linearly independent columns. In this particular case the matrix has rank 2.
+
+Super-collinearity of an $(n \times p)$-dimensional design matrix $\mathbf{X}$ implies
+that the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$ (the matrix we need to invert to solve the linear regression equations) is non-invertible. If we have a square matrix that does not have an inverse, we say this matrix singular. The example here demonstrates this
+
+$$
+\begin{align*}
+\boldsymbol{X} & =  \left[
+\begin{array}{rr}
+1 & -1
+\\
+1 & -1
+\end{array} \right].
+\end{align*}
+$$
+
+We see easily that  $\mbox{det}(\boldsymbol{X}) = x_{11} x_{22} - x_{12} x_{21} = 1 \times (-1) - 1 \times (-1) = 0$. Hence, $\mathbf{X}$ is singular and its inverse is undefined.
+This is equivalent to saying that the matrix $\boldsymbol{X}$ has at least an eigenvalue which is zero.
+
+
+
+If our design matrix $\boldsymbol{X}$ which enters the linear regression problem
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto1"></div>
+
+$$
+\begin{equation}
+\boldsymbol{\beta}  =  (\boldsymbol{X}^{T} \boldsymbol{X})^{-1} \boldsymbol{X}^{T} \boldsymbol{y},
+\label{_auto1} \tag{1}
+\end{equation}
+$$
+
+has linearly dependent column vectors, we will not be able to compute the inverse
+of $\boldsymbol{X}^T\boldsymbol{X}$ and we cannot find the parameters (estimators) $\beta_i$. 
+The estimators are only well-defined if $(\boldsymbol{X}^{T}\boldsymbol{X})^{-1}$ exits. 
+This is more likely to happen when the matrix $\boldsymbol{X}$ is high-dimensional. In this case it is likely to encounter a situation where 
+the regression parameters $\beta_i$ cannot be estimated.
+
+A cheap  *ad hoc* approach is  simply to add a small diagonal component to the matrix to invert, that is we change
+
+$$
+\boldsymbol{X}^{T} \boldsymbol{X} \rightarrow \boldsymbol{X}^{T} \boldsymbol{X}+\lambda \boldsymbol{I},
+$$
+
+where $\boldsymbol{I}$ is the identity matrix.  When we discuss **Ridge** regression this is actually what we end up evaluating. The parameter $\lambda$ is called a hyperparameter. More about this later. 
+
+
+
+
+## Basic math of the SVD
+
+
+From standard linear algebra we know that a square matrix $\boldsymbol{X}$ can be diagonalized if and only it is 
+a so-called [normal matrix](https://en.wikipedia.org/wiki/Normal_matrix), that is if $\boldsymbol{X}\in {\mathbb{R}}^{n\times n}$
+we have $\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{X}^T\boldsymbol{X}$ or if $\boldsymbol{X}\in {\mathbb{C}}^{n\times n}$ we have $\boldsymbol{X}\boldsymbol{X}^{\dagger}=\boldsymbol{X}^{\dagger}\boldsymbol{X}$.
+The matrix has then a set of eigenpairs
+
+$$
+(\lambda_1,\boldsymbol{u}_1),\dots, (\lambda_n,\boldsymbol{u}_n),
+$$
+
+and the eigenvalues are given by the diagonal matrix
+
+$$
+\boldsymbol{\Sigma}=\mathrm{Diag}(\lambda_1, \dots,\lambda_n).
+$$
+
+The matrix $\boldsymbol{X}$ can be written in terms of an orthogonal/unitary transformation $\boldsymbol{U}$
+
+$$
+\boldsymbol{X} = \boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T,
+$$
+
+with $\boldsymbol{U}\boldsymbol{U}^T=\boldsymbol{I}$ or $\boldsymbol{U}\boldsymbol{U}^{\dagger}=\boldsymbol{I}$.
+
+Not all square matrices are diagonalizable. A matrix like the one discussed above
+
+$$
+\boldsymbol{X} = \begin{bmatrix} 
+1&  -1 \\
+1& -1\\
+\end{bmatrix}
+$$
+
+is not diagonalizable, it is a so-called [defective matrix](https://en.wikipedia.org/wiki/Defective_matrix). It is easy to see that the condition
+$\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{X}^T\boldsymbol{X}$ is not fulfilled. 
+
+
+
+
+
+However, and this is the strength of the SVD algorithm, any general
+matrix $\boldsymbol{X}$ can be decomposed in terms of a diagonal matrix and
+two orthogonal/unitary matrices.  The [Singular Value Decompostion
+(SVD) theorem](https://en.wikipedia.org/wiki/Singular_value_decomposition)
+states that a general $m\times n$ matrix $\boldsymbol{X}$ can be written in
+terms of a diagonal matrix $\boldsymbol{\Sigma}$ of dimensionality $m\times n$
+and two orthognal matrices $\boldsymbol{U}$ and $\boldsymbol{V}$, where the first has
+dimensionality $m \times m$ and the last dimensionality $n\times n$.
+We have then
+
+$$
+\boldsymbol{X} = \boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T
+$$
+
+As an example, the above defective matrix can be decomposed as
+
+$$
+\boldsymbol{X} = \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  1 \\ 1& -1\\ \end{bmatrix} \begin{bmatrix}  2&  0 \\ 0& 0\\ \end{bmatrix}    \frac{1}{\sqrt{2}}\begin{bmatrix}  1&  -1 \\ 1& 1\\ \end{bmatrix}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T,
+$$
+
+with eigenvalues $\sigma_1=2$ and $\sigma_2=0$. 
+The SVD exits always! 
+
+The SVD
+decomposition (singular values) gives eigenvalues 
+$\sigma_i\geq\sigma_{i+1}$ for all $i$ and for dimensions larger than $i=p$, the
+eigenvalues (singular values) are zero.
+
+In the general case, where our design matrix $\boldsymbol{X}$ has dimension
+$n\times p$, the matrix is thus decomposed into an $n\times n$
+orthogonal matrix $\boldsymbol{U}$, a $p\times p$ orthogonal matrix $\boldsymbol{V}$
+and a diagonal matrix $\boldsymbol{\Sigma}$ with $r=\mathrm{min}(n,p)$
+singular values $\sigma_i\geq 0$ on the main diagonal and zeros filling
+the rest of the matrix.  There are at most $p$ singular values
+assuming that $n > p$. In our regression examples for the nuclear
+masses and the equation of state this is indeed the case, while for
+the Ising model we have $p > n$. These are often cases that lead to
+near singular or singular matrices.
+
+The columns of $\boldsymbol{U}$ are called the left singular vectors while the columns of $\boldsymbol{V}$ are the right singular vectors.
+
+
+If we assume that $n > p$, then our matrix $\boldsymbol{U}$ has dimension $n
+\times n$. The last $n-p$ columns of $\boldsymbol{U}$ become however
+irrelevant in our calculations since they are multiplied with the
+zeros in $\boldsymbol{\Sigma}$.
+
+The economy-size decomposition removes extra rows or columns of zeros
+from the diagonal matrix of singular values, $\boldsymbol{\Sigma}$, along with the columns
+in either $\boldsymbol{U}$ or $\boldsymbol{V}$ that multiply those zeros in the expression. 
+Removing these zeros and columns can improve execution time
+and reduce storage requirements without compromising the accuracy of
+the decomposition.
+
+If $n > p$, we keep only the first $p$ columns of $\boldsymbol{U}$ and $\boldsymbol{\Sigma}$ has dimension $p\times p$. 
+If $p > n$, then only the first $n$ columns of $\boldsymbol{V}$ are computed and $\boldsymbol{\Sigma}$ has dimension $n\times n$.
+The $n=p$ case is obvious, we retain the full SVD. 
+In general the economy-size SVD leads to less FLOPS and still conserving the desired accuracy.
+
+## Codes for the SVD
+
+import numpy as np
+# SVD inversion
+def SVD(A):
+    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
+    SVD is numerically more stable than the inversion algorithms provided by
+    numpy and scipy.linalg at the cost of being slower.
+    '''
+    U, S, VT = np.linalg.svd(A,full_matrices=True)
+    print('test U')
+    print( (np.transpose(U) @ U - U @np.transpose(U)))
+    print('test VT')
+    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
+    print(U)
+    print(S)
+    print(VT)
+
+    D = np.zeros((len(U),len(VT)))
+    for i in range(0,len(VT)):
+        D[i,i]=S[i]
+    return U @ D @ VT
+
+
+X = np.array([ [1.0,-1.0], [1.0,-1.0]])
+#X = np.array([[1, 2], [3, 4], [5, 6]])
+
+print(X)
+C = SVD(X)
+# Print the difference between the original matrix and the SVD one
+print(C-X)
+
+The matrix $\boldsymbol{X}$ has columns that are linearly dependent. The first
+column is the row-wise sum of the other two columns. The rank of a
+matrix (the column rank) is the dimension of space spanned by the
+column vectors. The rank of the matrix is the number of linearly
+independent columns, in this case just $2$. We see this from the
+singular values when running the above code. Running the standard
+inversion algorithm for matrix inversion with $\boldsymbol{X}^T\boldsymbol{X}$ results
+in the program terminating due to a singular matrix.
+
+
+
+The $U$, $S$, and $V$ matrices returned from the **svd()** function
+cannot be multiplied directly.
+
+As you can see from the code, the $S$ vector must be converted into a
+diagonal matrix. This may cause a problem as the size of the matrices
+do not fit the rules of matrix multiplication, where the number of
+columns in a matrix must match the number of rows in the subsequent
+matrix.
+
+If you wish to include the zero singular values, you will need to
+resize the matrices and set up a diagonal matrix as done in the above
+example
+
+
+
+
+
+## Mathematics of the SVD and implications
+
+Let us take a closer look at the mathematics of the SVD and the various implications for machine learning studies.
+
+Our starting point is our design matrix $\boldsymbol{X}$ of dimension $n\times p$
+
+$$
+\boldsymbol{X}=\begin{bmatrix}
+x_{0,0} & x_{0,1} & x_{0,2}& \dots & \dots x_{0,p-1}\\
+x_{1,0} & x_{1,1} & x_{1,2}& \dots & \dots x_{1,p-1}\\
+x_{2,0} & x_{2,1} & x_{2,2}& \dots & \dots x_{2,p-1}\\
+\dots & \dots & \dots & \dots \dots & \dots \\
+x_{n-2,0} & x_{n-2,1} & x_{n-2,2}& \dots & \dots x_{n-2,p-1}\\
+x_{n-1,0} & x_{n-1,1} & x_{n-1,2}& \dots & \dots x_{n-1,p-1}\\
+\end{bmatrix}.
+$$
+
+We can SVD decompose our matrix as
+
+$$
+\boldsymbol{X}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T,
+$$
+
+where $\boldsymbol{U}$ is an orthogonal matrix of dimension $n\times n$, meaning that $\boldsymbol{U}\boldsymbol{U}^T=\boldsymbol{U}^T\boldsymbol{U}=\boldsymbol{I}_n$. Here $\boldsymbol{I}_n$ is the unit matrix of dimension $n \times n$.
+
+Similarly, $\boldsymbol{V}$ is an orthogonal matrix of dimension $p\times p$, meaning that $\boldsymbol{V}\boldsymbol{V}^T=\boldsymbol{V}^T\boldsymbol{V}=\boldsymbol{I}_p$. Here $\boldsymbol{I}_n$ is the unit matrix of dimension $p \times p$.
+
+Finally $\boldsymbol{\Sigma}$ contains the singular values $\sigma_i$. This matrix has dimension $n\times p$ and the singular values $\sigma_i$ are all positive. The non-zero values are ordered in descending order, that is
+
+$$
+\sigma_0 > \sigma_1 > \sigma_2 > \dots > \sigma_{p-1} > 0.
+$$
+
+All values beyond $p-1$ are all zero.
+
+
+As an example, consider the following $3\times 2$ example for the matrix $\boldsymbol{\Sigma}$
+
+$$
+\boldsymbol{\Sigma}=
+\begin{bmatrix}
+2& 0 \\
+0 & 1 \\
+0 & 0 \\
+\end{bmatrix}
+$$
+
+The singular values are $\sigma_0=2$ and $\sigma_1=1$. It is common to rewrite the matrix $\boldsymbol{\Sigma}$ as
+
+$$
+\boldsymbol{\Sigma}=
+\begin{bmatrix}
+\boldsymbol{\tilde{\Sigma}}\\
+\boldsymbol{0}\\
+\end{bmatrix},
+$$
+
+where
+
+$$
+\boldsymbol{\tilde{\Sigma}}=
+\begin{bmatrix}
+2& 0 \\
+0 & 1 \\
+\end{bmatrix},
+$$
+
+contains only the singular values.   Note also (and we will use this below) that
+
+$$
+\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}=
+\begin{bmatrix}
+4& 0 \\
+0 & 1 \\
+\end{bmatrix},
+$$
+
+which is a $2\times 2 $ matrix while
+
+$$
+\boldsymbol{\Sigma}\boldsymbol{\Sigma}^T=
+\begin{bmatrix}
+4& 0 & 0\\
+0 & 1 & 0\\
+0 & 0 & 0\\
+\end{bmatrix},
+$$
+
+is a $3\times 3 $ matrix. The last row and column of this last matrix
+contain only zeros. This will have important consequences for our SVD
+decomposition of the design matrix.
+
+
+
+The matrix that may cause problems for us is $\boldsymbol{X}^T\boldsymbol{X}$. Using the SVD we can rewrite this matrix as
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T,
+$$
+
+and using the orthogonality of the matrix $\boldsymbol{U}$ we have
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{V}^T.
+$$
+
+We define $\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}=\tilde{\boldsymbol{\Sigma}}^2$ which is  a diagonal matrix containing only the singular values squared. It has dimensionality $p \times p$.
+
+This means, using the orthogonality of $\boldsymbol{V}$,  that we get
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\tilde{\boldsymbol{\Sigma}}^2.
+$$
+
+We can now insert the result for the matrix $\boldsymbol{X}^T\boldsymbol{X}$ into our equation for ordinary least squares where
+
+$$
+\tilde{y}_{\mathrm{OLS}}=\boldsymbol{X}\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+$$
+
+and using our SVD decomposition of $\boldsymbol{X}$ we have
+
+$$
+\tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\tilde{\boldsymbol{\Sigma}}^{-2}\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{y},
+$$
+
+which gives us, using the orthogonality of the matrices $\boldsymbol{U}$ and $\boldsymbol{V}$,
+
+$$
+\tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_i\boldsymbol{u}^T_j\boldsymbol{y},
+$$
+
+Note here that when we perform the  multiplication of the various matrices, the orthogonal vectors of the matrix $\boldsymbol{U}$
+
+$$
+\boldsymbol{U}=[\boldsymbol{u}_0,\boldsymbol{u}_1,\dots,\boldsymbol{u}_{n-1}],
+$$
+
+that belong to $i>p-1$, result in only  zeros when we perform the multiplications. This means that the sum above has non-zero elements only up to $i=p-1$. This corresponds also to the number of singular values (these are all non-zero).
+
+It means that the ordinary least square model (with the optimal parameters) $\boldsymbol{\tilde{y}}$, corresponds to an orthogonal transformation of the output (or target) vector $\boldsymbol{y}$ by the vectors of the matrix $\boldsymbol{U}$.
+
+
+## Further properties (important for our analyses later)
+
+Let us study again $\boldsymbol{X}^T\boldsymbol{X}$ in terms of our SVD,
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{V}^T.
+$$
+
+If we now multiply from the right with $\boldsymbol{V}$ (using the orthogonality of $\boldsymbol{V}$) we get
+
+$$
+\left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{V}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}.
+$$
+
+This means the vectors $\boldsymbol{v}_i$ of the orthogonal matrix $\boldsymbol{V}$ are the eigenvectors of the matrix $\boldsymbol{X}^T\boldsymbol{X}$
+with eigenvalues given by the singular values squared, that is
+
+$$
+\left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{v}_i=\boldsymbol{v}_i\sigma_i^2.
+$$
+
+Similarly, if we use the SVD decomposition for the matrix $\boldsymbol{X}\boldsymbol{X}^T$, we have
+
+$$
+\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{\Sigma}^T\boldsymbol{U}^T.
+$$
+
+If we now multiply from the right with $\boldsymbol{U}$ (using the orthogonality of $\boldsymbol{U}$) we get
+
+$$
+\left(\boldsymbol{X}\boldsymbol{X}^T\right)\boldsymbol{U}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{\Sigma}^T.
+$$
+
+This means the vectors $\boldsymbol{u}_i$ of the orthogonal matrix $\boldsymbol{U}$ are the eigenvectors of the matrix $\boldsymbol{X}\boldsymbol{X}^T$
+with eigenvalues given by the singular values squared, that is
+
+$$
+\left(\boldsymbol{X}\boldsymbol{X}^T\right)\boldsymbol{u}_i=\boldsymbol{u}_i\sigma_i^2.
+$$
+
+**Important note**: we have defined our design matrix $\boldsymbol{X}$ to be an
+$n\times p$ matrix. In most supervised learning cases we have that $n
+\ge p$, and quite often we have $n >> p$. For linear algebra based methods like ordinary least squares or Ridge regression, this leads to a matrix $\boldsymbol{X}^T\boldsymbol{X}$ which is small and thereby easier to handle from a computational point of view (in terms of number of floating point operations).
+
+In our lectures, the number of columns will
+always refer to the number of features in our data set, while the
+number of rows represents the number of data inputs. Note that in
+other texts you may find the opposite notation. This has consequences
+for the definition of for example the covariance matrix and its relation to the SVD.
+
+
+## Meet the Covariance Matrix
+
+
+Before we move on to a discussion of Ridge and Lasso regression, we want to show an important example of the above.
+
+We have already noted that the matrix $\boldsymbol{X}^T\boldsymbol{X}$ in ordinary
+least squares is proportional to the second derivative of the cost
+function, that is we have
+
+$$
+\frac{\partial^2 C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}^T\partial \boldsymbol{\beta}} =\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.
+$$
+
+This quantity defines was what is called the Hessian matrix (the second derivative of a function we want to optimize).
+
+The Hessian matrix plays an important role and is defined in this course as
+
+$$
+\boldsymbol{H}=\boldsymbol{X}^T\boldsymbol{X}.
+$$
+
+The Hessian matrix for ordinary least squares is also proportional to
+the covariance matrix. This means also that we can use the SVD to find
+the eigenvalues of the covariance matrix and the Hessian matrix in
+terms of the singular values.   Let us develop these arguments, as they will play an important role in our machine learning studies.
+
+
+
+Before we discuss the link between for example Ridge regression and the singular value decomposition, we need to remind ourselves about
+the definition of the covariance and the correlation function. These are quantities that play a central role in machine learning methods.
+
+Suppose we have defined two vectors
+$\hat{x}$ and $\hat{y}$ with $n$ elements each. The covariance matrix $\boldsymbol{C}$ is defined as
+
+$$
+\boldsymbol{C}[\boldsymbol{x},\boldsymbol{y}] = \begin{bmatrix} \mathrm{cov}[\boldsymbol{x},\boldsymbol{x}] & \mathrm{cov}[\boldsymbol{x},\boldsymbol{y}] \\
+                              \mathrm{cov}[\boldsymbol{y},\boldsymbol{x}] & \mathrm{cov}[\boldsymbol{y},\boldsymbol{y}] \\
+             \end{bmatrix},
+$$
+
+where for example
+
+$$
+\mathrm{cov}[\boldsymbol{x},\boldsymbol{y}] =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
+$$
+
+With this definition and recalling that the variance is defined as
+
+$$
+\mathrm{var}[\boldsymbol{x}]=\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})^2,
+$$
+
+we can rewrite the covariance matrix as
+
+$$
+\boldsymbol{C}[\boldsymbol{x},\boldsymbol{y}] = \begin{bmatrix} \mathrm{var}[\boldsymbol{x}] & \mathrm{cov}[\boldsymbol{x},\boldsymbol{y}] \\
+                              \mathrm{cov}[\boldsymbol{x},\boldsymbol{y}] & \mathrm{var}[\boldsymbol{y}] \\
+             \end{bmatrix}.
+$$
+
+**Note:** we have used $1/n$ in the above definitions of the *sample* variance and covariance. We assume then that we can calculate the exact mean value. 
+What you will find in essentially all statistics texts are equations
+with a factor $1/(n-1)$. This is called [Bessel's correction](https://mathworld.wolfram.com/BesselsCorrection.html). This
+method corrects the bias in the estimation of the population variance
+and covariance. It also partially corrects the bias in the estimation
+of the population standard deviation. If you use a library like
+**Scikit-Learn** or **nunmpy's** function calculate the covariance, this
+quantity will be computed with a factor $1/(n-1)$.
+
+
+The covariance takes values between zero and infinity and may thus
+lead to problems with loss of numerical precision for particularly
+large values. It is common to scale the covariance matrix by
+introducing instead the correlation matrix defined via the so-called
+correlation function
+
+$$
+\mathrm{corr}[\boldsymbol{x},\boldsymbol{y}]=\frac{\mathrm{cov}[\boldsymbol{x},\boldsymbol{y}]}{\sqrt{\mathrm{var}[\boldsymbol{x}] \mathrm{var}[\boldsymbol{y}]}}.
+$$
+
+The correlation function is then given by values $\mathrm{corr}[\boldsymbol{x},\boldsymbol{y}]
+\in [-1,1]$. This avoids eventual problems with too large values. We
+can then define the correlation matrix for the two vectors $\boldsymbol{x}$
+and $\boldsymbol{y}$ as
+
+$$
+\boldsymbol{K}[\boldsymbol{x},\boldsymbol{y}] = \begin{bmatrix} 1 & \mathrm{corr}[\boldsymbol{x},\boldsymbol{y}] \\
+                              \mathrm{corr}[\boldsymbol{y},\boldsymbol{x}] & 1 \\
+             \end{bmatrix},
+$$
+
+In the above example this is the function we constructed using **pandas**.
+
+
+
+In our derivation of the various regression algorithms like **Ordinary Least Squares** or **Ridge regression**
+we defined the design/feature matrix $\boldsymbol{X}$ as
+
+$$
+\boldsymbol{X}=\begin{bmatrix}
+x_{0,0} & x_{0,1} & x_{0,2}& \dots & \dots x_{0,p-1}\\
+x_{1,0} & x_{1,1} & x_{1,2}& \dots & \dots x_{1,p-1}\\
+x_{2,0} & x_{2,1} & x_{2,2}& \dots & \dots x_{2,p-1}\\
+\dots & \dots & \dots & \dots \dots & \dots \\
+x_{n-2,0} & x_{n-2,1} & x_{n-2,2}& \dots & \dots x_{n-2,p-1}\\
+x_{n-1,0} & x_{n-1,1} & x_{n-1,2}& \dots & \dots x_{n-1,p-1}\\
+\end{bmatrix},
+$$
+
+with $\boldsymbol{X}\in {\mathbb{R}}^{n\times p}$, with the predictors/features $p$  refering to the column numbers and the
+entries $n$ being the row elements.
+We can rewrite the design/feature matrix in terms of its column vectors as
+
+$$
+\boldsymbol{X}=\begin{bmatrix} \boldsymbol{x}_0 & \boldsymbol{x}_1 & \boldsymbol{x}_2 & \dots & \dots & \boldsymbol{x}_{p-1}\end{bmatrix},
+$$
+
+with a given vector
+
+$$
+\boldsymbol{x}_i^T = \begin{bmatrix}x_{0,i} & x_{1,i} & x_{2,i}& \dots & \dots x_{n-1,i}\end{bmatrix}.
+$$
+
+With these definitions, we can now rewrite our $2\times 2$
+correlation/covariance matrix in terms of a moe general design/feature
+matrix $\boldsymbol{X}\in {\mathbb{R}}^{n\times p}$. This leads to a $p\times p$
+covariance matrix for the vectors $\boldsymbol{x}_i$ with $i=0,1,\dots,p-1$
+
+$$
+\boldsymbol{C}[\boldsymbol{x}] = \begin{bmatrix}
+\mathrm{var}[\boldsymbol{x}_0] & \mathrm{cov}[\boldsymbol{x}_0,\boldsymbol{x}_1]  & \mathrm{cov}[\boldsymbol{x}_0,\boldsymbol{x}_2] & \dots & \dots & \mathrm{cov}[\boldsymbol{x}_0,\boldsymbol{x}_{p-1}]\\
+\mathrm{cov}[\boldsymbol{x}_1,\boldsymbol{x}_0] & \mathrm{var}[\boldsymbol{x}_1]  & \mathrm{cov}[\boldsymbol{x}_1,\boldsymbol{x}_2] & \dots & \dots & \mathrm{cov}[\boldsymbol{x}_1,\boldsymbol{x}_{p-1}]\\
+\mathrm{cov}[\boldsymbol{x}_2,\boldsymbol{x}_0]   & \mathrm{cov}[\boldsymbol{x}_2,\boldsymbol{x}_1] & \mathrm{var}[\boldsymbol{x}_2] & \dots & \dots & \mathrm{cov}[\boldsymbol{x}_2,\boldsymbol{x}_{p-1}]\\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\mathrm{cov}[\boldsymbol{x}_{p-1},\boldsymbol{x}_0]   & \mathrm{cov}[\boldsymbol{x}_{p-1},\boldsymbol{x}_1] & \mathrm{cov}[\boldsymbol{x}_{p-1},\boldsymbol{x}_{2}]  & \dots & \dots  & \mathrm{var}[\boldsymbol{x}_{p-1}]\\
+\end{bmatrix},
+$$
+
+and the correlation matrix
+
+$$
+\boldsymbol{K}[\boldsymbol{x}] = \begin{bmatrix}
+1 & \mathrm{corr}[\boldsymbol{x}_0,\boldsymbol{x}_1]  & \mathrm{corr}[\boldsymbol{x}_0,\boldsymbol{x}_2] & \dots & \dots & \mathrm{corr}[\boldsymbol{x}_0,\boldsymbol{x}_{p-1}]\\
+\mathrm{corr}[\boldsymbol{x}_1,\boldsymbol{x}_0] & 1  & \mathrm{corr}[\boldsymbol{x}_1,\boldsymbol{x}_2] & \dots & \dots & \mathrm{corr}[\boldsymbol{x}_1,\boldsymbol{x}_{p-1}]\\
+\mathrm{corr}[\boldsymbol{x}_2,\boldsymbol{x}_0]   & \mathrm{corr}[\boldsymbol{x}_2,\boldsymbol{x}_1] & 1 & \dots & \dots & \mathrm{corr}[\boldsymbol{x}_2,\boldsymbol{x}_{p-1}]\\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+\mathrm{corr}[\boldsymbol{x}_{p-1},\boldsymbol{x}_0]   & \mathrm{corr}[\boldsymbol{x}_{p-1},\boldsymbol{x}_1] & \mathrm{corr}[\boldsymbol{x}_{p-1},\boldsymbol{x}_{2}]  & \dots & \dots  & 1\\
+\end{bmatrix},
+$$
+
+The Numpy function **np.cov** calculates the covariance elements using
+the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have
+the exact mean values.  The following simple function uses the
+**np.vstack** function which takes each vector of dimension $1\times n$
+and produces a $2\times n$ matrix $\boldsymbol{W}$
+
+Note that this assumes you have the features as the rows, and the inputs as columns, that is
+
+$$
+\boldsymbol{W} = \begin{bmatrix} x_0 & x_1 & x_2 & \dots & x_{n-2} & x_{n-1} \\
+                     y_0 & y_1 & y_2 & \dots & y_{n-2} & y_{n-1} \\
+             \end{bmatrix},
+$$
+
+which in turn is converted into into the $2\times 2$ covariance matrix
+$\boldsymbol{C}$ via the Numpy function **np.cov()**. We note that we can also calculate
+the mean value of each set of samples $\boldsymbol{x}$ etc using the Numpy
+function **np.mean(x)**. We can also extract the eigenvalues of the
+covariance matrix through the **np.linalg.eig()** function.
+
+# Importing various packages
+import numpy as np
+n = 100
+x = np.random.normal(size=n)
+print(np.mean(x))
+y = 4+3*x+np.random.normal(size=n)
+print(np.mean(y))
+W = np.vstack((x, y))
+C = np.cov(W)
+print(C)
+
+The previous example can be converted into the correlation matrix by
+simply scaling the matrix elements with the variances.  We should also
+subtract the mean values for each column. This leads to the following
+code which sets up the correlations matrix for the previous example in
+a more brute force way. Here we scale the mean values for each column of the design matrix, calculate the relevant mean values and variances and then finally set up the $2\times 2$ correlation matrix (since we have only two vectors).
+
+import numpy as np
+n = 100
+# define two vectors                                                                                           
+x = np.random.random(size=n)
+y = 4+3*x+np.random.normal(size=n)
+#scaling the x and y vectors                                                                                   
+x = x - np.mean(x)
+y = y - np.mean(y)
+variance_x = np.sum(x@x)/n
+variance_y = np.sum(y@y)/n
+print(variance_x)
+print(variance_y)
+cov_xy = np.sum(x@y)/n
+cov_xx = np.sum(x@x)/n
+cov_yy = np.sum(y@y)/n
+C = np.zeros((2,2))
+C[0,0]= cov_xx/variance_x
+C[1,1]= cov_yy/variance_y
+C[0,1]= cov_xy/np.sqrt(variance_y*variance_x)
+C[1,0]= C[0,1]
+print(C)
+
+We see that the matrix elements along the diagonal are one as they
+should be and that the matrix is symmetric. Furthermore, diagonalizing
+this matrix we easily see that it is a positive definite matrix.
+
+The above procedure with **numpy** can be made more compact if we use **pandas**.
+
+
+
+We whow here how we can set up the correlation matrix using **pandas**, as done in this simple code
+
+import numpy as np
+import pandas as pd
+n = 10
+x = np.random.normal(size=n)
+x = x - np.mean(x)
+y = 4+3*x+np.random.normal(size=n)
+y = y - np.mean(y)
+# Note that we transpose the matrix in order to stay with our ordering n x p
+X = (np.vstack((x, y))).T
+print(X)
+Xpd = pd.DataFrame(X)
+print(Xpd)
+correlation_matrix = Xpd.corr()
+print(correlation_matrix)
+
+We expand this model to the Franke function discussed earlier.
+
+# Common imports
+import numpy as np
+import pandas as pd
+
+
+def FrankeFunction(x,y):
+	term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
+	term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
+	term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
+	term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+	return term1 + term2 + term3 + term4
+
+
+def create_X(x, y, n ):
+	if len(x.shape) > 1:
+		x = np.ravel(x)
+		y = np.ravel(y)
+
+	N = len(x)
+	l = int((n+1)*(n+2)/2)		# Number of elements in beta
+	X = np.ones((N,l))
+
+	for i in range(1,n+1):
+		q = int((i)*(i+1)/2)
+		for k in range(i+1):
+			X[:,q+k] = (x**(i-k))*(y**k)
+
+	return X
+
+
+# Making meshgrid of datapoints and compute Franke's function
+n = 4
+N = 100
+x = np.sort(np.random.uniform(0, 1, N))
+y = np.sort(np.random.uniform(0, 1, N))
+z = FrankeFunction(x, y)
+X = create_X(x, y, n=n)    
+
+Xpd = pd.DataFrame(X)
+# subtract the mean values and set up the covariance matrix
+Xpd = Xpd - Xpd.mean()
+covariance_matrix = Xpd.cov()
+print(covariance_matrix)
+
+We note here that the covariance is zero for the first rows and
+columns since all matrix elements in the design matrix were set to one
+(we are fitting the function in terms of a polynomial of degree $n$).
+
+This means that the variance for these elements will be zero and will
+cause problems when we set up the correlation matrix.  We can simply
+drop these elements and construct a correlation
+matrix without these elements. 
+
+
+
+We can rewrite the covariance matrix in a more compact form in terms of the design/feature matrix $\boldsymbol{X}$ as
+
+$$
+\boldsymbol{C}[\boldsymbol{x}] = \frac{1}{n}\boldsymbol{X}^T\boldsymbol{X}= \mathbb{E}[\boldsymbol{X}^T\boldsymbol{X}].
+$$
+
+To see this let us simply look at a design matrix $\boldsymbol{X}\in {\mathbb{R}}^{2\times 2}$
+
+$$
+\boldsymbol{X}=\begin{bmatrix}
+x_{00} & x_{01}\\
+x_{10} & x_{11}\\
+\end{bmatrix}=\begin{bmatrix}
+\boldsymbol{x}_{0} & \boldsymbol{x}_{1}\\
+\end{bmatrix}.
+$$
+
+If we then compute the expectation value (note the $1/n$ factor instead of $1/(n-1)$)
+
+$$
+\mathbb{E}[\boldsymbol{X}^T\boldsymbol{X}] = \frac{1}{n}\boldsymbol{X}^T\boldsymbol{X}=\frac{1}{n}\begin{bmatrix}
+x_{00}^2+x_{10}^2 & x_{00}x_{01}+x_{10}x_{11}\\
+x_{01}x_{00}+x_{11}x_{10} & x_{01}^2+x_{11}^2\\
+\end{bmatrix},
+$$
+
+which is just
+
+$$
+\boldsymbol{C}[\boldsymbol{x}_0,\boldsymbol{x}_1] = \boldsymbol{C}[\boldsymbol{x}]=\begin{bmatrix} \mathrm{var}[\boldsymbol{x}_0] & \mathrm{cov}[\boldsymbol{x}_0,\boldsymbol{x}_1] \\
+                              \mathrm{cov}[\boldsymbol{x}_1,\boldsymbol{x}_0] & \mathrm{var}[\boldsymbol{x}_1] \\
+             \end{bmatrix},
+$$
+
+where we wrote $$\boldsymbol{C}[\boldsymbol{x}_0,\boldsymbol{x}_1] = \boldsymbol{C}[\boldsymbol{x}]$$ to indicate that this is the covariance of the vectors $\boldsymbol{x}$ of the design/feature matrix $\boldsymbol{X}$.
+
+It is easy to generalize this to a matrix $\boldsymbol{X}\in {\mathbb{R}}^{n\times p}$.
+
+
+
+## Linking with the SVD
+
+We saw earlier that
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{V}^T.
+$$
+
+Since the matrices here have dimension $p\times p$, with $p$ corresponding to the singular values, we defined earlier the matrix
+
+$$
+\boldsymbol{\Sigma}^T\boldsymbol{\Sigma} = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\\ \end{bmatrix},
+$$
+
+where the tilde-matrix $\tilde{\boldsymbol{\Sigma}}$ is a matrix of dimension $p\times p$ containing only the singular values $\sigma_i$, that is
+
+$$
+\tilde{\boldsymbol{\Sigma}}=\begin{bmatrix} \sigma_0 & 0 & 0 & \dots & 0 & 0 \\
+                                    0 & \sigma_1 & 0 & \dots & 0 & 0 \\
+				    0 & 0 & \sigma_2 & \dots & 0 & 0 \\
+				    0 & 0 & 0 & \dots & \sigma_{p-2} & 0 \\
+				    0 & 0 & 0 & \dots & 0 & \sigma_{p-1} \\
+\end{bmatrix},
+$$
+
+meaning we can write
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2\boldsymbol{V}^T.
+$$
+
+Multiplying from the right with $\boldsymbol{V}$ (using the orthogonality of $\boldsymbol{V}$) we get
+
+$$
+\left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{V}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2.
+$$
+
+This means the vectors $\boldsymbol{v}_i$ of the orthogonal matrix $\boldsymbol{V}$
+are the eigenvectors of the matrix $\boldsymbol{X}^T\boldsymbol{X}$ with eigenvalues
+given by the singular values squared, that is
+
+$$
+\left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{v}_i=\boldsymbol{v}_i\sigma_i^2.
+$$
+
+In other words, each non-zero singular value of $\boldsymbol{X}$ is a positive
+square root of an eigenvalue of $\boldsymbol{X}^T\boldsymbol{X}$.  It means also that
+the columns of $\boldsymbol{V}$ are the eigenvectors of
+$\boldsymbol{X}^T\boldsymbol{X}$. Since we have ordered the singular values of
+$\boldsymbol{X}$ in a descending order, it means that the column vectors
+$\boldsymbol{v}_i$ are hierarchically ordered by how much correlation they
+encode from the columns of $\boldsymbol{X}$. 
+
+
+Note that these are also the eigenvectors and eigenvalues of the
+Hessian matrix.
+
+If we now recall the definition of the covariance matrix (not using
+Bessel's correction) we have
+
+$$
+\boldsymbol{C}[\boldsymbol{X}]=\frac{1}{n}\boldsymbol{X}^T\boldsymbol{X},
+$$
+
+meaning that every squared non-singular value of $\boldsymbol{X}$ divided by $n$ (
+the number of samples) are the eigenvalues of the covariance
+matrix. Every singular value of $\boldsymbol{X}$ is thus a positive square
+root of an eigenvalue of $\boldsymbol{X}^T\boldsymbol{X}$. If the matrix $\boldsymbol{X}$ is
+self-adjoint, the singular values of $\boldsymbol{X}$ are equal to the
+absolute value of the eigenvalues of $\boldsymbol{X}$.
+
+
+For $\boldsymbol{X}\boldsymbol{X}^T$ we found
+
+$$
+\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T=\boldsymbol{U}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{U}^T.
+$$
+
+Since the matrices here have dimension $n\times n$, we have
+
+$$
+\boldsymbol{\Sigma}\boldsymbol{\Sigma}^T = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}}  \boldsymbol{0}\\ \end{bmatrix}=\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix},
+$$
+
+leading to
+
+$$
+\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}\boldsymbol{U}^T.
+$$
+
+Multiplying with $\boldsymbol{U}$ from the right gives us the eigenvalue problem
+
+$$
+(\boldsymbol{X}\boldsymbol{X}^T)\boldsymbol{U}=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}.
+$$
+
+It means that the eigenvalues of $\boldsymbol{X}\boldsymbol{X}^T$ are again given by
+the non-zero singular values plus now a series of zeros.  The column
+vectors of $\boldsymbol{U}$ are the eigenvectors of $\boldsymbol{X}\boldsymbol{X}^T$ and
+measure how much correlations are contained in the rows of $\boldsymbol{X}$.
+
+Since we will mainly be interested in the correlations among the features
+of our data (the columns of $\boldsymbol{X}$, the quantity of interest for us are the non-zero singular
+values and the column vectors of $\boldsymbol{V}$.
+
+
+
+## Ridge and LASSO Regression
+
+Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
+our optimization problem is
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right\}.
+$$
+
+or we can state it as
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2,
+$$
+
+where we have used the definition of  a norm-2 vector, that is
+
+$$
+\vert\vert \boldsymbol{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}.
+$$
+
+By minimizing the above equation with respect to the parameters
+$\boldsymbol{\beta}$ we could then obtain an analytical expression for the
+parameters $\boldsymbol{\beta}$.  We can add a regularization parameter $\lambda$ by
+defining a new cost function to be optimized, that is
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+$$
+
+which leads to the Ridge regression minimization problem where we
+require that $\vert\vert \boldsymbol{\beta}\vert\vert_2^2\le t$, where $t$ is
+a finite number larger than zero. By defining
+
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1,
+$$
+
+we have a new optimization equation
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1
+$$
+
+which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
+
+Here we have defined the norm-1 as
+
+$$
+\vert\vert \boldsymbol{x}\vert\vert_1 = \sum_i \vert x_i\vert.
+$$
+
+Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
+
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\boldsymbol{\beta}^T\boldsymbol{\beta},
+$$
+
+and 
+taking the derivatives with respect to $\boldsymbol{\beta}$ we obtain then
+a slightly modified matrix inversion problem which for finite values
+of $\lambda$ does not suffer from singularity problems. We obtain
+the optimal parameters
+
+$$
+\hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+$$
+
+with $\boldsymbol{I}$ being a $p\times p$ identity matrix with the constraint that
+
+$$
+\sum_{i=0}^{p-1} \beta_i^2 \leq t,
+$$
+
+with $t$ a finite positive number. 
+
+When we compare this with the ordinary least squares result we have
+
+$$
+\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+$$
+
+which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$.
+
+
+We see that Ridge regression is nothing but the standard OLS with a
+modified diagonal term added to $\boldsymbol{X}^T\boldsymbol{X}$. The consequences, in
+particular for our discussion of the bias-variance tradeoff are rather
+interesting. We will see that for specific values of $\lambda$, we may
+even reduce the variance of the optimal parameters $\boldsymbol{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+
+Using our insights about the SVD of the design matrix $\boldsymbol{X}$ 
+We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\boldsymbol{U}$ as
+
+$$
+\tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\beta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
+$$
+
+For Ridge regression this becomes
+
+$$
+\tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\beta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
+$$
+
+with the vectors $\boldsymbol{u}_j$ being the columns of $\boldsymbol{U}$ from the SVD of the matrix $\boldsymbol{X}$. 
+
+
+Since $\lambda \geq 0$, it means that compared to OLS, we have
+
+$$
+\frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1.
+$$
+
+Ridge regression finds the coordinates of $\boldsymbol{y}$ with respect to the
+orthonormal basis $\boldsymbol{U}$, it then shrinks the coordinates by
+$\frac{\sigma_j^2}{\sigma_j^2+\lambda}$. Recall that the SVD has
+eigenvalues ordered in a descending way, that is $\sigma_i \geq
+\sigma_{i+1}$.
+
+For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
+
+
+
+For the sake of simplicity, let us assume that the design matrix is orthonormal, that is
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=(\boldsymbol{X}^T\boldsymbol{X})^{-1} =\boldsymbol{I}.
+$$
+
+In this case the standard OLS results in
+
+$$
+\boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\boldsymbol{y},
+$$
+
+and
+
+$$
+\boldsymbol{\beta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\beta}^{\mathrm{OLS}},
+$$
+
+that is the Ridge estimator scales the OLS estimator by the inverse of a factor $1+\lambda$, and
+the Ridge estimator converges to zero when the hyperparameter goes to
+infinity.
+
+We will come back to more interpreations after we have gone through some of the statistical analysis part. 
+
+For more discussions of Ridge and Lasso regression, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
+Similarly, [Mehta et al's article](https://arxiv.org/abs/1803.08823) is also recommended.
+
+
+Using the matrix-vector expression for Lasso regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have the following **cost** function
+
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+$$
+
+Taking the derivative with respect to $\boldsymbol{\beta}$ and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicty)
+
+$$
+\frac{d \vert \beta\vert}{d \boldsymbol{\beta}}=\mathrm{sgn}(\boldsymbol{\beta})=\left\{\begin{array}{cc} 1 & \beta > 0 \\ 0 & \beta =0\\-1 & \beta < 0, \end{array}\right.
+$$
+
+we have that the derivative of the cost function is
+
+$$
+\frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-2\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
+$$
+
+and reordering we have
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=2\boldsymbol{X}^T(\boldsymbol{y}.
+$$
+
+This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package [CVXOPT](https://cvxopt.org/). We will discuss this later. 
+
+## Code for SVD and Inversion of Matrices
+
+How do we use the SVD to invert a matrix $\boldsymbol{X}^\boldsymbol{X}$ which is singular or near singular?
+The simple answer is to use the linear algebra function for pseudoinvers, that is
+
+Ainv = np.linlag.pinv(A)
+
+Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
+
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
+    SVD is numerically more stable than the inversion algorithms provided by
+    numpy and scipy.linalg at the cost of being slower.
+    '''
+    U, s, VT = np.linalg.svd(A)
+    print('test U')
+    print( (np.transpose(U) @ U - U @np.transpose(U)))
+    print('test VT')
+    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
+
+
+    D = np.zeros((len(U),len(VT)))
+    D = np.diag(s)
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
+    return np.matmul(V,np.matmul(invD,UT))
+
+
+#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
+# Non-singular square matrix
+X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
+print(X)
+A = np.transpose(X) @ X
+# Brute force inversion
+B = np.linalg.inv(A)  # here we could use np.linalg.pinv(A)
+C = SVDinv(A)
+print(np.abs(B-C))
+
+Although our matrix to invert $\boldsymbol{X}^T\boldsymbol{X}$ is a square matrix, our matrix may be singular. 
+
+The pseudoinverse is the generalization of the matrix inverse for square matrices to
+rectangular matrices where the number of rows and columns are not equal.
+
+It is also called the the Moore-Penrose Inverse after two independent discoverers of the method or the Generalized Inverse.
+It is used for the calculation of the inverse for singular or near singular matrices and for rectangular matrices.
+
+Using the SVD we can obtain the pseudoinverse of a matrix $\boldsymbol{A}$ (labeled here as $\boldsymbol{A}_{\mathrm{PI}}$
+
+$$
+\boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
+$$
+
+where $\boldsymbol{D}_{\mathrm{PI}}$ can be calculated by creating a diagonal matrix from $\boldsymbol{Sigma}$ where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
+
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    U, s, VT = np.linalg.svd(A)
+    # reciprocals of singular values of s
+    d = 1.0 / s
+    # create m x n D matrix
+    D = np.zeros(A.shape)
+    # populate D with n x n diagonal matrix
+    D[:A.shape[1], :A.shape[1]] = np.diag(d)
+    UT = np.transpose(U)
+    V = np.transpose(VT)
+    return np.matmul(V,np.matmul(D.T,UT))
+
+
+A = np.array([ [0.3, 0.4], [0.5, 0.6], [0.7, 0.8],[0.9, 1.0]])
+print(A)
+# Brute force inversion of super-collinear matrix
+B = np.linalg.pinv(A)
+print(B)
+# Compare our own algorithm with pinv
+C = SVDinv(A)
+print(np.abs(C-B))
+
+As you can see from this example, our own decomposition based on the SVD agrees the pseudoinverse algorithm provided by **Numpy**.
+
+
+
+## Deriving the  Ridge Regression Equations
+
+Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
+our optimization problem is
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right\}.
+$$
+
+or we can state it as
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2,
+$$
+
+where we have used the definition of  a norm-2 vector, that is
+
+$$
+\vert\vert \boldsymbol{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}.
+$$
+
+By minimizing the above equation with respect to the parameters
+$\boldsymbol{\beta}$ we could then obtain an analytical expression for the
+parameters $\boldsymbol{\beta}$.  We can add a regularization parameter $\lambda$ by
+defining a new cost function to be optimized, that is
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+$$
+
+which leads to the Ridge regression minimization problem where we
+require that $\vert\vert \boldsymbol{\beta}\vert\vert_2^2\le t$, where $t$ is
+a finite number larger than zero. By defining
+
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1,
+$$
+
+we have a new optimization equation
+
+$$
+{\displaystyle \min_{\boldsymbol{\beta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1
+$$
+
+which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
+
+Here we have defined the norm-1 as
+
+$$
+\vert\vert \boldsymbol{x}\vert\vert_1 = \sum_i \vert x_i\vert.
+$$
+
+Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
+
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\boldsymbol{\beta}^T\boldsymbol{\beta},
+$$
+
+and 
+taking the derivatives with respect to $\boldsymbol{\beta}$ we obtain then
+a slightly modified matrix inversion problem which for finite values
+of $\lambda$ does not suffer from singularity problems. We obtain
+the optimal parameters
+
+$$
+\hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+$$
+
+with $\boldsymbol{I}$ being a $p\times p$ identity matrix with the constraint that
+
+$$
+\sum_{i=0}^{p-1} \beta_i^2 \leq t,
+$$
+
+with $t$ a finite positive number. 
+
+When we compare this with the ordinary least squares result we have
+
+$$
+\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+$$
+
+which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$.
+
+
+We see that Ridge regression is nothing but the standard OLS with a
+modified diagonal term added to $\boldsymbol{X}^T\boldsymbol{X}$. The consequences, in
+particular for our discussion of the bias-variance tradeoff are rather
+interesting. We will see that for specific values of $\lambda$, we may
+even reduce the variance of the optimal parameters $\boldsymbol{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+
+
+
+Using our insights about the SVD of the design matrix $\boldsymbol{X}$ 
+We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\boldsymbol{U}$ as
+
+$$
+\tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\beta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
+$$
+
+For Ridge regression this becomes
+
+$$
+\tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\beta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
+$$
+
+with the vectors $\boldsymbol{u}_j$ being the columns of $\boldsymbol{U}$ from the SVD of the matrix $\boldsymbol{X}$. 
+
+
+
+Since $\lambda \geq 0$, it means that compared to OLS, we have
+
+$$
+\frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1.
+$$
+
+Ridge regression finds the coordinates of $\boldsymbol{y}$ with respect to the
+orthonormal basis $\boldsymbol{U}$, it then shrinks the coordinates by
+$\frac{\sigma_j^2}{\sigma_j^2+\lambda}$. Recall that the SVD has
+eigenvalues ordered in a descending way, that is $\sigma_i \geq
+\sigma_{i+1}$.
+
+For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
+
+
+
+For the sake of simplicity, let us assume that the design matrix is orthonormal, that is
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}=(\boldsymbol{X}^T\boldsymbol{X})^{-1} =\boldsymbol{I}.
+$$
+
+In this case the standard OLS results in
+
+$$
+\boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\boldsymbol{y},
+$$
+
+and
+
+$$
+\boldsymbol{\beta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\beta}^{\mathrm{OLS}},
+$$
+
+that is the Ridge estimator scales the OLS estimator by the inverse of a factor $1+\lambda$, and
+the Ridge estimator converges to zero when the hyperparameter goes to
+infinity.
+
+We will come back to more interpreations after we have gone through some of the statistical analysis part. 
+
+
+
+Using the matrix-vector expression for Lasso regression and dropping the parameter $1/n$ in front of the standard mean squared error equation, we have the following **cost** function
+
+$$
+C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+$$
+
+Taking the derivative with respect to $\boldsymbol{\beta}$ and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicty)
+
+$$
+\frac{d \vert \beta\vert}{d \boldsymbol{\beta}}=\mathrm{sgn}(\boldsymbol{\beta})=\left\{\begin{array}{cc} 1 & \beta > 0 \\ 0 & \beta =0\\-1 & \beta < 0, \end{array}\right.
+$$
+
+we have that the derivative of the cost function is
+
+$$
+\frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-2\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
+$$
+
+and reordering we have
+
+$$
+\boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta}+\lambda sgn(\boldsymbol{\beta})=2\boldsymbol{X}^T\boldsymbol{y}.
+$$
+
+This equation does not lead to a nice analytical equation as in Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package [CVXOPT](https://cvxopt.org/). We will discuss this later. 
+
+
+
+
+
+Let us assume that our design matrix is given by unit (identity) matrix, that is a square diagonal matrix with ones only along the
+diagonal. In this case we have an equal number of rows and columns $n=p$.
+
+Our model approximation is just $\tilde{\boldsymbol{y}}=\boldsymbol{\beta}$ and the mean squared error and thereby the cost function for ordinary least sqquares (OLS) is then (we drop the term $1/n$)
+
+$$
+C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2,
+$$
+
+and minimizing we have that
+
+$$
+\hat{\beta}_i^{\mathrm{OLS}} = y_i.
+$$
+
+For Ridge regression our cost function is
+
+$$
+C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\beta_i^2,
+$$
+
+and minimizing we have that
+
+$$
+\hat{\beta}_i^{\mathrm{Ridge}} = \frac{y_i}{1+\lambda}.
+$$
+
+For Lasso regression our cost function is
+
+$$
+C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\vert\beta_i\vert=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\sqrt{\beta_i^2},
+$$
+
+and minimizing we have that
+
+$$
+-2\sum_{i=0}^{p-1}(y_i-\beta_i)+\lambda \sum_{i=0}^{p-1}\frac{(\beta_i)}{\vert\beta_i\vert}=0,
+$$
+
+which leads to
+
+$$
+\hat{\boldsymbol{\beta}}_i^{\mathrm{Lasso}} = \left\{\begin{array}{ccc}y_i-\frac{\lambda}{2} &\mathrm{if} & y_i> \frac{\lambda}{2}\\
+                                                          y_i+\frac{\lambda}{2} &\mathrm{if} & y_i< -\frac{\lambda}{2}\\
+							  0 &\mathrm{if} & \vert y_i\vert\le  \frac{\lambda}{2}\end{array}\right.\\.
+$$
+
+Plotting these results ([figure in handwritten notes for week 36](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2021/NotesSeptember9.pdf)) shows clearly that Lasso regression suppresses (sets to zero) values of $\beta_i$ for specific values of $\lambda$. Ridge regression reduces on the other hand the values of $\beta_i$ as function of $\lambda$.
+
+
+As another examples, 
+let us assume we have a data set with outputs/targets given by the vector
+
+$$
+\boldsymbol{y}=\begin{bmatrix}4 \\ 2 \\3\end{bmatrix},
+$$
+
+and our inputs as a $3\times 2$ design matrix
+
+$$
+\boldsymbol{X}=\begin{bmatrix}2 & 0\\ 0 & 1 \\ 0 & 0\end{bmatrix},
+$$
+
+meaning that we have two features and two unknown parameters $\beta_0$ and $\beta_1$ to be determined either by ordinary least squares, Ridge or Lasso regression.
+
+
+For ordinary least squares (OLS) we know that the optimal solution is
+
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\left( \boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+$$
+
+Inserting the above values we obtain that
+
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\begin{bmatrix}2 \\ 2\end{bmatrix},
+$$
+
+The code which implements this simpler case is presented after the discussion of Ridge and Lasso.
+
+
+For Ridge regression we have
+
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\left( \boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+$$
+
+Inserting the above values we obtain that
+
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\begin{bmatrix}\frac{8}{4+\lambda} \\ \frac{2}{1+\lambda}\end{bmatrix},
+$$
+
+There is normally a constraint on the value of $\vert\vert \boldsymbol{\beta}\vert\vert_2$ via the parameter $\lambda$.
+Let us for simplicity assume that $\beta_0^2+\beta_1^2=1$ as constraint. This will allow us to find an expression for the optimal values of $\beta$ and $\lambda$.
+
+To see this, let us write the cost function for Ridge regression.  
+
+
+
+We define the MSE without the $1/n$ factor and have then, using that
+
+$$
+\boldsymbol{X}\boldsymbol{\beta}=\begin{bmatrix} 2\beta_0 \\ \beta_1 \\0 \end{bmatrix},
+$$
+
+$$
+C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\beta_0^2+\beta_1^2),
+$$
+
+and taking the derivative with respect to $\beta_0$ we get
+
+$$
+\beta_0=\frac{8}{4+\lambda},
+$$
+
+and for $\beta_1$ we obtain
+
+$$
+\beta_1=\frac{2}{1+\lambda},
+$$
+
+Using the constraint for $\beta_0^2+\beta_1^2=1$ we can constrain $\lambda$ by solving
+
+$$
+\left(\frac{8}{4+\lambda}\right)^2+\left(\frac{2}{1+\lambda}\right)^2=1,
+$$
+
+which gives $\lambda=4.571$ and $\beta_0=0.933$ and $\beta_1=0.359$.
+
+
+For Lasso we need now, keeping a  constraint on $\vert\beta_0\vert+\vert\beta_1\vert=1$,  to take the derivative of the absolute values of $\beta_0$
+and $\beta_1$. This gives us the following derivatives of the cost function
+
+$$
+C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\vert\beta_0\vert+\vert\beta_1\vert),
+$$
+
+$$
+\frac{\partial C(\boldsymbol{\beta})}{\partial \beta_0}=-4(4-2\beta_0)+\lambda\mathrm{sgn}(\beta_0)=0,
+$$
+
+and
+
+$$
+\frac{\partial C(\boldsymbol{\beta})}{\partial \beta_1}=-2(2-\beta_1)+\lambda\mathrm{sgn}(\beta_1)=0.
+$$
+
+We have now four cases to solve besides the trivial cases $\beta_0$ and/or $\beta_1$ are zero, namely
+1. $\beta_0 > 0$ and $\beta_1 > 0$,
+
+2. $\beta_0 > 0$ and $\beta_1 < 0$,
+
+3. $\beta_0 < 0$ and $\beta_1 > 0$,
+
+4. $\beta_0 < 0$ and $\beta_1 < 0$.
+
+If we consider the first case, we have then
+
+$$
+-4(4-2\beta_0)+\lambda=0,
+$$
+
+and
+
+$$
+-2(2-\beta_1)+\lambda=0.
+$$
+
+which yields
+
+$$
+\beta_0=\frac{16+\lambda}{8},
+$$
+
+and
+
+$$
+\beta_1=\frac{4+\lambda}{2}.
+$$
+
+Using the constraint on $\beta_0$ and $\beta_1$ we can then find the optimal value of $\lambda$ for the different cases. We leave this as an exercise to you.
+
+
+Here we set up the OLS, Ridge and Lasso functionality in order to study the above example. Note that here we have opted for a set of values of $\lambda$, meaning that we need to perform a search in order to find the optimal values.
+
+First we study and compare the OLS and Ridge results.  The next code compares all three methods.
+
+%matplotlib inline
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+
+X = np.array( [ [ 2, 0], [0, 1], [0,0]])
+y = np.array( [4, 2, 3])
+
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(2,2)
+# Decide which values of lambda to use
+nlambdas = 100
+MSEPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+#    print(Ridgebeta)
+    # and then make the prediction
+    ypredictRidge = X @ Ridgebeta
+    MSEPredict[i] = MSE(y,ypredictRidge)
+#    print(MSEPredict[i])
+    # Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Train')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+We see here that we reach a plateau. What is actually happening?
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+
+X = np.array( [ [ 2, 0], [0, 1], [0,0]])
+y = np.array( [4, 2, 3])
+
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(2,2)
+# Decide which values of lambda to use
+nlambdas = 100
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+    print(Ridgebeta)
+    # and then make the prediction
+    ypredictRidge = X @ Ridgebeta
+    MSERidgePredict[i] = MSE(y,ypredictRidge)
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X,y)
+    ypredictLasso = RegLasso.predict(X)
+    print(RegLasso.coef_)
+    MSELassoPredict[i] = MSE(y,ypredictLasso)
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, 'r--', label = 'MSE Ridge Train')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Train')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+Another Example, now with a polynomial fit.
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+# number of features p (here degree of polynomial
+p = 3
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),p))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x*x
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X_train @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+print("Test MSE OLS")
+print(MSE(y_test,ypredictOLS))
+
+# Repeat now for Lasso and Ridge regression and various values of the regularization parameter
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 100
+MSEPredict = np.zeros(nlambdas)
+MSETrain = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+MSELassoTrain = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    # include lasso using Scikit-Learn
+    RegLasso = linear_model.Lasso(lmb)
+    RegLasso.fit(X_train,y_train)
+    # and then make the prediction
+    ytildeRidge = X_train @ Ridgebeta
+    ypredictRidge = X_test @ Ridgebeta
+    ytildeLasso = RegLasso.predict(X_train)
+    ypredictLasso = RegLasso.predict(X_test)
+    MSEPredict[i] = MSE(y_test,ypredictRidge)
+    MSETrain[i] = MSE(y_train,ytildeRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    MSELassoTrain[i] = MSE(y_train,ytildeLasso)
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSETrain, label = 'MSE Ridge train')
+plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Test')
+plt.plot(np.log10(lambdas), MSELassoTrain, label = 'MSE Lasso train')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Test')
+
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+## Linking the regression analysis with a statistical interpretation
+
+We will now couple the discussions of ordinary least squares, Ridge
+and Lasso regression with a statistical interpretation, that is we
+move from a linear algebra analysis to a statistical analysis. In
+particular, we will focus on what the regularization terms can result
+in.  We will amongst other things show that the regularization
+parameter can reduce considerably the variance of the parameters
+$\beta$.
+
 
 The
 advantage of doing linear regression is that we actually end up with
@@ -89,6 +1848,7 @@ $\mathbf{y}_i$ we need to calculate its first two moments.
 Recall that $\boldsymbol{X}$ is a matrix of dimensionality $n\times p$. The
 notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
 row number $i$ and perform a sum over all values $p$.
+
 
 
 The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
@@ -178,8 +1938,7 @@ where we have used  that $\mathbb{E} (\mathbf{Y} \mathbf{Y}^{T}) =
 \sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\boldsymbol{\beta}) = \sigma^2
 \, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
 variance of the estimate of the $j$-th regression coefficient:
-$\boldsymbol{\sigma}^2 (\boldsymbol{\beta}_j ) = \boldsymbol{\sigma}^2 \sqrt{
-[(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} }$. This may be used to
+$\boldsymbol{\sigma}^2 (\boldsymbol{\beta}_j ) = \boldsymbol{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
 construct a confidence interval for the estimates.
 
 
@@ -216,824 +1975,391 @@ This means the variance we obtain with the standard OLS will always for $\lambda
 
 
 
-## Resampling methods
+## Deriving OLS from a probability distribution
 
-With all these analytical equations for both the OLS and Ridge
-regression, we will now outline how to assess a given model. This will
-lead us to a discussion of the so-called bias-variance tradeoff (see
-below) and so-called resampling methods.
+Our basic assumption when we derived the OLS equations was to assume
+that our output is determined by a given continuous function
+$f(\boldsymbol{x})$ and a random noise $\boldsymbol{\epsilon}$ given by the normal
+distribution with zero mean value and an undetermined variance
+$\sigma^2$.
 
-One of the quantities we have discussed as a way to measure errors is
-the mean-squared error (MSE), mainly used for fitting of continuous
-functions. Another choice is the absolute error.
-
-In the discussions below we will focus on the MSE and in particular since we will split the data into test and training data,
-we discuss the
-1. prediction error or simply the **test error** $\mathrm{Err_{Test}}$, where we have a fixed training set and the test error is the MSE arising from the data reserved for testing. We discuss also the 
-
-2. training error $\mathrm{Err_{Train}}$, which is the average loss over the training data.
-
-As our model becomes more and more complex, more of the training data tends to  used. The training may thence adapt to more complicated structures in the data. This may lead to a decrease in the bias (see below for code example) and a slight increase of the variance for the test error.
-For a certain level of complexity the test error will reach minimum, before starting to increase again. The
-training error reaches a saturation.
-
-
-
-Two famous
-resampling methods are the **independent bootstrap** and **the jackknife**. 
-
-The jackknife is a special case of the independent bootstrap. Still, the jackknife was made
-popular prior to the independent bootstrap. And as the popularity of
-the independent bootstrap soared, new variants, such as **the dependent bootstrap**.
-
-The Jackknife and independent bootstrap work for
-independent, identically distributed random variables.
-If these conditions are not
-satisfied, the methods will fail.  Yet, it should be said that if the data are
-independent, identically distributed, and we only want to estimate the
-variance of $\overline{X}$ (which often is the case), then there is no
-need for bootstrapping. 
-
-
-The Jackknife works by making many replicas of the estimator $\widehat{\theta}$. 
-The jackknife is a resampling method where we systematically leave out one observation from the vector of observed values $\boldsymbol{x} = (x_1,x_2,\cdots,X_n)$. 
-Let $\boldsymbol{x}_i$ denote the vector
+We found above that the outputs $\boldsymbol{y}$ have a mean value given by
+$\boldsymbol{X}\hat{\boldsymbol{\beta}}$ and variance $\sigma^2$. Since the entries to
+the design matrix are not stochastic variables, we can assume that the
+probability distribution of our targets is also a normal distribution
+but now with mean value $\boldsymbol{X}\hat{\boldsymbol{\beta}}$. This means that a
+single output $y_i$ is given by the Gaussian distribution
 
 $$
-\boldsymbol{x}_i = (x_1,x_2,\cdots,x_{i-1},x_{i+1},\cdots,x_n),
+y_i\sim \mathcal{N}(\boldsymbol{X}_{i,*}\boldsymbol{\beta}, \sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}.
 $$
 
-which equals the vector $\boldsymbol{x}$ with the exception that observation
-number $i$ is left out. Using this notation, define
-$\widehat{\theta}_i$ to be the estimator
-$\widehat{\theta}$ computed using $\vec{X}_i$.
-
-from numpy import *
-from numpy.random import randint, randn
-from time import time
-
-def jackknife(data, stat):
-    n = len(data);t = zeros(n); inds = arange(n); t0 = time()
-    ## 'jackknifing' by leaving out an observation for each i                                                                                                                      
-    for i in range(n):
-        t[i] = stat(delete(data,i) )
-
-    # analysis                                                                                                                                                                     
-    print("Runtime: %g sec" % (time()-t0)); print("Jackknife Statistics :")
-    print("original           bias      std. error")
-    print("%8g %14g %15g" % (stat(data),(n-1)*mean(t)/n, (n*var(t))**.5))
-
-    return t
-
-
-# Returns mean of data samples                                                                                                                                                     
-def stat(data):
-    return mean(data)
-
-
-mu, sigma = 100, 15
-datapoints = 10000
-x = mu + sigma*random.randn(datapoints)
-# jackknife returns the data sample                                                                                                                                                
-t = jackknife(x, stat)
-
-### Bootstrap
-
-Bootstrapping is a nonparametric approach to statistical inference
-that substitutes computation for more traditional distributional
-assumptions and asymptotic results. Bootstrapping offers a number of
-advantages: 
-1. The bootstrap is quite general, although there are some cases in which it fails.  
-
-2. Because it does not require distributional assumptions (such as normally distributed errors), the bootstrap can provide more accurate inferences when the data are not well behaved or when the sample size is small.  
-
-3. It is possible to apply the bootstrap to statistics with sampling distributions that are difficult to derive, even asymptotically. 
-
-4. It is relatively simple to apply the bootstrap to complex data-collection plans (such as stratified and clustered samples).
-
-Since $\widehat{\theta} = \widehat{\theta}(\boldsymbol{X})$ is a function of random variables,
-$\widehat{\theta}$ itself must be a random variable. Thus it has
-a pdf, call this function $p(\boldsymbol{t})$. The aim of the bootstrap is to
-estimate $p(\boldsymbol{t})$ by the relative frequency of
-$\widehat{\theta}$. You can think of this as using a histogram
-in the place of $p(\boldsymbol{t})$. If the relative frequency closely
-resembles $p(\vec{t})$, then using numerics, it is straight forward to
-estimate all the interesting parameters of $p(\boldsymbol{t})$ using point
-estimators.  
-
-
-
-In the case that $\widehat{\theta}$ has
-more than one component, and the components are independent, we use the
-same estimator on each component separately.  If the probability
-density function of $X_i$, $p(x)$, had been known, then it would have
-been straight forward to do this by: 
-1. Drawing lots of numbers from $p(x)$, suppose we call one such set of numbers $(X_1^*, X_2^*, \cdots, X_n^*)$. 
-
-2. Then using these numbers, we could compute a replica of $\widehat{\theta}$ called $\widehat{\theta}^*$. 
-
-By repeated use of (1) and (2), many
-estimates of $\widehat{\theta}$ could have been obtained. The
-idea is to use the relative frequency of $\widehat{\theta}^*$
-(think of a histogram) as an estimate of $p(\boldsymbol{t})$.
-
-
-But
-unless there is enough information available about the process that
-generated $X_1,X_2,\cdots,X_n$, $p(x)$ is in general
-unknown. Therefore, [Efron in 1979](https://projecteuclid.org/euclid.aos/1176344552)  asked the
-question: What if we replace $p(x)$ by the relative frequency
-of the observation $X_i$; if we draw observations in accordance with
-the relative frequency of the observations, will we obtain the same
-result in some asymptotic sense? The answer is yes.
-
-
-Instead of generating the histogram for the relative
-frequency of the observation $X_i$, just draw the values
-$(X_1^*,X_2^*,\cdots,X_n^*)$ with replacement from the vector
-$\boldsymbol{X}$. 
-
-
-The independent bootstrap works like this: 
-
-1. Draw with replacement $n$ numbers for the observed variables $\boldsymbol{x} = (x_1,x_2,\cdots,x_n)$. 
-
-2. Define a vector $\boldsymbol{x}^*$ containing the values which were drawn from $\boldsymbol{x}$. 
-
-3. Using the vector $\boldsymbol{x}^*$ compute $\widehat{\theta}^*$ by evaluating $\widehat \theta$ under the observations $\boldsymbol{x}^*$. 
-
-4. Repeat this process $k$ times. 
-
-When you are done, you can draw a histogram of the relative frequency
-of $\widehat \theta^*$. This is your estimate of the probability
-distribution $p(t)$. Using this probability distribution you can
-estimate any statistics thereof. In principle you never draw the
-histogram of the relative frequency of $\widehat{\theta}^*$. Instead
-you use the estimators corresponding to the statistic of interest. For
-example, if you are interested in estimating the variance of $\widehat
-\theta$, apply the etsimator $\widehat \sigma^2$ to the values
-$\widehat \theta ^*$.
-
-
-
-The following code starts with a Gaussian distribution with mean value
-$\mu =100$ and variance $\sigma=15$. We use this to generate the data
-used in the bootstrap analysis. The bootstrap analysis returns a data
-set after a given number of bootstrap operations (as many as we have
-data points). This data set consists of estimated mean values for each
-bootstrap operation. The histogram generated by the bootstrap method
-shows that the distribution for these mean values is also a Gaussian,
-centered around the mean value $\mu=100$ but with standard deviation
-$\sigma/\sqrt{n}$, where $n$ is the number of bootstrap samples (in
-this case the same as the number of original data points). The value
-of the standard deviation is what we expect from the central limit
-theorem.
-
-%matplotlib inline
-
-from numpy import *
-from numpy.random import randint, randn
-from time import time
-import matplotlib.mlab as mlab
-import matplotlib.pyplot as plt
-
-# Returns mean of bootstrap samples                                                                                                                                                
-def stat(data):
-    return mean(data)
-
-# Bootstrap algorithm
-def bootstrap(data, statistic, R):
-    t = zeros(R); n = len(data); inds = arange(n); t0 = time()
-    # non-parametric bootstrap         
-    for i in range(R):
-        t[i] = statistic(data[randint(0,n,n)])
-
-    # analysis    
-    print("Runtime: %g sec" % (time()-t0)); print("Bootstrap Statistics :")
-    print("original           bias      std. error")
-    print("%8g %8g %14g %15g" % (statistic(data), std(data),mean(t),std(t)))
-    return t
-
-
-mu, sigma = 100, 15
-datapoints = 10000
-x = mu + sigma*random.randn(datapoints)
-# bootstrap returns the data sample                                    
-t = bootstrap(x, stat, datapoints)
-# the histogram of the bootstrapped  data                                                                                                    
-n, binsboot, patches = plt.hist(t, 50, normed=1, facecolor='red', alpha=0.75)
-
-# add a 'best fit' line  
-y = mlab.normpdf( binsboot, mean(t), std(t))
-lt = plt.plot(binsboot, y, 'r--', linewidth=1)
-plt.xlabel('Smarts')
-plt.ylabel('Probability')
-plt.axis([99.5, 100.6, 0, 3.0])
-plt.grid(True)
-
-plt.show()
-
-## Various steps in cross-validation
-
-When the repetitive splitting of the data set is done randomly,
-samples may accidently end up in a fast majority of the splits in
-either training or test set. Such samples may have an unbalanced
-influence on either model building or prediction evaluation. To avoid
-this $k$-fold cross-validation structures the data splitting. The
-samples are divided into $k$ more or less equally sized exhaustive and
-mutually exclusive subsets. In turn (at each split) one of these
-subsets plays the role of the test set while the union of the
-remaining subsets constitutes the training set. Such a splitting
-warrants a balanced representation of each sample in both training and
-test set over the splits. Still the division into the $k$ subsets
-involves a degree of randomness. This may be fully excluded when
-choosing $k=n$. This particular case is referred to as leave-one-out
-cross-validation (LOOCV). 
-
-
-* Define a range of interest for the penalty parameter.
-
-* Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
-
-* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\boldsymbol{\sigma}_{-i}^2(\lambda)$, as
+We assume now that the various $y_i$ values are stochastically distributed according to the above Gaussian distribution. 
+We define this distribution as
 
 $$
-\begin{align*}
-\boldsymbol{\beta}_{-i}(\lambda) & =  ( \boldsymbol{X}_{-i, \ast}^{T}
-\boldsymbol{X}_{-i, \ast} + \lambda \boldsymbol{I}_{pp})^{-1}
-\boldsymbol{X}_{-i, \ast}^{T} \boldsymbol{y}_{-i}
-\end{align*}
+p(y_i, \boldsymbol{X}\vert\boldsymbol{\beta})=\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]},
 $$
 
-* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \boldsymbol{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \boldsymbol{X}_{i, \ast} \boldsymbol{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
+which reads as finding the likelihood of an event $y_i$ with the input variables $\boldsymbol{X}$ given the parameters (to be determined) $\boldsymbol{\beta}$.
 
-* Repeat the first three steps  such that each sample plays the role of the test set once.
-
-* Average the prediction performances of the test sets at each grid point of the penalty bias/parameter. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as
+Since these events are assumed to be independent and identicall distributed we can build the probability distribution function (PDF) for all possible event $\boldsymbol{y}$ as the product of the single events, that is we have
 
 $$
-\begin{align*}
-\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}.
-\end{align*}
+p(\boldsymbol{y},\boldsymbol{X}\vert\boldsymbol{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}=\prod_{i=0}^{n-1}p(y_i,\boldsymbol{X}\vert\boldsymbol{\beta}).
 $$
 
-For the various values of $k$
+We will write this in a more compact form reserving $\boldsymbol{D}$ for the domain of events, including the ouputs (targets) and the inputs. That is
+in case we have a simple one-dimensional input and output case
 
-1. shuffle the dataset randomly.
+$$
+\boldsymbol{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})].
+$$
 
-2. Split the dataset into $k$ groups.
+In the more general case the various inputs should be replaced by the possible features represented by the input data set $\boldsymbol{X}$. 
+We can now rewrite the above probability as
 
-3. For each unique group:
+$$
+p(\boldsymbol{D}\vert\boldsymbol{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}.
+$$
 
-a. Decide which group to use as set for test data
-
-b. Take the remaining groups as a training data set
-
-c. Fit a model on the training set and evaluate it on the test set
-
-d. Retain the evaluation score and discard the model
+It is a conditional probability (see below) and reads as the likelihood of a domain of events $\boldsymbol{D}$ given a set of parameters $\boldsymbol{\beta}$.
 
 
-5. Summarize the model using the sample of model evaluation scores
+In statistics, maximum likelihood estimation (MLE) is a method of
+estimating the parameters of an assumed probability distribution,
+given some observed data. This is achieved by maximizing a likelihood
+function so that, under the assumed statistical model, the observed
+data is the most probable. 
 
-The code here uses Ridge regression with cross-validation (CV)  resampling and $k$-fold CV in order to fit a specific polynomial.
+
+We will assume here that our events are given by the above Gaussian
+distribution and we will determine the optimal parameters $\beta$ by
+maximizing the above PDF. However, computing the derivatives of a
+product function is cumbersome and can easily lead to overflow and/or
+underflowproblems, with potentials for loss of numerical precision.
+
+
+In practice, it is more convenient to maximize the logarithm of the
+PDF because it is a monotonically increasing function of the argument.
+Alternatively, and this will be our option, we will minimize the
+negative of the logarithm since this is a monotonically decreasing
+function.
+
+Note also that maximization/minimization of the logarithm of the PDF
+is equivalent to the maximization/minimization of the function itself.
+
+
+
+
+We could now define a new cost function to minimize, namely the negative logarithm of the above PDF
+
+$$
+C(\boldsymbol{\beta}=-\log{\prod_{i=0}^{n-1}p(y_i,\boldsymbol{X}\vert\boldsymbol{\beta})}=-\sum_{i=0}^{n-1}\log{p(y_i,\boldsymbol{X}\vert\boldsymbol{\beta})},
+$$
+
+which becomes
+
+$$
+C(\boldsymbol{\beta}=\frac{n}{2}\log{2\pi\sigma^2}+\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}.
+$$
+
+Taking the derivative of the *new* cost function with respect to the parameters $\beta$ we recognize our familiar OLS equation, namely
+
+$$
+\boldsymbol{X}^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right) =0,
+$$
+
+which leads to the well-known OLS equation for the optimal paramters $\beta$
+
+$$
+\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}!
+$$
+
+Before we make a similar analysis for Ridge and Lasso regression, we need a short reminder on statistics. 
+
+
+A central theorem in statistics is Bayes' theorem. This theorem plays a similar role as the good old Pythagoras' theorem in geometry.
+Bayes' theorem is extremely simple to derive. But to do so we need some basic axioms from statistics.
+
+Assume we have two domains of events $X=[x_0,x_1,\dots,x_{n-1}]$ and $Y=[y_0,y_1,\dots,y_{n-1}]$.
+
+We define also the likelihood for $X$ and $Y$ as $p(X)$ and $p(Y)$ respectively.
+The likelihood of a specific event $x_i$ (or $y_i$) is then written as $p(X=x_i)$ or just $p(x_i)=p_i$. 
+
+**Union of events is given by.**
+
+$$
+p(X \cup Y)= p(X)+p(Y)-p(X \cap Y).
+$$
+
+**The product rule (aka joint probability) is given by.**
+
+$$
+p(X \cup Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(X),
+$$
+
+where we read $p(X\vert Y)$ as the likelihood of obtaining $X$ given $Y$.
+
+
+
+If we have independent events then $p(X,Y)=p(X)p(Y)$.
+
+
+
+The marginal probability is defined in terms of only one of the set of variables $X,Y$. For a discrete probability we have
+
+$$
+p(X)=\sum_{i=0}^{n-1}p(X,Y=y_i)=\sum_{i=0}^{n-1}p(X\vert Y=y_i)p(Y=y_i)=\sum_{i=0}^{n-1}p(X\vert y_i)p(y_i).
+$$
+
+The conditional  probability, if $p(Y) > 0$, is
+
+$$
+p(X\vert Y)= \frac{p(X,Y)}{p(Y)}=\frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}.
+$$
+
+If we combine the conditional probability with the marginal probability and the standard product rule, we have
+
+$$
+p(X\vert Y)= \frac{p(X,Y)}{p(Y)},
+$$
+
+which we can rewrite as
+
+$$
+p(X\vert Y)= \frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}=\frac{p(Y\vert X)p(X)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)},
+$$
+
+which is Bayes' theorem. It allows us to evaluate the uncertainty in in $X$ after we have observed $Y$. We can easily interchange $X$ with $Y$.  
+
+
+The quantity $p(Y\vert X)$ on the right-hand side of the theorem is
+evaluated for the observed data $Y$ and can be viewed as a function of
+the parameter space represented by $X$. This function is not
+necesseraly normalized and is normally called the likelihood function.
+
+The function $p(X)$ on the right hand side is called the prior while the function on the left hand side is the called the posterior probability. The denominator on the right hand side serves as a normalization factor for the posterior distribution.
+
+Let us try to illustrate Bayes' theorem through an example.
+
+
+Let us suppose that you are undergoing a series of mammography scans in
+order to rule out possible breast cancer cases.  We define the
+sensitivity for a positive event by the variable $X$. It takes binary
+values with $X=1$ representing a positive event and $X=0$ being a
+negative event. We reserve $Y$ as a classification parameter for
+either a negative or a positive breast cancer confirmation. (Short note on wordings: positive here means having breast cancer, although none of us would consider this being a  positive thing).
+
+We let $Y=1$ represent the the case of having breast cancer and $Y=0$ as not.
+
+Let us assume that if you have breast cancer, the test will be positive with a probability of $0.8$, that is we have
+
+$$
+p(X=1\vert Y=1) =0.8.
+$$
+
+This obviously sounds  scary since many would conclude that if the test is positive, there is a likelihood of $80\%$ for having cancer.
+It is however not correct, as the following Bayesian analysis shows.
+
+
+If we look at various national surveys on breast cancer, the general likelihood of developing breast cancer is a very small number.
+Let us assume that the prior probability in the population as a whole is
+
+$$
+p(Y=1) =0.004.
+$$
+
+We need also to account for the fact that the test may produce a false positive result (false alarm). Let us here assume that we have
+
+$$
+p(X=1\vert Y=0) =0.1.
+$$
+
+Using Bayes' theorem we can then find the posterior probability that the person has breast cancer in case of a positive test, that is we can compute
+
+$$
+p(Y=1\vert X=1)=\frac{p(X=1\vert Y=1)p(Y=1)}{p(X=1\vert Y=1)p(Y=1)+p(X=1\vert Y=0)p(Y=0)}=\frac{0.8\times 0.004}{0.8\times 0.004+0.1\times 0.996}=0.031.
+$$
+
+That is, in case of a positive test, there is only a $3\%$ chance of having breast cancer!
+
+
+
+## Bayes' Theorem and Ridge and Lasso Regression
+
+Hitherto we have discussed Ridge and Lasso regression in terms of a
+linear analysis. This may to many of you feel rather technical and
+perhaps not that intuitive. The question is whether we can develop a
+more intuitive way of understanding what Ridge and Lasso express.
+
+Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit. 
+
+
+We will play around with a study of the values for the optimal
+parameters $\boldsymbol{\beta}$ using OLS, Ridge and Lasso regression.  For
+OLS, you will notice as function of the noise and polynomial degree,
+that the parameters $\beta$ will fluctuate from order to order in the
+polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.
+
+For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import KFold
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import PolynomialFeatures
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-np.random.seed(3155)
-
-# Generate the data.
-nsamples = 100
-x = np.random.randn(nsamples)
-y = 3*x**2 + np.random.randn(nsamples)
-
-## Cross-validation on Ridge regression using KFold only
-
-# Decide degree on polynomial to fit
-poly = PolynomialFeatures(degree = 6)
-
-# Decide which values of lambda to use
-nlambdas = 500
-lambdas = np.logspace(-3, 5, nlambdas)
-
-# Initialize a KFold instance
-k = 5
-kfold = KFold(n_splits = k)
-
-# Perform the cross-validation to estimate MSE
-scores_KFold = np.zeros((nlambdas, k))
-
-i = 0
-for lmb in lambdas:
-    ridge = Ridge(alpha = lmb)
-    j = 0
-    for train_inds, test_inds in kfold.split(x):
-        xtrain = x[train_inds]
-        ytrain = y[train_inds]
-
-        xtest = x[test_inds]
-        ytest = y[test_inds]
-
-        Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
-        ridge.fit(Xtrain, ytrain[:, np.newaxis])
-
-        Xtest = poly.fit_transform(xtest[:, np.newaxis])
-        ypred = ridge.predict(Xtest)
-
-        scores_KFold[i,j] = np.sum((ypred - ytest[:, np.newaxis])**2)/np.size(ypred)
-
-        j += 1
-    i += 1
-
-
-estimated_mse_KFold = np.mean(scores_KFold, axis = 1)
-
-## Cross-validation using cross_val_score from sklearn along with KFold
-
-# kfold is an instance initialized above as:
-# kfold = KFold(n_splits = k)
-
-estimated_mse_sklearn = np.zeros(nlambdas)
-i = 0
-for lmb in lambdas:
-    ridge = Ridge(alpha = lmb)
-
-    X = poly.fit_transform(x[:, np.newaxis])
-    estimated_mse_folds = cross_val_score(ridge, X, y[:, np.newaxis], scoring='neg_mean_squared_error', cv=kfold)
-
-    # cross_val_score return an array containing the estimated negative mse for every fold.
-    # we have to the the mean of every array in order to get an estimate of the mse of the model
-    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
-
-    i += 1
-
-## Plot and compare the slightly different ways to perform cross-validation
-
-plt.figure()
-
-plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = 'cross_val_score')
-plt.plot(np.log10(lambdas), estimated_mse_KFold, 'r--', label = 'KFold')
-
-plt.xlabel('log10(lambda)')
-plt.ylabel('mse')
-
-plt.legend()
-
-plt.show()
-
-## The bias-variance tradeoff
-
-
-We will discuss the bias-variance tradeoff in the context of
-continuous predictions such as regression. However, many of the
-intuitions and ideas discussed here also carry over to classification
-tasks. Consider a dataset $\mathcal{L}$ consisting of the data
-$\mathbf{X}_\mathcal{L}=\{(y_j, \boldsymbol{x}_j), j=0\ldots n-1\}$. 
-
-Let us assume that the true data is generated from a noisy model
-
-$$
-\boldsymbol{y}=f(\boldsymbol{x}) + \boldsymbol{\epsilon}
-$$
-
-where $\epsilon$ is normally distributed with mean zero and standard deviation $\sigma^2$.
-
-In our derivation of the ordinary least squares method we defined then
-an approximation to the function $f$ in terms of the parameters
-$\boldsymbol{\beta}$ and the design matrix $\boldsymbol{X}$ which embody our model,
-that is $\boldsymbol{\tilde{y}}=\boldsymbol{X}\boldsymbol{\beta}$. 
-
-Thereafter we found the parameters $\boldsymbol{\beta}$ by optimizing the means squared error via the so-called cost function
-
-$$
-C(\boldsymbol{X},\boldsymbol{\beta}) =\frac{1}{n}\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2=\mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right].
-$$
-
-We can rewrite this as
-
-$$
-\mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=\frac{1}{n}\sum_i(f_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2+\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2+\sigma^2.
-$$
-
-The three terms represent the square of the bias of the learning
-method, which can be thought of as the error caused by the simplifying
-assumptions built into the method. The second term represents the
-variance of the chosen model and finally the last terms is variance of
-the error $\boldsymbol{\epsilon}$.
-
-To derive this equation, we need to recall that the variance of $\boldsymbol{y}$ and $\boldsymbol{\epsilon}$ are both equal to $\sigma^2$. The mean value of $\boldsymbol{\epsilon}$ is by definition equal to zero. Furthermore, the function $f$ is not a stochastics variable, idem for $\boldsymbol{\tilde{y}}$.
-We use a more compact notation in terms of the expectation value
-
-$$
-\mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=\mathbb{E}\left[(\boldsymbol{f}+\boldsymbol{\epsilon}-\boldsymbol{\tilde{y}})^2\right],
-$$
-
-and adding and subtracting $\mathbb{E}\left[\boldsymbol{\tilde{y}}\right]$ we get
-
-$$
-\mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=\mathbb{E}\left[(\boldsymbol{f}+\boldsymbol{\epsilon}-\boldsymbol{\tilde{y}}+\mathbb{E}\left[\boldsymbol{\tilde{y}}\right]-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2\right],
-$$
-
-which, using the abovementioned expectation values can be rewritten as
-
-$$
-\mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=\mathbb{E}\left[(\boldsymbol{y}-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2\right]+\mathrm{Var}\left[\boldsymbol{\tilde{y}}\right]+\sigma^2,
-$$
-
-that is the rewriting in terms of the so-called bias, the variance of the model $\boldsymbol{\tilde{y}}$ and the variance of $\boldsymbol{\epsilon}$.
-
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.utils import resample
+from sklearn import linear_model
 
-np.random.seed(2018)
-
-n = 500
-n_boostraps = 100
-degree = 18  # A quite high value, just to show.
-noise = 0.1
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
 
 # Make data set.
-x = np.linspace(-1, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2) + np.random.normal(0, 0.1, x.shape)
+n = 10000
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
 
-# Hold out some test data that is never used in training.
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-
-# Combine x transformation and model into one operation.
-# Not neccesary, but convenient.
-model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
-
-# The following (m x n_bootstraps) matrix holds the column vectors y_pred
-# for each bootstrap iteration.
-y_pred = np.empty((y_test.shape[0], n_boostraps))
-for i in range(n_boostraps):
-    x_, y_ = resample(x_train, y_train)
-
-    # Evaluate the new model on the same test data each time.
-    y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
-
-# Note: Expectations and variances taken w.r.t. different training
-# data sets, hence the axis=1. Subsequent means are taken across the test data
-# set in order to obtain a total value, but before this we have error/bias/variance
-# calculated per data point in the test set.
-# Note 2: The use of keepdims=True is important in the calculation of bias as this 
-# maintains the column vector form. Dropping this yields very unexpected results.
-error = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
-bias = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
-variance = np.mean( np.var(y_pred, axis=1, keepdims=True) )
-print('Error:', error)
-print('Bias^2:', bias)
-print('Var:', variance)
-print('{} >= {} + {} = {}'.format(error, bias, variance, bias+variance))
-
-plt.plot(x[::5, :], y[::5, :], label='f(x)')
-plt.scatter(x_test, y_test, label='Data points')
-plt.scatter(x_test, np.mean(y_pred, axis=1), label='Pred')
-plt.legend()
-plt.show()
-
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.utils import resample
-
-np.random.seed(2018)
-
-n = 40
-n_boostraps = 100
-maxdegree = 14
-
-
-# Make data set.
-x = np.linspace(-3, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
-error = np.zeros(maxdegree)
-bias = np.zeros(maxdegree)
-variance = np.zeros(maxdegree)
-polydegree = np.zeros(maxdegree)
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-
-for degree in range(maxdegree):
-    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
-    y_pred = np.empty((y_test.shape[0], n_boostraps))
-    for i in range(n_boostraps):
-        x_, y_ = resample(x_train, y_train)
-        y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
-
-    polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
-    variance[degree] = np.mean( np.var(y_pred, axis=1, keepdims=True) )
-    print('Polynomial degree:', degree)
-    print('Error:', error[degree])
-    print('Bias^2:', bias[degree])
-    print('Var:', variance[degree])
-    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
-
-plt.plot(polydegree, error, label='Error')
-plt.plot(polydegree, bias, label='bias')
-plt.plot(polydegree, variance, label='Variance')
-plt.legend()
-plt.show()
-
-The bias-variance tradeoff summarizes the fundamental tension in
-machine learning, particularly supervised learning, between the
-complexity of a model and the amount of training data needed to train
-it.  Since data is often limited, in practice it is often useful to
-use a less-complex model with higher bias, that is  a model whose asymptotic
-performance is worse than another model because it is easier to
-train and less sensitive to sampling noise arising from having a
-finite-sized training dataset (smaller variance). 
-
-
-
-The above equations tell us that in
-order to minimize the expected test error, we need to select a
-statistical learning method that simultaneously achieves low variance
-and low bias. Note that variance is inherently a nonnegative quantity,
-and squared bias is also nonnegative. Hence, we see that the expected
-test MSE can never lie below $Var(\epsilon)$, the irreducible error.
-
-
-What do we mean by the variance and bias of a statistical learning
-method? The variance refers to the amount by which our model would change if we
-estimated it using a different training data set. Since the training
-data are used to fit the statistical learning method, different
-training data sets  will result in a different estimate. But ideally the
-estimate for our model should not vary too much between training
-sets. However, if a method has high variance  then small changes in
-the training data can result in large changes in the model. In general, more
-flexible statistical methods have higher variance.
-
-
-You may also find this recent [article](https://www.pnas.org/content/116/32/15849) of interest.
-
-"""
-============================
-Underfitting vs. Overfitting
-============================
-
-This example demonstrates the problems of underfitting and overfitting and
-how we can use linear regression with polynomial features to approximate
-nonlinear functions. The plot shows the function that we want to approximate,
-which is a part of the cosine function. In addition, the samples from the
-real function and the approximations of different models are displayed. The
-models have polynomial features of different degrees. We can see that a
-linear function (polynomial with degree 1) is not sufficient to fit the
-training samples. This is called **underfitting**. A polynomial of degree 4
-approximates the true function almost perfectly. However, for higher degrees
-the model will **overfit** the training data, i.e. it learns the noise of the
-training data.
-We evaluate quantitatively **overfitting** / **underfitting** by using
-cross-validation. We calculate the mean squared error (MSE) on the validation
-set, the higher, the less likely the model generalizes correctly from the
-training data.
-"""
-
-print(__doc__)
-
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import cross_val_score
-
-
-def true_fun(X):
-    return np.cos(1.5 * np.pi * X)
-
-np.random.seed(0)
-
-n_samples = 30
-degrees = [1, 4, 15]
-
-X = np.sort(np.random.rand(n_samples))
-y = true_fun(X) + np.random.randn(n_samples) * 0.1
-
-plt.figure(figsize=(14, 5))
-for i in range(len(degrees)):
-    ax = plt.subplot(1, len(degrees), i + 1)
-    plt.setp(ax, xticks=(), yticks=())
-
-    polynomial_features = PolynomialFeatures(degree=degrees[i],
-                                             include_bias=False)
-    linear_regression = LinearRegression()
-    pipeline = Pipeline([("polynomial_features", polynomial_features),
-                         ("linear_regression", linear_regression)])
-    pipeline.fit(X[:, np.newaxis], y)
-
-    # Evaluate the models using crossvalidation
-    scores = cross_val_score(pipeline, X[:, np.newaxis], y,
-                             scoring="neg_mean_squared_error", cv=10)
-
-    X_test = np.linspace(0, 1, 100)
-    plt.plot(X_test, pipeline.predict(X_test[:, np.newaxis]), label="Model")
-    plt.plot(X_test, true_fun(X_test), label="True function")
-    plt.scatter(X, y, edgecolor='b', s=20, label="Samples")
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.xlim((0, 1))
-    plt.ylim((-2, 2))
-    plt.legend(loc="best")
-    plt.title("Degree {}\nMSE = {:.2e}(+/- {:.2e})".format(
-        degrees[i], -scores.mean(), scores.std()))
-plt.show()
-
-# Common imports
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.model_selection import train_test_split
-from sklearn.utils import resample
-from sklearn.metrics import mean_squared_error
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
-
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
-
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
-
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
-
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
-
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
-
-infile = open(data_path("EoS.csv"),'r')
-
-# Read the EoS data as  csv file and organize the data into two arrays with density and energies
-EoS = pd.read_csv(infile, names=('Density', 'Energy'))
-EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
-EoS = EoS.dropna()
-Energies = EoS['Energy']
-Density = EoS['Density']
-#  The design matrix now as function of various polytrops
-
-Maxpolydegree = 30
-X = np.zeros((len(Density),Maxpolydegree))
+Maxpolydegree = 5
+X = np.zeros((len(x),Maxpolydegree))
 X[:,0] = 1.0
-testerror = np.zeros(Maxpolydegree)
-trainingerror = np.zeros(Maxpolydegree)
-polynomial = np.zeros(Maxpolydegree)
-
-trials = 100
-for polydegree in range(1, Maxpolydegree):
-    polynomial[polydegree] = polydegree
-    for degree in range(polydegree):
-        X[:,degree] = Density**(degree/3.0)
-
-# loop over trials in order to estimate the expectation value of the MSE
-    testerror[polydegree] = 0.0
-    trainingerror[polydegree] = 0.0
-    for samples in range(trials):
-        x_train, x_test, y_train, y_test = train_test_split(X, Energies, test_size=0.2)
-        model = LinearRegression(fit_intercept=True).fit(x_train, y_train)
-        ypred = model.predict(x_train)
-        ytilde = model.predict(x_test)
-        testerror[polydegree] += mean_squared_error(y_test, ytilde)
-        trainingerror[polydegree] += mean_squared_error(y_train, ypred) 
-
-    testerror[polydegree] /= trials
-    trainingerror[polydegree] /= trials
-    print("Degree of polynomial: %3d"% polynomial[polydegree])
-    print("Mean squared error on training data: %.8f" % trainingerror[polydegree])
-    print("Mean squared error on test data: %.8f" % testerror[polydegree])
-
-plt.plot(polynomial, np.log10(trainingerror), label='Training Error')
-plt.plot(polynomial, np.log10(testerror), label='Test Error')
-plt.xlabel('Polynomial degree')
-plt.ylabel('log10[MSE]')
-plt.legend()
-plt.show()
-
-# Common imports
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_val_score
-
-
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
-
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
-
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
-
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
-
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
-
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
-
-infile = open(data_path("EoS.csv"),'r')
-
-# Read the EoS data as  csv file and organize the data into two arrays with density and energies
-EoS = pd.read_csv(infile, names=('Density', 'Energy'))
-EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
-EoS = EoS.dropna()
-Energies = EoS['Energy']
-Density = EoS['Density']
-#  The design matrix now as function of various polytrops
-
-Maxpolydegree = 30
-X = np.zeros((len(Density),Maxpolydegree))
-X[:,0] = 1.0
-estimated_mse_sklearn = np.zeros(Maxpolydegree)
-polynomial = np.zeros(Maxpolydegree)
-k =5
-kfold = KFold(n_splits = k)
 
 for polydegree in range(1, Maxpolydegree):
-    polynomial[polydegree] = polydegree
     for degree in range(polydegree):
-        X[:,degree] = Density**(degree/3.0)
-        OLS = LinearRegression()
-# loop over trials in order to estimate the expectation value of the MSE
-    estimated_mse_folds = cross_val_score(OLS, X, Energies, scoring='neg_mean_squared_error', cv=kfold)
-#[:, np.newaxis]
-    estimated_mse_sklearn[polydegree] = np.mean(-estimated_mse_folds)
+        X[:,degree] = x**(degree)
 
-plt.plot(polynomial, np.log10(estimated_mse_sklearn), label='Test Error')
-plt.xlabel('Polynomial degree')
-plt.ylabel('log10[MSE]')
-plt.legend()
-plt.show()
 
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import KFold
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import PolynomialFeatures
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-# A seed just to ensure that the random numbers are the same for every run.
-np.random.seed(3155)
-# Generate the data.
-n = 100
-x = np.linspace(-3, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
-# Decide degree on polynomial to fit
-poly = PolynomialFeatures(degree = 10)
-
+# matrix inversion to find beta
+OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
+print(OLSbeta)
+ypredictOLS = X_test @ OLSbeta
+print("Test MSE OLS")
+print(MSE(y_test,ypredictOLS))
+# Repeat now for Lasso and Ridge regression and various values of the regularization parameter using Scikit-Learn
 # Decide which values of lambda to use
-nlambdas = 500
-lambdas = np.logspace(-3, 5, nlambdas)
-# Initialize a KFold instance
-k = 5
-kfold = KFold(n_splits = k)
-estimated_mse_sklearn = np.zeros(nlambdas)
-i = 0
-for lmb in lambdas:
-    ridge = Ridge(alpha = lmb)
-    estimated_mse_folds = cross_val_score(ridge, x, y, scoring='neg_mean_squared_error', cv=kfold)
-    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
-    i += 1
+nlambdas = 4
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-3, 1, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    # Make the fit using Ridge and Lasso
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
+    RegRidge.fit(X_train,y_train)
+    RegLasso = linear_model.Lasso(lmb,fit_intercept=False)
+    RegLasso.fit(X_train,y_train)
+    # and then make the prediction
+    ypredictRidge = RegRidge.predict(X_test)
+    ypredictLasso = RegLasso.predict(X_test)
+    # Compute the MSE and print it
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    print(lmb,RegRidge.coef_)
+    print(lmb,RegLasso.coef_)
+# Now plot the results
 plt.figure()
-plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = 'cross_val_score')
+plt.plot(np.log10(lambdas), MSERidgePredict, 'b', label = 'MSE Ridge Test')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r', label = 'MSE Lasso Test')
 plt.xlabel('log10(lambda)')
 plt.ylabel('MSE')
 plt.legend()
 plt.show()
+
+How can we understand this?  
+
+
+
+Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 
+
+For ordinary least squares we postulated that the maximum likelihood for the doamin of events $\boldsymbol{D}$ (one-dimensional case)
+
+$$
+\boldsymbol{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})],
+$$
+
+is given by
+
+$$
+p(\boldsymbol{D}\vert\boldsymbol{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}.
+$$
+
+In Bayes' theorem this function plays the role of the so-called likelihood. We could now ask the question what is the posterior probability of a parameter set $\boldsymbol{\beta}$ given a domain of events $\boldsymbol{D}$?  That is, how can we define the posterior probability
+
+$$
+p(\boldsymbol{\beta}\vert\boldsymbol{D}).
+$$
+
+Bayes' theorem comes to our rescue here since (omitting the normalization constant)
+
+$$
+p(\boldsymbol{\beta}\vert\boldsymbol{D})\propto p(\boldsymbol{D}\vert\boldsymbol{\beta})p(\boldsymbol{\beta}).
+$$
+
+We have a model for $p(\boldsymbol{D}\vert\boldsymbol{\beta})$ but need one for the **prior** $p(\boldsymbol{\beta}$!   
+
+
+
+With the posterior probability defined by a likelihood which we have
+already modeled and an unknown prior, we are now ready to make
+additional models for the prior.
+
+We can, based on our discussions of the variance of $\boldsymbol{\beta}$ and the mean value, assume that the prior for the values $\boldsymbol{\beta}$ is given by a Gaussian with mean value zero and variance $\tau^2$, that is
+
+$$
+p(\boldsymbol{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
+$$
+
+Our posterior probability becomes then (omitting the normalization factor which is just a constant)
+
+$$
+p(\boldsymbol{\beta\vert\boldsymbol{D})}=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
+$$
+
+We can now optimize this quantity with respect to $\boldsymbol{\beta}$. As we
+did for OLS, this is most conveniently done by taking the negative
+logarithm of the posterior probability. Doing so and leaving out the
+constants terms that do not depend on $\beta$, we have
+
+$$
+C(\boldsymbol{\beta})=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{2\tau^2}\vert\vert\boldsymbol{\beta}\vert\vert_2^2,
+$$
+
+and replacing $1/2\tau^2$ with $\lambda$ we have
+
+$$
+C(\boldsymbol{\beta})=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_2^2,
+$$
+
+which is our Ridge cost function!  Nice, isn't it?
+
+
+To derive the Lasso cost function, we simply replace the Gaussian prior with an exponential distribution ([Laplace in this case](https://en.wikipedia.org/wiki/Laplace_distribution)) with zero mean value,  that is
+
+$$
+p(\boldsymbol{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
+$$
+
+Our posterior probability becomes then (omitting the normalization factor which is just a constant)
+
+$$
+p(\boldsymbol{\beta}\vert\boldsymbol{D})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
+$$
+
+Taking the negative
+logarithm of the posterior probability and leaving out the
+constants terms that do not depend on $\beta$, we have
+
+$$
+C(\boldsymbol{\beta}=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{\tau}\vert\vert\boldsymbol{\beta}\vert\vert_1,
+$$
+
+and replacing $1/\tau$ with $\lambda$ we have
+
+$$
+C(\boldsymbol{\beta}=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+$$
+
+which is our Lasso cost function!
