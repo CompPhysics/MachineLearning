@@ -235,37 +235,37 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lab Wednesday: Introduction to software and repetition of Python Programming
 - Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression
 - Lecture Friday: Basics of Linear Regression
-- Reading recommendations: Refresh linear algebra, GBC chapters 1 and 2. CMB sections 1.1 and 3.1. HTF chapters 2 and 3. Install scikit-learn. See lecture notes for week 35 at https://compphysics.github.io/MachineLearning/doc/web/course.html
+- Reading recommendations: Refresh linear algebra, GBC chapters 1 and 2. CMB sections 1.1 and 3.1. HTF chapters 2 and 3. Install scikit-learn. See lecture notes for week 34 at https://compphysics.github.io/MachineLearning/doc/web/course.html
 
 ###  Week 35 August 30-September 3
 - Lab Wednesday: 
 - Lecture Thursday: Linear Regression, from ordinary linear regression to Ridge and Lasso regression, linear algebra analysis, examples and discussions of codes
 - Lecture Friday: Linear Regression, Linear algebra and Ridge and Lasso Regression, linear algebra analysis, examples and discussions of codes
-- Reading recommendations: See lecture notes for week 36 at https://compphysics.github.io/MachineLearning/doc/web/course.html. HTF chapter 3. GBC chapters 1 and and sections 3.1-3.11 and 5.1 and CMB sections 1.1 and 3.1
+- Reading recommendations: See lecture notes for week 35 at https://compphysics.github.io/MachineLearning/doc/web/course.html. HTF chapter 3. GBC chapters 1 and and sections 3.1-3.11 and 5.1 and CMB sections 1.1 and 3.1
 
 ###  Week 36 September 6-10
 - Lab Wednesday: 
-- Lecture Thursday: Statistical interpretation of Linear Regression
-- Lecture Friday: Bias-Variance tradeoff
-- Reading recommendations: See lecture notes for week 37 at https://compphysics.github.io/MachineLearning/doc/web/course.html. GBC sections 5.2-5.5, CMB section 3.2
+- Lecture Thursday: Ridge and Lasso regression and the SVD. Statistical interpretation of Linear Regression
+- Lecture Friday: Further interpretations of Linear regression.
+- Reading recommendations: See lecture notes for week 36 at https://compphysics.github.io/MachineLearning/doc/web/course.html. GBC sections 5.2-5.5, CMB section 3.2
   - Chapter
 ###  Week 37 September 13-17
 - Lab Wednesday: 
 - Lecture Thursday: Resampling methods, cross-validation and Bootstrap
 - Lecture Friday: More on Resampling methods and summary of linear regression
-- Reading recommendations: See lecture notes for week 38 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
+- Reading recommendations: See lecture notes for week 37 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Chapter
 ###  Week 38 September 20-24
 - Lab Wednesday: 
 - Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
 - Lecture Friday: Logistic Regression and gradient optimization
-- Reading recommendations: See lecture notes for week 39 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
+- Reading recommendations: See lecture notes for week 38 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Chapter
 ###  Week 39 September 27- October 1
 - Lab Wednesday: 
 - Lecture Thursday: Gradient Optimization methods
 - Lecture Friday:  Deep Learning and Neural Networks
-- Reading recommendations: See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
+- Reading recommendations: See lecture notes for week 39 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Chapter
 ###  Week 40 October 4-8
 - Lab Wednesday: 
