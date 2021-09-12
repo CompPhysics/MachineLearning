@@ -136,6 +136,7 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'another-example-now-with-a-polynomial-fit'),
+              ('Using CVXOPT', 2, None, 'using-cvxopt'),
               ('Friday September 10', 2, None, 'friday-september-10'),
               ('Linking the regression analysis with a statistical '
                'interpretation',
@@ -320,7 +321,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Sep 10, 2021</h4></center> <!-- date -->
+<center><h4>Sep 12, 2021</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1231,6 +1232,289 @@ plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39
 plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
 plt<span style="color: #666666">.</span>legend()
 plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="using-cvxopt">Using CVXOPT </h2>
+
+<p>
+As a small addendum, we note that you can also solve this problem
+using the convex optimization package
+<a href="https://cvxopt.org/examples/mlbook/l1regls.html" target="_blank">CVXOPT</a>. This
+requires, in addition to having installed <b>CVXOPT</b>, you need to
+download the file <em>l1regl.py</em>.  The following code example solves the
+simpler problem we discussed above, where we have added the latter
+python file.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">l1regls</span> <span style="color: #008000; font-weight: bold">import</span> l1regls
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">cvxopt</span> <span style="color: #008000; font-weight: bold">import</span> matrix, normal
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+
+X <span style="color: #666666">=</span> matrix( [ [ <span style="color: #666666">2</span>, <span style="color: #666666">0</span>, <span style="color: #666666">1</span>], [<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">3</span>]])
+y <span style="color: #666666">=</span> matrix( [<span style="color: #666666">4</span>, <span style="color: #666666">2</span>, <span style="color: #666666">3</span>])
+x <span style="color: #666666">=</span> l1regls(X,y)
+
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">cvxopt</span> <span style="color: #008000; font-weight: bold">import</span> matrix, spdiag, mul, div, sqrt, normal, setseed
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">cvxopt</span> <span style="color: #008000; font-weight: bold">import</span> blas, lapack, solvers, sparse, spmatrix
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">math</span>
+
+<span style="color: #008000; font-weight: bold">try</span>:
+    <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">mosek</span>
+    <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">sys</span>
+    __MOSEK <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">True</span>
+<span style="color: #008000; font-weight: bold">except</span>: __MOSEK <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">False</span>
+
+<span style="color: #008000; font-weight: bold">if</span> __MOSEK:
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">l1regls_mosek</span>(A, b):
+        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+
+<span style="color: #BA2121; font-style: italic">        Returns the solution of l1-norm regularized least-squares problem</span>
+
+<span style="color: #BA2121; font-style: italic">            minimize    || A*x - b ||_2^2  + e&#39;*u</span>
+
+<span style="color: #BA2121; font-style: italic">            subject to  -u &lt;= x &lt;= u</span>
+
+<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
+
+        m, n <span style="color: #666666">=</span> A<span style="color: #666666">.</span>size
+
+        env  <span style="color: #666666">=</span> mosek<span style="color: #666666">.</span>Env()
+        task <span style="color: #666666">=</span> env<span style="color: #666666">.</span>Task(<span style="color: #666666">0</span>,<span style="color: #666666">0</span>)
+        task<span style="color: #666666">.</span>set_Stream(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log, <span style="color: #008000; font-weight: bold">lambda</span> x: sys<span style="color: #666666">.</span>stdout<span style="color: #666666">.</span>write(x))
+
+        task<span style="color: #666666">.</span>appendvars( <span style="color: #666666">2*</span>n)            <span style="color: #408080; font-style: italic"># number of variables</span>
+        task<span style="color: #666666">.</span>appendcons( <span style="color: #666666">2*</span>n)            <span style="color: #408080; font-style: italic"># number of constraints</span>
+
+        <span style="color: #408080; font-style: italic"># input quadratic objective</span>
+        Q <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (n,n)) 
+        blas<span style="color: #666666">.</span>syrk(A, Q, alpha <span style="color: #666666">=</span> <span style="color: #666666">2.0</span>, trans<span style="color: #666666">=</span><span style="color: #BA2121">&#39;T&#39;</span>)
+
+        I <span style="color: #666666">=</span> []
+        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
+            I<span style="color: #666666">.</span>extend(<span style="color: #008000">range</span>(i,n))
+
+        J <span style="color: #666666">=</span> []
+        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
+            J<span style="color: #666666">.</span>extend((n<span style="color: #666666">-</span>i)<span style="color: #666666">*</span>[i])
+
+        task<span style="color: #666666">.</span>putqobj(I, J, <span style="color: #008000">list</span>(Q[matrix(I) <span style="color: #666666">+</span> matrix(J)<span style="color: #666666">*</span>n]))
+        task<span style="color: #666666">.</span>putclist(<span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n), <span style="color: #008000">list</span>(<span style="color: #666666">-2*</span>A<span style="color: #666666">.</span>T<span style="color: #666666">*</span>b) <span style="color: #666666">+</span> n<span style="color: #666666">*</span>[<span style="color: #666666">1.0</span>])  <span style="color: #408080; font-style: italic"># setup linear objective</span>
+
+        <span style="color: #408080; font-style: italic"># input constraint matrix row by row</span>
+        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
+            task<span style="color: #666666">.</span>putarow(   i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>, <span style="color: #666666">-1.0</span>])
+            task<span style="color: #666666">.</span>putarow( n<span style="color: #666666">+</span>i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>,  <span style="color: #666666">1.0</span>])
+
+        <span style="color: #408080; font-style: italic"># setup bounds on constraints</span>
+        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
+                           <span style="color: #666666">0</span>, n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>up], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
+        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
+                           n, <span style="color: #666666">2*</span>n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>lo], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
+
+        <span style="color: #408080; font-style: italic"># setup variable bounds</span>
+        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>var,
+                           <span style="color: #666666">0</span>, <span style="color: #666666">2*</span>n, <span style="color: #666666">2*</span>n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>fr], <span style="color: #666666">2*</span>n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], <span style="color: #666666">2*</span>n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
+
+        <span style="color: #408080; font-style: italic"># optimize the task</span>
+        task<span style="color: #666666">.</span>putobjsense(mosek<span style="color: #666666">.</span>objsense<span style="color: #666666">.</span>minimize)
+        task<span style="color: #666666">.</span>optimize()
+        task<span style="color: #666666">.</span>solutionsummary(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log)
+        x <span style="color: #666666">=</span> n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>]
+        task<span style="color: #666666">.</span>getsolutionslice(mosek<span style="color: #666666">.</span>soltype<span style="color: #666666">.</span>itr, mosek<span style="color: #666666">.</span>solitem<span style="color: #666666">.</span>xx, <span style="color: #666666">0</span>, n, x)
+
+        <span style="color: #008000; font-weight: bold">return</span> matrix(x)
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">l1regls_mosek2</span>(A, b):
+        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+
+<span style="color: #BA2121; font-style: italic">        Returns the solution of l1-norm regularized least-squares problem</span>
+
+<span style="color: #BA2121; font-style: italic">            minimize     w&#39;*w + e&#39;*u</span>
+
+<span style="color: #BA2121; font-style: italic">            subject to  -u &lt;= x &lt;= u</span>
+
+<span style="color: #BA2121; font-style: italic">                         A*x - w = b</span>
+
+<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
+
+        m, n <span style="color: #666666">=</span> A<span style="color: #666666">.</span>size
+
+        env  <span style="color: #666666">=</span> mosek<span style="color: #666666">.</span>Env()
+        task <span style="color: #666666">=</span> env<span style="color: #666666">.</span>Task(<span style="color: #666666">0</span>,<span style="color: #666666">0</span>)
+        task<span style="color: #666666">.</span>set_Stream(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log, <span style="color: #008000; font-weight: bold">lambda</span> x: sys<span style="color: #666666">.</span>stdout<span style="color: #666666">.</span>write(x))
+
+        task<span style="color: #666666">.</span>appendvars(<span style="color: #666666">2*</span>n <span style="color: #666666">+</span> m)     <span style="color: #408080; font-style: italic"># number of variables</span>
+        task<span style="color: #666666">.</span>appendcons(<span style="color: #666666">2*</span>n <span style="color: #666666">+</span> m)     <span style="color: #408080; font-style: italic"># number of constraints</span>
+
+        <span style="color: #408080; font-style: italic"># input quadratic objective</span>
+        task<span style="color: #666666">.</span>putqobj(<span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n,<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m), <span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n,<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m), m<span style="color: #666666">*</span>[<span style="color: #666666">2.0</span>])
+
+        task<span style="color: #666666">.</span>putclist(<span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m), n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>] <span style="color: #666666">+</span> n<span style="color: #666666">*</span>[<span style="color: #666666">1.0</span>] <span style="color: #666666">+</span> m<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])  <span style="color: #408080; font-style: italic"># setup linear objective</span>
+
+        <span style="color: #408080; font-style: italic"># input constraint matrix row by row</span>
+        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
+            task<span style="color: #666666">.</span>putarow(   i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>, <span style="color: #666666">-1.0</span>])
+            task<span style="color: #666666">.</span>putarow( n<span style="color: #666666">+</span>i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>,  <span style="color: #666666">1.0</span>])
+
+        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
+            task<span style="color: #666666">.</span>putarow( <span style="color: #666666">2*</span>n<span style="color: #666666">+</span>i, <span style="color: #008000">range</span>(n) <span style="color: #666666">+</span> [<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>i], <span style="color: #008000">list</span>(A[i,:]) <span style="color: #666666">+</span> [<span style="color: #666666">-1.0</span>])
+
+        <span style="color: #408080; font-style: italic"># setup bounds on constraints</span>
+        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
+                           <span style="color: #666666">0</span>, n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>up], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
+        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
+                           n, <span style="color: #666666">2*</span>n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>lo], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
+        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
+                           <span style="color: #666666">2*</span>n, <span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m, m<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>fx], <span style="color: #008000">list</span>(b), <span style="color: #008000">list</span>(b))
+
+        <span style="color: #408080; font-style: italic"># setup variable bounds</span>
+        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>var, <span style="color: #666666">0</span>, <span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m, (<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m)<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>fr], 
+                           (<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m)<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], (<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m)<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
+
+        <span style="color: #408080; font-style: italic"># optimize the task</span>
+        task<span style="color: #666666">.</span>putobjsense(mosek<span style="color: #666666">.</span>objsense<span style="color: #666666">.</span>minimize)
+        task<span style="color: #666666">.</span>optimize()
+        task<span style="color: #666666">.</span>solutionsummary(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log)
+        x <span style="color: #666666">=</span> n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>]
+        task<span style="color: #666666">.</span>getsolutionslice(mosek<span style="color: #666666">.</span>soltype<span style="color: #666666">.</span>itr, mosek<span style="color: #666666">.</span>solitem<span style="color: #666666">.</span>xx, <span style="color: #666666">0</span>, n, x)
+
+        <span style="color: #008000; font-weight: bold">return</span> matrix(x)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">l1regls</span>(A, b):
+    <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+<span style="color: #BA2121; font-style: italic">    </span>
+<span style="color: #BA2121; font-style: italic">    Returns the solution of l1-norm regularized least-squares problem</span>
+<span style="color: #BA2121; font-style: italic">  </span>
+<span style="color: #BA2121; font-style: italic">        minimize || A*x - b ||_2^2  + || x ||_1.</span>
+
+<span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
+
+    m, n <span style="color: #666666">=</span> A<span style="color: #666666">.</span>size
+    q <span style="color: #666666">=</span> matrix(<span style="color: #666666">1.0</span>, (<span style="color: #666666">2*</span>n,<span style="color: #666666">1</span>))
+    q[:n] <span style="color: #666666">=</span> <span style="color: #666666">-2.0</span> <span style="color: #666666">*</span> A<span style="color: #666666">.</span>T <span style="color: #666666">*</span> b
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">P</span>(u, v, alpha <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>, beta <span style="color: #666666">=</span> <span style="color: #666666">0.0</span> ):
+        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+<span style="color: #BA2121; font-style: italic">            v := alpha * 2.0 * [ A&#39;*A, 0; 0, 0 ] * u + beta * v </span>
+<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
+        v <span style="color: #666666">*=</span> beta
+        v[:n] <span style="color: #666666">+=</span> alpha <span style="color: #666666">*</span> <span style="color: #666666">2.0</span> <span style="color: #666666">*</span> A<span style="color: #666666">.</span>T <span style="color: #666666">*</span> (A <span style="color: #666666">*</span> u[:n])
+
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">G</span>(u, v, alpha<span style="color: #666666">=1.0</span>, beta<span style="color: #666666">=0.0</span>, trans<span style="color: #666666">=</span><span style="color: #BA2121">&#39;N&#39;</span>):
+        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+<span style="color: #BA2121; font-style: italic">            v := alpha*[I, -I; -I, -I] * u + beta * v  (trans = &#39;N&#39; or &#39;T&#39;)</span>
+<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
+
+        v <span style="color: #666666">*=</span> beta
+        v[:n] <span style="color: #666666">+=</span> alpha<span style="color: #666666">*</span>(u[:n] <span style="color: #666666">-</span> u[n:])
+        v[n:] <span style="color: #666666">+=</span> alpha<span style="color: #666666">*</span>(<span style="color: #666666">-</span>u[:n] <span style="color: #666666">-</span> u[n:])
+
+    h <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (<span style="color: #666666">2*</span>n,<span style="color: #666666">1</span>))
+
+
+    <span style="color: #408080; font-style: italic"># Customized solver for the KKT system </span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic">#     [  2.0*A&#39;*A  0    I      -I     ] [x[:n] ]     [bx[:n] ]</span>
+    <span style="color: #408080; font-style: italic">#     [  0         0   -I      -I     ] [x[n:] ]  =  [bx[n:] ].</span>
+    <span style="color: #408080; font-style: italic">#     [  I        -I   -D1^-1   0     ] [zl[:n]]     [bzl[:n]]</span>
+    <span style="color: #408080; font-style: italic">#     [ -I        -I    0      -D2^-1 ] [zl[n:]]     [bzl[n:]]</span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic"># where D1 = W[&#39;di&#39;][:n]**2, D2 = W[&#39;di&#39;][:n]**2.</span>
+    <span style="color: #408080; font-style: italic">#    </span>
+    <span style="color: #408080; font-style: italic"># We first eliminate zl and x[n:]:</span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic">#     ( 2*A&#39;*A + 4*D1*D2*(D1+D2)^-1 ) * x[:n] = </span>
+    <span style="color: #408080; font-style: italic">#         bx[:n] - (D2-D1)*(D1+D2)^-1 * bx[n:] + </span>
+    <span style="color: #408080; font-style: italic">#         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - </span>
+    <span style="color: #408080; font-style: italic">#         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:]           </span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic">#     x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) </span>
+    <span style="color: #408080; font-style: italic">#         - (D2-D1)*(D1+D2)^-1 * x[:n]         </span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic">#     zl[:n] = D1 * ( x[:n] - x[n:] - bzl[:n] )</span>
+    <span style="color: #408080; font-style: italic">#     zl[n:] = D2 * (-x[:n] - x[n:] - bzl[n:] ).</span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic"># The first equation has the form</span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic">#     (A&#39;*A + D)*x[:n]  =  rhs</span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic"># and is equivalent to</span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic">#     [ D    A&#39; ] [ x:n] ]  = [ rhs ]</span>
+    <span style="color: #408080; font-style: italic">#     [ A   -I  ] [ v    ]    [ 0   ].</span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic"># It can be solved as </span>
+    <span style="color: #408080; font-style: italic">#</span>
+    <span style="color: #408080; font-style: italic">#     ( A*D^-1*A&#39; + I ) * v = A * D^-1 * rhs</span>
+    <span style="color: #408080; font-style: italic">#     x[:n] = D^-1 * ( rhs - A&#39;*v ).</span>
+
+    S <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (m,m))
+    Asc <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (m,n))
+    v <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (m,<span style="color: #666666">1</span>))
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">Fkkt</span>(W):
+
+        <span style="color: #408080; font-style: italic"># Factor </span>
+        <span style="color: #408080; font-style: italic">#</span>
+        <span style="color: #408080; font-style: italic">#     S = A*D^-1*A&#39; + I </span>
+        <span style="color: #408080; font-style: italic">#</span>
+        <span style="color: #408080; font-style: italic"># where D = 2*D1*D2*(D1+D2)^-1, D1 = d[:n]**-2, D2 = d[n:]**-2.</span>
+
+        d1, d2 <span style="color: #666666">=</span> W[<span style="color: #BA2121">&#39;di&#39;</span>][:n]<span style="color: #666666">**2</span>, W[<span style="color: #BA2121">&#39;di&#39;</span>][n:]<span style="color: #666666">**2</span>
+
+        <span style="color: #408080; font-style: italic"># ds is square root of diagonal of D</span>
+        ds <span style="color: #666666">=</span> math<span style="color: #666666">.</span>sqrt(<span style="color: #666666">2.0</span>) <span style="color: #666666">*</span> div( mul( W[<span style="color: #BA2121">&#39;di&#39;</span>][:n], W[<span style="color: #BA2121">&#39;di&#39;</span>][n:]), 
+            sqrt(d1<span style="color: #666666">+</span>d2) )
+        d3 <span style="color: #666666">=</span>  div(d2 <span style="color: #666666">-</span> d1, d1 <span style="color: #666666">+</span> d2)
+     
+        <span style="color: #408080; font-style: italic"># Asc = A*diag(d)^-1/2</span>
+        Asc <span style="color: #666666">=</span> A <span style="color: #666666">*</span> spdiag(ds<span style="color: #666666">**-1</span>)
+
+        <span style="color: #408080; font-style: italic"># S = I + A * D^-1 * A&#39;</span>
+        blas<span style="color: #666666">.</span>syrk(Asc, S)
+        S[::m<span style="color: #666666">+1</span>] <span style="color: #666666">+=</span> <span style="color: #666666">1.0</span> 
+        lapack<span style="color: #666666">.</span>potrf(S)
+
+        <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">g</span>(x, y, z):
+
+            x[:n] <span style="color: #666666">=</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> ( x[:n] <span style="color: #666666">-</span> mul(d3, x[n:]) <span style="color: #666666">+</span> 
+                mul(d1, z[:n] <span style="color: #666666">+</span> mul(d3, z[:n])) <span style="color: #666666">-</span> mul(d2, z[n:] <span style="color: #666666">-</span> 
+                mul(d3, z[n:])) )
+            x[:n] <span style="color: #666666">=</span> div( x[:n], ds) 
+
+            <span style="color: #408080; font-style: italic"># Solve</span>
+            <span style="color: #408080; font-style: italic">#</span>
+            <span style="color: #408080; font-style: italic">#     S * v = 0.5 * A * D^-1 * ( bx[:n] - </span>
+            <span style="color: #408080; font-style: italic">#         (D2-D1)*(D1+D2)^-1 * bx[n:] + </span>
+            <span style="color: #408080; font-style: italic">#         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - </span>
+            <span style="color: #408080; font-style: italic">#         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:] )</span>
+                
+            blas<span style="color: #666666">.</span>gemv(Asc, x, v)
+            lapack<span style="color: #666666">.</span>potrs(S, v)
+            
+            <span style="color: #408080; font-style: italic"># x[:n] = D^-1 * ( rhs - A&#39;*v ).</span>
+            blas<span style="color: #666666">.</span>gemv(Asc, v, x, alpha<span style="color: #666666">=-1.0</span>, beta<span style="color: #666666">=1.0</span>, trans<span style="color: #666666">=</span><span style="color: #BA2121">&#39;T&#39;</span>)
+            x[:n] <span style="color: #666666">=</span> div(x[:n], ds)
+
+            <span style="color: #408080; font-style: italic"># x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) </span>
+            <span style="color: #408080; font-style: italic">#         - (D2-D1)*(D1+D2)^-1 * x[:n]         </span>
+            x[n:] <span style="color: #666666">=</span> div( x[n:] <span style="color: #666666">-</span> mul(d1, z[:n]) <span style="color: #666666">-</span> mul(d2, z[n:]), d1<span style="color: #666666">+</span>d2 )\
+                <span style="color: #666666">-</span> mul( d3, x[:n] )
+                
+            <span style="color: #408080; font-style: italic"># zl[:n] = D1^1/2 * (  x[:n] - x[n:] - bzl[:n] )</span>
+            <span style="color: #408080; font-style: italic"># zl[n:] = D2^1/2 * ( -x[:n] - x[n:] - bzl[n:] ).</span>
+            z[:n] <span style="color: #666666">=</span> mul( W[<span style="color: #BA2121">&#39;di&#39;</span>][:n],  x[:n] <span style="color: #666666">-</span> x[n:] <span style="color: #666666">-</span> z[:n] ) 
+            z[n:] <span style="color: #666666">=</span> mul( W[<span style="color: #BA2121">&#39;di&#39;</span>][n:], <span style="color: #666666">-</span>x[:n] <span style="color: #666666">-</span> x[n:] <span style="color: #666666">-</span> z[n:] ) 
+
+        <span style="color: #008000; font-weight: bold">return</span> g
+
+    <span style="color: #008000; font-weight: bold">return</span> solvers<span style="color: #666666">.</span>coneqp(P, q, G, h, kktsolver <span style="color: #666666">=</span> Fkkt)[<span style="color: #BA2121">&#39;x&#39;</span>][:n]
 </pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
