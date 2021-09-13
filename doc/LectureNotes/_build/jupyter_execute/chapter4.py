@@ -1237,6 +1237,7 @@ desirable properties such as:
 
 We revisit an example similar to what we had in the first homework set. We had a function  of the type
 
+m = 100
 x = 2*np.random.rand(m,1)
 y = 4+3*x+np.random.randn(m,1)
 
