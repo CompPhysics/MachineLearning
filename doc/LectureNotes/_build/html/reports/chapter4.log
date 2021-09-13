@@ -17,73 +17,61 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply['content'])
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-%matplotlib inline
-
-# Common imports
-import os
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.model_selection import train_test_split
-from sklearn.utils import resample
-from sklearn.metrics import mean_squared_error
-from IPython.display import display
-from pylab import plt, mpl
-plt.style.use('seaborn')
-mpl.rcParams['font.family'] = 'serif'
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.linear_model import LogisticRegression
 
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
+# Load the data
+cancer = load_breast_cancer()
 
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+# Logistic Regression
+logreg = LogisticRegression(solver='lbfgs')
+logreg.fit(X_train, y_train)
+print("Test set accuracy with Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
+#now scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# Logistic Regression
+logreg.fit(X_train_scaled, y_train)
+print("Test set accuracy Logistic Regression with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
 
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
 
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_validate
+#Cross validation
+accuracy = cross_validate(logreg,X_test_scaled,y_test,cv=10)['test_score']
+print(accuracy)
+print("Test set accuracy with Logistic Regression  and scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
 
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
 
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
-
-infile = open(data_path("chddata.csv"),'r')
-
-# Read the chd data as  csv file and organize the data into arrays with age group, age, and chd
-chd = pd.read_csv(infile, names=('ID', 'Age', 'Agegroup', 'CHD'))
-chd.columns = ['ID', 'Age', 'Agegroup', 'CHD']
-output = chd['CHD']
-age = chd['Age']
-agegroup = chd['Agegroup']
-numberID  = chd['ID'] 
-display(chd)
-
-plt.scatter(age, output, marker='o')
-plt.axis([18,70.0,-0.1, 1.2])
-plt.xlabel(r'Age')
-plt.ylabel(r'CHD')
-plt.title(r'Age distribution and Coronary heart disease')
+import scikitplot as skplt
+y_pred = logreg.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = logreg.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
 plt.show()
 ------------------
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mFileNotFoundError[0m                         Traceback (most recent call last)
-[0;32m<ipython-input-1-a77d5ac269b2>[0m in [0;36m<module>[0;34m[0m
-[1;32m     38[0m     [0mplt[0m[0;34m.[0m[0msavefig[0m[0;34m([0m[0mimage_path[0m[0;34m([0m[0mfig_id[0m[0;34m)[0m [0;34m+[0m [0;34m".png"[0m[0;34m,[0m [0mformat[0m[0;34m=[0m[0;34m'png'[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
-[1;32m     39[0m [0;34m[0m[0m
-[0;32m---> 40[0;31m [0minfile[0m [0;34m=[0m [0mopen[0m[0;34m([0m[0mdata_path[0m[0;34m([0m[0;34m"chddata.csv"[0m[0;34m)[0m[0;34m,[0m[0;34m'r'[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
-[0m[1;32m     41[0m [0;34m[0m[0m
-[1;32m     42[0m [0;31m# Read the chd data as  csv file and organize the data into arrays with age group, age, and chd[0m[0;34m[0m[0;34m[0m[0;34m[0m[0m
+[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
+[0;32m<ipython-input-8-12adb44b1c20>[0m in [0;36m<module>[0;34m[0m
+[1;32m     34[0m [0;34m[0m[0m
+[1;32m     35[0m [0;34m[0m[0m
+[0;32m---> 36[0;31m [0;32mimport[0m [0mscikitplot[0m [0;32mas[0m [0mskplt[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m     37[0m [0my_pred[0m [0;34m=[0m [0mlogreg[0m[0;34m.[0m[0mpredict[0m[0;34m([0m[0mX_test_scaled[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[1;32m     38[0m [0mskplt[0m[0;34m.[0m[0mmetrics[0m[0;34m.[0m[0mplot_confusion_matrix[0m[0;34m([0m[0my_test[0m[0;34m,[0m [0my_pred[0m[0;34m,[0m [0mnormalize[0m[0;34m=[0m[0;32mTrue[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
 
-[0;31mFileNotFoundError[0m: [Errno 2] No such file or directory: 'DataFiles/chddata.csv'
-FileNotFoundError: [Errno 2] No such file or directory: 'DataFiles/chddata.csv'
+[0;31mModuleNotFoundError[0m: No module named 'scikitplot'
+ModuleNotFoundError: No module named 'scikitplot'
 

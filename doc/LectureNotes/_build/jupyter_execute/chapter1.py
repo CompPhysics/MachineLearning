@@ -1,7 +1,5 @@
 # Linear Regression
 
-[Video of Lecture](https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/LectureAug21.mp4?vrtx=view-as-webpage)
-
 
 ## Introduction
 
@@ -9,7 +7,7 @@
 
 
 
-Our emphasis throughout this series of lectures (small change)  
+Our emphasis throughout this series of lectures  
 is on understanding the mathematical aspects of
 different algorithms used in the fields of data analysis and machine learning. 
 
@@ -229,7 +227,9 @@ How to evaluate which model fits best the data is something we will come back to
 
 ## Simple linear regression model using **scikit-learn**
 
-We start with perhaps our simplest possible example, using **Scikit-Learn** to perform linear regression analysis on a data set produced by us. 
+We start with perhaps our simplest possible example, using
+**Scikit-Learn** to perform linear regression analysis on a data set
+produced by us.
 
 What follows is a simple Python code where we have defined a function
 $y$ in terms of the variable $x$. Both are defined as vectors with  $100$ entries. 
@@ -366,7 +366,8 @@ We can modify easily the above Python code and plot the relative error instead
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
-
+# Number of data points
+n = 100
 x = np.random.rand(100,1)
 y = 5*x+0.01*np.random.randn(100,1)
 linreg = LinearRegression()
@@ -383,7 +384,8 @@ plt.show()
 Depending on the parameter in front of the normal distribution, we may
 have a small or larger relative error. Try to play around with
 different training data sets and study (graphically) the value of the
-relative error.
+relative error. Note also that **Scikit-Learn** requires a matrix as input for the input values $x$ and $y$. In the above code we have
+solved this by declaring $x$ and $y$ as arrays of dimension $n\times 1$.
 
 As mentioned above, **Scikit-Learn** has an impressive functionality.
 We can for example extract the values of $\alpha$ and $\beta$ and
@@ -483,11 +485,12 @@ ways of dealing with outliers.
 The Huber cost function is defined as
 
 $$
-H_{\delta}(\boldsymbol{a})=\left\{\begin{array}{cc}\frac{1}{2} \boldsymbol{a}^{2}& \text{for }|\boldsymbol{a}|\leq \delta\\ \delta (|\b\
-m{a}|-\frac{1}{2}\delta ),&\text{otherwise}.\end{array}\right.
+H_{\delta}(\boldsymbol{a})=\left\{\begin{array}{cc}\frac{1}{2} \boldsymbol{a}^{2}& \text{for }|\boldsymbol{a}|\leq \delta\\ \delta (|\boldsymbol{a}|-\frac{1}{2}\delta ),&\text{otherwise}.\end{array}\right.
 $$
 
 Here $\boldsymbol{a}=\boldsymbol{y} - \boldsymbol{\tilde{y}}$.
+
+
 
 
 We will discuss in more
@@ -735,6 +738,8 @@ X[:,2] = A**(2.0/3.0)
 X[:,3] = A**(-1.0/3.0)
 X[:,4] = A**(-1.0)
 
+Note well that we have made life simple here. We perform a fit in terms of the number of nucleons only. A more sophisticated fit can be done by including an explicit dependence on the number of protons and neutrons in the asymmetry and Coulomb terms.
+
 With **scikitlearn** we are now ready to use linear regression and fit our data.
 
 clf = skl.LinearRegression().fit(X, Energies)
@@ -749,7 +754,6 @@ print("Mean squared error: %.2f" % mean_squared_error(Energies, fity))
 print('Variance score: %.2f' % r2_score(Energies, fity))
 # Mean absolute error                                                           
 print('Mean absolute error: %.2f' % mean_absolute_error(Energies, fity))
-print(clf.coef_, clf.intercept_)
 
 Masses['Eapprox']  = fity
 # Generate a plot comparing the experimental with the fitted values values.
@@ -1850,6 +1854,89 @@ print('R2 score is {}'.format(r2))
 plt.scatter(Y_test, y_test_predict)
 plt.show()
 
+## Splitting our Data in Training and Test data
+
+
+It is normal in essentially all Machine Learning studies to split the
+data in a training set and a test set (sometimes also an additional
+validation set).  **Scikit-Learn** has an own function for this. There
+is no explicit recipe for how much data should be included as training
+data and say test data.  An accepted rule of thumb is to use
+approximately $2/3$ to $4/5$ of the data as training data. We will
+postpone a discussion of this splitting to the end of these notes and
+our discussion of the so-called **bias-variance** tradeoff. Here we
+limit ourselves to repeat the above equation of state fitting example
+but now splitting the data into a training set and a test set.
+
+Let us study some examples. The first code here takes a simple
+one-dimensional second-order polynomial and we fit it to a
+second-order polynomial. Depending on the strength of the added noise,
+the various measures like the $R2$ score or the mean-squared error,
+the fit becomes better or worse.
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),3))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x**2
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# matrix inversion to find beta
+beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(beta)
+# and then make the prediction
+ytilde = X_train @ beta
+print("Training R2")
+print(R2(y_train,ytilde))
+print("Training MSE")
+print(MSE(y_train,ytilde))
+ypredict = X_test @ beta
+print("Test R2")
+print(R2(y_test,ypredict))
+print("Test MSE")
+print(MSE(y_test,ypredict))
+
+Alternatively, you could write your own test-train splitting function as shown here.
+
+# equivalently in numpy
+def train_test_split_numpy(inputs, labels, train_size, test_size):
+    n_inputs = len(inputs)
+    inputs_shuffled = inputs.copy()
+    labels_shuffled = labels.copy()
+
+    np.random.shuffle(inputs_shuffled)
+    np.random.shuffle(labels_shuffled)
+
+    train_end = int(n_inputs*train_size)
+    X_train, X_test = inputs_shuffled[:train_end], inputs_shuffled[train_end:]
+    Y_train, Y_test = labels_shuffled[:train_end], labels_shuffled[train_end:]
+
+    return X_train, X_test, Y_train, Y_test
+
+But since **scikit-learn** has its own function for doing this and since
+it interfaces easily with **tensorflow** and other libraries, we
+normally recommend using the latter functionality.
+
+
+
+
 ## Reducing the number of degrees of freedom, overarching view
 
 Many Machine Learning problems involve thousands or even millions of
@@ -1873,12 +1960,22 @@ is one of the most used tools in data modeling, compression and
 visualization.
 
 
+
 Before we proceed however, we will discuss how to preprocess our
 data. Till now and in connection with our previous examples we have
 not met so many cases where we are too sensitive to the scaling of our
 data. Normally the data may need a rescaling and/or may be sensitive
 to extreme values. Scaling the data renders our inputs much more
 suitable for the algorithms we want to employ.
+
+For data sets gathered for real world applications, it is rather normal that
+different features have very different units and
+numerical scales. For example, a data set detailing health habits may include
+features such as **age** in the range $0-80$, and **caloric intake** of order $2000$.
+Many machine learning methods sensitive to the scales of the features and may perform poorly if they
+are very different scales. Therefore, it is typical to scale
+the features in a way to avoid such outlier values.
+
 
 **Scikit-Learn** has several functions which allow us to rescale the
 data, normally resulting in much better results in terms of various
@@ -1909,100 +2006,124 @@ outliers, and might often lead to trouble for other scaling
 techniques.
 
 
-### Simple preprocessing examples, Franke function and regression
+Many features are often scaled using standardization to improve
+performance. In **Scikit-Learn** this is given by the **StandardScaler**
+function as discussed above. It is easy however to write your own.
+Mathematically, this involves subtracting the mean and divide by the
+standard deviation over the data set, for each feature:
 
-# Common imports
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+$$
+x_j^{(i)} \rightarrow \frac{x_j^{(i)} - \overline{x}_j}{\sigma(x_j)},
+$$
+
+where $\overline{x}_j$ and $\sigma(x_j)$ are the mean and standard
+deviation, respectively, of the feature $x_j$.  This ensures that each
+feature has zero mean and unit standard deviation.  For data sets
+where we do not have the standard deviation or don't wish to calculate
+it, it is then common to simply set it to one.
+
+
+
+Let us consider the following vanilla example where we use both
+**Scikit-Learn** and write our own function as well.  We produce a
+simple test design matrix with random numbers. Each column could then
+represent a specific feature whose mean value is subracted.
+
 import sklearn.linear_model as skl
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import  train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, Normalizer
+import numpy as np
+import pandas as pd
+from IPython.display import display
+np.random.seed(100)
+# setting up a 10 x 5 matrix
+rows = 10
+cols = 5
+X = np.random.randn(rows,cols)
+XPandas = pd.DataFrame(X)
+display(XPandas)
+print(XPandas.mean())
+print(XPandas.std())
+XPandas = (XPandas -XPandas.mean())
+display(XPandas)
+#  This option does not include the standard deviation
+scaler = StandardScaler(with_std=False)
+scaler.fit(X)
+Xscaled = scaler.transform(X)
+display(XPandas-Xscaled)
 
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
-
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
-
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
-
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
-
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
-
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
+Small exercise: perform the standard scaling by including the standard deviation and compare with what Scikit-Learn gives.
 
 
-def FrankeFunction(x,y):
-	term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-	term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-	term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-	term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
-	return term1 + term2 + term3 + term4
+
+Another commonly used scaling method is min-max scaling. This is very
+useful for when we want the features to lie in a certain interval. To
+scale the feature $x_j$ to the interval $[a, b]$, we can apply the
+transformation
+
+$$
+x_j^{(i)} \rightarrow (b-a)\frac{x_j^{(i)} - \min(x_j)}{\max(x_j) - \min(x_j)} - a
+$$
+
+where $\min(x_j)$ and $\max(x_j)$ return the minimum and maximum value of $x_j$ over the data set, respectively.
 
 
-def create_X(x, y, n ):
-	if len(x.shape) > 1:
-		x = np.ravel(x)
-		y = np.ravel(y)
-
-	N = len(x)
-	l = int((n+1)*(n+2)/2)		# Number of elements in beta
-	X = np.ones((N,l))
-
-	for i in range(1,n+1):
-		q = int((i)*(i+1)/2)
-		for k in range(i+1):
-			X[:,q+k] = (x**(i-k))*(y**k)
-
-	return X
 
 
-# Making meshgrid of datapoints and compute Franke's function
-n = 5
-N = 1000
-x = np.sort(np.random.uniform(0, 1, N))
-y = np.sort(np.random.uniform(0, 1, N))
-z = FrankeFunction(x, y)
-X = create_X(x, y, n=n)    
-# split in training and test data
-X_train, X_test, y_train, y_test = train_test_split(X,z,test_size=0.2)
+## Testing the Means Squared Error as function of Complexity
 
 
-clf = skl.LinearRegression().fit(X_train, y_train)
+Before we proceed with a more detailed analysis of the so-called
+Bias-Variance tradeoff, we present here an example of the relation
+between model complexity and the mean squared error for the triaining
+data and the test data.
 
-# The mean squared error and R2 score
-print("MSE before scaling: {:.2f}".format(mean_squared_error(clf.predict(X_test), y_test)))
-print("R2 score before scaling {:.2f}".format(clf.score(X_test,y_test)))
+The results here tell us clearly that for the data not included in the
+training, there is an optimal model as function of the complexity of
+ourmodel (here in terms of the polynomial degree of the model).
 
+The results here will vary as function of model complexity and the amount od data used for training. 
+
+
+Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+
+
+np.random.seed(2018)
+n = 100
+maxdegree = 14
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+TestError = np.zeros(maxdegree)
+TrainError = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+scaler.fit(x_train)
+x_train_scaled = scaler.transform(x_train)
+x_test_scaled = scaler.transform(x_test)
 
-print("Feature min values before scaling:\n {}".format(X_train.min(axis=0)))
-print("Feature max values before scaling:\n {}".format(X_train.max(axis=0)))
+for degree in range(maxdegree):
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
+    clf = model.fit(x_train_scaled,y_train)
+    y_fit = clf.predict(x_train_scaled)
+    y_pred = clf.predict(x_test_scaled) 
+    polydegree[degree] = degree
+    TestError[degree] = np.mean( np.mean((y_test - y_pred)**2) )
+    TrainError[degree] = np.mean( np.mean((y_train - y_fit)**2) )
 
-print("Feature min values after scaling:\n {}".format(X_train_scaled.min(axis=0)))
-print("Feature max values after scaling:\n {}".format(X_train_scaled.max(axis=0)))
-
-clf = skl.LinearRegression().fit(X_train_scaled, y_train)
-
-
-print("MSE after  scaling: {:.2f}".format(mean_squared_error(clf.predict(X_test_scaled), y_test)))
-print("R2 score for  scaled data: {:.2f}".format(clf.score(X_test_scaled,y_test)))
+plt.plot(polydegree, TestError, label='Test Error')
+plt.plot(polydegree, TrainError, label='Train Error')
+plt.legend()
+plt.show()
 
 ## Exercises
 

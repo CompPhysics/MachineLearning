@@ -342,6 +342,88 @@ resize the matrices and set up a diagonal matrix as done in the above
 example
 
 
+## Code for SVD and Inversion of Matrices
+
+How do we use the SVD to invert a matrix $\boldsymbol{X}^\boldsymbol{X}$ which is singular or near singular?
+The simple answer is to use the linear algebra function for the pseudoinverse, that is
+
+#Ainv = np.linlag.pinv(A)
+
+Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
+
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
+    SVD is numerically more stable than the inversion algorithms provided by
+    numpy and scipy.linalg at the cost of being slower.
+    '''
+    U, s, VT = np.linalg.svd(A)
+    print('test U')
+    print( (np.transpose(U) @ U - U @np.transpose(U)))
+    print('test VT')
+    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
+
+
+    D = np.zeros((len(U),len(VT)))
+    D = np.diag(s)
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
+    return np.matmul(V,np.matmul(invD,UT))
+
+
+#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
+# Non-singular square matrix
+X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
+print(X)
+A = np.transpose(X) @ X
+# Brute force inversion
+B = np.linalg.pinv(A)  # here we could use np.linalg.inv(A), try it!
+C = SVDinv(A)
+print(np.abs(B-C))
+
+Although our matrix to invert $\boldsymbol{X}^T\boldsymbol{X}$ is a square matrix, our matrix may be singular. 
+
+The pseudoinverse is the generalization of the matrix inverse for square matrices to
+rectangular matrices where the number of rows and columns are not equal.
+
+It is also called the the Moore-Penrose Inverse after two independent discoverers of the method or the Generalized Inverse.
+It is used for the calculation of the inverse for singular or near singular matrices and for rectangular matrices.
+
+Using the SVD we can obtain the pseudoinverse of a matrix $\boldsymbol{A}$ (labeled here as $\boldsymbol{A}_{\mathrm{PI}}$
+
+$$
+\boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
+$$
+
+where $\boldsymbol{D}_{\mathrm{PI}}$ can be calculated by creating a diagonal matrix from $\boldsymbol{Sigma}$ where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
+
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    U, s, VT = np.linalg.svd(A)
+    # reciprocals of singular values of s
+    d = 1.0 / s
+    # create m x n D matrix
+    D = np.zeros(A.shape)
+    # populate D with n x n diagonal matrix
+    D[:A.shape[1], :A.shape[1]] = np.diag(d)
+    UT = np.transpose(U)
+    V = np.transpose(VT)
+    return np.matmul(V,np.matmul(D.T,UT))
+
+
+A = np.array([ [0.3, 0.4], [0.5, 0.6], [0.7, 0.8],[0.9, 1.0]])
+print(A)
+# Brute force inversion of super-collinear matrix
+B = np.linalg.pinv(A)
+print(B)
+# Compare our own algorithm with pinv
+C = SVDinv(A)
+print(np.abs(C-B))
+
+As you can see from these examples, our own decomposition based on the SVD agrees the pseudoinverse algorithm provided by **Numpy**.
+
+
 
 
 
@@ -979,270 +1061,8 @@ values and the column vectors of $\boldsymbol{V}$.
 
 
 
-## Ridge and LASSO Regression
 
-Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
-our optimization problem is
-
-$$
-{\displaystyle \min_{\boldsymbol{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right\}.
-$$
-
-or we can state it as
-
-$$
-{\displaystyle \min_{\boldsymbol{\beta}\in
-{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2,
-$$
-
-where we have used the definition of  a norm-2 vector, that is
-
-$$
-\vert\vert \boldsymbol{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}.
-$$
-
-By minimizing the above equation with respect to the parameters
-$\boldsymbol{\beta}$ we could then obtain an analytical expression for the
-parameters $\boldsymbol{\beta}$.  We can add a regularization parameter $\lambda$ by
-defining a new cost function to be optimized, that is
-
-$$
-{\displaystyle \min_{\boldsymbol{\beta}\in
-{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
-$$
-
-which leads to the Ridge regression minimization problem where we
-require that $\vert\vert \boldsymbol{\beta}\vert\vert_2^2\le t$, where $t$ is
-a finite number larger than zero. By defining
-
-$$
-C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1,
-$$
-
-we have a new optimization equation
-
-$$
-{\displaystyle \min_{\boldsymbol{\beta}\in
-{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1
-$$
-
-which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
-
-Here we have defined the norm-1 as
-
-$$
-\vert\vert \boldsymbol{x}\vert\vert_1 = \sum_i \vert x_i\vert.
-$$
-
-Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
-
-$$
-C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\boldsymbol{\beta}^T\boldsymbol{\beta},
-$$
-
-and 
-taking the derivatives with respect to $\boldsymbol{\beta}$ we obtain then
-a slightly modified matrix inversion problem which for finite values
-of $\lambda$ does not suffer from singularity problems. We obtain
-the optimal parameters
-
-$$
-\hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
-$$
-
-with $\boldsymbol{I}$ being a $p\times p$ identity matrix with the constraint that
-
-$$
-\sum_{i=0}^{p-1} \beta_i^2 \leq t,
-$$
-
-with $t$ a finite positive number. 
-
-When we compare this with the ordinary least squares result we have
-
-$$
-\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
-$$
-
-which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$.
-
-
-We see that Ridge regression is nothing but the standard OLS with a
-modified diagonal term added to $\boldsymbol{X}^T\boldsymbol{X}$. The consequences, in
-particular for our discussion of the bias-variance tradeoff are rather
-interesting. We will see that for specific values of $\lambda$, we may
-even reduce the variance of the optimal parameters $\boldsymbol{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
-
-Using our insights about the SVD of the design matrix $\boldsymbol{X}$ 
-We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\boldsymbol{U}$ as
-
-$$
-\tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\beta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
-$$
-
-For Ridge regression this becomes
-
-$$
-\tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\beta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
-$$
-
-with the vectors $\boldsymbol{u}_j$ being the columns of $\boldsymbol{U}$ from the SVD of the matrix $\boldsymbol{X}$. 
-
-
-Since $\lambda \geq 0$, it means that compared to OLS, we have
-
-$$
-\frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1.
-$$
-
-Ridge regression finds the coordinates of $\boldsymbol{y}$ with respect to the
-orthonormal basis $\boldsymbol{U}$, it then shrinks the coordinates by
-$\frac{\sigma_j^2}{\sigma_j^2+\lambda}$. Recall that the SVD has
-eigenvalues ordered in a descending way, that is $\sigma_i \geq
-\sigma_{i+1}$.
-
-For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
-
-
-
-For the sake of simplicity, let us assume that the design matrix is orthonormal, that is
-
-$$
-\boldsymbol{X}^T\boldsymbol{X}=(\boldsymbol{X}^T\boldsymbol{X})^{-1} =\boldsymbol{I}.
-$$
-
-In this case the standard OLS results in
-
-$$
-\boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\boldsymbol{y},
-$$
-
-and
-
-$$
-\boldsymbol{\beta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\beta}^{\mathrm{OLS}},
-$$
-
-that is the Ridge estimator scales the OLS estimator by the inverse of a factor $1+\lambda$, and
-the Ridge estimator converges to zero when the hyperparameter goes to
-infinity.
-
-We will come back to more interpreations after we have gone through some of the statistical analysis part. 
-
-For more discussions of Ridge and Lasso regression, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
-Similarly, [Mehta et al's article](https://arxiv.org/abs/1803.08823) is also recommended.
-
-
-Using the matrix-vector expression for Lasso regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have the following **cost** function
-
-$$
-C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
-$$
-
-Taking the derivative with respect to $\boldsymbol{\beta}$ and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicty)
-
-$$
-\frac{d \vert \beta\vert}{d \boldsymbol{\beta}}=\mathrm{sgn}(\boldsymbol{\beta})=\left\{\begin{array}{cc} 1 & \beta > 0 \\ 0 & \beta =0\\-1 & \beta < 0, \end{array}\right.
-$$
-
-we have that the derivative of the cost function is
-
-$$
-\frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-2\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
-$$
-
-and reordering we have
-
-$$
-\boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=2\boldsymbol{X}^T(\boldsymbol{y}.
-$$
-
-This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package [CVXOPT](https://cvxopt.org/). We will discuss this later. 
-
-## Code for SVD and Inversion of Matrices
-
-How do we use the SVD to invert a matrix $\boldsymbol{X}^\boldsymbol{X}$ which is singular or near singular?
-The simple answer is to use the linear algebra function for the pseudoinverse, that is
-
-#Ainv = np.linlag.pinv(A)
-
-Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
-
-import numpy as np
-# SVD inversion
-def SVDinv(A):
-    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
-    SVD is numerically more stable than the inversion algorithms provided by
-    numpy and scipy.linalg at the cost of being slower.
-    '''
-    U, s, VT = np.linalg.svd(A)
-    print('test U')
-    print( (np.transpose(U) @ U - U @np.transpose(U)))
-    print('test VT')
-    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
-
-
-    D = np.zeros((len(U),len(VT)))
-    D = np.diag(s)
-    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
-    return np.matmul(V,np.matmul(invD,UT))
-
-
-#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
-# Non-singular square matrix
-X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
-print(X)
-A = np.transpose(X) @ X
-# Brute force inversion
-B = np.linalg.inv(A)  # here we could use np.linalg.pinv(A)
-C = SVDinv(A)
-print(np.abs(B-C))
-
-Although our matrix to invert $\boldsymbol{X}^T\boldsymbol{X}$ is a square matrix, our matrix may be singular. 
-
-The pseudoinverse is the generalization of the matrix inverse for square matrices to
-rectangular matrices where the number of rows and columns are not equal.
-
-It is also called the the Moore-Penrose Inverse after two independent discoverers of the method or the Generalized Inverse.
-It is used for the calculation of the inverse for singular or near singular matrices and for rectangular matrices.
-
-Using the SVD we can obtain the pseudoinverse of a matrix $\boldsymbol{A}$ (labeled here as $\boldsymbol{A}_{\mathrm{PI}}$
-
-$$
-\boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
-$$
-
-where $\boldsymbol{D}_{\mathrm{PI}}$ can be calculated by creating a diagonal matrix from $\boldsymbol{Sigma}$ where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
-
-import numpy as np
-# SVD inversion
-def SVDinv(A):
-    U, s, VT = np.linalg.svd(A)
-    # reciprocals of singular values of s
-    d = 1.0 / s
-    # create m x n D matrix
-    D = np.zeros(A.shape)
-    # populate D with n x n diagonal matrix
-    D[:A.shape[1], :A.shape[1]] = np.diag(d)
-    UT = np.transpose(U)
-    V = np.transpose(VT)
-    return np.matmul(V,np.matmul(D.T,UT))
-
-
-A = np.array([ [0.3, 0.4], [0.5, 0.6], [0.7, 0.8],[0.9, 1.0]])
-print(A)
-# Brute force inversion of super-collinear matrix
-B = np.linalg.pinv(A)
-print(B)
-# Compare our own algorithm with pinv
-C = SVDinv(A)
-print(np.abs(C-B))
-
-As you can see from this example, our own decomposition based on the SVD agrees the pseudoinverse algorithm provided by **Numpy**.
-
-
-
-## Deriving the  Ridge Regression Equations
+## Ridge and Lasso Regression
 
 Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
 our optimization problem is
@@ -1614,6 +1434,7 @@ Using the constraint on $\beta_0$ and $\beta_1$ we can then find the optimal val
 Here we set up the OLS, Ridge and Lasso functionality in order to study the above example. Note that here we have opted for a set of values of $\lambda$, meaning that we need to perform a search in order to find the optimal values.
 
 First we study and compare the OLS and Ridge results.  The next code compares all three methods.
+We select values of the hyperparameter $\lambda\in [10^{-4},10^4]$ and compute the predicted values for ordinary least squares and Ridge regression.
 
 %matplotlib inline
 
@@ -1667,7 +1488,13 @@ plt.ylabel('MSE')
 plt.legend()
 plt.show()
 
-We see here that we reach a plateau. What is actually happening?
+We see here that we reach a plateau for the Ridge results. Writing out the coefficients $\boldsymbol{\beta}$, we that they are getting smaller and smaller and our error stabilizes since the predicted values of $\tilde{\boldsymbol{y}}$ approach zero.
+
+This happens also for Lasso regression, as seen from the next code
+output. The difference is that Lasso shrinks the values of $\beta$ to
+zero at a much earlier stage and the results flatten out. We see that
+Lasso gives also an excellent fit for small values of $\lambda$ and
+shows rthe best performance of the three regression methods.
 
 import os
 import numpy as np
@@ -1726,7 +1553,15 @@ plt.ylabel('MSE')
 plt.legend()
 plt.show()
 
-Another Example, now with a polynomial fit.
+We bring then back our exponential function example and study all
+three regression methods.  Depending on the level of noise, we note
+that for small values of the hyperparameter $\lambda$ all three
+methods produce the same mean squared error. Again, Lasso shrinks the
+parameter values to zero much earlier than Ridge regression and the
+Lasso results flatten out much earlier since all $\beta_j=0$ (check
+this by printing the values). This case is an example of where OLS
+performs best. Lasso and Ridge reproduce the OLS results for a limited
+set of $\lambda$ values.
 
 import os
 import numpy as np
@@ -1806,6 +1641,281 @@ plt.xlabel('log10(lambda)')
 plt.ylabel('MSE')
 plt.legend()
 plt.show()
+
+Both these example send a clear message. The addition of a
+shrinkage/regularization term implies that we need to perform a search
+for the optimal values of $\lambda$. We will see this throughout these
+series of lectures.
+
+
+As a small addendum, we note that you can also solve this problem using the convex optimization package [CVXOPT](https://cvxopt.org/examples/mlbook/l1regls.html). This requires, in addition to having installed **CVXOPT**, you need to download the file *l1regl.py*.
+The following code example solves the simpler problem we discussed above, where we have added the latter python file.
+
+from cvxopt import matrix, spdiag, mul, div, sqrt, normal, setseed
+from cvxopt import blas, lapack, solvers, sparse, spmatrix
+import math
+
+try:
+    import mosek
+    import sys
+    __MOSEK = True
+except: __MOSEK = False
+
+if __MOSEK:
+
+    def l1regls_mosek(A, b):
+        """
+
+        Returns the solution of l1-norm regularized least-squares problem
+
+            minimize    || A*x - b ||_2^2  + e'*u
+
+            subject to  -u <= x <= u
+
+        """
+
+        m, n = A.size
+
+        env  = mosek.Env()
+        task = env.Task(0,0)
+        task.set_Stream(mosek.streamtype.log, lambda x: sys.stdout.write(x))
+
+        task.appendvars( 2*n)            # number of variables
+        task.appendcons( 2*n)            # number of constraints
+
+        # input quadratic objective
+        Q = matrix(0.0, (n,n)) 
+        blas.syrk(A, Q, alpha = 2.0, trans='T')
+
+        I = []
+        for i in range(n):
+            I.extend(range(i,n))
+
+        J = []
+        for i in range(n):
+            J.extend((n-i)*[i])
+
+        task.putqobj(I, J, list(Q[matrix(I) + matrix(J)*n]))
+        task.putclist(range(2*n), list(-2*A.T*b) + n*[1.0])  # setup linear objective
+
+        # input constraint matrix row by row
+        for i in range(n):
+            task.putarow(   i, [i, n+i], [1.0, -1.0])
+            task.putarow( n+i, [i, n+i], [1.0,  1.0])
+
+        # setup bounds on constraints
+        task.putboundslice(mosek.accmode.con,
+                           0, n, n*[mosek.boundkey.up], n*[0.0], n*[0.0])
+        task.putboundslice(mosek.accmode.con,
+                           n, 2*n, n*[mosek.boundkey.lo], n*[0.0], n*[0.0])
+
+        # setup variable bounds
+        task.putboundslice(mosek.accmode.var,
+                           0, 2*n, 2*n*[mosek.boundkey.fr], 2*n*[0.0], 2*n*[0.0])
+
+        # optimize the task
+        task.putobjsense(mosek.objsense.minimize)
+        task.optimize()
+        task.solutionsummary(mosek.streamtype.log)
+        x = n*[0.0]
+        task.getsolutionslice(mosek.soltype.itr, mosek.solitem.xx, 0, n, x)
+
+        return matrix(x)
+
+    def l1regls_mosek2(A, b):
+        """
+
+        Returns the solution of l1-norm regularized least-squares problem
+
+            minimize     w'*w + e'*u
+
+            subject to  -u <= x <= u
+
+                         A*x - w = b
+
+        """
+
+        m, n = A.size
+
+        env  = mosek.Env()
+        task = env.Task(0,0)
+        task.set_Stream(mosek.streamtype.log, lambda x: sys.stdout.write(x))
+
+        task.appendvars(2*n + m)     # number of variables
+        task.appendcons(2*n + m)     # number of constraints
+
+        # input quadratic objective
+        task.putqobj(range(2*n,2*n+m), range(2*n,2*n+m), m*[2.0])
+
+        task.putclist(range(2*n+m), n*[0.0] + n*[1.0] + m*[0.0])  # setup linear objective
+
+        # input constraint matrix row by row
+        for i in range(n):
+            task.putarow(   i, [i, n+i], [1.0, -1.0])
+            task.putarow( n+i, [i, n+i], [1.0,  1.0])
+
+        for i in range(m):
+            task.putarow( 2*n+i, range(n) + [2*n+i], list(A[i,:]) + [-1.0])
+
+        # setup bounds on constraints
+        task.putboundslice(mosek.accmode.con,
+                           0, n, n*[mosek.boundkey.up], n*[0.0], n*[0.0])
+        task.putboundslice(mosek.accmode.con,
+                           n, 2*n, n*[mosek.boundkey.lo], n*[0.0], n*[0.0])
+        task.putboundslice(mosek.accmode.con,
+                           2*n, 2*n+m, m*[mosek.boundkey.fx], list(b), list(b))
+
+        # setup variable bounds
+        task.putboundslice(mosek.accmode.var, 0, 2*n+m, (2*n+m)*[mosek.boundkey.fr], 
+                           (2*n+m)*[0.0], (2*n+m)*[0.0])
+
+        # optimize the task
+        task.putobjsense(mosek.objsense.minimize)
+        task.optimize()
+        task.solutionsummary(mosek.streamtype.log)
+        x = n*[0.0]
+        task.getsolutionslice(mosek.soltype.itr, mosek.solitem.xx, 0, n, x)
+
+        return matrix(x)
+
+def l1regls(A, b):
+    """
+    
+    Returns the solution of l1-norm regularized least-squares problem
+  
+        minimize || A*x - b ||_2^2  + || x ||_1.
+
+    """
+
+    m, n = A.size
+    q = matrix(1.0, (2*n,1))
+    q[:n] = -2.0 * A.T * b
+
+    def P(u, v, alpha = 1.0, beta = 0.0 ):
+        """
+            v := alpha * 2.0 * [ A'*A, 0; 0, 0 ] * u + beta * v 
+        """
+        v *= beta
+        v[:n] += alpha * 2.0 * A.T * (A * u[:n])
+
+
+    def G(u, v, alpha=1.0, beta=0.0, trans='N'):
+        """
+            v := alpha*[I, -I; -I, -I] * u + beta * v  (trans = 'N' or 'T')
+        """
+
+        v *= beta
+        v[:n] += alpha*(u[:n] - u[n:])
+        v[n:] += alpha*(-u[:n] - u[n:])
+
+    h = matrix(0.0, (2*n,1))
+
+
+    # Customized solver for the KKT system 
+    #
+    #     [  2.0*A'*A  0    I      -I     ] [x[:n] ]     [bx[:n] ]
+    #     [  0         0   -I      -I     ] [x[n:] ]  =  [bx[n:] ].
+    #     [  I        -I   -D1^-1   0     ] [zl[:n]]     [bzl[:n]]
+    #     [ -I        -I    0      -D2^-1 ] [zl[n:]]     [bzl[n:]]
+    #
+    # where D1 = W['di'][:n]**2, D2 = W['di'][:n]**2.
+    #    
+    # We first eliminate zl and x[n:]:
+    #
+    #     ( 2*A'*A + 4*D1*D2*(D1+D2)^-1 ) * x[:n] = 
+    #         bx[:n] - (D2-D1)*(D1+D2)^-1 * bx[n:] + 
+    #         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - 
+    #         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:]           
+    #
+    #     x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) 
+    #         - (D2-D1)*(D1+D2)^-1 * x[:n]         
+    #
+    #     zl[:n] = D1 * ( x[:n] - x[n:] - bzl[:n] )
+    #     zl[n:] = D2 * (-x[:n] - x[n:] - bzl[n:] ).
+    #
+    # The first equation has the form
+    #
+    #     (A'*A + D)*x[:n]  =  rhs
+    #
+    # and is equivalent to
+    #
+    #     [ D    A' ] [ x:n] ]  = [ rhs ]
+    #     [ A   -I  ] [ v    ]    [ 0   ].
+    #
+    # It can be solved as 
+    #
+    #     ( A*D^-1*A' + I ) * v = A * D^-1 * rhs
+    #     x[:n] = D^-1 * ( rhs - A'*v ).
+
+    S = matrix(0.0, (m,m))
+    Asc = matrix(0.0, (m,n))
+    v = matrix(0.0, (m,1))
+
+    def Fkkt(W):
+
+        # Factor 
+        #
+        #     S = A*D^-1*A' + I 
+        #
+        # where D = 2*D1*D2*(D1+D2)^-1, D1 = d[:n]**-2, D2 = d[n:]**-2.
+
+        d1, d2 = W['di'][:n]**2, W['di'][n:]**2
+
+        # ds is square root of diagonal of D
+        ds = math.sqrt(2.0) * div( mul( W['di'][:n], W['di'][n:]), 
+            sqrt(d1+d2) )
+        d3 =  div(d2 - d1, d1 + d2)
+     
+        # Asc = A*diag(d)^-1/2
+        Asc = A * spdiag(ds**-1)
+
+        # S = I + A * D^-1 * A'
+        blas.syrk(Asc, S)
+        S[::m+1] += 1.0 
+        lapack.potrf(S)
+
+        def g(x, y, z):
+
+            x[:n] = 0.5 * ( x[:n] - mul(d3, x[n:]) + 
+                mul(d1, z[:n] + mul(d3, z[:n])) - mul(d2, z[n:] - 
+                mul(d3, z[n:])) )
+            x[:n] = div( x[:n], ds) 
+
+            # Solve
+            #
+            #     S * v = 0.5 * A * D^-1 * ( bx[:n] - 
+            #         (D2-D1)*(D1+D2)^-1 * bx[n:] + 
+            #         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - 
+            #         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:] )
+                
+            blas.gemv(Asc, x, v)
+            lapack.potrs(S, v)
+            
+            # x[:n] = D^-1 * ( rhs - A'*v ).
+            blas.gemv(Asc, v, x, alpha=-1.0, beta=1.0, trans='T')
+            x[:n] = div(x[:n], ds)
+
+            # x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) 
+            #         - (D2-D1)*(D1+D2)^-1 * x[:n]         
+            x[n:] = div( x[n:] - mul(d1, z[:n]) - mul(d2, z[n:]), d1+d2 )\
+                - mul( d3, x[:n] )
+                
+            # zl[:n] = D1^1/2 * (  x[:n] - x[n:] - bzl[:n] )
+            # zl[n:] = D2^1/2 * ( -x[:n] - x[n:] - bzl[n:] ).
+            z[:n] = mul( W['di'][:n],  x[:n] - x[n:] - z[:n] ) 
+            z[n:] = mul( W['di'][n:], -x[:n] - x[n:] - z[n:] ) 
+
+        return g
+
+    return solvers.coneqp(P, q, G, h, kktsolver = Fkkt)['x'][:n]
+
+Then we call the above functions and solve the problem, as done here
+
+from cvxopt import matrix, normal
+
+X = matrix( [ [ 2, 0, 1], [0, 1, 3]])
+y = matrix( [4, 2, 3])
+x = l1regls(X,y)
 
 ## Linking the regression analysis with a statistical interpretation
 
