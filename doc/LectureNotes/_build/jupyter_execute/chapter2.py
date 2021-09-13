@@ -7,10 +7,10 @@
 What is presented here is a mathematical analysis of various regression algorithms (ordinary least  squares, Ridge and Lasso Regression). The analysis is based on an important algorithm in linear algebra, the so-called Singular Value Decomposition (SVD). 
 
 
-We have shown that in ordinary least squares the optimal parameters $\beta$ are given by
+We have shown that in ordinary least squares (OLS) the optimal parameters $\beta$ are given by
 
 $$
-\hat{\boldsymbol{\beta}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
 $$
 
 The **hat** over $\boldsymbol{\beta}$ means we have the optimal parameters after minimization of the cost function.
@@ -33,7 +33,7 @@ $$
 \tilde{\boldsymbol{y}}=\boldsymbol{X}\hat{\boldsymbol{\beta}} = \boldsymbol{A}\boldsymbol{y}.
 $$
 
-The matrix $\boldsymbol{A}$ has the important property that $\boldsymbol{A}^2=\boldsymbol{A}$. This is the definition of a projection matrix.
+The matrix $\boldsymbol{A}$ has the important property that $\boldsymbol{A}^2=\boldsymbol{A}$. This is the definition of a [projection matrix](https://en.wikipedia.org/wiki/Projection_matrix).
 We can then interpret our optimal model $\tilde{\boldsymbol{y}}$ as being represented  by an orthogonal  projection of $\boldsymbol{y}$ onto a space defined by the column vectors of $\boldsymbol{X}$.  In our case here the matrix $\boldsymbol{A}$ is a square matrix. If it is a general rectangular matrix we have an oblique projection matrix.
 
 
@@ -344,7 +344,7 @@ example
 
 ## Code for SVD and Inversion of Matrices
 
-How do we use the SVD to invert a matrix $\boldsymbol{X}^\boldsymbol{X}$ which is singular or near singular?
+How do we use the SVD to invert a matrix $\boldsymbol{X}^T\boldsymbol{X}$ which is singular or near singular?
 The simple answer is to use the linear algebra function for the pseudoinverse, that is
 
 #Ainv = np.linlag.pinv(A)
@@ -1917,6 +1917,8 @@ X = matrix( [ [ 2, 0, 1], [0, 1, 3]])
 y = matrix( [4, 2, 3])
 x = l1regls(X,y)
 
+**More text will be added to this example.**
+
 ## Linking the regression analysis with a statistical interpretation
 
 We will now couple the discussions of ordinary least squares, Ridge
@@ -2133,7 +2135,9 @@ $$
 p(\boldsymbol{D}\vert\boldsymbol{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}.
 $$
 
-It is a conditional probability (see below) and reads as the likelihood of a domain of events $\boldsymbol{D}$ given a set of parameters $\boldsymbol{\beta}$.
+It is a conditional probability (see below) and reads as the
+likelihood of a domain of events $\boldsymbol{D}$ given a set of parameters
+$\boldsymbol{\beta}$.
 
 
 In statistics, maximum likelihood estimation (MLE) is a method of
@@ -2197,21 +2201,19 @@ Assume we have two domains of events $X=[x_0,x_1,\dots,x_{n-1}]$ and $Y=[y_0,y_1
 We define also the likelihood for $X$ and $Y$ as $p(X)$ and $p(Y)$ respectively.
 The likelihood of a specific event $x_i$ (or $y_i$) is then written as $p(X=x_i)$ or just $p(x_i)=p_i$. 
 
-**Union of events is given by.**
+The union of events is given by
 
 $$
 p(X \cup Y)= p(X)+p(Y)-p(X \cap Y).
 $$
 
-**The product rule (aka joint probability) is given by.**
+The product rule (aka joint probability) is given by
 
 $$
 p(X \cup Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(X),
 $$
 
 where we read $p(X\vert Y)$ as the likelihood of obtaining $X$ given $Y$.
-
-
 
 If we have independent events then $p(X,Y)=p(X)p(Y)$.
 
@@ -2249,47 +2251,82 @@ evaluated for the observed data $Y$ and can be viewed as a function of
 the parameter space represented by $X$. This function is not
 necesseraly normalized and is normally called the likelihood function.
 
-The function $p(X)$ on the right hand side is called the prior while the function on the left hand side is the called the posterior probability. The denominator on the right hand side serves as a normalization factor for the posterior distribution.
+The function $p(X)$ on the right hand side is called the prior while
+the function on the left hand side is the called the posterior
+probability. The denominator on the right hand side serves as a
+normalization factor for the posterior distribution.
 
 Let us try to illustrate Bayes' theorem through an example.
 
 
-Let us suppose that you are undergoing a series of mammography scans in
-order to rule out possible breast cancer cases.  We define the
+Let us suppose that you are undergoing a series of mammography scans
+in order to rule out possible breast cancer cases.  We define the
 sensitivity for a positive event by the variable $X$. It takes binary
 values with $X=1$ representing a positive event and $X=0$ being a
 negative event. We reserve $Y$ as a classification parameter for
-either a negative or a positive breast cancer confirmation. (Short note on wordings: positive here means having breast cancer, although none of us would consider this being a  positive thing).
+either a negative or a positive breast cancer confirmation. (Short
+note on wordings: positive here means having breast cancer, although
+none of us would consider this being a positive thing).
 
 We let $Y=1$ represent the the case of having breast cancer and $Y=0$ as not.
 
-Let us assume that if you have breast cancer, the test will be positive with a probability of $0.8$, that is we have
+Let us assume that if you have breast cancer, the test will be positive with a probability of $0.8$ (the numbers here are all made up),
+that is we have
 
 $$
 p(X=1\vert Y=1) =0.8.
 $$
 
-This obviously sounds  scary since many would conclude that if the test is positive, there is a likelihood of $80\%$ for having cancer.
-It is however not correct, as the following Bayesian analysis shows.
+This obviously sounds scary since many would conclude that if the test
+is positive, there is a likelihood of $80\%$ for having cancer.  It is
+however not correct, as the following Bayesian analysis shows. The correct question to pose is *what is the probability of having breast cancer in case of a positive test?*
+We are thus interested in
+
+$$
+p(Y=1\vert X=1),
+$$
+
+instead  of $p(X=1\vert Y=1)$.
 
 
-If we look at various national surveys on breast cancer, the general likelihood of developing breast cancer is a very small number.
-Let us assume that the prior probability in the population as a whole is
+
+If we look at various national surveys on breast cancer, the general
+likelihood of developing breast cancer is a very small number.  Let us
+assume that the prior probability in the population as a whole is
 
 $$
 p(Y=1) =0.004.
 $$
 
-We need also to account for the fact that the test may produce a false positive result (false alarm). Let us here assume that we have
+We need also to account for the fact that the test may produce a false
+positive result (false alarm). Let us here assume that we have
 
 $$
 p(X=1\vert Y=0) =0.1.
 $$
 
-Using Bayes' theorem we can then find the posterior probability that the person has breast cancer in case of a positive test, that is we can compute
+Using Bayes' theorem we can then find the posterior probability that
+the person has breast cancer in case of a positive test, that is we
+can compute
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto2"></div>
 
 $$
-p(Y=1\vert X=1)=\frac{p(X=1\vert Y=1)p(Y=1)}{p(X=1\vert Y=1)p(Y=1)+p(X=1\vert Y=0)p(Y=0)}=\frac{0.8\times 0.004}{0.8\times 0.004+0.1\times 0.996}=0.031.
+\begin{equation}
+p(Y=1\vert X=1)=\frac{p(X=1\vert Y=1)p(Y=1)}{p(X=1\vert Y=1)p(Y=1)+p(X=1\vert Y=0)p(Y=0)}= 
+\label{_auto2} \tag{2}
+\end{equation}
+$$
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto3"></div>
+
+$$
+\begin{equation} 
+ \frac{0.8\times 0.004}{0.8\times 0.004+0.1\times 0.996}=0.031.
+\label{_auto3} \tag{3}
+\end{equation}
 $$
 
 That is, in case of a positive test, there is only a $3\%$ chance of having breast cancer!
@@ -2310,9 +2347,12 @@ We will play around with a study of the values for the optimal
 parameters $\boldsymbol{\beta}$ using OLS, Ridge and Lasso regression.  For
 OLS, you will notice as function of the noise and polynomial degree,
 that the parameters $\beta$ will fluctuate from order to order in the
-polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.
+polynomial fit and that for larger and larger polynomial degrees of
+freedom, the parameters will tend to increase in value for OLS.
 
-For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.
+For Ridge and Lasso regression, the higher order parameters will
+typically be reduced, providing thereby less fluctuations from one
+order to another one.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -2367,8 +2407,8 @@ for i in range(nlambdas):
     # Compute the MSE and print it
     MSERidgePredict[i] = MSE(y_test,ypredictRidge)
     MSELassoPredict[i] = MSE(y_test,ypredictLasso)
-    print(lmb,RegRidge.coef_)
-    print(lmb,RegLasso.coef_)
+#    print(lmb,RegRidge.coef_)
+#    print(lmb,RegLasso.coef_)
 # Now plot the results
 plt.figure()
 plt.plot(np.log10(lambdas), MSERidgePredict, 'b', label = 'MSE Ridge Test')
@@ -2378,8 +2418,11 @@ plt.ylabel('MSE')
 plt.legend()
 plt.show()
 
-How can we understand this?  
+How can we understand this?  **More text to be added**.
 
+
+
+## Linking Bayes' Theorem with Ridge and Lasso Regression
 
 
 Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 

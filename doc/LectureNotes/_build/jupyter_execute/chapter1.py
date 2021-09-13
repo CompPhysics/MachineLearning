@@ -7,38 +7,37 @@
 
 
 
-Our emphasis throughout this series of lectures  
-is on understanding the mathematical aspects of
-different algorithms used in the fields of data analysis and machine learning. 
+Our emphasis throughout this series of lectures is on understanding
+the mathematical aspects of different algorithms used in the fields of
+data analysis and machine learning.
 
-However, where possible we will emphasize the
-importance of using available software. We start thus with a hands-on
-and top-down approach to machine learning. The aim is thus to start with
-relevant data or data we have produced 
-and use these to introduce statistical data analysis
-concepts and machine learning algorithms before we delve into the
-algorithms themselves. The examples we will use in the beginning, start with simple
-polynomials with random noise added. We will use the Python
-software package [Scikit-Learn](http://scikit-learn.org/stable/) and
-introduce various machine learning algorithms to make fits of
-the data and predictions. We move thereafter to more interesting
-cases such as data from say experiments (below we will look at experimental nuclear binding energies as an example).
-These are examples where we can easily set up the data and
-then use machine learning algorithms included in for example
-**Scikit-Learn**. 
+However, where possible we will emphasize the importance of using
+available software. We start thus with a hands-on and top-down
+approach to machine learning. The aim is thus to start with relevant
+data or data we have produced and use these to introduce statistical
+data analysis concepts and machine learning algorithms before we delve
+into the algorithms themselves. The examples we will use in the
+beginning, start with simple polynomials with random noise added. We
+will use the Python software package
+[Scikit-Learn](http://scikit-learn.org/stable/) and introduce various
+machine learning algorithms to make fits of the data and
+predictions. We move thereafter to more interesting cases such as data
+from say experiments (below we will look at experimental nuclear
+binding energies as an example).  These are examples where we can
+easily set up the data and then use machine learning algorithms
+included in for example **Scikit-Learn**.
 
 These examples will serve us the purpose of getting
 started. Furthermore, they allow us to catch more than two birds with
 a stone. They will allow us to bring in some programming specific
-topics and tools as well as showing the power of various Python 
-libraries for machine learning and statistical data analysis.  
+topics and tools as well as showing the power of various Python
+libraries for machine learning and statistical data analysis.
 
-Here, we will mainly focus on two
-specific Python packages for Machine Learning, Scikit-Learn and
-Tensorflow (see below for links etc).  Moreover, the examples we
-introduce will serve as inputs to many of our discussions later, as
-well as allowing you to set up models and produce your own data and
-get started with programming.
+Here, we will mainly focus on two specific Python packages for Machine
+Learning, Scikit-Learn and Tensorflow (see below for links etc).
+Moreover, the examples we introduce will serve as inputs to many of
+our discussions later, as well as allowing you to set up models and
+produce your own data and get started with programming.
 
 
 
@@ -270,7 +269,17 @@ quality figures. Feel free to explore the extensive
 [gallery](https://matplotlib.org/gallery/index.html) of examples. In
 this example we plot our original values of $x$ and $y$ as well as the
 prediction **ypredict** ($\tilde{y}$), which attempts at fitting our
-data with a straight line.
+data with a straight line.  Note also that **Scikit-Learn** requires a
+matrix as input for the input values $x$ and $y$. In the above code we
+have solved this by declaring $x$ and $y$ as arrays of dimension
+$n\times 1$.
+
+In the code here we have also made a new array for $x\in [0,1]$. Our
+prediction is computed for these values, meaning that they were not
+included in the data set used to *train* (or fit) the model.
+This is a recurrring theme in machine learning and data analysis. We would like to train a model on a specific given data set.
+Thereafter we wish to apply it to data which were not included in the training. Below we will encounter this again in the so-called *train-validate-test* spliting. We will typically split our data into different sets, oen for training, one for validation and finally, our data from the untouched test vault!
+
 
 The Python code follows here.
 
@@ -285,6 +294,7 @@ x = np.random.rand(100,1)
 y = 2*x+np.random.randn(100,1)
 linreg = LinearRegression()
 linreg.fit(x,y)
+# This is our new x-array to which we test our model
 xnew = np.array([[0],[1]])
 ypredict = linreg.predict(xnew)
 
@@ -384,8 +394,7 @@ plt.show()
 Depending on the parameter in front of the normal distribution, we may
 have a small or larger relative error. Try to play around with
 different training data sets and study (graphically) the value of the
-relative error. Note also that **Scikit-Learn** requires a matrix as input for the input values $x$ and $y$. In the above code we have
-solved this by declaring $x$ and $y$ as arrays of dimension $n\times 1$.
+relative error.
 
 As mentioned above, **Scikit-Learn** has an impressive functionality.
 We can for example extract the values of $\alpha$ and $\beta$ and
@@ -728,7 +737,7 @@ Energies = Masses['Ebinding']
 print(Masses)
 
 The next step, and we will define this mathematically later, is to set up the so-called **design matrix**. We will throughout call this matrix $\boldsymbol{X}$.
-It has dimensionality $p\times n$, where $n$ is the number of data points and $p$ are the so-called predictors. In our case here they are given by the number of polynomials in $A$ we wish to include in the fit.
+It has dimensionality $n\times p$, where $n$ is the number of data points and $p$ are the so-called predictors. In our case here they are given by the number of polynomials in $A$ we wish to include in the fit.
 
 # Now we set up the design matrix X
 X = np.zeros((len(A),5))
@@ -738,9 +747,12 @@ X[:,2] = A**(2.0/3.0)
 X[:,3] = A**(-1.0/3.0)
 X[:,4] = A**(-1.0)
 
-Note well that we have made life simple here. We perform a fit in terms of the number of nucleons only. A more sophisticated fit can be done by including an explicit dependence on the number of protons and neutrons in the asymmetry and Coulomb terms.
+Note well that we have made life simple here. We perform a fit in
+terms of the number of nucleons only.  A more sophisticated fit can be
+done by including an explicit dependence on the number of protons and
+neutrons in the asymmetry and Coulomb terms. We leave this as an exercise to you the reader.
 
-With **scikitlearn** we are now ready to use linear regression and fit our data.
+With **Scikit-Learn** we are now ready to use linear regression and fit our data.
 
 clf = skl.LinearRegression().fit(X, Energies)
 fity = clf.predict(X)
@@ -768,7 +780,7 @@ ax.legend()
 save_fig("Masses2016")
 plt.show()
 
-As a teaser, let us now see how we can do this with decision trees using **scikit-learn**. Later we will switch to so-called **random forests**!
+As a teaser, let us now see how we can do this with decision trees using **Scikit-Learn**. Later we will switch to so-called **random forests**!
 
 
 #Decision Tree Regression
@@ -800,6 +812,17 @@ save_fig("Masses2016Trees")
 plt.show()
 print(Masses)
 print(np.mean( (Energies-y_1)**2))
+
+With a deeper and deeper tree level, we can almost reproduce every
+single data point by increasing the max depth of the tree.
+We can actually decide to make a decision tree which fits every single point.
+As we will
+see later, this has the benefit that we can really train a model which
+traverses every single data point. However, the price we pay is that
+we will easily overfit. That is, if we apply our model to unseen data,
+we will most likely fail miserably in our attempt at making
+predictions. As an exercise, try to make the tree level larger by adjusting the maximum depth variable. When printing out the predicition, you will note that the binding energy of every nucleus is accurately reproduced.
+
 
 The **seaborn** package allows us to visualize data in an efficient way. Note that we use **scikit-learn**'s multi-layer perceptron (or feed forward neural network) 
 functionality.
@@ -1291,6 +1314,27 @@ $$
 \frac{\partial\log{\vert\boldsymbol{A}\vert}}{\partial \boldsymbol{A}}=(\boldsymbol{A}^{-1})^T.
 $$
 
+We can then compute the second derivative of the cost function, which in our case is the second derivative
+of the means squared error. This leads to
+
+$$
+\frac{\partial^2 C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}^T\partial \boldsymbol{\beta}} =\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.
+$$
+
+This quantity defines was what is called the Hessian matrix (the second derivative of a function we want to optimize).
+
+The Hessian matrix plays an important role and is defined for the mean squared error  as
+
+$$
+\boldsymbol{H}=\boldsymbol{X}^T\boldsymbol{X}.
+$$
+
+The Hessian matrix for ordinary least squares is also proportional to
+the covariance matrix. As we will see in the chapter on Ridge and Lasso regression, This means that we can use the Singular Value Decomposition of a matrix  to find
+the eigenvalues of the covariance matrix and the Hessian matrix in
+terms of the singular values.
+
+
 The residuals $\boldsymbol{\epsilon}$ are in turn given by
 
 $$
@@ -1523,9 +1567,7 @@ before, with the same initializations and declarations. We use also
 **pandas** again, rather extensively in order to organize our data.
 
 The difference now is that we use **Scikit-Learn's** regression tools
-instead of our own matrix inversion implementation. Furthermore, we
-sneak in **Ridge** regression (to be discussed below) which includes a
-hyperparameter $\lambda$, also to be explained below.
+instead of our own matrix inversion implementation.
 
 # Common imports
 import os
@@ -1587,18 +1629,6 @@ print('Variance score: %.2f' % r2_score(Energies, ytilde))
 print('Mean absolute error: %.2f' % mean_absolute_error(Energies, ytilde))
 print(clf.coef_, clf.intercept_)
 
-# The Ridge regression with a hyperparameter lambda = 0.1
-_lambda = 0.1
-clf_ridge = skl.Ridge(alpha=_lambda).fit(X, Energies)
-yridge = clf_ridge.predict(X)
-EoS['Eridge']  = yridge
-# The mean squared error                               
-print("Mean squared error: %.2f" % mean_squared_error(Energies, yridge))
-# Explained variance score: 1 is perfect prediction                                 
-print('Variance score: %.2f' % r2_score(Energies, yridge))
-# Mean absolute error                                                           
-print('Mean absolute error: %.2f' % mean_absolute_error(Energies, yridge))
-print(clf_ridge.coef_, clf_ridge.intercept_)
 
 fig, ax = plt.subplots()
 ax.set_xlabel(r'$\rho[\mathrm{fm}^{-3}]$')
@@ -1607,8 +1637,6 @@ ax.plot(EoS['Density'], EoS['Energy'], alpha=0.7, lw=2,
             label='Theoretical data')
 ax.plot(EoS['Density'], EoS['Eols'], alpha=0.7, lw=2, c='m',
             label='OLS')
-ax.plot(EoS['Density'], EoS['Eridge'], alpha=0.7, lw=2, c='g',
-            label='Ridge $\lambda = 0.1$')
 ax.legend()
 save_fig("EoSfitting")
 plt.show()
@@ -1616,12 +1644,10 @@ plt.show()
 The above simple polynomial in density $\rho$ gives an excellent fit
 to the data. 
 
-We note also that there is a small deviation between the
-standard OLS and the Ridge regression at higher densities. We discuss this in more detail
-below.
 
 
 ## Splitting our Data in Training and Test data
+
 
 It is normal in essentially all Machine Learning studies to split the
 data in a training set and a test set (sometimes also an additional
@@ -1632,6 +1658,77 @@ approximately $2/3$ to $4/5$ of the data as training data. We will
 postpone a discussion of this splitting to the end of these notes and
 our discussion of the so-called **bias-variance** tradeoff. Here we
 limit ourselves to repeat the above equation of state fitting example
+but now splitting the data into a training set and a test set.
+
+Let us study some examples. The first code here takes a simple
+one-dimensional second-order polynomial and we fit it to a
+second-order polynomial. Depending on the strength of the added noise,
+the various measures like the $R2$ score or the mean-squared error,
+the fit becomes better or worse.
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),3))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x**2
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# matrix inversion to find beta
+beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(beta)
+# and then make the prediction
+ytilde = X_train @ beta
+print("Training R2")
+print(R2(y_train,ytilde))
+print("Training MSE")
+print(MSE(y_train,ytilde))
+ypredict = X_test @ beta
+print("Test R2")
+print(R2(y_test,ypredict))
+print("Test MSE")
+print(MSE(y_test,ypredict))
+
+Alternatively, you could write your own test-train splitting function as shown here.
+
+# equivalently in numpy
+def train_test_split_numpy(inputs, labels, train_size, test_size):
+    n_inputs = len(inputs)
+    inputs_shuffled = inputs.copy()
+    labels_shuffled = labels.copy()
+
+    np.random.shuffle(inputs_shuffled)
+    np.random.shuffle(labels_shuffled)
+
+    train_end = int(n_inputs*train_size)
+    X_train, X_test = inputs_shuffled[:train_end], inputs_shuffled[train_end:]
+    Y_train, Y_test = labels_shuffled[:train_end], labels_shuffled[train_end:]
+
+    return X_train, X_test, Y_train, Y_test
+
+But since **scikit-learn** has its own function for doing this and since
+it interfaces easily with **tensorflow** and other libraries, we
+normally recommend using the latter functionality.
+
+
+As another example, we apply the training and testing split to 
+to the above equation of state fitting example
 but now splitting the data into a training set and a test set.
 
 import os
@@ -1853,89 +1950,6 @@ print('R2 score is {}'.format(r2))
 # ideally should have been a straight line
 plt.scatter(Y_test, y_test_predict)
 plt.show()
-
-## Splitting our Data in Training and Test data
-
-
-It is normal in essentially all Machine Learning studies to split the
-data in a training set and a test set (sometimes also an additional
-validation set).  **Scikit-Learn** has an own function for this. There
-is no explicit recipe for how much data should be included as training
-data and say test data.  An accepted rule of thumb is to use
-approximately $2/3$ to $4/5$ of the data as training data. We will
-postpone a discussion of this splitting to the end of these notes and
-our discussion of the so-called **bias-variance** tradeoff. Here we
-limit ourselves to repeat the above equation of state fitting example
-but now splitting the data into a training set and a test set.
-
-Let us study some examples. The first code here takes a simple
-one-dimensional second-order polynomial and we fit it to a
-second-order polynomial. Depending on the strength of the added noise,
-the various measures like the $R2$ score or the mean-squared error,
-the fit becomes better or worse.
-
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-
-
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-x = np.random.rand(100)
-y = 2.0+5*x*x+0.1*np.random.randn(100)
-
-
-#  The design matrix now as function of a given polynomial
-X = np.zeros((len(x),3))
-X[:,0] = 1.0
-X[:,1] = x
-X[:,2] = x**2
-# We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-# matrix inversion to find beta
-beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
-print(beta)
-# and then make the prediction
-ytilde = X_train @ beta
-print("Training R2")
-print(R2(y_train,ytilde))
-print("Training MSE")
-print(MSE(y_train,ytilde))
-ypredict = X_test @ beta
-print("Test R2")
-print(R2(y_test,ypredict))
-print("Test MSE")
-print(MSE(y_test,ypredict))
-
-Alternatively, you could write your own test-train splitting function as shown here.
-
-# equivalently in numpy
-def train_test_split_numpy(inputs, labels, train_size, test_size):
-    n_inputs = len(inputs)
-    inputs_shuffled = inputs.copy()
-    labels_shuffled = labels.copy()
-
-    np.random.shuffle(inputs_shuffled)
-    np.random.shuffle(labels_shuffled)
-
-    train_end = int(n_inputs*train_size)
-    X_train, X_test = inputs_shuffled[:train_end], inputs_shuffled[train_end:]
-    Y_train, Y_test = labels_shuffled[:train_end], labels_shuffled[train_end:]
-
-    return X_train, X_test, Y_train, Y_test
-
-But since **scikit-learn** has its own function for doing this and since
-it interfaces easily with **tensorflow** and other libraries, we
-normally recommend using the latter functionality.
-
-
-
 
 ## Reducing the number of degrees of freedom, overarching view
 

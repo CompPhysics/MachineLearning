@@ -1,8 +1,6 @@
 # Logistic Regression
 
 
-[Video of Lecture](https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/LectureSeptember18.mp4?vrtx=view-as-webpage)
-
 
 ## Logistic Regression
 
@@ -575,7 +573,7 @@ plt.show()
 skplt.metrics.plot_cumulative_gain(y_test, y_probas)
 plt.show()
 
-## Optimization, the central part of any Machine Learning algortithm
+# Optimization, the central part of any Machine Learning algortithm
 
 Almost every problem in machine learning and data science starts with
 a dataset $X$, a model $g(\beta)$, which is a function of the
@@ -588,7 +586,6 @@ some approximative/numerical method to compute the minimum.
 
 
 
-## Revisiting our Logistic Regression case
 
 In our discussion on Logistic Regression we studied the 
 case of
@@ -607,7 +604,6 @@ $$
 where $\boldsymbol{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
 
 
-## The equations to solve
 
 Our compact equations used a definition of a vector $\boldsymbol{y}$ with $n$
 elements $y_i$, an $n\times p$ matrix $\boldsymbol{X}$ which contains the
@@ -629,7 +625,6 @@ $$
 This defines what is called  the Hessian matrix.
 
 
-## Solving using Newton-Raphson's method
 
 If we can set up these equations, Newton-Raphson's iterative method is normally the method of choice. It requires however that we can compute in an efficient way the  matrices that define the first and second derivatives. 
 
@@ -650,9 +645,6 @@ The right-hand side is computed with the old values of $\beta$.
 If we can compute these matrices, in particular the Hessian, the above is often the easiest method to implement. 
 
 
-
-## Brief reminder on Newton-Raphson's method
-
 Let us quickly remind ourselves how we derive the above method.
 
 Perhaps the most celebrated of all one-dimensional root-finding
@@ -664,7 +656,6 @@ numerically and/or your function is not of the smooth type, we
 normally discourage the use of this method.
 
 
-## The equations
 
 The Newton-Raphson formula consists geometrically of extending the
 tangent line at a current point until it crosses zero, then setting
@@ -699,8 +690,6 @@ $$
 x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}.
 $$
 
-## Simple geometric interpretation
-
 The above is Newton-Raphson's method. It has a simple geometric
 interpretation, namely $x_{n+1}$ is the point where the tangent from
 $(x_n,f(x_n))$ crosses the $x$-axis.  Close to the solution,
@@ -715,7 +704,6 @@ vanishes, then Newton-Raphson may fail totally
 
 
 
-## Extending to more than one variable
 
 Newton's method can be generalized to systems of several non-linear equations
 and variables. Consider the case with two equations
@@ -792,8 +780,6 @@ F(\mathbf{x}_k)$. This means that for a sufficiently small $\gamma_k$
 we are always moving towards smaller function values, i.e a minimum.
 
 
-## More on Steepest descent
-
 The previous observation is the basis of the method of steepest
 descent, which is also referred to as just gradient descent (GD). One
 starts with an initial guess $\mathbf{x}_0$ for a minimum of $F$ and
@@ -806,8 +792,6 @@ $$
 The parameter $\gamma_k$ is often referred to as the step length or
 the learning rate within the context of Machine Learning.
 
-
-## The ideal
 
 Ideally the sequence $\{\mathbf{x}_k \}_{k=0}$ converges to a global
 minimum of the function $F$. In general we do not know if we are in a
@@ -829,7 +813,6 @@ Note that the gradient is a function of $\mathbf{x} =
 
 
 
-## The sensitiveness of the gradient descent
 
 The gradient descent method 
 is sensitive to the choice of learning rate $\gamma_k$. This is due
@@ -860,12 +843,9 @@ $\mathbb{R}$. Examples of convex sets of $\mathbb{R}^2$ are the
 regular polygons (triangles, rectangles, pentagons, etc...).
 
 
-## Convex function
 
 **Convex function**: Let $X \subset \mathbb{R}^n$ be a convex set. Assume that the function $f: X \rightarrow \mathbb{R}$ is continuous, then $f$ is said to be convex if $$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$ for all $x_1, x_2 \in X$ and for all $t \in [0,1]$. If $\leq$ is replaced with a strict inequaltiy in the definition, we demand $x_1 \neq x_2$ and $t\in(0,1)$ then $f$ is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting $f(x_1)$ and $f(x_2)$, the value of the function on the interval $[x_1,x_2]$ is always below the line as illustrated below.
 
-
-## Conditions on convex functions
 
 In the following we state first and second-order conditions which
 ensures convexity of a function $f$. We write $D_f$ to denote the
@@ -899,7 +879,6 @@ everywhere.
 This condition is particularly useful since it gives us an procedure for determining if the function under consideration is convex, apart from using the definition.
 
 
-## More on convex functions
 
 The next result is of great importance to us and the reason why we are
 going on about convex functions. In machine learning we frequently
@@ -922,7 +901,7 @@ $x^*$ that satisfies $\nabla f(x^*) = 0$ is a global minimum.
 This result means that if we know that the cost/loss function is convex and we are able to find a minimum, we are guaranteed that it is a global minimum.
 
 
-## Some simple problems
+### Some simple problems
 
 1. Show that $f(x)=x^2$ is convex for $x \in \mathbb{R}$ using the definition of convexity. Hint: If you re-write the definition, $f$ is convex if the following holds for all $x,y \in D_f$ and any $\lambda \in [0,1]$ $\lambda f(x)+(1-\lambda)f(y)-f(\lambda x + (1-\lambda) y ) \geq 0$.
 
@@ -945,13 +924,6 @@ This result means that if we know that the cost/loss function is convex and we a
 
 
 Using the definition of convexity, try to show that a function satisfying the properties above is convex (the third condition is not needed to show this).
-
-
-
-## Friday September 25
-
-[Video of Lecture](https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember25.mp4?vrtx=view-as-webpage) and [link to handwritten notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember25.pdf).
-
 
 
 ## Standard steepest descent
@@ -982,7 +954,6 @@ where $\boldsymbol{r}$ is the so-called residual or error in the iterative proce
 When we have found the exact solution, $\boldsymbol{r}=0$.
 
 
-## Gradient method
 
 The residual is zero when we reach the minimum of the quadratic equation
 
@@ -993,9 +964,6 @@ $$
 with the constraint that the matrix $\boldsymbol{A}$ is positive definite and
 symmetric.  This defines also the Hessian and we want it to be  positive definite.  
 
-
-
-## Steepest descent  method
 
 We denote the initial guess for $\boldsymbol{x}$ as $\boldsymbol{x}_0$. 
 We can assume without loss of generality that
@@ -1013,8 +981,6 @@ $$
 instead.
 
 
-
-## Steepest descent  method
 One can show that the solution $\boldsymbol{x}$ is also the unique minimizer of the quadratic form
 
 $$
@@ -1033,9 +999,6 @@ and
 $\boldsymbol{x}_0=0$ it is equal $-\boldsymbol{b}$.
 
 
-
-
-## Final expressions
 We can compute the residual iteratively as
 
 $$
@@ -1065,8 +1028,6 @@ leading to the iterative scheme
 $$
 \boldsymbol{x}_{k+1}=\boldsymbol{x}_k-\alpha_k\boldsymbol{r}_{k},
 $$
-
-## Steepest descent example
 
 import numpy as np
 import numpy.linalg as la
@@ -1137,23 +1098,14 @@ $$
 Two vectors are conjugate if they are orthogonal with respect to 
 this inner product. Being conjugate is a symmetric relation: if $\boldsymbol{s}$ is conjugate to $\boldsymbol{t}$, then $\boldsymbol{t}$ is conjugate to $\boldsymbol{s}$.
 
-
-
-
-## Conjugate gradient method
 An example is given by the eigenvectors of the matrix
 
 $$
 \boldsymbol{v}_i^T\boldsymbol{A}\boldsymbol{v}_j= \lambda\boldsymbol{v}_i^T\boldsymbol{v}_j,
 $$
 
-which is zero unless $i=j$.
+which is zero unless $i=j$. 
 
-
-
-
-
-## Conjugate gradient method
 Assume now that we have a symmetric positive-definite matrix $\boldsymbol{A}$ of size
 $n\times n$. At each iteration $i+1$ we obtain the conjugate direction of a vector
 
@@ -1169,7 +1121,6 @@ $$
 \boldsymbol{x}  = \sum^{n}_{i=1} \alpha_i \boldsymbol{p}_i.
 $$
 
-## Conjugate gradient method
 The coefficients are given by
 
 $$
@@ -1187,8 +1138,6 @@ and we can define the coefficients $\alpha_k$ as
 $$
 \alpha_k = \frac{\boldsymbol{p}_k^T \boldsymbol{b}}{\boldsymbol{p}_k^T \boldsymbol{A} \boldsymbol{p}_k}
 $$
-
-## Conjugate gradient method and iterations
 
 If we choose the conjugate vectors $\boldsymbol{p}_k$ carefully, 
 then we may not need all of them to obtain a good approximation to the solution 
@@ -1212,11 +1161,6 @@ $$
 
 instead.
 
-
-
-
-
-## Conjugate gradient method
 One can show that the solution $\boldsymbol{x}$ is also the unique minimizer of the quadratic form
 
 $$
@@ -1236,11 +1180,6 @@ $\boldsymbol{x}_0=0$ it is equal $-\boldsymbol{b}$.
 The other vectors in the basis will be conjugate to the gradient, 
 hence the name conjugate gradient method.
 
-
-
-
-
-## Conjugate gradient method
 Let  $\boldsymbol{r}_k$ be the residual at the $k$-th step:
 
 $$
@@ -1259,7 +1198,6 @@ $$
 \boldsymbol{p}_{k+1}=\boldsymbol{r}_k-\frac{\boldsymbol{p}_k^T \boldsymbol{A}\boldsymbol{r}_k}{\boldsymbol{p}_k^T\boldsymbol{A}\boldsymbol{p}_k} \boldsymbol{p}_k.
 $$
 
-## Conjugate gradient method
 We can also  compute the residual iteratively as
 
 $$
@@ -1284,14 +1222,14 @@ $$
 \boldsymbol{r}_{k+1}=\boldsymbol{r}_k-\boldsymbol{A}\boldsymbol{p}_{k},
 $$
 
-## Revisiting our first homework
+## Revisiting our Linear Regression Solvers
 
 We will use linear regression as a case study for the gradient descent
 methods. Linear regression is a great test case for the gradient
 descent methods discussed in the lectures since it has several
 desirable properties such as:
 
-1. An analytical solution (recall homework set 1).
+1. An analytical solution.
 
 2. The gradient can be computed analytically.
 
@@ -1315,8 +1253,6 @@ $$
 \boldsymbol{y}_i = \beta_0 + \beta_1 x_i.
 $$
 
-## Gradient descent example
-
 Let $\mathbf{y} = (y_1,\cdots,y_n)^T$, $\mathbf{\boldsymbol{y}} = (\boldsymbol{y}_1,\cdots,\boldsymbol{y}_n)^T$ and $\beta = (\beta_0, \beta_1)^T$
 
 It is convenient to write $\mathbf{\boldsymbol{y}} = X\beta$ where $X \in \mathbb{R}^{100 \times 2} $ is the design matrix given by (we keep the intercept here)
@@ -1338,8 +1274,6 @@ $$
 and we want to find $\beta$ such that $C(\beta)$ is minimized.
 
 
-## The derivative of the cost/loss function
-
 Computing $\partial C(\beta) / \partial \beta_0$ and $\partial C(\beta) / \partial \beta_1$ we can show  that the gradient can be written as
 
 $$
@@ -1351,7 +1285,6 @@ $$
 where $X$ is the design matrix defined above.
 
 
-## The Hessian matrix
 The Hessian matrix of $C(\beta)$ is given by
 
 $$
@@ -1364,10 +1297,6 @@ $$
 This result implies that $C(\beta)$ is a convex function since the matrix $X^T X$ always is positive semi-definite.
 
 
-
-
-
-## Simple program
 
 We can now write a program that minimizes $C(\beta)$ using the gradient descent method with a constant learning rate $\gamma$ according to
 
@@ -1383,9 +1312,8 @@ And finally we can compare our solution for $\beta$ with the analytic result giv
 $\beta= (X^TX)^{-1} X^T \mathbf{y}$.
 
 
-## Gradient Descent Example
 
-Here our simple example
+Here is our simple example
 
 
 # Importing various packages
@@ -1434,7 +1362,7 @@ plt.ylabel(r'$y$')
 plt.title(r'Gradient descent example')
 plt.show()
 
-## And a corresponding example using **scikit-learn**
+Alternatively, we can use **Scikit-Learn** as done here
 
 # Importing various packages
 from random import random, seed
@@ -1452,8 +1380,6 @@ print(beta_linreg)
 sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
 sgdreg.fit(x,y.ravel())
 print(sgdreg.intercept_, sgdreg.coef_)
-
-## Gradient descent and Ridge
 
 We have also discussed Ridge regression where the loss function contains a regularized term given by the $L_2$ norm of $\beta$,
 
@@ -1474,8 +1400,6 @@ We can easily extend our program to minimize $C_{\text{ridge}}(\beta)$ using gra
 $$
 \beta_{\text{ridge}} = \left(X^T X + \lambda I_{2 \times 2} \right)^{-1} X^T \mathbf{y}.
 $$
-
-## Program example for gradient descent with Ridge Regression
 
 from random import random, seed
 import numpy as np
@@ -1549,8 +1473,6 @@ C(\mathbf{\beta}) = \sum_{i=1}^n c_i(\mathbf{x}_i,
 \mathbf{\beta}).
 $$
 
-## Computation of gradients
-
 This in turn means that the gradient can be
 computed as a sum over $i$-gradients
 
@@ -1566,7 +1488,7 @@ minibatches. We denote these minibatches by $B_k$ where
 $k=1,\cdots,n/M$.
 
 
-## SGD example
+
 As an example, suppose we have $10$ data points $(\mathbf{x}_1,\cdots, \mathbf{x}_{10})$ 
 and we choose to have $M=5$ minibathces,
 then each minibatch contains two data points. In particular we have
@@ -1587,8 +1509,6 @@ C(\mathbf{\beta}) = \sum_{i=1}^n \nabla_\beta c_i(\mathbf{x}_i,
 c_i(\mathbf{x}_i, \mathbf{\beta}).
 $$
 
-## The gradient step
-
 Thus a gradient descent step now looks like
 
 $$
@@ -1601,9 +1521,6 @@ probability from $[1,n/M]$. An iteration over the number of
 minibathces (n/M) is commonly referred to as an epoch. Thus it is
 typical to choose a number of epochs and for each epoch iterate over
 the number of minibatches, as exemplified in the code below.
-
-
-## Simple example code
 
 import numpy as np 
 
@@ -1629,7 +1546,6 @@ cheaper since we sum over the datapoints in the $k-th$ minibatch and not
 all $n$ datapoints.
 
 
-## When do we stop?
 
 A natural question is when do we stop the search for a new minimum?
 One possibility is to compute the full gradient after a given number
@@ -1643,7 +1559,6 @@ compare the values of the cost function and keep the $\beta$ that
 gave the lowest value.
 
 
-## Slightly different approach
 
 Another approach is to let the step length $\gamma_j$ depend on the
 number of epochs in such a way that it becomes very small after a
@@ -1682,7 +1597,7 @@ for epoch in range(1,n_epochs+1):
 
 print("gamma_j after %d epochs: %g" % (n_epochs,gamma_j))
 
-## Program for stochastic gradient
+### Program for stochastic gradient
 
 # Importing various packages
 from math import exp, sqrt
@@ -1749,4 +1664,579 @@ plt.ylabel(r'$y$')
 plt.title(r'Random numbers ')
 plt.show()
 
-**Challenge**: try to write a similar code for a Logistic Regression case.
+## Momentum based GD
+
+The stochastic gradient descent (SGD) is almost always used with a
+*momentum* or inertia term that serves as a memory of the direction we
+are moving in parameter space.  This is typically implemented as
+follows
+
+$$
+\mathbf{v}_{t}=\gamma \mathbf{v}_{t-1}+\eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t) \nonumber
+$$
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto2"></div>
+
+$$
+\begin{equation} 
+\boldsymbol{\theta}_{t+1}= \boldsymbol{\theta}_t -\mathbf{v}_{t},
+\label{_auto2} \tag{3}
+\end{equation}
+$$
+
+where we have introduced a momentum parameter $\gamma$, with
+$0\le\gamma\le 1$, and for brevity we dropped the explicit notation to
+indicate the gradient is to be taken over a different mini-batch at
+each step. We call this algorithm gradient descent with momentum
+(GDM). From these equations, it is clear that $\mathbf{v}_t$ is a
+running average of recently encountered gradients and
+$(1-\gamma)^{-1}$ sets the characteristic time scale for the memory
+used in the averaging procedure. Consistent with this, when
+$\gamma=0$, this just reduces down to ordinary SGD as discussed
+earlier. An equivalent way of writing the updates is
+
+$$
+\Delta \boldsymbol{\theta}_{t+1} = \gamma \Delta \boldsymbol{\theta}_t -\ \eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t),
+$$
+
+where we have defined $\Delta \boldsymbol{\theta}_{t}= \boldsymbol{\theta}_t-\boldsymbol{\theta}_{t-1}$.
+
+
+
+Let us try to get more intuition from these equations. It is helpful
+to consider a simple physical analogy with a particle of mass $m$
+moving in a viscous medium with drag coefficient $\mu$ and potential
+$E(\mathbf{w})$. If we denote the particle's position by $\mathbf{w}$,
+then its motion is described by
+
+$$
+m {d^2 \mathbf{w} \over dt^2} + \mu {d \mathbf{w} \over dt }= -\nabla_w E(\mathbf{w}).
+$$
+
+We can discretize this equation in the usual way to get
+
+$$
+m { \mathbf{w}_{t+\Delta t}-2 \mathbf{w}_{t} +\mathbf{w}_{t-\Delta t} \over (\Delta t)^2}+\mu {\mathbf{w}_{t+\Delta t}- \mathbf{w}_{t} \over \Delta t} = -\nabla_w E(\mathbf{w}).
+$$
+
+Rearranging this equation, we can rewrite this as
+
+$$
+\Delta \mathbf{w}_{t +\Delta t}= - { (\Delta t)^2 \over m +\mu \Delta t} \nabla_w E(\mathbf{w})+ {m \over m +\mu \Delta t} \Delta \mathbf{w}_t.
+$$
+
+Notice that this equation is identical to previous one if we identify
+the position of the particle, $\mathbf{w}$, with the parameters
+$\boldsymbol{\theta}$. This allows us to identify the momentum
+parameter and learning rate with the mass of the particle and the
+viscous drag as:
+
+$$
+\gamma= {m \over m +\mu \Delta t }, \qquad \eta = {(\Delta t)^2 \over m +\mu \Delta t}.
+$$
+
+Thus, as the name suggests, the momentum parameter is proportional to
+the mass of the particle and effectively provides inertia.
+Furthermore, in the large viscosity/small learning rate limit, our
+memory time scales as $(1-\gamma)^{-1} \approx m/(\mu \Delta t)$.
+
+Why is momentum useful? SGD momentum helps the gradient descent
+algorithm gain speed in directions with persistent but small gradients
+even in the presence of stochasticity, while suppressing oscillations
+in high-curvature directions. This becomes especially important in
+situations where the landscape is shallow and flat in some directions
+and narrow and steep in others. It has been argued that first-order
+methods (with appropriate initial conditions) can perform comparable
+to more expensive second order methods, especially in the context of
+complex deep learning models.
+
+These beneficial properties of momentum can sometimes become even more
+pronounced by using a slight modification of the classical momentum
+algorithm called Nesterov Accelerated Gradient (NAG).
+
+In the NAG algorithm, rather than calculating the gradient at the
+current parameters, $\nabla_\theta E(\boldsymbol{\theta}_t)$, one
+calculates the gradient at the expected value of the parameters given
+our current momentum, $\nabla_\theta E(\boldsymbol{\theta}_t +\gamma
+\mathbf{v}_{t-1})$. This yields the NAG update rule
+
+$$
+\mathbf{v}_{t}=\gamma \mathbf{v}_{t-1}+\eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t +\gamma \mathbf{v}_{t-1}) \nonumber
+$$
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto3"></div>
+
+$$
+\begin{equation} 
+\boldsymbol{\theta}_{t+1}= \boldsymbol{\theta}_t -\mathbf{v}_{t}.
+\label{_auto3} \tag{4}
+\end{equation}
+$$
+
+One of the major advantages of NAG is that it allows for the use of a larger learning rate than GDM for the same choice of $\gamma$.
+
+
+
+In stochastic gradient descent, with and without momentum, we still
+have to specify a schedule for tuning the learning rates $\eta_t$
+as a function of time.  As discussed in the context of Newton's
+method, this presents a number of dilemmas. The learning rate is
+limited by the steepest direction which can change depending on the
+current position in the landscape. To circumvent this problem, ideally
+our algorithm would keep track of curvature and take large steps in
+shallow, flat directions and small steps in steep, narrow directions.
+Second-order methods accomplish this by calculating or approximating
+the Hessian and normalizing the learning rate by the
+curvature. However, this is very computationally expensive for
+extremely large models. Ideally, we would like to be able to
+adaptively change the step size to match the landscape without paying
+the steep computational price of calculating or approximating
+Hessians.
+
+Recently, a number of methods have been introduced that accomplish
+this by tracking not only the gradient, but also the second moment of
+the gradient. These methods include AdaGrad, AdaDelta, RMS-Prop, and
+ADAM.
+
+
+### RMS prop
+
+In RMS prop, in addition to keeping a running average of the first
+moment of the gradient, we also keep track of the second moment
+denoted by $\mathbf{s}_t=\mathbb{E}[\mathbf{g}_t^2]$. The update rule
+for RMS prop is given by
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto4"></div>
+
+$$
+\begin{equation}
+\mathbf{g}_t = \nabla_\theta E(\boldsymbol{\theta}) 
+\label{_auto4} \tag{5}
+\end{equation}
+$$
+
+$$
+\mathbf{s}_t =\beta \mathbf{s}_{t-1} +(1-\beta)\mathbf{g}_t^2 \nonumber
+$$
+
+$$
+\boldsymbol{\theta}_{t+1}=\boldsymbol{\theta}_t - \eta_t { \mathbf{g}_t \over \sqrt{\mathbf{s}_t +\epsilon}}, \nonumber
+$$
+
+where $\beta$ controls the averaging time of the second moment and is
+typically taken to be about $\beta=0.9$, $\eta_t$ is a learning rate
+typically chosen to be $10^{-3}$, and $\epsilon\sim 10^{-8} $ is a
+small regularization constant to prevent divergences. Multiplication
+and division by vectors is understood as an element-wise operation. It
+is clear from this formula that the learning rate is reduced in
+directions where the norm of the gradient is consistently large. This
+greatly speeds up the convergence by allowing us to use a larger
+learning rate for flat directions.
+
+### ADAM optimizer
+
+A related algorithm is the ADAM optimizer. In ADAM, we keep a running
+average of both the first and second moment of the gradient and use
+this information to adaptively change the learning rate for different
+parameters. In addition to keeping a running average of the first and
+second moments of the gradient
+(i.e. $\mathbf{m}_t=\mathbb{E}[\mathbf{g}_t]$ and
+$\mathbf{s}_t=\mathbb{E}[\mathbf{g}^2_t]$, respectively), ADAM
+performs an additional bias correction to account for the fact that we
+are estimating the first two moments of the gradient using a running
+average (denoted by the hats in the update rule below). The update
+rule for ADAM is given by (where multiplication and division are once
+again understood to be element-wise operations below)
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto5"></div>
+
+$$
+\begin{equation}
+\mathbf{g}_t = \nabla_\theta E(\boldsymbol{\theta}) 
+\label{_auto5} \tag{6}
+\end{equation}
+$$
+
+$$
+\mathbf{m}_t = \beta_1 \mathbf{m}_{t-1} + (1-\beta_1) \mathbf{g}_t \nonumber
+$$
+
+$$
+\mathbf{s}_t =\beta_2 \mathbf{s}_{t-1} +(1-\beta_2)\mathbf{g}_t^2 \nonumber
+$$
+
+$$
+\boldsymbol{\mathbf{m}}_t={\mathbf{m}_t \over 1-\beta_1^t} \nonumber
+$$
+
+$$
+\boldsymbol{\mathbf{s}}_t ={\mathbf{s}_t \over1-\beta_2^t} \nonumber
+$$
+
+$$
+\boldsymbol{\theta}_{t+1}=\boldsymbol{\theta}_t - \eta_t { \boldsymbol{\mathbf{m}}_t \over \sqrt{\boldsymbol{\mathbf{s}}_t} +\epsilon}, \nonumber
+$$
+
+<!-- Equation labels as ordinary links -->
+<div id="_auto6"></div>
+
+$$
+\begin{equation} 
+\label{_auto6} \tag{7}
+\end{equation}
+$$
+
+where $\beta_1$ and $\beta_2$ set the memory lifetime of the first and
+second moment and are typically taken to be $0.9$ and $0.99$
+respectively, and $\eta$ and $\epsilon$ are identical to RMSprop.
+
+Like in RMSprop, the effective step size of a parameter depends on the
+magnitude of its gradient squared.  To understand this better, let us
+rewrite this expression in terms of the variance
+$\boldsymbol{\sigma}_t^2 = \boldsymbol{\mathbf{s}}_t -
+(\boldsymbol{\mathbf{m}}_t)^2$. Consider a single parameter $\theta_t$. The
+update rule for this parameter is given by
+
+$$
+\Delta \theta_{t+1}= -\eta_t { \boldsymbol{m}_t \over \sqrt{\sigma_t^2 +  m_t^2 }+\epsilon}.
+$$
+
+## Practical tips
+
+* **Randomize the data when making mini-batches**. It is always important to randomly shuffle the data when forming mini-batches. Otherwise, the gradient descent method can fit spurious correlations resulting from the order in which data is presented.
+
+* **Transform your inputs**. Learning becomes difficult when our landscape has a mixture of steep and flat directions. One simple trick for minimizing these situations is to standardize the data by subtracting the mean and normalizing the variance of input variables. Whenever possible, also decorrelate the inputs. To understand why this is helpful, consider the case of linear regression. It is easy to show that for the squared error cost function, the Hessian of the cost function is just the correlation matrix between the inputs. Thus, by standardizing the inputs, we are ensuring that the landscape looks homogeneous in all directions in parameter space. Since most deep networks can be viewed as linear transformations followed by a non-linearity at each layer, we expect this intuition to hold beyond the linear case.
+
+* **Monitor the out-of-sample performance.** Always monitor the performance of your model on a validation set (a small portion of the training data that is held out of the training process to serve as a proxy for the test set. If the validation error starts increasing, then the model is beginning to overfit. Terminate the learning process. This *early stopping* significantly improves performance in many settings.
+
+* **Adaptive optimization methods don't always have good generalization.** Recent studies have shown that adaptive methods such as ADAM, RMSPorp, and AdaGrad tend to have poor generalization compared to SGD or SGD with momentum, particularly in the high-dimensional limit (i.e. the number of parameters exceeds the number of data points). Although it is not clear at this stage why these methods perform so well in training deep neural networks, simpler procedures like properly-tuned SGD may work as well or better in these applications.
+
+## Automatic differentiation
+
+[Automatic differentiation (AD)](https://en.wikipedia.org/wiki/Automatic_differentiation), 
+also called algorithmic
+differentiation or computational differentiation,is a set of
+techniques to numerically evaluate the derivative of a function
+specified by a computer program. AD exploits the fact that every
+computer program, no matter how complicated, executes a sequence of
+elementary arithmetic operations (addition, subtraction,
+multiplication, division, etc.) and elementary functions (exp, log,
+sin, cos, etc.). By applying the chain rule repeatedly to these
+operations, derivatives of arbitrary order can be computed
+automatically, accurately to working precision, and using at most a
+small constant factor more arithmetic operations than the original
+program.
+
+Automatic differentiation is neither:
+
+* Symbolic differentiation, nor
+
+* Numerical differentiation (the method of finite differences).
+
+Symbolic differentiation can lead to inefficient code and faces the
+difficulty of converting a computer program into a single expression,
+while numerical differentiation can introduce round-off errors in the
+discretization process and cancellation
+
+
+
+Python has tools for so-called **automatic differentiation**.
+Consider the following example
+
+$$
+f(x) = \sin\left(2\pi x + x^2\right)
+$$
+
+which has the following derivative
+
+$$
+f'(x) = \cos\left(2\pi x + x^2\right)\left(2\pi + 2x\right)
+$$
+
+Using **autograd** we have
+
+import autograd.numpy as np
+
+# To do elementwise differentiation:
+from autograd import elementwise_grad as egrad 
+
+# To plot:
+import matplotlib.pyplot as plt 
+
+
+def f(x):
+    return np.sin(2*np.pi*x + x**2)
+
+def f_grad_analytic(x):
+    return np.cos(2*np.pi*x + x**2)*(2*np.pi + 2*x)
+
+# Do the comparison:
+x = np.linspace(0,1,1000)
+
+f_grad = egrad(f)
+
+computed = f_grad(x)
+analytic = f_grad_analytic(x)
+
+plt.title('Derivative computed from Autograd compared with the analytical derivative')
+plt.plot(x,computed,label='autograd')
+plt.plot(x,analytic,label='analytic')
+
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+
+plt.show()
+
+print("The max absolute difference is: %g"%(np.max(np.abs(computed - analytic))))
+
+Here we
+experiment with what kind of functions Autograd is capable
+of finding the gradient of. The following Python functions are just
+meant to illustrate what Autograd can do, but please feel free to
+experiment with other, possibly more complicated, functions as well.
+
+import autograd.numpy as np
+from autograd import grad
+
+def f1(x):
+    return x**3 + 1
+
+f1_grad = grad(f1)
+
+# Remember to send in float as argument to the computed gradient from Autograd!
+a = 1.0
+
+# See the evaluated gradient at a using autograd:
+print("The gradient of f1 evaluated at a = %g using autograd is: %g"%(a,f1_grad(a)))
+
+# Compare with the analytical derivative, that is f1'(x) = 3*x**2 
+grad_analytical = 3*a**2
+print("The gradient of f1 evaluated at a = %g by finding the analytic expression is: %g"%(a,grad_analytical))
+
+To differentiate with respect to two (or more) arguments of a Python
+function, Autograd need to know at which variable the function if
+being differentiated with respect to.
+
+import autograd.numpy as np
+from autograd import grad
+def f2(x1,x2):
+    return 3*x1**3 + x2*(x1 - 5) + 1
+
+# By sending the argument 0, Autograd will compute the derivative w.r.t the first variable, in this case x1
+f2_grad_x1 = grad(f2,0)
+
+# ... and differentiate w.r.t x2 by sending 1 as an additional arugment to grad
+f2_grad_x2 = grad(f2,1)
+
+x1 = 1.0
+x2 = 3.0 
+
+print("Evaluating at x1 = %g, x2 = %g"%(x1,x2))
+print("-"*30)
+
+# Compare with the analytical derivatives:
+
+# Derivative of f2 w.r.t x1 is: 9*x1**2 + x2:
+f2_grad_x1_analytical = 9*x1**2 + x2
+
+# Derivative of f2 w.r.t x2 is: x1 - 5:
+f2_grad_x2_analytical = x1 - 5
+
+# See the evaluated derivations:
+print("The derivative of f2 w.r.t x1: %g"%( f2_grad_x1(x1,x2) ))
+print("The analytical derivative of f2 w.r.t x1: %g"%( f2_grad_x1(x1,x2) ))
+
+print()
+
+print("The derivative of f2 w.r.t x2: %g"%( f2_grad_x2(x1,x2) ))
+print("The analytical derivative of f2 w.r.t x2: %g"%( f2_grad_x2(x1,x2) ))
+
+Note that the grad function will not produce the true gradient of the function. The true gradient of a function with two or more variables will produce a vector, where each element is the function differentiated w.r.t a variable.
+
+import autograd.numpy as np
+from autograd import grad
+def f3(x): # Assumes x is an array of length 5 or higher
+    return 2*x[0] + 3*x[1] + 5*x[2] + 7*x[3] + 11*x[4]**2
+
+f3_grad = grad(f3)
+
+x = np.linspace(0,4,5)
+
+# Print the computed gradient:
+print("The computed gradient of f3 is: ", f3_grad(x))
+
+# The analytical gradient is: (2, 3, 5, 7, 22*x[4])
+f3_grad_analytical = np.array([2, 3, 5, 7, 22*x[4]])
+
+# Print the analytical gradient:
+print("The analytical gradient of f3 is: ", f3_grad_analytical)
+
+Note that in this case, when sending an array as input argument, the
+output from Autograd is another array. This is the true gradient of
+the function, as opposed to the function in the previous example. By
+using arrays to represent the variables, the output from Autograd
+might be easier to work with, as the output is closer to what one
+could expect form a gradient-evaluting function.
+
+import autograd.numpy as np
+from autograd import grad
+def f4(x):
+    return np.sqrt(1+x**2) + np.exp(x) + np.sin(2*np.pi*x)
+
+f4_grad = grad(f4)
+
+x = 2.7
+
+# Print the computed derivative:
+print("The computed derivative of f4 at x = %g is: %g"%(x,f4_grad(x)))
+
+# The analytical derivative is: x/sqrt(1 + x**2) + exp(x) + cos(2*pi*x)*2*pi
+f4_grad_analytical = x/np.sqrt(1 + x**2) + np.exp(x) + np.cos(2*np.pi*x)*2*np.pi
+
+# Print the analytical gradient:
+print("The analytical gradient of f4 at x = %g is: %g"%(x,f4_grad_analytical))
+
+import autograd.numpy as np
+from autograd import grad
+def f5(x):
+    if x >= 0:
+        return x**2
+    else:
+        return -3*x + 1
+
+f5_grad = grad(f5)
+
+x = 2.7
+
+# Print the computed derivative:
+print("The computed derivative of f5 at x = %g is: %g"%(x,f5_grad(x)))
+
+2
+6
+ 
+<
+<
+<
+!
+!
+C
+O
+D
+E
+_
+B
+L
+O
+C
+K
+ 
+ 
+p
+y
+c
+o
+d
+
+import autograd.numpy as np
+from autograd import grad
+# Both of the functions are implementation of the sum: sum(x**i) for i = 0, ..., 9
+# The analytical derivative is: sum(i*x**(i-1)) 
+f6_grad_analytical = 0
+for i in range(10):
+    f6_grad_analytical += i*x**(i-1)
+
+print("The analytical derivative of f6 at x = %g is: %g"%(x,f6_grad_analytical))
+
+import autograd.numpy as np
+from autograd import grad
+
+def f7(n): # Assume that n is an integer
+    if n == 1 or n == 0:
+        return 1
+    else:
+        return n*f7(n-1)
+
+f7_grad = grad(f7)
+
+n = 2.0
+
+print("The computed derivative of f7 at n = %d is: %g"%(n,f7_grad(n)))
+
+# The function f7 is an implementation of the factorial of n.
+# By using the product rule, one can find that the derivative is:
+
+f7_grad_analytical = 0
+for i in range(int(n)-1):
+    tmp = 1
+    for k in range(int(n)-1):
+        if k != i:
+            tmp *= (n - k)
+    f7_grad_analytical += tmp
+
+print("The analytical derivative of f7 at n = %d is: %g"%(n,f7_grad_analytical))
+
+Note that if n is equal to zero or one, Autograd will give an error message. This message appears when the output is independent on input.
+
+
+Autograd supports many features. However, there are some functions that is not supported (yet) by Autograd.
+
+Assigning a value to the variable being differentiated with respect to
+
+import autograd.numpy as np
+from autograd import grad
+def f8(x): # Assume x is an array
+    x[2] = 3
+    return x*2
+
+f8_grad = grad(f8)
+
+x = 8.4
+
+print("The derivative of f8 is:",f8_grad(x))
+
+Here, Autograd tells us that an 'ArrayBox' does not support item assignment. The item assignment is done when the program tries to assign x[2] to the value 3. However, Autograd has implemented the computation of the derivative such that this assignment is not possible.
+
+import autograd.numpy as np
+from autograd import grad
+def f9(a): # Assume a is an array with 2 elements
+    b = np.array([1.0,2.0])
+    return a.dot(b)
+
+f9_grad = grad(f9)
+
+x = np.array([1.0,0.0])
+
+print("The derivative of f9 is:",f9_grad(x))
+
+Here we are told that the 'dot' function does not belong to Autograd's
+version of a Numpy array.  To overcome this, an alternative syntax
+which also computed the dot product can be used:
+
+import autograd.numpy as np
+from autograd import grad
+def f9_alternative(x): # Assume a is an array with 2 elements
+    b = np.array([1.0,2.0])
+    return np.dot(x,b) # The same as x_1*b_1 + x_2*b_2
+
+f9_alternative_grad = grad(f9_alternative)
+
+x = np.array([3.0,0.0])
+
+print("The gradient of f9 is:",f9_alternative_grad(x))
+
+# The analytical gradient of the dot product of vectors x and b with two elements (x_1,x_2) and (b_1, b_2) respectively
+# w.r.t x is (b_1, b_2).
+
+The documentation recommends to avoid inplace operations such as
+
+a += b
+a -= b
+a*= b
+a /=b
+
+More examples will be added, in particular how to compare autograd with own codes for the gradients.

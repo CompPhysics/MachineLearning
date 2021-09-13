@@ -433,161 +433,6 @@ plt.grid(True)
 
 plt.show()
 
-## Various steps in cross-validation
-
-When the repetitive splitting of the data set is done randomly,
-samples may accidently end up in a fast majority of the splits in
-either training or test set. Such samples may have an unbalanced
-influence on either model building or prediction evaluation. To avoid
-this $k$-fold cross-validation structures the data splitting. The
-samples are divided into $k$ more or less equally sized exhaustive and
-mutually exclusive subsets. In turn (at each split) one of these
-subsets plays the role of the test set while the union of the
-remaining subsets constitutes the training set. Such a splitting
-warrants a balanced representation of each sample in both training and
-test set over the splits. Still the division into the $k$ subsets
-involves a degree of randomness. This may be fully excluded when
-choosing $k=n$. This particular case is referred to as leave-one-out
-cross-validation (LOOCV). 
-
-
-* Define a range of interest for the penalty parameter.
-
-* Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
-
-* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\boldsymbol{\sigma}_{-i}^2(\lambda)$, as
-
-$$
-\begin{align*}
-\boldsymbol{\beta}_{-i}(\lambda) & =  ( \boldsymbol{X}_{-i, \ast}^{T}
-\boldsymbol{X}_{-i, \ast} + \lambda \boldsymbol{I}_{pp})^{-1}
-\boldsymbol{X}_{-i, \ast}^{T} \boldsymbol{y}_{-i}
-\end{align*}
-$$
-
-* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \boldsymbol{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \boldsymbol{X}_{i, \ast} \boldsymbol{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
-
-* Repeat the first three steps  such that each sample plays the role of the test set once.
-
-* Average the prediction performances of the test sets at each grid point of the penalty bias/parameter. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as
-
-$$
-\begin{align*}
-\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}.
-\end{align*}
-$$
-
-For the various values of $k$
-
-1. shuffle the dataset randomly.
-
-2. Split the dataset into $k$ groups.
-
-3. For each unique group:
-
-a. Decide which group to use as set for test data
-
-b. Take the remaining groups as a training data set
-
-c. Fit a model on the training set and evaluate it on the test set
-
-d. Retain the evaluation score and discard the model
-
-
-5. Summarize the model using the sample of model evaluation scores
-
-The code here uses Ridge regression with cross-validation (CV)  resampling and $k$-fold CV in order to fit a specific polynomial.
-
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import KFold
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import PolynomialFeatures
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-np.random.seed(3155)
-
-# Generate the data.
-nsamples = 100
-x = np.random.randn(nsamples)
-y = 3*x**2 + np.random.randn(nsamples)
-
-## Cross-validation on Ridge regression using KFold only
-
-# Decide degree on polynomial to fit
-poly = PolynomialFeatures(degree = 6)
-
-# Decide which values of lambda to use
-nlambdas = 500
-lambdas = np.logspace(-3, 5, nlambdas)
-
-# Initialize a KFold instance
-k = 5
-kfold = KFold(n_splits = k)
-
-# Perform the cross-validation to estimate MSE
-scores_KFold = np.zeros((nlambdas, k))
-
-i = 0
-for lmb in lambdas:
-    ridge = Ridge(alpha = lmb)
-    j = 0
-    for train_inds, test_inds in kfold.split(x):
-        xtrain = x[train_inds]
-        ytrain = y[train_inds]
-
-        xtest = x[test_inds]
-        ytest = y[test_inds]
-
-        Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
-        ridge.fit(Xtrain, ytrain[:, np.newaxis])
-
-        Xtest = poly.fit_transform(xtest[:, np.newaxis])
-        ypred = ridge.predict(Xtest)
-
-        scores_KFold[i,j] = np.sum((ypred - ytest[:, np.newaxis])**2)/np.size(ypred)
-
-        j += 1
-    i += 1
-
-
-estimated_mse_KFold = np.mean(scores_KFold, axis = 1)
-
-## Cross-validation using cross_val_score from sklearn along with KFold
-
-# kfold is an instance initialized above as:
-# kfold = KFold(n_splits = k)
-
-estimated_mse_sklearn = np.zeros(nlambdas)
-i = 0
-for lmb in lambdas:
-    ridge = Ridge(alpha = lmb)
-
-    X = poly.fit_transform(x[:, np.newaxis])
-    estimated_mse_folds = cross_val_score(ridge, X, y[:, np.newaxis], scoring='neg_mean_squared_error', cv=kfold)
-
-    # cross_val_score return an array containing the estimated negative mse for every fold.
-    # we have to the the mean of every array in order to get an estimate of the mse of the model
-    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
-
-    i += 1
-
-## Plot and compare the slightly different ways to perform cross-validation
-
-plt.figure()
-
-plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = 'cross_val_score')
-plt.plot(np.log10(lambdas), estimated_mse_KFold, 'r--', label = 'KFold')
-
-plt.xlabel('log10(lambda)')
-plt.ylabel('mse')
-
-plt.legend()
-
-plt.show()
-
 ## The bias-variance tradeoff
 
 
@@ -933,6 +778,163 @@ plt.xlabel('Polynomial degree')
 plt.ylabel('log10[MSE]')
 plt.legend()
 plt.show()
+
+## Cross-validation
+
+When the repetitive splitting of the data set is done randomly,
+samples may accidently end up in a fast majority of the splits in
+either training or test set. Such samples may have an unbalanced
+influence on either model building or prediction evaluation. To avoid
+this $k$-fold cross-validation structures the data splitting. The
+samples are divided into $k$ more or less equally sized exhaustive and
+mutually exclusive subsets. In turn (at each split) one of these
+subsets plays the role of the test set while the union of the
+remaining subsets constitutes the training set. Such a splitting
+warrants a balanced representation of each sample in both training and
+test set over the splits. Still the division into the $k$ subsets
+involves a degree of randomness. This may be fully excluded when
+choosing $k=n$. This particular case is referred to as leave-one-out
+cross-validation (LOOCV). 
+
+
+* Define a range of interest for the penalty parameter.
+
+* Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
+
+* Fit the linear regression model by means of ridge estimation  for each $\lambda$ in the grid using the training set, and the corresponding estimate of the error variance $\boldsymbol{\sigma}_{-i}^2(\lambda)$, as
+
+$$
+\begin{align*}
+\boldsymbol{\beta}_{-i}(\lambda) & =  ( \boldsymbol{X}_{-i, \ast}^{T}
+\boldsymbol{X}_{-i, \ast} + \lambda \boldsymbol{I}_{pp})^{-1}
+\boldsymbol{X}_{-i, \ast}^{T} \boldsymbol{y}_{-i}
+\end{align*}
+$$
+
+* Evaluate the prediction performance of these models on the test set by $\log\{L[y_i, \boldsymbol{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}$. Or, by the prediction error $|y_i - \boldsymbol{X}_{i, \ast} \boldsymbol{\beta}_{-i}(\lambda)|$, the relative error, the error squared or the R2 score function.
+
+* Repeat the first three steps  such that each sample plays the role of the test set once.
+
+* Average the prediction performances of the test sets at each grid point of the penalty bias/parameter. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as
+
+$$
+\begin{align*}
+\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}.
+\end{align*}
+$$
+
+For the various values of $k$
+
+1. shuffle the dataset randomly.
+
+2. Split the dataset into $k$ groups.
+
+3. For each unique group:
+
+a. Decide which group to use as set for test data
+
+b. Take the remaining groups as a training data set
+
+c. Fit a model on the training set and evaluate it on the test set
+
+d. Retain the evaluation score and discard the model
+
+
+5. Summarize the model using the sample of model evaluation scores
+
+The code here uses Ridge regression with cross-validation (CV)  resampling and $k$-fold CV in order to fit a specific polynomial.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import PolynomialFeatures
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+# Generate the data.
+nsamples = 100
+x = np.random.randn(nsamples)
+y = 3*x**2 + np.random.randn(nsamples)
+
+## Cross-validation on Ridge regression using KFold only
+
+# Decide degree on polynomial to fit
+poly = PolynomialFeatures(degree = 6)
+
+# Decide which values of lambda to use
+nlambdas = 500
+lambdas = np.logspace(-3, 5, nlambdas)
+
+# Initialize a KFold instance
+k = 5
+kfold = KFold(n_splits = k)
+
+# Perform the cross-validation to estimate MSE
+scores_KFold = np.zeros((nlambdas, k))
+
+i = 0
+for lmb in lambdas:
+    ridge = Ridge(alpha = lmb)
+    j = 0
+    for train_inds, test_inds in kfold.split(x):
+        xtrain = x[train_inds]
+        ytrain = y[train_inds]
+
+        xtest = x[test_inds]
+        ytest = y[test_inds]
+
+        Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
+        ridge.fit(Xtrain, ytrain[:, np.newaxis])
+
+        Xtest = poly.fit_transform(xtest[:, np.newaxis])
+        ypred = ridge.predict(Xtest)
+
+        scores_KFold[i,j] = np.sum((ypred - ytest[:, np.newaxis])**2)/np.size(ypred)
+
+        j += 1
+    i += 1
+
+
+estimated_mse_KFold = np.mean(scores_KFold, axis = 1)
+
+## Cross-validation using cross_val_score from sklearn along with KFold
+
+# kfold is an instance initialized above as:
+# kfold = KFold(n_splits = k)
+
+estimated_mse_sklearn = np.zeros(nlambdas)
+i = 0
+for lmb in lambdas:
+    ridge = Ridge(alpha = lmb)
+
+    X = poly.fit_transform(x[:, np.newaxis])
+    estimated_mse_folds = cross_val_score(ridge, X, y[:, np.newaxis], scoring='neg_mean_squared_error', cv=kfold)
+
+    # cross_val_score return an array containing the estimated negative mse for every fold.
+    # we have to the the mean of every array in order to get an estimate of the mse of the model
+    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
+
+    i += 1
+
+## Plot and compare the slightly different ways to perform cross-validation
+
+plt.figure()
+
+plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = 'cross_val_score')
+plt.plot(np.log10(lambdas), estimated_mse_KFold, 'r--', label = 'KFold')
+
+plt.xlabel('log10(lambda)')
+plt.ylabel('mse')
+
+plt.legend()
+
+plt.show()
+
+More examples of the application of cross-validation follow here.
 
 # Common imports
 import os
