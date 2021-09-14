@@ -148,7 +148,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>&nbsp;<br>
-<center><h4>Sep 12, 2021</h4></center> <!-- date -->
+<center><h4>Sep 14, 2021</h4></center> <!-- date -->
 <br>
 <p>
 
@@ -165,6 +165,15 @@ MathJax.Hub.Config({
 <p><li> Thursday September 16: Summary of Ridge and Lasso with examples and start resampling techniques</li>
 <p><li> Friday September 17: Resampling methods, Cross-validation, Bootstrapping and jackknife</li>
 </ul>
+<p>
+
+Recommended Reading:
+
+<ol>
+<p><li> Lectures on Resampling methods (these lectures)</li>
+<p><li> Bishop 1.3 (cross-validation) and 3.2 (bias-variance tradeoff)</li>
+<p><li> Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). This chapter is better than Bishop's on these topics. Goodfellow et al discuss this in a superficial way in sections 5.2-5.5.</li>
+</ol>
 </section>
 
 
@@ -963,184 +972,6 @@ plt.show()
 
 
 <section>
-<h2 id="various-steps-in-cross-validation">Various steps in cross-validation </h2>
-
-<p>
-When the repetitive splitting of the data set is done randomly,
-samples may accidently end up in a fast majority of the splits in
-either training or test set. Such samples may have an unbalanced
-influence on either model building or prediction evaluation. To avoid
-this \( k \)-fold cross-validation structures the data splitting. The
-samples are divided into \( k \) more or less equally sized exhaustive and
-mutually exclusive subsets. In turn (at each split) one of these
-subsets plays the role of the test set while the union of the
-remaining subsets constitutes the training set. Such a splitting
-warrants a balanced representation of each sample in both training and
-test set over the splits. Still the division into the \( k \) subsets
-involves a degree of randomness. This may be fully excluded when
-choosing \( k=n \). This particular case is referred to as leave-one-out
-cross-validation (LOOCV).
-</section>
-
-
-<section>
-<h2 id="how-to-set-up-the-cross-validation-for-ridge-and-or-lasso">How to set up the cross-validation for Ridge and/or Lasso </h2>
-
-<ul>
-<p><li> Define a range of interest for the penalty parameter.</li>
-<p><li> Divide the data set into training and test set comprising samples \( \{1, \ldots, n\} \setminus i \) and \( \{ i \} \), respectively.</li>
-<p><li> Fit the linear regression model by means of ridge estimation  for each \( \lambda \) in the grid using the training set, and the corresponding estimate of the error variance \( \boldsymbol{\sigma}_{-i}^2(\lambda) \), as</li>
-</ul>
-<p>&nbsp;<br>
-$$
-\begin{align*}
-\boldsymbol{\beta}_{-i}(\lambda) & =  ( \boldsymbol{X}_{-i, \ast}^{T}
-\boldsymbol{X}_{-i, \ast} + \lambda \boldsymbol{I}_{pp})^{-1}
-\boldsymbol{X}_{-i, \ast}^{T} \boldsymbol{y}_{-i}
-\end{align*}
-$$
-<p>&nbsp;<br>
-
-
-<ul>
-<p><li> Evaluate the prediction performance of these models on the test set by \( \log\{L[y_i, \boldsymbol{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\} \). Or, by the prediction error \( |y_i - \boldsymbol{X}_{i, \ast} \boldsymbol{\beta}_{-i}(\lambda)| \), the relative error, the error squared or the R2 score function.</li>
-<p><li> Repeat the first three steps  such that each sample plays the role of the test set once.</li>
-<p><li> Average the prediction performances of the test sets at each grid point of the penalty bias/parameter. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as</li>
-</ul>
-<p>&nbsp;<br>
-$$
-\begin{align*}
-\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}.
-\end{align*}
-$$
-<p>&nbsp;<br>
-</section>
-
-
-<section>
-<h2 id="cross-validation-in-brief">Cross-validation in brief </h2>
-
-<p>
-For the various values of \( k \)
-
-<ol>
-<p><li> shuffle the dataset randomly.</li>
-<p><li> Split the dataset into \( k \) groups.</li>
-<p><li> For each unique group:
-
-<ol type="a"></li>
-<p><li> Decide which group to use as set for test data</li>
-<p><li> Take the remaining groups as a training data set</li>
-<p><li> Fit a model on the training set and evaluate it on the test set</li>
-<p><li> Retain the evaluation score and discard the model</li>
-</ol>
-<p><li> Summarize the model using the sample of model evaluation scores</li>
-</ol>
-</section>
-
-
-<section>
-<h2 id="code-example-for-cross-validation-and-k-fold-cross-validation">Code Example for Cross-validation and \( k \)-fold Cross-validation </h2>
-
-<p>
-The code here uses Ridge regression with cross-validation (CV)  resampling and \( k \)-fold CV in order to fit a specific polynomial. 
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> cross_val_score
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
-
-<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
-<span style="color: #228B22"># Useful for eventual debugging.</span>
-np.random.seed(<span style="color: #B452CD">3155</span>)
-
-<span style="color: #228B22"># Generate the data.</span>
-nsamples = <span style="color: #B452CD">100</span>
-x = np.random.randn(nsamples)
-y = <span style="color: #B452CD">3</span>*x**<span style="color: #B452CD">2</span> + np.random.randn(nsamples)
-
-<span style="color: #228B22">## Cross-validation on Ridge regression using KFold only</span>
-
-<span style="color: #228B22"># Decide degree on polynomial to fit</span>
-poly = PolynomialFeatures(degree = <span style="color: #B452CD">6</span>)
-
-<span style="color: #228B22"># Decide which values of lambda to use</span>
-nlambdas = <span style="color: #B452CD">500</span>
-lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">5</span>, nlambdas)
-
-<span style="color: #228B22"># Initialize a KFold instance</span>
-k = <span style="color: #B452CD">5</span>
-kfold = KFold(n_splits = k)
-
-<span style="color: #228B22"># Perform the cross-validation to estimate MSE</span>
-scores_KFold = np.zeros((nlambdas, k))
-
-i = <span style="color: #B452CD">0</span>
-<span style="color: #8B008B; font-weight: bold">for</span> lmb <span style="color: #8B008B">in</span> lambdas:
-    ridge = Ridge(alpha = lmb)
-    j = <span style="color: #B452CD">0</span>
-    <span style="color: #8B008B; font-weight: bold">for</span> train_inds, test_inds <span style="color: #8B008B">in</span> kfold.split(x):
-        xtrain = x[train_inds]
-        ytrain = y[train_inds]
-
-        xtest = x[test_inds]
-        ytest = y[test_inds]
-
-        Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
-        ridge.fit(Xtrain, ytrain[:, np.newaxis])
-
-        Xtest = poly.fit_transform(xtest[:, np.newaxis])
-        ypred = ridge.predict(Xtest)
-
-        scores_KFold[i,j] = np.sum((ypred - ytest[:, np.newaxis])**<span style="color: #B452CD">2</span>)/np.size(ypred)
-
-        j += <span style="color: #B452CD">1</span>
-    i += <span style="color: #B452CD">1</span>
-
-
-estimated_mse_KFold = np.mean(scores_KFold, axis = <span style="color: #B452CD">1</span>)
-
-<span style="color: #228B22">## Cross-validation using cross_val_score from sklearn along with KFold</span>
-
-<span style="color: #228B22"># kfold is an instance initialized above as:</span>
-<span style="color: #228B22"># kfold = KFold(n_splits = k)</span>
-
-estimated_mse_sklearn = np.zeros(nlambdas)
-i = <span style="color: #B452CD">0</span>
-<span style="color: #8B008B; font-weight: bold">for</span> lmb <span style="color: #8B008B">in</span> lambdas:
-    ridge = Ridge(alpha = lmb)
-
-    X = poly.fit_transform(x[:, np.newaxis])
-    estimated_mse_folds = cross_val_score(ridge, X, y[:, np.newaxis], scoring=<span style="color: #CD5555">&#39;neg_mean_squared_error&#39;</span>, cv=kfold)
-
-    <span style="color: #228B22"># cross_val_score return an array containing the estimated negative mse for every fold.</span>
-    <span style="color: #228B22"># we have to the the mean of every array in order to get an estimate of the mse of the model</span>
-    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
-
-    i += <span style="color: #B452CD">1</span>
-
-<span style="color: #228B22">## Plot and compare the slightly different ways to perform cross-validation</span>
-
-plt.figure()
-
-plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = <span style="color: #CD5555">&#39;cross_val_score&#39;</span>)
-plt.plot(np.log10(lambdas), estimated_mse_KFold, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;KFold&#39;</span>)
-
-plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
-plt.ylabel(<span style="color: #CD5555">&#39;mse&#39;</span>)
-
-plt.legend()
-
-plt.show()
-</pre></div>
-</section>
-
-
-<section>
 <h2 id="the-bias-variance-tradeoff">The bias-variance tradeoff </h2>
 
 <p>
@@ -1448,6 +1279,184 @@ plt.figure(figsize=(<span style="color: #B452CD">14</span>, <span style="color: 
     plt.legend(loc=<span style="color: #CD5555">&quot;best&quot;</span>)
     plt.title(<span style="color: #CD5555">&quot;Degree {}\nMSE = {:.2e}(+/- {:.2e})&quot;</span>.format(
         degrees[i], -scores.mean(), scores.std()))
+plt.show()
+</pre></div>
+</section>
+
+
+<section>
+<h2 id="various-steps-in-cross-validation">Various steps in cross-validation </h2>
+
+<p>
+When the repetitive splitting of the data set is done randomly,
+samples may accidently end up in a fast majority of the splits in
+either training or test set. Such samples may have an unbalanced
+influence on either model building or prediction evaluation. To avoid
+this \( k \)-fold cross-validation structures the data splitting. The
+samples are divided into \( k \) more or less equally sized exhaustive and
+mutually exclusive subsets. In turn (at each split) one of these
+subsets plays the role of the test set while the union of the
+remaining subsets constitutes the training set. Such a splitting
+warrants a balanced representation of each sample in both training and
+test set over the splits. Still the division into the \( k \) subsets
+involves a degree of randomness. This may be fully excluded when
+choosing \( k=n \). This particular case is referred to as leave-one-out
+cross-validation (LOOCV).
+</section>
+
+
+<section>
+<h2 id="how-to-set-up-the-cross-validation-for-ridge-and-or-lasso">How to set up the cross-validation for Ridge and/or Lasso </h2>
+
+<ul>
+<p><li> Define a range of interest for the penalty parameter.</li>
+<p><li> Divide the data set into training and test set comprising samples \( \{1, \ldots, n\} \setminus i \) and \( \{ i \} \), respectively.</li>
+<p><li> Fit the linear regression model by means of ridge estimation  for each \( \lambda \) in the grid using the training set, and the corresponding estimate of the error variance \( \boldsymbol{\sigma}_{-i}^2(\lambda) \), as</li>
+</ul>
+<p>&nbsp;<br>
+$$
+\begin{align*}
+\boldsymbol{\beta}_{-i}(\lambda) & =  ( \boldsymbol{X}_{-i, \ast}^{T}
+\boldsymbol{X}_{-i, \ast} + \lambda \boldsymbol{I}_{pp})^{-1}
+\boldsymbol{X}_{-i, \ast}^{T} \boldsymbol{y}_{-i}
+\end{align*}
+$$
+<p>&nbsp;<br>
+
+
+<ul>
+<p><li> Evaluate the prediction performance of these models on the test set by \( \log\{L[y_i, \boldsymbol{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\} \). Or, by the prediction error \( |y_i - \boldsymbol{X}_{i, \ast} \boldsymbol{\beta}_{-i}(\lambda)| \), the relative error, the error squared or the R2 score function.</li>
+<p><li> Repeat the first three steps  such that each sample plays the role of the test set once.</li>
+<p><li> Average the prediction performances of the test sets at each grid point of the penalty bias/parameter. It is an estimate of the prediction performance of the model corresponding to this value of the penalty parameter on novel data. It is defined as</li>
+</ul>
+<p>&nbsp;<br>
+$$
+\begin{align*}
+\frac{1}{n} \sum_{i = 1}^n \log\{L[y_i, \mathbf{X}_{i, \ast}; \boldsymbol{\beta}_{-i}(\lambda), \boldsymbol{\sigma}_{-i}^2(\lambda)]\}.
+\end{align*}
+$$
+<p>&nbsp;<br>
+</section>
+
+
+<section>
+<h2 id="cross-validation-in-brief">Cross-validation in brief </h2>
+
+<p>
+For the various values of \( k \)
+
+<ol>
+<p><li> shuffle the dataset randomly.</li>
+<p><li> Split the dataset into \( k \) groups.</li>
+<p><li> For each unique group:
+
+<ol type="a"></li>
+<p><li> Decide which group to use as set for test data</li>
+<p><li> Take the remaining groups as a training data set</li>
+<p><li> Fit a model on the training set and evaluate it on the test set</li>
+<p><li> Retain the evaluation score and discard the model</li>
+</ol>
+<p><li> Summarize the model using the sample of model evaluation scores</li>
+</ol>
+</section>
+
+
+<section>
+<h2 id="code-example-for-cross-validation-and-k-fold-cross-validation">Code Example for Cross-validation and \( k \)-fold Cross-validation </h2>
+
+<p>
+The code here uses Ridge regression with cross-validation (CV)  resampling and \( k \)-fold CV in order to fit a specific polynomial. 
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> cross_val_score
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">3155</span>)
+
+<span style="color: #228B22"># Generate the data.</span>
+nsamples = <span style="color: #B452CD">100</span>
+x = np.random.randn(nsamples)
+y = <span style="color: #B452CD">3</span>*x**<span style="color: #B452CD">2</span> + np.random.randn(nsamples)
+
+<span style="color: #228B22">## Cross-validation on Ridge regression using KFold only</span>
+
+<span style="color: #228B22"># Decide degree on polynomial to fit</span>
+poly = PolynomialFeatures(degree = <span style="color: #B452CD">6</span>)
+
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">500</span>
+lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">5</span>, nlambdas)
+
+<span style="color: #228B22"># Initialize a KFold instance</span>
+k = <span style="color: #B452CD">5</span>
+kfold = KFold(n_splits = k)
+
+<span style="color: #228B22"># Perform the cross-validation to estimate MSE</span>
+scores_KFold = np.zeros((nlambdas, k))
+
+i = <span style="color: #B452CD">0</span>
+<span style="color: #8B008B; font-weight: bold">for</span> lmb <span style="color: #8B008B">in</span> lambdas:
+    ridge = Ridge(alpha = lmb)
+    j = <span style="color: #B452CD">0</span>
+    <span style="color: #8B008B; font-weight: bold">for</span> train_inds, test_inds <span style="color: #8B008B">in</span> kfold.split(x):
+        xtrain = x[train_inds]
+        ytrain = y[train_inds]
+
+        xtest = x[test_inds]
+        ytest = y[test_inds]
+
+        Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
+        ridge.fit(Xtrain, ytrain[:, np.newaxis])
+
+        Xtest = poly.fit_transform(xtest[:, np.newaxis])
+        ypred = ridge.predict(Xtest)
+
+        scores_KFold[i,j] = np.sum((ypred - ytest[:, np.newaxis])**<span style="color: #B452CD">2</span>)/np.size(ypred)
+
+        j += <span style="color: #B452CD">1</span>
+    i += <span style="color: #B452CD">1</span>
+
+
+estimated_mse_KFold = np.mean(scores_KFold, axis = <span style="color: #B452CD">1</span>)
+
+<span style="color: #228B22">## Cross-validation using cross_val_score from sklearn along with KFold</span>
+
+<span style="color: #228B22"># kfold is an instance initialized above as:</span>
+<span style="color: #228B22"># kfold = KFold(n_splits = k)</span>
+
+estimated_mse_sklearn = np.zeros(nlambdas)
+i = <span style="color: #B452CD">0</span>
+<span style="color: #8B008B; font-weight: bold">for</span> lmb <span style="color: #8B008B">in</span> lambdas:
+    ridge = Ridge(alpha = lmb)
+
+    X = poly.fit_transform(x[:, np.newaxis])
+    estimated_mse_folds = cross_val_score(ridge, X, y[:, np.newaxis], scoring=<span style="color: #CD5555">&#39;neg_mean_squared_error&#39;</span>, cv=kfold)
+
+    <span style="color: #228B22"># cross_val_score return an array containing the estimated negative mse for every fold.</span>
+    <span style="color: #228B22"># we have to the the mean of every array in order to get an estimate of the mse of the model</span>
+    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
+
+    i += <span style="color: #B452CD">1</span>
+
+<span style="color: #228B22">## Plot and compare the slightly different ways to perform cross-validation</span>
+
+plt.figure()
+
+plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = <span style="color: #CD5555">&#39;cross_val_score&#39;</span>)
+plt.plot(np.log10(lambdas), estimated_mse_KFold, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;KFold&#39;</span>)
+
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;mse&#39;</span>)
+
+plt.legend()
+
 plt.show()
 </pre></div>
 </section>

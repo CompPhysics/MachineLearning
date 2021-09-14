@@ -52,8 +52,13 @@ For the reading assignments we use the following abbreviations:
 - Lab Wednesday: 
 - Lecture Thursday: Resampling methods, cross-validation and Bootstrap
 - Lecture Friday: More on Resampling methods and summary of linear regression
-- Reading recommendations: See lecture notes for week 37 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - Chapter
+- Reading recommendations: 
+- Recommended Reading:
+  - Lectures on Resampling methods for week 37 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
+  - Bishop 1.3 (cross-validation) and 3.2 (bias-variance tradeoff)
+  - Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). This chapter is better than Bishop's on these topics. Goodfellow et al discuss some of these topics in sections 5.2-5.5.
+
+
 ###  Week 38 September 20-24
 - Lab Wednesday: 
 - Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
