@@ -220,7 +220,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week38-bs024.html#basics" style="font-size: 80%;">Basics</a></li>
      <!-- navigation toc: --> <li><a href="._week38-bs025.html#linear-classifier" style="font-size: 80%;">Linear classifier</a></li>
      <!-- navigation toc: --> <li><a href="._week38-bs026.html#some-selected-properties" style="font-size: 80%;">Some selected properties</a></li>
-     <!-- navigation toc: --> <li><a href="._week38-bs027.html#simple-example" style="font-size: 80%;">Simple example</a></li>
+     <!-- navigation toc: --> <li><a href="#simple-example" style="font-size: 80%;">Simple example</a></li>
      <!-- navigation toc: --> <li><a href="._week38-bs028.html#plotting-the-mean-value-for-each-group" style="font-size: 80%;">Plotting the mean value for each group</a></li>
      <!-- navigation toc: --> <li><a href="._week38-bs029.html#the-logistic-function" style="font-size: 80%;">The logistic function</a></li>
      <!-- navigation toc: --> <li><a href="._week38-bs030.html#examples-of-likelihood-functions-used-in-logistic-regression-and-nueral-networks" style="font-size: 80%;">Examples of likelihood functions used in logistic regression and nueral networks</a></li>
@@ -248,54 +248,100 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
+<a name="part0027"></a>
+<!-- !split -->
 
-
-
-<div class="jumbotron">
-<center><h1>Data Analysis and Machine Learning: Logistic Regression</h1></center>  <!-- document title -->
+<h2 id="simple-example" class="anchor">Simple example </h2>
 
 <p>
-<!-- author(s): Morten Hjorth-Jensen -->
-
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
+The following example on data for coronary heart disease (CHD) as function of age may serve as an illustration. In the code here we read and plot whether a person has had CHD (output = 1) or not (output = 0). This ouput  is plotted the person's against age. Clearly, the figure shows that attempting to make a standard linear regression fit may not be very meaningful.
 
 <p>
-<!-- institution(s) -->
 
-<center>[1] <b>Department of Physics, University of Oslo</b></center>
-<center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
-<br>
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #408080; font-style: italic"># Common imports</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">os</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.utils</span> <span style="color: #008000; font-weight: bold">import</span> resample
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.metrics</span> <span style="color: #008000; font-weight: bold">import</span> mean_squared_error
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> display
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">pylab</span> <span style="color: #008000; font-weight: bold">import</span> plt, mpl
+plt<span style="color: #666666">.</span>style<span style="color: #666666">.</span>use(<span style="color: #BA2121">&#39;seaborn&#39;</span>)
+mpl<span style="color: #666666">.</span>rcParams[<span style="color: #BA2121">&#39;font.family&#39;</span>] <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;serif&#39;</span>
+
+<span style="color: #408080; font-style: italic"># Where to save the figures and data files</span>
+PROJECT_ROOT_DIR <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;Results&quot;</span>
+FIGURE_ID <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;Results/FigureFiles&quot;</span>
+DATA_ID <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;DataFiles/&quot;</span>
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(PROJECT_ROOT_DIR):
+    os<span style="color: #666666">.</span>mkdir(PROJECT_ROOT_DIR)
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(FIGURE_ID):
+    os<span style="color: #666666">.</span>makedirs(FIGURE_ID)
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(DATA_ID):
+    os<span style="color: #666666">.</span>makedirs(DATA_ID)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">image_path</span>(fig_id):
+    <span style="color: #008000; font-weight: bold">return</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>join(FIGURE_ID, fig_id)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">data_path</span>(dat_id):
+    <span style="color: #008000; font-weight: bold">return</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>join(DATA_ID, dat_id)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">save_fig</span>(fig_id):
+    plt<span style="color: #666666">.</span>savefig(image_path(fig_id) <span style="color: #666666">+</span> <span style="color: #BA2121">&quot;.png&quot;</span>, <span style="color: #008000">format</span><span style="color: #666666">=</span><span style="color: #BA2121">&#39;png&#39;</span>)
+
+infile <span style="color: #666666">=</span> <span style="color: #008000">open</span>(data_path(<span style="color: #BA2121">&quot;chddata.csv&quot;</span>),<span style="color: #BA2121">&#39;r&#39;</span>)
+
+<span style="color: #408080; font-style: italic"># Read the chd data as  csv file and organize the data into arrays with age group, age, and chd</span>
+chd <span style="color: #666666">=</span> pd<span style="color: #666666">.</span>read_csv(infile, names<span style="color: #666666">=</span>(<span style="color: #BA2121">&#39;ID&#39;</span>, <span style="color: #BA2121">&#39;Age&#39;</span>, <span style="color: #BA2121">&#39;Agegroup&#39;</span>, <span style="color: #BA2121">&#39;CHD&#39;</span>))
+chd<span style="color: #666666">.</span>columns <span style="color: #666666">=</span> [<span style="color: #BA2121">&#39;ID&#39;</span>, <span style="color: #BA2121">&#39;Age&#39;</span>, <span style="color: #BA2121">&#39;Agegroup&#39;</span>, <span style="color: #BA2121">&#39;CHD&#39;</span>]
+output <span style="color: #666666">=</span> chd[<span style="color: #BA2121">&#39;CHD&#39;</span>]
+age <span style="color: #666666">=</span> chd[<span style="color: #BA2121">&#39;Age&#39;</span>]
+agegroup <span style="color: #666666">=</span> chd[<span style="color: #BA2121">&#39;Agegroup&#39;</span>]
+numberID  <span style="color: #666666">=</span> chd[<span style="color: #BA2121">&#39;ID&#39;</span>] 
+display(chd)
+
+plt<span style="color: #666666">.</span>scatter(age, output, marker<span style="color: #666666">=</span><span style="color: #BA2121">&#39;o&#39;</span>)
+plt<span style="color: #666666">.</span>axis([<span style="color: #666666">18</span>,<span style="color: #666666">70.0</span>,<span style="color: #666666">-0.1</span>, <span style="color: #666666">1.2</span>])
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&#39;Age&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&#39;CHD&#39;</span>)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&#39;Age distribution and Coronary heart disease&#39;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre></div>
 <p>
-<center><h4>Sep 16, 2021</h4></center> <!-- date -->
-<br>
-<p>
-
-
-<p><a href="._week38-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
-
-
-</div> <!-- end jumbotron -->
-
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week38-bs000.html">1</a></li>
-  <li><a href="._week38-bs001.html">2</a></li>
-  <li><a href="._week38-bs002.html">3</a></li>
-  <li><a href="._week38-bs003.html">4</a></li>
-  <li><a href="._week38-bs004.html">5</a></li>
-  <li><a href="._week38-bs005.html">6</a></li>
-  <li><a href="._week38-bs006.html">7</a></li>
-  <li><a href="._week38-bs007.html">8</a></li>
-  <li><a href="._week38-bs008.html">9</a></li>
-  <li><a href="._week38-bs009.html">10</a></li>
+<li><a href="._week38-bs026.html">&laquo;</a></li>
+  <li><a href="._week38-bs000.html">1</a></li>
+  <li><a href="">...</a></li>
+  <li><a href="._week38-bs019.html">20</a></li>
+  <li><a href="._week38-bs020.html">21</a></li>
+  <li><a href="._week38-bs021.html">22</a></li>
+  <li><a href="._week38-bs022.html">23</a></li>
+  <li><a href="._week38-bs023.html">24</a></li>
+  <li><a href="._week38-bs024.html">25</a></li>
+  <li><a href="._week38-bs025.html">26</a></li>
+  <li><a href="._week38-bs026.html">27</a></li>
+  <li class="active"><a href="._week38-bs027.html">28</a></li>
+  <li><a href="._week38-bs028.html">29</a></li>
+  <li><a href="._week38-bs029.html">30</a></li>
+  <li><a href="._week38-bs030.html">31</a></li>
+  <li><a href="._week38-bs031.html">32</a></li>
+  <li><a href="._week38-bs032.html">33</a></li>
+  <li><a href="._week38-bs033.html">34</a></li>
+  <li><a href="._week38-bs034.html">35</a></li>
+  <li><a href="._week38-bs035.html">36</a></li>
+  <li><a href="._week38-bs036.html">37</a></li>
   <li><a href="">...</a></li>
   <li><a href="._week38-bs042.html">43</a></li>
-  <li><a href="._week38-bs001.html">&raquo;</a></li>
+  <li><a href="._week38-bs028.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
@@ -312,7 +358,7 @@ MathJax.Hub.Config({
 
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 
 
