@@ -63,6 +63,9 @@ For the reading assignments we use the following abbreviations:
 ###  Week 37 September 13-17
 - Lab Wednesday:  Work on  Project 1
 - Lecture Thursday: Resampling methods, cross-validation and Bootstrap
+  - Thursday September 16: Summary of Ridge and Lasso with examples and start resampling techniques
+    - Video of Lecture, first part at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember16Firstpart.mp4?vrtx=view-as-webpage"
+    - Video of Lecture, second part at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember16SecondPart.mp4?vrtx=view-as-webpage
 - Lecture Friday: More on Resampling methods and summary of linear regression
 
 - Reading recommendations: 
