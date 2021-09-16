@@ -250,6 +250,73 @@ How can we understand this?
 
 
 !split
+=====  Rerunning the above code =====
+
+Let us write out the values of the coefficients $\beta_i$ as functions
+of the polynomial degree and noise. We will focus only on the Ridge
+results and some few selected values of the hyperparameter $\lambda$.
+
+If we don't include any noise and run this code for different values
+of the polynomial degree, we notice that the results for $\beta_i$ do
+not show great changes from one order to the next. This is an
+indication that for higher polynomial orders, our parameters become
+less important.
+
+If we however add noise, what happens is that the polynomial fit is
+trying to adjust the fit to traverse in the best possible way all data
+points. This can lead to large fluctuations in the parameters
+$\beta_i$ as functions of polynomial order. It will also be reflected
+in a larger value of the variance of each parameter $\beta_i$.  What
+Ridge regression (and Lasso as well) are doing then is to try to
+quench the fluctuations in the parameters of $\beta_i$ which have a
+large variance (normally for higher orders in the polynomial).
+
+!bc pycod
+import numpy as np
+import pandas as pd
+from IPython.display import display
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+# Make data set.
+n = 1000
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
+
+Maxpolydegree = 5
+X = np.zeros((len(x),Maxpolydegree))
+X[:,0] = 1.0
+
+for polydegree in range(1, Maxpolydegree):
+    for degree in range(polydegree):
+        X[:,degree] = x**(degree)
+
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Decide which values of lambda to use
+nlambdas = 5
+lambdas = np.logspace(-3, 2, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    # Make the fit using Ridge only
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
+    RegRidge.fit(X_train,y_train)
+    # and then make the prediction
+    ypredictRidge = RegRidge.predict(X_test)
+    Coeffs = np.array(RegRidge.coef_)
+    BetaValues = pd.DataFrame(Coeffs)
+    BetaValues.columns = ['beta']
+    display(BetaValues)    
+
+!ec
+
+
+
+
+!split
 ===== Invoking Bayes' theorem =====
 
 Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 

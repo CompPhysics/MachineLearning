@@ -89,6 +89,7 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'test-function-for-what-happens-with-ols-ridge-and-lasso'),
+              ('Rerunning the above code', 2, None, 'rerunning-the-above-code'),
               ("Invoking Bayes' theorem", 2, None, 'invoking-bayes-theorem'),
               ('Ridge and Bayes', 2, None, 'ridge-and-bayes'),
               ('Lasso and Bayes', 2, None, 'lasso-and-bayes'),
@@ -221,7 +222,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Sep 15, 2021</h4></center> <!-- date -->
+<center><h4>Sep 16, 2021</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -483,6 +484,75 @@ plt.show()
 <p>
 How can we understand this?
 
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="rerunning-the-above-code">Rerunning the above code </h2>
+
+<p>
+Let us write out the values of the coefficients \( \beta_i \) as functions
+of the polynomial degree and noise. We will focus only on the Ridge
+results and some few selected values of the hyperparameter \( \lambda \).
+
+<p>
+If we don't include any noise and run this code for different values
+of the polynomial degree, we notice that the results for \( \beta_i \) do
+not show great changes from one order to the next. This is an
+indication that for higher polynomial orders, our parameters become
+less important.
+
+<p>
+If we however add noise, what happens is that the polynomial fit is
+trying to adjust the fit to traverse in the best possible way all data
+points. This can lead to large fluctuations in the parameters
+\( \beta_i \) as functions of polynomial order. It will also be reflected
+in a larger value of the variance of each parameter \( \beta_i \).  What
+Ridge regression (and Lasso as well) are doing then is to try to
+quench the fluctuations in the parameters of \( \beta_i \) which have a
+large variance (normally for higher orders in the polynomial).
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">IPython.display</span> <span style="color: #8B008B; font-weight: bold">import</span> display
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+
+<span style="color: #228B22"># Make data set.</span>
+n = <span style="color: #B452CD">1000</span>
+x = np.random.rand(n)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+Maxpolydegree = <span style="color: #B452CD">5</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x),Maxpolydegree))
+X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> polydegree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>, Maxpolydegree):
+    <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(polydegree):
+        X[:,degree] = x**(degree)
+
+
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">5</span>
+lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">2</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    <span style="color: #228B22"># Make the fit using Ridge only</span>
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>)
+    RegRidge.fit(X_train,y_train)
+    <span style="color: #228B22"># and then make the prediction</span>
+    ypredictRidge = RegRidge.predict(X_test)
+    Coeffs = np.array(RegRidge.coef_)
+    BetaValues = pd.DataFrame(Coeffs)
+    BetaValues.columns = [<span style="color: #CD5555">&#39;beta&#39;</span>]
+    display(BetaValues)    
+</pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
