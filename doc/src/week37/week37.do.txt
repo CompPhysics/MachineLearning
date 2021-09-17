@@ -910,56 +910,47 @@ theorem.
 
 
 !bc pycod
-from numpy import *
-from numpy.random import randint, randn
+import numpy as np
 from time import time
-import matplotlib.mlab as mlab
+from scipy.stats import norm
 import matplotlib.pyplot as plt
 
-# Returns mean of bootstrap samples                                                                              # Alternatively, we can run it using Scikit-Learn's function resample                                            # See the examples below
-
-def statistics(data):
-    return mean(data)
-
-
+# Returns mean of bootstrap samples 
 # Bootstrap algorithm
-def bootstrap(data, statistic, R):
-    t = zeros(R); n = len(data); inds = arange(n); t0 = time()
+def bootstrap(data, datapoints):
+    t = np.zeros(datapoints)
+    n = len(data)
     # non-parametric bootstrap         
-    for i in range(R):
-        t[i] = statistic(data[randint(0,n,n)])
-
+    for i in range(datapoints):
+        t[i] = np.mean(data[np.random.randint(0,n,n)])
     # analysis    
-    print("Runtime: %g sec" % (time()-t0)); print("Bootstrap Statistics :")
+    print("Bootstrap Statistics :")
     print("original           bias      std. error")
-    print("%8g %8g %14g %15g" % (statistic(data), std(data),mean(t),std(t)))
+    print("%8g %8g %14g %15g" % (np.mean(data), np.std(data),np.mean(t),np.std(t)))
     return t
 
-
+# We set the mean value to 100 and the standard deviation to 15
 mu, sigma = 100, 15
 datapoints = 10000
-x = mu + sigma*random.randn(datapoints)
+# We generate random numbers according to the normal distribution
+x = mu + sigma*np.random.randn(datapoints)
 # bootstrap returns the data sample                                    
-t = bootstrap(x, statistics, datapoints)
+t = bootstrap(x, datapoints)
 !ec
 We see that our new variance and from that the standard deviation, agrees with the central limit theorem.
 
 !split
 ===== Plotting the Histogram =====
 !bc pycod 
-# the histogram of the bootstrapped  data                                                                                                    
-n, binsboot, patches = plt.hist(t, 50, normed=1, facecolor='red', alpha=0.75)
-
+# the histogram of the bootstrapped data (normalized data if density = True)
+n, binsboot, patches = plt.hist(t, 50, density=True, facecolor='red', alpha=0.75)
 # add a 'best fit' line  
-y = mlab.normpdf( binsboot, mean(t), std(t))
-lt = plt.plot(binsboot, y, 'r--', linewidth=1)
-plt.xlabel('Smarts')
+y = norm.pdf(binsboot, np.mean(t), np.std(t))
+lt = plt.plot(binsboot, y, 'b', linewidth=1)
+plt.xlabel('x')
 plt.ylabel('Probability')
-plt.axis([99.5, 100.6, 0, 3.0])
 plt.grid(True)
-
 plt.show()
-
 !ec
 
 
