@@ -67,7 +67,7 @@ For the reading assignments we use the following abbreviations:
     - Video of Lecture, first part at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember16Firstpart.mp4?vrtx=view-as-webpage"
     - Video of Lecture, second part at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember16SecondPart.mp4?vrtx=view-as-webpage
 - Lecture Friday: More on Resampling methods and summary of linear regression
-
+    - Video of Lecture  at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember17.mp4?vrtx=view-as-webpage
 - Reading recommendations: 
   - Lectures on Resampling methods for week 37 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Bishop 1.3 (cross-validation) and 3.2 (bias-variance tradeoff)
