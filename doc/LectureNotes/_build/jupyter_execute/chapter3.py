@@ -145,7 +145,7 @@ $$
 $$
 
 This means that the estimator of the regression parameters is unbiased.
-
+v
 We can also calculate the variance
 
 The variance of $\boldsymbol{\beta}$ is
@@ -372,7 +372,139 @@ histogram of the relative frequency of $\widehat{\beta}^*$. Instead
 you use the estimators corresponding to the statistic of interest. For
 example, if you are interested in estimating the variance of $\widehat
 \beta$, apply the etsimator $\widehat \sigma^2$ to the values
-$\widehat \beta ^*$.
+$\widehat \beta^*$.
+
+Before we proceed however, we need to remind ourselves about a central
+theorem in statistics, namely the so-called **central limit theorem**.
+This theorem plays a central role in understanding why the Bootstrap
+(and other resampling methods) work so well on independent and
+identically distributed variables.
+
+
+Suppose we have a PDF $p(x)$ from which we generate  a series $N$
+of averages $\langle x_i \rangle$. Each mean value $\langle x_i \rangle$
+is viewed as the average of a specific measurement, e.g., throwing 
+dice 100 times and then taking the average value, or producing a certain
+amount of random numbers. 
+For notational ease, we set $\langle x_i \rangle=x_i$ in the discussion
+which follows. 
+
+If we compute the mean $z$ of $m$ such mean values $x_i$
+
+$$
+z=\frac{x_1+x_2+\dots+x_m}{m},
+$$
+
+the question we pose is which is the PDF of the new variable $z$.
+
+
+The probability of obtaining an average value $z$ is the product of the 
+probabilities of obtaining arbitrary individual mean values $x_i$,
+but with the constraint that the average is $z$. We can express this through
+the following expression
+
+$$
+\tilde{p}(z)=\int dx_1p(x_1)\int dx_2p(x_2)\dots\int dx_mp(x_m)
+    \delta(z-\frac{x_1+x_2+\dots+x_m}{m}),
+$$
+
+where the $\delta$-function enbodies the constraint that the mean is $z$.
+All measurements that lead to each individual $x_i$ are expected to
+be independent, which in turn means that we can express $\tilde{p}$ as the 
+product of individual $p(x_i)$.  The independence assumption is important in the derivation of the central limit theorem.
+
+
+
+If we use the integral expression for the $\delta$-function
+
+$$
+\delta(z-\frac{x_1+x_2+\dots+x_m}{m})=\frac{1}{2\pi}\int_{-\infty}^{\infty}
+   dq\exp{\left(iq(z-\frac{x_1+x_2+\dots+x_m}{m})\right)},
+$$
+
+and inserting $e^{i\mu q-i\mu q}$ where $\mu$ is the mean value
+we arrive at
+
+$$
+\tilde{p}(z)=\frac{1}{2\pi}\int_{-\infty}^{\infty}
+   dq\exp{\left(iq(z-\mu)\right)}\left[\int_{-\infty}^{\infty}
+   dxp(x)\exp{\left(iq(\mu-x)/m\right)}\right]^m,
+$$
+
+with the integral over $x$ resulting in
+
+$$
+\int_{-\infty}^{\infty}dxp(x)\exp{\left(iq(\mu-x)/m\right)}=
+  \int_{-\infty}^{\infty}dxp(x)
+   \left[1+\frac{iq(\mu-x)}{m}-\frac{q^2(\mu-x)^2}{2m^2}+\dots\right].
+$$
+
+The second term on the rhs disappears since this is just the mean and 
+employing the definition of $\sigma^2$ we have
+
+$$
+\int_{-\infty}^{\infty}dxp(x)e^{\left(iq(\mu-x)/m\right)}=
+  1-\frac{q^2\sigma^2}{2m^2}+\dots,
+$$
+
+resulting in
+
+$$
+\left[\int_{-\infty}^{\infty}dxp(x)\exp{\left(iq(\mu-x)/m\right)}\right]^m\approx
+  \left[1-\frac{q^2\sigma^2}{2m^2}+\dots \right]^m,
+$$
+
+and in the limit $m\rightarrow \infty$ we obtain
+
+$$
+\tilde{p}(z)=\frac{1}{\sqrt{2\pi}(\sigma/\sqrt{m})}
+    \exp{\left(-\frac{(z-\mu)^2}{2(\sigma/\sqrt{m})^2}\right)},
+$$
+
+which is the normal distribution with variance
+$\sigma^2_m=\sigma^2/m$, where $\sigma$ is the variance of the PDF $p(x)$
+and $\mu$ is also the mean of the PDF $p(x)$. 
+
+
+Thus, the central limit theorem states that the PDF $\tilde{p}(z)$ of
+the average of $m$ random values corresponding to a PDF $p(x)$ 
+is a normal distribution whose mean is the 
+mean value of the PDF $p(x)$ and whose variance is the variance
+of the PDF $p(x)$ divided by $m$, the number of values used to compute $z$.
+
+The central limit theorem leads to the well-known expression for the
+standard deviation, given by
+
+$$
+\sigma_m=
+\frac{\sigma}{\sqrt{m}}.
+$$
+
+The latter is true only if the average value is known exactly. This is obtained in the limit
+$m\rightarrow \infty$  only. Because the mean and the variance are measured quantities we obtain 
+the familiar expression in statistics
+
+$$
+\sigma_m\approx 
+\frac{\sigma}{\sqrt{m-1}}.
+$$
+
+In many cases however the above estimate for the standard deviation,
+in particular if correlations are strong, may be too simplistic. Keep
+in mind that we have assumed that the variables $x$ are independent
+and identically distributed. This is obviously not always the
+case. For example, the random numbers (or better pseudorandom numbers)
+we generate in various calculations do always exhibit some
+correlations.
+
+
+
+The theorem is satisfied by a large class of PDFs. Note however that for a
+finite $m$, it is not always possible to find a closed form /analytic expression for
+$\tilde{p}(x)$.
+
+
+
 
 
 

@@ -495,8 +495,9 @@ mean value <span class="math notranslate nohighlight">\(\boldsymbol{X}\boldsymbo
 \[
 \mathbb{E}(\boldsymbol{\beta}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\boldsymbol{\beta}=\boldsymbol{\beta}.
 \]</div>
-<p>This means that the estimator of the regression parameters is unbiased.</p>
-<p>We can also calculate the variance</p>
+<p>This means that the estimator of the regression parameters is unbiased.
+v
+We can also calculate the variance</p>
 <p>The variance of <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> is</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -629,10 +630,10 @@ number <span class="math notranslate nohighlight">\(i\)</span> is left out. Usin
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Runtime: 0.137546 sec
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Runtime: 0.141725 sec
 Jackknife Statistics :
 original           bias      std. error
- 99.9031        99.8931        0.149233
+ 100.148        100.138          0.1492
 </pre></div>
 </div>
 </div>
@@ -698,7 +699,111 @@ histogram of the relative frequency of <span class="math notranslate nohighlight
 you use the estimators corresponding to the statistic of interest. For
 example, if you are interested in estimating the variance of <span class="math notranslate nohighlight">\(\widehat
 \beta\)</span>, apply the etsimator <span class="math notranslate nohighlight">\(\widehat \sigma^2\)</span> to the values
-<span class="math notranslate nohighlight">\(\widehat \beta ^*\)</span>.</p>
+<span class="math notranslate nohighlight">\(\widehat \beta^*\)</span>.</p>
+<p>Before we proceed however, we need to remind ourselves about a central
+theorem in statistics, namely the so-called <strong>central limit theorem</strong>.
+This theorem plays a central role in understanding why the Bootstrap
+(and other resampling methods) work so well on independent and
+identically distributed variables.</p>
+<p>Suppose we have a PDF <span class="math notranslate nohighlight">\(p(x)\)</span> from which we generate  a series <span class="math notranslate nohighlight">\(N\)</span>
+of averages <span class="math notranslate nohighlight">\(\langle x_i \rangle\)</span>. Each mean value <span class="math notranslate nohighlight">\(\langle x_i \rangle\)</span>
+is viewed as the average of a specific measurement, e.g., throwing
+dice 100 times and then taking the average value, or producing a certain
+amount of random numbers.
+For notational ease, we set <span class="math notranslate nohighlight">\(\langle x_i \rangle=x_i\)</span> in the discussion
+which follows.</p>
+<p>If we compute the mean <span class="math notranslate nohighlight">\(z\)</span> of <span class="math notranslate nohighlight">\(m\)</span> such mean values <span class="math notranslate nohighlight">\(x_i\)</span></p>
+<div class="math notranslate nohighlight">
+\[
+z=\frac{x_1+x_2+\dots+x_m}{m},
+\]</div>
+<p>the question we pose is which is the PDF of the new variable <span class="math notranslate nohighlight">\(z\)</span>.</p>
+<p>The probability of obtaining an average value <span class="math notranslate nohighlight">\(z\)</span> is the product of the
+probabilities of obtaining arbitrary individual mean values <span class="math notranslate nohighlight">\(x_i\)</span>,
+but with the constraint that the average is <span class="math notranslate nohighlight">\(z\)</span>. We can express this through
+the following expression</p>
+<div class="math notranslate nohighlight">
+\[
+\tilde{p}(z)=\int dx_1p(x_1)\int dx_2p(x_2)\dots\int dx_mp(x_m)
+    \delta(z-\frac{x_1+x_2+\dots+x_m}{m}),
+\]</div>
+<p>where the <span class="math notranslate nohighlight">\(\delta\)</span>-function enbodies the constraint that the mean is <span class="math notranslate nohighlight">\(z\)</span>.
+All measurements that lead to each individual <span class="math notranslate nohighlight">\(x_i\)</span> are expected to
+be independent, which in turn means that we can express <span class="math notranslate nohighlight">\(\tilde{p}\)</span> as the
+product of individual <span class="math notranslate nohighlight">\(p(x_i)\)</span>.  The independence assumption is important in the derivation of the central limit theorem.</p>
+<p>If we use the integral expression for the <span class="math notranslate nohighlight">\(\delta\)</span>-function</p>
+<div class="math notranslate nohighlight">
+\[
+\delta(z-\frac{x_1+x_2+\dots+x_m}{m})=\frac{1}{2\pi}\int_{-\infty}^{\infty}
+   dq\exp{\left(iq(z-\frac{x_1+x_2+\dots+x_m}{m})\right)},
+\]</div>
+<p>and inserting <span class="math notranslate nohighlight">\(e^{i\mu q-i\mu q}\)</span> where <span class="math notranslate nohighlight">\(\mu\)</span> is the mean value
+we arrive at</p>
+<div class="math notranslate nohighlight">
+\[
+\tilde{p}(z)=\frac{1}{2\pi}\int_{-\infty}^{\infty}
+   dq\exp{\left(iq(z-\mu)\right)}\left[\int_{-\infty}^{\infty}
+   dxp(x)\exp{\left(iq(\mu-x)/m\right)}\right]^m,
+\]</div>
+<p>with the integral over <span class="math notranslate nohighlight">\(x\)</span> resulting in</p>
+<div class="math notranslate nohighlight">
+\[
+\int_{-\infty}^{\infty}dxp(x)\exp{\left(iq(\mu-x)/m\right)}=
+  \int_{-\infty}^{\infty}dxp(x)
+   \left[1+\frac{iq(\mu-x)}{m}-\frac{q^2(\mu-x)^2}{2m^2}+\dots\right].
+\]</div>
+<p>The second term on the rhs disappears since this is just the mean and
+employing the definition of <span class="math notranslate nohighlight">\(\sigma^2\)</span> we have</p>
+<div class="math notranslate nohighlight">
+\[
+\int_{-\infty}^{\infty}dxp(x)e^{\left(iq(\mu-x)/m\right)}=
+  1-\frac{q^2\sigma^2}{2m^2}+\dots,
+\]</div>
+<p>resulting in</p>
+<div class="math notranslate nohighlight">
+\[
+\left[\int_{-\infty}^{\infty}dxp(x)\exp{\left(iq(\mu-x)/m\right)}\right]^m\approx
+  \left[1-\frac{q^2\sigma^2}{2m^2}+\dots \right]^m,
+\]</div>
+<p>and in the limit <span class="math notranslate nohighlight">\(m\rightarrow \infty\)</span> we obtain</p>
+<div class="math notranslate nohighlight">
+\[
+\tilde{p}(z)=\frac{1}{\sqrt{2\pi}(\sigma/\sqrt{m})}
+    \exp{\left(-\frac{(z-\mu)^2}{2(\sigma/\sqrt{m})^2}\right)},
+\]</div>
+<p>which is the normal distribution with variance
+<span class="math notranslate nohighlight">\(\sigma^2_m=\sigma^2/m\)</span>, where <span class="math notranslate nohighlight">\(\sigma\)</span> is the variance of the PDF <span class="math notranslate nohighlight">\(p(x)\)</span>
+and <span class="math notranslate nohighlight">\(\mu\)</span> is also the mean of the PDF <span class="math notranslate nohighlight">\(p(x)\)</span>.</p>
+<p>Thus, the central limit theorem states that the PDF <span class="math notranslate nohighlight">\(\tilde{p}(z)\)</span> of
+the average of <span class="math notranslate nohighlight">\(m\)</span> random values corresponding to a PDF <span class="math notranslate nohighlight">\(p(x)\)</span>
+is a normal distribution whose mean is the
+mean value of the PDF <span class="math notranslate nohighlight">\(p(x)\)</span> and whose variance is the variance
+of the PDF <span class="math notranslate nohighlight">\(p(x)\)</span> divided by <span class="math notranslate nohighlight">\(m\)</span>, the number of values used to compute <span class="math notranslate nohighlight">\(z\)</span>.</p>
+<p>The central limit theorem leads to the well-known expression for the
+standard deviation, given by</p>
+<div class="math notranslate nohighlight">
+\[
+\sigma_m=
+\frac{\sigma}{\sqrt{m}}.
+\]</div>
+<p>The latter is true only if the average value is known exactly. This is obtained in the limit
+<span class="math notranslate nohighlight">\(m\rightarrow \infty\)</span>  only. Because the mean and the variance are measured quantities we obtain
+the familiar expression in statistics</p>
+<div class="math notranslate nohighlight">
+\[
+\sigma_m\approx 
+\frac{\sigma}{\sqrt{m-1}}.
+\]</div>
+<p>In many cases however the above estimate for the standard deviation,
+in particular if correlations are strong, may be too simplistic. Keep
+in mind that we have assumed that the variables <span class="math notranslate nohighlight">\(x\)</span> are independent
+and identically distributed. This is obviously not always the
+case. For example, the random numbers (or better pseudorandom numbers)
+we generate in various calculations do always exhibit some
+correlations.</p>
+<p>The theorem is satisfied by a large class of PDFs. Note however that for a
+finite <span class="math notranslate nohighlight">\(m\)</span>, it is not always possible to find a closed form /analytic expression for
+<span class="math notranslate nohighlight">\(\tilde{p}(x)\)</span>.</p>
 </div>
 </div>
 <div class="section" id="the-bias-variance-tradeoff">
@@ -818,7 +923,7 @@ Var: 0.0010479246398391328
 0.01312157412031145 &gt;= 0.012073649480472317 + 0.0010479246398391328 = 0.01312157412031145
 </pre></div>
 </div>
-<img alt="_images/chapter3_37_1.png" src="_images/chapter3_37_1.png" />
+<img alt="_images/chapter3_57_1.png" src="_images/chapter3_57_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -910,10 +1015,9 @@ Error: 0.03781367141738898
 Bias^2: 0.03365768507152761
 Var: 0.004155986345861379
 0.03781367141738898 &gt;= 0.03365768507152761 + 0.004155986345861379 = 0.03781367141738899
-Polynomial degree:
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> 7
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Polynomial degree: 7
 Error: 0.027609773491022498
 Bias^2: 0.02299949826036597
 Var: 0.004610275230656537
@@ -923,15 +1027,14 @@ Error: 0.017355848195591973
 Bias^2: 0.010331721306655588
 Var: 0.007024126888936384
 0.017355848195591973 &gt;= 0.010331721306655588 + 0.007024126888936384 = 0.017355848195591973
-Polynomial degree: 9
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Polynomial degree: 9
 Error: 0.026605727637189085
 Bias^2: 0.010018312644140933
 Var: 0.016587414993048166
 0.026605727637189085 &gt;= 0.010018312644140933 + 0.016587414993048166 = 0.0266057276371891
-Polynomial degree:
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> 10
+Polynomial degree: 10
 Error: 0.021592704588043153
 Bias^2: 0.010516485576652981
 Var: 0.011076219011390184
@@ -946,14 +1049,16 @@ Error: 0.1154777721897675
 Bias^2: 0.01628578269590588
 Var: 0.09919198949386163
 0.1154777721897675 &gt;= 0.01628578269590588 + 0.09919198949386163 = 0.11547777218976751
-Polynomial degree: 13
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Polynomial degree: 13
 Error: 0.22842468702166951
 Bias^2: 0.01975416527163567
 Var: 0.20867052175003387
 0.22842468702166951 &gt;= 0.01975416527163567 + 0.20867052175003387 = 0.22842468702166954
 </pre></div>
 </div>
-<img alt="_images/chapter3_38_4.png" src="_images/chapter3_38_4.png" />
+<img alt="_images/chapter3_58_5.png" src="_images/chapter3_58_5.png" />
 </div>
 </div>
 <p>The bias-variance tradeoff summarizes the fundamental tension in
@@ -1078,7 +1183,7 @@ set, the higher, the less likely the model generalizes correctly from the
 training data.
 </pre></div>
 </div>
-<img alt="_images/chapter3_40_1.png" src="_images/chapter3_40_1.png" />
+<img alt="_images/chapter3_60_1.png" src="_images/chapter3_60_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -1185,84 +1290,86 @@ Mean squared error on test data: 5.98822371
 Degree of polynomial:   6
 Mean squared error on training data: 3.66204648
 Mean squared error on test data: 8.14812206
-Degree of polynomial:   7
-Mean squared error on training data: 0.47075725
-Mean squared error on test data: 2.00607783
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:   8
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:   7
+Mean squared error on training data: 0.47075725
+Mean squared error on test data: 2.00607783
+Degree of polynomial:   8
 Mean squared error on training data: 0.04912436
 Mean squared error on test data: 0.21596432
 Degree of polynomial:   9
 Mean squared error on training data: 0.02522069
 Mean squared error on test data: 0.08576932
-Degree of polynomial:  10
-Mean squared error on training data: 0.02511518
-Mean squared error on test data: 1.20015436
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  11
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  10
+Mean squared error on training data: 0.02511518
+Mean squared error on test data: 1.20015436
+Degree of polynomial:  11
 Mean squared error on training data: 0.01640891
 Mean squared error on test data: 1.35533773
 Degree of polynomial:  12
 Mean squared error on training data: 0.00813803
 Mean squared error on test data: 0.17446471
-Degree of polynomial:  13
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  13
 Mean squared error on training data: 0.00759119
 Mean squared error on test data: 1.08131003
 Degree of polynomial:  14
 Mean squared error on training data: 0.00472199
 Mean squared error on test data: 0.81333793
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  15
+Degree of polynomial:  15
 Mean squared error on training data: 0.00410478
 Mean squared error on test data: 92.09145189
-Degree of polynomial:  16
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  16
 Mean squared error on training data: 0.00315593
 Mean squared error on test data: 234.39716546
 Degree of polynomial:  17
 Mean squared error on training data: 0.00242998
 Mean squared error on test data: 1271.05295709
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  18
+Degree of polynomial:  18
 Mean squared error on training data: 0.00228740
 Mean squared error on test data: 108.42208194
-Degree of polynomial:  19
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  19
 Mean squared error on training data: 0.00156372
 Mean squared error on test data: 1388.41078073
 Degree of polynomial:  20
 Mean squared error on training data: 0.00137982
 Mean squared error on test data: 1761.43341615
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  21
+Degree of polynomial:  21
 Mean squared error on training data: 0.00118170
 Mean squared error on test data: 15061.31603087
-Degree of polynomial:  22
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  22
 Mean squared error on training data: 0.00092354
 Mean squared error on test data: 890.63488525
 Degree of polynomial:  23
 Mean squared error on training data: 0.00085887
 Mean squared error on test data: 5483.16796929
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  24
+Degree of polynomial:  24
 Mean squared error on training data: 0.00084589
 Mean squared error on test data: 1695.57143061
-Degree of polynomial:  25
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  25
 Mean squared error on training data: 0.00078806
 Mean squared error on test data: 131343.30655001
 Degree of polynomial:  26
 Mean squared error on training data: 0.00076916
 Mean squared error on test data: 17709.14370264
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  27
+Degree of polynomial:  27
 Mean squared error on training data: 0.00068970
 Mean squared error on test data: 2975.38903780
-Degree of polynomial:  28
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Degree of polynomial:  28
 Mean squared error on training data: 0.00062588
 Mean squared error on test data: 3848.64522721
 Degree of polynomial:  29
@@ -1276,7 +1383,7 @@ Mean squared error on test data: 2988.64001211
   plt.plot(polynomial, np.log10(testerror), label=&#39;Test Error&#39;)
 </pre></div>
 </div>
-<img alt="_images/chapter3_41_10.png" src="_images/chapter3_41_10.png" />
+<img alt="_images/chapter3_61_11.png" src="_images/chapter3_61_11.png" />
 </div>
 </div>
 </div>
@@ -1429,7 +1536,7 @@ cross-validation (LOOCV).</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/chapter3_47_0.png" src="_images/chapter3_47_0.png" />
+<img alt="_images/chapter3_67_0.png" src="_images/chapter3_67_0.png" />
 </div>
 </div>
 <p>More examples of the application of cross-validation follow here.</p>
@@ -1510,7 +1617,7 @@ cross-validation (LOOCV).</p>
   plt.plot(polynomial, np.log10(estimated_mse_sklearn), label=&#39;Test Error&#39;)
 </pre></div>
 </div>
-<img alt="_images/chapter3_49_1.png" src="_images/chapter3_49_1.png" />
+<img alt="_images/chapter3_69_1.png" src="_images/chapter3_69_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -1554,7 +1661,7 @@ cross-validation (LOOCV).</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/chapter3_50_0.png" src="_images/chapter3_50_0.png" />
+<img alt="_images/chapter3_70_0.png" src="_images/chapter3_70_0.png" />
 </div>
 </div>
 </div>
@@ -1643,7 +1750,7 @@ which polynomial fits the data best.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/chapter3_54_0.png" src="_images/chapter3_54_0.png" />
+<img alt="_images/chapter3_74_0.png" src="_images/chapter3_74_0.png" />
 </div>
 </div>
 <div class="section" id="exercise-ordinary-least-square-ols-on-the-franke-function">

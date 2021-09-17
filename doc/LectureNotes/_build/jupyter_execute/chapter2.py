@@ -2418,16 +2418,86 @@ plt.ylabel('MSE')
 plt.legend()
 plt.show()
 
-How can we understand this?  **More text to be added**.
+How can we understand this?
+
+Let us write out the values of the coefficients $\beta_i$ as functions
+of the polynomial degree and noise. We will focus only on the Ridge
+results and some few selected values of the hyperparameter $\lambda$.
+
+If we don't include any noise and run this code for different values
+of the polynomial degree, we notice that the results for $\beta_i$ do
+not show great changes from one order to the next. This is an
+indication that for higher polynomial orders, our parameters become
+less important.
+
+If we however add noise, what happens is that the polynomial fit is
+trying to adjust the fit to traverse in the best possible way all data
+points. This can lead to large fluctuations in the parameters
+$\beta_i$ as functions of polynomial order. It will also be reflected
+in a larger value of the variance of each parameter $\beta_i$.  What
+Ridge regression (and Lasso as well) are doing then is to try to
+quench the fluctuations in the parameters of $\beta_i$ which have a
+large variance (normally for higher orders in the polynomial).
+
+import numpy as np
+import pandas as pd
+from IPython.display import display
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+# Make data set.
+n = 1000
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
+
+Maxpolydegree = 5
+X = np.zeros((len(x),Maxpolydegree))
+X[:,0] = 1.0
+
+for polydegree in range(1, Maxpolydegree):
+    for degree in range(polydegree):
+        X[:,degree] = x**(degree)
+
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Decide which values of lambda to use
+nlambdas = 5
+lambdas = np.logspace(-3, 2, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    # Make the fit using Ridge only
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
+    RegRidge.fit(X_train,y_train)
+    # and then make the prediction
+    ypredictRidge = RegRidge.predict(X_test)
+    Coeffs = np.array(RegRidge.coef_)
+    BetaValues = pd.DataFrame(Coeffs)
+    BetaValues.columns = ['beta']
+    display(BetaValues)
+
+As an exercise, repeat these calculations with ordinary least squares
+only with and without noise. Calculate thereafter the variance of the
+parameters $\beta_j$ as function of polynomial order and of the added
+noise. Here we recommend to use $\sigma^2=1$ as variance for the
+added noise (which follows a normal distribution with mean value zero).
+Comment your results. If you have a large noise term, do the parameters $\beta_j$ vary more as function
+model complexity? And what about their variance? 
+
 
 
 
 ## Linking Bayes' Theorem with Ridge and Lasso Regression
 
+We have seen that Ridge regression suppresses those features which
+have a small singular value. This corresponds to a feature which exhibits
+a large variance in the parameters $\beta_j$.
+Our analysis hitherto has been based on linear algebra. To add to our intuition, we will use
+Bayes' theorem in order to deepen our understanding of  Ridge and Lasso regression. 
 
-Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 
-
-For ordinary least squares we postulated that the maximum likelihood for the doamin of events $\boldsymbol{D}$ (one-dimensional case)
+For ordinary least squares we postulated that the maximum likelihood for the domain of events $\boldsymbol{D}$ (one-dimensional case)
 
 $$
 \boldsymbol{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})],
@@ -2459,7 +2529,10 @@ With the posterior probability defined by a likelihood which we have
 already modeled and an unknown prior, we are now ready to make
 additional models for the prior.
 
-We can, based on our discussions of the variance of $\boldsymbol{\beta}$ and the mean value, assume that the prior for the values $\boldsymbol{\beta}$ is given by a Gaussian with mean value zero and variance $\tau^2$, that is
+We can, based on our discussions of the variance of $\boldsymbol{\beta}$ and
+the mean value, assume that the prior for the values $\boldsymbol{\beta}$ is
+given by a Gaussian with mean value zero and variance $\tau^2$, that
+is
 
 $$
 p(\boldsymbol{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
@@ -2474,7 +2547,7 @@ $$
 We can now optimize this quantity with respect to $\boldsymbol{\beta}$. As we
 did for OLS, this is most conveniently done by taking the negative
 logarithm of the posterior probability. Doing so and leaving out the
-constants terms that do not depend on $\beta$, we have
+terms that do not depend on $\beta$, we have
 
 $$
 C(\boldsymbol{\beta})=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{2\tau^2}\vert\vert\boldsymbol{\beta}\vert\vert_2^2,
@@ -2515,4 +2588,13 @@ $$
 C(\boldsymbol{\beta}=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
 $$
 
-which is our Lasso cost function!
+which is our Lasso cost function!  
+
+
+Plotting these prior functions shows us that we can use the parameter
+$\lambda$ to shrink or increase the role of a given parameter
+$\beta_j$.  The variance for the Laplace distribution is
+$2\tau^2=1/\lambda$ while for the Gaussian distribution it is
+$\sigma^2=1/(2\lambda)$. Thus, increasing the variance means
+decreasing $\lambda$ and shrinking the variance means increasing
+$\lamdbda$. When we increase $\lambda$, this corresponds to shrinking the role of less important features (small singular values).
