@@ -235,6 +235,10 @@ This course will be delivered in a hybrid mode, with online lectures and on site
 7. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
 8. Weekly emails with summary of activities will be mailed to all participants;
 
+# Communication channels
+- Chat and communications via canvas.uio.no, GDPR safe
+- Slack channel: machinelearninguio.slack.com
+- Piazza : enlist at https:piazza.com/uio.no/fall2021/fysstk4155
 
 
 ##  Weekly Schedule
@@ -304,7 +308,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 ###  Week 38 September 20-24
 - Lab Wednesday: Work on  Project 1
 - Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
-- Lecture Friday: Logistic Regression and gradient optimization
+- Lecture Friday: Logistic Regression and start discussions of gradient optimization
 
 - Reading recommendations:
   - See lecture notes for week 38 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
