@@ -36,7 +36,6 @@ div { text-align: justify; text-justify: inter-word; }
 <!-- tocinfo
 {'highest level': 2,
  'sections': [('Plans for week 38', 2, None, 'plans-for-week-38'),
-              ('Thursday September 17', 2, None, 'thursday-september-17'),
               ('Ridge and LASSO Regression, reminder',
                2,
                None,
@@ -58,19 +57,10 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'code-example-for-cross-validation-and-k-fold-cross-validation'),
-              ('Bias-Variance tradeoff with Bootstrap',
+              ('More complicated Example: The Ising model',
                2,
                None,
-               'bias-variance-tradeoff-with-bootstrap'),
-              ("Another Example from Scikit-Learn's Repository",
-               2,
-               None,
-               'another-example-from-scikit-learn-s-repository'),
-              ('Cross-validation with Ridge',
-               2,
-               None,
-               'cross-validation-with-ridge'),
-              ('The Ising model', 2, None, 'the-ising-model'),
+               'more-complicated-example-the-ising-model'),
               ('Reformulating the problem to suit regression',
                2,
                None,
@@ -94,10 +84,6 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'finding-the-optimal-value-of-lambda'),
-              ('Friday September 18: Intro to Logistic Regression',
-               2,
-               None,
-               'friday-september-18-intro-to-logistic-regression'),
               ('Logistic Regression', 2, None, 'logistic-regression'),
               ('Classification problems', 2, None, 'classification-problems'),
               ('Optimization and Deep learning',
@@ -192,7 +178,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Sep 16, 2021</h4></center> <!-- date -->
+<center><h4>Sep 20, 2021</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -200,18 +186,10 @@ MathJax.Hub.Config({
 <h2 id="plans-for-week-38">Plans for week 38 </h2>
 
 <ul>
-<li> Thursday: Summary of regression methods and discussion of project 1. We revisit also cross-validation and bootstrap as resampling techniques with examples. Recommended reading: <a href="https://www.springer.com/gp/book/9780387848570" target="_blank">Hastie et al</a> chapters 3 and 7.1-7.6 and 7.10-7.12.</li>
-<li> Friday: Logistic Regression. Recommended reading: <a href="https://www.springer.com/gp/book/9780387848570" target="_blank">Hastie et al</a> chapters 4.1-4.4 and <a href="https://mitpress.mit.edu/books/machine-learning-1" target="_blank">Murphy</a> chapter 8.1-8.2</li>
+<li> Thursday: Summary of regression methods and discussion of project 1.  Start Logistic Regression</li>
+<li> Friday: Logistic Regression and Optimization methods</li>
 </ul>
 
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="thursday-september-17">Thursday September 17 </h2>
-
-<p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureSeptember17.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember17.pdf" target="_blank">link to handwritten notes</a>.
-
-<p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
 <h2 id="ridge-and-lasso-regression-reminder">Ridge and LASSO Regression, reminder </h2>
@@ -447,183 +425,7 @@ plt.show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="bias-variance-tradeoff-with-bootstrap">Bias-Variance tradeoff with Bootstrap </h2>
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression, Ridge, Lasso
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.pipeline</span> <span style="color: #8B008B; font-weight: bold">import</span> make_pipeline
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.utils</span> <span style="color: #8B008B; font-weight: bold">import</span> resample
-
-np.random.seed(<span style="color: #B452CD">2018</span>)
-
-n = <span style="color: #B452CD">40</span>
-n_boostraps = <span style="color: #B452CD">100</span>
-maxdegree = <span style="color: #B452CD">14</span>
-
-
-<span style="color: #228B22"># Make data set.</span>
-x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
-y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
-error = np.zeros(maxdegree)
-bias = np.zeros(maxdegree)
-variance = np.zeros(maxdegree)
-polydegree = np.zeros(maxdegree)
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=<span style="color: #B452CD">0.2</span>)
-
-<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(maxdegree):
-    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>))
-    y_pred = np.empty((y_test.shape[<span style="color: #B452CD">0</span>], n_boostraps))
-    <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_boostraps):
-        x_, y_ = resample(x_train, y_train)
-        y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
-
-    polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>))**<span style="color: #B452CD">2</span> )
-    variance[degree] = np.mean( np.var(y_pred, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) )
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Polynomial degree:&#39;</span>, degree)
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error[degree])
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias[degree])
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
-
-plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;Error&#39;</span>)
-plt.plot(polydegree, bias, label=<span style="color: #CD5555">&#39;bias&#39;</span>)
-plt.plot(polydegree, variance, label=<span style="color: #CD5555">&#39;Variance&#39;</span>)
-plt.legend()
-plt.show()
-</pre></div>
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="another-example-from-scikit-learn-s-repository">Another Example from Scikit-Learn's Repository </h2>
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #CD5555">&quot;&quot;&quot;</span>
-<span style="color: #CD5555">============================</span>
-<span style="color: #CD5555">Underfitting vs. Overfitting</span>
-<span style="color: #CD5555">============================</span>
-
-<span style="color: #CD5555">This example demonstrates the problems of underfitting and overfitting and</span>
-<span style="color: #CD5555">how we can use linear regression with polynomial features to approximate</span>
-<span style="color: #CD5555">nonlinear functions. The plot shows the function that we want to approximate,</span>
-<span style="color: #CD5555">which is a part of the cosine function. In addition, the samples from the</span>
-<span style="color: #CD5555">real function and the approximations of different models are displayed. The</span>
-<span style="color: #CD5555">models have polynomial features of different degrees. We can see that a</span>
-<span style="color: #CD5555">linear function (polynomial with degree 1) is not sufficient to fit the</span>
-<span style="color: #CD5555">training samples. This is called **underfitting**. A polynomial of degree 4</span>
-<span style="color: #CD5555">approximates the true function almost perfectly. However, for higher degrees</span>
-<span style="color: #CD5555">the model will **overfit** the training data, i.e. it learns the noise of the</span>
-<span style="color: #CD5555">training data.</span>
-<span style="color: #CD5555">We evaluate quantitatively **overfitting** / **underfitting** by using</span>
-<span style="color: #CD5555">cross-validation. We calculate the mean squared error (MSE) on the validation</span>
-<span style="color: #CD5555">set, the higher, the less likely the model generalizes correctly from the</span>
-<span style="color: #CD5555">training data.</span>
-<span style="color: #CD5555">&quot;&quot;&quot;</span>
-
-<span style="color: #658b00">print</span>(<span style="color: #00688B">__doc__</span>)
-
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.pipeline</span> <span style="color: #8B008B; font-weight: bold">import</span> Pipeline
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> cross_val_score
-
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">true_fun</span>(X):
-    <span style="color: #8B008B; font-weight: bold">return</span> np.cos(<span style="color: #B452CD">1.5</span> * np.pi * X)
-
-np.random.seed(<span style="color: #B452CD">0</span>)
-
-n_samples = <span style="color: #B452CD">30</span>
-degrees = [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">4</span>, <span style="color: #B452CD">15</span>]
-
-X = np.sort(np.random.rand(n_samples))
-y = true_fun(X) + np.random.randn(n_samples) * <span style="color: #B452CD">0.1</span>
-
-plt.figure(figsize=(<span style="color: #B452CD">14</span>, <span style="color: #B452CD">5</span>))
-<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(degrees)):
-    ax = plt.subplot(<span style="color: #B452CD">1</span>, <span style="color: #658b00">len</span>(degrees), i + <span style="color: #B452CD">1</span>)
-    plt.setp(ax, xticks=(), yticks=())
-
-    polynomial_features = PolynomialFeatures(degree=degrees[i],
-                                             include_bias=<span style="color: #8B008B; font-weight: bold">False</span>)
-    linear_regression = LinearRegression()
-    pipeline = Pipeline([(<span style="color: #CD5555">&quot;polynomial_features&quot;</span>, polynomial_features),
-                         (<span style="color: #CD5555">&quot;linear_regression&quot;</span>, linear_regression)])
-    pipeline.fit(X[:, np.newaxis], y)
-
-    <span style="color: #228B22"># Evaluate the models using crossvalidation</span>
-    scores = cross_val_score(pipeline, X[:, np.newaxis], y,
-                             scoring=<span style="color: #CD5555">&quot;neg_mean_squared_error&quot;</span>, cv=<span style="color: #B452CD">10</span>)
-
-    X_test = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">100</span>)
-    plt.plot(X_test, pipeline.predict(X_test[:, np.newaxis]), label=<span style="color: #CD5555">&quot;Model&quot;</span>)
-    plt.plot(X_test, true_fun(X_test), label=<span style="color: #CD5555">&quot;True function&quot;</span>)
-    plt.scatter(X, y, edgecolor=<span style="color: #CD5555">&#39;b&#39;</span>, s=<span style="color: #B452CD">20</span>, label=<span style="color: #CD5555">&quot;Samples&quot;</span>)
-    plt.xlabel(<span style="color: #CD5555">&quot;x&quot;</span>)
-    plt.ylabel(<span style="color: #CD5555">&quot;y&quot;</span>)
-    plt.xlim((<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>))
-    plt.ylim((-<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2</span>))
-    plt.legend(loc=<span style="color: #CD5555">&quot;best&quot;</span>)
-    plt.title(<span style="color: #CD5555">&quot;Degree {}\nMSE = {:.2e}(+/- {:.2e})&quot;</span>.format(
-        degrees[i], -scores.mean(), scores.std()))
-plt.show()
-</pre></div>
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="cross-validation-with-ridge">Cross-validation with Ridge </h2>
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> cross_val_score
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
-
-<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
-np.random.seed(<span style="color: #B452CD">3155</span>)
-<span style="color: #228B22"># Generate the data.</span>
-n = <span style="color: #B452CD">100</span>
-x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
-y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
-<span style="color: #228B22"># Decide degree on polynomial to fit</span>
-poly = PolynomialFeatures(degree = <span style="color: #B452CD">10</span>)
-
-<span style="color: #228B22"># Decide which values of lambda to use</span>
-nlambdas = <span style="color: #B452CD">500</span>
-lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">5</span>, nlambdas)
-<span style="color: #228B22"># Initialize a KFold instance</span>
-k = <span style="color: #B452CD">5</span>
-kfold = KFold(n_splits = k)
-estimated_mse_sklearn = np.zeros(nlambdas)
-i = <span style="color: #B452CD">0</span>
-<span style="color: #8B008B; font-weight: bold">for</span> lmb <span style="color: #8B008B">in</span> lambdas:
-    ridge = Ridge(alpha = lmb)
-    estimated_mse_folds = cross_val_score(ridge, x, y, scoring=<span style="color: #CD5555">&#39;neg_mean_squared_error&#39;</span>, cv=kfold)
-    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
-    i += <span style="color: #B452CD">1</span>
-plt.figure()
-plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = <span style="color: #CD5555">&#39;cross_val_score&#39;</span>)
-plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
-plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
-plt.legend()
-plt.show()
-</pre></div>
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="the-ising-model">The Ising model </h2>
+<h2 id="more-complicated-example-the-ising-model">More complicated Example: The Ising model </h2>
 
 <p>
 The one-dimensional Ising model with nearest neighbor interaction, no
@@ -1174,14 +976,6 @@ plt.show()
 From the above figure we can see that LASSO with \( \lambda = 10^{-2} \)
 achieves a very good accuracy on the test set. This by far surpasses the
 other models for all values of \( \lambda \).
-
-<p>
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-
-<h2 id="friday-september-18-intro-to-logistic-regression">Friday September 18: Intro to Logistic Regression </h2>
-
-<p>
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/LectureSeptember18.mp4?vrtx=view-as-webpage" target="_blank">Video of Lecture</a> and <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/NotesSeptember18.pdf" target="_blank">link to handwritten notes</a>.
 
 <p>
 <!-- !split  -->
