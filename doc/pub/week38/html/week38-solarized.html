@@ -57,6 +57,7 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'code-example-for-cross-validation-and-k-fold-cross-validation'),
+              ('To think about', 2, None, 'to-think-about'),
               ('More complicated Example: The Ising model',
                2,
                None,
@@ -420,6 +421,104 @@ plt.ylabel(<span style="color: #CD5555">&#39;mse&#39;</span>)
 
 plt.legend()
 
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="to-think-about">To think about </h2>
+
+<p>
+When you are comparing your own code with for example <b>Scikit-Learn</b>'s library, there are some minor things to keep in mind.
+The example here shows how one can leave out or keep the intercept.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">3155</span>)
+
+n = <span style="color: #B452CD">100</span>
+x = np.random.rand(n)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)
+
+Maxpolydegree = <span style="color: #B452CD">20</span>
+X = np.zeros((n,Maxpolydegree))
+X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> polydegree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>, Maxpolydegree):
+    <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(polydegree):
+        X[:,degree] = x**degree
+
+
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
+<span style="color: #658b00">print</span>(OLSbeta)
+<span style="color: #228B22"># and then make the prediction</span>
+ytildeOLS = X_train @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test MSE OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ypredictOLS))
+
+p = <span style="color: #658b00">len</span>(OLSbeta)
+I = np.eye(p,p)
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">4</span>
+MSEOwnRidgePredict = np.zeros(nlambdas)
+MSEOwnRidgeTrain = np.zeros(nlambdas)
+MSERidgePredict = np.zeros(nlambdas)
+MSERidgeTrain = np.zeros(nlambdas)
+
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    OwnRidgeBeta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    <span style="color: #228B22"># include lasso using Scikit-Learn</span>
+    <span style="color: #228B22"># Note: we include the intercept</span>
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>)
+    RegRidge.fit(X_train,y_train)
+    <span style="color: #228B22"># and then make the prediction</span>
+    ytildeOwnRidge = X_train @ OwnRidgeBeta
+    ypredictOwnRidge = X_test @ OwnRidgeBeta
+    ytildeRidge = RegRidge.predict(X_train)
+    ypredictRidge = RegRidge.predict(X_test)
+    MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
+    MSEOwnRidgeTrain[i] = MSE(y_train,ytildeOwnRidge)
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+    MSERidgeTrain[i] = MSE(y_train,ytildeRidge)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Beta values for own Ridge implementation&quot;</span>)
+    <span style="color: #658b00">print</span>(OwnRidgeBeta)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #658b00">print</span>(RegRidge.coef_)
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSEOwnRidgeTrain, label = <span style="color: #CD5555">&#39;MSE Ridge train&#39;</span>)
+plt.plot(np.log10(lambdas), MSEOwnRidgePredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+plt.plot(np.log10(lambdas), MSERidgeTrain, label = <span style="color: #CD5555">&#39;MSE Ridge train&#39;</span>)
+plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;r--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
 plt.show()
 </pre></div>
 <p>
