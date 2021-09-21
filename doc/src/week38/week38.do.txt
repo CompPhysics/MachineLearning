@@ -3,6 +3,141 @@ AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of
 DATE: today
 
 
+
+I dont think its expected that you do this if it hasn't been gone through in the lectures or the curriculum, but anyways:
+
+
+
+
+Yes, it could be a bad idea to include the intercept column for the exact reason you stated. If no transformation is applied to your data, the intercept can be interpreted as the expected value of your target variable when all your predictors are put to zero. Therefore, whenever you cannot assume that the expected target variable is zero when all your predictors are zero, it could be a bad idea to apply a model which penalizes the intercept. Also, the analytical solution to the ridge regression coefficients (when not shrinking $$\beta_0$$) is derived under the assumption that both y and X are zero centered (mean subtracted). What you are doing is correct, but you should also zero center X (subtracting the mean of each column from the corresponding column). 
+
+If your predictors are of different scales, I would advice you to standardize X by subtracting the mean of each column from the corresponding column and dividing the column with its standard deviation. If you dont do this, you will give an "unfair" penalization of the parameters since their magnitude depends on the scale of their corresponding predictor. Suppose that you have an input variable "height". Human height might be measured in inches or meters or kilometers. If measured in kilometers, a standard linear regression model with this predictor would probably give a much bigger coefficient term, than if measured in millimeters. You may see how this could become a problem when considering the loss function for ridge regression.
+
+
+
+
+Remember that when you do any transformation to your dataset before training, the exact same transformation has to be applied to new data before making a prediction. In your case, this means:
+
+#Model training:
+y_train_mean = np.mean(y_train)
+X_train_mean = np.mean(X_train,axis=0)
+X_train = X_train - X_train_mean
+y_train = y_train - y_train_mean
+
+trained_model = some_model.fit(X_train,y_train)
+
+#Model prediction:
+X_test = X_test - X_train_mean #Use mean from training data
+
+
+y_pred = trained_model(X_test)
+y_pred = y_pred + y_train_mean
+
+
+
+
+Here is a mathematical explanation of the zero centering:
+
+
+
+
+The loss for ridge regression is:
+
+
+
+
+$$L(\beta_0, \beta_1, ... , \beta_P) = \sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip}\beta_p)^2 + \lambda \sum_{p=1}^P \beta_p^2$$
+
+
+
+
+Notice that the intercept is left out of the L2 regularization term. $$X$$ does in this case not contain any intercept column. We want 
+
+$$ \frac{\partial L}{\partial \beta_j} = 0 $$
+
+for all j, so lets start with $$\beta_0$$:
+
+
+
+
+$$\frac{\partial L}{\partial \beta_0} = -2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p) $$
+
+
+
+
+We want to solve
+
+$$ -2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p) = 0 $$
+
+
+
+
+which gives 
+
+$$ \sum_{i=1}^{n} \beta_0 = \sum_{i=1}^{n}y_i - \sum_{i=1}^{n} \sum_{p=1}^P X_{ip} \beta_p $$
+
+
+
+
+or
+
+
+
+
+$$ n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip}$$
+
+
+
+
+If we assume that every column of $$X$$ is centered, which we can do by subtracting the mean,
+
+X = X - np.mean(X,axis=0)
+
+the sum
+
+$$ \sum_{i=1}^{n} X_{ip} $$
+
+can be rewritten as
+
+$$ \sum_{i=1}^{n} (X_{ip} - \frac{1}{n}\sum_{i=1}^{n} X_{ip}) = \sum_{i=1}^{n} X_{ip} - \sum_{i=1}^{n} \frac{1}{n} \sum_{i=1}^{n}X_{ip}$$
+
+$$ = \sum_{i=1}^{n} X_{ip} - n \frac{1}{n} \sum_{i=1}^{n}X_{ip} = 0 $$
+
+
+
+
+Finally we have
+
+
+
+
+$$n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip}$$
+
+$$ \beta_0 = \frac{1}{n}\sum_{i=1}^{n} y_i = y_{average} $$
+
+
+
+
+Replacing $$y_i$$ with $$y_i - \beta_0 = y_i - y_{average}$$ in the loss function will give us (written in vector notation)
+
+$$L(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}) + \lambda \boldsymbol{\beta}^T\boldsymbol{\beta}$$
+
+
+
+
+which has the solution you stated
+
+$$\beta = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}$$
+
+
+
+
+where $$\boldsymbol{\tilde{y}} = \boldsymbol{y} - y_{average}$$
+
+and $$\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=1}^{n-1}X_{kj} $$
+
+
+
 !split
 ===== Plans for week 38 =====
 
