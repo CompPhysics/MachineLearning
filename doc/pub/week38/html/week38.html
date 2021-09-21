@@ -62,7 +62,10 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'code-example-for-cross-validation-and-k-fold-cross-validation'),
-              ('To think about', 2, None, 'to-think-about'),
+              ('To think about, first part',
+               2,
+               None,
+               'to-think-about-first-part'),
               ('More complicated Example: The Ising model',
                2,
                None,
@@ -431,11 +434,153 @@ plt<span style="color: #666666">.</span>show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="to-think-about">To think about </h2>
+<h2 id="to-think-about-first-part">To think about, first part </h2>
 
 <p>
-When you are comparing your own code with for example <b>Scikit-Learn</b>'s library, there are some minor things to keep in mind.
-The example here shows how one can keep the intercept in order to compare own code.
+When you are comparing your own code with for example <b>Scikit-Learn</b>'s
+library, there are some things to keep in mind.  The examples
+here demonstrate some of these aspects with potential pitfalls.
+
+<p>
+The discussion here focuses on the role of the intercept, how we can
+set up the design matrix, what scaling we should use and other topics
+which may confuse us.
+
+<p>
+Yes, it could be a bad idea to include the intercept column for the
+exact reason you stated. If no transformation is applied to your&#160;data,
+the intercept can be interpreted as the expected value of your target
+variable when all your predictors are put to zero. Therefore, whenever
+you cannot assume that the expected target variable is zero when all
+your predictors are zero, it could be a bad idea to apply a model
+which penalizes the intercept. Also, the analytical solution to the
+ridge regression coefficients (when not shrinking $$\beta_0$$) is
+derived&#160;under the assumption that both y and X are zero centered (mean
+subtracted). What you are doing is correct, but you should&#160;also zero
+center X (subtracting the mean of each column from the corresponding
+column).&#160;
+
+<p>
+If your predictors&#160;are of different&#160;scales, I would advice you to
+standardize&#160;X by&#160;subtracting the mean of each column from the
+corresponding column and dividing the column with its standard
+deviation.&#160;If you dont do this, you will give an "unfair"&#160;penalization
+of the parameters since their magnitude&#160;depends on the scale of their
+corresponding&#160;predictor.&#160;Suppose that you have an input&#160;variable
+"height". Human height might be measured in inches or meters or
+kilometers. If measured in kilometers, a&#160;standard linear regression
+model with this predictor would probably give a much bigger
+coefficient term, than if measured in millimeters. You may&#160;see how
+this could become a problem when considering the loss function for
+ridge regression.
+
+<p>
+Remember that when you do any transformation to your dataset before
+training, the exact same transformation has to be applied to new data
+before making a prediction. In your case, this means:
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #408080; font-style: italic">#Model training:</span>
+y_train_mean <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(y_train)
+X_train_mean <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(X_train,axis<span style="color: #666666">=0</span>)
+X_train <span style="color: #666666">=</span> X_train <span style="color: #666666">-</span> X_train_mean
+y_train <span style="color: #666666">=</span> y_train <span style="color: #666666">-</span> y_train_mean
+
+trained_model <span style="color: #666666">=</span> some_model<span style="color: #666666">.</span>fit(X_train,y_train)
+
+<span style="color: #408080; font-style: italic">#Model prediction:</span>
+X_test <span style="color: #666666">=</span> X_test <span style="color: #666666">-</span> X_train_mean <span style="color: #408080; font-style: italic">#Use mean from training data</span>
+y_pred <span style="color: #666666">=</span> trained_model(X_test)
+y_pred <span style="color: #666666">=</span> y_pred <span style="color: #666666">+</span> y_train_mean
+</pre></div>
+<p>
+Here is a mathematical explanation of the&#160;zero centering:
+
+<p>
+The cost/loss function  for Ridge regression is:
+
+$$
+C(\beta_0, \beta_1, ... , \beta_P) = \sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip}\beta_p)^2 + \lambda \sum_{p=1}^P \beta_p^2.
+$$
+
+<p>
+Notice that the intercept is left out of the \( L_2 \) regularization term. The design matrix
+\( X \) does in this case not contain any intercept column. We want
+
+$$
+\frac{\partial L}{\partial \beta_j} = 0,
+$$
+
+<p>
+for all \( j \), so lets start with \( \beta_0 \). This means that we have
+
+$$
+\frac{\partial L}{\partial \beta_0} = -2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p).
+$$
+
+<p>
+We want to solve
+$$
+-2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p) = 0,
+$$
+
+<p>
+which gives
+$$
+\sum_{i=1}^{n} \beta_0 = \sum_{i=1}^{n}y_i - \sum_{i=1}^{n} \sum_{p=1}^P X_{ip} \beta_p,
+$$
+
+<p>
+or
+$ n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip}$.
+
+<p>
+If we assume that every column of \( X \) is centered, whic we can do by subtracting the mean,
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>X <span style="color: #666666">=</span> X <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(X,axis<span style="color: #666666">=0</span>)
+</pre></div>
+<p>
+the sum $ \sum_{i=1}^{n} X_{ip} $
+
+<p>
+can be rewritten as
+$$
+\sum_{i=1}^{n} (X_{ip} - \frac{1}{n}\sum_{i=1}^{n} X_{ip}) = \sum_{i=1}^{n} X_{ip} - \sum_{i=1}^{n} \frac{1}{n} \sum_{i=1}^{n}X_{ip},
+$$
+
+resulting in
+$$
+\sum_{i=1}^{n} X_{ip} - n \frac{1}{n} \sum_{i=1}^{n}X_{ip} = 0.
+$$
+
+<p>
+Finally we have
+$$
+n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip},
+$$
+
+or
+$$
+\beta_0 = \frac{1}{n}\sum_{i=1}^{n} y_i = y_{average}.
+$$
+
+<p>
+Replacing \( y_i \) with \( y_i - \beta_0 = y_i - y_{average} \) in the loss function will give us (in vector-matrix disguise)
+$$
+C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}) + \lambda \boldsymbol{\beta}^T\boldsymbol{\beta},
+$$
+
+<p>
+which has the solution
+
+<p>
+\( \beta = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}} \).
+where \( \boldsymbol{\tilde{y}} = \boldsymbol{y} - y_{average} \)
+and \( \tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=1}^{n-1}X_{kj} \).
 
 <p>
 
@@ -524,6 +669,183 @@ plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</s
 plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;log10(lambda)&#39;</span>)
 plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
 plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> linear_model
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">R2</span>(y_data, y_model):
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> y_model) <span style="color: #666666">**</span> <span style="color: #666666">2</span>) <span style="color: #666666">/</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_data)) <span style="color: #666666">**</span> <span style="color: #666666">2</span>)
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
+
+
+<span style="color: #408080; font-style: italic"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #408080; font-style: italic"># Useful for eventual debugging.</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">315</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)
+
+Maxpolydegree <span style="color: #666666">=</span> <span style="color: #666666">5</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((n,Maxpolydegree<span style="color: #666666">-1</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,Maxpolydegree): <span style="color: #408080; font-style: italic">#No intercept column</span>
+    X[:,degree<span style="color: #666666">-1</span>] <span style="color: #666666">=</span> x<span style="color: #666666">**</span>(degree)
+
+
+
+
+<span style="color: #408080; font-style: italic"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.2</span>)
+
+
+
+
+
+<span style="color: #408080; font-style: italic">#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable</span>
+X_train_mean <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(X_train,axis<span style="color: #666666">=0</span>)
+X_train_scaled <span style="color: #666666">=</span> X_train <span style="color: #666666">-</span> X_train_mean <span style="color: #408080; font-style: italic">#Center by removing mean from each feature</span>
+X_test_scaled <span style="color: #666666">=</span> X_test <span style="color: #666666">-</span> X_train_mean
+
+y_scaler <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(y_train)           <span style="color: #408080; font-style: italic">#The model intercept (called y_scaler) is given by the mean of target variable (IF X is centered)</span>
+y_train_scaled <span style="color: #666666">=</span> y_train <span style="color: #666666">-</span> y_scaler   <span style="color: #408080; font-style: italic">#Remove the intercept from the training data.</span>
+
+
+p <span style="color: #666666">=</span> Maxpolydegree<span style="color: #666666">-1</span>
+I <span style="color: #666666">=</span> np<span style="color: #666666">.</span>eye(p,p)
+<span style="color: #408080; font-style: italic"># Decide which values of lambda to use</span>
+nlambdas <span style="color: #666666">=</span> <span style="color: #666666">4</span>
+MSEOwnRidgePredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+MSERidgePredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+
+lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-4</span>, <span style="color: #666666">1</span>, nlambdas)
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(nlambdas):
+    lmb <span style="color: #666666">=</span> lambdas[i]
+    OwnRidgeBeta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(X_train_scaled<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X_train_scaled<span style="color: #666666">+</span>lmb<span style="color: #666666">*</span>I) <span style="color: #666666">@</span> X_train_scaled<span style="color: #666666">.</span>T <span style="color: #666666">@</span> (y_train_scaled)
+    intercept_ <span style="color: #666666">=</span> y_scaler <span style="color: #666666">-</span> X_train_mean<span style="color: #AA22FF">@OwnRidgeBeta</span> <span style="color: #408080; font-style: italic">#The intercept can be shifted so the model can predict on uncentered data</span>
+    
+    ypredictOwnRidge <span style="color: #666666">=</span> X_test <span style="color: #666666">@</span> OwnRidgeBeta <span style="color: #666666">+</span> intercept_ <span style="color: #408080; font-style: italic">#Add intercept to prediction</span>
+    <span style="color: #408080; font-style: italic">#EQUIVALENT PREDICTION:</span>
+    ypredictOwnRidge <span style="color: #666666">=</span> X_test_scaled <span style="color: #666666">@</span> OwnRidgeBeta <span style="color: #666666">+</span> y_scaler <span style="color: #408080; font-style: italic">#Add intercept to prediction</span>
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Values for own Ridge prediction&quot;</span>)
+    <span style="color: #008000">print</span>(ypredictOwnRidge)
+
+    
+
+    RegRidge <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>Ridge(lmb)
+    RegRidge<span style="color: #666666">.</span>fit(X_train,y_train)
+    ypredictRidge <span style="color: #666666">=</span> RegRidge<span style="color: #666666">.</span>predict(X_test)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Values for SL Ridge prediction&quot;</span>)
+    <span style="color: #008000">print</span>(ypredictRidge)
+
+
+    MSEOwnRidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictOwnRidge)
+    MSERidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictRidge)
+
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for own Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(OwnRidgeBeta) <span style="color: #408080; font-style: italic">#Intercept is given by mean of target variable</span>
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(RegRidge<span style="color: #666666">.</span>coef_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Intercept from own implementation:&#39;</span>)
+    <span style="color: #008000">print</span>(intercept_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Intercept from Scikit-Learn Ridge implementation&#39;</span>)
+    <span style="color: #008000">print</span>(RegRidge<span style="color: #666666">.</span>intercept_)
+
+
+
+<span style="color: #408080; font-style: italic"># Now plot the results</span>
+
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSEOwnRidgePredict, <span style="color: #BA2121">&#39;b--&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE own Ridge Test&#39;</span>)
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSERidgePredict, <span style="color: #BA2121">&#39;g--&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE SL Ridge Test&#39;</span>)
+
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;log10(lambda)&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre></div>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression
+
+
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">2021</span>)
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">fit_beta</span>(X, y):
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X) <span style="color: #666666">@</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y
+
+
+true_beta <span style="color: #666666">=</span> [<span style="color: #666666">2</span>, <span style="color: #666666">0.5</span>, <span style="color: #666666">3.7</span>]
+
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">11</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>sum(
+    np<span style="color: #666666">.</span>asarray([x <span style="color: #666666">**</span> p <span style="color: #666666">*</span> b <span style="color: #008000; font-weight: bold">for</span> p, b <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(true_beta)]), axis<span style="color: #666666">=0</span>
+) <span style="color: #666666">+</span> <span style="color: #666666">0.1</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(size<span style="color: #666666">=</span><span style="color: #008000">len</span>(x))
+
+degree <span style="color: #666666">=</span> <span style="color: #666666">3</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(x), degree))
+
+<span style="color: #408080; font-style: italic"># Include the intercept in the design matrix</span>
+<span style="color: #008000; font-weight: bold">for</span> p <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(degree):
+    X[:, p] <span style="color: #666666">=</span> x <span style="color: #666666">**</span> p
+
+beta <span style="color: #666666">=</span> fit_beta(X, y)
+
+<span style="color: #408080; font-style: italic"># Intercept is included in the design matrix</span>
+clf <span style="color: #666666">=</span> LinearRegression(fit_intercept<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)<span style="color: #666666">.</span>fit(X, y)
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;True beta: </span><span style="color: #BB6688; font-weight: bold">{</span>true_beta<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Fitted beta: </span><span style="color: #BB6688; font-weight: bold">{</span>beta<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sklearn fitted beta: </span><span style="color: #BB6688; font-weight: bold">{</span>clf<span style="color: #666666">.</span>coef_<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+
+
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>scatter(x, y, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Data&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, X <span style="color: #666666">@</span> beta, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Fit&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, clf<span style="color: #666666">.</span>predict(X), label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Sklearn (fit_intercept=False)&quot;</span>)
+
+
+<span style="color: #408080; font-style: italic"># Do not include the intercept in the design matrix</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(x), degree <span style="color: #666666">-</span> <span style="color: #666666">1</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> p <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(degree <span style="color: #666666">-</span> <span style="color: #666666">1</span>):
+    X[:, p] <span style="color: #666666">=</span> x <span style="color: #666666">**</span> (p <span style="color: #666666">+</span> <span style="color: #666666">1</span>)
+
+<span style="color: #408080; font-style: italic"># Intercept is not included in the design matrix</span>
+clf <span style="color: #666666">=</span> LinearRegression(fit_intercept<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>)<span style="color: #666666">.</span>fit(X, y)
+
+<span style="color: #408080; font-style: italic"># Use centered values for X and y when computing coefficients</span>
+y_offset <span style="color: #666666">=</span> np<span style="color: #666666">.</span>average(y, axis<span style="color: #666666">=0</span>)
+X_offset <span style="color: #666666">=</span> np<span style="color: #666666">.</span>average(X, axis<span style="color: #666666">=0</span>)
+
+beta <span style="color: #666666">=</span> fit_beta(X <span style="color: #666666">-</span> X_offset, y <span style="color: #666666">-</span> y_offset)
+intercept <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(y_offset <span style="color: #666666">-</span> X_offset <span style="color: #666666">@</span> beta)
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Manual intercept: </span><span style="color: #BB6688; font-weight: bold">{</span>intercept<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Fitted beta (sans intercept): </span><span style="color: #BB6688; font-weight: bold">{</span>beta<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sklearn intercept: </span><span style="color: #BB6688; font-weight: bold">{</span>clf<span style="color: #666666">.</span>intercept_<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sklearn fitted beta (sans intercept): </span><span style="color: #BB6688; font-weight: bold">{</span>clf<span style="color: #666666">.</span>coef_<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+
+plt<span style="color: #666666">.</span>plot(x, X <span style="color: #666666">@</span> beta <span style="color: #666666">+</span> intercept, <span style="color: #BA2121">&quot;--&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Fit (manual intercept)&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, clf<span style="color: #666666">.</span>predict(X), <span style="color: #BA2121">&quot;--&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Sklearn (fit_intercept=True)&quot;</span>)
+plt<span style="color: #666666">.</span>grid()
+plt<span style="color: #666666">.</span>legend()
+
 plt<span style="color: #666666">.</span>show()
 </pre></div>
 <p>

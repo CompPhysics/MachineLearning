@@ -56,9 +56,15 @@ lambdas = np.logspace(-4, 1, nlambdas)
 for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)
-    ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler #Add intercept (y_scaler) to prediction
+    intercept_ = y_scaler - X_train_mean@OwnRidgeBeta #The intercept can be shifted so the model can predict on uncentered data
+    
+    ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ #Add intercept to prediction
+    #EQUIVALENT PREDICTION:
+    ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler #Add intercept to prediction
     print("Values for own Ridge prediction")
     print(ypredictOwnRidge)
+
+    
 
     RegRidge = linear_model.Ridge(lmb)
     RegRidge.fit(X_train,y_train)
@@ -75,9 +81,11 @@ for i in range(nlambdas):
     print("Beta values for Scikit-Learn Ridge implementation")
     print(RegRidge.coef_)
     print('Intercept from own implementation:')
-    print(y_scaler)
+    print(intercept_)
     print('Intercept from Scikit-Learn Ridge implementation')
     print(RegRidge.intercept_)
+
+
 
 # Now plot the results
 
