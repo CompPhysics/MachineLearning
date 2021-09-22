@@ -94,10 +94,13 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'linear-regression-code-intercept-handling-first'),
-              ('What does centering mean mathematically?',
+              ('What does centering (subtracting the mean values) mean '
+               'mathematically?',
                2,
                None,
-               'what-does-centering-mean-mathematically'),
+               'what-does-centering-subtracting-the-mean-values-mean-mathematically'),
+              ('Code Examples', 2, None, 'code-examples'),
+              ('Taking out the mean', 2, None, 'taking-out-the-mean'),
               ('More complicated Example: The Ising model',
                2,
                None,
@@ -616,14 +619,16 @@ Furthermore, in for example Ridge and Lasso regression, the solutions
 If our predictors&#160;represent different&#160;scales, then it is important to
 standardize the design matrix \( \boldsymbol{X} \) by subtracting the mean of each
 column from the corresponding column and dividing the column with its
-standard deviation.
+standard deviation. Most machine learning libraries do this as a deafult. This means that if you compare your code with the results from a given library,
+the results may differ. Tracing back the differences may often lead to an increased confusion.
 
 <p>
 The
 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html" target="_blank">Standadscaler</a>
 function in <b>Scikit-Learn</b> does this for us.  For the data sets we
 have been studying in our various examples, the data are in many cases
-already scaled and there is no need to scale them.
+already scaled and there is no need to scale them. You as a user of different machine learning algorithms, should always perform  a
+survey of your data, with a critical assessment of them in case you need to scale the data.
 
 <p>
 If you need to scale the data, not doing so will give an <em>unfair</em>
@@ -672,7 +677,7 @@ y_pred = y_pred + y_train_mean
 <h2 id="linear-regression-code-intercept-handling-first">Linear Regression code, Intercept handling first </h2>
 
 <p>
-This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (<em>code example thanks to  &#216;yvind Sigmundson Sch&#248;yen</em>)
+This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (<em>code example thanks to  &#216;yvind Sigmundson Sch&#248;yen</em>). Here our scaling of the data is done by subtracting the mean values only.
 
 <p>
 
@@ -751,81 +756,72 @@ plt.show()
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="what-does-centering-mean-mathematically">What does centering mean mathematically? </h2>
-Here is a mathematical explanation of the&#160;zero centering:
+<h2 id="what-does-centering-subtracting-the-mean-values-mean-mathematically">What does centering (subtracting the mean values) mean mathematically? </h2>
 
 <p>
-The cost/loss function  for Ridge regression is:
+Let us try to understand what this may imply mathematically when we subtract the mean values, also known as <em>zero centering</em>. To catch many birds with just one stone, we will focus on Ridge regression.
 
+<p>
+The cost/loss function  for Ridge regression is
 $$
-C(\beta_0, \beta_1, ... , \beta_P) = \sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip}\beta_p)^2 + \lambda \sum_{p=1}^P \beta_p^2.
+C(\beta_0, \beta_1, ... , \beta_{p-1}) = \sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2 + \lambda \sum_{j=1}^{p-1} \beta_i^2.
 $$
 
 <p>
-Notice that the intercept is left out of the \( L_2 \) regularization term. The design matrix
+Note that the intercept term $\beta_0$is left out of the \( L_2 \) regularization term. The design matrix
 \( X \) does in this case not contain any intercept column. We want
 
 $$
-\frac{\partial L}{\partial \beta_j} = 0,
+\frac{\partial C}{\partial \beta_j} = 0,
 $$
 
 <p>
-for all \( j \), so lets start with \( \beta_0 \). This means that we have
+for all \( j \), so let us start with \( \beta_0 \). This means that we have
 
 $$
-\frac{\partial L}{\partial \beta_0} = -2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p).
-$$
-
-<p>
-We want to solve
-$$
--2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p) = 0,
+\frac{\partial C}{\partial \beta_0} = -2\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right),
 $$
 
 <p>
 which gives
 $$
-\sum_{i=1}^{n} \beta_0 = \sum_{i=1}^{n}y_i - \sum_{i=1}^{n} \sum_{p=1}^P X_{ip} \beta_p,
+\sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
 $$
 
 <p>
-or
-$ n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip}$.
-
-<p>
-If we assume that every column of \( X \) is centered, whic we can do by subtracting the mean,
+If we assume that every column of \( \boldsymbol{X} \) is centered, which we can do by subtracting the mean,
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
 <div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span>X = X - np.mean(X,axis=<span style="color: #B452CD">0</span>)
 </pre></div>
 <p>
-the sum $ \sum_{i=1}^{n} X_{ip} $
-
-<p>
+the sum \( \sum_{i=0}^{n-1} X_{ij} \)
 can be rewritten as
 $$
-\sum_{i=1}^{n} (X_{ip} - \frac{1}{n}\sum_{i=1}^{n} X_{ip}) = \sum_{i=1}^{n} X_{ip} - \sum_{i=1}^{n} \frac{1}{n} \sum_{i=1}^{n}X_{ip},
+\sum_{i=0}^{n-1} \left(X_{ij} - \frac{1}{n}\sum_{i=0}^{n-1} X_{ij}) = \sum_{i=0}^{n-1} X_{ij} - \sum_{i=0}^{n-1} \frac{1}{n} \sum_{i=0}^{n-1}X_{ij},
 $$
 
 resulting in
 $$
-\sum_{i=1}^{n} X_{ip} - n \frac{1}{n} \sum_{i=1}^{n}X_{ip} = 0.
+\sum_{i=0}^{n-1} X_{ij} - n \frac{1}{n} \sum_{i=0}^{n-1}X_{ij} = 0.
 $$
 
 <p>
 Finally we have
 $$
-n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip},
+n\beta_0 = \sum_{i=0}^{n-1} y_i - \sum_{j=1}^{p-1}\beta_j \sum_{i=0}^{n-1} X_{ij},
 $$
 
 or
 $$
-\beta_0 = \frac{1}{n}\sum_{i=1}^{n} y_i = y_{average}.
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1} y_i = \overline{\boldsymbol{y}},
 $$
 
+the average value of \( \boldsymbol{y] \).
+
 <p>
-Replacing \( y_i \) with \( y_i - \beta_0 = y_i - y_{average} \) in the loss function will give us (in vector-matrix disguise)
+Replacing \( y_i \) with \( y_i - \beta_0 = y_i - \overline{\boldsymbol{y}} \) in the cost function will give us (in vector-matrix disguise)
 $$
 C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}) + \lambda \boldsymbol{\beta}^T\boldsymbol{\beta},
 $$
@@ -835,8 +831,16 @@ which has the solution
 
 <p>
 \( \beta = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}} \).
-where \( \boldsymbol{\tilde{y}} = \boldsymbol{y} - y_{average} \)
+where \( \boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\boldsymbol{y}} \)
 and \( \tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=1}^{n-1}X_{kj} \).
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="code-examples">Code Examples </h2>
+
+<p>
+Armed with this wisdom, we attempt first simply set the intercept eqault to <b>False</b> in our implementation of Ridge regression for a vanilla data set.
 
 <p>
 
@@ -847,8 +851,6 @@ and \( \tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=1}^{n-1}X_{kj} \).
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
 
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
-    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
     n = np.size(y_model)
     <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
@@ -864,42 +866,29 @@ y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B45
 
 Maxpolydegree = <span style="color: #B452CD">20</span>
 X = np.zeros((n,Maxpolydegree))
+We include explicitely the intercpt column
 X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
 
-<span style="color: #8B008B; font-weight: bold">for</span> polydegree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>, Maxpolydegree):
-    <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(polydegree):
-        X[:,degree] = x**degree
+<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Maxpolydegree):
+    X[:,degree] = x**degree
 
 
 <span style="color: #228B22"># We split the data in test and training data</span>
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
 
-<span style="color: #228B22"># matrix inversion to find beta</span>
-OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
-<span style="color: #658b00">print</span>(OLSbeta)
-<span style="color: #228B22"># and then make the prediction</span>
-ytildeOLS = X_train @ OLSbeta
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Training MSE for OLS&quot;</span>)
-<span style="color: #658b00">print</span>(MSE(y_train,ytildeOLS))
-ypredictOLS = X_test @ OLSbeta
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test MSE OLS&quot;</span>)
-<span style="color: #658b00">print</span>(MSE(y_test,ypredictOLS))
-
-p = <span style="color: #658b00">len</span>(OLSbeta)
+p = Maxpolydegree
 I = np.eye(p,p)
 <span style="color: #228B22"># Decide which values of lambda to use</span>
 nlambdas = <span style="color: #B452CD">4</span>
 MSEOwnRidgePredict = np.zeros(nlambdas)
-MSEOwnRidgeTrain = np.zeros(nlambdas)
 MSERidgePredict = np.zeros(nlambdas)
-MSERidgeTrain = np.zeros(nlambdas)
 
 lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
 <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
     <span style="color: #228B22"># include lasso using Scikit-Learn</span>
-    <span style="color: #228B22"># Note: we include the intercept</span>
+    <span style="color: #228B22"># Note: we include the intercept column and no scaling</span>
     RegRidge = linear_model.Ridge(lmb,fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>)
     RegRidge.fit(X_train,y_train)
     <span style="color: #228B22"># and then make the prediction</span>
@@ -908,18 +897,14 @@ lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color
     ytildeRidge = RegRidge.predict(X_train)
     ypredictRidge = RegRidge.predict(X_test)
     MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
-    MSEOwnRidgeTrain[i] = MSE(y_train,ytildeOwnRidge)
     MSERidgePredict[i] = MSE(y_test,ypredictRidge)
-    MSERidgeTrain[i] = MSE(y_train,ytildeRidge)
     <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Beta values for own Ridge implementation&quot;</span>)
     <span style="color: #658b00">print</span>(OwnRidgeBeta)
     <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span>)
     <span style="color: #658b00">print</span>(RegRidge.coef_)
 <span style="color: #228B22"># Now plot the results</span>
 plt.figure()
-plt.plot(np.log10(lambdas), MSEOwnRidgeTrain, <span style="color: #CD5555">&#39;b&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge train&#39;</span>)
 plt.plot(np.log10(lambdas), MSEOwnRidgePredict, <span style="color: #CD5555">&#39;r&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
-plt.plot(np.log10(lambdas), MSERidgeTrain, <span style="color: #CD5555">&#39;y&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge train&#39;</span>)
 plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;g&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
 
 plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
@@ -927,6 +912,17 @@ plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
 plt.legend()
 plt.show()
 </pre></div>
+<p>
+The results here agree when we force <b>Scikit-Learn</b>'s Ridge function to include the first column in our design matrix.
+The problem however is that can easily lead to a larger mean-squared error!
+
+<p>
+Let us see how we can change this code by zero centering.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="taking-out-the-mean">Taking out the mean </h2>
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -937,13 +933,9 @@ plt.show()
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
 <span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> StandardScaler
 
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
-    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
     n = np.size(y_model)
     <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
-
-
 <span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
 <span style="color: #228B22"># Useful for eventual debugging.</span>
 np.random.seed(<span style="color: #B452CD">315</span>)
@@ -952,14 +944,11 @@ n = <span style="color: #B452CD">100</span>
 x = np.random.rand(n)
 y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)
 
-Maxpolydegree = <span style="color: #B452CD">5</span>
+Maxpolydegree = <span style="color: #B452CD">20</span>
 X = np.zeros((n,Maxpolydegree-<span style="color: #B452CD">1</span>))
 
 <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,Maxpolydegree): <span style="color: #228B22">#No intercept column</span>
     X[:,degree-<span style="color: #B452CD">1</span>] = x**(degree)
-
-
-
 
 <span style="color: #228B22"># We split the data in test and training data</span>
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
@@ -970,11 +959,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style=
 
 <span style="color: #228B22">#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable</span>
 X_train_mean = np.mean(X_train,axis=<span style="color: #B452CD">0</span>)
-X_train_scaled = X_train - X_train_mean <span style="color: #228B22">#Center by removing mean from each feature</span>
+<span style="color: #228B22">#Center by removing mean from each feature</span>
+X_train_scaled = X_train - X_train_mean 
 X_test_scaled = X_test - X_train_mean
-
-y_scaler = np.mean(y_train)           <span style="color: #228B22">#The model intercept (called y_scaler) is given by the mean of target variable (IF X is centered)</span>
-y_train_scaled = y_train - y_scaler   <span style="color: #228B22">#Remove the intercept from the training data.</span>
+<span style="color: #228B22">#The model intercept (called y_scaler) is given by the mean of target variable (IF X is centered)</span>
+<span style="color: #228B22">#Remove the intercept from the training data.</span>
+y_scaler = np.mean(y_train)           
+y_train_scaled = y_train - y_scaler   
 
 
 p = Maxpolydegree-<span style="color: #B452CD">1</span>
@@ -989,25 +980,20 @@ lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)
     intercept_ = y_scaler - X_train_mean<span style="color: #707a7c">@OwnRidgeBeta</span> <span style="color: #228B22">#The intercept can be shifted so the model can predict on uncentered data</span>
-    
-    ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ <span style="color: #228B22">#Add intercept to prediction</span>
+    <span style="color: #228B22">#Add intercept to prediction</span>
+    ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ 
     <span style="color: #228B22">#EQUIVALENT PREDICTION:</span>
-    ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler <span style="color: #228B22">#Add intercept to prediction</span>
+    <span style="color: #228B22">#Add intercept to prediction</span>
+    ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler 
     <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Values for own Ridge prediction&quot;</span>)
     <span style="color: #658b00">print</span>(ypredictOwnRidge)
-
-    
-
     RegRidge = linear_model.Ridge(lmb)
     RegRidge.fit(X_train,y_train)
     ypredictRidge = RegRidge.predict(X_test)
     <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Values for SL Ridge prediction&quot;</span>)
     <span style="color: #658b00">print</span>(ypredictRidge)
-
-
     MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
     MSERidgePredict[i] = MSE(y_test,ypredictRidge)
-
     <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Beta values for own Ridge implementation&quot;</span>)
     <span style="color: #658b00">print</span>(OwnRidgeBeta) <span style="color: #228B22">#Intercept is given by mean of target variable</span>
     <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span>)
@@ -1017,14 +1003,10 @@ lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color
     <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Intercept from Scikit-Learn Ridge implementation&#39;</span>)
     <span style="color: #658b00">print</span>(RegRidge.intercept_)
 
-
-
 <span style="color: #228B22"># Now plot the results</span>
-
 plt.figure()
 plt.plot(np.log10(lambdas), MSEOwnRidgePredict, <span style="color: #CD5555">&#39;b--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE own Ridge Test&#39;</span>)
 plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;g--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE SL Ridge Test&#39;</span>)
-
 plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
 plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
 plt.legend()

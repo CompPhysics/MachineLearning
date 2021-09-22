@@ -271,13 +271,15 @@ $\bm{X}$ are zero centered, that is we subtract the mean values.
 If our predictors represent different scales, then it is important to
 standardize the design matrix $\bm{X}$ by subtracting the mean of each
 column from the corresponding column and dividing the column with its
-standard deviation.
+standard deviation. Most machine learning libraries do this as a deafult. This means that if you compare your code with the results from a given library,
+the results may differ. Tracing back the differences may often lead to an increased confusion.
 
 The
 "Standadscaler":"https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html"
 function in _Scikit-Learn_ does this for us.  For the data sets we
 have been studying in our various examples, the data are in many cases
-already scaled and there is no need to scale them.
+already scaled and there is no need to scale them. You as a user of different machine learning algorithms, should always perform  a
+survey of your data, with a critical assessment of them in case you need to scale the data.
 
 If you need to scale the data, not doing so will give an *unfair*
 penalization of the parameters since their magnitude depends on the
@@ -318,7 +320,7 @@ y_pred = y_pred + y_train_mean
 !split
 =====  Linear Regression code, Intercept handling first =====
 
-This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (*code example thanks to  Øyvind Sigmundson Schøyen*)
+This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (*code example thanks to  Øyvind Sigmundson Schøyen*). Here our scaling of the data is done by subtracting the mean values only.
 
 !bc pycod
 import numpy as np
@@ -395,78 +397,57 @@ plt.show()
 !ec
 
 !split
-===== What does centering mean mathematically? =====
-Here is a mathematical explanation of the zero centering:
+===== What does centering (subtracting the mean values) mean mathematically? =====
 
 
+Let us try to understand what this may imply mathematically when we subtract the mean values, also known as *zero centering*. To catch many birds with just one stone, we will focus on Ridge regression.
 
-
-The cost/loss function  for Ridge regression is:
-
-
+The cost/loss function  for Ridge regression is
 !bt
 \[
-C(\beta_0, \beta_1, ... , \beta_P) = \sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip}\beta_p)^2 + \lambda \sum_{p=1}^P \beta_p^2.
+C(\beta_0, \beta_1, ... , \beta_{p-1}) = \sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2 + \lambda \sum_{j=1}^{p-1} \beta_i^2.
 \]
 !et
 
-
-
-
-Notice that the intercept is left out of the $L_2$ regularization term. The design matrix
+Note that the intercept term $\beta_0$is left out of the $L_2$ regularization term. The design matrix
 $X$ does in this case not contain any intercept column. We want
 
 !bt
 \[
-\frac{\partial L}{\partial \beta_j} = 0,
+\frac{\partial C}{\partial \beta_j} = 0,
 \]
 !et
 
-for all $j$, so lets start with $\beta_0$. This means that we have
+for all $j$, so let us start with $\beta_0$. This means that we have
 
 !bt
 \[
-\frac{\partial L}{\partial \beta_0} = -2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p).
+\frac{\partial C}{\partial \beta_0} = -2\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right),
 \]
 !et
-
-We want to solve
-!bt
-\[
--2\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{p=1}^P X_{ip} \beta_p) = 0,
-\]
-!et
-
 
 which gives
 !bt
 \[
-\sum_{i=1}^{n} \beta_0 = \sum_{i=1}^{n}y_i - \sum_{i=1}^{n} \sum_{p=1}^P X_{ip} \beta_p,
+\sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
 \]
 !et
 
-or
-$ n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip}$.
-
-
-
-
-If we assume that every column of $X$ is centered, whic we can do by subtracting the mean,
+If we assume that every column of $\bm{X}$ is centered, which we can do by subtracting the mean,
 !bc pycod
 X = X - np.mean(X,axis=0)
 !ec
-the sum $ \sum_{i=1}^{n} X_{ip} $
-
+the sum $\sum_{i=0}^{n-1} X_{ij}$
 can be rewritten as
 !bt
 \[
-\sum_{i=1}^{n} (X_{ip} - \frac{1}{n}\sum_{i=1}^{n} X_{ip}) = \sum_{i=1}^{n} X_{ip} - \sum_{i=1}^{n} \frac{1}{n} \sum_{i=1}^{n}X_{ip},
+\sum_{i=0}^{n-1} \left(X_{ij} - \frac{1}{n}\sum_{i=0}^{n-1} X_{ij}) = \sum_{i=0}^{n-1} X_{ij} - \sum_{i=0}^{n-1} \frac{1}{n} \sum_{i=0}^{n-1}X_{ij},
 \]
 !et
 resulting in
 !bt
 \[
-\sum_{i=1}^{n} X_{ip} - n \frac{1}{n} \sum_{i=1}^{n}X_{ip} = 0.
+\sum_{i=0}^{n-1} X_{ij} - n \frac{1}{n} \sum_{i=0}^{n-1}X_{ij} = 0.
 \]
 !et
 
@@ -474,17 +455,18 @@ resulting in
 Finally we have
 !bt
 \[
-n\beta_0 = \sum_{i=1}^{n} y_i - \sum_{p=1}^P\beta_p \sum_{i=1}^{n} X_{ip},
+n\beta_0 = \sum_{i=0}^{n-1} y_i - \sum_{j=1}^{p-1}\beta_j \sum_{i=0}^{n-1} X_{ij},
 \]
 !et
 or
 !bt
 \[
-\beta_0 = \frac{1}{n}\sum_{i=1}^{n} y_i = y_{average}.
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1} y_i = \overline{\bm{y}},
 \]
 !et
+the average value of $\bm{y]$.
 
-Replacing $y_i$ with $y_i - \beta_0 = y_i - y_{average}$ in the loss function will give us (in vector-matrix disguise)
+Replacing $y_i$ with $y_i - \beta_0 = y_i - \overline{\bm{y}}$ in the cost function will give us (in vector-matrix disguise)
 !bt
 \[
 C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}) + \lambda \boldsymbol{\beta}^T\boldsymbol{\beta},
@@ -494,11 +476,13 @@ C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T
 which has the solution
 
 $\beta = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}$.
-where $\boldsymbol{\tilde{y}} = \boldsymbol{y} - y_{average}$
+where $\boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\bm{y}}$
 and $\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=1}^{n-1}X_{kj}$.
 
+!split
+===== Code Examples =====
 
-
+Armed with this wisdom, we attempt first simply set the intercept eqault to _False_ in our implementation of Ridge regression for a vanilla data set.
 
 !bc pycod
 import numpy as np
@@ -507,8 +491,6 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn import linear_model
 
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
 def MSE(y_data,y_model):
     n = np.size(y_model)
     return np.sum((y_data-y_model)**2)/n
@@ -524,42 +506,29 @@ y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
 
 Maxpolydegree = 20
 X = np.zeros((n,Maxpolydegree))
+We include explicitely the intercpt column
 X[:,0] = 1.0
 
-for polydegree in range(1, Maxpolydegree):
-    for degree in range(polydegree):
-        X[:,degree] = x**degree
+for degree in range(Maxpolydegree):
+    X[:,degree] = x**degree
 
 
 # We split the data in test and training data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-# matrix inversion to find beta
-OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
-print(OLSbeta)
-# and then make the prediction
-ytildeOLS = X_train @ OLSbeta
-print("Training MSE for OLS")
-print(MSE(y_train,ytildeOLS))
-ypredictOLS = X_test @ OLSbeta
-print("Test MSE OLS")
-print(MSE(y_test,ypredictOLS))
-
-p = len(OLSbeta)
+p = Maxpolydegree
 I = np.eye(p,p)
 # Decide which values of lambda to use
 nlambdas = 4
 MSEOwnRidgePredict = np.zeros(nlambdas)
-MSEOwnRidgeTrain = np.zeros(nlambdas)
 MSERidgePredict = np.zeros(nlambdas)
-MSERidgeTrain = np.zeros(nlambdas)
 
 lambdas = np.logspace(-4, 4, nlambdas)
 for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
     # include lasso using Scikit-Learn
-    # Note: we include the intercept
+    # Note: we include the intercept column and no scaling
     RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
     RegRidge.fit(X_train,y_train)
     # and then make the prediction
@@ -568,18 +537,14 @@ for i in range(nlambdas):
     ytildeRidge = RegRidge.predict(X_train)
     ypredictRidge = RegRidge.predict(X_test)
     MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
-    MSEOwnRidgeTrain[i] = MSE(y_train,ytildeOwnRidge)
     MSERidgePredict[i] = MSE(y_test,ypredictRidge)
-    MSERidgeTrain[i] = MSE(y_train,ytildeRidge)
     print("Beta values for own Ridge implementation")
     print(OwnRidgeBeta)
     print("Beta values for Scikit-Learn Ridge implementation")
     print(RegRidge.coef_)
 # Now plot the results
 plt.figure()
-plt.plot(np.log10(lambdas), MSEOwnRidgeTrain, 'b', label = 'MSE Ridge train')
 plt.plot(np.log10(lambdas), MSEOwnRidgePredict, 'r', label = 'MSE Ridge Test')
-plt.plot(np.log10(lambdas), MSERidgeTrain, 'y', label = 'MSE Ridge train')
 plt.plot(np.log10(lambdas), MSERidgePredict, 'g', label = 'MSE Ridge Test')
 
 plt.xlabel('log10(lambda)')
@@ -589,8 +554,13 @@ plt.show()
 
 !ec
 
+The results here agree when we force _Scikit-Learn_'s Ridge function to include the first column in our design matrix.
+The problem however is that can easily lead to a larger mean-squared error!
 
+Let us see how we can change this code by zero centering.
 
+!split
+===== Taking out the mean =====
 !bc pycod
 import numpy as np
 import pandas as pd
@@ -599,13 +569,9 @@ from sklearn.model_selection import train_test_split
 from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler
 
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
 def MSE(y_data,y_model):
     n = np.size(y_model)
     return np.sum((y_data-y_model)**2)/n
-
-
 # A seed just to ensure that the random numbers are the same for every run.
 # Useful for eventual debugging.
 np.random.seed(315)
@@ -614,14 +580,11 @@ n = 100
 x = np.random.rand(n)
 y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
 
-Maxpolydegree = 5
+Maxpolydegree = 20
 X = np.zeros((n,Maxpolydegree-1))
 
 for degree in range(1,Maxpolydegree): #No intercept column
     X[:,degree-1] = x**(degree)
-
-
-
 
 # We split the data in test and training data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
@@ -632,11 +595,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 #For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable
 X_train_mean = np.mean(X_train,axis=0)
-X_train_scaled = X_train - X_train_mean #Center by removing mean from each feature
+#Center by removing mean from each feature
+X_train_scaled = X_train - X_train_mean 
 X_test_scaled = X_test - X_train_mean
-
-y_scaler = np.mean(y_train)           #The model intercept (called y_scaler) is given by the mean of target variable (IF X is centered)
-y_train_scaled = y_train - y_scaler   #Remove the intercept from the training data.
+#The model intercept (called y_scaler) is given by the mean of target variable (IF X is centered)
+#Remove the intercept from the training data.
+y_scaler = np.mean(y_train)           
+y_train_scaled = y_train - y_scaler   
 
 
 p = Maxpolydegree-1
@@ -651,25 +616,20 @@ for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)
     intercept_ = y_scaler - X_train_mean@OwnRidgeBeta #The intercept can be shifted so the model can predict on uncentered data
-    
-    ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ #Add intercept to prediction
+    #Add intercept to prediction
+    ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ 
     #EQUIVALENT PREDICTION:
-    ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler #Add intercept to prediction
+    #Add intercept to prediction
+    ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler 
     print("Values for own Ridge prediction")
     print(ypredictOwnRidge)
-
-    
-
     RegRidge = linear_model.Ridge(lmb)
     RegRidge.fit(X_train,y_train)
     ypredictRidge = RegRidge.predict(X_test)
     print("Values for SL Ridge prediction")
     print(ypredictRidge)
-
-
     MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
     MSERidgePredict[i] = MSE(y_test,ypredictRidge)
-
     print("Beta values for own Ridge implementation")
     print(OwnRidgeBeta) #Intercept is given by mean of target variable
     print("Beta values for Scikit-Learn Ridge implementation")
@@ -679,19 +639,14 @@ for i in range(nlambdas):
     print('Intercept from Scikit-Learn Ridge implementation')
     print(RegRidge.intercept_)
 
-
-
 # Now plot the results
-
 plt.figure()
 plt.plot(np.log10(lambdas), MSEOwnRidgePredict, 'b--', label = 'MSE own Ridge Test')
 plt.plot(np.log10(lambdas), MSERidgePredict, 'g--', label = 'MSE SL Ridge Test')
-
 plt.xlabel('log10(lambda)')
 plt.ylabel('MSE')
 plt.legend()
 plt.show()
-
 
 !ec
 
