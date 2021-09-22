@@ -253,56 +253,149 @@ which may confuse us.
 
 
 
-Yes, it could be a bad idea to include the intercept column for the
-exact reason you stated. If no transformation is applied to your data,
-the intercept can be interpreted as the expected value of your target
-variable when all your predictors are put to zero. Therefore, whenever
-you cannot assume that the expected target variable is zero when all
-your predictors are zero, it could be a bad idea to apply a model
-which penalizes the intercept. Also, the analytical solution to the
-ridge regression coefficients (when not shrinking $$\beta_0$$) is
-derived under the assumption that both y and X are zero centered (mean
-subtracted). What you are doing is correct, but you should also zero
-center X (subtracting the mean of each column from the corresponding
-column). 
+The intercept can be interpreted as the expected value of our
+target/output variables when all other predictors are set to zero.
+Thus, if we cannot assume that the expected outputs/targets are zero
+when all predictors are zero (the columns in the design matrix), it
+may be a bad idea to implement a model which penalizes the intercept.
+Furthermore, in for example Ridge and Lasso regression, the solutions
+(when not shrinking $$\beta_0$$) for the unknown parameters
+$\bm{\beta}$ are derived under the assumption that both $\bm{y}$ and
+$\bm{X}$ are zero centered, that is we subtract the mean values.
 
-If your predictors are of different scales, I would advice you to
-standardize X by subtracting the mean of each column from the
-corresponding column and dividing the column with its standard
-deviation. If you dont do this, you will give an "unfair" penalization
-of the parameters since their magnitude depends on the scale of their
-corresponding predictor. Suppose that you have an input variable
-"height". Human height might be measured in inches or meters or
+
+!split
+=====  More thinking =====
+
+
+If our predictors represent different scales, then it is important to
+standardize the design matrix $\bm{X}$ by subtracting the mean of each
+column from the corresponding column and dividing the column with its
+standard deviation.
+
+The
+"Standadscaler":"https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html"
+function in _Scikit-Learn_ does this for us.  For the data sets we
+have been studying in our various examples, the data are in many cases
+already scaled and there is no need to scale them.
+
+If you need to scale the data, not doing so will give an *unfair*
+penalization of the parameters since their magnitude depends on the
+scale of their corresponding predictor.
+
+Suppose as an example that you 
+you have an input variable given by the heights of different persons.
+Human height might be measured in inches or meters or
 kilometers. If measured in kilometers, a standard linear regression
 model with this predictor would probably give a much bigger
-coefficient term, than if measured in millimeters. You may see how
-this could become a problem when considering the loss function for
-ridge regression.
+coefficient term, than if measured in millimeters.
+This can clearly lead to problems in evaluating the cost/loss functions.
 
 
+!split
+===== Still thinking =====
 
-
-Remember that when you do any transformation to your dataset before
-training, the exact same transformation has to be applied to new data
-before making a prediction. In your case, this means:
+Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
+on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as follows
 
 !bc pycod
-#Model training:
+#Model training, we compute the mean value of y and X
 y_train_mean = np.mean(y_train)
 X_train_mean = np.mean(X_train,axis=0)
 X_train = X_train - X_train_mean
 y_train = y_train - y_train_mean
 
+# The we fit our model with the training data
 trained_model = some_model.fit(X_train,y_train)
 
-#Model prediction:
+
+#Model prediction, here we need also to transform our data set used for the prediction.
 X_test = X_test - X_train_mean #Use mean from training data
 y_pred = trained_model(X_test)
 y_pred = y_pred + y_train_mean
 !ec
 
+!split
+=====  Linear Regression code, Intercept handling first =====
+
+This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (*code example thanks to  Øyvind Sigmundson Schøyen*)
+
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import LinearRegression
 
 
+np.random.seed(2021)
+
+
+def fit_beta(X, y):
+    return np.linalg.pinv(X.T @ X) @ X.T @ y
+
+
+true_beta = [2, 0.5, 3.7]
+
+x = np.linspace(0, 1, 11)
+y = np.sum(
+    np.asarray([x ** p * b for p, b in enumerate(true_beta)]), axis=0
+) + 0.1 * np.random.normal(size=len(x))
+
+degree = 3
+X = np.zeros((len(x), degree))
+
+# Include the intercept in the design matrix
+for p in range(degree):
+    X[:, p] = x ** p
+
+beta = fit_beta(X, y)
+
+# Intercept is included in the design matrix
+clf = LinearRegression(fit_intercept=False).fit(X, y)
+
+print(f"True beta: {true_beta}")
+print(f"Fitted beta: {beta}")
+print(f"Sklearn fitted beta: {clf.coef_}")
+
+
+plt.figure()
+plt.scatter(x, y, label="Data")
+plt.plot(x, X @ beta, label="Fit")
+plt.plot(x, clf.predict(X), label="Sklearn (fit_intercept=False)")
+
+
+# Do not include the intercept in the design matrix
+X = np.zeros((len(x), degree - 1))
+
+for p in range(degree - 1):
+    X[:, p] = x ** (p + 1)
+
+# Intercept is not included in the design matrix
+clf = LinearRegression(fit_intercept=True).fit(X, y)
+
+# Use centered values for X and y when computing coefficients
+y_offset = np.average(y, axis=0)
+X_offset = np.average(X, axis=0)
+
+beta = fit_beta(X - X_offset, y - y_offset)
+intercept = np.mean(y_offset - X_offset @ beta)
+
+print(f"Manual intercept: {intercept}")
+print(f"Fitted beta (sans intercept): {beta}")
+print(f"Sklearn intercept: {clf.intercept_}")
+print(f"Sklearn fitted beta (sans intercept): {clf.coef_}")
+
+plt.plot(x, X @ beta + intercept, "--", label="Fit (manual intercept)")
+plt.plot(x, clf.predict(X), "--", label="Sklearn (fit_intercept=True)")
+plt.grid()
+plt.legend()
+
+plt.show()
+
+!ec
+
+!split
+===== What does centering mean mathematically? =====
 Here is a mathematical explanation of the zero centering:
 
 
@@ -602,79 +695,6 @@ plt.show()
 
 !ec
 
-!bc pycod
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.linear_model import LinearRegression
-
-
-np.random.seed(2021)
-
-
-def fit_beta(X, y):
-    return np.linalg.pinv(X.T @ X) @ X.T @ y
-
-
-true_beta = [2, 0.5, 3.7]
-
-x = np.linspace(0, 1, 11)
-y = np.sum(
-    np.asarray([x ** p * b for p, b in enumerate(true_beta)]), axis=0
-) + 0.1 * np.random.normal(size=len(x))
-
-degree = 3
-X = np.zeros((len(x), degree))
-
-# Include the intercept in the design matrix
-for p in range(degree):
-    X[:, p] = x ** p
-
-beta = fit_beta(X, y)
-
-# Intercept is included in the design matrix
-clf = LinearRegression(fit_intercept=False).fit(X, y)
-
-print(f"True beta: {true_beta}")
-print(f"Fitted beta: {beta}")
-print(f"Sklearn fitted beta: {clf.coef_}")
-
-
-plt.figure()
-plt.scatter(x, y, label="Data")
-plt.plot(x, X @ beta, label="Fit")
-plt.plot(x, clf.predict(X), label="Sklearn (fit_intercept=False)")
-
-
-# Do not include the intercept in the design matrix
-X = np.zeros((len(x), degree - 1))
-
-for p in range(degree - 1):
-    X[:, p] = x ** (p + 1)
-
-# Intercept is not included in the design matrix
-clf = LinearRegression(fit_intercept=True).fit(X, y)
-
-# Use centered values for X and y when computing coefficients
-y_offset = np.average(y, axis=0)
-X_offset = np.average(X, axis=0)
-
-beta = fit_beta(X - X_offset, y - y_offset)
-intercept = np.mean(y_offset - X_offset @ beta)
-
-print(f"Manual intercept: {intercept}")
-print(f"Fitted beta (sans intercept): {beta}")
-print(f"Sklearn intercept: {clf.intercept_}")
-print(f"Sklearn fitted beta (sans intercept): {clf.coef_}")
-
-plt.plot(x, X @ beta + intercept, "--", label="Fit (manual intercept)")
-plt.plot(x, clf.predict(X), "--", label="Sklearn (fit_intercept=True)")
-plt.grid()
-plt.legend()
-
-plt.show()
-
-!ec
 
 
 !split

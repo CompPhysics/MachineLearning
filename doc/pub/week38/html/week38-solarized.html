@@ -88,6 +88,16 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'to-think-about-first-part'),
+              ('More thinking', 2, None, 'more-thinking'),
+              ('Still thinking', 2, None, 'still-thinking'),
+              ('Linear Regression code, Intercept handling first',
+               2,
+               None,
+               'linear-regression-code-intercept-handling-first'),
+              ('What does centering mean mathematically?',
+               2,
+               None,
+               'what-does-centering-mean-mathematically'),
               ('More complicated Example: The Ising model',
                2,
                None,
@@ -322,7 +332,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Sep 21, 2021</h4></center> <!-- date -->
+<center><h4>Sep 22, 2021</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -587,55 +597,161 @@ set up the design matrix, what scaling we should use and other topics
 which may confuse us.
 
 <p>
-Yes, it could be a bad idea to include the intercept column for the
-exact reason you stated. If no transformation is applied to your&#160;data,
-the intercept can be interpreted as the expected value of your target
-variable when all your predictors are put to zero. Therefore, whenever
-you cannot assume that the expected target variable is zero when all
-your predictors are zero, it could be a bad idea to apply a model
-which penalizes the intercept. Also, the analytical solution to the
-ridge regression coefficients (when not shrinking $$\beta_0$$) is
-derived&#160;under the assumption that both y and X are zero centered (mean
-subtracted). What you are doing is correct, but you should&#160;also zero
-center X (subtracting the mean of each column from the corresponding
-column).&#160;
+The intercept can be interpreted as the expected value of our
+target/output variables when all other predictors are set to zero.
+Thus, if we cannot assume that the expected outputs/targets are zero
+when all predictors are zero (the columns in the design matrix), it
+may be a bad idea to implement a model which penalizes the intercept.
+Furthermore, in for example Ridge and Lasso regression, the solutions
+(when not shrinking $$\beta_0$$) for the unknown parameters
+\( \boldsymbol{\beta} \) are derived&#160;under the assumption that both \( \boldsymbol{y} \) and
+\( \boldsymbol{X} \) are zero centered, that is we subtract the mean values.
 
 <p>
-If your predictors&#160;are of different&#160;scales, I would advice you to
-standardize&#160;X by&#160;subtracting the mean of each column from the
-corresponding column and dividing the column with its standard
-deviation.&#160;If you dont do this, you will give an "unfair"&#160;penalization
-of the parameters since their magnitude&#160;depends on the scale of their
-corresponding&#160;predictor.&#160;Suppose that you have an input&#160;variable
-"height". Human height might be measured in inches or meters or
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="more-thinking">More thinking </h2>
+
+<p>
+If our predictors&#160;represent different&#160;scales, then it is important to
+standardize the design matrix \( \boldsymbol{X} \) by subtracting the mean of each
+column from the corresponding column and dividing the column with its
+standard deviation.
+
+<p>
+The
+<a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html" target="_blank">Standadscaler</a>
+function in <b>Scikit-Learn</b> does this for us.  For the data sets we
+have been studying in our various examples, the data are in many cases
+already scaled and there is no need to scale them.
+
+<p>
+If you need to scale the data, not doing so will give an <em>unfair</em>
+penalization of the parameters since their magnitude&#160;depends on the
+scale of their corresponding&#160;predictor.
+
+<p>
+Suppose as an example that you 
+you have an input&#160;variable given by the heights of different persons.
+Human height might be measured in inches or meters or
 kilometers. If measured in kilometers, a&#160;standard linear regression
 model with this predictor would probably give a much bigger
-coefficient term, than if measured in millimeters. You may&#160;see how
-this could become a problem when considering the loss function for
-ridge regression.
+coefficient term, than if measured in millimeters.
+This can clearly lead to problems in evaluating the cost/loss functions.
 
 <p>
-Remember that when you do any transformation to your dataset before
-training, the exact same transformation has to be applied to new data
-before making a prediction. In your case, this means:
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="still-thinking">Still thinking </h2>
+
+<p>
+Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
+on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as follows
 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #228B22">#Model training:</span>
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #228B22">#Model training, we compute the mean value of y and X</span>
 y_train_mean = np.mean(y_train)
 X_train_mean = np.mean(X_train,axis=<span style="color: #B452CD">0</span>)
 X_train = X_train - X_train_mean
 y_train = y_train - y_train_mean
 
+<span style="color: #228B22"># The we fit our model with the training data</span>
 trained_model = some_model.fit(X_train,y_train)
 
-<span style="color: #228B22">#Model prediction:</span>
+
+<span style="color: #228B22">#Model prediction, here we need also to transform our data set used for the prediction.</span>
 X_test = X_test - X_train_mean <span style="color: #228B22">#Use mean from training data</span>
 y_pred = trained_model(X_test)
 y_pred = y_pred + y_train_mean
 </pre></div>
 <p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="linear-regression-code-intercept-handling-first">Linear Regression code, Intercept handling first </h2>
+
+<p>
+This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (<em>code example thanks to  &#216;yvind Sigmundson Sch&#248;yen</em>)
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression
+
+
+np.random.seed(<span style="color: #B452CD">2021</span>)
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">fit_beta</span>(X, y):
+    <span style="color: #8B008B; font-weight: bold">return</span> np.linalg.pinv(X.T @ X) @ X.T @ y
+
+
+true_beta = [<span style="color: #B452CD">2</span>, <span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">3.7</span>]
+
+x = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">11</span>)
+y = np.sum(
+    np.asarray([x ** p * b <span style="color: #8B008B; font-weight: bold">for</span> p, b <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(true_beta)]), axis=<span style="color: #B452CD">0</span>
+) + <span style="color: #B452CD">0.1</span> * np.random.normal(size=<span style="color: #658b00">len</span>(x))
+
+degree = <span style="color: #B452CD">3</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x), degree))
+
+<span style="color: #228B22"># Include the intercept in the design matrix</span>
+<span style="color: #8B008B; font-weight: bold">for</span> p <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(degree):
+    X[:, p] = x ** p
+
+beta = fit_beta(X, y)
+
+<span style="color: #228B22"># Intercept is included in the design matrix</span>
+clf = LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>).fit(X, y)
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;True beta: {</span>true_beta<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Fitted beta: {</span>beta<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Sklearn fitted beta: {</span>clf.coef_<span style="color: #CD5555">}&quot;</span>)
+
+
+plt.figure()
+plt.scatter(x, y, label=<span style="color: #CD5555">&quot;Data&quot;</span>)
+plt.plot(x, X @ beta, label=<span style="color: #CD5555">&quot;Fit&quot;</span>)
+plt.plot(x, clf.predict(X), label=<span style="color: #CD5555">&quot;Sklearn (fit_intercept=False)&quot;</span>)
+
+
+<span style="color: #228B22"># Do not include the intercept in the design matrix</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x), degree - <span style="color: #B452CD">1</span>))
+
+<span style="color: #8B008B; font-weight: bold">for</span> p <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(degree - <span style="color: #B452CD">1</span>):
+    X[:, p] = x ** (p + <span style="color: #B452CD">1</span>)
+
+<span style="color: #228B22"># Intercept is not included in the design matrix</span>
+clf = LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">True</span>).fit(X, y)
+
+<span style="color: #228B22"># Use centered values for X and y when computing coefficients</span>
+y_offset = np.average(y, axis=<span style="color: #B452CD">0</span>)
+X_offset = np.average(X, axis=<span style="color: #B452CD">0</span>)
+
+beta = fit_beta(X - X_offset, y - y_offset)
+intercept = np.mean(y_offset - X_offset @ beta)
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Manual intercept: {</span>intercept<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Fitted beta (sans intercept): {</span>beta<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Sklearn intercept: {</span>clf.intercept_<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Sklearn fitted beta (sans intercept): {</span>clf.coef_<span style="color: #CD5555">}&quot;</span>)
+
+plt.plot(x, X @ beta + intercept, <span style="color: #CD5555">&quot;--&quot;</span>, label=<span style="color: #CD5555">&quot;Fit (manual intercept)&quot;</span>)
+plt.plot(x, clf.predict(X), <span style="color: #CD5555">&quot;--&quot;</span>, label=<span style="color: #CD5555">&quot;Sklearn (fit_intercept=True)&quot;</span>)
+plt.grid()
+plt.legend()
+
+plt.show()
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="what-does-centering-mean-mathematically">What does centering mean mathematically? </h2>
 Here is a mathematical explanation of the&#160;zero centering:
 
 <p>
@@ -912,80 +1028,6 @@ plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;g
 plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
 plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
 plt.legend()
-plt.show()
-</pre></div>
-<p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression
-
-
-np.random.seed(<span style="color: #B452CD">2021</span>)
-
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">fit_beta</span>(X, y):
-    <span style="color: #8B008B; font-weight: bold">return</span> np.linalg.pinv(X.T @ X) @ X.T @ y
-
-
-true_beta = [<span style="color: #B452CD">2</span>, <span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">3.7</span>]
-
-x = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">11</span>)
-y = np.sum(
-    np.asarray([x ** p * b <span style="color: #8B008B; font-weight: bold">for</span> p, b <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(true_beta)]), axis=<span style="color: #B452CD">0</span>
-) + <span style="color: #B452CD">0.1</span> * np.random.normal(size=<span style="color: #658b00">len</span>(x))
-
-degree = <span style="color: #B452CD">3</span>
-X = np.zeros((<span style="color: #658b00">len</span>(x), degree))
-
-<span style="color: #228B22"># Include the intercept in the design matrix</span>
-<span style="color: #8B008B; font-weight: bold">for</span> p <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(degree):
-    X[:, p] = x ** p
-
-beta = fit_beta(X, y)
-
-<span style="color: #228B22"># Intercept is included in the design matrix</span>
-clf = LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>).fit(X, y)
-
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;True beta: {</span>true_beta<span style="color: #CD5555">}&quot;</span>)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Fitted beta: {</span>beta<span style="color: #CD5555">}&quot;</span>)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Sklearn fitted beta: {</span>clf.coef_<span style="color: #CD5555">}&quot;</span>)
-
-
-plt.figure()
-plt.scatter(x, y, label=<span style="color: #CD5555">&quot;Data&quot;</span>)
-plt.plot(x, X @ beta, label=<span style="color: #CD5555">&quot;Fit&quot;</span>)
-plt.plot(x, clf.predict(X), label=<span style="color: #CD5555">&quot;Sklearn (fit_intercept=False)&quot;</span>)
-
-
-<span style="color: #228B22"># Do not include the intercept in the design matrix</span>
-X = np.zeros((<span style="color: #658b00">len</span>(x), degree - <span style="color: #B452CD">1</span>))
-
-<span style="color: #8B008B; font-weight: bold">for</span> p <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(degree - <span style="color: #B452CD">1</span>):
-    X[:, p] = x ** (p + <span style="color: #B452CD">1</span>)
-
-<span style="color: #228B22"># Intercept is not included in the design matrix</span>
-clf = LinearRegression(fit_intercept=<span style="color: #8B008B; font-weight: bold">True</span>).fit(X, y)
-
-<span style="color: #228B22"># Use centered values for X and y when computing coefficients</span>
-y_offset = np.average(y, axis=<span style="color: #B452CD">0</span>)
-X_offset = np.average(X, axis=<span style="color: #B452CD">0</span>)
-
-beta = fit_beta(X - X_offset, y - y_offset)
-intercept = np.mean(y_offset - X_offset @ beta)
-
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Manual intercept: {</span>intercept<span style="color: #CD5555">}&quot;</span>)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Fitted beta (sans intercept): {</span>beta<span style="color: #CD5555">}&quot;</span>)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Sklearn intercept: {</span>clf.intercept_<span style="color: #CD5555">}&quot;</span>)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Sklearn fitted beta (sans intercept): {</span>clf.coef_<span style="color: #CD5555">}&quot;</span>)
-
-plt.plot(x, X @ beta + intercept, <span style="color: #CD5555">&quot;--&quot;</span>, label=<span style="color: #CD5555">&quot;Fit (manual intercept)&quot;</span>)
-plt.plot(x, clf.predict(X), <span style="color: #CD5555">&quot;--&quot;</span>, label=<span style="color: #CD5555">&quot;Sklearn (fit_intercept=True)&quot;</span>)
-plt.grid()
-plt.legend()
-
 plt.show()
 </pre></div>
 <p>
