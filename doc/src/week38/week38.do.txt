@@ -400,65 +400,96 @@ plt.show()
 ===== What does centering (subtracting the mean values) mean mathematically? =====
 
 
-Let us try to understand what this may imply mathematically when we subtract the mean values, also known as *zero centering*. To catch many birds with just one stone, we will focus on Ridge regression.
+Let us try to understand what this may imply mathematically when we
+subtract the mean values, also known as *zero centering*. For
+simplicity, we will focus on  ordinary regression, as done in the above example.
 
-The cost/loss function  for Ridge regression is
+The cost/loss function  for regression is
 !bt
 \[
-C(\beta_0, \beta_1, ... , \beta_{p-1}) = \sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2 + \lambda \sum_{j=1}^{p-1} \beta_i^2.
+C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
 \]
 !et
 
-Note that the intercept term $\beta_0$is left out of the $L_2$ regularization term. The design matrix
-$X$ does in this case not contain any intercept column. We want
-
+What we have done is to single out the $\beta_0$ term in the definition of the mean squared error (MSE).
+The design matrix
+$X$ does in this case not contain any intercept column.
+When we take the derivative with respect to $\beta_0$, we want the derivative to obey
 !bt
 \[
 \frac{\partial C}{\partial \beta_j} = 0,
 \]
 !et
 
-for all $j$, so let us start with $\beta_0$. This means that we have
+for all $j$. For $\beta_0$ we have
 
 !bt
 \[
-\frac{\partial C}{\partial \beta_0} = -2\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right),
+\frac{\partial C}{\partial \beta_0} = -\frac{2}{n}\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right).
 \]
 !et
-
-which gives
+Multiplying away the constant $2/n$, we obtain
 !bt
 \[
 \sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
 \]
 !et
 
-If we assume that every column of $\bm{X}$ is centered, which we can do by subtracting the mean,
+!split
+===== Further Manipulations =====
+
+We assume 
+that every column of $\bm{X}$ is centered, which we can do by subtracting the mean,
 !bc pycod
 X = X - np.mean(X,axis=0)
 !ec
-the sum $\sum_{i=0}^{n-1} X_{ij}$
-can be rewritten as
+
+This means that we need to rewrite $X_{ij}$ as $\tilde{X}_{ij}=X_{ij}-\mu_j$, where
 !bt
 \[
-\sum_{i=0}^{n-1} \left(X_{ij} - \frac{1}{n}\sum_{i=0}^{n-1} X_{ij}\right) = \sum_{i=0}^{n-1} X_{ij} - \sum_{i=0}^{n-1} \frac{1}{n} \sum_{i=0}^{n-1}X_{ij},
-\]
-!et
-resulting in
-!bt
-\[
-\sum_{i=0}^{n-1} X_{ij} - n \frac{1}{n} \sum_{i=0}^{n-1}X_{ij} = 0.
+\mu_j = \frac{1}{n}\sum_{i=0}^{n-1}X_{ij}.
 \]
 !et
 
-
-Finally we have
+Let us special first to the case where we have only two parameters $\beta_0$ and $\beta_1$.
+Our result for $\beta_0$ simplifies then to
 !bt
 \[
-n\beta_0 = \sum_{i=0}^{n-1} y_i - \sum_{j=1}^{p-1}\beta_j \sum_{i=0}^{n-1} X_{ij},
+n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
 \]
 !et
-or
+Assuming that the matrix elements $X_{i1}$ are centered, what we have is
+!bt
+\[
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} \left(X_{i1}-\mu_{1}\right),
+\]
+!et
+where
+!bt
+\[
+\mu_1=\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1},
+\]
+!et
+and if we define the mean value of the outputs as
+!bt
+\[
+\mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
+\]
+!et
+we have
+!bt
+\[
+\beta_0 = \mu_y - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1}-\mu_{1}),
+\]
+!et
+and it is easy to see that the last sum equals zero!  This means that we have
+!bt
+\[
+\beta_0 = \mu_y,
+\]
+!et
+if the columns of the design matrix are centered. It is straight forward to generalize this results to more values of $\beta$.
+We have thus
 !bt
 \[
 \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1} y_i = \overline{\bm{y}},
@@ -466,18 +497,37 @@ or
 !et
 the average value of $\bm{y}$.
 
-Replacing $y_i$ with $y_i - \beta_0 = y_i - \overline{\bm{y}}$ in the cost function will give us (in vector-matrix disguise)
+Replacing $y_i$ with $y_i - \beta_0 = y_i - \overline{\bm{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
 !bt
 \[
-C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}) + \lambda \boldsymbol{\beta}^T\boldsymbol{\beta},
+C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}). 
 \]
 !et
 
-which has the solution
+!split
+===== Wrapping it up =====
 
-$\beta = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}$.
+If we minimize with respect to $\bm{\beta}$ we have then
+
+!bt
+\[
+\hat{\bm{\beta}} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{\tilde{y}},
+\]
+!et
+
 where $\boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\bm{y}}$
-and $\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=1}^{n-1}X_{kj}$.
+and $\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=0}^{n-1}X_{kj}$.
+
+For Ridge regression we need to add $\lambda \boldsymbol{\beta}^T\boldsymbol{\beta}$ to the cost function and get then
+!bt
+\[
+\hat{\bm{\beta}} = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}.
+\]
+!et
+
+What does this mean for thus? And why do we insist on all this?
+
+
 
 !split
 ===== Code Examples =====
