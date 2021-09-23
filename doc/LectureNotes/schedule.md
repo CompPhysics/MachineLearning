@@ -78,6 +78,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 38 September 20-24
 - Lab Wednesday: Work on  Project 1
 - Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h21/forelesningsvideoer/LectureSeptember23.mp4?vrtx=view-as-webpage
 - Lecture Friday: Logistic Regression and gradient optimization
 
 - Reading recommendations:
