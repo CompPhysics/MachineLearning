@@ -448,7 +448,7 @@ For Ridge regression we need to add $\lambda \boldsymbol{\beta}^T\boldsymbol{\be
 \]
 !et
 
-What does this mean for thus? And why do we insist on all this? Let us look at some examples.
+What does this mean? And why do we insist on all this? Let us look at some examples.
 
 
 
@@ -465,6 +465,10 @@ from sklearn.linear_model import LinearRegression
 
 
 np.random.seed(2021)
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
 
 
 def fit_beta(X, y):
@@ -493,6 +497,12 @@ clf = LinearRegression(fit_intercept=False).fit(X, y)
 print(f"True beta: {true_beta}")
 print(f"Fitted beta: {beta}")
 print(f"Sklearn fitted beta: {clf.coef_}")
+ypredictOwn = X @ beta
+ypredictSKL = skl.predict(X)
+print(f"MSE with intercept column: {intercept}")
+print(MSE(y,ypredictOwn)
+print(f"MSE with intercept column from SKL: {intercept}")
+print(MSE(y,ypredictSKL)
 
 
 plt.figure()
@@ -521,6 +531,12 @@ print(f"Manual intercept: {intercept}")
 print(f"Fitted beta (wiothout intercept): {beta}")
 print(f"Sklearn intercept: {clf.intercept_}")
 print(f"Sklearn fitted beta (without intercept): {clf.coef_}")
+ypredictOwn = X @ beta
+ypredictSKL = skl.predict(X)
+print(f"MSE with Manual intercept: {intercept}")
+print(MSE(y,ypredictOwn)
+print(f"MSE with Sklearn intercept: {clf.intercept_}")
+print(MSE(y,ypredictSKL)
 
 plt.plot(x, X @ beta + intercept, "--", label="Fit (manual intercept)")
 plt.plot(x, clf.predict(X), "--", label="Sklearn (fit_intercept=True)")
@@ -531,63 +547,8 @@ plt.show()
 
 !ec
 
-
-
-
-!split
-=====  Another straight Line, the Intercept and Scaling again =====
-
-As we said above, the intercept is the value of our output/target variable
+The intercept is the value of our output/target variable
 when all our features are zero and our function crosses the $y$-axis (for a one-dimensional case). 
-Let us now study a case where we again fit a straight line including the intercept in the design matrix
-using ordinary least squares. We are only interested in the MSE value here.
-
-!bc pycod
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn import linear_model
-
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-def fit_beta(X, y):
-    return np.linalg.pinv(X.T @ X) @ X.T @ y
-
-
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-np.random.seed(3155)
-
-n = 100
-x = np.random.rand(n)
-y = 10.0+5*x
-
-
-Maxpolydegree = 2
-X = np.zeros((n,Maxpolydegree))
-
-for degree in range(Maxpolydegree):
-    X[:,degree] = x**degree
-
-
-# We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-# Intercept is included in the design matrix
-# own code first
-OwnBeta = fit_beta(X_train, y_train)
-# Scikit-Learn
-skl = LinearRegression(fit_intercept=False).fit(X_train, y_train)
-ypredictOwn = X_test @ OwnBeta
-ypredictSKL = skl.predict(X_test)
-print(MSE(y_test,ypredictOwn)
-print(MSE(y_test,ypredictSKL)
-!ec
-
 
 Printing the MSE, we see first that both methods give the same
 MSE. However, changing the value of the intercept gives a larger or
@@ -595,7 +556,6 @@ smaller MSE, meaning that the MSE is penalized by the value of the
 intercept! Setting the intercept to true in the _Scikit-Learn_
 function or simply scaling our results, leads to a fit which is
 independent of the specific value of the intercept.
-
 
 
 !split
