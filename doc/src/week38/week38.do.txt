@@ -559,12 +559,31 @@ intercept. Not including the intercept in the fit, means that the
 regularization term does not include $\beta_0$. For different values
 of $\lambda$, this may lead to differeing MSE values.
 
+To remind the reader, the regularization term, with the intercept in Ridge regression is given by
+!bt
+\[
+\lambda \vert\vert \bm{\beta} \vert\vert_2^2 = \lambda \sum_{j=0}^{p-1}\beta_j^2,
+\]
+!et
+but when we take out the intercept, this equation becomes
+!bt
+\[
+\lambda \vert\vert \bm{\beta} \vert\vert_2^2 = \lambda \sum_{j=1}^{p-1}\beta_j^2.
+\]
+!et
+
+For Lasso regression we have
+!bt
+\[
+\lambda \vert\vert \bm{\beta} \vert\vert_1 = \lambda \sum_{j=1}^{p-1}\vert\beta_j\vert.
+\]
+!et
 
 
 !split
 ===== Code Examples =====
 
-Armed with this wisdom, we attempt first simply set the intercept equal to _False_ in our implementation of Ridge regression for yet another  vanilla data set.
+Armed with this wisdom, we attempt first to simply set the intercept equal to _False_ in our implementation of Ridge regression for our well-known  vanilla data set.
 
 !bc pycod
 import numpy as np
@@ -597,10 +616,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 p = Maxpolydegree
 I = np.eye(p,p)
 # Decide which values of lambda to use
-nlambdas = 4
+nlambdas = 6
 MSEOwnRidgePredict = np.zeros(nlambdas)
 MSERidgePredict = np.zeros(nlambdas)
-lambdas = np.logspace(-4, 4, nlambdas)
+lambdas = np.logspace(-4, 2, nlambdas)
 for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
@@ -636,8 +655,9 @@ plt.show()
 !ec
 
 The results here agree when we force _Scikit-Learn_'s Ridge function to include the first column in our design matrix.
-We see that the results agree very well. What happens if we do not include the intercept in our fit?
-Let us see how we can change this code by zero centering.
+We see that the results agree very well. Here we have thus explicitely included the intercept column in the design matrix.
+What happens if we do not include the intercept in our fit?
+Let us see how we can change this code by zero centering (thanks to Stian Bilek for inpouts here).
 
 !split
 ===== Taking out the mean =====
@@ -669,29 +689,24 @@ for degree in range(1,Maxpolydegree): #No intercept column
 # We split the data in test and training data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-
-
-
-
 #For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable
 X_train_mean = np.mean(X_train,axis=0)
 #Center by removing mean from each feature
 X_train_scaled = X_train - X_train_mean 
 X_test_scaled = X_test - X_train_mean
-#The model intercept (called y_scaler) is given by the mean of target variable (IF X is centered)
+#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered)
 #Remove the intercept from the training data.
 y_scaler = np.mean(y_train)           
 y_train_scaled = y_train - y_scaler   
 
-
 p = Maxpolydegree-1
 I = np.eye(p,p)
 # Decide which values of lambda to use
-nlambdas = 4
+nlambdas = 6
 MSEOwnRidgePredict = np.zeros(nlambdas)
 MSERidgePredict = np.zeros(nlambdas)
 
-lambdas = np.logspace(-4, 1, nlambdas)
+lambdas = np.logspace(-4, 2, nlambdas)
 for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)

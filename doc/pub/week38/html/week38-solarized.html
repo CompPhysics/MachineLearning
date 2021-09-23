@@ -915,12 +915,29 @@ regularization term does not include \( \beta_0 \). For different values
 of \( \lambda \), this may lead to differeing MSE values.
 
 <p>
+To remind the reader, the regularization term, with the intercept in Ridge regression is given by
+$$
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=0}^{p-1}\beta_j^2,
+$$
+
+but when we take out the intercept, this equation becomes
+$$
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=1}^{p-1}\beta_j^2.
+$$
+
+<p>
+For Lasso regression we have
+$$
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_1 = \lambda \sum_{j=1}^{p-1}\vert\beta_j\vert.
+$$
+
+<p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
 <h2 id="code-examples">Code Examples </h2>
 
 <p>
-Armed with this wisdom, we attempt first simply set the intercept equal to <b>False</b> in our implementation of Ridge regression for yet another  vanilla data set.
+Armed with this wisdom, we attempt first to simply set the intercept equal to <b>False</b> in our implementation of Ridge regression for our well-known  vanilla data set.
 
 <p>
 
@@ -955,10 +972,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style=
 p = Maxpolydegree
 I = np.eye(p,p)
 <span style="color: #228B22"># Decide which values of lambda to use</span>
-nlambdas = <span style="color: #B452CD">4</span>
+nlambdas = <span style="color: #B452CD">6</span>
 MSEOwnRidgePredict = np.zeros(nlambdas)
 MSERidgePredict = np.zeros(nlambdas)
-lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">4</span>, nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, nlambdas)
 <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
@@ -993,8 +1010,9 @@ plt.show()
 </pre></div>
 <p>
 The results here agree when we force <b>Scikit-Learn</b>'s Ridge function to include the first column in our design matrix.
-We see that the results agree very well. What happens if we do not include the intercept in our fit?
-Let us see how we can change this code by zero centering.
+We see that the results agree very well. Here we have thus explicitely included the intercept column in the design matrix.
+What happens if we do not include the intercept in our fit?
+Let us see how we can change this code by zero centering (thanks to Stian Bilek for inpouts here).
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1030,29 +1048,24 @@ X = np.zeros((n,Maxpolydegree-<span style="color: #B452CD">1</span>))
 <span style="color: #228B22"># We split the data in test and training data</span>
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
 
-
-
-
-
 <span style="color: #228B22">#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable</span>
 X_train_mean = np.mean(X_train,axis=<span style="color: #B452CD">0</span>)
 <span style="color: #228B22">#Center by removing mean from each feature</span>
 X_train_scaled = X_train - X_train_mean 
 X_test_scaled = X_test - X_train_mean
-<span style="color: #228B22">#The model intercept (called y_scaler) is given by the mean of target variable (IF X is centered)</span>
+<span style="color: #228B22">#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered)</span>
 <span style="color: #228B22">#Remove the intercept from the training data.</span>
 y_scaler = np.mean(y_train)           
 y_train_scaled = y_train - y_scaler   
 
-
 p = Maxpolydegree-<span style="color: #B452CD">1</span>
 I = np.eye(p,p)
 <span style="color: #228B22"># Decide which values of lambda to use</span>
-nlambdas = <span style="color: #B452CD">4</span>
+nlambdas = <span style="color: #B452CD">6</span>
 MSEOwnRidgePredict = np.zeros(nlambdas)
 MSERidgePredict = np.zeros(nlambdas)
 
-lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">1</span>, nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, nlambdas)
 <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)
