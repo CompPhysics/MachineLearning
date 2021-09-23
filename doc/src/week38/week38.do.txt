@@ -244,12 +244,12 @@ plt.show()
 ===== To think about, first part =====
 
 When you are comparing your own code with for example _Scikit-Learn_'s
-library, there are some things to keep in mind.  The examples
+library, there are some technicalities to keep in mind.  The examples
 here demonstrate some of these aspects with potential pitfalls.
 
 The discussion here focuses on the role of the intercept, how we can
 set up the design matrix, what scaling we should use and other topics
-which may confuse us.
+which tend  confuse us.
 
 
 
@@ -258,9 +258,9 @@ target/output variables when all other predictors are set to zero.
 Thus, if we cannot assume that the expected outputs/targets are zero
 when all predictors are zero (the columns in the design matrix), it
 may be a bad idea to implement a model which penalizes the intercept.
-Furthermore, in for example Ridge and Lasso regression, the solutions
-(when not shrinking $\beta_0$) for the unknown parameters
-$\bm{\beta}$ are derived under the assumption that both $\bm{y}$ and
+Furthermore, in for example Ridge and Lasso regression, the default solutions
+from the library _Scikit-Learn_ (when not shrinking $\beta_0$) for the unknown parameters
+$\bm{\beta}$, are derived under the assumption that both $\bm{y}$ and
 $\bm{X}$ are zero centered, that is we subtract the mean values.
 
 
@@ -271,8 +271,8 @@ $\bm{X}$ are zero centered, that is we subtract the mean values.
 If our predictors represent different scales, then it is important to
 standardize the design matrix $\bm{X}$ by subtracting the mean of each
 column from the corresponding column and dividing the column with its
-standard deviation. Most machine learning libraries do this as a deafult. This means that if you compare your code with the results from a given library,
-the results may differ. Tracing back the differences may often lead to an increased confusion.
+standard deviation. Most machine learning libraries do this as a default. This means that if you compare your code with the results from a given library,
+the results may differ. 
 
 The
 "Standadscaler":"https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html"
@@ -311,90 +311,12 @@ y_train = y_train - y_train_mean
 trained_model = some_model.fit(X_train,y_train)
 
 
-#Model prediction, here we need also to transform our data set used for the prediction.
+#Model prediction, we need also to transform our data set used for the prediction.
 X_test = X_test - X_train_mean #Use mean from training data
 y_pred = trained_model(X_test)
 y_pred = y_pred + y_train_mean
 !ec
 
-!split
-=====  Linear Regression code, Intercept handling first =====
-
-This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (*code example thanks to  Øyvind Sigmundson Schøyen*). Here our scaling of the data is done by subtracting the mean values only.
-
-!bc pycod
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.linear_model import LinearRegression
-
-
-np.random.seed(2021)
-
-
-def fit_beta(X, y):
-    return np.linalg.pinv(X.T @ X) @ X.T @ y
-
-
-true_beta = [2, 0.5, 3.7]
-
-x = np.linspace(0, 1, 11)
-y = np.sum(
-    np.asarray([x ** p * b for p, b in enumerate(true_beta)]), axis=0
-) + 0.1 * np.random.normal(size=len(x))
-
-degree = 3
-X = np.zeros((len(x), degree))
-
-# Include the intercept in the design matrix
-for p in range(degree):
-    X[:, p] = x ** p
-
-beta = fit_beta(X, y)
-
-# Intercept is included in the design matrix
-clf = LinearRegression(fit_intercept=False).fit(X, y)
-
-print(f"True beta: {true_beta}")
-print(f"Fitted beta: {beta}")
-print(f"Sklearn fitted beta: {clf.coef_}")
-
-
-plt.figure()
-plt.scatter(x, y, label="Data")
-plt.plot(x, X @ beta, label="Fit")
-plt.plot(x, clf.predict(X), label="Sklearn (fit_intercept=False)")
-
-
-# Do not include the intercept in the design matrix
-X = np.zeros((len(x), degree - 1))
-
-for p in range(degree - 1):
-    X[:, p] = x ** (p + 1)
-
-# Intercept is not included in the design matrix
-clf = LinearRegression(fit_intercept=True).fit(X, y)
-
-# Use centered values for X and y when computing coefficients
-y_offset = np.average(y, axis=0)
-X_offset = np.average(X, axis=0)
-
-beta = fit_beta(X - X_offset, y - y_offset)
-intercept = np.mean(y_offset - X_offset @ beta)
-
-print(f"Manual intercept: {intercept}")
-print(f"Fitted beta (sans intercept): {beta}")
-print(f"Sklearn intercept: {clf.intercept_}")
-print(f"Sklearn fitted beta (sans intercept): {clf.coef_}")
-
-plt.plot(x, X @ beta + intercept, "--", label="Fit (manual intercept)")
-plt.plot(x, clf.predict(X), "--", label="Sklearn (fit_intercept=True)")
-plt.grid()
-plt.legend()
-
-plt.show()
-
-!ec
 
 !split
 ===== What does centering (subtracting the mean values) mean mathematically? =====
@@ -410,6 +332,7 @@ The cost/loss function  for regression is
 C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
 \]
 !et
+Recall also that we use the squared value since this leads to an increase of the penalty for higher differences between predicted and output/target values.
 
 What we have done is to single out the $\beta_0$ term in the definition of the mean squared error (MSE).
 The design matrix
@@ -525,14 +448,160 @@ For Ridge regression we need to add $\lambda \boldsymbol{\beta}^T\boldsymbol{\be
 \]
 !et
 
-What does this mean for thus? And why do we insist on all this?
+What does this mean for thus? And why do we insist on all this? Let us look at some examples.
+
+
+
+!split
+=====  Linear Regression code, Intercept handling first =====
+
+This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (*code example thanks to  Øyvind Sigmundson Schøyen*). Here our scaling of the data is done by subtracting the mean values only.
+Note also that we do not split the data into training and test.
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import LinearRegression
+
+
+np.random.seed(2021)
+
+
+def fit_beta(X, y):
+    return np.linalg.pinv(X.T @ X) @ X.T @ y
+
+
+true_beta = [2, 0.5, 3.7]
+
+x = np.linspace(0, 1, 11)
+y = np.sum(
+    np.asarray([x ** p * b for p, b in enumerate(true_beta)]), axis=0
+) + 0.1 * np.random.normal(size=len(x))
+
+degree = 3
+X = np.zeros((len(x), degree))
+
+# Include the intercept in the design matrix
+for p in range(degree):
+    X[:, p] = x ** p
+
+beta = fit_beta(X, y)
+
+# Intercept is included in the design matrix
+clf = LinearRegression(fit_intercept=False).fit(X, y)
+
+print(f"True beta: {true_beta}")
+print(f"Fitted beta: {beta}")
+print(f"Sklearn fitted beta: {clf.coef_}")
+
+
+plt.figure()
+plt.scatter(x, y, label="Data")
+plt.plot(x, X @ beta, label="Fit")
+plt.plot(x, clf.predict(X), label="Sklearn (fit_intercept=False)")
+
+
+# Do not include the intercept in the design matrix
+X = np.zeros((len(x), degree - 1))
+
+for p in range(degree - 1):
+    X[:, p] = x ** (p + 1)
+
+# Intercept is not included in the design matrix
+clf = LinearRegression(fit_intercept=True).fit(X, y)
+
+# Use centered values for X and y when computing coefficients
+y_offset = np.average(y, axis=0)
+X_offset = np.average(X, axis=0)
+
+beta = fit_beta(X - X_offset, y - y_offset)
+intercept = np.mean(y_offset - X_offset @ beta)
+
+print(f"Manual intercept: {intercept}")
+print(f"Fitted beta (wiothout intercept): {beta}")
+print(f"Sklearn intercept: {clf.intercept_}")
+print(f"Sklearn fitted beta (without intercept): {clf.coef_}")
+
+plt.plot(x, X @ beta + intercept, "--", label="Fit (manual intercept)")
+plt.plot(x, clf.predict(X), "--", label="Sklearn (fit_intercept=True)")
+plt.grid()
+plt.legend()
+
+plt.show()
+
+!ec
+
+
+
+
+!split
+=====  Another straight Line, the Intercept and Scaling again =====
+
+As we said above, the intercept is the value of our output/target variable
+when all our features are zero and our function crosses the $y$-axis (for a one-dimensional case). 
+Let us now study a case where we again fit a straight line including the intercept in the design matrix
+using ordinary least squares. We are only interested in the MSE value here.
+
+!bc pycod
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+def fit_beta(X, y):
+    return np.linalg.pinv(X.T @ X) @ X.T @ y
+
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+n = 100
+x = np.random.rand(n)
+y = 10.0+5*x
+
+
+Maxpolydegree = 2
+X = np.zeros((n,Maxpolydegree))
+
+for degree in range(Maxpolydegree):
+    X[:,degree] = x**degree
+
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Intercept is included in the design matrix
+# own code first
+OwnBeta = fit_beta(X_train, y_train)
+# Scikit-Learn
+skl = LinearRegression(fit_intercept=False).fit(X_train, y_train)
+ypredictOwn = X_test @ OwnBeta
+ypredictSKL = skl.predict(X_test)
+print(MSE(y_test,ypredictOwn)
+print(MSE(y_test,ypredictSKL)
+!ec
+
+
+Printing the MSE, we see first that both methods give the same
+MSE. However, changing the value of the intercept gives a larger or
+smaller MSE, meaning that the MSE is penalized by the value of the
+intercept! Setting the intercept to true in the _Scikit-Learn_
+function or simply scaling our results, leads to a fit which is
+independent of the specific value of the intercept.
 
 
 
 !split
 ===== Code Examples =====
 
-Armed with this wisdom, we attempt first simply set the intercept eqault to _False_ in our implementation of Ridge regression for a vanilla data set.
+Armed with this wisdom, we attempt first simply set the intercept eqault to _False_ in our implementation of Ridge regression for yet another  vanilla data set.
 
 !bc pycod
 import numpy as np
@@ -557,12 +626,8 @@ y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
 Maxpolydegree = 20
 X = np.zeros((n,Maxpolydegree))
 #We include explicitely the intercept column
-X[:,0] = 1.0
-
 for degree in range(Maxpolydegree):
     X[:,degree] = x**degree
-
-
 # We split the data in test and training data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
@@ -572,7 +637,6 @@ I = np.eye(p,p)
 nlambdas = 4
 MSEOwnRidgePredict = np.zeros(nlambdas)
 MSERidgePredict = np.zeros(nlambdas)
-
 lambdas = np.logspace(-4, 4, nlambdas)
 for i in range(nlambdas):
     lmb = lambdas[i]
@@ -594,7 +658,7 @@ for i in range(nlambdas):
     print(RegRidge.coef_)
 # Now plot the results
 plt.figure()
-plt.plot(np.log10(lambdas), MSEOwnRidgePredict, 'r', label = 'MSE Ridge Test')
+plt.plot(np.log10(lambdas), MSEOwnRidgePredict, 'r', label = 'MSE own Ridge Test')
 plt.plot(np.log10(lambdas), MSERidgePredict, 'g', label = 'MSE Ridge Test')
 
 plt.xlabel('log10(lambda)')
@@ -605,8 +669,7 @@ plt.show()
 !ec
 
 The results here agree when we force _Scikit-Learn_'s Ridge function to include the first column in our design matrix.
-The problem however is that can easily lead to a larger mean-squared error!
-
+We see that the results agree very well. What happens if we do not include the intercept in our fit?
 Let us see how we can change this code by zero centering.
 
 !split
