@@ -910,12 +910,13 @@ The intercept is the value of our output/target variable
 when all our features are zero and our function crosses the \( y \)-axis (for a one-dimensional case).
 
 <p>
-Printing the MSE, we see first that both methods give the same
-MSE. However, changing the value of the intercept gives a larger or
-smaller MSE, meaning that the MSE is penalized by the value of the
-intercept! Setting the intercept to true in the <b>Scikit-Learn</b>
-function or simply scaling our results, leads to a fit which is
-independent of the specific value of the intercept.
+Printing the MSE, we see first that both methods give the same MSE, as
+they should.  However, when we move to for example Ridge regression,
+the way we treat the intercept may give a larger or smaller MSE,
+meaning that the MSE can be penalized by the value of the
+intercept. Not including the intercept in the fit, means that the
+regularization term does not include \( \beta_0 \). For different values
+of \( \lambda \), this may lead to differeing MSE values.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -923,7 +924,7 @@ independent of the specific value of the intercept.
 <h2 id="code-examples">Code Examples </h2>
 
 <p>
-Armed with this wisdom, we attempt first simply set the intercept eqault to <b>False</b> in our implementation of Ridge regression for yet another  vanilla data set.
+Armed with this wisdom, we attempt first simply set the intercept equal to <b>False</b> in our implementation of Ridge regression for yet another  vanilla data set.
 
 <p>
 
@@ -965,7 +966,6 @@ lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</
 <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(nlambdas):
     lmb <span style="color: #666666">=</span> lambdas[i]
     OwnRidgeBeta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X_train<span style="color: #666666">+</span>lmb<span style="color: #666666">*</span>I) <span style="color: #666666">@</span> X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y_train
-    <span style="color: #408080; font-style: italic"># include lasso using Scikit-Learn</span>
     <span style="color: #408080; font-style: italic"># Note: we include the intercept column and no scaling</span>
     RegRidge <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>Ridge(lmb,fit_intercept<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)
     RegRidge<span style="color: #666666">.</span>fit(X_train,y_train)
@@ -980,6 +980,11 @@ lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</
     <span style="color: #008000">print</span>(OwnRidgeBeta)
     <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span>)
     <span style="color: #008000">print</span>(RegRidge<span style="color: #666666">.</span>coef_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for own Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSEOwnRidgePredict[i])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSERidgePredict[i])
+
 <span style="color: #408080; font-style: italic"># Now plot the results</span>
 plt<span style="color: #666666">.</span>figure()
 plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSEOwnRidgePredict, <span style="color: #BA2121">&#39;r&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE own Ridge Test&#39;</span>)
@@ -1058,16 +1063,11 @@ lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</
     intercept_ <span style="color: #666666">=</span> y_scaler <span style="color: #666666">-</span> X_train_mean<span style="color: #AA22FF">@OwnRidgeBeta</span> <span style="color: #408080; font-style: italic">#The intercept can be shifted so the model can predict on uncentered data</span>
     <span style="color: #408080; font-style: italic">#Add intercept to prediction</span>
     ypredictOwnRidge <span style="color: #666666">=</span> X_test <span style="color: #666666">@</span> OwnRidgeBeta <span style="color: #666666">+</span> intercept_ 
-    <span style="color: #408080; font-style: italic">#EQUIVALENT PREDICTION:</span>
     <span style="color: #408080; font-style: italic">#Add intercept to prediction</span>
     ypredictOwnRidge <span style="color: #666666">=</span> X_test_scaled <span style="color: #666666">@</span> OwnRidgeBeta <span style="color: #666666">+</span> y_scaler 
-    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Values for own Ridge prediction&quot;</span>)
-    <span style="color: #008000">print</span>(ypredictOwnRidge)
     RegRidge <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>Ridge(lmb)
     RegRidge<span style="color: #666666">.</span>fit(X_train,y_train)
     ypredictRidge <span style="color: #666666">=</span> RegRidge<span style="color: #666666">.</span>predict(X_test)
-    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Values for SL Ridge prediction&quot;</span>)
-    <span style="color: #008000">print</span>(ypredictRidge)
     MSEOwnRidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictOwnRidge)
     MSERidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictRidge)
     <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for own Ridge implementation&quot;</span>)
@@ -1078,6 +1078,11 @@ lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</
     <span style="color: #008000">print</span>(intercept_)
     <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Intercept from Scikit-Learn Ridge implementation&#39;</span>)
     <span style="color: #008000">print</span>(RegRidge<span style="color: #666666">.</span>intercept_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for own Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSEOwnRidgePredict[i])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSERidgePredict[i])
+
 
 <span style="color: #408080; font-style: italic"># Now plot the results</span>
 plt<span style="color: #666666">.</span>figure()

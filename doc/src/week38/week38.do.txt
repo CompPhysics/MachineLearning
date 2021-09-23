@@ -550,18 +550,20 @@ plt.show()
 The intercept is the value of our output/target variable
 when all our features are zero and our function crosses the $y$-axis (for a one-dimensional case). 
 
-Printing the MSE, we see first that both methods give the same
-MSE. However, changing the value of the intercept gives a larger or
-smaller MSE, meaning that the MSE is penalized by the value of the
-intercept! Setting the intercept to true in the _Scikit-Learn_
-function or simply scaling our results, leads to a fit which is
-independent of the specific value of the intercept.
+Printing the MSE, we see first that both methods give the same MSE, as
+they should.  However, when we move to for example Ridge regression,
+the way we treat the intercept may give a larger or smaller MSE,
+meaning that the MSE can be penalized by the value of the
+intercept. Not including the intercept in the fit, means that the
+regularization term does not include $\beta_0$. For different values
+of $\lambda$, this may lead to differeing MSE values.
+
 
 
 !split
 ===== Code Examples =====
 
-Armed with this wisdom, we attempt first simply set the intercept eqault to _False_ in our implementation of Ridge regression for yet another  vanilla data set.
+Armed with this wisdom, we attempt first simply set the intercept equal to _False_ in our implementation of Ridge regression for yet another  vanilla data set.
 
 !bc pycod
 import numpy as np
@@ -601,7 +603,6 @@ lambdas = np.logspace(-4, 4, nlambdas)
 for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
-    # include lasso using Scikit-Learn
     # Note: we include the intercept column and no scaling
     RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
     RegRidge.fit(X_train,y_train)
@@ -616,6 +617,11 @@ for i in range(nlambdas):
     print(OwnRidgeBeta)
     print("Beta values for Scikit-Learn Ridge implementation")
     print(RegRidge.coef_)
+    print("MSE values for own Ridge implementation")
+    print(MSEOwnRidgePredict[i])
+    print("MSE values for Scikit-Learn Ridge implementation")
+    print(MSERidgePredict[i])
+
 # Now plot the results
 plt.figure()
 plt.plot(np.log10(lambdas), MSEOwnRidgePredict, 'r', label = 'MSE own Ridge Test')
@@ -691,16 +697,11 @@ for i in range(nlambdas):
     intercept_ = y_scaler - X_train_mean@OwnRidgeBeta #The intercept can be shifted so the model can predict on uncentered data
     #Add intercept to prediction
     ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ 
-    #EQUIVALENT PREDICTION:
     #Add intercept to prediction
     ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler 
-    print("Values for own Ridge prediction")
-    print(ypredictOwnRidge)
     RegRidge = linear_model.Ridge(lmb)
     RegRidge.fit(X_train,y_train)
     ypredictRidge = RegRidge.predict(X_test)
-    print("Values for SL Ridge prediction")
-    print(ypredictRidge)
     MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
     MSERidgePredict[i] = MSE(y_test,ypredictRidge)
     print("Beta values for own Ridge implementation")
@@ -711,6 +712,11 @@ for i in range(nlambdas):
     print(intercept_)
     print('Intercept from Scikit-Learn Ridge implementation')
     print(RegRidge.intercept_)
+    print("MSE values for own Ridge implementation")
+    print(MSEOwnRidgePredict[i])
+    print("MSE values for Scikit-Learn Ridge implementation")
+    print(MSERidgePredict[i])
+
 
 # Now plot the results
 plt.figure()
