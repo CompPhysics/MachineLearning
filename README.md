@@ -310,7 +310,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h21/forelesningsvideoer/LectureSeptember23.mp4?vrtx=view-as-webpage
 - Lecture Friday: Logistic Regression and start discussions of gradient optimization
-
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember24.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 38 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Bishop 4.1, 4.2 and 4.3. Not all the material is relevant or will be covered. Section 4.3 is the most relevant, but 4.1 and 4.2 give interesting background readings  for logistic regression
