@@ -185,14 +185,105 @@ For a good discussion on gradient methods, see Goodfellow et al section 4.3-4.5 
 <h2 id="searching-for-optimal-regularization-parameters-lambda">Searching for Optimal Regularization Parameters \( \lambda \) </h2>
 
 <p>
-In project 1 when using Ridge and Lasso regression, we end up
+In project 1, when using Ridge and Lasso regression, we end up
 searching for the optimal parameter \( \lambda \) which minimizes our
 selected scores (MSE or \( R2 \) values for example). The brute force
-approach, as discussed in the code here for Ridge regression consists
+approach, as discussed in the code here for Ridge regression, consists
 in evaluating the MSE as function of different \( \lambda \) values.
+Based on these calculations, one tries then to determine the value of the hyperparameter \( \lambda \)
+which results in optimal scores (for example the smallest MSE or an \( R2=1 \)).
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> cross_val_score
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+np.random.seed(<span style="color: #B452CD">3155</span>)
+<span style="color: #228B22"># Generate the data.</span>
+n = <span style="color: #B452CD">100</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
+<span style="color: #228B22"># Decide degree on polynomial to fit</span>
+poly = PolynomialFeatures(degree = <span style="color: #B452CD">10</span>)
+
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">500</span>
+lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">5</span>, nlambdas)
+<span style="color: #228B22"># Initialize a KFold instance</span>
+k = <span style="color: #B452CD">5</span>
+kfold = KFold(n_splits = k)
+estimated_mse_sklearn = np.zeros(nlambdas)
+i = <span style="color: #B452CD">0</span>
+<span style="color: #8B008B; font-weight: bold">for</span> lmb <span style="color: #8B008B">in</span> lambdas:
+    ridge = Ridge(alpha = lmb)
+    estimated_mse_folds = cross_val_score(ridge, x, y, scoring=<span style="color: #CD5555">&#39;neg_mean_squared_error&#39;</span>, cv=kfold)
+    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
+    i += <span style="color: #B452CD">1</span>
+plt.figure()
+plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = <span style="color: #CD5555">&#39;cross_val_score&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
+<p>
+We see from this plot that the optimal MSE occurs for a value of \( \lambda\in [10,100] \).
+In order to nail down the best value of \( \lambda \), we could in turn narrow down the search area.
+</section>
+
+
+<section>
+<h2 id="grid-search">Grid Search </h2>
 
 <p>
-An alternative is to use the so-called grid search functionality included with the library <b>Scikit-Learn</b>, as demonstrated for the same example here.
+An alternative is to use the so-called grid search functionality
+included with the library <b>Scikit-Learn</b>, as demonstrated for the same
+example here.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> KFold
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> cross_val_score
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+np.random.seed(<span style="color: #B452CD">3155</span>)
+<span style="color: #228B22"># Generate the data.</span>
+n = <span style="color: #B452CD">100</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
+<span style="color: #228B22"># Decide degree on polynomial to fit</span>
+poly = PolynomialFeatures(degree = <span style="color: #B452CD">10</span>)
+
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">500</span>
+lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">5</span>, nlambdas)
+<span style="color: #228B22"># Initialize a KFold instance</span>
+k = <span style="color: #B452CD">5</span>
+kfold = KFold(n_splits = k)
+estimated_mse_sklearn = np.zeros(nlambdas)
+i = <span style="color: #B452CD">0</span>
+<span style="color: #8B008B; font-weight: bold">for</span> lmb <span style="color: #8B008B">in</span> lambdas:
+    ridge = Ridge(alpha = lmb)
+    estimated_mse_folds = cross_val_score(ridge, x, y, scoring=<span style="color: #CD5555">&#39;neg_mean_squared_error&#39;</span>, cv=kfold)
+    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
+    i += <span style="color: #B452CD">1</span>
+plt.figure()
+plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = <span style="color: #CD5555">&#39;cross_val_score&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre></div>
 </section>
 
 
