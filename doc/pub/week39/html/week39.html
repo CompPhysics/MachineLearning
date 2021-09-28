@@ -73,6 +73,7 @@ div { text-align: justify; text-justify: inter-word; }
                None,
                'searching-for-optimal-regularization-parameters-lambda'),
               ('Grid Search', 2, None, 'grid-search'),
+              ('Randomized Grid Search', 2, None, 'randomized-grid-search'),
               ('Optimization, the central part of any Machine Learning '
                'algortithm',
                2,
@@ -243,7 +244,7 @@ MathJax.Hub.Config({
 <center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
 <br>
 <p>
-<center><h4>Sep 27, 2021</h4></center> <!-- date -->
+<center><h4>Sep 28, 2021</h4></center> <!-- date -->
 <br>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -251,7 +252,7 @@ MathJax.Hub.Config({
 <h2 id="plan-for-week-39">Plan for week 39 </h2>
 
 <ul>
-<li> Thursday: Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Discussion of project 1</li>
+<li> Thursday: Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Discussion of project 1 and examples on how to implement Logistic Regression</li>
 <li> Friday: Stochastic Gradient descent with examples and automatic differentiation</li>
 <li> Reading recommendations:</li>
 </ul>
@@ -284,44 +285,54 @@ which results in optimal scores (for example the smallest MSE or an \( R2=1 \)).
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> KFold
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> Ridge
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> cross_val_score
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> PolynomialFeatures
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> linear_model
 
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
 <span style="color: #408080; font-style: italic"># A seed just to ensure that the random numbers are the same for every run.</span>
-np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">3155</span>)
-<span style="color: #408080; font-style: italic"># Generate the data.</span>
+<span style="color: #408080; font-style: italic"># Useful for eventual debugging.</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">315</span>)
+
 n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
-x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
-y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
-<span style="color: #408080; font-style: italic"># Decide degree on polynomial to fit</span>
-poly <span style="color: #666666">=</span> PolynomialFeatures(degree <span style="color: #666666">=</span> <span style="color: #666666">10</span>)
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)
+
+Maxpolydegree <span style="color: #666666">=</span> <span style="color: #666666">5</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((n,Maxpolydegree<span style="color: #666666">-1</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,Maxpolydegree): <span style="color: #408080; font-style: italic">#No intercept column</span>
+    X[:,degree<span style="color: #666666">-1</span>] <span style="color: #666666">=</span> x<span style="color: #666666">**</span>(degree)
+
+<span style="color: #408080; font-style: italic"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.2</span>)
 
 <span style="color: #408080; font-style: italic"># Decide which values of lambda to use</span>
 nlambdas <span style="color: #666666">=</span> <span style="color: #666666">500</span>
-lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-3</span>, <span style="color: #666666">5</span>, nlambdas)
-<span style="color: #408080; font-style: italic"># Initialize a KFold instance</span>
-k <span style="color: #666666">=</span> <span style="color: #666666">5</span>
-kfold <span style="color: #666666">=</span> KFold(n_splits <span style="color: #666666">=</span> k)
-estimated_mse_sklearn <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
-i <span style="color: #666666">=</span> <span style="color: #666666">0</span>
-<span style="color: #008000; font-weight: bold">for</span> lmb <span style="color: #AA22FF; font-weight: bold">in</span> lambdas:
-    ridge <span style="color: #666666">=</span> Ridge(alpha <span style="color: #666666">=</span> lmb)
-    estimated_mse_folds <span style="color: #666666">=</span> cross_val_score(ridge, x, y, scoring<span style="color: #666666">=</span><span style="color: #BA2121">&#39;neg_mean_squared_error&#39;</span>, cv<span style="color: #666666">=</span>kfold)
-    estimated_mse_sklearn[i] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(<span style="color: #666666">-</span>estimated_mse_folds)
-    i <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+MSERidgePredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-4</span>, <span style="color: #666666">2</span>, nlambdas)
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(nlambdas):
+    lmb <span style="color: #666666">=</span> lambdas[i]
+    RegRidge <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>Ridge(lmb)
+    RegRidge<span style="color: #666666">.</span>fit(X_train,y_train)
+    ypredictRidge <span style="color: #666666">=</span> RegRidge<span style="color: #666666">.</span>predict(X_test)
+    MSERidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictRidge)
+
+<span style="color: #408080; font-style: italic"># Now plot the results</span>
 plt<span style="color: #666666">.</span>figure()
-plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), estimated_mse_sklearn, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;cross_val_score&#39;</span>)
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSERidgePredict, <span style="color: #BA2121">&#39;g--&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE SL Ridge Test&#39;</span>)
 plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;log10(lambda)&#39;</span>)
 plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
 plt<span style="color: #666666">.</span>legend()
 plt<span style="color: #666666">.</span>show()
 </pre></div>
 <p>
-We see from this plot that the optimal MSE occurs for a value of \( \lambda\in [10,100] \).
-In order to nail down the best value of \( \lambda \), we could in turn narrow down the search area.
+Here we have performed a rather data greedy calculation as function of the regularization parameter \( \lambda \). There is no resampling here. The latter can easily be added by employing the function <b>RidgeCV</b> instead of just calling the <b>Ridge</b> function. For <b>RidgeCV</b> we need to passe the array of \( \lambda \) values.
+By inspecting the figure we can in turn determine which is the optimal regularization parameter.
+This becomes however less functional in the long run.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -337,40 +348,109 @@ example here.
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> KFold
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> Ridge
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> cross_val_score
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> PolynomialFeatures
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> GridSearchCV
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">R2</span>(y_data, y_model):
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> y_model) <span style="color: #666666">**</span> <span style="color: #666666">2</span>) <span style="color: #666666">/</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_data)) <span style="color: #666666">**</span> <span style="color: #666666">2</span>)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
 
 <span style="color: #408080; font-style: italic"># A seed just to ensure that the random numbers are the same for every run.</span>
-np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">3155</span>)
-<span style="color: #408080; font-style: italic"># Generate the data.</span>
+<span style="color: #408080; font-style: italic"># Useful for eventual debugging.</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">2021</span>)
+
 n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
-x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
-y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
-<span style="color: #408080; font-style: italic"># Decide degree on polynomial to fit</span>
-poly <span style="color: #666666">=</span> PolynomialFeatures(degree <span style="color: #666666">=</span> <span style="color: #666666">10</span>)
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)
+
+Maxpolydegree <span style="color: #666666">=</span> <span style="color: #666666">5</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((n,Maxpolydegree<span style="color: #666666">-1</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,Maxpolydegree): <span style="color: #408080; font-style: italic">#No intercept column</span>
+    X[:,degree<span style="color: #666666">-1</span>] <span style="color: #666666">=</span> x<span style="color: #666666">**</span>(degree)
+
+<span style="color: #408080; font-style: italic"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.2</span>)
 
 <span style="color: #408080; font-style: italic"># Decide which values of lambda to use</span>
-nlambdas <span style="color: #666666">=</span> <span style="color: #666666">500</span>
-lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-3</span>, <span style="color: #666666">5</span>, nlambdas)
-<span style="color: #408080; font-style: italic"># Initialize a KFold instance</span>
-k <span style="color: #666666">=</span> <span style="color: #666666">5</span>
-kfold <span style="color: #666666">=</span> KFold(n_splits <span style="color: #666666">=</span> k)
-estimated_mse_sklearn <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
-i <span style="color: #666666">=</span> <span style="color: #666666">0</span>
-<span style="color: #008000; font-weight: bold">for</span> lmb <span style="color: #AA22FF; font-weight: bold">in</span> lambdas:
-    ridge <span style="color: #666666">=</span> Ridge(alpha <span style="color: #666666">=</span> lmb)
-    estimated_mse_folds <span style="color: #666666">=</span> cross_val_score(ridge, x, y, scoring<span style="color: #666666">=</span><span style="color: #BA2121">&#39;neg_mean_squared_error&#39;</span>, cv<span style="color: #666666">=</span>kfold)
-    estimated_mse_sklearn[i] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(<span style="color: #666666">-</span>estimated_mse_folds)
-    i <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-plt<span style="color: #666666">.</span>figure()
-plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), estimated_mse_sklearn, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;cross_val_score&#39;</span>)
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;log10(lambda)&#39;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
-plt<span style="color: #666666">.</span>legend()
-plt<span style="color: #666666">.</span>show()
+nlambdas <span style="color: #666666">=</span> <span style="color: #666666">10</span>
+lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-4</span>, <span style="color: #666666">2</span>, nlambdas)
+<span style="color: #408080; font-style: italic"># create and fit a ridge regression model, testing each alpha</span>
+model <span style="color: #666666">=</span> Ridge()
+gridsearch <span style="color: #666666">=</span> GridSearchCV(estimator<span style="color: #666666">=</span>model, param_grid<span style="color: #666666">=</span><span style="color: #008000">dict</span>(alpha<span style="color: #666666">=</span>lambdas))
+gridsearch<span style="color: #666666">.</span>fit(X_train, y_train)
+<span style="color: #008000">print</span>(gridsearch)
+ypredictRidge <span style="color: #666666">=</span> gridsearch<span style="color: #666666">.</span>predict(X_test)
+<span style="color: #408080; font-style: italic"># summarize the results of the grid search</span>
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Best estimated lambda-value: </span><span style="color: #BB6688; font-weight: bold">{</span>gridsearch<span style="color: #666666">.</span>best_estimator_<span style="color: #666666">.</span>alpha<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;MSE score: </span><span style="color: #BB6688; font-weight: bold">{</span>MSE(y_test,ypredictRidge)<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;R2 score: </span><span style="color: #BB6688; font-weight: bold">{</span>R2(y_test,ypredictRidge)<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+</pre></div>
+<p>
+By default the grid search function includes cross validation with five folds. The <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV" target="_blank">Scikit-Learn documentation</a> contains more information on how to set the different parameters.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="randomized-grid-search">Randomized Grid Search </h2>
+
+<p>
+An alternative to the above manual grid set up, is to use a random
+search where the parameters are tuned from a random distribution
+(uniform below) for a fixed number of iterations. A model is
+constructed and evaluated for each combination of chosen parameters.
+We repeat the previous example but now with a random search.
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> Ridge
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> GridSearchCV
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">scipy.stats</span> <span style="color: #008000; font-weight: bold">import</span> uniform <span style="color: #008000; font-weight: bold">as</span> randuniform
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> RandomizedSearchCV
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">R2</span>(y_data, y_model):
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1</span> <span style="color: #666666">-</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> y_model) <span style="color: #666666">**</span> <span style="color: #666666">2</span>) <span style="color: #666666">/</span> np<span style="color: #666666">.</span>sum((y_data <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_data)) <span style="color: #666666">**</span> <span style="color: #666666">2</span>)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
+
+<span style="color: #408080; font-style: italic"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #408080; font-style: italic"># Useful for eventual debugging.</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">2021</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)
+
+Maxpolydegree <span style="color: #666666">=</span> <span style="color: #666666">5</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((n,Maxpolydegree<span style="color: #666666">-1</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,Maxpolydegree): <span style="color: #408080; font-style: italic">#No intercept column</span>
+    X[:,degree<span style="color: #666666">-1</span>] <span style="color: #666666">=</span> x<span style="color: #666666">**</span>(degree)
+
+<span style="color: #408080; font-style: italic"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.2</span>)
+
+param_grid <span style="color: #666666">=</span> {<span style="color: #BA2121">&#39;alpha&#39;</span>: randuniform()}
+<span style="color: #408080; font-style: italic"># create and fit a ridge regression model, testing each alpha</span>
+model <span style="color: #666666">=</span> Ridge()
+gridsearch <span style="color: #666666">=</span> RandomizedSearchCV(estimator<span style="color: #666666">=</span>model, param_distributions<span style="color: #666666">=</span>param_grid, n_iter<span style="color: #666666">=100</span>)
+gridsearch<span style="color: #666666">.</span>fit(X_train, y_train)
+<span style="color: #008000">print</span>(gridsearch)
+ypredictRidge <span style="color: #666666">=</span> gridsearch<span style="color: #666666">.</span>predict(X_test)
+<span style="color: #408080; font-style: italic"># summarize the results of the grid search</span>
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Best estimated lambda-value: </span><span style="color: #BB6688; font-weight: bold">{</span>gridsearch<span style="color: #666666">.</span>best_estimator_<span style="color: #666666">.</span>alpha<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;MSE score: </span><span style="color: #BB6688; font-weight: bold">{</span>MSE(y_test,ypredictRidge)<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;R2 score: </span><span style="color: #BB6688; font-weight: bold">{</span>R2(y_test,ypredictRidge)<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
 </pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>

@@ -5,7 +5,7 @@ DATE: today
 !split
 ===== Plan for week 39 =====
 
-* Thursday: Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Discussion of project 1
+* Thursday: Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Discussion of project 1 and examples on how to implement Logistic Regression
 * Friday: Stochastic Gradient descent with examples and automatic differentiation
 
 
@@ -31,10 +31,57 @@ in evaluating the MSE as function of different $\lambda$ values.
 Based on these calculations, one tries then to determine the value of the hyperparameter $\lambda$
 which results in optimal scores (for example the smallest MSE or an $R2=1$).
 !bc pycod
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(315)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
+
+Maxpolydegree = 5
+X = np.zeros((n,Maxpolydegree-1))
+
+for degree in range(1,Maxpolydegree): #No intercept column
+    X[:,degree-1] = x**(degree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Decide which values of lambda to use
+nlambdas = 500
+MSERidgePredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 2, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    RegRidge = linear_model.Ridge(lmb)
+    RegRidge.fit(X_train,y_train)
+    ypredictRidge = RegRidge.predict(X_test)
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, 'g--', label = 'MSE SL Ridge Test')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
 !ec
 
-We see from this plot that the optimal MSE occurs for a value of $\lambda\in [10,100]$.
-In order to nail down the best value of $\lambda$, we could in turn narrow down the search area.
+Here we have performed a rather data greedy calculation as function of the regularization parameter $\lambda$. There is no resampling here. The latter can easily be added by employing the function _RidgeCV_ instead of just calling the _Ridge_ function. For _RidgeCV_ we need to passe the array of $\lambda$ values.
+By inspecting the figure we can in turn determine which is the optimal regularization parameter.
+This becomes however less functional in the long run. 
+
 
 !split
 ===== Grid Search =====
@@ -45,11 +92,110 @@ included with the library _Scikit-Learn_, as demonstrated for the same
 example here.
 
 !bc pycod
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(2021)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
+
+Maxpolydegree = 5
+X = np.zeros((n,Maxpolydegree-1))
+
+for degree in range(1,Maxpolydegree): #No intercept column
+    X[:,degree-1] = x**(degree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Decide which values of lambda to use
+nlambdas = 10
+lambdas = np.logspace(-4, 2, nlambdas)
+# create and fit a ridge regression model, testing each alpha
+model = Ridge()
+gridsearch = GridSearchCV(estimator=model, param_grid=dict(alpha=lambdas))
+gridsearch.fit(X_train, y_train)
+print(gridsearch)
+ypredictRidge = gridsearch.predict(X_test)
+# summarize the results of the grid search
+print(f"Best estimated lambda-value: {gridsearch.best_estimator_.alpha}")
+print(f"MSE score: {MSE(y_test,ypredictRidge)}")
+print(f"R2 score: {R2(y_test,ypredictRidge)}")
 
 !ec
 
+By default the grid search function includes cross validation with five folds. The "Scikit-Learn documentation":"https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV" contains more information on how to set the different parameters.
+
+!split
+===== Randomized Grid Search =====
+
+An alternative to the above manual grid set up, is to use a random
+search where the parameters are tuned from a random distribution
+(uniform below) for a fixed number of iterations. A model is
+constructed and evaluated for each combination of chosen parameters.
+We repeat the previous example but now with a random search.
 
 
+
+!bc pycod
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+from scipy.stats import uniform as randuniform
+from sklearn.model_selection import RandomizedSearchCV
+
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(2021)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
+
+Maxpolydegree = 5
+X = np.zeros((n,Maxpolydegree-1))
+
+for degree in range(1,Maxpolydegree): #No intercept column
+    X[:,degree-1] = x**(degree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+param_grid = {'alpha': randuniform()}
+# create and fit a ridge regression model, testing each alpha
+model = Ridge()
+gridsearch = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=100)
+gridsearch.fit(X_train, y_train)
+print(gridsearch)
+ypredictRidge = gridsearch.predict(X_test)
+# summarize the results of the grid search
+print(f"Best estimated lambda-value: {gridsearch.best_estimator_.alpha}")
+print(f"MSE score: {MSE(y_test,ypredictRidge)}")
+print(f"R2 score: {R2(y_test,ypredictRidge)}")
+
+!ec
 
 
 
