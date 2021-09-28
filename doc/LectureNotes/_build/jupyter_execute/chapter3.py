@@ -887,7 +887,7 @@ for polydegree in range(1, Maxpolydegree):
     trainingerror[polydegree] = 0.0
     for samples in range(trials):
         x_train, x_test, y_train, y_test = train_test_split(X, Energies, test_size=0.2)
-        model = LinearRegression(fit_intercept=True).fit(x_train, y_train)
+        model = LinearRegression(fit_intercept=False).fit(x_train, y_train)
         ypred = model.predict(x_train)
         ytilde = model.predict(x_test)
         testerror[polydegree] += mean_squared_error(y_test, ytilde)
@@ -1119,7 +1119,7 @@ for polydegree in range(1, Maxpolydegree):
     polynomial[polydegree] = polydegree
     for degree in range(polydegree):
         X[:,degree] = Density**(degree/3.0)
-        OLS = LinearRegression()
+        OLS = LinearRegression(fit_intercept=False)
 # loop over trials in order to estimate the expectation value of the MSE
     estimated_mse_folds = cross_val_score(OLS, X, Energies, scoring='neg_mean_squared_error', cv=kfold)
 #[:, np.newaxis]
@@ -1131,41 +1131,7 @@ plt.ylabel('log10[MSE]')
 plt.legend()
 plt.show()
 
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import KFold
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import PolynomialFeatures
-
-# A seed just to ensure that the random numbers are the same for every run.
-np.random.seed(3155)
-# Generate the data.
-n = 100
-x = np.linspace(-3, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
-# Decide degree on polynomial to fit
-poly = PolynomialFeatures(degree = 10)
-
-# Decide which values of lambda to use
-nlambdas = 500
-lambdas = np.logspace(-3, 5, nlambdas)
-# Initialize a KFold instance
-k = 5
-kfold = KFold(n_splits = k)
-estimated_mse_sklearn = np.zeros(nlambdas)
-i = 0
-for lmb in lambdas:
-    ridge = Ridge(alpha = lmb)
-    estimated_mse_folds = cross_val_score(ridge, x, y, scoring='neg_mean_squared_error', cv=kfold)
-    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
-    i += 1
-plt.figure()
-plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = 'cross_val_score')
-plt.xlabel('log10(lambda)')
-plt.ylabel('MSE')
-plt.legend()
-plt.show()
+Note that we have kept the intercept in the first column of design matrix $\boldsymbol{X}$. When we call the corresponding **Scikit-Learn** function we need thus to set the intercept to **False**. Libraries like **Scikit-Learn** normally scale the design matrix and does not fit intercept. See the discussions below.
 
 ## More on Rescaling data
 
