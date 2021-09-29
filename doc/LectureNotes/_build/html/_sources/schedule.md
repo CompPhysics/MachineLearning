@@ -90,18 +90,18 @@ For the reading assignments we use the following abbreviations:
 ###  Week 39 September 27- October 1
 - Lab Wednesday: Work on  Project 1
 - Lecture Thursday: Gradient Optimization methods
-- Lecture Friday:  Gradient methods and Deep Learning and Neural Networks
+- Lecture Friday:  Gradient methods
 
 - Reading recommendations:
   - See lecture notes for week 39 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For a good discussion on gradient methods, see Goodfellow et al section 4.3-4.5 and chapter 8. We will come back to the latter chapter in our discussion of Neural networks as well.
-  - For neural networks we recommend Goodfellow et al chapters 6 and 7 and Bishop 5.1-5.4
+
 
 
 ###  Week 40 October 4-8
-- Lab Wednesday: Wrap up project 1 and start project 2
+- Lab Wednesday: Wrap up project 1
 - Lecture Thursday: Writing a feed-forward Neural Network code for regression and classification
-- Lecture Friday:  Deep Learning and TensorFlow and Keras
+- Lecture Friday:  Deep Learning and Neural Networks
 - Reading recommendations:
   - See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For neural networks we recommend Goodfellow et al chapters 6 and 7 and Bishop 5.1-5.4
