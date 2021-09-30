@@ -90,6 +90,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 39 September 27- October 1
 - Lab Wednesday: Work on  Project 1
 - Lecture Thursday: Gradient Optimization methods
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember30.mp4?vrtx=view-as-webpage
 - Lecture Friday:  Gradient methods
 
 - Reading recommendations:
