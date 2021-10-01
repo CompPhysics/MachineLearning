@@ -322,7 +322,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lecture Thursday: Gradient Optimization methods
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureSeptember30.mp4?vrtx=view-as-webpage
 - Lecture Friday:  Gradient methods
-
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober1.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 39 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For a good discussion on gradient methods, see Goodfellow et al section 4.3-4.5 and chapter 8. We will come back to the latter chapter in our discussion of Neural networks as well.
