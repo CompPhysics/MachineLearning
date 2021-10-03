@@ -10,7 +10,7 @@ from sklearn.preprocessing import PolynomialFeatures
 np.random.seed(3155)
 
 # Generate the data.
-nsamples = 10000
+nsamples = 1000
 x = np.random.randn(nsamples)
 y = 3*x**2 + np.random.randn(nsamples)
 
@@ -25,7 +25,8 @@ k = 10
 kfold = KFold(n_splits = k)
 
 # Perform the cross-validation to estimate MSE using OLS
-scores_KFold = np.zeros((k))
+scores_KFoldTrain = np.zeros((k))
+scores_KFoldTest = np.zeros((k))
 model = LinearRegression() 
 j = 0
 for train_inds, test_inds in kfold.split(x):
@@ -35,13 +36,19 @@ for train_inds, test_inds in kfold.split(x):
     ytest = y[test_inds]
     Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
     model.fit(Xtrain, ytrain[:, np.newaxis])
+    ypredtrain = model.predict(Xtrain)
+    scores_KFoldTrain[j] = np.sum((ypredtrain - ytrain[:, np.newaxis])**2)/np.size(ypredtrain)
+    print(f"Score for each fold train data:{scores_KFoldTrain[j]}")
     Xtest = poly.fit_transform(xtest[:, np.newaxis])
-    ypred = model.predict(Xtest)
-    scores_KFold[j] = np.sum((ypred - ytest[:, np.newaxis])**2)/np.size(ypred)
-    print(f"Score for each fold:{scores_KFold[j]}")
+    ypredtest = model.predict(Xtest)
+    scores_KFoldTest[j] = np.sum((ypredtest - ytest[:, np.newaxis])**2)/np.size(ypredtest)
+    print(f"Score for each fold test data:{scores_KFoldTest[j]}")
     j += 1
 
 
-estimated_mse_KFold = np.mean(scores_KFold)
-print(f"Average OLS score:{estimated_mse_KFold}")
+estimated_mse_KFoldTest = np.mean(scores_KFoldTest)
+print(f"Average OLS score for test:{estimated_mse_KFoldTest}")
+
+estimated_mse_KFoldTrain = np.mean(scores_KFoldTrain)
+print(f"Average OLS score for Train:{estimated_mse_KFoldTrain}")
 
