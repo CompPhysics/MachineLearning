@@ -331,7 +331,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 
 ###  Week 40 October 4-8
 - Lab Wednesday: Wrap up project 1
-- Lecture Thursday: Writing a feed-forward Neural Network code for regression and classification
+- Lecture Thursday: Stochastic gradient methods and start discussion of neural networks
 - Lecture Friday:  Deep Learning and Neural Networks
 - Reading recommendations:
   - See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
