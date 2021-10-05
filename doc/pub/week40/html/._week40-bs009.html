@@ -233,7 +233,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week40-bs006.html#the-gradient-step" style="font-size: 80%;"><b>The gradient step</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs007.html#simple-example-code" style="font-size: 80%;"><b>Simple example code</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs008.html#when-do-we-stop" style="font-size: 80%;"><b>When do we stop?</b></a></li>
-     <!-- navigation toc: --> <li><a href="._week40-bs009.html#slightly-different-approach" style="font-size: 80%;"><b>Slightly different approach</b></a></li>
+     <!-- navigation toc: --> <li><a href="#slightly-different-approach" style="font-size: 80%;"><b>Slightly different approach</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs010.html#program-for-stochastic-gradient" style="font-size: 80%;"><b>Program for stochastic gradient</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs011.html#momentum-based-gd" style="font-size: 80%;"><b>Momentum based GD</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs012.html#more-on-momentum-based-approaches" style="font-size: 80%;"><b>More on momentum based approaches</b></a></li>
@@ -297,42 +297,60 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
+<a name="part0009"></a>
+<!-- !split -->
 
-
-
-<div class="jumbotron">
-<center><h1>Week 40: From Stochastic Gradient Descent to Neural networks</h1></center>  <!-- document title -->
+<h2 id="slightly-different-approach" class="anchor">Slightly different approach </h2>
 
 <p>
-<!-- author(s): Morten Hjorth-Jensen -->
-
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
+Another approach is to let the step length \( \gamma_j \) depend on the
+number of epochs in such a way that it becomes very small after a
+reasonable time such that we do not move at all.
 
 <p>
-<!-- institution(s) -->
+As an example, let \( e = 0,1,2,3,\cdots \) denote the current epoch and let \( t_0, t_1 > 0 \) be two fixed numbers. Furthermore, let \( t = e \cdot m + i \) where \( m \) is the number of minibatches and \( i=0,\cdots,m-1 \). Then the function $$\gamma_j(t; t_0, t_1) = \frac{t_0}{t+t_1} $$ goes to zero as the number of epochs gets large. I.e. we start with a step length \( \gamma_j (0; t_0, t_1) = t_0/t_1 \) which decays in <em>time</em> \( t \).
 
-<center>[1] <b>Department of Physics, University of Oslo, Norway</b></center>
-<center>[2] <b>Department of Physics and Astronomy and Facility for Rare Ion Beams, Michigan State University, USA</b></center>
-<br>
 <p>
-<center><h4>Oct 5, 2021</h4></center> <!-- date -->
-<br>
+In this way we can fix the number of epochs, compute \( \beta \) and
+evaluate the cost function at the end. Repeating the computation will
+give a different result since the scheme is random by design. Then we
+pick the final \( \beta \) that gives the lowest value of the cost
+function.
+
 <p>
 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span> 
 
-<p><a href="._week40-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">step_length</span>(t,t0,t1):
+    <span style="color: #008000; font-weight: bold">return</span> t0<span style="color: #666666">/</span>(t<span style="color: #666666">+</span>t1)
 
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span> <span style="color: #408080; font-style: italic">#100 datapoints </span>
+M <span style="color: #666666">=</span> <span style="color: #666666">5</span>   <span style="color: #408080; font-style: italic">#size of each minibatch</span>
+m <span style="color: #666666">=</span> <span style="color: #008000">int</span>(n<span style="color: #666666">/</span>M) <span style="color: #408080; font-style: italic">#number of minibatches</span>
+n_epochs <span style="color: #666666">=</span> <span style="color: #666666">500</span> <span style="color: #408080; font-style: italic">#number of epochs</span>
+t0 <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>
+t1 <span style="color: #666666">=</span> <span style="color: #666666">10</span>
 
-</div> <!-- end jumbotron -->
+gamma_j <span style="color: #666666">=</span> t0<span style="color: #666666">/</span>t1
+j <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+<span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,n_epochs<span style="color: #666666">+1</span>):
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
+        k <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m) <span style="color: #408080; font-style: italic">#Pick the k-th minibatch at random</span>
+        <span style="color: #408080; font-style: italic">#Compute the gradient using the data in minibatch Bk</span>
+        <span style="color: #408080; font-style: italic">#Compute new suggestion for beta</span>
+        t <span style="color: #666666">=</span> epoch<span style="color: #666666">*</span>m<span style="color: #666666">+</span>i
+        gamma_j <span style="color: #666666">=</span> step_length(t,t0,t1)
+        j <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
 
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;gamma_j after </span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BA2121"> epochs: </span><span style="color: #BB6688; font-weight: bold">%g</span><span style="color: #BA2121">&quot;</span> <span style="color: #666666">%</span> (n_epochs,gamma_j))
+</pre></div>
+<p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week40-bs000.html">1</a></li>
+<li><a href="._week40-bs008.html">&laquo;</a></li>
+  <li><a href="._week40-bs000.html">1</a></li>
   <li><a href="._week40-bs001.html">2</a></li>
   <li><a href="._week40-bs002.html">3</a></li>
   <li><a href="._week40-bs003.html">4</a></li>
@@ -341,10 +359,19 @@ MathJax.Hub.Config({
   <li><a href="._week40-bs006.html">7</a></li>
   <li><a href="._week40-bs007.html">8</a></li>
   <li><a href="._week40-bs008.html">9</a></li>
-  <li><a href="._week40-bs009.html">10</a></li>
+  <li class="active"><a href="._week40-bs009.html">10</a></li>
+  <li><a href="._week40-bs010.html">11</a></li>
+  <li><a href="._week40-bs011.html">12</a></li>
+  <li><a href="._week40-bs012.html">13</a></li>
+  <li><a href="._week40-bs013.html">14</a></li>
+  <li><a href="._week40-bs014.html">15</a></li>
+  <li><a href="._week40-bs015.html">16</a></li>
+  <li><a href="._week40-bs016.html">17</a></li>
+  <li><a href="._week40-bs017.html">18</a></li>
+  <li><a href="._week40-bs018.html">19</a></li>
   <li><a href="">...</a></li>
   <li><a href="._week40-bs060.html">61</a></li>
-  <li><a href="._week40-bs001.html">&raquo;</a></li>
+  <li><a href="._week40-bs010.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
@@ -361,7 +388,7 @@ MathJax.Hub.Config({
 
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 
 

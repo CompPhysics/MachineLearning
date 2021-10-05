@@ -242,7 +242,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week40-bs015.html#rms-prop" style="font-size: 80%;"><b>RMS prop</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs016.html#adam-optimizer" style="font-size: 80%;"><b>ADAM optimizer</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs017.html#practical-tips" style="font-size: 80%;"><b>Practical tips</b></a></li>
-     <!-- navigation toc: --> <li><a href="._week40-bs018.html#automatic-differentiation" style="font-size: 80%;"><b>Automatic differentiation</b></a></li>
+     <!-- navigation toc: --> <li><a href="#automatic-differentiation" style="font-size: 80%;"><b>Automatic differentiation</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs019.html#using-autograd" style="font-size: 80%;"><b>Using autograd</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs020.html#autograd-with-more-complicated-functions" style="font-size: 80%;"><b>Autograd with more complicated functions</b></a></li>
      <!-- navigation toc: --> <li><a href="._week40-bs021.html#more-complicated-functions-using-the-elements-of-their-arguments-directly" style="font-size: 80%;"><b>More complicated functions using the elements of their arguments directly</b></a></li>
@@ -297,54 +297,119 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
+<a name="part0018"></a>
+<!-- !split -->
 
-
-
-<div class="jumbotron">
-<center><h1>Week 40: From Stochastic Gradient Descent to Neural networks</h1></center>  <!-- document title -->
+<h2 id="automatic-differentiation" class="anchor">Automatic differentiation </h2>
 
 <p>
-<!-- author(s): Morten Hjorth-Jensen -->
-
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
+<a href="https://en.wikipedia.org/wiki/Automatic_differentiation" target="_self">Automatic differentiation (AD)</a>, 
+also called algorithmic
+differentiation or computational differentiation,is a set of
+techniques to numerically evaluate the derivative of a function
+specified by a computer program. AD exploits the fact that every
+computer program, no matter how complicated, executes a sequence of
+elementary arithmetic operations (addition, subtraction,
+multiplication, division, etc.) and elementary functions (exp, log,
+sin, cos, etc.). By applying the chain rule repeatedly to these
+operations, derivatives of arbitrary order can be computed
+automatically, accurately to working precision, and using at most a
+small constant factor more arithmetic operations than the original
+program.
 
 <p>
-<!-- institution(s) -->
+Automatic differentiation is neither:
 
-<center>[1] <b>Department of Physics, University of Oslo, Norway</b></center>
-<center>[2] <b>Department of Physics and Astronomy and Facility for Rare Ion Beams, Michigan State University, USA</b></center>
-<br>
+<ul>
+<li> Symbolic differentiation, nor</li>
+<li> Numerical differentiation (the method of finite differences).</li>
+</ul>
+
+Symbolic differentiation can lead to inefficient code and faces the
+difficulty of converting a computer program into a single expression,
+while numerical differentiation can introduce round-off errors in the
+discretization process and cancellation
+
 <p>
-<center><h4>Oct 5, 2021</h4></center> <!-- date -->
-<br>
+Python has tools for so-called <b>automatic differentiation</b>.
+Consider the following example
+$$
+f(x) = \sin\left(2\pi x + x^2\right)
+$$
+
+which has the following derivative
+$$
+f'(x) = \cos\left(2\pi x + x^2\right)\left(2\pi + 2x\right) 
+$$
+
+Using <b>autograd</b> we have
+
 <p>
 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">autograd.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
 
-<p><a href="._week40-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
+<span style="color: #408080; font-style: italic"># To do elementwise differentiation:</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">autograd</span> <span style="color: #008000; font-weight: bold">import</span> elementwise_grad <span style="color: #008000; font-weight: bold">as</span> egrad 
+
+<span style="color: #408080; font-style: italic"># To plot:</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span> 
 
 
-</div> <!-- end jumbotron -->
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">f</span>(x):
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sin(<span style="color: #666666">2*</span>np<span style="color: #666666">.</span>pi<span style="color: #666666">*</span>x <span style="color: #666666">+</span> x<span style="color: #666666">**2</span>)
 
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">f_grad_analytic</span>(x):
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>cos(<span style="color: #666666">2*</span>np<span style="color: #666666">.</span>pi<span style="color: #666666">*</span>x <span style="color: #666666">+</span> x<span style="color: #666666">**2</span>)<span style="color: #666666">*</span>(<span style="color: #666666">2*</span>np<span style="color: #666666">.</span>pi <span style="color: #666666">+</span> <span style="color: #666666">2*</span>x)
+
+<span style="color: #408080; font-style: italic"># Do the comparison:</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">0</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1000</span>)
+
+f_grad <span style="color: #666666">=</span> egrad(f)
+
+computed <span style="color: #666666">=</span> f_grad(x)
+analytic <span style="color: #666666">=</span> f_grad_analytic(x)
+
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&#39;Derivative computed from Autograd compared with the analytical derivative&#39;</span>)
+plt<span style="color: #666666">.</span>plot(x,computed,label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;autograd&#39;</span>)
+plt<span style="color: #666666">.</span>plot(x,analytic,label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;analytic&#39;</span>)
+
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;x&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;y&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+
+plt<span style="color: #666666">.</span>show()
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;The max absolute difference is: </span><span style="color: #BB6688; font-weight: bold">%g</span><span style="color: #BA2121">&quot;</span><span style="color: #666666">%</span>(np<span style="color: #666666">.</span>max(np<span style="color: #666666">.</span>abs(computed <span style="color: #666666">-</span> analytic))))
+</pre></div>
+<p>
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week40-bs000.html">1</a></li>
-  <li><a href="._week40-bs001.html">2</a></li>
-  <li><a href="._week40-bs002.html">3</a></li>
-  <li><a href="._week40-bs003.html">4</a></li>
-  <li><a href="._week40-bs004.html">5</a></li>
-  <li><a href="._week40-bs005.html">6</a></li>
-  <li><a href="._week40-bs006.html">7</a></li>
-  <li><a href="._week40-bs007.html">8</a></li>
-  <li><a href="._week40-bs008.html">9</a></li>
-  <li><a href="._week40-bs009.html">10</a></li>
+<li><a href="._week40-bs017.html">&laquo;</a></li>
+  <li><a href="._week40-bs000.html">1</a></li>
+  <li><a href="">...</a></li>
+  <li><a href="._week40-bs010.html">11</a></li>
+  <li><a href="._week40-bs011.html">12</a></li>
+  <li><a href="._week40-bs012.html">13</a></li>
+  <li><a href="._week40-bs013.html">14</a></li>
+  <li><a href="._week40-bs014.html">15</a></li>
+  <li><a href="._week40-bs015.html">16</a></li>
+  <li><a href="._week40-bs016.html">17</a></li>
+  <li><a href="._week40-bs017.html">18</a></li>
+  <li class="active"><a href="._week40-bs018.html">19</a></li>
+  <li><a href="._week40-bs019.html">20</a></li>
+  <li><a href="._week40-bs020.html">21</a></li>
+  <li><a href="._week40-bs021.html">22</a></li>
+  <li><a href="._week40-bs022.html">23</a></li>
+  <li><a href="._week40-bs023.html">24</a></li>
+  <li><a href="._week40-bs024.html">25</a></li>
+  <li><a href="._week40-bs025.html">26</a></li>
+  <li><a href="._week40-bs026.html">27</a></li>
+  <li><a href="._week40-bs027.html">28</a></li>
   <li><a href="">...</a></li>
   <li><a href="._week40-bs060.html">61</a></li>
-  <li><a href="._week40-bs001.html">&raquo;</a></li>
+  <li><a href="._week40-bs019.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
@@ -361,7 +426,7 @@ MathJax.Hub.Config({
 
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 
 
