@@ -286,6 +286,43 @@ y = np.sin(x)
 plt.plot(x,y,marker='x')
 plt.show()
 
+## Other Matrix and Vector Operations
+
+The following examples show how to compute various quantities like the **mean** value of a matrix or a vector and how to use functions like **reshape** and **ravel**. These are all useful quantities when scaling the data and preparing the data for various machine learning algorithms and when calculating quantities like the mean squared error or the variance.
+
+"""
+Simple code that tests various numpy functions
+"""
+
+import numpy as np
+# Simple test-matrix of dim 3 x 4
+a = np.array([ [1, 2, 3], [4, 5, 6], [7, 8, 9],[10, 11, 12]],dtype=np.float64)
+print(f"The test matrix:{a}")
+# This is the total mean summed over all elements, which here has to be 6.5
+print(f"This is the total mean summed over all elements:{np.mean(a,dtype=np.float64)}")
+# This is the mean for each column, it returns an array with the mean values for each column. It returns a row-like vector
+print(f"This is the mean for each column:{np.mean(a, axis=0, keepdims=True,dtype=np.float64)}")
+# This is the mean value for each row, it returns an array via the keepdims option which is a column-like vector if
+# keepdims=True. Else it return a row-like vector
+# Try setting keepdims=False
+print(f"This is the mean value for each row:{np.mean(a, axis=1, keepdims=True,dtype=np.float64)}")
+# We print then the mean value for each row by  setting keepdims=False
+print(f"This is the mean value for each row with keepdims false:{np.mean(a, axis=1, keepdims=False,dtype=np.float64)}")
+
+# Ravel return a contiguous flattened array.
+print(f"Flatten  the matrix:{np.ravel(a)}")
+# It is the same as reshaping the matrix into a one-dimensional array
+print(f"Reshape the matrix to a one-dim array:{a.reshape(-1)}")
+#  ‘C’ means to index the elements in row-major, C-style order, with the last axis index changing fastest, back to the first axis index changing slowest.
+# ‘F’ means to index the elements in column-major, Fortran-style order, with the first index changing fastest, and the last index changing slowest 
+print(np.ravel(a, order='F'))
+# When order is ‘A’, it will preserve the array’s ‘C’ or ‘F’ ordering
+# ‘A’ means to read the elements in Fortran-like index order if a is Fortran contiguous in memory, C-like order otherwise.
+# ‘K’ means to read the elements in the order they occur in memory, except for reversing the data when strides are negative. By default, ‘C’ index order is used.
+# Transposing it
+print(np.ravel(a.T))
+print(np.ravel(a.T, order='A'))
+
 ## Gaussian Elimination
 
 We start with the linear set of equations

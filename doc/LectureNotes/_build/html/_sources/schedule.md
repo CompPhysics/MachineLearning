@@ -101,7 +101,7 @@ For the reading assignments we use the following abbreviations:
 
 ###  Week 40 October 4-8
 - Lab Wednesday: Wrap up project 1
-- Lecture Thursday: Writing a feed-forward Neural Network code for regression and classification
+- Lecture Thursday: Stochastic gradient descent, automatic differentiation and start discussion of  feed-forward Neural Network code for regression and classification
 - Lecture Friday:  Deep Learning and Neural Networks
 - Reading recommendations:
   - See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
