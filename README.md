@@ -332,6 +332,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 ###  Week 40 October 4-8
 - Lab Wednesday: Wrap up project 1
 - Lecture Thursday: Stochastic gradient methods and start discussion of neural networks
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober7.mp4?vrtx=view-as-webpage
 - Lecture Friday:  Deep Learning and Neural Networks
 - Reading recommendations:
   - See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.

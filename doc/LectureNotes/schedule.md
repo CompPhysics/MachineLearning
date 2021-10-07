@@ -102,10 +102,12 @@ For the reading assignments we use the following abbreviations:
 ###  Week 40 October 4-8
 - Lab Wednesday: Wrap up project 1
 - Lecture Thursday: Stochastic gradient descent, automatic differentiation and start discussion of  feed-forward Neural Network code for regression and classification
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober7.mp4?vrtx=view-as-webpage
 - Lecture Friday:  Deep Learning and Neural Networks
 - Reading recommendations:
   - See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For neural networks we recommend Goodfellow et al chapters 6 and 7 and Bishop 5.1-5.4
+  - For stochastic gradient descent we recommend Goodfellow et al chapter 8
 
 ###  Week 41 October 11-15
 - Lab Wednesday: Work on project 2
