@@ -334,6 +334,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lecture Thursday: Stochastic gradient methods and start discussion of neural networks
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober7.mp4?vrtx=view-as-webpage
 - Lecture Friday:  Deep Learning and Neural Networks
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober8.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 40 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For neural networks we recommend Goodfellow et al chapters 6 and 7 and Bishop 5.1-5.4
