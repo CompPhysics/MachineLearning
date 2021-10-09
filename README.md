@@ -345,7 +345,9 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lecture Friday: Convolutional Neural Networks, basic elements
 - Reading recommendations:
   - See lecture notes for week 41 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - For neural networks we recommend Goodfellow et al chapters 6 and 7. For CNNs, see Goodfellow et al chapter 9. chapter 11 and 12 on practicalities and applications
+  - For neural networks we recommend Goodfellow et al chapters 6 and 7. For CNNs, see Goodfellow et al chapter 9. chapter 11 and 12 on practicalities and applications.  See also Aurelien Geron's chapters 10-11 at https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf.
+
+
 
   
 ###  Week 42 October 18-22
