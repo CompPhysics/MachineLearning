@@ -5,7 +5,7 @@ This course will be delivered in a hybrid mode, with online lectures and on site
 
 1. Four lectures per week, Fall semester, 10 ECTS. The lectures are in person but will be recorded and linked to this site and the official University of Oslo website for the course;
 2. Two hours of laboratory sessions for work on computational projects and exercises for each group. There will  also be fully digital laboratory sessions for those who cannot attend;
-3. Three projects which are graded and count 1/3 each of the final grade;
+3. Three projects which are graded and count 1/3 each of the final grade. The deadlines for the projects are October 11 for project 1, November 15 for project 2 and December 13 for project 3.
 4. A selected number of weekly assignments;
 5. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
 6. The course is offered as a FYS-MAT4155 (Master of Science level) and a FYS-MAT3155 (senior undergraduate) course;
@@ -144,7 +144,7 @@ For the reading assignments we use the following abbreviations:
   - Hastie et al sections 9.1 and 9.2
 
 ###  Week 45 November 8-12 
-- Lab Wednesday: Work on project 3
+- Lab Wednesday: Work on project 2 and start project 3
 - Lecture Thursday: Ensemble methods, bagging and random forests
 - Lecture Friday: Boosting and gradient boosting
 - Reading recommendations:
