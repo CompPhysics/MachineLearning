@@ -51,7 +51,7 @@ mv -f $name.pdf ${name}.pdf
 cp $name.tex ${name}.tex
 
 # Publish
-dest=../../../../Projects/2020
+dest=../../../../Projects/2021
 if [ ! -d $dest/$name ]; then
 mkdir $dest/$name
 mkdir $dest/$name/pdf
