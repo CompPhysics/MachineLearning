@@ -375,7 +375,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
   - Hastie et al sections 9.1 and 9.2
 
 ###  Week 45 November 8-12 
-- Lab Wednesday: Work on project 3
+- Lab Wednesday: Work on project 2, project 3 available
 - Lecture Thursday: Ensemble methods, bagging and random forests
 - Lecture Friday: Boosting and gradient boosting
 - Reading recommendations:
