@@ -148,6 +148,10 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'the-full-network-for-the-various-gates'),
+              ('And the same using Scikit-Learn',
+               2,
+               None,
+               'and-the-same-using-scikit-learn'),
               ('Building neural networks in Tensorflow and Keras',
                2,
                None,
@@ -1564,7 +1568,7 @@ while the vector of outputs is \( \boldsymbol{y}^T=[0,1,1,0] \) for the XOR gate
 <h2 id="setting-up-the-neural-network">Setting up the Neural Network </h2>
 
 <p>
-We define first our design matrix and the various input vectors.
+We define first our design matrix and the various output vectors for the different gates.
 
 <p>
 
@@ -1625,7 +1629,7 @@ np.random.seed(<span style="color: #B452CD">0</span>)
 <span style="color: #228B22"># Defining the neural network</span>
 n_inputs, n_features = X.shape
 n_hidden_neurons = <span style="color: #B452CD">2</span>
-n_categories = <span style="color: #B452CD">1</span>
+n_categories = <span style="color: #B452CD">2</span>
 n_features = <span style="color: #B452CD">2</span>
 
 <span style="color: #228B22"># we make the weights normally distributed using numpy.random.randn</span>
@@ -1646,7 +1650,7 @@ predictions = predict(X)
 <span style="color: #658b00">print</span>(predictions)
 </pre></div>
 <p>
-Not an impressive result. Let us now add the full network with the back-propagation algorithm discussed above.
+Not an impressive result, but this was our first forward pass with randomly assigned weights. Let us now add the full network with the back-propagation algorithm discussed above.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1656,6 +1660,72 @@ Not an impressive result. Let us now add the full network with the back-propagat
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
 <div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span>
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="and-the-same-using-scikit-learn">And the same using Scikit-Learn </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="line-height: 125%;"><span></span><span style="color: #228B22"># import necessary packages</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.neural_network</span> <span style="color: #8B008B; font-weight: bold">import</span> MLPClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> accuracy_score
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
+
+<span style="color: #228B22"># ensure the same random numbers appear every time</span>
+np.random.seed(<span style="color: #B452CD">0</span>)
+
+<span style="color: #228B22"># Design matrix</span>
+X = np.array([ [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>],[<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>]],dtype=np.float64)
+
+<span style="color: #228B22"># The XOR gate</span>
+yXOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span> ,<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>])
+<span style="color: #228B22"># The OR gate</span>
+yOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span> ,<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>])
+<span style="color: #228B22"># The AND gate</span>
+yAND = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span> ,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>])
+
+<span style="color: #228B22"># Defining the neural network</span>
+n_inputs, n_features = X.shape
+n_hidden_neurons = <span style="color: #B452CD">2</span>
+n_categories = <span style="color: #B452CD">2</span>
+n_features = <span style="color: #B452CD">2</span>
+
+eta_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
+lmbd_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
+<span style="color: #228B22"># store models for later use</span>
+DNN_scikit = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)), dtype=<span style="color: #658b00">object</span>)
+epochs = <span style="color: #B452CD">100</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> i, eta <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(eta_vals):
+    <span style="color: #8B008B; font-weight: bold">for</span> j, lmbd <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(lmbd_vals):
+        dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons), activation=<span style="color: #CD5555">&#39;logistic&#39;</span>,
+                            alpha=lmbd, learning_rate_init=eta, max_iter=epochs)
+        dnn.fit(X, yXOR)
+        DNN_scikit[i][j] = dnn
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Learning rate  = &quot;</span>, eta)
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Accuracy score on data set: &quot;</span>, dnn.score(X, yXOR))
+        <span style="color: #658b00">print</span>()
+
+sns.set()
+test_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(eta_vals)):
+    <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(lmbd_vals)):
+        dnn = DNN_scikit[i][j]
+        test_pred = dnn.predict(X)
+        test_accuracy[i][j] = accuracy_score(yXOR, test_pred)
+
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(test_accuracy, annot=<span style="color: #8B008B; font-weight: bold">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Test Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
 </pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>

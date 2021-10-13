@@ -1125,7 +1125,7 @@ while the vector of outputs is $\bm{y}^T=[0,1,1,0]$ for the XOR gate, $\bm{y}^T=
 !split
 ===== Setting up the Neural Network =====
 
-We define first our design matrix and the various input vectors.
+We define first our design matrix and the various output vectors for the different gates.
 
 !bc pycod
 """
@@ -1184,7 +1184,7 @@ np.random.seed(0)
 # Defining the neural network
 n_inputs, n_features = X.shape
 n_hidden_neurons = 2
-n_categories = 1
+n_categories = 2
 n_features = 2
 
 # we make the weights normally distributed using numpy.random.randn
@@ -1204,11 +1204,76 @@ print(probabilities)
 predictions = predict(X)
 print(predictions)
 !ec
-Not an impressive result. Let us now add the full network with the back-propagation algorithm discussed above.
+Not an impressive result, but this was our first forward pass with randomly assigned weights. Let us now add the full network with the back-propagation algorithm discussed above.
 
 !split
 ===== The full Network for the Various Gates =====
 !bc pycod
+
+!ec
+
+!split
+===== And the same using Scikit-Learn =====
+
+!bc pycod
+
+# import necessary packages
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score
+import seaborn as sns
+
+# ensure the same random numbers appear every time
+np.random.seed(0)
+
+# Design matrix
+X = np.array([ [0, 0], [0, 1], [1, 0],[1, 1]],dtype=np.float64)
+
+# The XOR gate
+yXOR = np.array( [ 0, 1 ,1, 0])
+# The OR gate
+yOR = np.array( [ 0, 1 ,1, 1])
+# The AND gate
+yAND = np.array( [ 0, 0 ,0, 1])
+
+# Defining the neural network
+n_inputs, n_features = X.shape
+n_hidden_neurons = 2
+n_categories = 2
+n_features = 2
+
+eta_vals = np.logspace(-5, 1, 7)
+lmbd_vals = np.logspace(-5, 1, 7)
+# store models for later use
+DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
+epochs = 100
+
+for i, eta in enumerate(eta_vals):
+    for j, lmbd in enumerate(lmbd_vals):
+        dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons), activation='logistic',
+                            alpha=lmbd, learning_rate_init=eta, max_iter=epochs)
+        dnn.fit(X, yXOR)
+        DNN_scikit[i][j] = dnn
+        print("Learning rate  = ", eta)
+        print("Lambda = ", lmbd)
+        print("Accuracy score on data set: ", dnn.score(X, yXOR))
+        print()
+
+sns.set()
+test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
+for i in range(len(eta_vals)):
+    for j in range(len(lmbd_vals)):
+        dnn = DNN_scikit[i][j]
+        test_pred = dnn.predict(X)
+        test_accuracy[i][j] = accuracy_score(yXOR, test_pred)
+
+fig, ax = plt.subplots(figsize = (10, 10))
+sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
+ax.set_title("Test Accuracy")
+ax.set_ylabel("$\eta$")
+ax.set_xlabel("$\lambda$")
+plt.show()
 
 !ec
 
