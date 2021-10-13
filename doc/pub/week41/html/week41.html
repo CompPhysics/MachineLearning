@@ -145,6 +145,14 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'setting-up-the-neural-network'),
+              ('Then the first Feed Forward pass',
+               2,
+               None,
+               'then-the-first-feed-forward-pass'),
+              ('The full Network for the Various Gates',
+               2,
+               None,
+               'the-full-network-for-the-various-gates'),
               ('Building neural networks in Tensorflow and Keras',
                2,
                None,
@@ -1569,8 +1577,11 @@ We define first our design matrix and the various input vectors.
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
 <span style="color: #BA2121; font-style: italic">Simple code that tests XOR, OR and AND gates with linear regression</span>
 <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-
+<span style="color: #408080; font-style: italic"># import necessary packages</span>
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> datasets
+
 <span style="color: #408080; font-style: italic"># Design matrix</span>
 X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([ [<span style="color: #666666">1</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>], [<span style="color: #666666">1</span>, <span style="color: #666666">0</span>, <span style="color: #666666">1</span>], [<span style="color: #666666">1</span>, <span style="color: #666666">1</span>, <span style="color: #666666">0</span>],[<span style="color: #666666">1</span>, <span style="color: #666666">1</span>, <span style="color: #666666">1</span>]],dtype<span style="color: #666666">=</span>np<span style="color: #666666">.</span>float64)
 
@@ -1580,9 +1591,76 @@ yXOR <span style="color: #666666">=</span> np<span style="color: #666666">.</spa
 yOR <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array( [ <span style="color: #666666">0</span>, <span style="color: #666666">1</span> ,<span style="color: #666666">1</span>, <span style="color: #666666">1</span>])
 <span style="color: #408080; font-style: italic"># The AND gate </span>
 yAND <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array( [ <span style="color: #666666">0</span>, <span style="color: #666666">0</span> ,<span style="color: #666666">0</span>, <span style="color: #666666">1</span>])
+</pre></div>
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
 
-<span style="color: #408080; font-style: italic">#print(f&quot;The values of theta for the AND gate:{ThetaAND}&quot;)</span>
-<span style="color: #408080; font-style: italic">#print(f&quot;The linear regression prediction  for the AND gate:{X @ ThetaAND}&quot;)</span>
+<h2 id="then-the-first-feed-forward-pass">Then the first Feed Forward pass </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">sigmoid</span>(x):
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1/</span>(<span style="color: #666666">1</span> <span style="color: #666666">+</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x))
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">feed_forward</span>(X):
+    <span style="color: #408080; font-style: italic"># weighted sum of inputs to the hidden layer</span>
+    z_h <span style="color: #666666">=</span> np<span style="color: #666666">.</span>matmul(X, hidden_weights) <span style="color: #666666">+</span> hidden_bias
+    <span style="color: #408080; font-style: italic"># activation in the hidden layer</span>
+    a_h <span style="color: #666666">=</span> sigmoid(z_h)
+    
+    <span style="color: #408080; font-style: italic"># weighted sum of inputs to the output layer</span>
+    z_o <span style="color: #666666">=</span> np<span style="color: #666666">.</span>matmul(a_h, output_weights) <span style="color: #666666">+</span> output_bias
+    <span style="color: #408080; font-style: italic"># softmax output</span>
+    <span style="color: #408080; font-style: italic"># axis 0 holds each input and axis 1 the probabilities of each category</span>
+    probabilities <span style="color: #666666">=</span> sigmoid(z_o)
+    <span style="color: #008000; font-weight: bold">return</span> probabilities
+
+<span style="color: #408080; font-style: italic"># we obtain a prediction by taking the class with the highest likelihood</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">predict</span>(X):
+    probabilities <span style="color: #666666">=</span> feed_forward(X)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>argmax(probabilities, axis<span style="color: #666666">=1</span>)
+
+
+
+<span style="color: #408080; font-style: italic"># ensure the same random numbers appear every time</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">0</span>)
+
+
+<span style="color: #408080; font-style: italic"># Defining the neural network</span>
+n_inputs, n_features <span style="color: #666666">=</span> X<span style="color: #666666">.</span>shape
+n_hidden_neurons <span style="color: #666666">=</span> <span style="color: #666666">2</span>
+n_categories <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+n_features <span style="color: #666666">=</span> <span style="color: #666666">2</span>
+
+<span style="color: #408080; font-style: italic"># we make the weights normally distributed using numpy.random.randn</span>
+
+<span style="color: #408080; font-style: italic"># weights and bias in the hidden layer</span>
+hidden_weights <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n_features, n_hidden_neurons)
+hidden_bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n_hidden_neurons) <span style="color: #666666">+</span> <span style="color: #666666">0.01</span>
+
+<span style="color: #408080; font-style: italic"># weights and bias in the output layer</span>
+output_weights <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n_hidden_neurons, n_categories)
+output_bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n_categories) <span style="color: #666666">+</span> <span style="color: #666666">0.01</span>
+
+probabilities <span style="color: #666666">=</span> feed_forward(X)
+<span style="color: #008000">print</span>(probabilities)
+
+
+predictions <span style="color: #666666">=</span> predict(X)
+<span style="color: #008000">print</span>(predictions)
+</pre></div>
+<p>
+Not an impressive result. Let us now add the full network with the back-propagation algorithm discussed above.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="the-full-network-for-the-various-gates">The full Network for the Various Gates </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>
 </pre></div>
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>

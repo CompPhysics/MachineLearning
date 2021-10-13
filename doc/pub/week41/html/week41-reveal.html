@@ -1559,8 +1559,11 @@ We define first our design matrix and the various input vectors.
 <div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #CD5555">&quot;&quot;&quot;</span>
 <span style="color: #CD5555">Simple code that tests XOR, OR and AND gates with linear regression</span>
 <span style="color: #CD5555">&quot;&quot;&quot;</span>
-
+<span style="color: #228B22"># import necessary packages</span>
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets
+
 <span style="color: #228B22"># Design matrix</span>
 X = np.array([ [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>],[<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>]],dtype=np.float64)
 
@@ -1570,9 +1573,77 @@ yXOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B
 yOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span> ,<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>])
 <span style="color: #228B22"># The AND gate </span>
 yAND = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span> ,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>])
+</pre></div>
+</section>
 
-<span style="color: #228B22">#print(f&quot;The values of theta for the AND gate:{ThetaAND}&quot;)</span>
-<span style="color: #228B22">#print(f&quot;The linear regression prediction  for the AND gate:{X @ ThetaAND}&quot;)</span>
+
+<section>
+<h2 id="then-the-first-feed-forward-pass">Then the first Feed Forward pass </h2>
+
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">sigmoid</span>(x):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span>/(<span style="color: #B452CD">1</span> + np.exp(-x))
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">feed_forward</span>(X):
+    <span style="color: #228B22"># weighted sum of inputs to the hidden layer</span>
+    z_h = np.matmul(X, hidden_weights) + hidden_bias
+    <span style="color: #228B22"># activation in the hidden layer</span>
+    a_h = sigmoid(z_h)
+    
+    <span style="color: #228B22"># weighted sum of inputs to the output layer</span>
+    z_o = np.matmul(a_h, output_weights) + output_bias
+    <span style="color: #228B22"># softmax output</span>
+    <span style="color: #228B22"># axis 0 holds each input and axis 1 the probabilities of each category</span>
+    probabilities = sigmoid(z_o)
+    <span style="color: #8B008B; font-weight: bold">return</span> probabilities
+
+<span style="color: #228B22"># we obtain a prediction by taking the class with the highest likelihood</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">predict</span>(X):
+    probabilities = feed_forward(X)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.argmax(probabilities, axis=<span style="color: #B452CD">1</span>)
+
+
+
+<span style="color: #228B22"># ensure the same random numbers appear every time</span>
+np.random.seed(<span style="color: #B452CD">0</span>)
+
+
+<span style="color: #228B22"># Defining the neural network</span>
+n_inputs, n_features = X.shape
+n_hidden_neurons = <span style="color: #B452CD">2</span>
+n_categories = <span style="color: #B452CD">1</span>
+n_features = <span style="color: #B452CD">2</span>
+
+<span style="color: #228B22"># we make the weights normally distributed using numpy.random.randn</span>
+
+<span style="color: #228B22"># weights and bias in the hidden layer</span>
+hidden_weights = np.random.randn(n_features, n_hidden_neurons)
+hidden_bias = np.zeros(n_hidden_neurons) + <span style="color: #B452CD">0.01</span>
+
+<span style="color: #228B22"># weights and bias in the output layer</span>
+output_weights = np.random.randn(n_hidden_neurons, n_categories)
+output_bias = np.zeros(n_categories) + <span style="color: #B452CD">0.01</span>
+
+probabilities = feed_forward(X)
+<span style="color: #658b00">print</span>(probabilities)
+
+
+predictions = predict(X)
+<span style="color: #658b00">print</span>(predictions)
+</pre></div>
+<p>
+Not an impressive result. Let us now add the full network with the back-propagation algorithm discussed above.
+</section>
+
+
+<section>
+<h2 id="the-full-network-for-the-various-gates">The full Network for the Various Gates </h2>
+<p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="highlight" style="background: #eeeedd"><pre style="font-size: 80%; line-height: 125%;"><span></span>
 </pre></div>
 </section>
 
