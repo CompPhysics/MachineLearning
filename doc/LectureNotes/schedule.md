@@ -113,6 +113,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 41 October 11-15
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Deep learning and Neural Networks
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober14.mp4?vrtx=view-as-webpage
 - Lecture Friday: Convolutional Neural Networks, basic elements
 - Reading recommendations:
   - See lecture notes for week 41 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
