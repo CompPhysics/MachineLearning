@@ -343,7 +343,8 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Deep learning and Neural Networks
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober14.mp4?vrtx=view-as-webpage
-- Lecture Friday: Convolutional Neural Networks, basic elements
+- Lecture Friday: Tensorflow and the mathematics of neural networks
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h21/forelesningsvideoer/LectureOctober15.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 41 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For neural networks we recommend Goodfellow et al chapters 6 and 7. For CNNs, see Goodfellow et al chapter 9. chapter 11 and 12 on practicalities and applications.  See also Aurelien Geron's chapters 10-11 at https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf.
