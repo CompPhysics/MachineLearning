@@ -354,7 +354,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
   
 ###  Week 42 October 18-22
 - Lab Wednesday: Work on project 2
-- Lecture Thursday: Convolutional Neural Networks and classification problems
+- Lecture Thursday: Solving differential equations with neural networks and start Convolutional Neural Networks and classification problems
 - Lecture Friday: Convolutional Neural Networks and classification problems
 - Reading recommendations:
   - See lecture notes for week 42 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
