@@ -179,7 +179,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week43-bs027.html#recurrent-neural-networks-overarching-view" style="font-size: 80%;">Recurrent neural networks: Overarching view</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs028.html#set-up-of-an-rnn" style="font-size: 80%;">Set up of an RNN</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs029.html#a-simple-example" style="font-size: 80%;">A simple example</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs030.html#an-extrapolation-example" style="font-size: 80%;">An extrapolation example</a></li>
+     <!-- navigation toc: --> <li><a href="#an-extrapolation-example" style="font-size: 80%;">An extrapolation example</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs031.html#formatting-the-data" style="font-size: 80%;">Formatting the Data</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs032.html#predicting-new-points-with-a-trained-recurrent-neural-network" style="font-size: 80%;">Predicting New Points With A Trained Recurrent Neural Network</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs033.html#other-things-to-try" style="font-size: 80%;">Other Things to Try</a></li>
@@ -196,54 +196,69 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
+<a name="part0030"></a>
+<!-- !split -->
 
-
-
-<div class="jumbotron">
-<center><h1>Week 43: Convolutional Neural Networks and Recurrent Neural Networks</h1></center>  <!-- document title -->
+<h2 id="an-extrapolation-example" class="anchor">An extrapolation example </h2>
 
 <p>
-<!-- author(s): Morten Hjorth-Jensen -->
-
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
+The following code provides an example of how recurrent neural
+networks can be used to extrapolate to unknown values of physics data
+sets.  Specifically, the data sets used in this program come from
+a quantum mechanical many-body calculation of energies as functions of the number of particles.
 
 <p>
-<!-- institution(s) -->
 
-<center>[1] <b>Department of Physics, University of Oslo</b></center>
-<center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
-<br>
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #408080; font-style: italic"># For matrices and calculations</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #408080; font-style: italic"># For machine learning (backend for keras)</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">tensorflow</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">tf</span>
+<span style="color: #408080; font-style: italic"># User-friendly machine learning library</span>
+<span style="color: #408080; font-style: italic"># Front end for TensorFlow</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span>
+<span style="color: #408080; font-style: italic"># Different methods from Keras needed to create an RNN</span>
+<span style="color: #408080; font-style: italic"># This is not necessary but it shortened function calls </span>
+<span style="color: #408080; font-style: italic"># that need to be used in the code.</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span> <span style="color: #008000; font-weight: bold">import</span> datasets, layers, models
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.layers</span> <span style="color: #008000; font-weight: bold">import</span> Input
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span> <span style="color: #008000; font-weight: bold">import</span> regularizers
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.models</span> <span style="color: #008000; font-weight: bold">import</span> Model, Sequential
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.layers</span> <span style="color: #008000; font-weight: bold">import</span> Dense, SimpleRNN, LSTM, GRU
+<span style="color: #408080; font-style: italic"># For timing the code</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">timeit</span> <span style="color: #008000; font-weight: bold">import</span> default_timer <span style="color: #008000; font-weight: bold">as</span> timer
+<span style="color: #408080; font-style: italic"># For plotting</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+
+
+<span style="color: #408080; font-style: italic"># The data set</span>
+datatype<span style="color: #666666">=</span><span style="color: #BA2121">&#39;VaryDimension&#39;</span>
+X_tot <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">2</span>, <span style="color: #666666">42</span>, <span style="color: #666666">2</span>)
+y_tot <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([<span style="color: #666666">-0.03077640549</span>, <span style="color: #666666">-0.08336233266</span>, <span style="color: #666666">-0.1446729567</span>, <span style="color: #666666">-0.2116753732</span>, <span style="color: #666666">-0.2830637392</span>, <span style="color: #666666">-0.3581341341</span>, <span style="color: #666666">-0.436462435</span>, <span style="color: #666666">-0.5177783846</span>,
+	<span style="color: #666666">-0.6019067271</span>, <span style="color: #666666">-0.6887363571</span>, <span style="color: #666666">-0.7782028952</span>, <span style="color: #666666">-0.8702784034</span>, <span style="color: #666666">-0.9649652536</span>, <span style="color: #666666">-1.062292565</span>, <span style="color: #666666">-1.16231451</span>, 
+	<span style="color: #666666">-1.265109911</span>, <span style="color: #666666">-1.370782966</span>, <span style="color: #666666">-1.479465113</span>, <span style="color: #666666">-1.591317992</span>, <span style="color: #666666">-1.70653767</span>])
+</pre></div>
 <p>
-<center><h4>Oct 19, 2021</h4></center> <!-- date -->
-<br>
-<p>
-
-
-<p><a href="._week43-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
-
-
-</div> <!-- end jumbotron -->
-
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week43-bs000.html">1</a></li>
-  <li><a href="._week43-bs001.html">2</a></li>
-  <li><a href="._week43-bs002.html">3</a></li>
-  <li><a href="._week43-bs003.html">4</a></li>
-  <li><a href="._week43-bs004.html">5</a></li>
-  <li><a href="._week43-bs005.html">6</a></li>
-  <li><a href="._week43-bs006.html">7</a></li>
-  <li><a href="._week43-bs007.html">8</a></li>
-  <li><a href="._week43-bs008.html">9</a></li>
-  <li><a href="._week43-bs009.html">10</a></li>
+<li><a href="._week43-bs029.html">&laquo;</a></li>
+  <li><a href="._week43-bs000.html">1</a></li>
   <li><a href="">...</a></li>
+  <li><a href="._week43-bs022.html">23</a></li>
+  <li><a href="._week43-bs023.html">24</a></li>
+  <li><a href="._week43-bs024.html">25</a></li>
+  <li><a href="._week43-bs025.html">26</a></li>
+  <li><a href="._week43-bs026.html">27</a></li>
+  <li><a href="._week43-bs027.html">28</a></li>
+  <li><a href="._week43-bs028.html">29</a></li>
+  <li><a href="._week43-bs029.html">30</a></li>
+  <li class="active"><a href="._week43-bs030.html">31</a></li>
+  <li><a href="._week43-bs031.html">32</a></li>
+  <li><a href="._week43-bs032.html">33</a></li>
+  <li><a href="._week43-bs033.html">34</a></li>
   <li><a href="._week43-bs034.html">35</a></li>
-  <li><a href="._week43-bs001.html">&raquo;</a></li>
+  <li><a href="._week43-bs031.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
@@ -260,7 +275,7 @@ MathJax.Hub.Config({
 
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 
 

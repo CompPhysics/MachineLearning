@@ -182,7 +182,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week43-bs030.html#an-extrapolation-example" style="font-size: 80%;">An extrapolation example</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs031.html#formatting-the-data" style="font-size: 80%;">Formatting the Data</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs032.html#predicting-new-points-with-a-trained-recurrent-neural-network" style="font-size: 80%;">Predicting New Points With A Trained Recurrent Neural Network</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs033.html#other-things-to-try" style="font-size: 80%;">Other Things to Try</a></li>
+     <!-- navigation toc: --> <li><a href="#other-things-to-try" style="font-size: 80%;">Other Things to Try</a></li>
      <!-- navigation toc: --> <li><a href="._week43-bs034.html#other-types-of-recurrent-neural-networks" style="font-size: 80%;">Other Types of Recurrent Neural Networks</a></li>
 
         </ul>
@@ -196,54 +196,131 @@ MathJax.Hub.Config({
 
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
 
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
+<a name="part0033"></a>
+<!-- !split -->
 
-
-
-<div class="jumbotron">
-<center><h1>Week 43: Convolutional Neural Networks and Recurrent Neural Networks</h1></center>  <!-- document title -->
+<h2 id="other-things-to-try" class="anchor">Other Things to Try </h2>
 
 <p>
-<!-- author(s): Morten Hjorth-Jensen -->
-
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
+Changing the size of the recurrent neural network and its parameters
+can drastically change the results you get from the model.  The below
+code takes the simple recurrent neural network from above and adds a
+second hidden layer, changes the number of neurons in the hidden
+layer, and explicitly declares the activation function of the hidden
+layers to be a sigmoid function.  The loss function and optimizer can
+also be changed but are kept the same as the above network.  These
+parameters can be tuned to provide the optimal result from the
+network.  For some ideas on how to improve the performance of a
+<a href="https://danijar.com/tips-for-training-recurrent-neural-networks" target="_self">recurrent neural network</a>.
 
 <p>
-<!-- institution(s) -->
 
-<center>[1] <b>Department of Physics, University of Oslo</b></center>
-<center>[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
-<br>
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">rnn_2layers</span>(length_of_sequences, batch_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>, stateful <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">False</span>):
+    <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+<span style="color: #BA2121; font-style: italic">        Inputs:</span>
+<span style="color: #BA2121; font-style: italic">            length_of_sequences (an int): the number of y values in &quot;x data&quot;.  This is determined</span>
+<span style="color: #BA2121; font-style: italic">                when the data is formatted</span>
+<span style="color: #BA2121; font-style: italic">            batch_size (an int): Default value is None.  See Keras documentation of SimpleRNN.</span>
+<span style="color: #BA2121; font-style: italic">            stateful (a boolean): Default value is False.  See Keras documentation of SimpleRNN.</span>
+<span style="color: #BA2121; font-style: italic">        Returns:</span>
+<span style="color: #BA2121; font-style: italic">            model (a Keras model): The recurrent neural network that is built and compiled by this</span>
+<span style="color: #BA2121; font-style: italic">                method</span>
+<span style="color: #BA2121; font-style: italic">        Builds and compiles a recurrent neural network with two hidden layers and returns the model.</span>
+<span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
+    <span style="color: #408080; font-style: italic"># Number of neurons in the input and output layers</span>
+    in_out_neurons <span style="color: #666666">=</span> <span style="color: #666666">1</span>
+    <span style="color: #408080; font-style: italic"># Number of neurons in the hidden layer, increased from the first network</span>
+    hidden_neurons <span style="color: #666666">=</span> <span style="color: #666666">500</span>
+    <span style="color: #408080; font-style: italic"># Define the input layer</span>
+    inp <span style="color: #666666">=</span> Input(batch_shape<span style="color: #666666">=</span>(batch_size, 
+                length_of_sequences, 
+                in_out_neurons))  
+    <span style="color: #408080; font-style: italic"># Create two hidden layers instead of one hidden layer.  Explicitly set the activation</span>
+    <span style="color: #408080; font-style: italic"># function to be the sigmoid function (the default value is hyperbolic tangent)</span>
+    rnn1 <span style="color: #666666">=</span> SimpleRNN(hidden_neurons, 
+                    return_sequences<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>,  <span style="color: #408080; font-style: italic"># This needs to be True if another hidden layer is to follow</span>
+                    stateful <span style="color: #666666">=</span> stateful, activation <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;sigmoid&#39;</span>,
+                    name<span style="color: #666666">=</span><span style="color: #BA2121">&quot;RNN1&quot;</span>)(inp)
+    rnn2 <span style="color: #666666">=</span> SimpleRNN(hidden_neurons, 
+                    return_sequences<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>, activation <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;sigmoid&#39;</span>,
+                    stateful <span style="color: #666666">=</span> stateful,
+                    name<span style="color: #666666">=</span><span style="color: #BA2121">&quot;RNN2&quot;</span>)(rnn1)
+    <span style="color: #408080; font-style: italic"># Define the output layer as a dense neural network layer (standard neural network layer)</span>
+    <span style="color: #408080; font-style: italic">#and add it to the network immediately after the hidden layer.</span>
+    dens <span style="color: #666666">=</span> Dense(in_out_neurons,name<span style="color: #666666">=</span><span style="color: #BA2121">&quot;dense&quot;</span>)(rnn2)
+    <span style="color: #408080; font-style: italic"># Create the machine learning model starting with the input layer and ending with the </span>
+    <span style="color: #408080; font-style: italic"># output layer</span>
+    model <span style="color: #666666">=</span> Model(inputs<span style="color: #666666">=</span>[inp],outputs<span style="color: #666666">=</span>[dens])
+    <span style="color: #408080; font-style: italic"># Compile the machine learning model using the mean squared error function as the loss </span>
+    <span style="color: #408080; font-style: italic"># function and an Adams optimizer.</span>
+    model<span style="color: #666666">.</span>compile(loss<span style="color: #666666">=</span><span style="color: #BA2121">&quot;mean_squared_error&quot;</span>, optimizer<span style="color: #666666">=</span><span style="color: #BA2121">&quot;adam&quot;</span>)  
+    <span style="color: #008000; font-weight: bold">return</span> model
+
+<span style="color: #408080; font-style: italic"># Check to make sure the data set is complete</span>
+<span style="color: #008000; font-weight: bold">assert</span> <span style="color: #008000">len</span>(X_tot) <span style="color: #666666">==</span> <span style="color: #008000">len</span>(y_tot)
+
+<span style="color: #408080; font-style: italic"># This is the number of points that will be used in as the training data</span>
+dim<span style="color: #666666">=12</span>
+
+<span style="color: #408080; font-style: italic"># Separate the training data from the whole data set</span>
+X_train <span style="color: #666666">=</span> X_tot[:dim]
+y_train <span style="color: #666666">=</span> y_tot[:dim]
+
+
+<span style="color: #408080; font-style: italic"># Generate the training data for the RNN, using a sequence of 2</span>
+rnn_input, rnn_training <span style="color: #666666">=</span> format_data(y_train, <span style="color: #666666">2</span>)
+
+
+<span style="color: #408080; font-style: italic"># Create a recurrent neural network in Keras and produce a summary of the </span>
+<span style="color: #408080; font-style: italic"># machine learning model</span>
+model <span style="color: #666666">=</span> rnn_2layers(length_of_sequences <span style="color: #666666">=</span> <span style="color: #666666">2</span>)
+model<span style="color: #666666">.</span>summary()
+
+<span style="color: #408080; font-style: italic"># Start the timer.  Want to time training+testing</span>
+start <span style="color: #666666">=</span> timer()
+<span style="color: #408080; font-style: italic"># Fit the model using the training data genenerated above using 150 training iterations and a 5%</span>
+<span style="color: #408080; font-style: italic"># validation split.  Setting verbose to True prints information about each training iteration.</span>
+hist <span style="color: #666666">=</span> model<span style="color: #666666">.</span>fit(rnn_input, rnn_training, batch_size<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">None</span>, epochs<span style="color: #666666">=150</span>, 
+                 verbose<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>,validation_split<span style="color: #666666">=0.05</span>)
+
+
+<span style="color: #408080; font-style: italic"># This section plots the training loss and the validation loss as a function of training iteration.</span>
+<span style="color: #408080; font-style: italic"># This is not required for analyzing the couple cluster data but can help determine if the network is</span>
+<span style="color: #408080; font-style: italic"># being overtrained.</span>
+<span style="color: #008000; font-weight: bold">for</span> label <span style="color: #AA22FF; font-weight: bold">in</span> [<span style="color: #BA2121">&quot;loss&quot;</span>,<span style="color: #BA2121">&quot;val_loss&quot;</span>]:
+    plt<span style="color: #666666">.</span>plot(hist<span style="color: #666666">.</span>history[label],label<span style="color: #666666">=</span>label)
+
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;loss&quot;</span>)
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;epoch&quot;</span>)
+plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;The final validation loss: </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121">&quot;</span><span style="color: #666666">.</span>format(hist<span style="color: #666666">.</span>history[<span style="color: #BA2121">&quot;val_loss&quot;</span>][<span style="color: #666666">-1</span>]))
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+
+<span style="color: #408080; font-style: italic"># Use the trained neural network to predict more points of the data set</span>
+test_rnn(X_tot, y_tot, X_tot[<span style="color: #666666">0</span>], X_tot[dim<span style="color: #666666">-1</span>])
+<span style="color: #408080; font-style: italic"># Stop the timer and calculate the total time needed.</span>
+end <span style="color: #666666">=</span> timer()
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Time: &#39;</span>, end<span style="color: #666666">-</span>start)
+</pre></div>
 <p>
-<center><h4>Oct 19, 2021</h4></center> <!-- date -->
-<br>
-<p>
-
-
-<p><a href="._week43-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
-
-
-</div> <!-- end jumbotron -->
-
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week43-bs000.html">1</a></li>
-  <li><a href="._week43-bs001.html">2</a></li>
-  <li><a href="._week43-bs002.html">3</a></li>
-  <li><a href="._week43-bs003.html">4</a></li>
-  <li><a href="._week43-bs004.html">5</a></li>
-  <li><a href="._week43-bs005.html">6</a></li>
-  <li><a href="._week43-bs006.html">7</a></li>
-  <li><a href="._week43-bs007.html">8</a></li>
-  <li><a href="._week43-bs008.html">9</a></li>
-  <li><a href="._week43-bs009.html">10</a></li>
+<li><a href="._week43-bs032.html">&laquo;</a></li>
+  <li><a href="._week43-bs000.html">1</a></li>
   <li><a href="">...</a></li>
+  <li><a href="._week43-bs025.html">26</a></li>
+  <li><a href="._week43-bs026.html">27</a></li>
+  <li><a href="._week43-bs027.html">28</a></li>
+  <li><a href="._week43-bs028.html">29</a></li>
+  <li><a href="._week43-bs029.html">30</a></li>
+  <li><a href="._week43-bs030.html">31</a></li>
+  <li><a href="._week43-bs031.html">32</a></li>
+  <li><a href="._week43-bs032.html">33</a></li>
+  <li class="active"><a href="._week43-bs033.html">34</a></li>
   <li><a href="._week43-bs034.html">35</a></li>
-  <li><a href="._week43-bs001.html">&raquo;</a></li>
+  <li><a href="._week43-bs034.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 
@@ -260,7 +337,7 @@ MathJax.Hub.Config({
 
 
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 
 
