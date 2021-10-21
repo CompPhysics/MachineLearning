@@ -124,6 +124,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 42 October 18-22
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Solving differential equations with neural networks and start Convolutional Neural Networks and classification problems
+  - Vieo of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober21.mp4?vrtx=view-as-webpage
 - Lecture Friday: Convolutional Neural Networks and classification problems
 - Reading recommendations:
   - See lecture notes for week 42 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
