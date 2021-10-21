@@ -2120,16 +2120,13 @@ TestError = np.zeros(maxdegree)
 TrainError = np.zeros(maxdegree)
 polydegree = np.zeros(maxdegree)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-scaler = StandardScaler()
-scaler.fit(x_train)
-x_train_scaled = scaler.transform(x_train)
-x_test_scaled = scaler.transform(x_test)
+
 
 for degree in range(maxdegree):
     model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
-    clf = model.fit(x_train_scaled,y_train)
-    y_fit = clf.predict(x_train_scaled)
-    y_pred = clf.predict(x_test_scaled) 
+    clf = model.fit(x_train,y_train)
+    y_fit = clf.predict(x_train)
+    y_pred = clf.predict(x_test) 
     polydegree[degree] = degree
     TestError[degree] = np.mean( np.mean((y_test - y_pred)**2) )
     TrainError[degree] = np.mean( np.mean((y_train - y_fit)**2) )
