@@ -245,6 +245,11 @@ div { text-align: justify; text-justify: inter-word; }
                2,
                None,
                'convolution-examples-probability-theory'),
+              ('More on Dimensionalities', 2, None, 'more-on-dimensionalities'),
+              ('Further Dimensionality Remarks',
+               2,
+               None,
+               'further-dimensionality-remarks'),
               ('CNNs in more detail, building convolutional neural networks in '
                'Tensorflow and Keras',
                2,
@@ -3276,16 +3281,16 @@ $$
 <h2 id="efficient-polynomial-multiplication">Efficient Polynomial Multiplication </h2>
 
 <p>
-Computing polynomial products can be implemented efficiently if we rewrite the the more brute force multiplications using convolution.
+Computing polynomial products can be implemented efficiently if we rewrite the more brute force multiplications using convolution.
 We note first that the new coefficients are given as
 
 $$
 \begin{split}
 \delta_0=&\alpha_0\beta_0\\
-\delta_1=&\alpha_1\beta_0+\beta_0\alpha_1\\
-\delta_2=&\alpha_0\beta_2+\beta_1\alpha_1+\alpha_2\beta_0\\
-\delta_3=&\alpha_1\beta_2+\beta_1\alpha_2+\alpha_0\beta_3\\
-\delta_4=&\alpha_2\beta_2+\beta_3\alpha_1\\
+\delta_1=&\alpha_1\beta_0+\alpha_1\beta_0\\
+\delta_2=&\alpha_0\beta_2+\alpha_1\beta_1+\alpha_2\beta_0\\
+\delta_3=&\alpha_1\beta_2+\alpha_2\beta_1+\alpha_0\beta_3\\
+\delta_4=&\alpha_2\beta_2+\alpha_1\beta_3\\
 \delta_5=&\alpha_2\beta_3.\\
 \end{split}
 $$
@@ -3324,11 +3329,26 @@ $$
 			    0 & \alpha_2 & \alpha_1 & \alpha_0 \\
 			    0 & 0 & \alpha_2 & \alpha_1 \\
 			    0 & 0 & 0 & \alpha_2
-			    \end{bmatrix}\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3\end{bmatrix}
+			    \end{bmatrix}\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3\end{bmatrix}.
 $$
 
 <p>
-The process is commutative and we can easily see that we can rewrite the multiplication in terms of  a martrix holding \( \beta \) and a vector holding \( \alpha \).
+The process is commutative and we can easily see that we can rewrite the multiplication in terms of  a matrix holding \( \beta \) and a vector holding \( \alpha \).
+In this case we have
+$$
+\boldsymbol{\delta}=\begin{bmatrix}\beta_0 & 0 & 0  \\
+                            \beta_1 & \beta_0 & 0  \\
+			    \beta_2 & \beta_1 & \beta_0  \\
+			    \beta_3 & \beta_2 & \beta_1 \\
+			    0 & \beta_3 & \beta_2 \\
+			    0 & 0 & \beta_3
+			    \end{bmatrix}\begin{bmatrix} \alpha_0 \\ \alpha_1 \\ \alpha_2\end{bmatrix}.
+$$
+
+<p>
+Note that the use of these  matrices is for mathematical purposes only  and not implementation purposes.
+When implementing the above equation we do not encode (and allocate memory) the matrices explicitely.
+We rather code the convolutions in the minimal memory footprint that they require.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -3586,6 +3606,60 @@ plt.show()
 
 <p>
 More text will be added here
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="more-on-dimensionalities">More on Dimensionalities </h2>
+
+<p>
+In feilds like signal processing (and imaging as well), one designs
+so-called filters. These filters are defined by the convolutions and
+are often hand-crafted. One may specify filters for smoothing, edge
+detection, frequency reshaping, and similar operations. However with
+neural networks the idea is to automatically learn the filters and use
+many of them in conjunction with non-linear operations (activation
+functions).
+
+<p>
+As an example consider a neural network operating on sound sequence
+data.  Assume that we an input vector \( \boldsymbol{x} \) of length \( d=10^6 \).  We
+construct then a neural network with onle hidden layer only with
+\( 10^4 \) nodes. This means that we will have a weight matrix with
+\( 10^4\times 10^6=10^{10} \) weights to be determined, together with \( 10^4 \) biases.
+
+<p>
+Assume furthermore that we have an output layer which is meant to train whether the sound sequence represents a human voice (true) or something else (false).
+It means that we have only one output node. But since this output node connects to \( 10^4 \) nodes in the hidden layer, there are in total \( 10^4 \) weights to be determined for the output layer, plus one bias. In total we have
+
+$$
+\mathrm{NumberParameters}=10^{10}+10^4+10^4+1 \approx 10^{10},
+$$
+
+that is ten billion parameters to determine.
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="further-dimensionality-remarks">Further Dimensionality Remarks </h2>
+
+<p>
+In today&#8217;s architecture one can train such neural networks, however
+this is a huge number of parameters for the task at hand. In general,
+it is a very wasteful and inefficient use of dense matrices as
+parameters. Just as importantly, such trained network parameters are
+very specific for the type of input data on which they were trained
+and the network is not likely to generalize easily to variations in
+the input.
+
+<p>
+The main principles that justify convolutions is locality of
+information and repetion of patterns within the signal. Sound samples
+of the input in adjacent spots are much more likely to affect each
+other than those that are very far away. Similarly, sounds are
+repeated in multiple times in the signal. While slightly simplistic,
+reasoning about such a sound example demonstrates this. The same
+principles then apply to images and other similar data.
 
 <p>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
