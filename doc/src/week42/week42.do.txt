@@ -2637,15 +2637,86 @@ How can we use this? And what does it mean? Let us study some familiar examples 
 !split
 ===== Convolution Examples: Polynomial multiplication =====
 
-We have already met such an example in project 1 when we tried to set up the design matrix for a two-dimensional function.
-Let us remind of this and recast it in terms of the mathematical operation of convolution.
+We have already met such an example in project 1 when we tried to set
+up the design matrix for a two-dimensional function. This was an
+example of polynomial multiplication.  Let us recast such a problem in terms of the convolution operation.
+Let us look a the following polynomials to second and third order, respectively:
+!bt
+\[
+p(t) = \alpha_0+\alpha_1 t+\alpha_2 t^2,
+\]
+!et
+and
+!bt
+\[
+s(t) = \beta_0+\beta_1 t+\beta_2 t^2+\beta_3 t^3.
+\]
+!et
 
-
-
-
+The polynomial multiplication gives us a new polynomial of degree $5$
+!bt
+\[
+z(t) = \delta_0+\delta_1 t+\delta_2 t^2+\delta_3 t^3+\delta_4 t^4+\delta_5 t^5.
+\]
+!et
 
 !split
-===== Convolution Examples: Probability Theory =====
+===== Efficient Polynomial Multiplication =====
+
+Computing polynomial products can be implemented efficiently if we rewrite the the more brute force multiplications using convolution.
+We note first that the new coefficients are given as
+
+!bt
+\begin{split}
+\delta_0=&\alpha_0\beta_0\\
+\delta_1=&\alpha_1\beta_0+\beta_0\alpha_1\\
+\delta_2=&\alpha_0\beta_2+\beta_1\alpha_1+\alpha_2\beta_0\\
+\delta_3=&\alpha_1\beta_2+\beta_1\alpha_2+\alpha_0\beta_3\\
+\delta_4=&\alpha_2\beta_2+\beta_3\alpha_1\\
+\delta_5=&\alpha_2\beta_3.\\
+\end{split}
+!et
+
+
+We note that $\alpha_i=0$ except for $i\in \left{0,1,2\right}$ and $\beta_i=0$ except for $i\in\left{0,1,2,3\right}$.
+
+We can then rewrite the coefficients $\delta_j$ using a discrete convolution as
+!bt
+\[
+\delta_j = \sum_{i=-\infty}^{i=\infty}\alpha_i\beta_{j-i}=(\alpha * \beta)_j,
+\]
+!et
+or as a double sum with restriction $l=i+j$
+!bt
+\[
+\delta_l = \sum_{ij}\alpha_i\beta_{j}.
+\]
+!et
+
+Do you see a potential drawback with these equations?
+
+!split
+===== A more efficient way of coding the above Convolution =====
+
+Since we only have a finite number of $\alpha$ and $\beta$ values
+which are non-zero, we can rewrite the above convolution expressions
+as a matrix-vector multiplication
+
+!bt
+\[
+\bm{\delta}=\begin{bmatriax}\alpha_0 & 0 & 0 & 0 \\
+                            \alpha_1 & \alpha_0 & 0 & 0 \\
+			    \alpha_2 & \alpha_1 & \alpha_0 & 0 \\
+			    0 & \alpha_2 & \alpha_1 & \alpha_0 \\
+			    0 & 0 & \alpha_2 & \alpha_1 \\
+			    0 & 0 & 0 & \alpha_2
+			    \end{bmatrix}\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3\end{bmatrix}
+\]
+!et
+
+The process is commutative and we can easily see that we can rewrite the multiplication in terms of  a martrix holding $\beta$ and a vector holding $\alpha$.
+
+
 
 
 !split
@@ -2654,7 +2725,7 @@ Let us remind of this and recast it in terms of the mathematical operation of co
 For problems with so-called harmonic oscillations, given by for example the following differential equation
 !bt
 \[
-m\frac{d^2x(t)}(dt^2}+\eta\frac{dx}{dt}+x(t)=F(t),
+m\frac{d^2x}{dt^2}+\eta\frac{dx}{dt}+x(t)=F(t),
 \]
 !et
 where $F(t)$ is an applied external force acting on the system (often called a driving force), one can use the theory of Fourier transformations to find the solutions of this type of equations.
@@ -2825,8 +2896,54 @@ The same method can be used to check for the consistency of $g_n$.
 
 
 
+!split
+===== Final words on Fourier Transforms =====
+
+The code here uses the Fourier series applied to a 
+square wave signal. The code here
+visualizes the various approximations given by Fourier series compared
+with a square wave with period $T=0.2$ (dimensionless time), width $0.1$ and max value of the force $F=2$. We
+see that when we increase the number of components in the Fourier
+series, the Fourier series approximation gets closer and closer to the
+square wave signal.
+
+!bc pycod
+import numpy as np
+import math
+from scipy import signal
+import matplotlib.pyplot as plt
+
+# number of points                                                                                       
+n = 500
+# start and final times                                                                                  
+t0 = 0.0
+tn = 1.0
+# Period                                                                                                 
+T =0.2
+# Max value of square signal                                                                             
+Fmax= 2.0
+# Width of signal   
+Width = 0.1
+t = np.linspace(t0, tn, n, endpoint=False)
+SqrSignal = np.zeros(n)
+FourierSeriesSignal = np.zeros(n)
+SqrSignal = 1.0+signal.square(2*np.pi*5*t+np.pi*Width/T)
+a0 = Fmax*Width/T
+FourierSeriesSignal = a0
+Factor = 2.0*Fmax/np.pi
+for i in range(1,500):
+    FourierSeriesSignal += Factor/(i)*np.sin(np.pi*i*Width/T)*np.cos(i*t*2*np.pi/T)
+plt.plot(t, SqrSignal)
+plt.plot(t, FourierSeriesSignal)
+plt.ylim(-0.5, 2.5)
+plt.show()
+!ec
 
 
+!split
+===== Convolution Examples: Probability Theory =====
+
+More text will be added here
 
 
 
