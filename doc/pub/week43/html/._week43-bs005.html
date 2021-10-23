@@ -42,6 +42,7 @@ Automatically generated HTML file from DocOnce source
 <!-- tocinfo
 {'highest level': 2,
  'sections': [('Plans for week 43', 2, None, 'plans-for-week-43'),
+              ('Summary on CNNs', 2, None, 'summary-on-cnns'),
               ('Recurrent neural networks: Overarching view',
                2,
                None,
@@ -81,14 +82,15 @@ end of tocinfo -->
         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Contents <b class="caret"></b></a>
         <ul class="dropdown-menu">
      <!-- navigation toc: --> <li><a href="._week43-bs001.html#plans-for-week-43" style="font-size: 80%;">Plans for week 43</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs002.html#recurrent-neural-networks-overarching-view" style="font-size: 80%;">Recurrent neural networks: Overarching view</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs003.html#set-up-of-an-rnn" style="font-size: 80%;">Set up of an RNN</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs004.html#a-simple-example" style="font-size: 80%;">A simple example</a></li>
-     <!-- navigation toc: --> <li><a href="#an-extrapolation-example" style="font-size: 80%;">An extrapolation example</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs006.html#formatting-the-data" style="font-size: 80%;">Formatting the Data</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs007.html#predicting-new-points-with-a-trained-recurrent-neural-network" style="font-size: 80%;">Predicting New Points With A Trained Recurrent Neural Network</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs008.html#other-things-to-try" style="font-size: 80%;">Other Things to Try</a></li>
-     <!-- navigation toc: --> <li><a href="._week43-bs009.html#other-types-of-recurrent-neural-networks" style="font-size: 80%;">Other Types of Recurrent Neural Networks</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs002.html#summary-on-cnns" style="font-size: 80%;">Summary on CNNs</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs003.html#recurrent-neural-networks-overarching-view" style="font-size: 80%;">Recurrent neural networks: Overarching view</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs004.html#set-up-of-an-rnn" style="font-size: 80%;">Set up of an RNN</a></li>
+     <!-- navigation toc: --> <li><a href="#a-simple-example" style="font-size: 80%;">A simple example</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs006.html#an-extrapolation-example" style="font-size: 80%;">An extrapolation example</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs007.html#formatting-the-data" style="font-size: 80%;">Formatting the Data</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs008.html#predicting-new-points-with-a-trained-recurrent-neural-network" style="font-size: 80%;">Predicting New Points With A Trained Recurrent Neural Network</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs009.html#other-things-to-try" style="font-size: 80%;">Other Things to Try</a></li>
+     <!-- navigation toc: --> <li><a href="._week43-bs010.html#other-types-of-recurrent-neural-networks" style="font-size: 80%;">Other Types of Recurrent Neural Networks</a></li>
 
         </ul>
       </li>
@@ -104,44 +106,79 @@ end of tocinfo -->
 <a name="part0005"></a>
 <!-- !split -->
 
-<h2 id="an-extrapolation-example" class="anchor">An extrapolation example </h2>
-
-<p>
-The following code provides an example of how recurrent neural
-networks can be used to extrapolate to unknown values of physics data
-sets.  Specifically, the data sets used in this program come from
-a quantum mechanical many-body calculation of energies as functions of the number of particles.
+<h2 id="a-simple-example" class="anchor">A simple example </h2>
 
 <p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #408080; font-style: italic"># For matrices and calculations</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #408080; font-style: italic"># Start importing packages</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #408080; font-style: italic"># For machine learning (backend for keras)</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">tensorflow</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">tf</span>
-<span style="color: #408080; font-style: italic"># User-friendly machine learning library</span>
-<span style="color: #408080; font-style: italic"># Front end for TensorFlow</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span>
-<span style="color: #408080; font-style: italic"># Different methods from Keras needed to create an RNN</span>
-<span style="color: #408080; font-style: italic"># This is not necessary but it shortened function calls </span>
-<span style="color: #408080; font-style: italic"># that need to be used in the code.</span>
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span> <span style="color: #008000; font-weight: bold">import</span> datasets, layers, models
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.layers</span> <span style="color: #008000; font-weight: bold">import</span> Input
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span> <span style="color: #008000; font-weight: bold">import</span> regularizers
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.models</span> <span style="color: #008000; font-weight: bold">import</span> Model, Sequential
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.models</span> <span style="color: #008000; font-weight: bold">import</span> Model, Sequential 
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.layers</span> <span style="color: #008000; font-weight: bold">import</span> Dense, SimpleRNN, LSTM, GRU
-<span style="color: #408080; font-style: italic"># For timing the code</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">timeit</span> <span style="color: #008000; font-weight: bold">import</span> default_timer <span style="color: #008000; font-weight: bold">as</span> timer
-<span style="color: #408080; font-style: italic"># For plotting</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span> <span style="color: #008000; font-weight: bold">import</span> optimizers     
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras</span> <span style="color: #008000; font-weight: bold">import</span> regularizers           
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">tensorflow.keras.utils</span> <span style="color: #008000; font-weight: bold">import</span> to_categorical 
 
 
-<span style="color: #408080; font-style: italic"># The data set</span>
-datatype<span style="color: #666666">=</span><span style="color: #BA2121">&#39;VaryDimension&#39;</span>
-X_tot <span style="color: #666666">=</span> np<span style="color: #666666">.</span>arange(<span style="color: #666666">2</span>, <span style="color: #666666">42</span>, <span style="color: #666666">2</span>)
-y_tot <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([<span style="color: #666666">-0.03077640549</span>, <span style="color: #666666">-0.08336233266</span>, <span style="color: #666666">-0.1446729567</span>, <span style="color: #666666">-0.2116753732</span>, <span style="color: #666666">-0.2830637392</span>, <span style="color: #666666">-0.3581341341</span>, <span style="color: #666666">-0.436462435</span>, <span style="color: #666666">-0.5177783846</span>,
-	<span style="color: #666666">-0.6019067271</span>, <span style="color: #666666">-0.6887363571</span>, <span style="color: #666666">-0.7782028952</span>, <span style="color: #666666">-0.8702784034</span>, <span style="color: #666666">-0.9649652536</span>, <span style="color: #666666">-1.062292565</span>, <span style="color: #666666">-1.16231451</span>, 
-	<span style="color: #666666">-1.265109911</span>, <span style="color: #666666">-1.370782966</span>, <span style="color: #666666">-1.479465113</span>, <span style="color: #666666">-1.591317992</span>, <span style="color: #666666">-1.70653767</span>])
+
+<span style="color: #408080; font-style: italic"># convert into dataset matrix</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">convertToMatrix</span>(data, step):
+ X, Y <span style="color: #666666">=</span>[], []
+ <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(data)<span style="color: #666666">-</span>step):
+  d<span style="color: #666666">=</span>i<span style="color: #666666">+</span>step  
+  X<span style="color: #666666">.</span>append(data[i:d,])
+  Y<span style="color: #666666">.</span>append(data[d,])
+ <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>array(X), np<span style="color: #666666">.</span>array(Y)
+
+step <span style="color: #666666">=</span> <span style="color: #666666">4</span>
+N <span style="color: #666666">=</span> <span style="color: #666666">1000</span>    
+Tp <span style="color: #666666">=</span> <span style="color: #666666">800</span>    
+
+t<span style="color: #666666">=</span>np<span style="color: #666666">.</span>arange(<span style="color: #666666">0</span>,N)
+x<span style="color: #666666">=</span>np<span style="color: #666666">.</span>sin(<span style="color: #666666">0.02*</span>t)<span style="color: #666666">+2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(N)
+df <span style="color: #666666">=</span> pd<span style="color: #666666">.</span>DataFrame(x)
+df<span style="color: #666666">.</span>head()
+
+plt<span style="color: #666666">.</span>plot(df)
+plt<span style="color: #666666">.</span>show()
+
+values<span style="color: #666666">=</span>df<span style="color: #666666">.</span>values
+train,test <span style="color: #666666">=</span> values[<span style="color: #666666">0</span>:Tp,:], values[Tp:N,:]
+
+<span style="color: #408080; font-style: italic"># add step elements into train and test</span>
+test <span style="color: #666666">=</span> np<span style="color: #666666">.</span>append(test,np<span style="color: #666666">.</span>repeat(test[<span style="color: #666666">-1</span>,],step))
+train <span style="color: #666666">=</span> np<span style="color: #666666">.</span>append(train,np<span style="color: #666666">.</span>repeat(train[<span style="color: #666666">-1</span>,],step))
+ 
+trainX,trainY <span style="color: #666666">=</span>convertToMatrix(train,step)
+testX,testY <span style="color: #666666">=</span>convertToMatrix(test,step)
+trainX <span style="color: #666666">=</span> np<span style="color: #666666">.</span>reshape(trainX, (trainX<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>], <span style="color: #666666">1</span>, trainX<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>]))
+testX <span style="color: #666666">=</span> np<span style="color: #666666">.</span>reshape(testX, (testX<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>], <span style="color: #666666">1</span>, testX<span style="color: #666666">.</span>shape[<span style="color: #666666">1</span>]))
+
+model <span style="color: #666666">=</span> Sequential()
+model<span style="color: #666666">.</span>add(SimpleRNN(units<span style="color: #666666">=32</span>, input_shape<span style="color: #666666">=</span>(<span style="color: #666666">1</span>,step), activation<span style="color: #666666">=</span><span style="color: #BA2121">&quot;relu&quot;</span>))
+model<span style="color: #666666">.</span>add(Dense(<span style="color: #666666">8</span>, activation<span style="color: #666666">=</span><span style="color: #BA2121">&quot;relu&quot;</span>)) 
+model<span style="color: #666666">.</span>add(Dense(<span style="color: #666666">1</span>))
+model<span style="color: #666666">.</span>compile(loss<span style="color: #666666">=</span><span style="color: #BA2121">&#39;mean_squared_error&#39;</span>, optimizer<span style="color: #666666">=</span><span style="color: #BA2121">&#39;rmsprop&#39;</span>)
+model<span style="color: #666666">.</span>summary()
+
+model<span style="color: #666666">.</span>fit(trainX,trainY, epochs<span style="color: #666666">=100</span>, batch_size<span style="color: #666666">=16</span>, verbose<span style="color: #666666">=2</span>)
+trainPredict <span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(trainX)
+testPredict<span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(testX)
+predicted<span style="color: #666666">=</span>np<span style="color: #666666">.</span>concatenate((trainPredict,testPredict),axis<span style="color: #666666">=0</span>)
+
+trainScore <span style="color: #666666">=</span> model<span style="color: #666666">.</span>evaluate(trainX, trainY, verbose<span style="color: #666666">=0</span>)
+<span style="color: #008000">print</span>(trainScore)
+
+index <span style="color: #666666">=</span> df<span style="color: #666666">.</span>index<span style="color: #666666">.</span>values
+plt<span style="color: #666666">.</span>plot(index,df)
+plt<span style="color: #666666">.</span>plot(index,predicted)
+plt<span style="color: #666666">.</span>axvline(df<span style="color: #666666">.</span>index[Tp], c<span style="color: #666666">=</span><span style="color: #BA2121">&quot;r&quot;</span>)
+plt<span style="color: #666666">.</span>show()
 </pre></div>
 <p>
 <p>
@@ -158,6 +195,7 @@ y_tot <span style="color: #666666">=</span> np<span style="color: #666666">.</sp
   <li><a href="._week43-bs007.html">8</a></li>
   <li><a href="._week43-bs008.html">9</a></li>
   <li><a href="._week43-bs009.html">10</a></li>
+  <li><a href="._week43-bs010.html">11</a></li>
   <li><a href="._week43-bs006.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
