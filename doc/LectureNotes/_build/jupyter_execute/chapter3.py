@@ -1236,17 +1236,6 @@ $$
 \sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
 $$
 
-We assume 
-that every column of $\boldsymbol{X}$ is centered, which we can do by subtracting the mean,
-
-X = X - np.mean(X,axis=0)
-
-This means that we need to rewrite $X_{ij}$ as $\tilde{X}_{ij}=X_{ij}-\mu_j$, where
-
-$$
-\mu_j = \frac{1}{n}\sum_{i=0}^{n-1}X_{ij}.
-$$
-
 Let us special first to the case where we have only two parameters $\beta_0$ and $\beta_1$.
 Our result for $\beta_0$ simplifies then to
 
@@ -1254,13 +1243,13 @@ $$
 n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
 $$
 
-Assuming that the matrix elements $X_{i1}$ are centered, what we have is
+We obtain then
 
 $$
-\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} \left(X_{i1}-\mu_{1}\right),
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
 $$
 
-where
+If we define
 
 $$
 \mu_1=\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1},
@@ -1275,25 +1264,16 @@ $$
 we have
 
 $$
-\beta_0 = \mu_y - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1}-\mu_{1}),
+\beta_0 = \mu_y - \beta_1\mu_{1}.
 $$
 
-and it is easy to see that the last sum equals zero!  This means that we have
+In the general case withmore parameters than $\beta_0$ and $\beta_1$, we have
 
 $$
-\beta_0 = \mu_y,
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
 $$
 
-if the columns of the design matrix are centered. It is straight forward to generalize this results to more values of $\beta$.
-We have thus
-
-$$
-\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1} y_i = \overline{\boldsymbol{y}},
-$$
-
-the average value of $\boldsymbol{y}$.
-
-Replacing $y_i$ with $y_i - \beta_0 = y_i - \overline{\boldsymbol{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
+Replacing $y_i$ with $y_i - y_i - \overline{\boldsymbol{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
 
 $$
 C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}).
@@ -1566,8 +1546,6 @@ for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)
     intercept_ = y_scaler - X_train_mean@OwnRidgeBeta #The intercept can be shifted so the model can predict on uncentered data
-    #Add intercept to prediction
-    ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ 
     #Add intercept to prediction
     ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler 
     RegRidge = linear_model.Ridge(lmb)
@@ -1939,8 +1917,8 @@ involves a new cost function which leads to a new estimate for the
 weights $\boldsymbol{\beta}$. This results in a penalized regression problem. The
 cost function is given by
 
-6
-0
+5
+8
  
 <
 <
