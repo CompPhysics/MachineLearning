@@ -1245,6 +1245,7 @@ y_pred = y_pred + y_train_mean
 !ec
 
 
+
 Let us try to understand what this may imply mathematically when we
 subtract the mean values, also known as *zero centering*. For
 simplicity, we will focus on  ordinary regression, as done in the above example.
@@ -1281,20 +1282,6 @@ Multiplying away the constant $2/n$, we obtain
 \]
 !et
 
-
-We assume 
-that every column of $\bm{X}$ is centered, which we can do by subtracting the mean,
-!bc pycod
-X = X - np.mean(X,axis=0)
-!ec
-
-This means that we need to rewrite $X_{ij}$ as $\tilde{X}_{ij}=X_{ij}-\mu_j$, where
-!bt
-\[
-\mu_j = \frac{1}{n}\sum_{i=0}^{n-1}X_{ij}.
-\]
-!et
-
 Let us special first to the case where we have only two parameters $\beta_0$ and $\beta_1$.
 Our result for $\beta_0$ simplifies then to
 !bt
@@ -1302,13 +1289,13 @@ Our result for $\beta_0$ simplifies then to
 n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
 \]
 !et
-Assuming that the matrix elements $X_{i1}$ are centered, what we have is
+We obtain then
 !bt
 \[
-\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} \left(X_{i1}-\mu_{1}\right),
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
 \]
 !et
-where
+If we define
 !bt
 \[
 \mu_1=\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1},
@@ -1323,30 +1310,25 @@ and if we define the mean value of the outputs as
 we have
 !bt
 \[
-\beta_0 = \mu_y - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1}-\mu_{1}),
+\beta_0 = \mu_y - \beta_1\mu_{1}.
 \]
 !et
-and it is easy to see that the last sum equals zero!  This means that we have
+In the general case withmore parameters than $\beta_0$ and $\beta_1$, we have
 !bt
 \[
-\beta_0 = \mu_y,
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
 \]
 !et
-if the columns of the design matrix are centered. It is straight forward to generalize this results to more values of $\beta$.
-We have thus
-!bt
-\[
-\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1} y_i = \overline{\bm{y}},
-\]
-!et
-the average value of $\bm{y}$.
 
-Replacing $y_i$ with $y_i - \beta_0 = y_i - \overline{\bm{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
+
+
+Replacing $y_i$ with $y_i - y_i - \overline{\bm{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
 !bt
 \[
 C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}). 
 \]
 !et
+
 
 
 If we minimize with respect to $\bm{\beta}$ we have then
@@ -1628,8 +1610,6 @@ for i in range(nlambdas):
     lmb = lambdas[i]
     OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)
     intercept_ = y_scaler - X_train_mean@OwnRidgeBeta #The intercept can be shifted so the model can predict on uncentered data
-    #Add intercept to prediction
-    ypredictOwnRidge = X_test @ OwnRidgeBeta + intercept_ 
     #Add intercept to prediction
     ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler 
     RegRidge = linear_model.Ridge(lmb)
@@ -2458,6 +2438,7 @@ model fits the data best.
 At the end, you should present a critical evaluation of your results
 and discuss the applicability of these regression methods to the type
 of data presented here (either the terrain data we propose or other data sets).
+
 
 
 
