@@ -1163,7 +1163,7 @@ standard deviation. Most machine learning libraries do this as a default. This m
 the results may differ. 
 
 The
-[Standadscaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html)
+[Standardscaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html)
 function in **Scikit-Learn** does this for us.  For the data sets we
 have been studying in our various examples, the data are in many cases
 already scaled and there is no need to scale them. You as a user of different machine learning algorithms, should always perform  a
@@ -1213,12 +1213,14 @@ $$
 C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
 $$
 
-Recall also that we use the squared value since this leads to an increase of the penalty for higher differences between predicted and output/target values.
+Recall also that we use the squared value. This expression can lead to an
+increased penalty for higher differences between predicted and
+output/target values.
 
-What we have done is to single out the $\beta_0$ term in the definition of the mean squared error (MSE).
-The design matrix
-$X$ does in this case not contain any intercept column.
-When we take the derivative with respect to $\beta_0$, we want the derivative to obey
+What we have done is to single out the $\beta_0$ term in the
+definition of the mean squared error (MSE).  The design matrix $X$
+does in this case not contain any intercept column.  When we take the
+derivative with respect to $\beta_0$, we want the derivative to obey
 
 $$
 \frac{\partial C}{\partial \beta_j} = 0,
@@ -1236,7 +1238,7 @@ $$
 \sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
 $$
 
-Let us special first to the case where we have only two parameters $\beta_0$ and $\beta_1$.
+Let us specialize first to the case where we have only two parameters $\beta_0$ and $\beta_1$.
 Our result for $\beta_0$ simplifies then to
 
 $$
@@ -1252,10 +1254,10 @@ $$
 If we define
 
 $$
-\mu_1=\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1},
+\mu_{\boldsymbol{x}_1}=\frac{1}{n}\sum_{i=0}^{n-1} X_{i1},
 $$
 
-and if we define the mean value of the outputs as
+and the mean value of the outputs as
 
 $$
 \mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
@@ -1264,14 +1266,30 @@ $$
 we have
 
 $$
-\beta_0 = \mu_y - \beta_1\mu_{1}.
+\beta_0 = \mu_y - \beta_1\mu_{\boldsymbol{x}_1}.
 $$
 
-In the general case withmore parameters than $\beta_0$ and $\beta_1$, we have
+In the general case with more parameters than $\beta_0$ and $\beta_1$, we have
 
 $$
 \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
 $$
+
+We can rewrite the latter equation as
+
+$$
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \sum_{j=1}^{p-1} \mu_{\boldsymbol{x}_j}\beta_j,
+$$
+
+where we have defined
+
+$$
+\mu_{\boldsymbol{x}_j}=\frac{1}{n}\sum_{i=0}^{n-1} X_{ij},
+$$
+
+the mean value for all elements of the column vector $\boldsymbol{x}_j$.
+
+
 
 Replacing $y_i$ with $y_i - y_i - \overline{\boldsymbol{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
 
@@ -1917,8 +1935,8 @@ involves a new cost function which leads to a new estimate for the
 weights $\boldsymbol{\beta}$. This results in a penalized regression problem. The
 cost function is given by
 
-5
-8
+6
+0
  
 <
 <
