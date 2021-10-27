@@ -134,10 +134,11 @@ For the reading assignments we use the following abbreviations:
 ###  Week 43 October 25-29
 - Lab Wednesday: Work on project 2
 - Lecture Thursday:  Recurrent Neural Networks
-- Lecture Friday: Recurrent Neural Networks and time series
+- Lecture Friday: Recurrent Neural Networks and principal component analysis (PCA)
 - Reading recommendations:
   - See lecture notes for week 43 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For RNNs, see Goodfellow et al chapter 10 and discussions in chapter 11 and 12 on practicalities and applications
+  - For PCA see lecture notes (jupyter book) chapter 11 and also chapter 12 on clustering. Geron's chapter 8 is also a good read.
 
 ###  Week 44 November 1-5
 - Lab Wednesday: Work on project 2
