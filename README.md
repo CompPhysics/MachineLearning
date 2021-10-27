@@ -365,11 +365,11 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 ###  Week 43 October 25-29
 - Lab Wednesday: Work on project 2
 - Lecture Thursday:  Recurrent Neural Networks
-- Lecture Friday: Recurrent Neural Networks and time series
+- Lecture Friday: Recurrent Neural Networks and time series and principal component analysis (PCA)
 - Reading recommendations:
   - See lecture notes for week 43 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For RNNs, see Goodfellow et al chapter 10 and discussions in chapter 11 and 12 on practicalities and applications
-
+  - For PCA, see lecture notes chapter 11 and Geron's text chapter 8
 ###  Week 44 November 1-5
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Decision trees, classification and regression
