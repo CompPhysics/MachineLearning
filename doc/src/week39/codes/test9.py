@@ -28,8 +28,8 @@ y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
 Maxpolydegree = 5
 X = np.zeros((n,Maxpolydegree-1))
 
-for degree in range(1,Maxpolydegree): #No intercept column
-    X[:,degree-1] = x**(degree)
+for degree in range(Maxpolydegree): #with intercept column included and no scaling
+    X[:,degree] = x**(degree)
 
 # We split the data in test and training data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
