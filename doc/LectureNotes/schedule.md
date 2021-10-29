@@ -134,6 +134,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 43 October 25-29
 - Lab Wednesday: Work on project 2
 - Lecture Thursday:  Recurrent Neural Networks
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober28.mp4?vrtx=view-as-webpage
 - Lecture Friday: Recurrent Neural Networks and principal component analysis (PCA)
 - Reading recommendations:
   - See lecture notes for week 43 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
