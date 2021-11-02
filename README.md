@@ -374,14 +374,14 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
   - For PCA, see lecture notes chapter 11 and Geron's text chapter 8
 ###  Week 44 November 1-5
 - Lab Wednesday: Work on project 2
-- Lecture Thursday: Decision trees, classification and regression
+- Lecture Thursday: Summary on PCA and discussion of Clustering for unsupervised learning. Decision trees, classification and regression
 - Lecture Friday: Decision trees, basic algorithms
 - Reading recommendations:
   - See lecture notes for week 44 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - Hastie et al sections 9.1 and 9.2
+  - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees) and chapter 8 on PCA and Clustering
 
 ###  Week 45 November 8-12 
-- Lab Wednesday: Work on project 2, project 3 available
+- Lab Wednesday: Work on project 2, project 3 available. Deadline project 2 is November 15.
 - Lecture Thursday: Ensemble methods, bagging and random forests
 - Lecture Friday: Boosting and gradient boosting
 - Reading recommendations:
