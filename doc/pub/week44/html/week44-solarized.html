@@ -8,8 +8,8 @@ doconce format html week44.do.txt --pygments_html_style=perldoc --html_style=sol
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="DocOnce: https://github.com/doconce/doconce/" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Week 44: From Decision Trees to Bagging methods">
-<title>Week 44: From Decision Trees to Bagging methods</title>
+<meta name="description" content="Week 44: Dimensionality Reduction, PCA and Clustering. Decision Trees">
+<title>Week 44: Dimensionality Reduction, PCA and Clustering. Decision Trees</title>
 <link href="https://cdn.rawgit.com/doconce/doconce/master/bundled/html_styles/style_solarized_box/css/solarized_light_code.css" rel="stylesheet" type="text/css" title="light"/>
 <script src="https://cdn.rawgit.com/doconce/doconce/master/bundled/html_styles/style_solarized_box/js/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
@@ -64,7 +64,45 @@ div.toc p,a {
 <!-- tocinfo
 {'highest level': 2,
  'sections': [('Overview of week 44', 2, None, 'overview-of-week-44'),
-              ('Thursday', 2, None, 'thursday'),
+              ('Thursday, Principal Component Analysis',
+               2,
+               None,
+               'thursday-principal-component-analysis'),
+              ('Thursday: Clustering and Unsupervised Learning',
+               2,
+               None,
+               'thursday-clustering-and-unsupervised-learning'),
+              ('Basic Idea of the $k$-means Clustering Algorithm',
+               2,
+               None,
+               'basic-idea-of-the-k-means-clustering-algorithm'),
+              ('The $k$-means Algorithm', 2, None, 'the-k-means-algorithm'),
+              ('Basic Math of the $k$-means Algorithm',
+               2,
+               None,
+               'basic-math-of-the-k-means-algorithm'),
+              ('Within Cluster Point Scatter',
+               2,
+               None,
+               'within-cluster-point-scatter'),
+              ('More Details', 2, None, 'more-details'),
+              ('Total Cluster Variance', 2, None, 'total-cluster-variance'),
+              ('The $k$-means Clustering Algorithm',
+               2,
+               None,
+               'the-k-means-clustering-algorithm'),
+              ('Summarizing', 2, None, 'summarizing'),
+              ('Writing our own Code, the Data Set',
+               2,
+               None,
+               'writing-our-own-code-the-data-set'),
+              ('Implementing the $k$-means Algorithm',
+               2,
+               None,
+               'implementing-the-k-means-algorithm'),
+              ('Plotting', 2, None, 'plotting'),
+              ('Continuing', 2, None, 'continuing'),
+              ('Wrapping it up', 2, None, 'wrapping-it-up'),
               ('Decision trees, overarching aims',
                2,
                None,
@@ -220,7 +258,7 @@ MathJax.Hub.Config({
 
 <!-- ------------------- main content ---------------------- -->
 <center>
-<h1>Week 44: From Decision Trees to Bagging methods</h1>
+<h1>Week 44: Dimensionality Reduction, PCA and Clustering. Decision Trees</h1>
 </center>  <!-- document title -->
 
 <!-- author(s): Morten Hjorth-Jensen -->
@@ -236,7 +274,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Nov 1, 2021</h4>
+<h4>Nov 2, 2021</h4>
 </center> <!-- date -->
 <br>
 
@@ -244,15 +282,594 @@ MathJax.Hub.Config({
 <h2 id="overview-of-week-44">Overview of week 44 </h2>
 
 <ul>
-<li> Thursday: Wrapping up PCA from last week and basics of decision trees, classification and regression algorithms</li>
+<li> Thursday: Wrapping up PCA from last week, Clustering and basics of decision trees, classification and regression algorithms</li>
 <li> Friday: Decision trees, voting models and bagging</li>
 </ul>
 <p>Geron's chapter 6 covers decision trees while ensemble models, voting and bagging are discussed in chapter 7. See also lecture from <a href="https://www.uio.no/studier/emner/matnat/math/STK-IN4300/h20/slides/lecture_7.pdf" target="_blank">STK-IN4300, lecture 7</a>. Chapter 9.2 of Hastie et al contains also a good discussion.</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="thursday">Thursday </h2>
+<h2 id="thursday-principal-component-analysis">Thursday, Principal Component Analysis  </h2>
 
-<p>Decision trees and wrapping up PCA.</p>
+<p>For the principal component analysis, 
+see slides from <a href="https://compphysics.github.io/MachineLearning/doc/pub/week43/html/week43-reveal.html" target="_blank">week 43</a>, in particular from slide 28 and forward
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="thursday-clustering-and-unsupervised-learning">Thursday: Clustering and Unsupervised Learning </h2>
+
+<p>In general terms cluster analysis, or clustering, is the task of grouping a
+data-set into different distinct categories based on some measure of equality of
+the data. This measure is often referred to as a <b>metric</b> or <b>similarity
+measure</b> in the literature (note: sometimes we deal with a <b>dissimilarity
+measure</b> instead). Usually, these metrics are formulated as some kind of
+distance function between points in a high-dimensional space.
+</p>
+
+<p>The simplest, and also the most
+common is the <b>Euclidean distance</b>.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="basic-idea-of-the-k-means-clustering-algorithm">Basic Idea of the \( k \)-means Clustering Algorithm </h2>
+
+<p>The simplest of all clustering algorithms is the  <b>k-means algorithm</b>
+, sometimes also referred to as <em>Lloyds algorithm</em>. It is the simplest and also
+the most common. From its simplicity it obtains both strengths and weaknesses.
+These will be discussed in more detail later. The \( k \)-means algorithm is a
+<b>centroid based</b> clustering algorithm.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-k-means-algorithm">The \( k \)-means Algorithm </h2>
+
+<p>Assume, we are given \( n \) data points and we wish to split the data into \( K < n \)
+different categories, or clusters. We label each cluster by an integer
+</p>
+
+$$ k\in\{1, \cdots, K \}$.
+$$
+
+<p>In the basic k-means algorithm each point is assigned to only
+one cluster \( k \), and these assignments are <em>non-injective</em> i.e. many-to-one. We
+can think of these mappings as an encoder \( k = C(i) \), which assigns the \( i \)-th
+data-point \( \bf x_i \) to the \( k \)-th cluster.
+</p>
+
+<p>\( k \)-means algorithm in words:</p>
+<ol>
+<li> We start with guesses / random initializations of our \( k \) cluster centers / centroids</li>
+<li> For each centroid the points that are most similar are identified</li>
+<li> Then we move / replace each centroid with a coordinate average of all the points that were assigned to that centroid.</li>
+<li> Iterate this points 2, 3) until the centroids no longer move (to some tolerance)</li>
+</ol>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="basic-math-of-the-k-means-algorithm">Basic Math of the \( k \)-means Algorithm </h2>
+
+<p>We assume we have \( n \) data-points</p>
+$$
+\begin{equation}\label{eq:kmeanspoints}
+  \boldsymbol{x_i}  = \{x_{i, 1}, \cdots, x_{i, p}\}\in\mathbb{R}^p.
+\end{equation}
+$$
+
+<p>which we wish to group into \( K < n \) clusters. For our dissimilarity measure we
+use the <em>squared Euclidean distance</em>
+</p>
+$$
+\begin{equation}\label{eq:squaredeuclidean}
+  d(\boldsymbol{x_i}, \boldsymbol{x_i'}) = \sum_{j=1}^p(x_{ij} - x_{i'j})^2
+                         = ||\boldsymbol{x_i} - \boldsymbol{x_{i'}}||^2
+\end{equation}
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="within-cluster-point-scatter">Within Cluster Point Scatter </h2>
+
+<p>We define the so called <em>within-cluster point scatter</em> which gives us a
+measure of how close each data point assigned to the same cluster tends to be to
+the all the others.
+</p>
+$$
+\begin{equation}\label{eq:withincluster}
+  W(C) = \frac{1}{2}\sum_{k=1}^K\sum_{C(i)=k}
+          \sum_{C(i')=k}d(\boldsymbol{x_i}, \boldsymbol{x_{i'}}) =
+          \sum_{k=1}^KN_k\sum_{C(i)=k}||\boldsymbol{x_i} - \boldsymbol{\overline{x_k}}||^2
+\end{equation}
+$$
+
+<p>where \( \boldsymbol{\overline{x_k}} \) is the mean vector associated with the \( k \)-th
+cluster, and \( N_k = \sum_{i=1}^nI(C(i) = k) \), where the \( I() \) notation is
+similar to the Kronecker delta (<em>Commonly used in statistics, it just means that
+when \( i = k \) we have the encoder \( C(i) \)</em>). In other words,  the within-cluster
+scatter measures the compactness of each cluster with respect to the data points
+assigned to each cluster. This is the quantity that the \( k \)-means algorithm aims
+to minimize. We refer to this quantity \( W(C) \) as the within cluster scatter
+because of its relation to the <em>total scatter</em>.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="more-details">More Details </h2>
+
+<p>We have</p>
+$$
+\begin{equation}\label{eq:totalscatter}
+  T = W(C) + B(C) = \frac{1}{2}\sum_{i=1}^n
+                    \sum_{i'=1}^nd(\boldsymbol{x_i}, \boldsymbol{x_{i'}})
+                  = \frac{1}{2}\sum_{k=1}^K\sum_{C(i)=k}
+                    \Big(\sum_{C(i') = k}d(\boldsymbol{x_i}, \boldsymbol{x_{i'}})
+                  + \sum_{C(i')\neq k}d(\boldsymbol{x_i}, \boldsymbol{x_{i'}})\Big).
+\end{equation}
+$$
+
+<p>This is a quantity that is conserved throughout the \( k \)-means algorithm. It can
+be thought of as the total amount of information in the data, and it is composed
+of the aforementioned within-cluster scatter and the <em>between-cluster scatter</em>
+\( B(C) \). In methods such as principle component analysis the total scatter is not
+conserved.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="total-cluster-variance">Total Cluster Variance </h2>
+<p>Given a cluster mean \( \boldsymbol{m_k} \) we define the <b>total cluster variance</b></p>
+$$
+\begin{equation}\label{eq:totalclustervariance}
+  \min_{C, \{\boldsymbol{m_k}\}_1^K}\sum_{k=1}^KN_k\sum||\boldsymbol{x_i} - \boldsymbol{m_k}||^2
+\end{equation}
+$$
+
+<p>Now we have all the pieces necessary to formally revisit the \( k \)-means algorithm.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-k-means-clustering-algorithm">The \( k \)-means Clustering Algorithm </h2>
+
+<p>The \( k \)-means clustering algorithm goes as follows </p>
+
+<ol>
+<li> For a given cluster assignment \( C \), and \( k \) cluster means \( \left{m_1, \cdots, m_k\right} \). We minimize the total cluster variance with respect to the cluster means \( \{m_k\} \) yielding the means of the currently assigned clusters.</li>
+<li> Given a current set of \( k \) means \( \{m_k\} \) the total cluster variance is minimized by assigning each observation to the closest (current) cluster mean. That is $$C(i) = \underset{1\leq k\leq K}{\mathrm{argmin}} ||\boldsymbol{x_i} - \boldsymbol{m_k}||^2$$</li>
+<li> Steps 1 and 2 are repeated until the assignments do not change.</li>
+</ol>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="summarizing">Summarizing  </h2>
+
+<ol>
+<li> Before we start we specify a number \( k \) which is the number of clusters we want to try to separate our data into.</li>
+<li> We initially choose \( k \) random data points in our data as our initial centroids, <em>or means</em> (this is where the name comes from).</li>
+<li> Assign each data point to their closest centroid, based on the squared Euclidean distance.</li>
+<li> For each of the \( k \) cluster we update the centroid by calculating new mean values for all the data points in the cluster.</li>
+<li> Iteratively minimize the within cluster scatter by performing steps (3, 4) until the new assignments stop changing (can be to some tolerance) or until a maximum number of iterations have passed.</li>
+</ol>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="writing-our-own-code-the-data-set">Writing our own Code, the Data Set  </h2>
+
+<p>Let us now program the most basic version of the algorithm using nothing but
+Python with numpy arrays. This code is kept intentionally simple to gradually
+progress our understanding. There is no vectorization of any kind, and even most
+helper functions are not utilized.
+</p>
+
+<p>We need first a dataset to do our cluster analysis on. In our case
+this is a plain <em>vanilla</em> data set using random numbers using a
+Gaussian distribution.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">time</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tensorflow</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">tf</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> image
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.cluster</span> <span style="color: #8B008B; font-weight: bold">import</span> KMeans
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">IPython.display</span> <span style="color: #8B008B; font-weight: bold">import</span> display
+
+np.random.seed(<span style="color: #B452CD">2021</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Next we define functions, for ease of use later, to generate Gaussians and to
+set up our toy data set.
+</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">gaussian_points</span>(dim=<span style="color: #B452CD">2</span>, n_points=<span style="color: #B452CD">1000</span>, mean_vector=np.array([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>]),
+                    sample_variance=<span style="color: #B452CD">1</span>):
+    <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">    Very simple custom function to generate gaussian distributed point clusters</span>
+<span style="color: #CD5555">    with variable dimension, number of points, means in each direction</span>
+<span style="color: #CD5555">    (must match dim) and sample variance.</span>
+
+<span style="color: #CD5555">    Inputs:</span>
+<span style="color: #CD5555">        dim (int)</span>
+<span style="color: #CD5555">        n_points (int)</span>
+<span style="color: #CD5555">        mean_vector (np.array) (where index 0 is x, index 1 is y etc.)</span>
+<span style="color: #CD5555">        sample_variance (float)</span>
+
+<span style="color: #CD5555">    Returns:</span>
+<span style="color: #CD5555">        data (np.array): with dimensions (dim x n_points)</span>
+<span style="color: #CD5555">    &quot;&quot;&quot;</span>
+
+    mean_matrix = np.zeros(dim) + mean_vector
+    covariance_matrix = np.eye(dim) * sample_variance
+    data = np.random.multivariate_normal(mean_matrix, covariance_matrix,
+                                    n_points)
+    <span style="color: #8B008B; font-weight: bold">return</span> data
+
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">generate_simple_clustering_dataset</span>(dim=<span style="color: #B452CD">2</span>, n_points=<span style="color: #B452CD">1000</span>, plotting=<span style="color: #8B008B; font-weight: bold">True</span>,
+                                    return_data=<span style="color: #8B008B; font-weight: bold">True</span>):
+    <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">    Toy model to illustrate k-means clustering</span>
+<span style="color: #CD5555">    &quot;&quot;&quot;</span>
+
+    data1 = gaussian_points(mean_vector=np.array([<span style="color: #B452CD">5</span>, <span style="color: #B452CD">5</span>]))
+    data2 = gaussian_points()
+    data3 = gaussian_points(mean_vector=np.array([<span style="color: #B452CD">1</span>, <span style="color: #B452CD">4.5</span>]))
+    data4 = gaussian_points(mean_vector=np.array([<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>]))
+    data = np.concatenate((data1, data2, data3, data4), axis=<span style="color: #B452CD">0</span>)
+
+    <span style="color: #8B008B; font-weight: bold">if</span> plotting:
+        fig, ax = plt.subplots()
+        ax.scatter(data[:, <span style="color: #B452CD">0</span>], data[:, <span style="color: #B452CD">1</span>], alpha=<span style="color: #B452CD">0.2</span>)
+        ax.set_title(<span style="color: #CD5555">&#39;Toy Model Dataset&#39;</span>)
+        plt.show()
+
+
+    <span style="color: #8B008B; font-weight: bold">if</span> return_data:
+        <span style="color: #8B008B; font-weight: bold">return</span> data
+
+
+data = generate_simple_clustering_dataset()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="implementing-the-k-means-algorithm">Implementing the \( k \)-means Algorithm </h2>
+
+<p>With the above dataset we start
+implementing the \( k \)-means algorithm.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">n_samples, dimensions = data.shape
+n_clusters = <span style="color: #B452CD">4</span>
+
+<span style="color: #228B22"># we randomly initialize our centroids</span>
+np.random.seed(<span style="color: #B452CD">2021</span>)
+centroids = data[np.random.choice(n_samples, n_clusters, replace=<span style="color: #8B008B; font-weight: bold">False</span>), :]
+distances = np.zeros((n_samples, n_clusters))
+
+<span style="color: #228B22"># first we need to calculate the distance to each centroid from our data</span>
+<span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+    <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+        dist = <span style="color: #B452CD">0</span>
+        <span style="color: #8B008B; font-weight: bold">for</span> d <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(dimensions):
+            dist += np.abs(data[n, d] - centroids[k, d])**<span style="color: #B452CD">2</span>
+            distances[n, k] = dist
+
+<span style="color: #228B22"># we initialize an array to keep track of to which cluster each point belongs</span>
+<span style="color: #228B22"># the way we set it up here the index tracks which point and the value which</span>
+<span style="color: #228B22"># cluster the point belongs to</span>
+cluster_labels = np.zeros(n_samples, dtype=<span style="color: #CD5555">&#39;int&#39;</span>)
+
+<span style="color: #228B22"># next we loop through our samples and for every point assign it to the cluster</span>
+<span style="color: #228B22"># to which it has the smallest distance to</span>
+<span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+    <span style="color: #228B22"># tracking variables (all of this is basically just an argmin)</span>
+    smallest = <span style="color: #B452CD">1e10</span>
+    smallest_row_index = <span style="color: #B452CD">1e10</span>
+    <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+        <span style="color: #8B008B; font-weight: bold">if</span> distances[n, k] &lt; smallest:
+            smallest = distances[n, k]
+            smallest_row_index = k
+
+    cluster_labels[n] = smallest_row_index
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="plotting">Plotting </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">fig = plt.figure()
+ax = fig.add_subplot()
+unique_cluster_labels = np.unique(cluster_labels)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> unique_cluster_labels:
+    ax.scatter(data[cluster_labels == i, <span style="color: #B452CD">0</span>],
+               data[cluster_labels == i, <span style="color: #B452CD">1</span>],
+               label = i,
+               alpha = <span style="color: #B452CD">0.2</span>)
+    ax.scatter(centroids[:, <span style="color: #B452CD">0</span>], centroids[:, <span style="color: #B452CD">1</span>], c=<span style="color: #CD5555">&#39;black&#39;</span>)
+
+ax.set_title(<span style="color: #CD5555">&quot;First Grouping of Points to Centroids&quot;</span>)
+
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>So what do we have so far? We have 'picked' \( k \) centroids at random from our
+data points. There are other ways of more intelligently choosing their
+initializations, however for our purposes randomly is fine. Then we have
+initialized an array 'distances' which holds the information of the distance,
+<em>or dissimilarity</em>, of every point to of our centroids. Finally, we have
+initialized an array 'cluster_labels' which according to our distances array
+holds the information of to which centroid every point is assigned. This was the
+first pass of our algorithm. Essentially, all we need to do now is repeat the
+distance and assignment steps above until we have reached a desired convergence
+or a maximum amount of iterations.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="continuing">Continuing </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">max_iterations = <span style="color: #B452CD">100</span>
+tolerance = <span style="color: #B452CD">1e-8</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> iteration <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(max_iterations):
+    prev_centroids = centroids.copy()
+    <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+        <span style="color: #228B22"># this array will be used to update our centroid positions</span>
+        vector_mean = np.zeros(dimensions)
+        mean_divisor = <span style="color: #B452CD">0</span>
+        <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+            <span style="color: #8B008B; font-weight: bold">if</span> cluster_labels[n] == k:
+                vector_mean += data[n, :]
+                mean_divisor += <span style="color: #B452CD">1</span>
+
+        <span style="color: #228B22"># update according to the k means</span>
+        centroids[k, :] = vector_mean / mean_divisor
+
+    <span style="color: #228B22"># we find the dissimilarity</span>
+    <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+        <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+            dist = <span style="color: #B452CD">0</span>
+            <span style="color: #8B008B; font-weight: bold">for</span> d <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(dimensions):
+                dist += np.abs(data[n, d] - centroids[k, d])**<span style="color: #B452CD">2</span>
+                distances[n, k] = dist
+
+    <span style="color: #228B22"># assign each point</span>
+    <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+        smallest = <span style="color: #B452CD">1e10</span>
+        smallest_row_index = <span style="color: #B452CD">1e10</span>
+        <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+            <span style="color: #8B008B; font-weight: bold">if</span> distances[n, k] &lt; smallest:
+                smallest = distances[n, k]
+                smallest_row_index = k
+
+        cluster_labels[n] = smallest_row_index
+
+    <span style="color: #228B22"># convergence criteria</span>
+    centroid_difference = np.sum(np.abs(centroids - prev_centroids))
+    <span style="color: #8B008B; font-weight: bold">if</span> centroid_difference &lt; tolerance:
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Converged at iteration {</span>iteration<span style="color: #CD5555">}&#39;</span>)
+        <span style="color: #8B008B; font-weight: bold">break</span>
+
+    <span style="color: #8B008B; font-weight: bold">elif</span> iteration == max_iterations:
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Did not converge in {</span>max_iterations<span style="color: #CD5555">} iterations&#39;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="wrapping-it-up">Wrapping it up </h2>
+<p>We now have a simple , un-optimized \( k \)-means
+clustering implementation. Lets plot the final result
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">fig = plt.figure()
+ax = fig.add_subplot()
+unique_cluster_labels = np.unique(cluster_labels)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> unique_cluster_labels:
+    ax.scatter(data[cluster_labels == i, <span style="color: #B452CD">0</span>],
+               data[cluster_labels == i, <span style="color: #B452CD">1</span>],
+               label = i,
+               alpha = <span style="color: #B452CD">0.2</span>)
+    ax.scatter(centroids[:, <span style="color: #B452CD">0</span>], centroids[:, <span style="color: #B452CD">1</span>], c=<span style="color: #CD5555">&#39;black&#39;</span>)
+
+ax.set_title(<span style="color: #CD5555">&quot;Final Result of K-means Clustering&quot;</span>)
+
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">naive_kmeans</span>(data, n_clusters=<span style="color: #B452CD">4</span>, max_iterations=<span style="color: #B452CD">100</span>, tolerance=<span style="color: #B452CD">1e-8</span>):
+    start_time = time.time()
+
+    n_samples, dimensions = data.shape
+    n_clusters = <span style="color: #B452CD">4</span>
+    <span style="color: #228B22">#np.random.seed(2021)</span>
+    centroids = data[np.random.choice(n_samples, n_clusters, replace=<span style="color: #8B008B; font-weight: bold">False</span>), :]
+    distances = np.zeros((n_samples, n_clusters))
+
+    <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+        <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+            dist = <span style="color: #B452CD">0</span>
+            <span style="color: #8B008B; font-weight: bold">for</span> d <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(dimensions):
+                dist += np.abs(data[n, d] - centroids[k, d])**<span style="color: #B452CD">2</span>
+                distances[n, k] = dist
+
+    cluster_labels = np.zeros(n_samples, dtype=<span style="color: #CD5555">&#39;int&#39;</span>)
+
+    <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+        smallest = <span style="color: #B452CD">1e10</span>
+        smallest_row_index = <span style="color: #B452CD">1e10</span>
+        <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+            <span style="color: #8B008B; font-weight: bold">if</span> distances[n, k] &lt; smallest:
+                smallest = distances[n, k]
+                smallest_row_index = k
+
+        cluster_labels[n] = smallest_row_index
+
+    <span style="color: #8B008B; font-weight: bold">for</span> iteration <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(max_iterations):
+        prev_centroids = centroids.copy()
+        <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+            vector_mean = np.zeros(dimensions)
+            mean_divisor = <span style="color: #B452CD">0</span>
+            <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+                <span style="color: #8B008B; font-weight: bold">if</span> cluster_labels[n] == k:
+                    vector_mean += data[n, :]
+                    mean_divisor += <span style="color: #B452CD">1</span>
+
+            centroids[k, :] = vector_mean / mean_divisor
+
+        <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+            <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+                dist = <span style="color: #B452CD">0</span>
+                <span style="color: #8B008B; font-weight: bold">for</span> d <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(dimensions):
+                    dist += np.abs(data[n, d] - centroids[k, d])**<span style="color: #B452CD">2</span>
+                    distances[n, k] = dist
+
+        <span style="color: #8B008B; font-weight: bold">for</span> n <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_samples):
+            smallest = <span style="color: #B452CD">1e10</span>
+            smallest_row_index = <span style="color: #B452CD">1e10</span>
+            <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_clusters):
+                <span style="color: #8B008B; font-weight: bold">if</span> distances[n, k] &lt; smallest:
+                    smallest = distances[n, k]
+                    smallest_row_index = k
+
+            cluster_labels[n] = smallest_row_index
+
+        centroid_difference = np.sum(np.abs(centroids - prev_centroids))
+        <span style="color: #8B008B; font-weight: bold">if</span> centroid_difference &lt; tolerance:
+            <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Converged at iteration {</span>iteration<span style="color: #CD5555">}&#39;</span>)
+            <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Runtime: {</span>time.time() - start_time<span style="color: #CD5555">} seconds&#39;</span>)
+
+            <span style="color: #8B008B; font-weight: bold">return</span> cluster_labels, centroids
+
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Did not converge in {</span>max_iterations<span style="color: #CD5555">} iterations&#39;</span>)
+    <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Runtime: {</span>time.time() - start_time<span style="color: #CD5555">} seconds&#39;</span>)
+
+    <span style="color: #8B008B; font-weight: bold">return</span> cluster_labels, centroids
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="decision-trees-overarching-aims">Decision trees, overarching aims  </h2>
