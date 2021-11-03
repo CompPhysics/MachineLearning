@@ -130,6 +130,8 @@ div.toc p,a {
                None,
                'the-syntax-a-dot-b-when-finding-the-dot-product'),
               ('Recommended to avoid', 2, None, 'recommended-to-avoid'),
+              ('Using Autograd with OLS', 2, None, 'using-autograd-with-ols'),
+              ('And Logistic Regression', 2, None, 'and-logistic-regression'),
               ('Videos on Neural Networks',
                2,
                None,
@@ -1473,6 +1475,145 @@ x = np.array([<span style="color: #B452CD">3.0</span>,<span style="color: #B452C
 a -= b
 a*= b
 a /=b
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="using-autograd-with-ols">Using Autograd with OLS </h2>
+
+<p>We conclude the part on optmization by showing how we can make codes
+for linear regression and logistic regression using <b>autograd</b>. The
+first example shows results with ordinary leats squares.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># Using Autograd to calculate gradients for OLS</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">autograd</span> <span style="color: #8B008B; font-weight: bold">import</span> grad
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">CostOLS</span>(beta):
+    <span style="color: #8B008B; font-weight: bold">return</span> (<span style="color: #B452CD">1.0</span>/n)*np.sum((y-X @ beta)**<span style="color: #B452CD">2</span>)
+
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Own inversion&quot;</span>)
+<span style="color: #658b00">print</span>(theta_linreg)
+<span style="color: #228B22"># Hessian matrix</span>
+H = (<span style="color: #B452CD">2.0</span>/n)* XT_X
+EigValues, EigVectors = np.linalg.eig(H)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Eigenvalues of Hessian Matrix:{</span>EigValues<span style="color: #CD5555">}&quot;</span>)
+
+theta = np.random.randn(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)
+eta = <span style="color: #B452CD">1.0</span>/np.max(EigValues)
+Niterations = <span style="color: #B452CD">1000</span>
+<span style="color: #228B22"># define the gradient</span>
+training_gradient = grad(CostOLS)
+
+<span style="color: #8B008B; font-weight: bold">for</span> <span style="color: #658b00">iter</span> <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Niterations):
+    gradients = training_gradient(theta)
+    theta -= eta*gradients
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;theta from own gd&quot;</span>)
+<span style="color: #658b00">print</span>(theta)
+
+xnew = np.array([[<span style="color: #B452CD">0</span>],[<span style="color: #B452CD">2</span>]])
+Xnew = np.c_[np.ones((<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)), xnew]
+ypredict = Xnew.dot(theta)
+ypredict2 = Xnew.dot(theta_linreg)
+
+plt.plot(xnew, ypredict, <span style="color: #CD5555">&quot;r-&quot;</span>)
+plt.plot(xnew, ypredict2, <span style="color: #CD5555">&quot;b-&quot;</span>)
+plt.plot(x, y ,<span style="color: #CD5555">&#39;ro&#39;</span>)
+plt.axis([<span style="color: #B452CD">0</span>,<span style="color: #B452CD">2.0</span>,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">15.0</span>])
+plt.xlabel(<span style="color: #CD5555">r&#39;$x$&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">r&#39;$y$&#39;</span>)
+plt.title(<span style="color: #CD5555">r&#39;Random numbers &#39;</span>)
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="and-logistic-regression">And Logistic Regression </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">autograd</span> <span style="color: #8B008B; font-weight: bold">import</span> grad
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">sigmoid</span>(x):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">0.5</span> * (np.tanh(x / <span style="color: #B452CD">2.</span>) + <span style="color: #B452CD">1</span>)
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">logistic_predictions</span>(weights, inputs):
+    <span style="color: #228B22"># Outputs probability of a label being true according to logistic model.</span>
+    <span style="color: #8B008B; font-weight: bold">return</span> sigmoid(np.dot(inputs, weights))
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">training_loss</span>(weights):
+    <span style="color: #228B22"># Training loss is the negative log-likelihood of the training labels.</span>
+    preds = logistic_predictions(weights, inputs)
+    label_probabilities = preds * targets + (<span style="color: #B452CD">1</span> - preds) * (<span style="color: #B452CD">1</span> - targets)
+    <span style="color: #8B008B; font-weight: bold">return</span> -np.sum(np.log(label_probabilities))
+
+<span style="color: #228B22"># Build a toy dataset.</span>
+inputs = np.array([[<span style="color: #B452CD">0.52</span>, <span style="color: #B452CD">1.12</span>,  <span style="color: #B452CD">0.77</span>],
+                   [<span style="color: #B452CD">0.88</span>, -<span style="color: #B452CD">1.08</span>, <span style="color: #B452CD">0.15</span>],
+                   [<span style="color: #B452CD">0.52</span>, <span style="color: #B452CD">0.06</span>, -<span style="color: #B452CD">1.30</span>],
+                   [<span style="color: #B452CD">0.74</span>, -<span style="color: #B452CD">2.49</span>, <span style="color: #B452CD">1.39</span>]])
+targets = np.array([<span style="color: #8B008B; font-weight: bold">True</span>, <span style="color: #8B008B; font-weight: bold">True</span>, <span style="color: #8B008B; font-weight: bold">False</span>, <span style="color: #8B008B; font-weight: bold">True</span>])
+
+<span style="color: #228B22"># Define a function that returns gradients of training loss using Autograd.</span>
+training_gradient_fun = grad(training_loss)
+
+<span style="color: #228B22"># Optimize weights using gradient descent.</span>
+weights = np.array([<span style="color: #B452CD">0.0</span>, <span style="color: #B452CD">0.0</span>, <span style="color: #B452CD">0.0</span>])
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Initial loss:&quot;</span>, training_loss(weights))
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">100</span>):
+    weights -= training_gradient_fun(weights) * <span style="color: #B452CD">0.01</span>
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Trained loss:&quot;</span>, training_loss(weights))
 </pre>
 </div>
       </div>
