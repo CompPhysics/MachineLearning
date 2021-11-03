@@ -1164,6 +1164,23 @@ We can easily extend our program to minimize $C_{\text{ridge}}(\beta)$ using gra
 \]
 !et
 
+!split
+===== The Hessian matrix for Ridge Regression =====
+The Hessian matrix of Ridge Regression for our simple example  is given by 
+!bt
+\[
+\bm{H} \equiv \begin{bmatrix}
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X+2\lambda\bm{I}.
+\]
+!et
+This implies that the Hessian matrix  is positive definite, hence the stationary point is a
+minimum.
+Note that the Ridge loss function is convex, as a sum of two convex
+functions. Therefore, the stationary point is a global
+minimum of this function.
+
 
 !split
 ===== Program example for gradient descent with Ridge Regression =====
@@ -1186,14 +1203,21 @@ XT_X = X.T @ X
 
 #Ridge parameter lambda
 lmbda  = 0.001
-Id = lmbda* np.eye(XT_X.shape[0])
+Id = n*lmbda* np.eye(XT_X.shape[0])
+
+# Hessian matrix
+H = (2.0/n)* XT_X+2*lmbda
+# Get the eigenvalues
+EigValues, EigVectors = np.linalg.eig(H)
+print(f"Eigenvalues of Hessian Matrix:{EigValues}")
+
 
 beta_linreg = np.linalg.inv(XT_X+Id) @ X.T @ y
 print(beta_linreg)
 # Start plain gradient descent
 beta = np.random.randn(2,1)
 
-eta = 0.1
+eta = 1.0/np.max(EigValues)
 Niterations = 100
 
 for iter in range(Niterations):
