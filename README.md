@@ -375,6 +375,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 ###  Week 44 November 1-5
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Summary on PCA and discussion of Clustering for unsupervised learning. Decision trees, classification and regression
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember4.mp4?vrtx=view-as-webpage
 - Lecture Friday: Decision trees, basic algorithms
 - Reading recommendations:
   - See lecture notes for week 44 at https://compphysics.github.io/MachineLearning/doc/web/course.html.

@@ -135,23 +135,23 @@ For the reading assignments we use the following abbreviations:
 - Lab Wednesday: Work on project 2
 - Lecture Thursday:  Recurrent Neural Networks
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober28.mp4?vrtx=view-as-webpage
-- Lecture Friday: Recurrent Neural Networks and principal component analysis (PCA)
-  - Video at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober29.mp4?vrtx=view-as-webpage
+- Lecture Friday: Recurrent Neural Networks and time series and principal component analysis (PCA)
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober29.mp4?vrtx=view-as-webpage 
 - Reading recommendations:
   - See lecture notes for week 43 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For RNNs, see Goodfellow et al chapter 10 and discussions in chapter 11 and 12 on practicalities and applications
-  - For PCA see lecture notes (jupyter book) chapter 11 and also chapter 12 on clustering. Geron's chapter 8 is also a good read.
-
+  - For PCA, see lecture notes chapter 11 and Geron's text chapter 8
 ###  Week 44 November 1-5
 - Lab Wednesday: Work on project 2
-- Lecture Thursday: Decision trees, classification and regression
+- Lecture Thursday: Summary on PCA and discussion of Clustering for unsupervised learning. Decision trees, classification and regression
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember4.mp4?vrtx=view-as-webpage
 - Lecture Friday: Decision trees, basic algorithms
 - Reading recommendations:
   - See lecture notes for week 44 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - Hastie et al sections 9.1 and 9.2
+  - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees) and chapter 8 on PCA and Clustering
 
 ###  Week 45 November 8-12 
-- Lab Wednesday: Work on project 2 and start project 3
+- Lab Wednesday: Work on project 2, project 3 available. Deadline project 2 is November 15.
 - Lecture Thursday: Ensemble methods, bagging and random forests
 - Lecture Friday: Boosting and gradient boosting
 - Reading recommendations:
@@ -182,3 +182,4 @@ For the reading assignments we use the following abbreviations:
 
 
  
+
