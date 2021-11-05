@@ -146,6 +146,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Summary on PCA and discussion of Clustering for unsupervised learning. Decision trees, classification and regression
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember4.mp4?vrtx=view-as-webpage
 - Lecture Friday: Decision trees, basic algorithms
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember5.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 44 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees) and chapter 8 on PCA and Clustering
