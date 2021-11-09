@@ -359,7 +359,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week45-bs068.html#steepest-descent-example" style="font-size: 80%;">Steepest Descent Example</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs069.html#gradient-boosting-algorithm" style="font-size: 80%;">Gradient Boosting, algorithm</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs070.html#gradient-boosting-examples-of-regression" style="font-size: 80%;">Gradient Boosting, Examples of Regression</a></li>
-     <!-- navigation toc: --> <li><a href="._week45-bs071.html#gradient-boosting-classification-example" style="font-size: 80%;">Gradient Boosting, Classification Example</a></li>
+     <!-- navigation toc: --> <li><a href="#gradient-boosting-classification-example" style="font-size: 80%;">Gradient Boosting, Classification Example</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs072.html#xgboost-extreme-gradient-boosting" style="font-size: 80%;">XGBoost: Extreme Gradient Boosting</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs073.html#regression-case" style="font-size: 80%;">Regression Case</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs074.html#xgboost-on-the-cancer-data" style="font-size: 80%;">Xgboost on the Cancer Data</a></li>
@@ -372,53 +372,91 @@ MathJax.Hub.Config({
 </div> <!-- end of navigation bar -->
 <div class="container">
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
-<div class="jumbotron">
-<center>
-<h1>Week 45: Decisions Trees, Random Forests, Bagging  and Boosting</h1>
-</center>  <!-- document title -->
+<a name="part0071"></a>
+<!-- !split -->
+<h2 id="gradient-boosting-classification-example" class="anchor">Gradient Boosting, Classification Example </h2>
 
-<!-- author(s): Morten Hjorth-Jensen -->
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
-<!-- institution(s) -->
-<center>
-[1] <b>Department of Physics, University of Oslo</b>
-</center>
-<center>
-[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b>
-</center>
-<br>
-<center>
-<h4>Nov 9, 2021</h4>
-</center> <!-- date -->
-<br>
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span>  train_test_split 
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.datasets</span> <span style="color: #008000; font-weight: bold">import</span> load_breast_cancer
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">scikitplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skplt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.ensemble</span> <span style="color: #008000; font-weight: bold">import</span> GradientBoostingClassifier
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> cross_validate
 
+<span style="color: #408080; font-style: italic"># Load the data</span>
+cancer <span style="color: #666666">=</span> load_breast_cancer()
 
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(cancer<span style="color: #666666">.</span>data,cancer<span style="color: #666666">.</span>target,random_state<span style="color: #666666">=0</span>)
+<span style="color: #008000">print</span>(X_train<span style="color: #666666">.</span>shape)
+<span style="color: #008000">print</span>(X_test<span style="color: #666666">.</span>shape)
+<span style="color: #408080; font-style: italic">#now scale the data</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
+X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
 
-<p><a href="._week45-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
+gd_clf <span style="color: #666666">=</span> GradientBoostingClassifier(max_depth<span style="color: #666666">=3</span>, n_estimators<span style="color: #666666">=100</span>, learning_rate<span style="color: #666666">=1.0</span>)  
+gd_clf<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
+<span style="color: #408080; font-style: italic">#Cross validation</span>
+accuracy <span style="color: #666666">=</span> cross_validate(gd_clf,X_test_scaled,y_test,cv<span style="color: #666666">=10</span>)[<span style="color: #BA2121">&#39;test_score&#39;</span>]
+<span style="color: #008000">print</span>(accuracy)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Test set accuracy with Random Forests and scaled data: </span><span style="color: #BB6688; font-weight: bold">{:.2f}</span><span style="color: #BA2121">&quot;</span><span style="color: #666666">.</span>format(gd_clf<span style="color: #666666">.</span>score(X_test_scaled,y_test)))
 
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">scikitplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skplt</span>
+y_pred <span style="color: #666666">=</span> gd_clf<span style="color: #666666">.</span>predict(X_test_scaled)
+skplt<span style="color: #666666">.</span>metrics<span style="color: #666666">.</span>plot_confusion_matrix(y_test, y_pred, normalize<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>)
+save_fig(<span style="color: #BA2121">&quot;gdclassiffierconfusion&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+y_probas <span style="color: #666666">=</span> gd_clf<span style="color: #666666">.</span>predict_proba(X_test_scaled)
+skplt<span style="color: #666666">.</span>metrics<span style="color: #666666">.</span>plot_roc(y_test, y_probas)
+save_fig(<span style="color: #BA2121">&quot;gdclassiffierroc&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+skplt<span style="color: #666666">.</span>metrics<span style="color: #666666">.</span>plot_cumulative_gain(y_test, y_probas)
+save_fig(<span style="color: #BA2121">&quot;gdclassiffiercgain&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-</div> <!-- end jumbotron -->
 
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week45-bs000.html">1</a></li>
-  <li><a href="._week45-bs001.html">2</a></li>
-  <li><a href="._week45-bs002.html">3</a></li>
-  <li><a href="._week45-bs003.html">4</a></li>
-  <li><a href="._week45-bs004.html">5</a></li>
-  <li><a href="._week45-bs005.html">6</a></li>
-  <li><a href="._week45-bs006.html">7</a></li>
-  <li><a href="._week45-bs007.html">8</a></li>
-  <li><a href="._week45-bs008.html">9</a></li>
-  <li><a href="._week45-bs009.html">10</a></li>
+<li><a href="._week45-bs070.html">&laquo;</a></li>
+  <li><a href="._week45-bs000.html">1</a></li>
   <li><a href="">...</a></li>
+  <li><a href="._week45-bs063.html">64</a></li>
+  <li><a href="._week45-bs064.html">65</a></li>
+  <li><a href="._week45-bs065.html">66</a></li>
+  <li><a href="._week45-bs066.html">67</a></li>
+  <li><a href="._week45-bs067.html">68</a></li>
+  <li><a href="._week45-bs068.html">69</a></li>
+  <li><a href="._week45-bs069.html">70</a></li>
+  <li><a href="._week45-bs070.html">71</a></li>
+  <li class="active"><a href="._week45-bs071.html">72</a></li>
+  <li><a href="._week45-bs072.html">73</a></li>
+  <li><a href="._week45-bs073.html">74</a></li>
   <li><a href="._week45-bs074.html">75</a></li>
-  <li><a href="._week45-bs001.html">&raquo;</a></li>
+  <li><a href="._week45-bs072.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 </div>  <!-- end container -->
@@ -431,7 +469,7 @@ MathJax.Hub.Config({
 </footer>
 -->
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 </body>
 </html>

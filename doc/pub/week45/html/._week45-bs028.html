@@ -316,7 +316,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week45-bs025.html#the-cart-algorithm-for-regression" style="font-size: 80%;">The CART algorithm for Regression</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs026.html#computing-the-gini-index" style="font-size: 80%;">Computing the Gini index</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs027.html#simple-python-code-to-read-in-data-and-perform-classification" style="font-size: 80%;">Simple Python Code to read in Data and perform Classification</a></li>
-     <!-- navigation toc: --> <li><a href="._week45-bs028.html#computing-the-gini-factor" style="font-size: 80%;">Computing the Gini Factor</a></li>
+     <!-- navigation toc: --> <li><a href="#computing-the-gini-factor" style="font-size: 80%;">Computing the Gini Factor</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs029.html#entropy-and-the-id3-algorithm" style="font-size: 80%;">Entropy and the ID3 algorithm</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs030.html#cancer-data-again-now-with-decision-trees-and-other-methods" style="font-size: 80%;">Cancer Data again now with Decision Trees and other Methods</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs031.html#another-example-the-moons-again" style="font-size: 80%;">Another example, the moons again</a></li>
@@ -372,53 +372,128 @@ MathJax.Hub.Config({
 </div> <!-- end of navigation bar -->
 <div class="container">
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
-<div class="jumbotron">
-<center>
-<h1>Week 45: Decisions Trees, Random Forests, Bagging  and Boosting</h1>
-</center>  <!-- document title -->
+<a name="part0028"></a>
+<!-- !split -->
+<h2 id="computing-the-gini-factor" class="anchor">Computing the Gini Factor  </h2>
 
-<!-- author(s): Morten Hjorth-Jensen -->
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
-<!-- institution(s) -->
-<center>
-[1] <b>Department of Physics, University of Oslo</b>
-</center>
-<center>
-[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b>
-</center>
-<br>
-<center>
-<h4>Nov 9, 2021</h4>
-</center> <!-- date -->
-<br>
+<p>The above functions (gini, entropy and misclassification error) are
+important components of the so-called CART algorithm. We will discuss
+this algorithm below after we have discussed the information gain
+algorithm ID3.
+</p>
+
+<p>In the example here we have converted all our attributes into numerical values \( 0,1,2 \) etc.</p>
 
 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Split a dataset based on an attribute and an attribute value</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">test_split</span>(index, value, dataset):
+	left, right <span style="color: #666666">=</span> <span style="color: #008000">list</span>(), <span style="color: #008000">list</span>()
+	<span style="color: #008000; font-weight: bold">for</span> row <span style="color: #AA22FF; font-weight: bold">in</span> dataset:
+		<span style="color: #008000; font-weight: bold">if</span> row[index] <span style="color: #666666">&lt;</span> value:
+			left<span style="color: #666666">.</span>append(row)
+		<span style="color: #008000; font-weight: bold">else</span>:
+			right<span style="color: #666666">.</span>append(row)
+	<span style="color: #008000; font-weight: bold">return</span> left, right
+ 
+<span style="color: #408080; font-style: italic"># Calculate the Gini index for a split dataset</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">gini_index</span>(groups, classes):
+	<span style="color: #408080; font-style: italic"># count all samples at split point</span>
+	n_instances <span style="color: #666666">=</span> <span style="color: #008000">float</span>(<span style="color: #008000">sum</span>([<span style="color: #008000">len</span>(group) <span style="color: #008000; font-weight: bold">for</span> group <span style="color: #AA22FF; font-weight: bold">in</span> groups]))
+	<span style="color: #408080; font-style: italic"># sum weighted Gini index for each group</span>
+	gini <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+	<span style="color: #008000; font-weight: bold">for</span> group <span style="color: #AA22FF; font-weight: bold">in</span> groups:
+		size <span style="color: #666666">=</span> <span style="color: #008000">float</span>(<span style="color: #008000">len</span>(group))
+		<span style="color: #408080; font-style: italic"># avoid divide by zero</span>
+		<span style="color: #008000; font-weight: bold">if</span> size <span style="color: #666666">==</span> <span style="color: #666666">0</span>:
+			<span style="color: #008000; font-weight: bold">continue</span>
+		score <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+		<span style="color: #408080; font-style: italic"># score the group based on the score for each class</span>
+		<span style="color: #008000; font-weight: bold">for</span> class_val <span style="color: #AA22FF; font-weight: bold">in</span> classes:
+			p <span style="color: #666666">=</span> [row[<span style="color: #666666">-1</span>] <span style="color: #008000; font-weight: bold">for</span> row <span style="color: #AA22FF; font-weight: bold">in</span> group]<span style="color: #666666">.</span>count(class_val) <span style="color: #666666">/</span> size
+			score <span style="color: #666666">+=</span> p <span style="color: #666666">*</span> p
+		<span style="color: #408080; font-style: italic"># weight the group score by its relative size</span>
+		gini <span style="color: #666666">+=</span> (<span style="color: #666666">1.0</span> <span style="color: #666666">-</span> score) <span style="color: #666666">*</span> (size <span style="color: #666666">/</span> n_instances)
+	<span style="color: #008000; font-weight: bold">return</span> gini
 
-<p><a href="._week45-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
+<span style="color: #408080; font-style: italic"># Select the best split point for a dataset</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">get_split</span>(dataset):
+	class_values <span style="color: #666666">=</span> <span style="color: #008000">list</span>(<span style="color: #008000">set</span>(row[<span style="color: #666666">-1</span>] <span style="color: #008000; font-weight: bold">for</span> row <span style="color: #AA22FF; font-weight: bold">in</span> dataset))
+	b_index, b_value, b_score, b_groups <span style="color: #666666">=</span> <span style="color: #666666">999</span>, <span style="color: #666666">999</span>, <span style="color: #666666">999</span>, <span style="color: #008000; font-weight: bold">None</span>
+	<span style="color: #008000; font-weight: bold">for</span> index <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(dataset[<span style="color: #666666">0</span>])<span style="color: #666666">-1</span>):
+		<span style="color: #008000; font-weight: bold">for</span> row <span style="color: #AA22FF; font-weight: bold">in</span> dataset:
+			groups <span style="color: #666666">=</span> test_split(index, row[index], dataset)
+			gini <span style="color: #666666">=</span> gini_index(groups, class_values)
+			<span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;X</span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BA2121"> &lt; </span><span style="color: #BB6688; font-weight: bold">%.3f</span><span style="color: #BA2121"> Gini=</span><span style="color: #BB6688; font-weight: bold">%.3f</span><span style="color: #BA2121">&#39;</span> <span style="color: #666666">%</span> ((index<span style="color: #666666">+1</span>), row[index], gini))
+			<span style="color: #008000; font-weight: bold">if</span> gini <span style="color: #666666">&lt;</span> b_score:
+				b_index, b_value, b_score, b_groups <span style="color: #666666">=</span> index, row[index], gini, groups
+	<span style="color: #008000; font-weight: bold">return</span> {<span style="color: #BA2121">&#39;index&#39;</span>:b_index, <span style="color: #BA2121">&#39;value&#39;</span>:b_value, <span style="color: #BA2121">&#39;groups&#39;</span>:b_groups}
+ 
+dataset <span style="color: #666666">=</span> [[<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>],
+            [<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">2</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">2</span>,<span style="color: #666666">2</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">2</span>,<span style="color: #666666">2</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>],
+            [<span style="color: #666666">1</span>,<span style="color: #666666">2</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">0</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>,<span style="color: #666666">0</span>],
+            [<span style="color: #666666">0</span>,<span style="color: #666666">2</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">2</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">0</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">1</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>],
+            [<span style="color: #666666">2</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>,<span style="color: #666666">1</span>,<span style="color: #666666">0</span>]]
 
+split <span style="color: #666666">=</span> get_split(dataset)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Split: [X</span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BA2121"> &lt; </span><span style="color: #BB6688; font-weight: bold">%.3f</span><span style="color: #BA2121">]&#39;</span> <span style="color: #666666">%</span> ((split[<span style="color: #BA2121">&#39;index&#39;</span>]<span style="color: #666666">+1</span>), split[<span style="color: #BA2121">&#39;value&#39;</span>]))
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-</div> <!-- end jumbotron -->
 
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week45-bs000.html">1</a></li>
-  <li><a href="._week45-bs001.html">2</a></li>
-  <li><a href="._week45-bs002.html">3</a></li>
-  <li><a href="._week45-bs003.html">4</a></li>
-  <li><a href="._week45-bs004.html">5</a></li>
-  <li><a href="._week45-bs005.html">6</a></li>
-  <li><a href="._week45-bs006.html">7</a></li>
-  <li><a href="._week45-bs007.html">8</a></li>
-  <li><a href="._week45-bs008.html">9</a></li>
-  <li><a href="._week45-bs009.html">10</a></li>
+<li><a href="._week45-bs027.html">&laquo;</a></li>
+  <li><a href="._week45-bs000.html">1</a></li>
+  <li><a href="">...</a></li>
+  <li><a href="._week45-bs020.html">21</a></li>
+  <li><a href="._week45-bs021.html">22</a></li>
+  <li><a href="._week45-bs022.html">23</a></li>
+  <li><a href="._week45-bs023.html">24</a></li>
+  <li><a href="._week45-bs024.html">25</a></li>
+  <li><a href="._week45-bs025.html">26</a></li>
+  <li><a href="._week45-bs026.html">27</a></li>
+  <li><a href="._week45-bs027.html">28</a></li>
+  <li class="active"><a href="._week45-bs028.html">29</a></li>
+  <li><a href="._week45-bs029.html">30</a></li>
+  <li><a href="._week45-bs030.html">31</a></li>
+  <li><a href="._week45-bs031.html">32</a></li>
+  <li><a href="._week45-bs032.html">33</a></li>
+  <li><a href="._week45-bs033.html">34</a></li>
+  <li><a href="._week45-bs034.html">35</a></li>
+  <li><a href="._week45-bs035.html">36</a></li>
+  <li><a href="._week45-bs036.html">37</a></li>
+  <li><a href="._week45-bs037.html">38</a></li>
   <li><a href="">...</a></li>
   <li><a href="._week45-bs074.html">75</a></li>
-  <li><a href="._week45-bs001.html">&raquo;</a></li>
+  <li><a href="._week45-bs029.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 </div>  <!-- end container -->
@@ -431,7 +506,7 @@ MathJax.Hub.Config({
 </footer>
 -->
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 </body>
 </html>

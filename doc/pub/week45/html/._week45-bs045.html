@@ -333,7 +333,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week45-bs050.html#using-the-voting-classifier" style="font-size: 80%;">Using the Voting Classifier</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs043.html#please-not-the-moons-again-voting-and-bagging" style="font-size: 80%;">Please, not the moons again! Voting and Bagging</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs044.html#bagging-examples" style="font-size: 80%;">Bagging Examples</a></li>
-     <!-- navigation toc: --> <li><a href="._week45-bs045.html#making-your-own-bootstrap-changing-the-level-of-the-decision-tree" style="font-size: 80%;">Making your own Bootstrap: Changing the Level of the Decision Tree</a></li>
+     <!-- navigation toc: --> <li><a href="#making-your-own-bootstrap-changing-the-level-of-the-decision-tree" style="font-size: 80%;">Making your own Bootstrap: Changing the Level of the Decision Tree</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs046.html#why-voting" style="font-size: 80%;">Why Voting?</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs047.html#tossing-coins" style="font-size: 80%;">Tossing coins</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs048.html#standard-imports-first" style="font-size: 80%;">Standard imports first</a></li>
@@ -372,53 +372,120 @@ MathJax.Hub.Config({
 </div> <!-- end of navigation bar -->
 <div class="container">
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
-<div class="jumbotron">
-<center>
-<h1>Week 45: Decisions Trees, Random Forests, Bagging  and Boosting</h1>
-</center>  <!-- document title -->
+<a name="part0045"></a>
+<!-- !split -->
+<h2 id="making-your-own-bootstrap-changing-the-level-of-the-decision-tree" class="anchor">Making your own Bootstrap: Changing the Level of the Decision Tree </h2>
 
-<!-- author(s): Morten Hjorth-Jensen -->
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
-<!-- institution(s) -->
-<center>
-[1] <b>Department of Physics, University of Oslo</b>
-</center>
-<center>
-[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b>
-</center>
-<br>
-<center>
-<h4>Nov 9, 2021</h4>
-</center> <!-- date -->
-<br>
+<p>Let us bring up our good old boostrap example from the linear regression lectures. We change the linerar regression algorithm with
+a decision tree wth different depths and perform a bootstrap aggregate (in this case we perform as many bootstraps as data points \( n \)).
+</p>
 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.pipeline</span> <span style="color: #008000; font-weight: bold">import</span> make_pipeline
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.utils</span> <span style="color: #008000; font-weight: bold">import</span> resample
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> DecisionTreeRegressor
 
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+n_boostraps <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+maxdepth <span style="color: #666666">=</span> <span style="color: #666666">8</span>
 
-<p><a href="._week45-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
+<span style="color: #408080; font-style: italic"># Make data set.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
+error <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+variance <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+polydegree <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdepth)
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(x, y, test_size<span style="color: #666666">=0.2</span>)
 
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
+X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
 
-</div> <!-- end jumbotron -->
+<span style="color: #408080; font-style: italic"># we produce a simple tree first as benchmark</span>
+simpletree <span style="color: #666666">=</span> DecisionTreeRegressor(max_depth<span style="color: #666666">=3</span>) 
+simpletree<span style="color: #666666">.</span>fit(X_train_scaled, y_train)
+simpleprediction <span style="color: #666666">=</span> simpletree<span style="color: #666666">.</span>predict(X_test_scaled)
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,maxdepth):
+    model <span style="color: #666666">=</span> DecisionTreeRegressor(max_depth<span style="color: #666666">=</span>degree) 
+    y_pred <span style="color: #666666">=</span> np<span style="color: #666666">.</span>empty((y_test<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>], n_boostraps))
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_boostraps):
+        x_, y_ <span style="color: #666666">=</span> resample(X_train_scaled, y_train)
+        model<span style="color: #666666">.</span>fit(x_, y_)
+        y_pred[:, i] <span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(X_test_scaled)<span style="color: #408080; font-style: italic">#.ravel()</span>
+
+    polydegree[degree] <span style="color: #666666">=</span> degree
+    error[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_test <span style="color: #666666">-</span> y_pred)<span style="color: #666666">**2</span>, axis<span style="color: #666666">=1</span>, keepdims<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>) )
+    bias[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( (y_test <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_pred, axis<span style="color: #666666">=1</span>, keepdims<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>))<span style="color: #666666">**2</span> )
+    variance[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>var(y_pred, axis<span style="color: #666666">=1</span>, keepdims<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>) )
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Polynomial degree:&#39;</span>, degree)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Error:&#39;</span>, error[degree])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Bias^2:&#39;</span>, bias[degree])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Var:&#39;</span>, variance[degree])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;</span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121"> &gt;= </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121"> + </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121"> = </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121">&#39;</span><span style="color: #666666">.</span>format(error[degree], bias[degree], variance[degree], bias[degree]<span style="color: #666666">+</span>variance[degree]))
+ 
+mse_simpletree<span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_test <span style="color: #666666">-</span> simpleprediction)<span style="color: #666666">**2</span>)
+<span style="color: #008000">print</span>(mse_simpletree)
+plt<span style="color: #666666">.</span>xlim(<span style="color: #666666">1</span>,maxdepth)
+plt<span style="color: #666666">.</span>plot(polydegree, error, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;MSE&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, bias, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;bias&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, variance, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Variance&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+save_fig(<span style="color: #BA2121">&quot;baggingboot&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week45-bs000.html">1</a></li>
-  <li><a href="._week45-bs001.html">2</a></li>
-  <li><a href="._week45-bs002.html">3</a></li>
-  <li><a href="._week45-bs003.html">4</a></li>
-  <li><a href="._week45-bs004.html">5</a></li>
-  <li><a href="._week45-bs005.html">6</a></li>
-  <li><a href="._week45-bs006.html">7</a></li>
-  <li><a href="._week45-bs007.html">8</a></li>
-  <li><a href="._week45-bs008.html">9</a></li>
-  <li><a href="._week45-bs009.html">10</a></li>
+<li><a href="._week45-bs044.html">&laquo;</a></li>
+  <li><a href="._week45-bs000.html">1</a></li>
+  <li><a href="">...</a></li>
+  <li><a href="._week45-bs037.html">38</a></li>
+  <li><a href="._week45-bs038.html">39</a></li>
+  <li><a href="._week45-bs039.html">40</a></li>
+  <li><a href="._week45-bs040.html">41</a></li>
+  <li><a href="._week45-bs041.html">42</a></li>
+  <li><a href="._week45-bs042.html">43</a></li>
+  <li><a href="._week45-bs043.html">44</a></li>
+  <li><a href="._week45-bs044.html">45</a></li>
+  <li class="active"><a href="._week45-bs045.html">46</a></li>
+  <li><a href="._week45-bs046.html">47</a></li>
+  <li><a href="._week45-bs047.html">48</a></li>
+  <li><a href="._week45-bs048.html">49</a></li>
+  <li><a href="._week45-bs049.html">50</a></li>
+  <li><a href="._week45-bs050.html">51</a></li>
+  <li><a href="._week45-bs051.html">52</a></li>
+  <li><a href="._week45-bs052.html">53</a></li>
+  <li><a href="._week45-bs053.html">54</a></li>
+  <li><a href="._week45-bs054.html">55</a></li>
   <li><a href="">...</a></li>
   <li><a href="._week45-bs074.html">75</a></li>
-  <li><a href="._week45-bs001.html">&raquo;</a></li>
+  <li><a href="._week45-bs046.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 </div>  <!-- end container -->
@@ -431,7 +498,7 @@ MathJax.Hub.Config({
 </footer>
 -->
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 </body>
 </html>

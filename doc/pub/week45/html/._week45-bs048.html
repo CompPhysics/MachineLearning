@@ -336,7 +336,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week45-bs045.html#making-your-own-bootstrap-changing-the-level-of-the-decision-tree" style="font-size: 80%;">Making your own Bootstrap: Changing the Level of the Decision Tree</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs046.html#why-voting" style="font-size: 80%;">Why Voting?</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs047.html#tossing-coins" style="font-size: 80%;">Tossing coins</a></li>
-     <!-- navigation toc: --> <li><a href="._week45-bs048.html#standard-imports-first" style="font-size: 80%;">Standard imports first</a></li>
+     <!-- navigation toc: --> <li><a href="#standard-imports-first" style="font-size: 80%;">Standard imports first</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs049.html#simple-voting-example-head-or-tail" style="font-size: 80%;">Simple Voting Example, head or tail</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs050.html#using-the-voting-classifier" style="font-size: 80%;">Using the Voting Classifier</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs051.html#voting-and-bagging" style="font-size: 80%;">Voting and Bagging</a></li>
@@ -372,53 +372,97 @@ MathJax.Hub.Config({
 </div> <!-- end of navigation bar -->
 <div class="container">
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
-<div class="jumbotron">
-<center>
-<h1>Week 45: Decisions Trees, Random Forests, Bagging  and Boosting</h1>
-</center>  <!-- document title -->
-
-<!-- author(s): Morten Hjorth-Jensen -->
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
-<!-- institution(s) -->
-<center>
-[1] <b>Department of Physics, University of Oslo</b>
-</center>
-<center>
-[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b>
-</center>
-<br>
-<center>
-<h4>Nov 9, 2021</h4>
-</center> <!-- date -->
-<br>
+<a name="part0048"></a>
+<!-- !split -->
+<h2 id="standard-imports-first" class="anchor">Standard imports first </h2>
 
 
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Common imports</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> Image 
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">pydot</span> <span style="color: #008000; font-weight: bold">import</span> graph_from_dot_data
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> DecisionTreeClassifier
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.tree</span> <span style="color: #008000; font-weight: bold">import</span> export_graphviz
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler, OneHotEncoder
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.compose</span> <span style="color: #008000; font-weight: bold">import</span> ColumnTransformer
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">IPython.display</span> <span style="color: #008000; font-weight: bold">import</span> Image 
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">pydot</span> <span style="color: #008000; font-weight: bold">import</span> graph_from_dot_data
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">os</span>
 
-<p><a href="._week45-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
+<span style="color: #408080; font-style: italic"># Where to save the figures and data files</span>
+PROJECT_ROOT_DIR <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;Results&quot;</span>
+FIGURE_ID <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;Results/FigureFiles&quot;</span>
+DATA_ID <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;DataFiles/&quot;</span>
 
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(PROJECT_ROOT_DIR):
+    os<span style="color: #666666">.</span>mkdir(PROJECT_ROOT_DIR)
 
-</div> <!-- end jumbotron -->
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(FIGURE_ID):
+    os<span style="color: #666666">.</span>makedirs(FIGURE_ID)
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(DATA_ID):
+    os<span style="color: #666666">.</span>makedirs(DATA_ID)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">image_path</span>(fig_id):
+    <span style="color: #008000; font-weight: bold">return</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>join(FIGURE_ID, fig_id)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">data_path</span>(dat_id):
+    <span style="color: #008000; font-weight: bold">return</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>join(DATA_ID, dat_id)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">save_fig</span>(fig_id):
+    plt<span style="color: #666666">.</span>savefig(image_path(fig_id) <span style="color: #666666">+</span> <span style="color: #BA2121">&quot;.png&quot;</span>, <span style="color: #008000">format</span><span style="color: #666666">=</span><span style="color: #BA2121">&#39;png&#39;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week45-bs000.html">1</a></li>
-  <li><a href="._week45-bs001.html">2</a></li>
-  <li><a href="._week45-bs002.html">3</a></li>
-  <li><a href="._week45-bs003.html">4</a></li>
-  <li><a href="._week45-bs004.html">5</a></li>
-  <li><a href="._week45-bs005.html">6</a></li>
-  <li><a href="._week45-bs006.html">7</a></li>
-  <li><a href="._week45-bs007.html">8</a></li>
-  <li><a href="._week45-bs008.html">9</a></li>
-  <li><a href="._week45-bs009.html">10</a></li>
+<li><a href="._week45-bs047.html">&laquo;</a></li>
+  <li><a href="._week45-bs000.html">1</a></li>
+  <li><a href="">...</a></li>
+  <li><a href="._week45-bs040.html">41</a></li>
+  <li><a href="._week45-bs041.html">42</a></li>
+  <li><a href="._week45-bs042.html">43</a></li>
+  <li><a href="._week45-bs043.html">44</a></li>
+  <li><a href="._week45-bs044.html">45</a></li>
+  <li><a href="._week45-bs045.html">46</a></li>
+  <li><a href="._week45-bs046.html">47</a></li>
+  <li><a href="._week45-bs047.html">48</a></li>
+  <li class="active"><a href="._week45-bs048.html">49</a></li>
+  <li><a href="._week45-bs049.html">50</a></li>
+  <li><a href="._week45-bs050.html">51</a></li>
+  <li><a href="._week45-bs051.html">52</a></li>
+  <li><a href="._week45-bs052.html">53</a></li>
+  <li><a href="._week45-bs053.html">54</a></li>
+  <li><a href="._week45-bs054.html">55</a></li>
+  <li><a href="._week45-bs055.html">56</a></li>
+  <li><a href="._week45-bs056.html">57</a></li>
+  <li><a href="._week45-bs057.html">58</a></li>
   <li><a href="">...</a></li>
   <li><a href="._week45-bs074.html">75</a></li>
-  <li><a href="._week45-bs001.html">&raquo;</a></li>
+  <li><a href="._week45-bs049.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 </div>  <!-- end container -->
@@ -431,7 +475,7 @@ MathJax.Hub.Config({
 </footer>
 -->
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 </body>
 </html>

@@ -358,7 +358,7 @@ MathJax.Hub.Config({
      <!-- navigation toc: --> <li><a href="._week45-bs067.html#the-squared-error-again-steepest-descent" style="font-size: 80%;">The Squared-Error again! Steepest Descent</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs068.html#steepest-descent-example" style="font-size: 80%;">Steepest Descent Example</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs069.html#gradient-boosting-algorithm" style="font-size: 80%;">Gradient Boosting, algorithm</a></li>
-     <!-- navigation toc: --> <li><a href="._week45-bs070.html#gradient-boosting-examples-of-regression" style="font-size: 80%;">Gradient Boosting, Examples of Regression</a></li>
+     <!-- navigation toc: --> <li><a href="#gradient-boosting-examples-of-regression" style="font-size: 80%;">Gradient Boosting, Examples of Regression</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs071.html#gradient-boosting-classification-example" style="font-size: 80%;">Gradient Boosting, Classification Example</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs072.html#xgboost-extreme-gradient-boosting" style="font-size: 80%;">XGBoost: Extreme Gradient Boosting</a></li>
      <!-- navigation toc: --> <li><a href="._week45-bs073.html#regression-case" style="font-size: 80%;">Regression Case</a></li>
@@ -372,53 +372,98 @@ MathJax.Hub.Config({
 </div> <!-- end of navigation bar -->
 <div class="container">
 <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <!-- add vertical space -->
-<a name="part0000"></a>
-<!-- ------------------- main content ---------------------- -->
-<div class="jumbotron">
-<center>
-<h1>Week 45: Decisions Trees, Random Forests, Bagging  and Boosting</h1>
-</center>  <!-- document title -->
+<a name="part0070"></a>
+<!-- !split -->
+<h2 id="gradient-boosting-examples-of-regression" class="anchor">Gradient Boosting, Examples of Regression </h2>
 
-<!-- author(s): Morten Hjorth-Jensen -->
-<center>
-<b>Morten Hjorth-Jensen</b> [1, 2]
-</center>
-<!-- institution(s) -->
-<center>
-[1] <b>Department of Physics, University of Oslo</b>
-</center>
-<center>
-[2] <b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b>
-</center>
-<br>
-<center>
-<h4>Nov 9, 2021</h4>
-</center> <!-- date -->
-<br>
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.ensemble</span> <span style="color: #008000; font-weight: bold">import</span> GradientBoostingRegressor
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">scikitplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">skplt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.metrics</span> <span style="color: #008000; font-weight: bold">import</span> mean_squared_error
 
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+maxdegree <span style="color: #666666">=</span> <span style="color: #666666">6</span>
 
+<span style="color: #408080; font-style: italic"># Make data set.</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">-3</span>, <span style="color: #666666">3</span>, n)<span style="color: #666666">.</span>reshape(<span style="color: #666666">-1</span>, <span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)<span style="color: #666666">+</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(<span style="color: #666666">0</span>, <span style="color: #666666">0.1</span>, x<span style="color: #666666">.</span>shape)
 
-<p><a href="._week45-bs001.html" class="btn btn-primary btn-lg">Read &raquo;</a></p>
+error <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+bias <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+variance <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+polydegree <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(maxdegree)
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(x, y, test_size<span style="color: #666666">=0.2</span>)
+scaler <span style="color: #666666">=</span> StandardScaler()
+scaler<span style="color: #666666">.</span>fit(X_train)
+X_train_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_train)
+X_test_scaled <span style="color: #666666">=</span> scaler<span style="color: #666666">.</span>transform(X_test)
 
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,maxdegree):
+    model <span style="color: #666666">=</span> GradientBoostingRegressor(max_depth<span style="color: #666666">=</span>degree, n_estimators<span style="color: #666666">=100</span>, learning_rate<span style="color: #666666">=1.0</span>)  
+    model<span style="color: #666666">.</span>fit(X_train_scaled,y_train)
+    y_pred <span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(X_test_scaled)
+    polydegree[degree] <span style="color: #666666">=</span> degree
+    error[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>mean((y_test <span style="color: #666666">-</span> y_pred)<span style="color: #666666">**2</span>) )
+    bias[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( (y_test <span style="color: #666666">-</span> np<span style="color: #666666">.</span>mean(y_pred))<span style="color: #666666">**2</span> )
+    variance[degree] <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean( np<span style="color: #666666">.</span>var(y_pred) )
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Max depth:&#39;</span>, degree)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Error:&#39;</span>, error[degree])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Bias^2:&#39;</span>, bias[degree])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Var:&#39;</span>, variance[degree])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;</span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121"> &gt;= </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121"> + </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121"> = </span><span style="color: #BB6688; font-weight: bold">{}</span><span style="color: #BA2121">&#39;</span><span style="color: #666666">.</span>format(error[degree], bias[degree], variance[degree], bias[degree]<span style="color: #666666">+</span>variance[degree]))
 
-</div> <!-- end jumbotron -->
+plt<span style="color: #666666">.</span>xlim(<span style="color: #666666">1</span>,maxdegree<span style="color: #666666">-1</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, error, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Error&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, bias, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;bias&#39;</span>)
+plt<span style="color: #666666">.</span>plot(polydegree, variance, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Variance&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+save_fig(<span style="color: #BA2121">&quot;gdregression&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <p>
 <!-- navigation buttons at the bottom of the page -->
 <ul class="pagination">
-  <li class="active"><a href="._week45-bs000.html">1</a></li>
-  <li><a href="._week45-bs001.html">2</a></li>
-  <li><a href="._week45-bs002.html">3</a></li>
-  <li><a href="._week45-bs003.html">4</a></li>
-  <li><a href="._week45-bs004.html">5</a></li>
-  <li><a href="._week45-bs005.html">6</a></li>
-  <li><a href="._week45-bs006.html">7</a></li>
-  <li><a href="._week45-bs007.html">8</a></li>
-  <li><a href="._week45-bs008.html">9</a></li>
-  <li><a href="._week45-bs009.html">10</a></li>
+<li><a href="._week45-bs069.html">&laquo;</a></li>
+  <li><a href="._week45-bs000.html">1</a></li>
   <li><a href="">...</a></li>
+  <li><a href="._week45-bs062.html">63</a></li>
+  <li><a href="._week45-bs063.html">64</a></li>
+  <li><a href="._week45-bs064.html">65</a></li>
+  <li><a href="._week45-bs065.html">66</a></li>
+  <li><a href="._week45-bs066.html">67</a></li>
+  <li><a href="._week45-bs067.html">68</a></li>
+  <li><a href="._week45-bs068.html">69</a></li>
+  <li><a href="._week45-bs069.html">70</a></li>
+  <li class="active"><a href="._week45-bs070.html">71</a></li>
+  <li><a href="._week45-bs071.html">72</a></li>
+  <li><a href="._week45-bs072.html">73</a></li>
+  <li><a href="._week45-bs073.html">74</a></li>
   <li><a href="._week45-bs074.html">75</a></li>
-  <li><a href="._week45-bs001.html">&raquo;</a></li>
+  <li><a href="._week45-bs071.html">&raquo;</a></li>
 </ul>
 <!-- ------------------- end of main content --------------- -->
 </div>  <!-- end container -->
@@ -431,7 +476,7 @@ MathJax.Hub.Config({
 </footer>
 -->
 <center style="font-size:80%">
-<!-- copyright --> &copy; 1999-2021, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
+<!-- copyright only on the titlepage -->
 </center>
 </body>
 </html>
