@@ -383,16 +383,18 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
   - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees) and chapter 8 on PCA and Clustering
 
 ###  Week 45 November 8-12 
-- Lab Wednesday: Work on project 2, project 3 available. Deadline project 2 is November 15.
-- Lecture Thursday: Ensemble methods, bagging and random forests
-- Lecture Friday: Boosting and gradient boosting
+- Lab Wednesday: Work on project 2, project 3 available Friday 12th. Deadline project 2 is November 15.
+- Lecture Thursday: Decision Trees and Ensemble methods, Bagging and Voting
+- Lecture Friday: Ensemble Methods, Random Forests, Boosting and gradient boosting
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - Hastie et al chapter 10
+  - Decision Trees: Geron's chapter 6 covers decision trees while ensemble models, voting and bagging are discussed in chapter 7. 
+  - See also lecture from "STK-IN4300, lecture 7":"https://www.uio.no/studier/emner/matnat/math/STK-IN4300/h20/slides/lecture_7.pdf". 
+  - Chapter 9.2 of Hastie et al contains also a good discussion.
 
 ###  Week 46 November 15-19
 - Lab Wednesday: Work on project 3
-- Lecture Thursday: Support Vector machines
+- Lecture Thursday: Ensemble Methods, Random Forests, Boosting and gradient boosting
 - Lecture Friday: Support Vector machines
 - Reading recommendations:
   - See lecture notes for week 46 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
@@ -400,17 +402,10 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 
 ###  Week 47 November 22-26
 - Lab Wednesday: Work on project 3
-- Lecture Thursday: Unsupervised Learning, Principal Component Analysis (PCA)
-- Lecture Friday:  Unsupervised Learning and PCA, k-means and Clustering
+- Lecture Thursday: Support Vector Machines 
+- Lecture Friday:  Support Vector Machines and Summary of Course
 - Reading recommendations:
   - See lecture notes for week 47 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-
-###  Week 48 November 29- December 2
-- Lab Wednesday: Work on project 3
-- Lecture Thursday: Unsupervised Learning and Clustering
-- Lecture Friday:  Summary of course
-- Reading recommendations:
-  - See lecture notes for week 48 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
 
 
  
