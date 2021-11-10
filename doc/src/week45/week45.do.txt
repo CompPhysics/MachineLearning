@@ -1148,184 +1148,6 @@ the context of bagging classification trees, we can add up the total
 amount that the Gini index  is decreased by splits over a given
 predictor, averaged over all $B$ trees.
 
-!split
-===== Simple Voting Example, head or tail =====
-!bc pycod
-heads_proba = 0.51
-coin_tosses = (np.random.rand(10000, 10) < heads_proba).astype(np.int32)
-cumulative_heads_ratio = np.cumsum(coin_tosses, axis=0) / np.arange(1, 10001).reshape(-1, 1)
-plt.figure(figsize=(8,3.5))
-plt.plot(cumulative_heads_ratio)
-plt.plot([0, 10000], [0.51, 0.51], "k--", linewidth=2, label="51%")
-plt.plot([0, 10000], [0.5, 0.5], "k-", label="50%")
-plt.xlabel("Number of coin tosses")
-plt.ylabel("Heads ratio")
-plt.legend(loc="lower right")
-plt.axis([0, 10000, 0.42, 0.58])
-save_fig("votingsimple")
-plt.show()
-
-!ec
-
-!split
-===== Using the Voting Classifier =====
-!bc pycod
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_moons
-
-X, y = make_moons(n_samples=500, noise=0.30, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import VotingClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-
-log_clf = LogisticRegression(solver="liblinear", random_state=42)
-rnd_clf = RandomForestClassifier(n_estimators=10, random_state=42)
-svm_clf = SVC(gamma="auto", random_state=42)
-
-voting_clf = VotingClassifier(
-    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
-    voting='hard')
-
-voting_clf.fit(X_train, y_train)
-
-from sklearn.metrics import accuracy_score
-
-for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
-
-log_clf = LogisticRegression(solver="liblinear", random_state=42)
-rnd_clf = RandomForestClassifier(n_estimators=10, random_state=42)
-svm_clf = SVC(gamma="auto", probability=True, random_state=42)
-
-voting_clf = VotingClassifier(
-    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
-    voting='soft')
-voting_clf.fit(X_train, y_train)
-
-from sklearn.metrics import accuracy_score
-
-for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
-
-!ec
-
-!split
-===== Please, not the moons again! Voting and Bagging =====
-
-!bc pycod
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_moons
-
-X, y = make_moons(n_samples=500, noise=0.30, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import VotingClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-
-log_clf = LogisticRegression(random_state=42)
-rnd_clf = RandomForestClassifier(random_state=42)
-svm_clf = SVC(random_state=42)
-
-voting_clf = VotingClassifier(
-    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
-    voting='hard')
-voting_clf.fit(X_train, y_train)
-!ec
-
-!bc pycod 
-from sklearn.metrics import accuracy_score
-
-for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
-!ec
-
-!bc pycod 
-log_clf = LogisticRegression(random_state=42)
-rnd_clf = RandomForestClassifier(random_state=42)
-svm_clf = SVC(probability=True, random_state=42)
-
-voting_clf = VotingClassifier(
-    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
-    voting='soft')
-voting_clf.fit(X_train, y_train)
-!ec
-
-!bc pycod 
-from sklearn.metrics import accuracy_score
-
-for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
-!ec
-
-!split
-===== Bagging Examples  =====
-
-!bc pycod 
-from sklearn.ensemble import BaggingClassifier
-from sklearn.tree import DecisionTreeClassifier
-
-bag_clf = BaggingClassifier(
-    DecisionTreeClassifier(random_state=42), n_estimators=500,
-    max_samples=100, bootstrap=True, n_jobs=-1, random_state=42)
-bag_clf.fit(X_train, y_train)
-y_pred = bag_clf.predict(X_test)
-!ec
-
-
-!bc pycod 
-from sklearn.metrics import accuracy_score
-print(accuracy_score(y_test, y_pred))
-!ec
-
-!bc pycod 
-tree_clf = DecisionTreeClassifier(random_state=42)
-tree_clf.fit(X_train, y_train)
-y_pred_tree = tree_clf.predict(X_test)
-print(accuracy_score(y_test, y_pred_tree))
-!ec
-
-!bc pycod 
-from matplotlib.colors import ListedColormap
-
-def plot_decision_boundary(clf, X, y, axes=[-1.5, 2.5, -1, 1.5], alpha=0.5, contour=True):
-    x1s = np.linspace(axes[0], axes[1], 100)
-    x2s = np.linspace(axes[2], axes[3], 100)
-    x1, x2 = np.meshgrid(x1s, x2s)
-    X_new = np.c_[x1.ravel(), x2.ravel()]
-    y_pred = clf.predict(X_new).reshape(x1.shape)
-    custom_cmap = ListedColormap(['#fafab0','#9898ff','#a0faa0'])
-    plt.contourf(x1, x2, y_pred, alpha=0.3, cmap=custom_cmap)
-    if contour:
-        custom_cmap2 = ListedColormap(['#7d7d58','#4c4c7f','#507d50'])
-        plt.contour(x1, x2, y_pred, cmap=custom_cmap2, alpha=0.8)
-    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo", alpha=alpha)
-    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs", alpha=alpha)
-    plt.axis(axes)
-    plt.xlabel(r"$x_1$", fontsize=18)
-    plt.ylabel(r"$x_2$", fontsize=18, rotation=0)
-plt.figure(figsize=(11,4))
-plt.subplot(121)
-plot_decision_boundary(tree_clf, X, y)
-plt.title("Decision Tree", fontsize=14)
-plt.subplot(122)
-plot_decision_boundary(bag_clf, X, y)
-plt.title("Decision Trees with Bagging", fontsize=14)
-save_fig("baggingtree")
-plt.show()
-!ec
-
 
 
 !split
@@ -1342,9 +1164,9 @@ from sklearn.pipeline import make_pipeline
 from sklearn.utils import resample
 from sklearn.tree import DecisionTreeRegressor
 
-n = 100
+n = 1000
 n_boostraps = 100
-maxdepth = 8
+maxdepth = 10
 
 # Make data set.
 x = np.linspace(-3, 3, n).reshape(-1, 1)
@@ -1355,23 +1177,17 @@ variance = np.zeros(maxdepth)
 polydegree = np.zeros(maxdepth)
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-# we produce a simple tree first as benchmark
+# we produce a simple tree first as benchmark, no scaling
 simpletree = DecisionTreeRegressor(max_depth=3) 
-simpletree.fit(X_train_scaled, y_train)
-simpleprediction = simpletree.predict(X_test_scaled)
+simpletree.fit(X_train, y_train)
+simpleprediction = simpletree.predict(X_test)
 for degree in range(1,maxdepth):
     model = DecisionTreeRegressor(max_depth=degree) 
     y_pred = np.empty((y_test.shape[0], n_boostraps))
     for i in range(n_boostraps):
-        x_, y_ = resample(X_train_scaled, y_train)
+        x_, y_ = resample(X_train, y_train)
         model.fit(x_, y_)
-        y_pred[:, i] = model.predict(X_test_scaled)#.ravel()
+        y_pred[:, i] = model.predict(X_test)#.ravel()
 
     polydegree[degree] = degree
     error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
@@ -1383,7 +1199,7 @@ for degree in range(1,maxdepth):
     print('Var:', variance[degree])
     print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
  
-mse_simpletree= np.mean( np.mean((y_test - simpleprediction)**2)
+mse_simpletree= np.mean( np.mean((y_test - simpleprediction)**2))
 print(mse_simpletree)
 plt.xlim(1,maxdepth)
 plt.plot(polydegree, error, label='MSE')
