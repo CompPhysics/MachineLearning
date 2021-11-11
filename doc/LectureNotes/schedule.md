@@ -154,6 +154,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 45 November 8-12 
 - Lab Wednesday: Work on project 2, project 3 available. Deadline project 2 is November 15.
 - Lecture Thursday: Ensemble methods, bagging and random forests
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember11.mp4?vrtx=view-as-webpage
 - Lecture Friday: Boosting and gradient boosting
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
