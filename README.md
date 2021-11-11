@@ -385,6 +385,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 ###  Week 45 November 8-12 
 - Lab Wednesday: Work on project 2, project 3 available Friday 12th. Deadline project 2 is November 15.
 - Lecture Thursday: Decision Trees and Ensemble methods, Bagging and Voting
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember11.mp4?vrtx=view-as-webpage
 - Lecture Friday: Ensemble Methods, Random Forests, Boosting and gradient boosting
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
