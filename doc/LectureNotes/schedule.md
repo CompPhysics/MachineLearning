@@ -156,6 +156,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Ensemble methods, bagging and random forests
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember11.mp4?vrtx=view-as-webpage
 - Lecture Friday: Boosting and gradient boosting
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember12.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al chapter 10

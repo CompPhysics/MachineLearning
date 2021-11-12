@@ -387,6 +387,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lecture Thursday: Decision Trees and Ensemble methods, Bagging and Voting
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember11.mp4?vrtx=view-as-webpage
 - Lecture Friday: Ensemble Methods, Random Forests, Boosting and gradient boosting
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember12.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Decision Trees: Geron's chapter 6 covers decision trees while ensemble models, voting and bagging are discussed in chapter 7. 
