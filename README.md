@@ -401,6 +401,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Reading recommendations:
   - See lecture notes for week 46 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al chapter 12
+  - Bishop chapter 7.1 and 7.2
 
 ###  Week 47 November 22-26
 - Lab Wednesday: Work on project 3
