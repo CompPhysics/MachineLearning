@@ -383,9 +383,11 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
   - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees) and chapter 8 on PCA and Clustering
 
 ###  Week 45 November 8-12 
-- Lab Wednesday: Work on project 2, project 3 available Friday 12th. Deadline project 2 is November 15.
+- Lab Wednesday: Work on project 2, project 3 available Friday 12th. Deadline project 2 is November 20.
 - Lecture Thursday: Decision Trees and Ensemble methods, Bagging and Voting
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember11.mp4?vrtx=view-as-webpage
 - Lecture Friday: Ensemble Methods, Random Forests, Boosting and gradient boosting
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember12.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Decision Trees: Geron's chapter 6 covers decision trees while ensemble models, voting and bagging are discussed in chapter 7. 
@@ -394,11 +396,12 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 
 ###  Week 46 November 15-19
 - Lab Wednesday: Work on project 3
-- Lecture Thursday: Ensemble Methods, Random Forests, Boosting and gradient boosting
-- Lecture Friday: Support Vector machines
+- Lecture Thursday: Support Vector machines. Summary Ensemble Methods, Random Forests, Boosting and gradient boosting
+- Lecture Friday: Workshop on project 3
 - Reading recommendations:
   - See lecture notes for week 46 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al chapter 12
+  - Bishop chapter 7.1 and 7.2
 
 ###  Week 47 November 22-26
 - Lab Wednesday: Work on project 3
