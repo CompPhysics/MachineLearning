@@ -398,6 +398,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 - Lab Wednesday: Work on project 3
 - Lecture Thursday: Support Vector machines. Summary Ensemble Methods, Random Forests, Boosting and gradient boosting
 - Lecture Friday: Workshop on project 3
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h21/forelesningsvideoer/LectureNovember19.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 46 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al chapter 12
