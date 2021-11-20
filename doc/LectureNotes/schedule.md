@@ -172,18 +172,12 @@ For the reading assignments we use the following abbreviations:
 
 ###  Week 47 November 22-26
 - Lab Wednesday: Work on project 3
-- Lecture Thursday: Unsupervised Learning, Principal Component Analysis (PCA)
-- Lecture Friday:  Unsupervised Learning and PCA, k-means and Clustering
+- Lecture Thursday: Support Vector Machines
+- Lecture Friday:  Support Vector Machines and Summary of course
 - Reading recommendations:
   - See lecture notes for week 47 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-
-###  Week 48 November 29- December 2
-- Lab Wednesday: Work on project 3
-- Lecture Thursday: Unsupervised Learning and Clustering
-- Lecture Friday:  Summary of course
-- Reading recommendations:
-  - See lecture notes for week 48 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-
-
+  - Geron's chapter 5.
+  - Hastie et al Chapter 12 (sections 12.1-12.3 are the most relevant ones)
+  - Bishop chapter 7, with sections 7.1 and 7.2 as the essential ones
  
 
