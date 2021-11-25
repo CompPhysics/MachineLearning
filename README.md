@@ -407,6 +407,7 @@ Recommended prereading: Chapters 1-2 (linear algebra) and chapter 3 (statistics)
 ###  Week 47 November 22-26
 - Lab Wednesday: Work on project 3
 - Lecture Thursday: Support Vector Machines 
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h21/forelesningsvideoer/LectureNovember25.mp4?vrtx=view-as-webpage
 - Lecture Friday:  Support Vector Machines and Summary of Course
 - Reading recommendations:
   - See lecture notes for week 47 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
