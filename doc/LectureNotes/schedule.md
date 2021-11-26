@@ -175,6 +175,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Support Vector Machines
   - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h21/forelesningsvideoer/LectureNovember25.mp4?vrtx=view-as-webpage
 - Lecture Friday:  Support Vector Machines and Summary of course
+  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureNovember26.mp4?vrtx=view-as-webpage
 - Reading recommendations:
   - See lecture notes for week 47 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Geron's chapter 5.
