@@ -1,4 +1,4 @@
-# Applied Data Analysis and Machine Learning, FYS-STK3155/4155 at the University of Oslo, Norway
+# Applied Data Analysis and Machine Learning
 
 ## Introduction
 
