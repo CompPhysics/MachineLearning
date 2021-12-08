@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html chapter11.do.txt  -->
+
 # # Solving Differential Equations  with Deep Learning
 # 
 # The Universal Approximation Theorem states that a neural network can
 # approximate any function at a single hidden layer along with one input
 # and output layer to any given precision.  
-# 
 # 
 # An ordinary differential equation (ODE) is an equation involving functions having one variable.
 # 
@@ -28,8 +30,6 @@
 # The equation is referred to as a $n$-th order ODE.
 # Along with ([1](#ode)), some additional conditions of the function $g(x)$ are typically given
 # for the solution to be unique.
-# 
-# 
 # 
 # Let the trial solution $g_t(x)$ be
 
@@ -54,10 +54,7 @@
 # 
 # But what about the network $N(x,P)$?
 # 
-# 
 # As described previously, an optimization method could be used to minimize the parameters of a neural network, that being its weights and biases, through backward propagation.
-# 
-# 
 # 
 # For the minimization to be defined, we need to have a cost function at hand to minimize.
 # 
@@ -85,15 +82,12 @@
 # The neural net should then find the parameters $P$ that minimizes the cost function in
 # ([3](#cost)) for a set of $N$ training samples $x_i$.
 # 
-# 
-# 
 # To perform the minimization using gradient descent, the gradient of $C\left(\boldsymbol{x}, P\right)$ is needed.
 # It might happen so that finding an analytical expression of the gradient of $C(\boldsymbol{x}, P)$ from ([3](#cost)) gets too messy, depending on which cost function one desires to use.
 # 
 # Luckily, there exists libraries that makes the job for us through automatic differentiation.
 # Automatic differentiation is a method of finding the derivatives numerically with very high precision.
-# 
-# 
+
 # ### Example: Exponential decay
 # 
 # An exponential decay of a quantity $g(x)$ is described by the equation
@@ -123,8 +117,6 @@
 
 # Having an analytical solution at hand, it is possible to use it to compare how well a neural network finds a solution of ([4](#solve_expdec)).
 # 
-# 
-# 
 # The program will use a neural network to solve
 
 # <!-- Equation labels as ordinary links -->
@@ -140,7 +132,6 @@
 # 
 # In this example, $\gamma = 2$ and $g_0 = 10$.
 # 
-# 
 # To begin with, a trial solution $g_t(t)$ must be chosen. A general trial solution for ordinary differential equations could be
 
 # $$
@@ -148,8 +139,6 @@
 # $$
 
 # with $h_1(x)$ ensuring that $g_t(x)$ satisfies some conditions and $h_2(x,N(x, P))$ an expression involving $x$ and the output from the neural network $N(x,P)$ with $P $ being the collection of the weights and biases for each layer. For now, it is assumed that the network consists of one input layer, one hidden layer, and one output layer.
-# 
-# 
 # 
 # In this network, there are no weights and bias at the input layer, so $P = \{ P_{\text{hidden}},  P_{\text{output}} \}$.
 # If there are $N_{\text{hidden} }$ neurons in the hidden layer, then $P_{\text{hidden}}$ is a $N_{\text{hidden} } \times (1 + N_{\text{input}})$ matrix, given that there are $N_{\text{input}}$ neurons in the input layer.
@@ -198,7 +187,6 @@
 
 # is fulfilled as *best as possible*.
 # 
-# 
 # The left hand side and right hand side of ([8](#nnmin)) must be computed separately, and then the neural network must choose weights and biases, contained in $P$, such that the sides are equal as best as possible.
 # This means that the absolute or squared difference between the sides must be as close to zero, ideally equal to zero.
 # In this case, the difference squared shows to be an appropriate measurement of how erroneous the trial solution is with respect to $P$ of the neural network.
@@ -218,8 +206,6 @@
 # $$
 
 # for an input value $x$.
-# 
-# 
 # 
 # If the neural network evaluates $g_t(x, P)$ at more values for $x$, say $N$ values $x_i$ for $i = 1, \dots, N$, then the *total* error to minimize becomes
 
@@ -244,13 +230,11 @@
 # \min_{P_{\text{hidden} }, \ P_{\text{output} }} C(\boldsymbol{x}, \{P_{\text{hidden} }, P_{\text{output} }\})
 # $$
 # 
-# 
 # For simplicity, it is assumed that the input is an array $\boldsymbol{x} = (x_1, \dots, x_N)$ with $N$ elements. It is at these points the neural network should find $P$ such that it fulfills ([9](#min)).
 # 
 # First, the neural network must feed forward the inputs.
 # This means that $\boldsymbol{x}s$ must be passed through an input layer, a hidden layer and a output layer. The input layer in this case, does not need to process the data any further.
 # The input layer will consist of $N_{\text{input} }$ neurons, passing its element to each neuron in the hidden layer.  The number of neurons in the hidden layer will be $N_{\text{hidden} }$.
-# 
 # 
 # For the $i$-th in the hidden layer with weight $w_i^{\text{hidden} }$ and bias $b_i^{\text{hidden} }$, the weighting from the $j$-th neuron at the input layer is:
 
@@ -311,8 +295,6 @@
 # and biases $b_i^{\text{output}}$. In this case,
 # it is assumes that the number of neurons in the output layer is one.
 # 
-# 
-# 
 # The procedure of weighting the output neuron $j$ in the hidden layer to the $i$-th neuron in the output layer is similar as for the hidden layer described previously.
 
 # $$
@@ -343,7 +325,6 @@
 
 # In this case we seek a continuous range of values since we are approximating a function. This means that after computing $\boldsymbol{z}_{1}^{\text{output}}$ the neural network has finished its feed forward step, and $\boldsymbol{z}_{1}^{\text{output}}$ is the final output of the network.
 # 
-# 
 # The next step is to decide how the parameters should be changed such that they minimize the cost function.
 # 
 # The chosen cost function for this problem is
@@ -355,7 +336,7 @@
 # In order to minimize the cost function, an optimization method must be chosen.
 # 
 # Here, gradient descent with a constant step size has been chosen.
-# 
+
 # ### Gradient descent
 # 
 # The idea of the gradient descent algorithm is to update parameters in
@@ -734,8 +715,6 @@ if __name__ == '__main__':
 # using a library like  TensorFlow is recommended.
 # Here, we stay with a more simple approach and implement for comparison, the simple forward Euler method.
 # 
-# 
-# 
 # Here, we will model a population $g(t)$ in an environment having carrying capacity $A$.
 # The population follows the model
 
@@ -751,7 +730,6 @@ if __name__ == '__main__':
 # where $g(0) = g_0$.
 # 
 # In this example, we let $\alpha = 2$, $A = 1$, and $g_0 = 1.2$.
-# 
 # 
 # We will get a slightly different trial solution, as the boundary conditions are different
 # compared to the case for exponential decay.
@@ -770,11 +748,9 @@ if __name__ == '__main__':
 # g(t) = \frac{Ag_0}{g_0 + (A - g_0)\exp(-\alpha A t)}
 # $$
 # 
-# 
-# 
 # The network will be the similar as for the exponential decay example, but with some small modifications for our problem.
 
-# In[ ]:
+# In[3]:
 
 
 import autograd.numpy as np
@@ -996,7 +972,7 @@ if __name__ == '__main__':
 # Equation ([12](#odenum)) could be implemented in the following way,
 # extending the program that uses the network using Autograd:
 
-# In[ ]:
+# In[4]:
 
 
 # Assume that all function definitions from the example program using Autograd
@@ -1094,7 +1070,6 @@ if __name__ == '__main__':
 # The results from the networks can then be compared to the analytical solution.
 # In addition, it could be interesting to see how a typical method for numerically solving second order ODEs compares to the neural networks.
 # 
-# 
 # Here, the function $g(x)$ to solve for follows the equation
 
 # $$
@@ -1126,7 +1101,7 @@ if __name__ == '__main__':
 # g(x) = x(1 - x)\exp(x)
 # $$
 
-# In[ ]:
+# In[5]:
 
 
 import autograd.numpy as np
@@ -1372,10 +1347,9 @@ if __name__ == '__main__':
 
 # which makes it possible to solve for the vector $\boldsymbol{g}$.
 # 
-# 
 # We can then compare the result from this numerical scheme with the output from our network using Autograd:
 
-# In[ ]:
+# In[6]:
 
 
 import autograd.numpy as np
@@ -1589,7 +1563,7 @@ if __name__ == '__main__':
 # $$
 
 # where $f$ is an expression involving all kinds of possible mixed derivatives of $g(x_1,\dots,x_N)$ up to an order $n$. In order for the solution to be unique, some additional conditions must also be given.
-# 
+
 # ### Type of problem
 # 
 # The problem our network must solve for, is similar to the ODE case.
@@ -1607,9 +1581,7 @@ if __name__ == '__main__':
 # The neural network $N(x_1,\dots,x_N,P)$ has weights and biases described by $P$ and $h_2(x_1,\dots,x_N,N(x_1,\dots,x_N,P))$ is an expression using the output from the neural network in some way.
 # 
 # The role of the function $h_2(x_1,\dots,x_N,N(x_1,\dots,x_N,P))$, is to ensure that the output of $N(x_1,\dots,x_N,P)$ is zero when $g_t(x_1,\dots,x_N)$ is evaluated at the values of $x_1,\dots,x_N$ where the given conditions must be satisfied. The function $h_1(x_1,\dots,x_N)$ should alone make $g_t(x_1,\dots,x_N)$ satisfy the conditions.
-# 
-# 
-# 
+
 # ### Network requirements
 # 
 # The network tries then the minimize the cost function following the
@@ -1658,8 +1630,6 @@ if __name__ == '__main__':
 
 # with $u(x)$ being some given function.
 # 
-# 
-# 
 # For this case, we want to find $g(x,t)$ such that
 
 # <!-- Equation labels as ordinary links -->
@@ -1687,9 +1657,6 @@ if __name__ == '__main__':
 # The deep neural network will follow the same structure as discussed in the examples solving the ODEs.
 # First, we will look into how Autograd could be used in a network tailored to solve for bivariate functions.
 # 
-# 
-# 
-# 
 # The only change to do here, is to extend our network such that
 # functions of multiple parameters are correctly handled.  In this case
 # we have two variables in our function to solve for, that is time $t$
@@ -1698,7 +1665,7 @@ if __name__ == '__main__':
 # network at each possible pair $(x,t)$, given an array for the desired
 # $x$-values and $t$-values to approximate the solution at.
 
-# In[ ]:
+# In[7]:
 
 
 def sigmoid(z):
@@ -1767,8 +1734,6 @@ def deep_neural_network(deep_params, x):
 # $$
 # since $(0) = u(1) = 0$ and $u(x) = \sin(\pi x)$.
 # 
-# 
-# 
 # The Jacobian is used because the program must find the derivative of
 # the trial solution with respect to $x$ and $t$.
 # 
@@ -1787,7 +1752,7 @@ def deep_neural_network(deep_params, x):
 # matrix, which is the matrix containing all the possible second order
 # mixed derivatives of $g(x,t)$.
 
-# In[ ]:
+# In[8]:
 
 
 # Set up the trial function:
@@ -1842,11 +1807,10 @@ def cost_function(P, x, t):
 # Be aware, though, that it is fairly slow for the parameters used.
 # A better result is possible, but requires more iterations, and thus longer time to complete.
 # 
-# 
 # Indeed, the program below is not optimal in its implementation, but rather serves as an example on how to implement and use a neural network to solve a PDE.
 # Using TensorFlow results in a much better execution time. Try it!
 
-# In[ ]:
+# In[9]:
 
 
 import autograd.numpy as np
@@ -2097,7 +2061,6 @@ if __name__ == '__main__':
 
 # where $\frac{\partial g(x,t)}{\partial t} \Big |_{t = 0}$ means the derivative of $g(x,t)$ with respect to $t$ is evaluated at $t = 0$, and $u(x)$ and $v(x)$ being given functions.
 # 
-# 
 # The wave equation to solve for, is
 
 # <!-- Equation labels as ordinary links -->
@@ -2126,8 +2089,6 @@ if __name__ == '__main__':
 
 # In this example, let $c = 1$ and $u(x) = \sin(\pi x)$ and $v(x) = -\pi\sin(\pi x)$.
 # 
-# 
-# 
 # Setting up the network is done in similar matter as for the example of solving the diffusion equation.
 # The only things we have to change, is the trial solution such that it satisfies the conditions from ([20](#condwave)) and the cost function.
 # 
@@ -2145,14 +2106,13 @@ if __name__ == '__main__':
 # 
 # Note that this trial solution satisfies the conditions only if $u(0) = v(0) = u(1) = v(1) = 0$, which is the case in this example.
 # 
-# 
 # The analytical solution for our specific problem, is
 # 
 # $$
 # g(x,t) = \sin(\pi x)\cos(\pi t) - \sin(\pi x)\sin(\pi t)
 # $$
 
-# In[ ]:
+# In[10]:
 
 
 import autograd.numpy as np

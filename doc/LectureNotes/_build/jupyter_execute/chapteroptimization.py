@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html chapteroptimization.do.txt  -->
+
 # # Optimization, the central part of any Machine Learning algortithm
 # 
 # Almost every problem in machine learning and data science starts with
@@ -11,9 +14,6 @@
 # the cost function. Ideally we would be able to solve for $\beta$
 # analytically, however this is not possible in general and we must use
 # some approximative/numerical method to compute the minimum.
-# 
-# 
-# 
 # 
 # In our discussion on Logistic Regression we studied the 
 # case of
@@ -30,8 +30,6 @@
 # $$
 
 # where $\boldsymbol{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
-# 
-# 
 # 
 # Our compact equations used a definition of a vector $\boldsymbol{y}$ with $n$
 # elements $y_i$, an $n\times p$ matrix $\boldsymbol{X}$ which contains the
@@ -52,8 +50,6 @@
 
 # This defines what is called  the Hessian matrix.
 # 
-# 
-# 
 # If we can set up these equations, Newton-Raphson's iterative method is normally the method of choice. It requires however that we can compute in an efficient way the  matrices that define the first and second derivatives. 
 # 
 # Our iterative scheme is then given by
@@ -72,7 +68,6 @@
 # 
 # If we can compute these matrices, in particular the Hessian, the above is often the easiest method to implement. 
 # 
-# 
 # Let us quickly remind ourselves how we derive the above method.
 # 
 # Perhaps the most celebrated of all one-dimensional root-finding
@@ -82,8 +77,6 @@
 # If you can only calculate the derivative
 # numerically and/or your function is not of the smooth type, we
 # normally discourage the use of this method.
-# 
-# 
 # 
 # The Newton-Raphson formula consists geometrically of extending the
 # tangent line at a current point until it crosses zero, then setting
@@ -129,9 +122,6 @@
 # maximum or minimum of the function.  If an iteration places a trial
 # guess near such a local extremum, so that the first derivative nearly
 # vanishes, then Newton-Raphson may fail totally
-# 
-# 
-# 
 # 
 # Newton's method can be generalized to systems of several non-linear equations
 # and variables. Consider the case with two equations
@@ -183,11 +173,8 @@
 # arise in case $\boldsymbol{J}$ is nearly singular.
 # 
 # It is rather straightforward to extend the above scheme to systems of
-# more than two non-linear equations. In our case, the Jacobian matrix is given by the Hessian that represents the second derivative of cost function. 
-# 
-# 
-# 
-# 
+# more than two non-linear equations. In our case, the Jacobian matrix is given by the Hessian that represents the second derivative of cost function.
+
 # ## Steepest descent
 # 
 # The basic idea of gradient descent is
@@ -207,7 +194,6 @@
 # F(\mathbf{x}_k)$. This means that for a sufficiently small $\gamma_k$
 # we are always moving towards smaller function values, i.e a minimum.
 # 
-# 
 # The previous observation is the basis of the method of steepest
 # descent, which is also referred to as just gradient descent (GD). One
 # starts with an initial guess $\mathbf{x}_0$ for a minimum of $F$ and
@@ -219,7 +205,6 @@
 
 # The parameter $\gamma_k$ is often referred to as the step length or
 # the learning rate within the context of Machine Learning.
-# 
 # 
 # Ideally the sequence $\{\mathbf{x}_k \}_{k=0}$ converges to a global
 # minimum of the function $F$. In general we do not know if we are in a
@@ -239,9 +224,6 @@
 # Note that the gradient is a function of $\mathbf{x} =
 # (x_1,\cdots,x_n)$ which makes it expensive to compute numerically.
 # 
-# 
-# 
-# 
 # The gradient descent method 
 # is sensitive to the choice of learning rate $\gamma_k$. This is due
 # to the fact that we are only guaranteed that $F(\mathbf{x}_{k+1}) \leq
@@ -253,9 +235,7 @@
 # Many of these shortcomings can be alleviated by introducing
 # randomness. One such method is that of Stochastic Gradient Descent
 # (SGD), see below.
-# 
-# 
-# 
+
 # ## Convex functions
 # 
 # Ideally we want our cost/loss function to be convex(concave).
@@ -270,10 +250,7 @@
 # $\mathbb{R}$. Examples of convex sets of $\mathbb{R}^2$ are the
 # regular polygons (triangles, rectangles, pentagons, etc...).
 # 
-# 
-# 
 # **Convex function**: Let $X \subset \mathbb{R}^n$ be a convex set. Assume that the function $f: X \rightarrow \mathbb{R}$ is continuous, then $f$ is said to be convex if $$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$ for all $x_1, x_2 \in X$ and for all $t \in [0,1]$. If $\leq$ is replaced with a strict inequaltiy in the definition, we demand $x_1 \neq x_2$ and $t\in(0,1)$ then $f$ is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting $f(x_1)$ and $f(x_2)$, the value of the function on the interval $[x_1,x_2]$ is always below the line as illustrated below.
-# 
 # 
 # In the following we state first and second-order conditions which
 # ensures convexity of a function $f$. We write $D_f$ to denote the
@@ -291,8 +268,6 @@
 # make a drawing of $f(x) = x^2+1$ and draw the tangent line to $f(x)$ and
 # note that it is always below the graph.
 # 
-# 
-# 
 # **Second order condition.**
 # 
 # Assume that $f$ is twice
@@ -302,11 +277,7 @@
 # single-variable function this reduces to $f''(x) \geq 0$. Geometrically this means that $f$ has nonnegative curvature
 # everywhere.
 # 
-# 
-# 
 # This condition is particularly useful since it gives us an procedure for determining if the function under consideration is convex, apart from using the definition.
-# 
-# 
 # 
 # The next result is of great importance to us and the reason why we are
 # going on about convex functions. In machine learning we frequently
@@ -324,11 +295,8 @@
 # is minimal, where $f$ is convex and differentiable. Then, any point
 # $x^*$ that satisfies $\nabla f(x^*) = 0$ is a global minimum.
 # 
-# 
-# 
 # This result means that if we know that the cost/loss function is convex and we are able to find a minimum, we are guaranteed that it is a global minimum.
-# 
-# 
+
 # ### Some simple problems
 # 
 # 1. Show that $f(x)=x^2$ is convex for $x \in \mathbb{R}$ using the definition of convexity. Hint: If you re-write the definition, $f$ is convex if the following holds for all $x,y \in D_f$ and any $\lambda \in [0,1]$ $\lambda f(x)+(1-\lambda)f(y)-f(\lambda x + (1-\lambda) y ) \geq 0$.
@@ -338,7 +306,6 @@
 #  * $f(x) = e^x$ is convex for $x \in \mathbb{R}$.
 # 
 #  * $g(x) = -\ln(x)$ is convex for $x \in (0,\infty)$.
-# 
 # 
 # 3. Let $f(x) = x^2$ and $g(x) = e^x$. Show that $f(g(x))$ and $g(f(x))$ is convex for $x \in \mathbb{R}$. Also show that if $f(x)$ is any convex function than $h(x) = e^{f(x)}$ is convex.
 # 
@@ -350,12 +317,9 @@
 # 
 #  * $f(x) \leq 0$ for all $x \in \mathbb{R}^n$ with equality if and only if $x = 0$
 # 
-# 
 # Using the definition of convexity, try to show that a function satisfying the properties above is convex (the third condition is not needed to show this).
-# 
-# 
+
 # ## Standard steepest descent
-# 
 # 
 # Before we proceed, we would like to discuss the approach called the
 # **standard Steepest descent** (different from the above steepest descent discussion), which again leads to us having to be able
@@ -381,8 +345,6 @@
 # 
 # When we have found the exact solution, $\boldsymbol{r}=0$.
 # 
-# 
-# 
 # The residual is zero when we reach the minimum of the quadratic equation
 
 # $$
@@ -391,7 +353,6 @@
 
 # with the constraint that the matrix $\boldsymbol{A}$ is positive definite and
 # symmetric.  This defines also the Hessian and we want it to be  positive definite.  
-# 
 # 
 # We denote the initial guess for $\boldsymbol{x}$ as $\boldsymbol{x}_0$. 
 # We can assume without loss of generality that
@@ -407,7 +368,6 @@
 # $$
 
 # instead.
-# 
 # 
 # One can show that the solution $\boldsymbol{x}$ is also the unique minimizer of the quadratic form
 
@@ -425,7 +385,6 @@
 
 # and 
 # $\boldsymbol{x}_0=0$ it is equal $-\boldsymbol{b}$.
-# 
 # 
 # We can compute the residual iteratively as
 
@@ -728,7 +687,6 @@ y = 4+3*x+np.random.randn(m,1)
 
 # and we want to find $\beta$ such that $C(\beta)$ is minimized.
 # 
-# 
 # Computing $\partial C(\beta) / \partial \beta_0$ and $\partial C(\beta) / \partial \beta_1$ we can show  that the gradient can be written as
 
 # $$
@@ -738,7 +696,6 @@ y = 4+3*x+np.random.randn(m,1)
 # $$
 
 # where $X$ is the design matrix defined above.
-# 
 # 
 # The Hessian matrix of $C(\beta)$ is given by
 
@@ -750,8 +707,6 @@ y = 4+3*x+np.random.randn(m,1)
 # $$
 
 # This result implies that $C(\beta)$ is a convex function since the matrix $X^T X$ always is positive semi-definite.
-# 
-# 
 # 
 # We can now write a program that minimizes $C(\beta)$ using the gradient descent method with a constant learning rate $\gamma$ according to
 
@@ -765,8 +720,6 @@ y = 4+3*x+np.random.randn(m,1)
 # 
 # And finally we can compare our solution for $\beta$ with the analytic result given by 
 # $\beta= (X^TX)^{-1} X^T \mathbf{y}$.
-# 
-# 
 # 
 # Here is our simple example
 
@@ -925,8 +878,30 @@ plt.show()
 # * **GD treats all directions in parameter space uniformly.** Another major drawback of GD is that unlike Newton's method, the learning rate for GD is the same in all directions in parameter space. For this reason, the maximum learning rate is set by the behavior of the steepest direction and this can significantly slow down training. Ideally, we would like to take large steps in flat directions and small steps in steep directions. Since we are exploring rugged landscapes where curvatures change, this requires us to keep track of not only the gradient but second derivatives. The ideal scenario would be to calculate the Hessian but this proves to be too computationally expensive. 
 # 
 # * GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.
+
+# ## Stochastic Gradient Descent (SGD)
 # 
-# ## Stochastic Gradient Descent
+# In stochastic gradient descent, the extreme case is the case where we
+# have only one batch, that is we include the whole data set.
+# 
+# This process is called Stochastic Gradient
+# Descent (SGD) (or also sometimes on-line gradient descent). This is
+# relatively less common to see because in practice due to vectorized
+# code optimizations it can be computationally much more efficient to
+# evaluate the gradient for 100 examples, than the gradient for one
+# example 100 times. Even though SGD technically refers to using a
+# single example at a time to evaluate the gradient, you will hear
+# people use the term SGD even when referring to mini-batch gradient
+# descent (i.e. mentions of MGD for “Minibatch Gradient Descent”, or BGD
+# for “Batch gradient descent” are rare to see), where it is usually
+# assumed that mini-batches are used. The size of the mini-batch is a
+# hyperparameter but it is not very common to cross-validate or bootstrap it. It is
+# usually based on memory constraints (if any), or set to some value,
+# e.g. 32, 64 or 128. We use powers of 2 in practice because many
+# vectorized operation implementations work faster when their inputs are
+# sized in powers of 2.
+# 
+# In our notes with  SGD we mean stochastic gradient descent with mini-batches.
 # 
 # Stochastic gradient descent (SGD) and variants thereof address some of
 # the shortcomings of the Gradient descent method discussed above.
@@ -953,8 +928,6 @@ plt.show()
 # data points and the size of each minibatch is $M$, there will be $n/M$
 # minibatches. We denote these minibatches by $B_k$ where
 # $k=1,\cdots,n/M$.
-# 
-# 
 # 
 # As an example, suppose we have $10$ data points $(\mathbf{x}_1,\cdots, \mathbf{x}_{10})$ 
 # and we choose to have $M=5$ minibathces,
@@ -995,7 +968,7 @@ plt.show()
 import numpy as np 
 
 n = 100 #100 datapoints 
-M = 5   #size of each minibatch
+M = 5   #size of each mini-batche
 m = int(n/M) #number of minibatches
 n_epochs = 10 #number of epochs
 
@@ -1016,8 +989,6 @@ for epoch in range(1,n_epochs+1):
 # cheaper since we sum over the datapoints in the $k-th$ minibatch and not
 # all $n$ datapoints.
 # 
-# 
-# 
 # A natural question is when do we stop the search for a new minimum?
 # One possibility is to compute the full gradient after a given number
 # of epochs and check if the norm of the gradient is smaller than some
@@ -1028,8 +999,6 @@ for epoch in range(1,n_epochs+1):
 # continue the search. If the test kicks in at a later stage we can
 # compare the values of the cost function and keep the $\beta$ that
 # gave the lowest value.
-# 
-# 
 # 
 # Another approach is to let the step length $\gamma_j$ depend on the
 # number of epochs in such a way that it becomes very small after a
@@ -1072,39 +1041,41 @@ for epoch in range(1,n_epochs+1):
 print("gamma_j after %d epochs: %g" % (n_epochs,gamma_j))
 
 
+# We note that we have defined several hyperparameters. These are now the number of epochs, the number of mini-batches and the parameters $t_0$ and $t_1$.
+
 # ### Program for stochastic gradient
 
 # In[12]:
 
 
 # Importing various packages
+# Importing various packages
 from math import exp, sqrt
 from random import random, seed
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import SGDRegressor
 
-m = 100
-x = 2*np.random.rand(m,1)
-y = 4+3*x+np.random.randn(m,1)
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
 
-X = np.c_[np.ones((m,1)), x]
+X = np.c_[np.ones((n,1)), x]
+XT_X = X.T @ X
 theta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
 print("Own inversion")
 print(theta_linreg)
-sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
-sgdreg.fit(x,y.ravel())
-print("sgdreg from scikit")
-print(sgdreg.intercept_, sgdreg.coef_)
-
+# Hessian matrix
+H = (2.0/n)* XT_X
+EigValues, EigVectors = np.linalg.eig(H)
+print(f"Eigenvalues of Hessian Matrix:{EigValues}")
 
 theta = np.random.randn(2,1)
-eta = 0.1
+eta = 1.0/np.max(EigValues)
 Niterations = 1000
 
 
 for iter in range(Niterations):
-    gradients = 2.0/m*X.T @ ((X @ theta)-y)
+    gradients = 2.0/n*X.T @ ((X @ theta)-y)
     theta -= eta*gradients
 print("theta from own gd")
 print(theta)
@@ -1114,8 +1085,9 @@ Xnew = np.c_[np.ones((2,1)), xnew]
 ypredict = Xnew.dot(theta)
 ypredict2 = Xnew.dot(theta_linreg)
 
-
 n_epochs = 50
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
 t0, t1 = 5, 50
 def learning_schedule(t):
     return t0/(t+t1)
@@ -1123,15 +1095,19 @@ def learning_schedule(t):
 theta = np.random.randn(2,1)
 
 for epoch in range(n_epochs):
+# Can you figure out a better way of setting up the contributions to each batch?
     for i in range(m):
-        random_index = np.random.randint(m)
-        xi = X[random_index:random_index+1]
-        yi = y[random_index:random_index+1]
-        gradients = 2 * xi.T @ ((xi @ theta)-yi)
+        random_index = M*np.random.randint(m)
+        xi = X[random_index:random_index+M]
+        yi = y[random_index:random_index+M]
+        gradients = (2.0/M)* xi.T @ ((xi @ theta)-yi)
         eta = learning_schedule(epoch*m+i)
         theta = theta - eta*gradients
 print("theta from own sdg")
 print(theta)
+
+
+
 
 plt.plot(xnew, ypredict, "r-")
 plt.plot(xnew, ypredict2, "b-")
@@ -1142,6 +1118,11 @@ plt.ylabel(r'$y$')
 plt.title(r'Random numbers ')
 plt.show()
 
+
+# In the above code, we have use replacement in setting up the
+# mini-batches. The discussion
+# [here](https://sebastianraschka.com/faq/docs/sgd-methods.html) may be
+# useful.  More material will be added later.
 
 # ## Momentum based GD
 # 
@@ -1180,8 +1161,6 @@ plt.show()
 # $$
 
 # where we have defined $\Delta \boldsymbol{\theta}_{t}= \boldsymbol{\theta}_t-\boldsymbol{\theta}_{t-1}$.
-# 
-# 
 # 
 # Let us try to get more intuition from these equations. It is helpful
 # to consider a simple physical analogy with a particle of mass $m$
@@ -1256,8 +1235,6 @@ plt.show()
 
 # One of the major advantages of NAG is that it allows for the use of a larger learning rate than GDM for the same choice of $\gamma$.
 # 
-# 
-# 
 # In stochastic gradient descent, with and without momentum, we still
 # have to specify a schedule for tuning the learning rates $\eta_t$
 # as a function of time.  As discussed in the context of Newton's
@@ -1276,10 +1253,9 @@ plt.show()
 # 
 # Recently, a number of methods have been introduced that accomplish
 # this by tracking not only the gradient, but also the second moment of
-# the gradient. These methods include AdaGrad, AdaDelta, RMS-Prop, and
+# the gradient. These methods include AdaGrad, AdaDelta, Root Mean Squared Propagation (RMS-Prop), and
 # ADAM.
-# 
-# 
+
 # ### RMS prop
 # 
 # In RMS prop, in addition to keeping a running average of the first
@@ -1314,7 +1290,7 @@ plt.show()
 # directions where the norm of the gradient is consistently large. This
 # greatly speeds up the convergence by allowing us to use a larger
 # learning rate for flat directions.
-# 
+
 # ### ADAM optimizer
 # 
 # A related algorithm is the ADAM optimizer. In ADAM, we keep a running
@@ -1393,7 +1369,7 @@ plt.show()
 # * **Monitor the out-of-sample performance.** Always monitor the performance of your model on a validation set (a small portion of the training data that is held out of the training process to serve as a proxy for the test set. If the validation error starts increasing, then the model is beginning to overfit. Terminate the learning process. This *early stopping* significantly improves performance in many settings.
 # 
 # * **Adaptive optimization methods don't always have good generalization.** Recent studies have shown that adaptive methods such as ADAM, RMSPorp, and AdaGrad tend to have poor generalization compared to SGD or SGD with momentum, particularly in the high-dimensional limit (i.e. the number of parameters exceeds the number of data points). Although it is not clear at this stage why these methods perform so well in training deep neural networks, simpler procedures like properly-tuned SGD may work as well or better in these applications.
-# 
+
 # ## Automatic differentiation
 # 
 # [Automatic differentiation (AD)](https://en.wikipedia.org/wiki/Automatic_differentiation), 
@@ -1420,8 +1396,6 @@ plt.show()
 # difficulty of converting a computer program into a single expression,
 # while numerical differentiation can introduce round-off errors in the
 # discretization process and cancellation
-# 
-# 
 # 
 # Python has tools for so-called **automatic differentiation**.
 # Consider the following example
@@ -1619,33 +1593,36 @@ x = 2.7
 print("The computed derivative of f5 at x = %g is: %g"%(x,f5_grad(x)))
 
 
-# 1
-# 8
-#  
-# <
-# <
-# <
-# !
-# !
-# C
-# O
-# D
-# E
-# _
-# B
-# L
-# O
-# C
-# K
-#  
-#  
-# p
-# y
-# c
-# o
-# d
-
 # In[19]:
+
+
+import autograd.numpy as np
+from autograd import grad
+def f6_for(x):
+    val = 0
+    for i in range(10):
+        val = val + x**i
+    return val
+
+def f6_while(x):
+    val = 0
+    i = 0
+    while i < 10:
+        val = val + x**i
+        i = i + 1
+    return val
+
+f6_for_grad = grad(f6_for)
+f6_while_grad = grad(f6_while)
+
+x = 0.5
+
+# Print the computed derivaties of f6_for and f6_while
+print("The computed derivative of f6_for at x = %g is: %g"%(x,f6_for_grad(x)))
+print("The computed derivative of f6_while at x = %g is: %g"%(x,f6_while_grad(x)))
+
+
+# In[20]:
 
 
 import autograd.numpy as np
@@ -1659,7 +1636,7 @@ for i in range(10):
 print("The analytical derivative of f6 at x = %g is: %g"%(x,f6_grad_analytical))
 
 
-# In[20]:
+# In[21]:
 
 
 import autograd.numpy as np
@@ -1693,30 +1670,29 @@ print("The analytical derivative of f7 at n = %d is: %g"%(n,f7_grad_analytical))
 
 # Note that if n is equal to zero or one, Autograd will give an error message. This message appears when the output is independent on input.
 # 
+# Autograd supports many features. However, there are some functions that is not supported (yet) by Autograd.
 # 
-# Autograd supports many features. However, there are some functions that are not supported (yet) by Autograd.
-# 
-# Assigning a value to the variable being differentiated with respect to is an example thereof.
+# Assigning a value to the variable being differentiated with respect to
 
-# In[21]:
+# In[22]:
 
 
-#import autograd.numpy as np
-#from autograd import grad
-#def f8(x): # Assume x is an array
-#    x[2] = 3
-#    return x*2
+import autograd.numpy as np
+from autograd import grad
+def f8(x): # Assume x is an array
+    x[2] = 3
+    return x*2
 
-#f8_grad = grad(f8)
+f8_grad = grad(f8)
 
-#x = 8.4
+x = 8.4
 
-#print("The derivative of f8 is:",f8_grad(x))
+print("The derivative of f8 is:",f8_grad(x))
 
 
 # Here, Autograd tells us that an 'ArrayBox' does not support item assignment. The item assignment is done when the program tries to assign x[2] to the value 3. However, Autograd has implemented the computation of the derivative such that this assignment is not possible.
 
-# In[22]:
+# In[23]:
 
 
 import autograd.numpy as np
@@ -1736,7 +1712,7 @@ print("The derivative of f9 is:",f9_grad(x))
 # version of a Numpy array.  To overcome this, an alternative syntax
 # which also computed the dot product can be used:
 
-# In[ ]:
+# In[24]:
 
 
 import autograd.numpy as np
@@ -1757,7 +1733,7 @@ print("The gradient of f9 is:",f9_alternative_grad(x))
 
 # The documentation recommends to avoid inplace operations such as
 
-# In[ ]:
+# In[25]:
 
 
 a += b
@@ -1766,4 +1742,184 @@ a*= b
 a /=b
 
 
-# More examples will be added, in particular how to compare autograd with own codes for the gradients.
+# ## Using Autograd with OLS
+# 
+# We conclude the part on optmization by showing how we can make codes
+# for linear regression and logistic regression using **autograd**. The
+# first example shows results with ordinary leats squares.
+
+# In[26]:
+
+
+# Using Autograd to calculate gradients for OLS
+from random import random, seed
+import numpy as np
+import autograd.numpy as np
+import matplotlib.pyplot as plt
+from autograd import grad
+
+def CostOLS(beta):
+    return (1.0/n)*np.sum((y-X @ beta)**2)
+
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+print("Own inversion")
+print(theta_linreg)
+# Hessian matrix
+H = (2.0/n)* XT_X
+EigValues, EigVectors = np.linalg.eig(H)
+print(f"Eigenvalues of Hessian Matrix:{EigValues}")
+
+theta = np.random.randn(2,1)
+eta = 1.0/np.max(EigValues)
+Niterations = 1000
+# define the gradient
+training_gradient = grad(CostOLS)
+
+for iter in range(Niterations):
+    gradients = training_gradient(theta)
+    theta -= eta*gradients
+print("theta from own gd")
+print(theta)
+
+xnew = np.array([[0],[2]])
+Xnew = np.c_[np.ones((2,1)), xnew]
+ypredict = Xnew.dot(theta)
+ypredict2 = Xnew.dot(theta_linreg)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(xnew, ypredict2, "b-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Random numbers ')
+plt.show()
+
+
+# ### Including Stochastic Gradient Descent with Autograd
+# 
+# In this code we include the stochastic gradient descent approach discussed above. Note here that we specify which argument we are taking the derivative with respect to when using **autograd**.
+
+# In[27]:
+
+
+# Using Autograd to calculate gradients using SGD
+# OLS example
+from random import random, seed
+import numpy as np
+import autograd.numpy as np
+import matplotlib.pyplot as plt
+from autograd import grad
+
+# Note change from previous example
+def CostOLS(y,X,theta):
+    return np.sum((y-X @ theta)**2)
+
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+print("Own inversion")
+print(theta_linreg)
+# Hessian matrix
+H = (2.0/n)* XT_X
+EigValues, EigVectors = np.linalg.eig(H)
+print(f"Eigenvalues of Hessian Matrix:{EigValues}")
+
+theta = np.random.randn(2,1)
+eta = 1.0/np.max(EigValues)
+Niterations = 1000
+
+# Note that we request the derivative wrt third argument (theta, 2 here)
+training_gradient = grad(CostOLS,2)
+
+for iter in range(Niterations):
+    gradients = (1.0/n)*training_gradient(y, X, theta)
+    theta -= eta*gradients
+print("theta from own gd")
+print(theta)
+
+xnew = np.array([[0],[2]])
+Xnew = np.c_[np.ones((2,1)), xnew]
+ypredict = Xnew.dot(theta)
+ypredict2 = Xnew.dot(theta_linreg)
+
+plt.plot(xnew, ypredict, "r-")
+plt.plot(xnew, ypredict2, "b-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Random numbers ')
+plt.show()
+
+n_epochs = 50
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
+t0, t1 = 5, 50
+def learning_schedule(t):
+    return t0/(t+t1)
+
+theta = np.random.randn(2,1)
+
+for epoch in range(n_epochs):
+# Can you figure out a better way of setting up the contributions to each batch?
+    for i in range(m):
+        random_index = M*np.random.randint(m)
+        xi = X[random_index:random_index+M]
+        yi = y[random_index:random_index+M]
+        gradients = (1.0/M)*training_gradient(yi, xi, theta)
+        eta = learning_schedule(epoch*m+i)
+        theta = theta - eta*gradients
+print("theta from own sdg")
+print(theta)
+
+
+# ### And Logistic Regression
+
+# In[28]:
+
+
+import autograd.numpy as np
+from autograd import grad
+
+def sigmoid(x):
+    return 0.5 * (np.tanh(x / 2.) + 1)
+
+def logistic_predictions(weights, inputs):
+    # Outputs probability of a label being true according to logistic model.
+    return sigmoid(np.dot(inputs, weights))
+
+def training_loss(weights):
+    # Training loss is the negative log-likelihood of the training labels.
+    preds = logistic_predictions(weights, inputs)
+    label_probabilities = preds * targets + (1 - preds) * (1 - targets)
+    return -np.sum(np.log(label_probabilities))
+
+# Build a toy dataset.
+inputs = np.array([[0.52, 1.12,  0.77],
+                   [0.88, -1.08, 0.15],
+                   [0.52, 0.06, -1.30],
+                   [0.74, -2.49, 1.39]])
+targets = np.array([True, True, False, True])
+
+# Define a function that returns gradients of training loss using Autograd.
+training_gradient_fun = grad(training_loss)
+
+# Optimize weights using gradient descent.
+weights = np.array([0.0, 0.0, 0.0])
+print("Initial loss:", training_loss(weights))
+for i in range(100):
+    weights -= training_gradient_fun(weights) * 0.01
+
+print("Trained loss:", training_loss(weights))
+

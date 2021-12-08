@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html chapter10.do.txt --no_mako -->
+
 # # Building a Feed Forward Neural Network
 # 
 # We are now gong to develop an example based on the MNIST data
@@ -33,9 +36,7 @@
 
 # where $y \in \{0, 1\}$  and $\hat{\theta}$ represents the weights and biases
 # of our network.
-# 
-# 
-# 
+
 # ## Defining the cost function
 # 
 # Our cost function is given as (see the Logistic regression lectures)
@@ -54,9 +55,7 @@
 # 
 # $y = 5 \quad \rightarrow \quad \hat{y} = (0, 0, 0, 0, 0, 1, 0, 0, 0, 0) ,$ and
 # 
-# 
 # $y = 1 \quad \rightarrow \quad \hat{y} = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0) ,$ 
-# 
 # 
 # i.e. a binary bit string of length $C$, where $C = 10$ is the number of classes in the MNIST dataset (numbers from $0$ to $9$)..  
 # 
@@ -86,8 +85,7 @@
 # See the logistic regression lectures for a full definition of the cost function.
 # 
 # The back propagation equations need now only a small change, namely the definition of a new cost function. We are thus ready to use the same equations as before!
-# 
-# 
+
 # ### Example: binary classification problem
 # 
 # As an example of the above, relevant for project 2 as well, let us consider a binary class. As discussed in our logistic regression lectures, we defined a cost function in terms of the parameters $\beta$ as
@@ -136,10 +134,8 @@
 # \frac{\partial \mathcal{C}(\hat{W})}{\partial a_i^L} = \frac{a_i^L-t_i}{a_i^L(1-a_i^L)}.
 # $$
 
-# In case we use another activation function than the logistic one, we need to evaluate other derivatives. 
-# 
-# 
-# 
+# In case we use another activation function than the logistic one, we need to evaluate other derivatives.
+
 # ### The Softmax function
 # 
 # In case we employ the more general case given by the Softmax equation, we need to evaluate the derivative of the activation function with respect to the activation $z_i^l$, that is we need
@@ -161,11 +157,9 @@
 # \frac{\partial f(z_i^l)}{\partial z_j^l}= f(z_i^l)\left(\delta_{ij}-f(z_j^l)\right),
 # $$
 
-# which in case of the simply binary model reduces to  having $i=j$. 
-# 
-# 
+# which in case of the simply binary model reduces to  having $i=j$.
+
 # ## Developing a code for doing neural networks with back propagation
-# 
 # 
 # One can identify a set of key steps when using neural networks to solve supervised learning problems:  
 # 
@@ -180,7 +174,7 @@
 # 5. Evaluate model performance on test data  
 # 
 # 6. Adjust hyperparameters (if necessary, network architecture)
-# 
+
 # ### Collect and pre-process data
 # 
 # Here we will be using the MNIST dataset, which is readily available through the **scikit-learn**
@@ -350,7 +344,7 @@ print("Number of test images: " + str(len(X_test)))
 # $$ f(x) = \sigma(x) = \frac{1}{1 + e^{-x}} ,$$
 # 
 # which is inspired by probability theory (see logistic regression) and was most commonly used until about 2011. See the discussion below concerning other activation functions.
-# 
+
 # ### Layers
 # 
 # * Input 
@@ -382,7 +376,6 @@ print("Number of test images: " + str(len(X_test)))
 # 
 # Since each neuron in the output layer is connected to the 50 inputs from the hidden layer we have 50x10 = 500
 # weights to the output layer.
-# 
 # 
 # Typically weights are initialized with small values distributed around zero, drawn from a uniform
 # or normal distribution. Setting all weights to zero means all neurons give the same output, making the network useless.  
@@ -433,7 +426,6 @@ output_bias = np.zeros(n_categories) + 0.01
 # 
 # $$ a_{j}^{L} = \frac{\exp{(z_j^{L})}}
 # {\sum_{c=0}^{C-1} \exp{(z_c^{L})}} .$$  
-# 
 # 
 # Since our data has the dimensions $X = (n_{inputs}, n_{features})$ and our weights to the hidden
 # layer have the dimensions  
@@ -512,9 +504,7 @@ print("correct label for image 0: " + str(Y_train[0]))
 # 
 # $$ y = 5 \quad \rightarrow \quad \hat{y} = (0, 0, 0, 0, 0, 1, 0, 0, 0, 0) ,$$  
 # 
-# 
 # $$ y = 1 \quad \rightarrow \quad \hat{y} = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0) ,$$  
-# 
 # 
 # i.e. a binary bit string of length $C$, where $C = 10$ is the number of classes in the MNIST dataset.  
 # 
@@ -524,10 +514,8 @@ print("correct label for image 0: " + str(Y_train[0]))
 # In the one-hot representation only one of the terms in the loss function is non-zero, namely the
 # probability of the correct category $c'$  
 # (i.e. the category $c'$ such that $y_{ic'} = 1$). This means that the cross entropy loss only punishes you for how wrong
-# you got the correct label. The probability of category $c$ is given by the softmax function. The vector $\hat{\theta}$ represents the parameters of our network, i.e. all the weights and biases.  
-# 
-# 
-# 
+# you got the correct label. The probability of category $c$ is given by the softmax function. The vector $\hat{\theta}$ represents the parameters of our network, i.e. all the weights and biases.
+
 # ### Optimizing the cost function
 # 
 # The network is trained by finding the weights and biases that minimize the cost function. One of the most widely used classes of methods is *gradient descent* and its generalizations. The idea behind gradient descent
@@ -557,8 +545,7 @@ print("correct label for image 0: " + str(Y_train[0]))
 # 2. It significantly speeds up the calculation, since we do not have to use the entire dataset to calculate the gradient.  
 # 
 # The various optmization  methods, with codes and algorithms,  are discussed in our lectures on [Gradient descent approaches](https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html).
-# 
-# 
+
 # ### Regularization
 # 
 # It is common to add an extra term to the cost function, proportional
@@ -576,7 +563,6 @@ print("correct label for image 0: " + str(Y_train[0]))
 # 
 # i.e. we sum up all the weights squared. The factor $\lambda$ is known as a regularization parameter.
 # 
-# 
 # In order to train the model, we need to calculate the derivative of
 # the cost function with respect to every bias and weight in the
 # network.  In total our network has $(64 + 1)\times 50=3250$ weights in
@@ -584,9 +570,8 @@ print("correct label for image 0: " + str(Y_train[0]))
 # layer ($+1$ for the bias), and the gradient must be calculated for
 # every parameter.  We use the *backpropagation* algorithm discussed
 # above. This is a clever use of the chain rule that allows us to
-# calculate the gradient efficently. 
-# 
-# 
+# calculate the gradient efficently.
+
 # ### Matrix  multiplication
 # 
 # To more efficently train our network these equations are implemented using matrix operations.  
@@ -704,7 +689,6 @@ print("New accuracy on training data: " + str(accuracy_score(predict(X_train), Y
 # 
 # If this does not improve network performance, you may want to consider altering the network architecture, adding more neurons or hidden layers.  
 # Andrew Ng goes through some of these considerations in this [video](https://youtu.be/F1ka6a13S9I). You can find a summary of the video [here](https://kevinzakka.github.io/2016/09/26/applying-deep-learning/).  
-# 
 # 
 # It is very natural to think of the network as an object, with specific instances of the network
 # being realizations of this object with different hyperparameters. An implementation using Python classes provides a clean structure and interface, and the full implementation of our neural network is given below.
@@ -1000,7 +984,6 @@ plt.show()
 # clear how to build one using an arbitrary number of hidden layers, using data structures such as Python lists or
 # NumPy arrays.
 # 
-# 
 # Tensorflow is an open source library machine learning library
 # developed by the Google Brain team for internal use. It was released
 # under the Apache 2.0 open source license in November 9, 2015.
@@ -1023,18 +1006,11 @@ plt.show()
 # Then we will build (effectively) the same graph in Keras, to see just
 # how simple solving a machine learning problem can be.
 # 
-# To install tensorflow on Unix/Linux systems, use pip as
-
-# In[12]:
-
-
-pip3 install tensorflow
-
-
+# To install tensorflow on Unix/Linux systems, use pip as **pip3 install tensorflow**
 # and/or if you use **anaconda**, just write (or install from the graphical user interface)
 # (current release of CPU-only TensorFlow)
 
-# In[ ]:
+# In[12]:
 
 
 conda create -n tf tensorflow
@@ -1043,7 +1019,7 @@ conda activate tf
 
 # To install the current release of GPU TensorFlow
 
-# In[ ]:
+# In[13]:
 
 
 conda create -n tf-gpu tensorflow-gpu
@@ -1054,7 +1030,7 @@ conda activate tf-gpu
 # that supports Tensorflow, CTNK and Theano as backends.  
 # If you have Anaconda installed you may run the following command
 
-# In[ ]:
+# In[14]:
 
 
 conda install keras
@@ -1064,10 +1040,9 @@ conda install keras
 # 
 # We will to a large extent use **keras** in this course. 
 # 
-# 
 # Let us look again at the MINST data set.
 
-# In[ ]:
+# In[15]:
 
 
 # import necessary packages
@@ -1115,7 +1090,7 @@ for i, image in enumerate(digits.images[random_indices]):
 plt.show()
 
 
-# In[ ]:
+# In[16]:
 
 
 from tensorflow.keras.layers import Input
@@ -1137,7 +1112,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=t
                                                     test_size=test_size)
 
 
-# In[ ]:
+# In[17]:
 
 
 
@@ -1160,7 +1135,7 @@ def create_neural_network_keras(n_neurons_layer1, n_neurons_layer2, n_categories
     return model
 
 
-# In[ ]:
+# In[18]:
 
 
 DNN_keras = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
@@ -1180,7 +1155,7 @@ for i, eta in enumerate(eta_vals):
         print()
 
 
-# In[ ]:
+# In[19]:
 
 
 # optional
@@ -1218,7 +1193,7 @@ plt.show()
 
 # ## The Breast Cancer Data, now with Keras
 
-# In[ ]:
+# In[20]:
 
 
 
@@ -1405,7 +1380,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # training a neural network on a large dataset takes a lot of time, you
 # will only be able to explore a tiny part of the hyperparameter space.
 # 
-# 
 # * You can use randomized search.
 # 
 # * Or use tools like [Oscar](http://oscar.calldesk.ai/), which implements more complex algorithms to help you find a good set of hyperparameters quickly.  
@@ -1422,11 +1396,7 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # and they need a huge amount
 # of training data. However, you will rarely have to train such networks from scratch: it is much more
 # common to reuse parts of a pretrained state-of-the-art network that performs a similar task.
-# 
-# 
-# 
-# 
-# 
+
 # ## Which activation function should I use?
 # 
 # The Back propagation algorithm we derived above works by going from
@@ -1434,7 +1404,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # the way. Once the algorithm has computed the gradient of the cost
 # function with regards to each parameter in the network, it uses these
 # gradients to update each parameter with a Gradient Descent (GD) step.
-# 
 # 
 # Unfortunately for us, the gradients often get smaller and smaller as the
 # algorithm progresses down to the first hidden layers. As a result, the
@@ -1450,9 +1419,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # mostly encountered in recurrent neural networks. More generally, deep
 # neural networks suffer from unstable gradients, different layers may
 # learn at widely different speeds
-# 
-# 
-# 
 # 
 # Although this unfortunate behavior has been empirically observed for
 # quite a while (it was one of the reasons why deep neural networks were
@@ -1476,8 +1442,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # (the hyperbolic tangent function has a mean of 0 and behaves slightly
 # better than the logistic function in deep networks).
 # 
-# 
-# 
 # Looking at the logistic activation function, when inputs become large
 # (negative or positive), the function saturates at 0 or 1, with a
 # derivative extremely close to 0. Thus when backpropagation kicks in,
@@ -1496,8 +1460,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # its inputs, and we also need the gradients to have equal variance
 # before and after flowing through a layer in the reverse direction.
 # 
-# 
-# 
 # One of the insights in the 2010 paper by Glorot and Bengio was that
 # the vanishing/exploding gradients problems were in part due to a poor
 # choice of activation function. Until then most people had assumed that
@@ -1507,8 +1469,7 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # networks, in particular the ReLU activation function, mostly because
 # it does not saturate for positive values (and also because it is quite
 # fast to compute).
-# 
-# 
+
 # ## The RELU function family
 # 
 # The ReLU activation function suffers from a problem known as the dying
@@ -1543,8 +1504,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # spare time and computing power, you can use cross-validation or
 # bootstrap to evaluate other activation functions.
 # 
-# 
-# 
 # In most cases you can use the ReLU activation function in the hidden layers (or one of its variants).
 # 
 # It is a bit faster to compute than other activation functions, and the gradient descent optimization does in general not get stuck.
@@ -1554,7 +1513,7 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # * For classification the softmax activation function is generally a good choice for classification tasks (when the classes are mutually exclusive).
 # 
 # * For regression tasks, you can simply use no activation function at all.
-# 
+
 # ## Batch Normalization
 # 
 # Batch Normalization
@@ -1568,7 +1527,7 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # In order to zero-center and normalize the inputs, the algorithm needs to estimate the inputs’ mean and
 # standard deviation. It does so by evaluating the mean and standard deviation of the inputs over the current
 # mini-batch, from this the name batch normalization.
-# 
+
 # ## Dropout
 # 
 # It is a fairly simple algorithm: at every training step, every neuron (including the input neurons but
@@ -1578,7 +1537,7 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # The
 # hyperparameter $p$ is called the dropout rate, and it is typically set to 50%. After training, the neurons are not dropped anymore.
 #  It is viewed as one of the most popular regularization techniques.
-# 
+
 # ## Gradient Clipping
 # 
 # A popular technique to lessen the exploding gradients problem is to simply clip the gradients during
@@ -1589,10 +1548,8 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # 
 # In general however, Batch
 # Normalization is preferred.
-# 
-# 
+
 # ## A top-down perspective on Neural networks
-# 
 # 
 # The first thing we would like to do is divide the data into two or three
 # parts. A training set, a validation or dev (development) set, and a
@@ -1603,7 +1560,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # test error in order to make tweaks to our model. It is crucial that we
 # do not use any of the test data to train the algorithm. This is a
 # cardinal sin in ML. Then:
-# 
 # 
 # * Estimate optimal error rate
 # 
@@ -1629,8 +1585,7 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # on these two validation sets quantifies the train-test mismatch. This
 # can serve as another important diagnostic when using DNNs for
 # supervised learning.
-# 
-# 
+
 # ## Limitations of supervised learning with deep networks
 # 
 # Like all statistical methods, supervised learning using neural
@@ -1642,8 +1597,6 @@ plot_data(eta,n_neuron,Test_accuracy, 'testing')
 # features). 
 # 
 # Here we list some of the important limitations of supervised neural network based models. 
-# 
-# 
 # 
 # * **Need labeled data**. All supervised learning methods, DNNs for supervised learning require labeled data. Often, labeled data is harder to acquire than unlabeled data (e.g. one must pay for human experts to label images).
 # 
