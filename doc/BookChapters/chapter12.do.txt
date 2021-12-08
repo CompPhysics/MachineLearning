@@ -1,6 +1,7 @@
 ======= Convolutional Neural Networks  =======
 
 
+
 Convolutional neural networks (CNNs) were developed during the last
 decade of the previous century, with a focus on character recognition
 tasks. Nowadays, CNNs are a central element in the spectacular success
@@ -18,11 +19,52 @@ loss function (for example Softmax) on the last (fully-connected) layer
 and all the tips/tricks we developed for learning regular Neural
 Networks still apply (back propagation, gradient descent etc etc).
 
-What is the difference? _CNN architectures make the explicit assumption that
+
+
+_CNN architectures make the explicit assumption that
 the inputs are images, which allows us to encode certain properties
 into the architecture. These then make the forward function more
 efficient to implement and vastly reduce the amount of parameters in
 the network._
+
+Here we provide only a superficial overview, for the more interested, we recommend highly the course
+"IN5400 – Machine Learning for Image Analysis":"https://www.uio.no/studier/emner/matnat/ifi/IN5400/index-eng.html"
+and the slides of "CS231":"http://cs231n.github.io/convolutional-networks/".
+
+Another good read is the article here URL:"https://arxiv.org/pdf/1603.07285.pdf". 
+
+
+
+===== Neural Networks vs CNNs =====
+
+Neural networks are defined as _affine transformations_, that is 
+a vector is received as input and is multiplied with a matrix of so-called weights (our unknown paramters) to produce an
+output (to which a bias vector is usually added before passing the result
+through a nonlinear activation function). This is applicable to any type of input, be it an
+image, a sound clip or an unordered collection of features: whatever their
+dimensionality, their representation can always be flattened into a vector
+before the transformation.
+
+
+
+However, when we consider images, sound clips and many other similar kinds of data, these data  have an intrinsic
+structure. More formally, they share these important properties:
+* They are stored as multi-dimensional arrays (think of the pixels of a figure) .
+* They feature one or more axes for which ordering matters (e.g., width and height axes for an image, time axis for a sound clip).
+* One axis, called the channel axis, is used to access different views of the data (e.g., the red, green and blue channels of a color image, or the left and right channels of a stereo audio track).
+
+These properties are not exploited when an affine transformation is applied; in
+fact, all the axes are treated in the same way and the topological information
+is not taken into account. Still, taking advantage of the implicit structure of
+the data may prove very handy in solving some tasks, like computer vision and
+speech recognition, and in these cases it would be best to preserve it. This is
+where discrete convolutions come into play.
+
+A discrete convolution is a linear transformation that preserves this notion of
+ordering. It is sparse (only a few input units contribute to a given output
+unit) and reuses parameters (the same weights are applied to multiple locations
+in the input).
+
 
 
 As an example, consider
@@ -40,7 +82,6 @@ this full connectivity is wasteful and the huge number of parameters
 would quickly lead to possible overfitting.
 
 FIGURE: [figslides/nn.jpeg, width=500 frac=0.6]  A regular 3-layer Neural Network.
-
 
 
 Convolutional Neural Networks take advantage of the fact that the
@@ -67,9 +108,12 @@ end of the CNN architecture we will reduce the full image into a
 single vector of class scores, arranged along the depth
 dimension. 
 
-FIGURE: [figslides/cnn.jpeg, width=500 frac=0.6]  A CNN arranges its neurons in three dimensions (width, heigh#t, depth), as visualized in one of the layers. Every layer of a CNN transforms the 3D input volume to a 3D out#put volume of neuron activations. In this example, the red input layer holds the image, so its width and heigh#t would be the dimensions of the image, and the depth would be 3 (Red, Green, Blue channels).
+FIGURE: [figslides/cnn.jpeg, width=500 frac=0.6]  A CNN arranges its neurons in three dimensions (width, height, depth), as visualized in one of the layers. Every layer of a CNN transforms the 3D input volume to a 3D output volume of neuron activations. In this example, the red input layer holds the image, so its width and height would be the dimensions of the image, and the depth would be 3 (Red, Green, Blue channels).
 
 
+
+
+===== Layers used to build CNNs =====
 
 
 A simple CNN is a sequence of layers, and every layer of a CNN
@@ -89,6 +133,7 @@ A simple CNN for image classification could have the architecture:
 
 
 
+
 CNNs transform the original image layer by layer from the original
 pixel values to the final class scores. 
 
@@ -103,8 +148,6 @@ are consistent with the labels in the training set for each image.
 
 
 
-=== CNNs in brief ===
-
 In summary:
 
 * A CNN architecture is in the simplest case a list of Layers that transform the image volume into an output volume (e.g. holding the class scores)
@@ -112,6 +155,438 @@ In summary:
 * Each Layer accepts an input 3D volume and transforms it to an output 3D volume through a differentiable function
 * Each Layer may or may not have parameters (e.g. CONV/FC do, RELU/POOL don’t)
 * Each Layer may or may not have additional hyperparameters (e.g. CONV/FC/POOL do, RELU doesn’t)
+
+
+A dense neural network is representd by an affine operation (like matrix-matrix multiplication) where all parameters are included.
+
+The key idea in CNNs for say imaging is that in images neighbor pixels tend to be related! So we connect
+only neighboring neurons in the input instead of connecting all with the first hidden layer.
+
+We say we perform a filtering (convolution is the mathematical operation). 
+
+
+
+===== Mathematics of CNNs =====
+
+The mathematics of CNNs is based on the mathematical operation of
+_convolution_.  In mathematics (in particular in functional analysis),
+convolution is represented by matheematical operation (integration,
+summation etc) on two function in order to produce a third function
+that expresses how the shape of one gets modified by the other.
+Convolution has a plethora of applications in a variety of disciplines, spanning from statistics to signal processing, computer vision, solutions of differential equations,linear algebra, engineering,  and yes, machine learning.
+
+Mathematically, convolution is defined as follows (one-dimensional example):
+Let us define a continuous function $y(t)$ given by
+!bt
+\[
+y(t) = \int x(a) w(t-a) da,
+\]
+!et
+where $x(a)$ represents a so-called input and $w(t-a)$ is normally called the weight function or kernel.
+
+The above integral is written in  a more compact form as
+!bt
+\[
+y(t) = \left(x * w\right)(t).
+\]
+!et
+
+The discretized version reads
+!bt
+\[
+y(t) = \sum_{a=-\infty}^{a=\infty}x(a)w(t-a).
+\]
+!et
+Computing the inverse of the above convolution operations is known as deconvolution.
+
+How can we use this? And what does it mean? Let us study some familiar examples first.
+
+
+
+=== Convolution Examples: Polynomial multiplication ===
+
+We have already met such an example in project 1 when we tried to set
+up the design matrix for a two-dimensional function. This was an
+example of polynomial multiplication.  Let us recast such a problem in terms of the convolution operation.
+Let us look a the following polynomials to second and third order, respectively:
+!bt
+\[
+p(t) = \alpha_0+\alpha_1 t+\alpha_2 t^2,
+\]
+!et
+and
+!bt
+\[
+s(t) = \beta_0+\beta_1 t+\beta_2 t^2+\beta_3 t^3.
+\]
+!et
+
+The polynomial multiplication gives us a new polynomial of degree $5$
+!bt
+\[
+z(t) = \delta_0+\delta_1 t+\delta_2 t^2+\delta_3 t^3+\delta_4 t^4+\delta_5 t^5.
+\]
+!et
+
+
+Computing polynomial products can be implemented efficiently if we rewrite the more brute force multiplications using convolution.
+We note first that the new coefficients are given as
+
+!bt
+\begin{split}
+\delta_0=&\alpha_0\beta_0\\
+\delta_1=&\alpha_1\beta_0+\alpha_1\beta_0\\
+\delta_2=&\alpha_0\beta_2+\alpha_1\beta_1+\alpha_2\beta_0\\
+\delta_3=&\alpha_1\beta_2+\alpha_2\beta_1+\alpha_0\beta_3\\
+\delta_4=&\alpha_2\beta_2+\alpha_1\beta_3\\
+\delta_5=&\alpha_2\beta_3.\\
+\end{split}
+!et
+
+
+We note that $\alpha_i=0$ except for $i\in \left\{0,1,2\right\}$ and $\beta_i=0$ except for $i\in\left\{0,1,2,3\right\}$.
+
+We can then rewrite the coefficients $\delta_j$ using a discrete convolution as
+!bt
+\[
+\delta_j = \sum_{i=-\infty}^{i=\infty}\alpha_i\beta_{j-i}=(\alpha * \beta)_j,
+\]
+!et
+or as a double sum with restriction $l=i+j$
+!bt
+\[
+\delta_l = \sum_{ij}\alpha_i\beta_{j}.
+\]
+!et
+
+Do you see a potential drawback with these equations?
+
+
+Since we only have a finite number of $\alpha$ and $\beta$ values
+which are non-zero, we can rewrite the above convolution expressions
+as a matrix-vector multiplication
+
+!bt
+\[
+\bm{\delta}=\begin{bmatrix}\alpha_0 & 0 & 0 & 0 \\
+                            \alpha_1 & \alpha_0 & 0 & 0 \\
+			    \alpha_2 & \alpha_1 & \alpha_0 & 0 \\
+			    0 & \alpha_2 & \alpha_1 & \alpha_0 \\
+			    0 & 0 & \alpha_2 & \alpha_1 \\
+			    0 & 0 & 0 & \alpha_2
+			    \end{bmatrix}\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3\end{bmatrix}.
+\]
+!et
+
+The process is commutative and we can easily see that we can rewrite the multiplication in terms of  a matrix holding $\beta$ and a vector holding $\alpha$.
+In this case we have
+!bt
+\[
+\bm{\delta}=\begin{bmatrix}\beta_0 & 0 & 0  \\
+                            \beta_1 & \beta_0 & 0  \\
+			    \beta_2 & \beta_1 & \beta_0  \\
+			    \beta_3 & \beta_2 & \beta_1 \\
+			    0 & \beta_3 & \beta_2 \\
+			    0 & 0 & \beta_3
+			    \end{bmatrix}\begin{bmatrix} \alpha_0 \\ \alpha_1 \\ \alpha_2\end{bmatrix}.
+\]
+!et
+
+Note that the use of these  matrices is for mathematical purposes only  and not implementation purposes.
+When implementing the above equation we do not encode (and allocate memory) the matrices explicitely.
+We rather code the convolutions in the minimal memory footprint that they require.
+
+Does the number of floating point operations change here when we use the commutative property?
+
+=== Convolution Examples: Principle of Superposition and Periodic Forces (Fourier Transforms) ===
+
+For problems with so-called harmonic oscillations, given by for example the following differential equation
+!bt
+\[
+m\frac{d^2x}{dt^2}+\eta\frac{dx}{dt}+x(t)=F(t),
+\]
+!et
+where $F(t)$ is an applied external force acting on the system (often called a driving force), one can use the theory of Fourier transformations to find the solutions of this type of equations.
+
+If one has several driving forces, $F(t)=\sum_n F_n(t)$, one can find
+the particular solution to each $F_n$, $x_{pn}(t)$, and the particular
+solution for the entire driving force is then given by a series like
+
+!bt
+\begin{equation}
+x_p(t)=\sum_nx_{pn}(t).
+\end{equation}
+!et
+
+
+
+This is known as the principle of superposition. It only applies when
+the homogenous equation is linear. If there were an anharmonic term
+such as $x^3$ in the homogenous equation, then when one summed various
+solutions, $x=(\sum_n x_n)^2$, one would get cross
+terms. Superposition is especially useful when $F(t)$ can be written
+as a sum of sinusoidal terms, because the solutions for each
+sinusoidal (sine or cosine)  term is analytic. 
+
+Driving forces are often periodic, even when they are not
+sinusoidal. Periodicity implies that for some time $\tau$
+
+!bt
+\begin{eqnarray}
+F(t+\tau)=F(t). 
+\end{eqnarray}
+!et
+
+One example of a non-sinusoidal periodic force is a square wave. Many
+components in electric circuits are non-linear, e.g. diodes, which
+makes many wave forms non-sinusoidal even when the circuits are being
+driven by purely sinusoidal sources.
+
+
+The code here shows a typical example of such a square wave generated using the functionality included in the _scipy_ Python package. We have used a period of $\tau=0.2$.
+
+!bc pycod
+import numpy as np
+import math
+from scipy import signal
+import matplotlib.pyplot as plt
+
+# number of points                                                                                       
+n = 500
+# start and final times                                                                                  
+t0 = 0.0
+tn = 1.0
+# Period                                                                                                 
+t = np.linspace(t0, tn, n, endpoint=False)
+SqrSignal = np.zeros(n)
+SqrSignal = 1.0+signal.square(2*np.pi*5*t)
+plt.plot(t, SqrSignal)
+plt.ylim(-0.5, 2.5)
+plt.show()
+!ec
+
+
+For the sinusoidal example the
+period is $\tau=2\pi/\omega$. However, higher harmonics can also
+satisfy the periodicity requirement. In general, any force that
+satisfies the periodicity requirement can be expressed as a sum over
+harmonics,
+
+!bt
+\begin{equation}
+F(t)=\frac{f_0}{2}+\sum_{n>0} f_n\cos(2n\pi t/\tau)+g_n\sin(2n\pi t/\tau).
+\end{equation}
+!et
+
+
+We can write down the answer for
+$x_{pn}(t)$, by substituting $f_n/m$ or $g_n/m$ for $F_0/m$. By
+writing each factor $2n\pi t/\tau$ as $n\omega t$, with $\omega\equiv
+2\pi/\tau$,
+
+!bt
+\begin{equation}
+label{eq:fourierdef1}
+F(t)=\frac{f_0}{2}+\sum_{n>0}f_n\cos(n\omega t)+g_n\sin(n\omega t).
+\end{equation}
+!et
+
+The solutions for $x(t)$ then come from replacing $\omega$ with
+$n\omega$ for each term in the particular solution,
+
+!bt
+\begin{eqnarray}
+x_p(t)&=&\frac{f_0}{2k}+\sum_{n>0} \alpha_n\cos(n\omega t-\delta_n)+\beta_n\sin(n\omega t-\delta_n),\\
+\nonumber
+\alpha_n&=&\frac{f_n/m}{\sqrt{((n\omega)^2-\omega_0^2)+4\beta^2n^2\omega^2}},\\
+\nonumber
+\beta_n&=&\frac{g_n/m}{\sqrt{((n\omega)^2-\omega_0^2)+4\beta^2n^2\omega^2}},\\
+\nonumber
+\delta_n&=&\tan^{-1}\left(\frac{2\beta n\omega}{\omega_0^2-n^2\omega^2}\right).
+\end{eqnarray}
+!et
+
+
+
+Because the forces have been applied for a long time, any non-zero
+damping eliminates the homogenous parts of the solution, so one need
+only consider the particular solution for each $n$.
+
+The problem is considered solved if one can find expressions for the
+coefficients $f_n$ and $g_n$, even though the solutions are expressed
+as an infinite sum. The coefficients can be extracted from the
+function $F(t)$ by
+
+!bt
+\begin{eqnarray}
+label{eq:fourierdef2}
+f_n&=&\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~F(t)\cos(2n\pi t/\tau),\\
+\nonumber
+g_n&=&\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~F(t)\sin(2n\pi t/\tau).
+\end{eqnarray}
+!et
+
+To check the consistency of these expressions and to verify
+Eq. (ref{eq:fourierdef2}), one can insert the expansion of $F(t)$ in
+Eq. (ref{eq:fourierdef1}) into the expression for the coefficients in
+Eq. (ref{eq:fourierdef2}) and see whether
+
+!bt
+\begin{eqnarray}
+f_n&=?&\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~\left\{
+\frac{f_0}{2}+\sum_{m>0}f_m\cos(m\omega t)+g_m\sin(m\omega t)
+\right\}\cos(n\omega t).
+\end{eqnarray}
+!et
+
+Immediately, one can throw away all the terms with $g_m$ because they
+convolute an even and an odd function. The term with $f_0/2$
+disappears because $\cos(n\omega t)$ is equally positive and negative
+over the interval and will integrate to zero. For all the terms
+$f_m\cos(m\omega t)$ appearing in the sum, one can use angle addition
+formulas to see that $\cos(m\omega t)\cos(n\omega
+t)=(1/2)(\cos[(m+n)\omega t]+\cos[(m-n)\omega t]$. This will integrate
+to zero unless $m=n$. In that case the $m=n$ term gives
+
+!bt
+\begin{equation}
+\int_{-\tau/2}^{\tau/2}dt~\cos^2(m\omega t)=\frac{\tau}{2},
+\end{equation}
+!et
+
+and
+
+!bt
+\begin{eqnarray}
+f_n&=?&\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~f_n/2\\
+\nonumber
+&=&f_n~\checkmark.
+\end{eqnarray}
+!et
+
+The same method can be used to check for the consistency of $g_n$.
+
+
+
+
+The code here uses the Fourier series applied to a 
+square wave signal. The code here
+visualizes the various approximations given by Fourier series compared
+with a square wave with period $T=0.2$ (dimensionless time), width $0.1$ and max value of the force $F=2$. We
+see that when we increase the number of components in the Fourier
+series, the Fourier series approximation gets closer and closer to the
+square wave signal.
+
+!bc pycod
+import numpy as np
+import math
+from scipy import signal
+import matplotlib.pyplot as plt
+
+# number of points                                                                                       
+n = 500
+# start and final times                                                                                  
+t0 = 0.0
+tn = 1.0
+# Period                                                                                                 
+T =0.2
+# Max value of square signal                                                                             
+Fmax= 2.0
+# Width of signal   
+Width = 0.1
+t = np.linspace(t0, tn, n, endpoint=False)
+SqrSignal = np.zeros(n)
+FourierSeriesSignal = np.zeros(n)
+SqrSignal = 1.0+signal.square(2*np.pi*5*t+np.pi*Width/T)
+a0 = Fmax*Width/T
+FourierSeriesSignal = a0
+Factor = 2.0*Fmax/np.pi
+for i in range(1,500):
+    FourierSeriesSignal += Factor/(i)*np.sin(np.pi*i*Width/T)*np.cos(i*t*2*np.pi/T)
+plt.plot(t, SqrSignal)
+plt.plot(t, FourierSeriesSignal)
+plt.ylim(-0.5, 2.5)
+plt.show()
+!ec
+
+
+
+=====  Two-dimensional Objects =====
+
+We often use convolutions over more than one dimension at a time. If
+we have a two-dimensional image $I$ as input, we can have a _filter_
+defined by a two-dimensional _kernel_ $K$. This leads to an output $S$
+
+!bt
+\[
+S_(i,j)=(I * K)(i,j) = \sum_m\sum_n I(m,n)K(i-m,j-n).
+\]
+!et
+
+Convolution is a commutatitave process, which means we can rewrite this equation as
+!bt
+\[
+S_(i,j)=(I * K)(i,j) = \sum_m\sum_n I(i-m,j-n)K(m,n).
+\]
+!et
+
+Normally the latter is more straightforward to implement in  a machine elarning library since there is less variation in the range of values of $m$ and $n$.
+
+
+Many deep learning libraries implement cross-correlation instead of convolution
+!bt
+\[
+S_(i,j)=(I * K)(i,j) = \sum_m\sum_n I(i+m,j-+)K(m,n).
+\]
+!et
+
+
+===== More on Dimensionalities =====
+
+In fields like signal processing (and imaging as well), one designs
+so-called filters. These filters are defined by the convolutions and
+are often hand-crafted. One may specify filters for smoothing, edge
+detection, frequency reshaping, and similar operations. However with
+neural networks the idea is to automatically learn the filters and use
+many of them in conjunction with non-linear operations (activation
+functions).
+
+As an example consider a neural network operating on sound sequence
+data.  Assume that we an input vector $\bm{x}$ of length $d=10^6$.  We
+construct then a neural network with onle hidden layer only with
+$10^4$ nodes. This means that we will have a weight matrix with
+$10^4\times 10^6=10^{10}$ weights to be determined, together with $10^4$ biases.
+
+Assume furthermore that we have an output layer which is meant to train whether the sound sequence represents a human voice (true) or something else (false).
+It means that we have only one output node. But since this output node connects to $10^4$ nodes in the hidden layer, there are in total $10^4$ weights to be determined for the output layer, plus one bias. In total we have
+
+!bt
+\[
+\mathrm{NumberParameters}=10^{10}+10^4+10^4+1 \approx 10^{10},
+\]
+!et
+that is ten billion parameters to determine. 
+
+
+===== Further Dimensionality Remarks =====
+
+In today’s architecture one can train such neural networks, however
+this is a huge number of parameters for the task at hand. In general,
+it is a very wasteful and inefficient use of dense matrices as
+parameters. Just as importantly, such trained network parameters are
+very specific for the type of input data on which they were trained
+and the network is not likely to generalize easily to variations in
+the input.
+
+
+The main principles that justify convolutions is locality of
+information and repetion of patterns within the signal. Sound samples
+of the input in adjacent spots are much more likely to affect each
+other than those that are very far away. Similarly, sounds are
+repeated in multiple times in the signal. While slightly simplistic,
+reasoning about such a sound example demonstrates this. The same
+principles then apply to images and other similar data.
+
 
 
 
@@ -138,6 +613,7 @@ dataset of images, we require a 4D matrix or _tensor_. This tensor has the dimen
 !et
   
 
+===  The MNIST dataset again ===
 
 The MNIST dataset consists of grayscale images with a pixel size of
 $28\times 28$, meaning we require $28 \times 28 = 724$ weights to each
@@ -183,6 +659,7 @@ small regions, and this serves as input to the next convolutional
 layer.
 
 
+=== Systematic reduction ===
 
 By systematically reducing the size of the input volume, through
 convolution and pooling, the network should create representations of
@@ -193,7 +670,6 @@ layer is connected to every single neuron in the hidden layer. This
 then serves as input to the output layer, e.g. a softmax output for
 classification.
   
-
 
 === Prerequisites: Collect and pre-process data ===
 !bc pycod
@@ -240,7 +716,7 @@ plt.show()
 !ec
 
 
-=== Importing Keras and Tensorflow ===
+
 !bc pycod
 from tensorflow.keras import datasets, layers, models
 from tensorflow.keras.layers import Input
@@ -297,6 +773,7 @@ lmbd_vals = np.logspace(-5, 1, 7)
 !ec
 
 
+
 !bc pycod
 CNN_keras = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
         
@@ -316,8 +793,8 @@ for i, eta in enumerate(eta_vals):
         print()
 !ec     
 
+!split
 
-=== Final visualization ===
 
 !bc pycod
 # visual representation of grid search
@@ -378,7 +855,6 @@ train_images, test_images = train_images / 255.0, test_images / 255.0
 
 
 
-
 To verify that the dataset looks correct, let's plot the first 25 images from the training set and display the class name below each image.
 
 !bc pycod
@@ -399,7 +875,7 @@ plt.show()
 !ec
 
 
-The 6 lines of code below define the convolutional base using a common pattern: a stack of Conv2D and MaxPooling2D layers.
+The six lines of code below define the convolutional base using a common pattern: a stack of Conv2D and MaxPooling2D layers.
 
 As input, a CNN takes tensors of shape (image_height, image_width, color_channels), ignoring the batch size. If you are new to these dimensions, color_channels refers to (R,G,B). In this example, you will configure our CNN to process inputs of shape (32, 32, 3), which is the format of CIFAR images. You can do this by passing the argument input_shape to our first layer.
 
@@ -417,6 +893,8 @@ model.summary()
 !ec
 
 You can see that the output of every Conv2D and MaxPooling2D layer is a 3D tensor of shape (height, width, channels). The width and height dimensions tend to shrink as you go deeper in the network. The number of output channels for each Conv2D layer is controlled by the first argument (e.g., 32 or 64). Typically, as the width and height shrink, you can afford (computationally) to add more output channels in each Conv2D layer.
+
+
 
 
 
@@ -438,7 +916,6 @@ model.summary()
 !ec
 As you can see, our (4, 4, 64) outputs were flattened into vectors of shape (1024) before going through two Dense layers.
 
-Compile and train the model.
 
 !bc pycod
 model.compile(optimizer='adam',
@@ -450,7 +927,7 @@ history = model.fit(train_images, train_labels, epochs=10,
 
 !ec
 
-Finally, we evaluate the model.
+
 
 !bc pycod
 plt.plot(history.history['accuracy'], label='accuracy')
@@ -468,99 +945,7 @@ print(test_acc)
 
 
 
-===== Recurrent neural networks: Overarching view =====
-
-Till now our focus has been, including convolutional neural networks
-as well, on feedforward neural networks. The output or the activations
-flow only in one direction, from the input layer to the output layer.
-
-A recurrent neural network (RNN) looks very much like a feedforward
-neural network, except that it also has connections pointing
-backward. 
-
-RNNs are used to analyze time series data such as stock prices, and
-tell you when to buy or sell. In autonomous driving systems, they can
-anticipate car trajectories and help avoid accidents. More generally,
-they can work on sequences of arbitrary lengths, rather than on
-fixed-sized inputs like all the nets we have discussed so far. For
-example, they can take sentences, documents, or audio samples as
-input, making them extremely useful for natural language processing
-systems such as automatic translation and speech-to-text.
 
 
-
-
-=== A simple example ===
-
-!bc pycod
-# Start importing packages
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import tensorflow as tf
-from tensorflow.keras import datasets, layers, models
-from tensorflow.keras.layers import Input
-from tensorflow.keras.models import Model, Sequential 
-from tensorflow.keras.layers import Dense, SimpleRNN, LSTM, GRU
-from tensorflow.keras import optimizers     
-from tensorflow.keras import regularizers           
-from tensorflow.keras.utils import to_categorical 
-
-
-
-# convert into dataset matrix
-def convertToMatrix(data, step):
- X, Y =[], []
- for i in range(len(data)-step):
-  d=i+step  
-  X.append(data[i:d,])
-  Y.append(data[d,])
- return np.array(X), np.array(Y)
-
-step = 4
-N = 1000    
-Tp = 800    
-
-t=np.arange(0,N)
-x=np.sin(0.02*t)+2*np.random.rand(N)
-df = pd.DataFrame(x)
-df.head()
-
-plt.plot(df)
-plt.show()
-
-values=df.values
-train,test = values[0:Tp,:], values[Tp:N,:]
-
-# add step elements into train and test
-test = np.append(test,np.repeat(test[-1,],step))
-train = np.append(train,np.repeat(train[-1,],step))
- 
-trainX,trainY =convertToMatrix(train,step)
-testX,testY =convertToMatrix(test,step)
-trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
-testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
-
-model = Sequential()
-model.add(SimpleRNN(units=32, input_shape=(1,step), activation="relu"))
-model.add(Dense(8, activation="relu")) 
-model.add(Dense(1))
-model.compile(loss='mean_squared_error', optimizer='rmsprop')
-model.summary()
-
-model.fit(trainX,trainY, epochs=100, batch_size=16, verbose=2)
-trainPredict = model.predict(trainX)
-testPredict= model.predict(testX)
-predicted=np.concatenate((trainPredict,testPredict),axis=0)
-
-trainScore = model.evaluate(trainX, trainY, verbose=0)
-print(trainScore)
-
-index = df.index.values
-plt.plot(index,df)
-plt.plot(index,predicted)
-plt.axvline(df.index[Tp], c="r")
-plt.show()
-!ec
 
 
