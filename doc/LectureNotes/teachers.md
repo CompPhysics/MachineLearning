@@ -8,7 +8,7 @@
 * _Office_: Department of Physics, University of Oslo, Eastern wing, room FØ470 
 * _Office hours_: *Anytime*! Feel free to send an email for planning. Both in person meetings or digital meetings are possible.
 
-##  Teaching Assistants Fall semester 2021
+##  Teaching Assistants Fall semester 2022
 * Bennosh Ashrafi, behnoosh.ashrafi@fys.uio.no
 * Frida Marie Engøy Westbye, f.m.e.westby@fys.uio.no
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
