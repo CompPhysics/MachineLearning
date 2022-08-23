@@ -9,13 +9,13 @@
 * _Office hours_: *Anytime*! Feel free to send an email for planning. Both in person meetings or digital meetings are possible.
 
 ##  Teaching Assistants Fall semester 2021
-* Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no 	 
-* Stian Bilek, stian.bilek@fys.uio.no
-* Linus Ekstrøm, linueks@gmail.com, linus.ekstrom@fys.uio.no
-* Nicholas Karlsen, nicholaskarlsen1102@gmail.com, nicholas.karlsen@fys.uio.no
-* Bendik Steinsvåg Dalen, b.s.dalen@fys.uio.no
-* Philip Karim Sørli Niane, p.k.s.niane@fys.uio.no
-
+* Bennosh Ashrafi, behnoosh.ashrafi@fys.uio.no
+* Frida Marie Engøy Westbye, f.m.e.westby@fys.uio.no
+* Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
+* Joao Guilherme Carvalho Inacio, joaogca@fys.uio.no
+* Sigurd Sørlie Rustad, s.s.rustad@fys.uio.no
+* Stian Dysthe Bilek stian.bilek@fys.uio.no
+* Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no
 
 
 ## Grading

@@ -764,7 +764,7 @@ Masses = Masses.apply(lambda t: t[t.Ebinding==t.Ebinding.max()])
 # Now we define five variables which contain
 # the number of nucleons $A$, the number of protons $Z$ and the number of neutrons $N$, the element name and finally the energies themselves.
 
-# In[9]:
+# In[ ]:
 
 
 A = Masses['A']
@@ -778,7 +778,7 @@ print(Masses)
 # The next step, and we will define this mathematically later, is to set up the so-called **design matrix**. We will throughout call this matrix $\boldsymbol{X}$.
 # It has dimensionality $n\times p$, where $n$ is the number of data points and $p$ are the so-called predictors. In our case here they are given by the number of polynomials in $A$ we wish to include in the fit.
 
-# In[10]:
+# In[ ]:
 
 
 # Now we set up the design matrix X
@@ -797,7 +797,7 @@ X[:,4] = A**(-1.0)
 # 
 # With **Scikit-Learn** we are now ready to use linear regression and fit our data.
 
-# In[11]:
+# In[ ]:
 
 
 clf = skl.LinearRegression().fit(X, Energies)
@@ -807,7 +807,7 @@ fity = clf.predict(X)
 # Pretty simple!  
 # Now we can print measures of how our fit is doing, the coefficients from the fits and plot the final fit together with our data.
 
-# In[12]:
+# In[ ]:
 
 
 # The mean squared error                               
@@ -833,7 +833,7 @@ plt.show()
 
 # As a teaser, let us now see how we can do this with decision trees using **Scikit-Learn**. Later we will switch to so-called **random forests**!
 
-# In[13]:
+# In[ ]:
 
 
 
@@ -882,7 +882,7 @@ print(np.mean( (Energies-y_1)**2))
 # The **seaborn** package allows us to visualize data in an efficient way. Note that we use **scikit-learn**'s multi-layer perceptron (or feed forward neural network) 
 # functionality.
 
-# In[14]:
+# In[ ]:
 
 
 from sklearn.neural_network import MLPRegressor
@@ -1121,7 +1121,7 @@ plt.show()
 # 
 # We restate the parts of the code we are most interested in.
 
-# In[15]:
+# In[ ]:
 
 
 # Common imports
@@ -1425,7 +1425,7 @@ display(DesignMatrix)
 # It is rather straightforward to implement the matrix inversion and obtain the parameters $\boldsymbol{\beta}$. After having defined the matrix $\boldsymbol{X}$ we simply need to 
 # write
 
-# In[16]:
+# In[ ]:
 
 
 # matrix inversion to find beta
@@ -1436,7 +1436,7 @@ ytilde = X @ beta
 
 # Alternatively, you can use the least squares functionality in **Numpy** as
 
-# In[17]:
+# In[ ]:
 
 
 fit = np.linalg.lstsq(X, Energies, rcond =None)[0]
@@ -1445,7 +1445,7 @@ ytildenp = np.dot(fit,X.T)
 
 # And finally we plot our fit with and compare with data
 
-# In[18]:
+# In[ ]:
 
 
 Masses['Eapprox']  = ytilde
@@ -1465,7 +1465,7 @@ plt.show()
 # We can easily test our fit by computing the $R2$ score that we discussed in connection with the functionality of **Scikit-Learn** in the introductory slides.
 # Since we are not using **Scikit-Learn** here we can define our own $R2$ function as
 
-# In[19]:
+# In[ ]:
 
 
 def R2(y_data, y_model):
@@ -1474,7 +1474,7 @@ def R2(y_data, y_model):
 
 # and we would be using it as
 
-# In[20]:
+# In[ ]:
 
 
 print(R2(Energies,ytilde))
@@ -1482,7 +1482,7 @@ print(R2(Energies,ytilde))
 
 # We can easily add our **MSE** score as
 
-# In[21]:
+# In[ ]:
 
 
 def MSE(y_data,y_model):
@@ -1494,7 +1494,7 @@ print(MSE(Energies,ytilde))
 
 # and finally the relative error as
 
-# In[22]:
+# In[ ]:
 
 
 def RelativeError(y_data,y_model):
@@ -1660,7 +1660,7 @@ print(RelativeError(Energies, ytilde))
 # The difference now is that we use **Scikit-Learn's** regression tools
 # instead of our own matrix inversion implementation.
 
-# In[23]:
+# In[ ]:
 
 
 # Common imports
@@ -1761,7 +1761,7 @@ plt.show()
 # the various measures like the $R2$ score or the mean-squared error,
 # the fit becomes better or worse.
 
-# In[24]:
+# In[ ]:
 
 
 import os
@@ -1806,7 +1806,7 @@ print(MSE(y_test,ypredict))
 
 # Alternatively, you could write your own test-train splitting function as shown here.
 
-# In[25]:
+# In[ ]:
 
 
 # equivalently in numpy
@@ -1834,7 +1834,7 @@ def train_test_split_numpy(inputs, labels, train_size, test_size):
 # to the above equation of state fitting example
 # but now splitting the data into a training set and a test set.
 
-# In[26]:
+# In[ ]:
 
 
 import os
@@ -1942,7 +1942,7 @@ print(MSE(y_test,ypredict))
 # ## Housing data, the code
 # We start by importing the libraries
 
-# In[27]:
+# In[ ]:
 
 
 import numpy as np
@@ -1954,7 +1954,7 @@ import seaborn as sns
 
 # and load the Boston Housing DataSet from **Scikit-Learn**
 
-# In[28]:
+# In[ ]:
 
 
 from sklearn.datasets import load_boston
@@ -1968,7 +1968,7 @@ boston_dataset.keys()
 
 # Then we invoke Pandas
 
-# In[29]:
+# In[ ]:
 
 
 boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
@@ -1978,7 +1978,7 @@ boston['MEDV'] = boston_dataset.target
 
 # and preprocess the data
 
-# In[30]:
+# In[ ]:
 
 
 # check for missing values in all the columns
@@ -1987,7 +1987,7 @@ boston.isnull().sum()
 
 # We can then visualize the data
 
-# In[31]:
+# In[ ]:
 
 
 # set the size of the figure
@@ -2000,7 +2000,7 @@ plt.show()
 
 # It is now useful to look at the correlation matrix
 
-# In[32]:
+# In[ ]:
 
 
 # compute the pair wise correlation for all columns  
@@ -2012,7 +2012,7 @@ sns.heatmap(data=correlation_matrix, annot=True)
 
 # From the above coorelation plot we can see that **MEDV** is strongly correlated to **LSTAT** and  **RM**. We see also that **RAD** and **TAX** are stronly correlated, but we don't include this in our features together to avoid multi-colinearity
 
-# In[33]:
+# In[ ]:
 
 
 plt.figure(figsize=(20, 5))
@@ -2032,7 +2032,7 @@ for i, col in enumerate(features):
 
 # Now we start training our model
 
-# In[34]:
+# In[ ]:
 
 
 X = pd.DataFrame(np.c_[boston['LSTAT'], boston['RM']], columns = ['LSTAT','RM'])
@@ -2041,7 +2041,7 @@ Y = boston['MEDV']
 
 # We split the data into training and test sets
 
-# In[35]:
+# In[ ]:
 
 
 from sklearn.model_selection import train_test_split
@@ -2057,7 +2057,7 @@ print(Y_test.shape)
 
 # Then we use the linear regression functionality from **Scikit-Learn**
 
-# In[36]:
+# In[ ]:
 
 
 from sklearn.linear_model import LinearRegression
@@ -2093,7 +2093,7 @@ print('RMSE is {}'.format(rmse))
 print('R2 score is {}'.format(r2))
 
 
-# In[37]:
+# In[ ]:
 
 
 # plotting the y_test vs y_pred
@@ -2194,7 +2194,7 @@ plt.show()
 # simple test design matrix with random numbers. Each column could then
 # represent a specific feature whose mean value is subracted.
 
-# In[38]:
+# In[ ]:
 
 
 import sklearn.linear_model as skl
@@ -2257,7 +2257,7 @@ display(XPandas-Xscaled)
 # 
 # Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
 
-# In[39]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -2366,7 +2366,7 @@ plt.show()
 # We will generate our own dataset for a function $y(x)$ where $x \in [0,1]$ and defined by random numbers computed with the uniform distribution. The function $y$ is a quadratic polynomial in $x$ with added stochastic noise according to the normal distribution $\cal {N}(0,1)$.
 # The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
 
-# In[40]:
+# In[ ]:
 
 
 x = np.random.rand(100,1)
@@ -2442,7 +2442,7 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 # It also common to split the data in a **training** set and a **testing** set. A typical split is to use $80\%$ of the data for training and the rest
 # for testing. This can be done as follows with our design matrix $\boldsymbol{X}$ and data $\boldsymbol{y}$ (remember to import **scikit-learn**)
 
-# In[41]:
+# In[ ]:
 
 
 # split in training and test data
@@ -2451,7 +2451,7 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 
 # Then we can use the standard scaler to scale our data as
 
-# In[42]:
+# In[ ]:
 
 
 scaler = StandardScaler()
@@ -2471,7 +2471,7 @@ X_test_scaled = scaler.transform(X_test)
 # 
 # Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
 
-# In[43]:
+# In[ ]:
 
 
 np.random.seed()
