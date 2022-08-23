@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html linalg.do.txt  -->
+
 # # Linear Algebra, Handling of Arrays and more Python Features
-# 
+
 # ## Introduction
 # 
 # The aim of this set of lectures is to review some central linear algebra algorithms that we will need in our 
@@ -15,9 +18,8 @@
 # as writing your own codes for some central ML algorithms. The
 # latter can be written in a language of your choice, be it Python, Julia, R,
 # Rust, C++, Fortran etc. In order to avoid confusion however, in these lectures we will limit our
-# attention to Python, C++ and Fortran.  
-# 
-# 
+# attention to Python, C++ and Fortran.
+
 # ## Important Matrix and vector handling packages
 # 
 # There are several central software packages for linear algebra and eigenvalue problems. Several of the more
@@ -47,8 +49,7 @@
 # convenient way to handle and organize arrays. We discuss this library
 # as well.   Before we proceed we believe  it may be convenient to repeat some basic features of 
 #  matrices and vectors.
-# 
-# 
+
 # ## Basic Matrix Features
 # 
 # Matrix properties reminder
@@ -74,7 +75,7 @@
 # \mathbf{A}^{-1} \cdot \mathbf{A} = I
 # $$
 
-# <table border="1">
+# <table class="dotable" border="1">
 # <thead>
 # <tr><th align="center">              Relations               </th> <th align="center">      Name     </th> <th align="center">                            matrix elements                            </th> </tr>
 # </thead>
@@ -86,6 +87,7 @@
 # <tr><td align="center">   $A = \left (A^{\dagger} \right )^{-1}$    </td> <td align="center">   unitary            </td> <td align="center">   $\sum_k a_{ik} a_{jk}^{ * } = \sum_k a_{ki}^{ * } a_{kj} = \delta_{ij}$    </td> </tr>
 # </tbody>
 # </table>
+
 # ### Some famous Matrices
 # 
 #   * Diagonal if $a_{ij}=0$ for $i\ne j$
@@ -119,7 +121,7 @@
 #   * $\mathbf{A}$ is a product of elementary matrices.
 # 
 #   * $0$ is not eigenvalue of $\mathbf{A}$.
-# 
+
 # ## Numpy and arrays
 # [Numpy](http://www.numpy.org/) provides an easy way to handle arrays in Python. The standard way to import this library is as
 
@@ -190,24 +192,24 @@ print(x)
 
 
 import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0])
+x = np.log(np.array([4.0, 7.0, 8.0]))
 print(x)
 
 
 # To check the number of bytes (remember that one byte contains eight bits for double precision variables), you can use simple use the **itemsize** functionality (the array $x$ is actually an object which inherits the functionalities defined in Numpy) as
 
-# In[ ]:
+# In[7]:
 
 
 import numpy as np
-x = np.log(np.array([4.0, 7.0, 8.0])
+x = np.log(np.array([4.0, 7.0, 8.0]))
 print(x.itemsize)
 
 
 # Having defined vectors, we are now ready to try out matrices. We can define a $3 \times 3 $ real matrix $\hat{A}$
 # as (recall that we user lowercase letters for vectors and uppercase letters for matrices)
 
-# In[ ]:
+# In[8]:
 
 
 import numpy as np
@@ -217,7 +219,7 @@ print(A)
 
 # If we use the **shape** function we would get $(3, 3)$ as output, that is verifying that our matrix is a $3\times 3$ matrix. We can slice the matrix and print for example the first column (Python organized matrix elements in a row-major order, see below) as
 
-# In[ ]:
+# In[9]:
 
 
 import numpy as np
@@ -228,7 +230,7 @@ print(A[:,0])
 
 # We can continue this was by printing out other columns or rows. The example here prints out the second column
 
-# In[ ]:
+# In[10]:
 
 
 import numpy as np
@@ -239,7 +241,7 @@ print(A[1,:])
 
 # Numpy contains many other functionalities that allow us to slice, subdivide etc etc arrays. We strongly recommend that you look up the [Numpy website for more details](http://www.numpy.org/). Useful functions when defining a matrix are the **np.zeros** function which declares a matrix of a given dimension and sets all elements to zero
 
-# In[ ]:
+# In[11]:
 
 
 import numpy as np
@@ -251,7 +253,7 @@ print(A)
 
 # or initializing all elements to
 
-# In[ ]:
+# In[12]:
 
 
 import numpy as np
@@ -263,7 +265,7 @@ print(A)
 
 # or as unitarily distributed random numbers (see the material on random number generators in the statistics part)
 
-# In[ ]:
+# In[13]:
 
 
 import numpy as np
@@ -311,7 +313,7 @@ print(A)
 # function **np.mean(x)**. We can also extract the eigenvalues of the
 # covariance matrix through the **np.linalg.eig()** function.
 
-# In[ ]:
+# In[14]:
 
 
 # Importing various packages
@@ -331,7 +333,7 @@ Eigvals, Eigvecs = np.linalg.eig(Sigma)
 print(Eigvals)
 
 
-# In[ ]:
+# In[15]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -353,7 +355,7 @@ plt.show()
 # 
 # The following examples show how to compute various quantities like the **mean** value of a matrix or a vector and how to use functions like **reshape** and **ravel**. These are all useful quantities when scaling the data and preparing the data for various machine learning algorithms and when calculating quantities like the mean squared error or the variance.
 
-# In[ ]:
+# In[16]:
 
 
 """
@@ -374,6 +376,12 @@ print(f"This is the mean for each column:{np.mean(a, axis=0, keepdims=True,dtype
 print(f"This is the mean value for each row:{np.mean(a, axis=1, keepdims=True,dtype=np.float64)}")
 # We print then the mean value for each row by  setting keepdims=False
 print(f"This is the mean value for each row with keepdims false:{np.mean(a, axis=1, keepdims=False,dtype=np.float64)}")
+
+
+# Another useful function is the **ravel** function, which returns a flattened array as shown in the example here.
+
+# In[17]:
+
 
 # Ravel return a contiguous flattened array.
 print(f"Flatten  the matrix:{np.ravel(a)}")
@@ -467,7 +475,6 @@ print(np.ravel(a.T, order='A'))
 # We can solve this system of equations recursively starting from $x_n$ (in our case $x_4$) and proceed with
 # what is called a backward substitution. 
 # 
-# 
 # This process can be expressed mathematically as
 
 # <!-- Equation labels as ordinary links -->
@@ -484,7 +491,6 @@ print(np.ravel(a.T, order='A'))
 # the unknown $x_1$ for $j=2,n$. We achieve this by multiplying the first equation by $a_{j1}/a_{11}$ and then subtract
 # the result from the $j$th equation. We assume obviously that $a_{11}\ne 0$ and that
 # $\mathbf{A}$ is not singular.
-# 
 # 
 # Our actual $4\times 4$ example reads after the first operation
 
@@ -574,8 +580,6 @@ print(np.ravel(a.T, order='A'))
 # We have also set $w_1^{(1)}=w_1$, the original vector element.
 # We see that the system of unknowns $x_1,\dots,x_n$ is transformed into an $(n-1)\times (n-1)$ problem.
 # 
-# 
-# 
 # This step is called forward substitution.
 # Proceeding with these substitutions, we obtain the
 # general expressions for the new coefficients
@@ -612,9 +616,6 @@ print(np.ravel(a.T, order='A'))
 # results in $-10^{-7}$ and that $a_{22}$ is one.
 # one. We are then
 # adding $10^7+1$. With single precision this results in $10^7$.
-# 
-# 
-# 
 # 
 #   * Gaussian elimination, $O(2/3n^3)$ flops, general matrix
 # 
@@ -752,7 +753,6 @@ print(np.ravel(a.T, order='A'))
 # and as soon as we have $\mathbf{y}$ we can obtain $\mathbf{x}$
 # through $\mathbf{Ux}=\mathbf{y}$.
 # 
-# 
 # For our four-dimentional example this takes the form
 
 # $$
@@ -792,8 +792,6 @@ print(np.ravel(a.T, order='A'))
 # This example shows the basis for the algorithm
 # needed to solve the set of $n$ linear equations.
 # 
-# 
-# 
 # The algorithm goes as follows
 # 
 #   * Set up the matrix $\bf A$ and the vector $\bf w$ with their correct dimensions. This determines the dimensionality of the unknown vector $\bf x$.
@@ -801,7 +799,7 @@ print(np.ravel(a.T, order='A'))
 #   * Then LU decompose the matrix $\bf A$ through a call to the function `ludcmp(double a, int n, int indx, double &d)`. This functions returns the LU decomposed matrix $\bf A$, its determinant and the vector indx which keeps track of the number of interchanges of rows. If the determinant is zero, the solution is malconditioned.
 # 
 #   * Thereafter you call the function  `lubksb(double a, int n, int indx, double w)` which uses the LU decomposed matrix $\bf A$ and the vector $\bf w$ and returns $\bf x$ in the same place as $\bf w$. Upon exit the original content in $\bf w$ is destroyed. If you wish to keep this information, you should make a backup of it in your calling function.
-# 
+
 # ### LU Decomposition, the inverse of a matrix
 # 
 # If the inverse exists then
@@ -861,3 +859,10 @@ print(np.ravel(a.T, order='A'))
 # $$
 
 # and continue till we have solved all $n$ sets of linear equations.
+# 
+# The calculation of the inverse here assumes that it actually
+# exists. In many machine learning applications there may be strong
+# linear dependencies among the various columns and/or rows. In our
+# discussions of linear regression we will dive into the mathematics of
+# the singular value decomposition, an algorithm which will allow us to calculate the so-called pseudo-inverse.
+# These details will be presented in our linear regression chapter.
