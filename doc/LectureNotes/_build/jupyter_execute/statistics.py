@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html statistics.do.txt  -->
+
 # # Elements of Probability Theory and Statistical Data Analysis
-# 
-# 
+
 # ## Domains and probabilities
+# 
 # Consider the following simple example, namely the tossing of two dice, resulting in  the following possible values
 
 # $$
@@ -18,7 +21,6 @@
 # \{1/36,2/36/,3/36,4/36,5/36,6/36,5/36,4/36,3/36,2/36,1/36\}.
 # $$
 
-# ## Tossing  the dice
 # The numbers in the domain are the outcomes of the physical process of tossing say two dice.
 # We cannot tell beforehand whether the outcome is 3 or 5 or any other number in this domain.
 # This defines the randomness of the outcome, or unexpectedness or any other synonimous word which
@@ -39,14 +41,10 @@
 # \{10,8,6,3,6,9,11,8,12,4,5\}.
 # $$
 
-# ## Stochastic variables
-# 
 # **Random variables are characterized by a domain which contains all possible values that the random value may take. This domain has a corresponding probability distribution function(PDF)**.
+
+# ### Stochastic variables and the main concepts, the discrete case
 # 
-# 
-# 
-# 
-# ## Stochastic variables and the main concepts, the discrete case
 # There are two main concepts associated with a stochastic variable. The
 # *domain* is the set $\mathbb D = \{x\}$ of all accessible values
 # the variable can assume, so that $X \in \mathbb D$. An example of a
@@ -62,7 +60,6 @@
 # p(x) = \mathrm{Prob}(X=x).
 # $$
 
-# ## Stochastic variables and the main concepts, the continuous case
 # In the continuous case, the PDF does not directly depict the
 # actual probability. Instead we define the probability for the
 # stochastic variable to assume any value on an infinitesimal interval
@@ -79,10 +76,6 @@
 # numbers chosen as if by chance from some specified PDF so that the
 # selection of a large set of these numbers reproduces this PDF.
 # 
-# 
-# 
-# 
-# ## The cumulative probability
 # Of interest to us is the *cumulative probability
 # distribution function* (**CDF**), $P(x)$, which is just the probability
 # for a stochastic variable $X$ to assume any value less than $x$
@@ -98,7 +91,7 @@
 # p(x) = \frac{d}{dx}P(x).
 # $$
 
-# ## Properties of PDFs
+# ### Properties of PDFs
 # 
 # There are two properties that all PDFs must satisfy. The first one is
 # positivity (assuming that the PDF is normalized)
@@ -120,7 +113,6 @@
 # \end{align*}
 # $$
 
-# ## Important distributions, the uniform distribution
 # The first one
 # is the most basic PDF; namely the uniform distribution
 
@@ -142,12 +134,8 @@
 # \end{array}
 # $$
 
-# The latter distribution is used to generate random numbers. For other PDFs, one needs normally a mapping from this distribution to say for example the exponential distribution.
+# The latter distribution is used to generate random numbers. For other PDFs, one needs normally a mapping from this distribution to say for example the exponential distribution. 
 # 
-# 
-# 
-# 
-# ## Gaussian distribution
 # The second one is the Gaussian Distribution
 
 # $$
@@ -206,14 +194,14 @@ plt.savefig('gaussian.pdf', format='pdf')
 plt.show()
 
 
-# ## Exponential distribution
 # Another important distribution in science is the exponential distribution
 
 # $$
 # p(x) = \alpha\exp{-(\alpha x)}.
 # $$
 
-# ## Expectation values
+# ### Expectation values
+# 
 # Let $h(x)$ be an arbitrary continuous function on the domain of the stochastic
 # variable $X$ whose PDF is $p(x)$. We define the *expectation value*
 # of $h$ with respect to $p$ as follows
@@ -238,7 +226,6 @@ plt.show()
 # \langle x^n \rangle \equiv \int\! x^n p(x)\,dx
 # $$
 
-# ## Stochastic variables and the main concepts, mean values
 # The zero-th moment $\langle 1\rangle$ is just the normalization condition of
 # $p$. The first moment, $\langle x\rangle$, is called the *mean* of $p$
 # and often denoted by the letter $\mu$
@@ -256,11 +243,6 @@ plt.show()
 # for a discrete distribution. 
 # Qualitatively it represents the centroid or the average value of the
 # PDF and is therefore simply called the expectation value of $p(x)$.
-# 
-# 
-# 
-# 
-# ## Stochastic variables and the main concepts, central moments, the variance
 # 
 # A special version of the moments is the set of *central moments*, the n-th central moment defined as
 
@@ -287,20 +269,14 @@ plt.show()
 # **standard deviation** of $p$. It is the RMS (root-mean-square)
 # value of the deviation of the PDF from its mean value, interpreted
 # qualitatively as the "spread" of $p$ around its mean.
-# 
-# 
-# 
-# 
-# 
-# 
-# ## Probability Distribution Functions
+
+# ### Probability Distribution Functions
 # 
 # The following table collects properties of probability distribution functions.
 # In our notation we reserve the label $p(x)$ for the probability of a certain event,
 # while $P(x)$ is the cumulative probability. 
 # 
-# 
-# <table border="1">
+# <table class="dotable" border="1">
 # <thead>
 # <tr><th align="center">             </th> <th align="center">               Discrete PDF               </th> <th align="center">           Continuous PDF           </th> </tr>
 # </thead>
@@ -315,11 +291,6 @@ plt.show()
 # </tbody>
 # </table>
 # 
-# 
-# 
-# 
-# 
-# ## Probability Distribution Functions
 # With a PDF we can compute expectation values of selected quantities such as
 
 # $$
@@ -333,12 +304,7 @@ plt.show()
 # $$
 
 # in the case of a continuous PDF. We have already defined the mean value $\mu$
-# and the variance $\sigma^2$.
-# 
-# 
-# 
-# 
-# ## The three famous Probability Distribution Functions
+# and the variance $\sigma^2$. 
 # 
 # There are at least three PDFs which one may encounter. These are the
 # 
@@ -368,7 +334,6 @@ plt.show()
 # \sigma^2=\int_0^{\infty}x^2p(x)dx-\mu^2 = \frac{1}{\alpha^2}.
 # $$
 
-# ## Probability Distribution Functions, the normal distribution
 # Finally, we have the so-called univariate normal  distribution, or just the **normal distribution**
 
 # $$
@@ -390,7 +355,6 @@ plt.show()
 # \mu =\frac{1}{b\sqrt{2\pi}}\int_{-\infty}^{\infty}b\sqrt{2}(a+b\sqrt{2}y)\exp{-y^2}dy=a.
 # $$
 
-# ## Probability Distribution Functions, the normal distribution
 # Similarly, the variance becomes
 
 # $$
@@ -418,8 +382,6 @@ plt.show()
 # \end{equation}
 # $$
 
-# ## Probability Distribution Functions, the cumulative distribution
-# 
 # The exponential and uniform distributions have simple cumulative functions,
 # whereas the normal distribution does not, being proportional to the so-called
 # error function $erf(x)$, given by
@@ -428,13 +390,7 @@ plt.show()
 # P(x) = \frac{1}{\sqrt{2\pi}}\int_{-\infty}^x\exp{\left(-\frac{t^2}{2}\right)}dt,
 # $$
 
-# which is difficult to evaluate in a quick way.
-# 
-# 
-# 
-# 
-# 
-# ## Probability Distribution Functions, other important distribution
+# which is difficult to evaluate in a quick way. 
 # 
 # Some other PDFs which one encounters often in the natural sciences are the binomial distribution
 
@@ -452,11 +408,6 @@ plt.show()
 #   * In every independent trial one registers if a specific situation happens or not, such as the  jump to the left or right of a random walker.
 # 
 #   * The probability for every outcome in a single trial has the same value, for example the outcome of tossing (either heads or tails) a coin is always $1/2$.
-# 
-# 
-# 
-# 
-# ## Probability Distribution Functions, the binomial distribution
 # 
 # In order to compute the mean and variance we need to recall Newton's binomial
 # formula
@@ -494,9 +445,6 @@ plt.show()
 
 # The variance is slightly trickier to get. It reads $\sigma^2=ny(1-y)$. 
 # 
-# 
-# ## Probability Distribution Functions, Poisson's  distribution
-# 
 # Another important distribution with discrete stochastic variables $x$ is  
 # the Poisson model, which resembles the exponential distribution and reads
 
@@ -511,14 +459,8 @@ plt.show()
 # \frac{\lambda^{x-1}}{(x-1)!}=\lambda,
 # $$
 
-# and the variance is $\sigma^2=\lambda$.
+# and the variance is $\sigma^2=\lambda$. 
 # 
-# 
-# 
-# 
-# 
-# 
-# ## Probability Distribution Functions, Poisson's  distribution
 # An example of applications of the Poisson distribution could be the counting
 # of the number of $\alpha$-particles emitted from a radioactive source in a given time interval.
 # In the limit of $n\rightarrow \infty$ and for small probabilities $y$, the binomial distribution
@@ -529,7 +471,8 @@ plt.show()
 # \lim_{n\rightarrow \infty}\left(\begin{array}{c} n \\ x\end{array}\right)y^x(1-y)^{n-x} e^{-\lambda}=\sum_{x=1}^{\infty}\frac{\lambda^x}{x!} e^{-\lambda}.
 # $$
 
-# ## Meet the  covariance!
+# ### Meet the  covariance!
+# 
 # An important quantity in a statistical analysis is the so-called covariance. 
 # 
 # Consider the set $\{X_i\}$ of $n$
@@ -564,7 +507,6 @@ plt.show()
 # \int\cdots\int x_i P(x_1,\dots,x_n)\,dx_1\dots dx_n.
 # $$
 
-# ## Meet the  covariance in matrix disguise
 # If we consider the above covariance as a matrix
 
 # $$
@@ -575,11 +517,6 @@ plt.show()
 # variances, $C_{ii} = \mathrm{Cov}(X_i,\,X_i) = \mathrm{Var}(X_i)$. It turns out that
 # all the off-diagonal elements are zero if the stochastic variables are
 # uncorrelated.
-# 
-# 
-# 
-# 
-# ## Covariance
 
 # In[2]:
 
@@ -610,8 +547,6 @@ c = np.cov(z.T)
 print(c)
 
 
-# ## Meet the  covariance, uncorrelated events
-# 
 # Consider the stochastic variables $X_i$ and $X_j$, ($i\neq j$). We have
 
 # $$
@@ -638,8 +573,6 @@ print(c)
 # Cov(X_i, X_j) = 0 \hspace{0.1cm} (i\neq j).
 # $$
 
-# ## Numerical experiments and the covariance
-# 
 # Now that we have constructed an idealized mathematical framework, let
 # us try to apply it to empirical observations. Examples of relevant
 # physical phenomena may be spontaneous decays of nuclei, or a purely
@@ -654,7 +587,6 @@ print(c)
 # \{x_1, x_2,\dots\,x_k,\dots\}.
 # $$
 
-# ## Numerical experiments and the covariance
 # We will call these
 # values our *measurements* and the entire set as our measured
 # *sample*.  The action of measuring all the elements of a sample
@@ -668,11 +600,6 @@ print(c)
 # interested in finding the few lowest moments, like the mean
 # $\mu_X^{\phantom X}$ and the variance $\sigma_X^{\phantom X}$.
 # 
-# 
-# 
-# 
-# 
-# ## Numerical experiments and the covariance, actual situations
 # In practical situations however, a sample is always of finite size. Let that
 # size be $n$. The expectation value of a sample $\alpha$, the **sample mean**, is then defined as follows
 
@@ -686,13 +613,8 @@ print(c)
 # \mathrm{Var}(x) \equiv \frac{1}{n}\sum_{k=1}^n (x_{\alpha,k} - \langle x_{\alpha} \rangle)^2,
 # $$
 
-# with its square root being the *standard deviation of the sample*.
+# with its square root being the *standard deviation of the sample*. 
 # 
-# 
-# 
-# 
-# 
-# ## Numerical experiments and the covariance, our observables
 # You can think of the above observables as a set of quantities which define
 # a given experiment. This experiment is then repeated several times, say $m$ times.
 # The total average is then
@@ -726,8 +648,6 @@ print(c)
 # \end{equation}
 # $$
 
-# ## Numerical experiments and the covariance, the sample variance
-# 
 # We define also the sample variance $\sigma^2$ of all $mn$ individual experiments as
 
 # <!-- Equation labels as ordinary links -->
@@ -745,11 +665,8 @@ print(c)
 # significantly,  from the similarly named
 # exact values for the mean value $\mu_X$, the variance $\mathrm{Var}(X)$
 # and the covariance $\mathrm{Cov}(X,Y)$.
-# 
-# 
-# 
-# 
-# ## Numerical experiments and the covariance, central limit theorem
+
+# ### Numerical experiments and the covariance, central limit theorem
 # 
 # The central limit theorem states that the PDF $\tilde{p}(z)$ of
 # the average of $m$ random values corresponding to a PDF $p(x)$ 
@@ -767,10 +684,6 @@ print(c)
 
 # In many cases the above estimate for the standard deviation, in particular if correlations are strong, may be too simplistic.  We need therefore a more precise defintion of the error and the variance in our results.
 # 
-# 
-# 
-# 
-# ## Definition of Correlation Functions and Standard Deviation
 # Our estimate of the true average $\mu_{X}$ is the sample mean $\langle X_m \rangle$
 
 # $$
@@ -790,16 +703,8 @@ print(c)
 # $$
 
 # where the first term is the sample variance of all $mn$ experiments divided by $n$
-# and the last term is nothing but the covariance which arises when $k\ne l$.
+# and the last term is nothing but the covariance which arises when $k\ne l$. 
 # 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# ## Definition of Correlation Functions and Standard Deviation
 # Our estimate of the true average $\mu_{X}$ is the sample mean $\langle X_m \rangle$
 # 
 # If the 
@@ -813,11 +718,6 @@ print(c)
 # calculated at the end of the experiment since we need all the
 # measurements to calculate the cross terms. Therefore, all measurements
 # have to be stored throughout the experiment.
-# 
-# 
-# 
-# 
-# ## Definition of Correlation Functions and Standard Deviation
 # 
 # Let us analyze the problem by splitting up the correlation term into
 # partial sums of the form
@@ -834,7 +734,6 @@ print(c)
 # \frac{2}{n}\sum_{d=1}^{n-1} f_d
 # $$
 
-# ## Definition of Correlation Functions and Standard Deviation
 # The value of $f_d$ reflects the correlation between measurements
 # separated by the distance $d$ in the samples.  Notice that for
 # $d=0$, $f$ is just the sample variance, $\sigma^2$. If we divide $f_d$
@@ -852,11 +751,6 @@ print(c)
 
 # which gives us a useful measure of the correlation pair correlation
 # starting always at $1$ for $d=0$.
-# 
-# 
-# 
-# 
-# ## Definition of Correlation Functions and Standard Deviation, sample variance
 # 
 # The sample variance of the $mn$ experiments can now be
 # written in terms of the autocorrelation function
@@ -890,14 +784,8 @@ print(c)
 # <!-- It is closely related to the area under the graph of the -->
 # <!-- autocorrelation function. -->
 # For a correlation free experiment, $\tau$
-# equals 1.
+# equals 1. 
 # 
-# 
-# 
-# 
-# 
-# 
-# ## Definition of Correlation Functions and Standard Deviation
 # From the point of view of
 # Eq. ([10](#eq:error_estimate_corr_time)) we can interpret a sequential
 # correlation as an effective reduction of the number of measurements by
@@ -915,12 +803,6 @@ print(c)
 # measurements is very large.  The solution to this problem is given by 
 # more practically oriented methods like the blocking technique.
 # <!-- add ref here to flybjerg -->
-# 
-# 
-# 
-# 
-# 
-# ## Code to compute the Covariance matrix and the Covariance
 
 # In[3]:
 
@@ -964,7 +846,7 @@ Eigvals, Eigvecs = np.linalg.eig(c)
 print(Eigvals)
 
 
-# ## Random Numbers
+# ### Random Numbers
 # 
 # Uniform deviates are just random numbers that lie within a specified range
 # (typically 0 to 1), with any one number in the range just as likely as any other. They
@@ -976,12 +858,6 @@ print(Eigvals)
 # in subsequent sections. So, a reliable source of random uniform deviates, the subject
 # of this section, is an essential building block for any sort of stochastic modeling
 # or Monte Carlo computer work.
-# 
-# 
-# 
-# 
-# 
-# ## Random Numbers, better name: pseudo random numbers
 # 
 # A disclaimer is however appropriate. It should be fairly obvious that 
 # something as deterministic as a computer cannot generate purely random numbers.
@@ -997,11 +873,6 @@ print(Eigvals)
 # 
 #   * the algorithm should be fast.
 # 
-# 
-# 
-# 
-# 
-# ## Random number generator RNG
 #  The most common random number generators are based on so-called
 # Linear congruential relations of the type
 
@@ -1021,11 +892,6 @@ print(Eigvals)
 # $N_0$ is the starting value, or seed. The function $\mathrm{MOD}$ means the remainder,
 # that is if we were to evaluate $(13)\mathrm{MOD}(9)$, the outcome is the remainder
 # of the division $13/9$, namely $4$.
-# 
-# 
-# 
-# 
-# ## Random number generator RNG and periodic outputs
 # 
 # The problem with such generators is that their outputs are periodic;
 # they 
@@ -1050,10 +916,6 @@ print(Eigvals)
 # which still, with $N_0=2$, results in $11,38,11,38,11,38,\dots$, a period of
 # just $2$.
 # 
-# 
-# 
-# 
-# ## Random number generator RNG and its period
 # Typical periods for the random generators provided in the program library 
 # are of the order of $\sim 10^9$ or larger. Other random number generators which have
 # become increasingly popular are so-called shift-register generators.
@@ -1067,7 +929,6 @@ print(Eigvals)
 # N_l=(aN_{l-i}+cN_{l-j})\mathrm{MOD}(M).
 # $$
 
-# ## Random number generator RNG, other examples
 # Such a generator again produces a sequence of pseudorandom numbers
 # but this time with a period much larger than $M$.
 # It is also possible to construct more elaborate algorithms by including
@@ -1099,10 +960,6 @@ print(Eigvals)
 
 # which according to the authors has a period larger than $2^{94}$.
 # 
-# 
-# 
-# 
-# ## Random number generator RNG, other examples
 # Instead of  using modular addition, we could use the bitwise
 # exclusive-OR ($\oplus$) operation so that
 
@@ -1119,13 +976,7 @@ print(Eigvals)
 # 
 # In Fortran90, the bitwise $\oplus$ operation is coded through the intrinsic
 # function $\mathrm{IEOR}(m,n)$ where $m$ and $n$ are the input numbers, while in $C$
-# it is given by $m\wedge n$.
-# 
-# 
-# 
-# 
-# 
-# ## Random number generator RNG, RAN0
+# it is given by $m\wedge n$. 
 # 
 # We show here how the linear congruential algorithm can be implemented, namely
 
@@ -1157,13 +1008,6 @@ print(Eigvals)
 # where the brackets denote integer division. In the code below the numbers 
 # $q$ and $r$ are chosen so that $r < q$.
 # 
-# 
-# 
-# 
-# 
-# 
-# ## Random number generator RNG, RAN0
-# 
 # To see how this works we note first that
 
 # <!-- Equation labels as ordinary links -->
@@ -1178,13 +1022,8 @@ print(Eigvals)
 
 # since we can add or subtract any integer multiple of $M$ from $aN_{i-1}$.
 # The last term $[N_{i-1}/q]M\mathrm{MOD}(M)$ is zero since the integer division 
-# $[N_{i-1}/q]$ just yields a constant which is multiplied with $M$.
+# $[N_{i-1}/q]$ just yields a constant which is multiplied with $M$. 
 # 
-# 
-# 
-# 
-# 
-# ## Random number generator RNG, RAN0
 # We can now rewrite Eq. ([14](#eq:rntrick1)) as
 
 # <!-- Equation labels as ordinary links -->
@@ -1198,7 +1037,6 @@ print(Eigvals)
 # $$
 
 # which results
-# in
 
 # <!-- Equation labels as ordinary links -->
 # <div id="eq:rntrick3"></div>
@@ -1222,7 +1060,6 @@ print(Eigvals)
 # \end{equation}
 # $$
 
-# ## Random number generator RNG, RAN0
 # The term $[N_{i-1}/q]r$ is always smaller or equal $N_{i-1}(r/q)$ and with $r < q$ we obtain always a 
 # number smaller than $N_{i-1}$, which is smaller than $M$. 
 # And since the number $N_{i-1}\mathrm{MOD} (q)$ is between zero and $q-1$ then
@@ -1234,43 +1071,7 @@ print(Eigvals)
 # the starting point for each generation of a random number. The period
 # of $ran0$ is $\sim 2.1\times 10^{9}$. A special feature of this
 # algorithm is that is should never be called with the initial seed 
-# set to $0$.
-# 
-# 
-# 
-# 
-# 
-# ## Random number generator RNG, RAN0 code
-
-#             /*
-#              ** The function
-#              **           ran0()
-#              ** is an "Minimal" random number generator of Park and Miller
-#              ** Set or reset the input value
-#              ** idum to any integer value (except the unlikely value MASK)
-#              ** to initialize the sequence; idum must not be altered between
-#              ** calls for sucessive deviates in a sequence.
-#              ** The function returns a uniform deviate between 0.0 and 1.0.
-#              */
-#         double ran0(long &idum)
-#         {
-#            const int a = 16807, m = 2147483647, q = 127773;
-#            const int r = 2836, MASK = 123459876;
-#            const double am = 1./m;
-#            long     k;
-#            double   ans;
-#            idum ^= MASK;
-#            k = (*idum)/q;
-#            idum = a*(idum - k*q) - r*k;
-#            // add m if negative difference
-#            if(idum < 0) idum += m;
-#            ans=am*(idum);
-#            idum ^= MASK;
-#            return ans;
-#         } // End: function ran0() 
-# 
-
-# ## Properties of Selected Random Number Generators
+# set to $0$. 
 # 
 # As mentioned previously, the underlying PDF for the generation of
 # random numbers is the uniform distribution, meaning that the 
@@ -1286,10 +1087,6 @@ print(Eigvals)
 # Two additional measures are the standard deviation $\sigma$ and the mean
 # $\mu=\langle x\rangle$.
 # 
-# 
-# 
-# 
-# ## Properties of Selected Random Number Generators
 # For the uniform distribution, the mean value $\mu$ is then
 
 # $$
@@ -1302,11 +1099,10 @@ print(Eigvals)
 # \sigma=\sqrt{\langle x^2\rangle-\mu^2}=\frac{1}{\sqrt{12}}=0.2886.
 # $$
 
-# ## Properties of Selected Random Number Generators
 # The various random number generators produce results which agree rather well with
 # these limiting values. 
 # 
-# <table border="1">
+# <table class="dotable" border="1">
 # <thead>
 # <tr><th align="center">$x$-bin </th> <th align="center"> ran0 </th> <th align="center"> ran1 </th> <th align="center"> ran2 </th> <th align="center"> ran3 </th> </tr>
 # </thead>
@@ -1326,10 +1122,6 @@ print(Eigvals)
 # </tbody>
 # </table>
 # 
-# 
-# 
-# 
-# ## Simple demonstration of RNGs using python
 # The following simple Python code plots the distribution of the produced random numbers using the linear congruential RNG employed by Python. The trend displayed in the previous table is seen rather clearly.
 
 # In[4]:
@@ -1359,7 +1151,6 @@ plt.grid(True)
 plt.show()
 
 
-# ## Properties of Selected Random Number Generators
 # Since our random numbers, which are typically generated via a linear congruential algorithm,
 # are never fully independent, we can then define 
 # an important test which measures the degree of correlation, namely the  so-called  
@@ -1382,12 +1173,9 @@ plt.show()
 # numbers are not independent. The independence of the random numbers is crucial 
 # in the evaluation of other expectation values. If they are not independent, our
 # assumption for approximating $\sigma_N$ is no longer valid.
+
+# ### Autocorrelation function
 # 
-# 
-# 
-# 
-# 
-# ## Autocorrelation function
 # This program computes the autocorrelation function as discussed in the equation on the previous slide for random numbers generated with the normal distribution $N(0,1)$.
 
 # In[5]:
@@ -1426,427 +1214,3 @@ plt.show()
 
 # As can be seen from the plot, the first point gives back the variance and a value of one. 
 # For the remaining values we notice that there are still non-zero values for the auto-correlation function.
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# ## Correlation function and which random number generators should I use
-# The program here computes the correlation function for one of the standard functions included with the c++ compiler.
-
-#         //  This function computes the autocorrelation function for 
-#         //  the standard c++ random number generator
-#         
-#         #include <fstream>
-#         #include <iomanip>
-#         #include <iostream>
-#         #include <cmath>
-#         using namespace std;
-#         // output file as global variable
-#         ofstream ofile;  
-#         
-#         //     Main function begins here     
-#         int main(int argc, char* argv[])
-#         {
-#              int n;
-#              char *outfilename;
-#         
-#              cin >> n;
-#              double MCint = 0.;      double MCintsqr2=0.;
-#              double invers_period = 1./RAND_MAX; // initialise the random number generator
-#              srand(time(NULL));  // This produces the so-called seed in MC jargon
-#              // Compute the variance and the mean value of the uniform distribution
-#              // Compute also the specific values x for each cycle in order to be able to
-#              // the covariance and the correlation function  
-#              // Read in output file, abort if there are too few command-line arguments
-#              if( argc <= 2 ){
-#                cout << "Bad Usage: " << argv[0] << 
-#         	 " read also output file and number of cycles on same line" << endl;
-#                exit(1);
-#              }
-#              else{
-#                outfilename=argv[1];
-#              }
-#              ofile.open(outfilename); 
-#              // Get  the number of Monte-Carlo samples
-#              n = atoi(argv[2]);
-#              double *X;  
-#              X = new double[n];
-#              for (int i = 0;  i < n; i++){
-#                    double x = double(rand())*invers_period; 
-#                    X[i] = x;
-#                    MCint += x;
-#                    MCintsqr2 += x*x;
-#              }
-#              double Mean = MCint/((double) n );
-#              MCintsqr2 = MCintsqr2/((double) n );
-#              double STDev = sqrt(MCintsqr2-Mean*Mean);
-#              double Variance = MCintsqr2-Mean*Mean;
-#         //   Write mean value and standard deviation 
-#              cout << " Standard deviation= " << STDev << " Integral = " << Mean << endl;
-#         
-#              // Now we compute the autocorrelation function
-#              double *autocor;  autocor = new double[n];
-#              for (int j = 0; j < n; j++){
-#                double sum = 0.0;
-#                for (int k = 0; k < (n-j); k++){
-#         	 sum  += (X[k]-Mean)*(X[k+j]-Mean); 
-#                }
-#                autocor[j] = sum/Variance/((double) n );
-#                ofile << setiosflags(ios::showpoint | ios::uppercase);
-#                ofile << setw(15) << setprecision(8) << j;
-#                ofile << setw(15) << setprecision(8) << autocor[j] << endl;
-#              }
-#              ofile.close();  // close output file
-#              return 0;
-#         }  // end of main program 
-# 
-
-# ## Which RNG should I use?
-# * C++ has a class called **random**. The [random class](http://www.cplusplus.com/reference/random/) contains a large selection of RNGs and is highly recommended. Some of these RNGs have very large periods making it thereby very safe to use these RNGs in case one is performing large calculations. In particular, the [Mersenne twister random number engine](http://www.cplusplus.com/reference/random/mersenne_twister_engine/) has a period of $2^{19937}$. 
-# 
-# * Add RNGs in Python
-# 
-# 
-# 
-# 
-# 
-# ## How to use the Mersenne generator
-# The following part of a c++ code (from project 4) sets up the uniform distribution for $x\in [0,1]$.
-
-#         /*
-#         
-#         //  You need this 
-#         #include <random>
-#         
-#         // Initialize the seed and call the Mersienne algo
-#         std::random_device rd;
-#         std::mt19937_64 gen(rd());
-#         // Set up the uniform distribution for x \in [[0, 1]
-#         std::uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
-#         
-#         // Now use the RNG
-#         int ix = (int) (RandomNumberGenerator(gen)*NSpins);
-# 
-
-# ## Why blocking?
-# **Statistical analysis.**
-# 
-#     * Monte Carlo simulations can be treated as *computer experiments*
-# 
-#     * The results can be analysed with the same statistical tools as we would use analysing experimental data.
-# 
-#     * As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
-# 
-# A very good article which explains blocking is H. Flyvbjerg and H. G. Petersen, *Error estimates on averages of correlated data*,  [Journal of Chemical Physics 91, 461-466 (1989)](http://scitation.aip.org/content/aip/journal/jcp/91/1/10.1063/1.457480).
-# 
-#     
-# 
-# 
-# 
-# 
-# ## Why blocking?
-# **Statistical analysis.**
-# 
-#     * As in other experiments, Monte Carlo experiments have two classes of errors:
-# 
-#       * Statistical errors
-# 
-#       * Systematical errors
-# 
-# 
-#     * Statistical errors can be estimated using standard tools from statistics
-# 
-#     * Systematical errors are method specific and must be treated differently from case to case. (In VMC a common source is the step length or time step in importance sampling)
-# 
-#     
-# 
-# 
-# 
-# ## Code to demonstrate the calculation of the autocorrelation function
-# The following code computes the autocorrelation function, the covariance and the standard deviation
-# for standard RNG. 
-# The [following  file](https://github.com/CompPhysics/ComputationalPhysics2/tree/gh-pages/doc/Programs/LecturePrograms/programs/Blocking/autocorrelation.cpp) gives the code.
-
-#         //  This function computes the autocorrelation function for 
-#         //  the Mersenne random number generator with a uniform distribution
-#         #include <iostream>
-#         #include <fstream>
-#         #include <iomanip>
-#         #include <cstdlib>
-#         #include <random>
-#         #include <armadillo>
-#         #include <string>
-#         #include <cmath>
-#         using namespace  std;
-#         using namespace arma;
-#         // output file
-#         ofstream ofile;
-#         
-#         //     Main function begins here     
-#         int main(int argc, char* argv[])
-#         {
-#           int MonteCarloCycles;
-#           string filename;
-#           if (argc > 1) {
-#             filename=argv[1];
-#             MonteCarloCycles = atoi(argv[2]);
-#             string fileout = filename;
-#             string argument = to_string(MonteCarloCycles);
-#             fileout.append(argument);
-#             ofile.open(fileout);
-#           }
-#         
-#           // Compute the variance and the mean value of the uniform distribution
-#           // Compute also the specific values x for each cycle in order to be able to
-#           // compute the covariance and the correlation function  
-#         
-#           vec X  = zeros<vec>(MonteCarloCycles);
-#           double MCint = 0.;      double MCintsqr2=0.;
-#           std::random_device rd;
-#           std::mt19937_64 gen(rd());
-#           // Set up the uniform distribution for x \in [[0, 1]
-#           std::uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
-#           for (int i = 0;  i < MonteCarloCycles; i++){
-#             double x =   RandomNumberGenerator(gen); 
-#             X(i) = x;
-#             MCint += x;
-#             MCintsqr2 += x*x;
-#           }
-#           double Mean = MCint/((double) MonteCarloCycles );
-#           MCintsqr2 = MCintsqr2/((double) MonteCarloCycles );
-#           double STDev = sqrt(MCintsqr2-Mean*Mean);
-#           double Variance = MCintsqr2-Mean*Mean;
-#           //   Write mean value and variance
-#           cout << " Sample variance= " << Variance  << " Mean value = " << Mean << endl;
-#           // Now we compute the autocorrelation function
-#           vec autocorrelation = zeros<vec>(MonteCarloCycles);
-#           for (int j = 0; j < MonteCarloCycles; j++){
-#             double sum = 0.0;
-#             for (int k = 0; k < (MonteCarloCycles-j); k++){
-#               sum  += (X(k)-Mean)*(X(k+j)-Mean); 
-#             }
-#             autocorrelation(j) = sum/Variance/((double) MonteCarloCycles );
-#             ofile << setiosflags(ios::showpoint | ios::uppercase);
-#             ofile << setw(15) << setprecision(8) << j;
-#             ofile << setw(15) << setprecision(8) << autocorrelation(j) << endl;
-#           }
-#           // Now compute the exact covariance using the autocorrelation function
-#           double Covariance = 0.0;
-#           for (int j = 0; j < MonteCarloCycles; j++){
-#             Covariance  += autocorrelation(j);
-#           }
-#           Covariance *=  2.0/((double) MonteCarloCycles);
-#           // Compute now the total variance, including the covariance, and obtain the standard deviation
-#           double TotalVariance = (Variance/((double) MonteCarloCycles ))+Covariance;
-#           cout << "Covariance =" << Covariance << "Totalvariance= " << TotalVariance << "Sample Variance/n= " << (Variance/((double) MonteCarloCycles )) << endl;
-#           cout << " STD from sample variance= " << sqrt(Variance/((double) MonteCarloCycles )) << " STD with covariance = " << sqrt(TotalVariance) << endl;
-#         
-#           ofile.close();  // close output file
-#           return 0;
-#         }  // end of main program 
-#         
-#         
-# 
-
-# ## What is blocking?
-# **Blocking.**
-# 
-#     * Say that we have a set of samples from a Monte Carlo experiment
-# 
-#     * Assuming (wrongly) that our samples are uncorrelated our best estimate of the standard deviation of the mean $\langle \mathbf{M}\rangle$ is given by
-
-# $$
-# \sigma=\sqrt{\frac{1}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)}
-# $$
-
-# * If the samples are correlated we can rewrite our results to show  that
-
-# $$
-# \sigma=\sqrt{\frac{1+2\tau/\Delta t}{n}\left(\langle \mathbf{M}^2\rangle-\langle \mathbf{M}\rangle^2\right)}
-# $$
-
-# where $\tau$ is the correlation time (the time between a sample and the next uncorrelated sample) and $\Delta t$ is time between each sample
-# 
-#     
-# 
-# 
-# ## What is blocking?
-# **Blocking.**
-# 
-#     * If $\Delta t\gg\tau$ our first estimate of $\sigma$ still holds
-# 
-#     * Much more common that $\Delta t<\tau$
-# 
-#     * In the method of data blocking we divide the sequence of samples into blocks
-# 
-#     * We then take the mean $\langle \mathbf{M}_i\rangle$ of block $i=1\ldots n_{blocks}$ to calculate the total mean and variance
-# 
-#     * The size of each block must be so large that sample $j$ of block $i$ is not correlated with sample $j$ of block $i+1$
-# 
-#     * The correlation time $\tau$ would be a good choice
-# 
-# 
-# 
-# 
-# ## What is blocking?
-# **Blocking.**
-# 
-#     * Problem: We don't know $\tau$ or it is too expensive to compute
-# 
-#     * Solution: Make a plot of std. dev. as a function of blocksize
-# 
-#     * The estimate of std. dev. of correlated data is too low $\to$ the error will increase with increasing block size until the blocks are uncorrelated, where we reach a plateau
-# 
-#     * When the std. dev. stops increasing the blocks are uncorrelated
-# 
-# 
-# 
-# 
-# ## Implementation
-#     * Do a Monte Carlo simulation, storing all samples to file
-# 
-#     * Do the statistical analysis on this file, independently of your Monte Carlo program
-# 
-#     * Read the file into an array
-# 
-#     * Loop over various block sizes
-# 
-#     * For each block size $n_b$, loop over the array in steps of $n_b$ taking the mean of elements $i n_b,\ldots,(i+1) n_b$
-# 
-#     * Take the mean and variance of the resulting array
-# 
-#     * Write the results for each block size to file for later
-#       analysis
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# ## Actual implementation with code, main function
-# When the file gets large, it can be useful to write your data in binary mode instead of ascii characters.
-# The [following python file](https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py)   reads data from file with the output from every Monte Carlo cycle.
-
-# In[6]:
-
-
-# Blocking
-    @timeFunction
-    def blocking(self, blockSizeMax = 500):
-        blockSizeMin = 1
-
-        self.blockSizes = []
-        self.meanVec = []
-        self.varVec = []
-
-        for i in range(blockSizeMin, blockSizeMax):
-            if(len(self.data) % i != 0):
-                pass#continue
-            blockSize = i
-            meanTempVec = []
-            varTempVec = []
-            startPoint = 0
-            endPoint = blockSize
-
-            while endPoint <= len(self.data):
-                meanTempVec.append(np.average(self.data[startPoint:endPoint]))
-                startPoint = endPoint
-                endPoint += blockSize
-            mean, var = np.average(meanTempVec), np.var(meanTempVec)/len(meanTempVec)
-            self.meanVec.append(mean)
-            self.varVec.append(var)
-            self.blockSizes.append(blockSize)
-
-        self.blockingAvg = np.average(self.meanVec[-200:])
-        self.blockingVar = (np.average(self.varVec[-200:]))
-        self.blockingStd = np.sqrt(self.blockingVar)
-
-
-# ## The Bootstrap method
-# 
-# The Bootstrap  resampling method is also very popular. It is very simple:
-# 
-# 1. Start with your sample of measurements and compute the sample variance and the mean values
-# 
-# 2. Then start again but pick in a random way the numbers in the sample and recalculate the mean and the sample variance.
-# 
-# 3. Repeat this $K$ times.
-# 
-# It can be shown, see the article by [Efron](https://projecteuclid.org/download/pdf_1/euclid.aos/1176344552)
-# that it produces the correct standard deviation.
-# 
-# This method is very useful for small ensembles of data points.  
-# 
-# 
-# ## Bootstrapping
-# Given a set of $N$ data, assume that we are interested in some 
-# observable $\theta$ which may be estimated from that set. This observable can also be for example the result of a fit based on all $N$ raw data. 
-# Let us call the value of the observable obtained from the original 
-# data set $\hat{\theta}$. One recreates from the sample repeatedly 
-# other samples by choosing randomly $N$ data out of the original set. 
-# This costs essentially nothing, since we just recycle the original data set for the building of new sets. 
-# 
-# 
-# ## Bootstrapping, recipe
-# Let us assume we have done this $K$ times and thus have $K$ sets of $N$ 
-# data values each. 
-# Of course some values will enter more than once in the new sets. For each of these sets one computes the observable $\theta$ resulting in values $\theta_k$ with $k = 1,...,K$. Then one determines
-
-# $$
-# \tilde{\theta} = \frac{1}{K} \sum_{k=1}^K \theta_k,
-# $$
-
-# and
-
-# $$
-# sigma^2_{\tilde{\theta}} = \frac{1}{K} \sum_{k=1}^K \left(\theta_k-\tilde{\theta}\right)^2.
-# $$
-
-# These are estimators for $\angle\theta\rangle$ and its variance. They are not unbiased and therefore 
-# $\tilde{\theta}\neq\hat{\theta}$  for finite K. 
-# 
-# The difference is called bias and gives an idea on how far away the result may be from 
-# the true $\angle\theta\rangle$. As final result for the observable one quotes $\angle\theta\rangle = \tilde{\theta} \pm \sigma_{\tilde{\theta}}$ .
-# 
-# 
-# 
-# ## Bootstrapping, [code](https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py)
-
-#         # Bootstrap
-#             @timeFunction
-#             def bootstrap(self, nBoots = 1000):
-#                 bootVec = np.zeros(nBoots)
-#                 for k in range(0,nBoots):
-#                     bootVec[k] = np.average(np.random.choice(self.data, len(self.data)))
-#                 self.bootAvg = np.average(bootVec)
-#                 self.bootVar = np.var(bootVec)
-#                 self.bootStd = np.std(bootVec)
-# 
-
-# ## Jackknife, [code](https://github.com/CompPhysics/MachineLearning/blob/master/doc/Programs/Sampling/analysis.py)
-
-#         # Jackknife
-#             @timeFunction
-#             def jackknife(self):
-#                 jackknVec = np.zeros(len(self.data))
-#                 for k in range(0,len(self.data)):
-#                     jackknVec[k] = np.average(np.delete(self.data, k))
-#                 self.jackknAvg = self.avg - (len(self.data) - 1) * (np.average(jackknVec) - self.avg)
-#                 self.jackknVar = float(len(self.data) - 1) * np.var(jackknVec)
-#                 self.jackknStd = np.sqrt(self.jackknVar)
-# 
