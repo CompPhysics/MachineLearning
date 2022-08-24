@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html chapter1.do.txt  -->
+
 # # Linear Regression
-# 
-# 
+
 # ## Introduction
-# 
-# 
-# 
-# 
 # 
 # Our emphasis throughout this series of lectures is on understanding
 # the mathematical aspects of different algorithms used in the fields of
@@ -41,9 +39,7 @@
 # Moreover, the examples we introduce will serve as inputs to many of
 # our discussions later, as well as allowing you to set up models and
 # produce your own data and get started with programming.
-# 
-# 
-# 
+
 # ## What is Machine Learning?
 # 
 # Statistics, data science and machine learning form important fields of
@@ -109,8 +105,6 @@
 # Carlo methods are central elements in a proper understanding of many
 # of algorithms and methods we will discuss.
 # 
-# 
-# 
 # The approaches to machine learning are many, but are often split into
 # two main categories.  In *supervised learning* we know the answer to a
 # problem, and let the computer deduce the logic behind it. On the other
@@ -138,11 +132,8 @@
 # 
 # * The last ingredient is a so-called **cost/loss** function (or error or risk function) which allows us to present an estimate on how good our model is in reproducing the data it is supposed to train.  
 # 
-# 
-# 
 # At the heart of basically all Machine Learning algorithms we will encounter so-called minimization or optimization algorithms. A large family of such methods are so-called **gradient methods**.
-# 
-# 
+
 # ### A Frequentist approach to data analysis
 # 
 # When you hear phrases like **predictions and estimations** and
@@ -169,8 +160,7 @@
 # less on for example extracting a probability distribution function (PDF). The PDF can be
 # used in turn to make estimations and find causations such as given $A$
 # what is the likelihood of finding $B$.
-# 
-# 
+
 # ### What is a good model?
 # 
 # In science and engineering we often end up in situations where we want to infer (or learn) a
@@ -193,9 +183,6 @@
 # is that if we are not specific about what we mean by a *correct* model, there
 # could easily be many different models that fit the given data set *equally well*.
 # 
-# 
-# 
-# 
 # The central question is this: what leads us to say that a model is correct or
 # optimal for a given data set? To make the model inference problem well posed, i.e.,
 # to guarantee that there is a unique optimal model for the given data, we need to
@@ -216,17 +203,7 @@
 # may first try the simplest class of models, namely linear models, followed obviously by more complex models.
 # 
 # How to evaluate which model fits best the data is something we will come back to over and over again in these sets of lectures.
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
+
 # ## Simple linear regression model using **scikit-learn**
 # 
 # We start with perhaps our simplest possible example, using
@@ -241,7 +218,6 @@
 # later). These values are then used to define a function $y(x)$
 # (tabulated again as a vector) with a linear dependence on $x$ plus a
 # random noise added via the normal distribution.
-# 
 # 
 # The Numpy functions are imported used the **import numpy as np**
 # statement and the random number generator for the uniform distribution
@@ -282,7 +258,6 @@
 # included in the data set used to *train* (or fit) the model.
 # This is a recurrring theme in machine learning and data analysis. We would like to train a model on a specific given data set.
 # Thereafter we wish to apply it to data which were not included in the training. Below we will encounter this again in the so-called *train-validate-test* spliting. We will typically split our data into different sets, oen for training, one for validation and finally, our data from the untouched test vault!
-# 
 # 
 # The Python code follows here.
 
@@ -498,7 +473,6 @@ plt.show()
 # as population counts, average sales of a commodity over a span of
 # years etc. 
 # 
-# 
 # Finally, another cost function is the Huber cost function used in robust regression.
 # 
 # The rationale behind this possible cost function is its reduced
@@ -513,9 +487,6 @@ plt.show()
 # $$
 
 # Here $\boldsymbol{a}=\boldsymbol{y} - \boldsymbol{\tilde{y}}$.
-# 
-# 
-# 
 # 
 # We will discuss in more
 # detail these and other functions in the various lectures.  We conclude this part with another example. Instead of 
@@ -606,7 +577,6 @@ print (error(y))
 
 # where $\Delta_H c^2 = 7.2890$ MeV and $\Delta_n c^2 = 8.0713$ MeV.
 # 
-# 
 # A popular and physically intuitive model which can be used to parametrize 
 # the experimental binding energies as function of $A$, is the so-called 
 # **liquid drop model**. The ansatz is based on the following expression
@@ -617,9 +587,6 @@ print (error(y))
 
 # where $A$ stands for the number of nucleons and the $a_i$s are parameters which are determined by a fit 
 # to the experimental data.  
-# 
-# 
-# 
 # 
 # To arrive at the above expression we have assumed that we can make the following assumptions:
 # 
@@ -633,15 +600,13 @@ print (error(y))
 # 
 # We could also add a so-called pairing term, which is a correction term that
 # arises from the tendency of proton pairs and neutron pairs to
-# occur. An even number of particles is more stable than an odd number. 
-# 
-# 
+# occur. An even number of particles is more stable than an odd number.
+
 # ### Organizing our data
 # 
 # Let us start with reading and organizing our data. 
 # We start with the compilation of masses and binding energies from 2016.
 # After having downloaded this file to our own computer, we are now ready to read the file and start structuring our data.
-# 
 # 
 # We start with preparing folders for storing our calculations and the data file over masses and binding energies. We import also various modules that we will find useful in order to present various Machine Learning methods. Here we focus mainly on the functionality of **scikit-learn**.
 
@@ -660,7 +625,7 @@ import os
 # Where to save the figures and data files
 PROJECT_ROOT_DIR = "Results"
 FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
+DATA_ID = "datafiles/"
 
 if not os.path.exists(PROJECT_ROOT_DIR):
     os.mkdir(PROJECT_ROOT_DIR)
@@ -706,7 +671,6 @@ def MakePlot(x,y, styles, labels, axlabels):
 # protons $Z$ and neutrons $N$ using **pandas**.  Before we do this it is
 # always useful (unless you have a binary file or other types of compressed
 # data) to actually open the file and simply take a look at it!
-# 
 # 
 # In particular, the program that outputs the final nuclear masses is written in Fortran with a specific format. It means that we need to figure out the format and which columns contain the data we are interested in. Pandas comes with a function that reads formatted output. After having admired the file, we are now ready to start massaging it with **pandas**. The file begins with some basic format information.
 
@@ -764,7 +728,7 @@ Masses = Masses.apply(lambda t: t[t.Ebinding==t.Ebinding.max()])
 # Now we define five variables which contain
 # the number of nucleons $A$, the number of protons $Z$ and the number of neutrons $N$, the element name and finally the energies themselves.
 
-# In[ ]:
+# In[9]:
 
 
 A = Masses['A']
@@ -778,7 +742,7 @@ print(Masses)
 # The next step, and we will define this mathematically later, is to set up the so-called **design matrix**. We will throughout call this matrix $\boldsymbol{X}$.
 # It has dimensionality $n\times p$, where $n$ is the number of data points and $p$ are the so-called predictors. In our case here they are given by the number of polynomials in $A$ we wish to include in the fit.
 
-# In[ ]:
+# In[10]:
 
 
 # Now we set up the design matrix X
@@ -797,7 +761,7 @@ X[:,4] = A**(-1.0)
 # 
 # With **Scikit-Learn** we are now ready to use linear regression and fit our data.
 
-# In[ ]:
+# In[11]:
 
 
 clf = skl.LinearRegression().fit(X, Energies)
@@ -807,7 +771,7 @@ fity = clf.predict(X)
 # Pretty simple!  
 # Now we can print measures of how our fit is doing, the coefficients from the fits and plot the final fit together with our data.
 
-# In[ ]:
+# In[12]:
 
 
 # The mean squared error                               
@@ -833,7 +797,7 @@ plt.show()
 
 # As a teaser, let us now see how we can do this with decision trees using **Scikit-Learn**. Later we will switch to so-called **random forests**!
 
-# In[ ]:
+# In[13]:
 
 
 
@@ -878,11 +842,10 @@ print(np.mean( (Energies-y_1)**2))
 # we will most likely fail miserably in our attempt at making
 # predictions. As an exercise, try to make the tree level larger by adjusting the maximum depth variable. When printing out the predicition, you will note that the binding energy of every nucleus is accurately reproduced.
 # 
-# 
 # The **seaborn** package allows us to visualize data in an efficient way. Note that we use **scikit-learn**'s multi-layer perceptron (or feed forward neural network) 
 # functionality.
 
-# In[ ]:
+# In[14]:
 
 
 from sklearn.neural_network import MLPRegressor
@@ -918,9 +881,7 @@ plt.show()
 
 # ## Linear Regression, basic elements
 # 
-# 
 # [Video of Lecture](https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureAug27.mp4?vrtx=view-as-webpage).
-# 
 # 
 # Fitting a continuous function with linear parameterization in terms of the parameters  $\boldsymbol{\beta}$.
 # * Method of choice for fitting a continuous function!
@@ -944,8 +905,6 @@ plt.show()
 # For more discussions of Ridge and Lasso regression, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
 # Similarly, [Mehta et al's article](https://arxiv.org/abs/1803.08823) is also recommended.
 # 
-# 
-# 
 # Regression modeling deals with the description of  the sampling distribution of a given random variable $y$ and how it varies as function of another variable or a set of such variables $\boldsymbol{x} =[x_0, x_1,\dots, x_{n-1}]^T$. 
 # The first variable is called the **dependent**, the **outcome** or the **response** variable while the set of variables $\boldsymbol{x}$ is called the independent variable, or the predictor variable or the explanatory variable. 
 # 
@@ -957,7 +916,6 @@ plt.show()
 # * $p$ so-called explanatory (independent or predictor) variables $\boldsymbol{x}_i=[x_{i0}, x_{i1}, \dots, x_{ip-1}]$ with $i = 0, 1, 2, \dots, n-1$ and explanatory variables running from $0$ to $p-1$. See below for more explicit examples.   
 # 
 #  The goal of the regression analysis is to extract/exploit relationship between $\boldsymbol{y}$ and $\boldsymbol{x}$ in or to infer causal dependencies, approximations to the likelihood functions, functional relationships and to make predictions, making fits and many other things.
-# 
 # 
 # Consider an experiment in which $p$ characteristics of $n$ samples are
 # measured. The data from this experiment, for various explanatory variables $p$ are normally represented by a matrix  
@@ -977,7 +935,6 @@ plt.show()
 # 
 # Linear regression gives us a set of analytical equations for the parameters $\beta_j$.
 # 
-# 
 # In order to understand the relation among the predictors $p$, the set of data $n$ and the target (outcome, output etc) $\boldsymbol{y}$,
 # consider the model we discussed for describing nuclear binding energies. 
 # 
@@ -995,7 +952,6 @@ plt.show()
 # Here the predictors are based on a model we have made. A popular data set which is widely encountered in ML applications is the
 # so-called [credit card default data from Taiwan](https://www.sciencedirect.com/science/article/pii/S0957417407006719?via%3Dihub). The data set contains data on $n=30000$ credit card holders with predictors like gender, marital status, age, profession, education, etc. In total there are $24$ such predictors or attributes leading to a design matrix of dimensionality $24 \times 30000$. This is however a classification problem and we will come back to it when we discuss Logistic Regression. 
 # 
-# 
 # Before we proceed let us study a case from linear algebra where we aim at fitting a set of data $\boldsymbol{y}=[y_0,y_1,\dots,y_{n-1}]$. We could think of these data as a result of an experiment or a complicated numerical experiment. These data are functions of a series of variables $\boldsymbol{x}=[x_0,x_1,\dots,x_{n-1}]$, that is $y_i = y(x_i)$ with $i=0,1,2,\dots,n-1$. The variables $x_i$ could represent physical quantities like time, temperature, position etc. We assume that $y(x)$ is a smooth function. 
 # 
 # Since obtaining these data points may not be trivial, we want to use these data to fit a function which can allow us to make predictions for values of $y$ which are not in the present set. The perhaps simplest approach is to assume we can parametrize our function in terms of a polynomial of degree $n-1$ with $n$ points, that is
@@ -1005,7 +961,6 @@ plt.show()
 # $$
 
 # where $\epsilon_i$ is the error in our approximation. 
-# 
 # 
 # For every set of values $y_i,x_i$ we have thus the corresponding set of equations
 
@@ -1121,7 +1076,7 @@ plt.show()
 # 
 # We restate the parts of the code we are most interested in.
 
-# In[ ]:
+# In[15]:
 
 
 # Common imports
@@ -1134,7 +1089,7 @@ import os
 # Where to save the figures and data files
 PROJECT_ROOT_DIR = "Results"
 FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
+DATA_ID = "datafiles/"
 
 if not os.path.exists(PROJECT_ROOT_DIR):
     os.mkdir(PROJECT_ROOT_DIR)
@@ -1223,8 +1178,6 @@ display(DesignMatrix)
 
 # This function is one possible way to define the so-called cost function.
 # 
-# 
-# 
 # It is also common to define
 # the function $C$ as
 
@@ -1312,66 +1265,20 @@ display(DesignMatrix)
 # 
 # **Small question**: Do you think the example we have at hand here (the nuclear binding energies) can lead to problems in inverting the matrix  $\boldsymbol{X}^T\boldsymbol{X}$? What kind of problems can we expect? 
 # 
-# 
 # The following matrix and vector relation will be useful here and for the rest of the course. Vectors are always written as boldfaced lower case letters and 
 # matrices as upper case boldfaced letters.
 
-# 4
-# 3
-#  
-# <
-# <
-# <
-# !
-# !
-# M
-# A
-# T
-# H
-# _
-# B
-# L
-# O
-# C
-# K
+# $$
+# \frac{\partial\boldsymbol{b}^T\boldsymbol{a}}{\partial\boldsymbol{a}}=\boldsymbol{b},
+# $$
 
-# 4
-# 4
-#  
-# <
-# <
-# <
-# !
-# !
-# M
-# A
-# T
-# H
-# _
-# B
-# L
-# O
-# C
-# K
+# $$
+# \frac{\partial\boldsymbol{a}^T\boldsymbol{A}\boldsymbol{a}}{\partial\boldsymbol{a}}=(\boldsymbol{A}+\boldsymbol{A}^T)\boldsymbol{a},
+# $$
 
-# 4
-# 5
-#  
-# <
-# <
-# <
-# !
-# !
-# M
-# A
-# T
-# H
-# _
-# B
-# L
-# O
-# C
-# K
+# $$
+# \frac{\partial tr(\boldsymbol{B}\boldsymbol{A})}{\partial\boldsymbol{A}}=\boldsymbol{B}^T,
+# $$
 
 # $$
 # \frac{\partial\log{\vert\boldsymbol{A}\vert}}{\partial \boldsymbol{A}}=(\boldsymbol{A}^{-1})^T.
@@ -1397,7 +1304,6 @@ display(DesignMatrix)
 # the eigenvalues of the covariance matrix and the Hessian matrix in
 # terms of the singular values.
 # 
-# 
 # The residuals $\boldsymbol{\epsilon}$ are in turn given by
 
 # $$
@@ -1418,14 +1324,12 @@ display(DesignMatrix)
 
 # meaning that the solution for $\boldsymbol{\beta}$ is the one which minimizes the residuals.  Later we will link this with the maximum likelihood approach.
 # 
-# 
 # Let us now return to our nuclear binding energies and simply code the above equations. 
-# 
 # 
 # It is rather straightforward to implement the matrix inversion and obtain the parameters $\boldsymbol{\beta}$. After having defined the matrix $\boldsymbol{X}$ we simply need to 
 # write
 
-# In[ ]:
+# In[16]:
 
 
 # matrix inversion to find beta
@@ -1436,7 +1340,7 @@ ytilde = X @ beta
 
 # Alternatively, you can use the least squares functionality in **Numpy** as
 
-# In[ ]:
+# In[17]:
 
 
 fit = np.linalg.lstsq(X, Energies, rcond =None)[0]
@@ -1445,7 +1349,7 @@ ytildenp = np.dot(fit,X.T)
 
 # And finally we plot our fit with and compare with data
 
-# In[ ]:
+# In[18]:
 
 
 Masses['Eapprox']  = ytilde
@@ -1465,7 +1369,7 @@ plt.show()
 # We can easily test our fit by computing the $R2$ score that we discussed in connection with the functionality of **Scikit-Learn** in the introductory slides.
 # Since we are not using **Scikit-Learn** here we can define our own $R2$ function as
 
-# In[ ]:
+# In[19]:
 
 
 def R2(y_data, y_model):
@@ -1474,7 +1378,7 @@ def R2(y_data, y_model):
 
 # and we would be using it as
 
-# In[ ]:
+# In[20]:
 
 
 print(R2(Energies,ytilde))
@@ -1482,7 +1386,7 @@ print(R2(Energies,ytilde))
 
 # We can easily add our **MSE** score as
 
-# In[ ]:
+# In[21]:
 
 
 def MSE(y_data,y_model):
@@ -1494,7 +1398,7 @@ print(MSE(Energies,ytilde))
 
 # and finally the relative error as
 
-# In[ ]:
+# In[22]:
 
 
 def RelativeError(y_data,y_model):
@@ -1521,7 +1425,6 @@ print(RelativeError(Energies, ytilde))
 # $$
 
 # where the matrix $\boldsymbol{\Sigma}$ is a diagonal matrix with $\sigma_i$ as matrix elements. 
-# 
 # 
 # In order to find the parameters $\beta_i$ we will then minimize the spread of $\chi^2(\boldsymbol{\beta})$ by requiring
 
@@ -1641,8 +1544,7 @@ print(RelativeError(Energies, ytilde))
 # unknown coefficients $\beta_i$.  A better approach is to use the
 # Singular Value Decomposition (SVD) method discussed below. Or using
 # Lasso and Ridge regression. See below.
-# 
-# 
+
 # ### Fitting an Equation of State for Dense Nuclear Matter
 # 
 # Before we continue, let us introduce yet another example. We are going to fit the
@@ -1660,7 +1562,7 @@ print(RelativeError(Energies, ytilde))
 # The difference now is that we use **Scikit-Learn's** regression tools
 # instead of our own matrix inversion implementation.
 
-# In[ ]:
+# In[23]:
 
 
 # Common imports
@@ -1675,7 +1577,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 # Where to save the figures and data files
 PROJECT_ROOT_DIR = "Results"
 FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
+DATA_ID = "datafiles/"
 
 if not os.path.exists(PROJECT_ROOT_DIR):
     os.mkdir(PROJECT_ROOT_DIR)
@@ -1737,12 +1639,9 @@ plt.show()
 
 
 # The above simple polynomial in density $\rho$ gives an excellent fit
-# to the data. 
-# 
-# 
-# 
+# to the data.
+
 # ## Splitting our Data in Training and Test data
-# 
 # 
 # It is normal in essentially all Machine Learning studies to split the
 # data in a training set and a test set (sometimes also an additional
@@ -1761,7 +1660,7 @@ plt.show()
 # the various measures like the $R2$ score or the mean-squared error,
 # the fit becomes better or worse.
 
-# In[ ]:
+# In[24]:
 
 
 import os
@@ -1806,7 +1705,7 @@ print(MSE(y_test,ypredict))
 
 # Alternatively, you could write your own test-train splitting function as shown here.
 
-# In[ ]:
+# In[25]:
 
 
 # equivalently in numpy
@@ -1829,12 +1728,11 @@ def train_test_split_numpy(inputs, labels, train_size, test_size):
 # it interfaces easily with **tensorflow** and other libraries, we
 # normally recommend using the latter functionality.
 # 
-# 
 # As another example, we apply the training and testing split to 
 # to the above equation of state fitting example
 # but now splitting the data into a training set and a test set.
 
-# In[ ]:
+# In[26]:
 
 
 import os
@@ -1845,7 +1743,7 @@ from sklearn.model_selection import train_test_split
 # Where to save the figures and data files
 PROJECT_ROOT_DIR = "Results"
 FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
+DATA_ID = "datafiles/"
 
 if not os.path.exists(PROJECT_ROOT_DIR):
     os.mkdir(PROJECT_ROOT_DIR)
@@ -1938,11 +1836,11 @@ print(MSE(y_test,ypredict))
 # 12. LSTAT: Percentage of lower status of the population
 # 
 # 13. MEDV: Median value of owner-occupied homes in USD 1000s
-# 
+
 # ## Housing data, the code
 # We start by importing the libraries
 
-# In[ ]:
+# In[27]:
 
 
 import numpy as np
@@ -1954,7 +1852,7 @@ import seaborn as sns
 
 # and load the Boston Housing DataSet from **Scikit-Learn**
 
-# In[ ]:
+# In[28]:
 
 
 from sklearn.datasets import load_boston
@@ -1968,7 +1866,7 @@ boston_dataset.keys()
 
 # Then we invoke Pandas
 
-# In[ ]:
+# In[29]:
 
 
 boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
@@ -1978,7 +1876,7 @@ boston['MEDV'] = boston_dataset.target
 
 # and preprocess the data
 
-# In[ ]:
+# In[30]:
 
 
 # check for missing values in all the columns
@@ -1987,7 +1885,7 @@ boston.isnull().sum()
 
 # We can then visualize the data
 
-# In[ ]:
+# In[31]:
 
 
 # set the size of the figure
@@ -2000,7 +1898,7 @@ plt.show()
 
 # It is now useful to look at the correlation matrix
 
-# In[ ]:
+# In[32]:
 
 
 # compute the pair wise correlation for all columns  
@@ -2012,7 +1910,7 @@ sns.heatmap(data=correlation_matrix, annot=True)
 
 # From the above coorelation plot we can see that **MEDV** is strongly correlated to **LSTAT** and  **RM**. We see also that **RAD** and **TAX** are stronly correlated, but we don't include this in our features together to avoid multi-colinearity
 
-# In[ ]:
+# In[33]:
 
 
 plt.figure(figsize=(20, 5))
@@ -2032,7 +1930,7 @@ for i, col in enumerate(features):
 
 # Now we start training our model
 
-# In[ ]:
+# In[34]:
 
 
 X = pd.DataFrame(np.c_[boston['LSTAT'], boston['RM']], columns = ['LSTAT','RM'])
@@ -2041,7 +1939,7 @@ Y = boston['MEDV']
 
 # We split the data into training and test sets
 
-# In[ ]:
+# In[35]:
 
 
 from sklearn.model_selection import train_test_split
@@ -2057,7 +1955,7 @@ print(Y_test.shape)
 
 # Then we use the linear regression functionality from **Scikit-Learn**
 
-# In[ ]:
+# In[36]:
 
 
 from sklearn.linear_model import LinearRegression
@@ -2093,7 +1991,7 @@ print('RMSE is {}'.format(rmse))
 print('R2 score is {}'.format(r2))
 
 
-# In[ ]:
+# In[37]:
 
 
 # plotting the y_test vs y_pred
@@ -2116,15 +2014,12 @@ plt.show()
 # techniques: the principal component analysis (PCA), Kernel PCA, and
 # Locally Linear Embedding (LLE).  
 # 
-# 
 # Principal component analysis and its various variants deal with the
 # problem of fitting a low-dimensional [affine
 # subspace](https://en.wikipedia.org/wiki/Affine_space) to a set of of
 # data points in a high-dimensional space. With its family of methods it
 # is one of the most used tools in data modeling, compression and
 # visualization.
-# 
-# 
 # 
 # Before we proceed however, we will discuss how to preprocess our
 # data. Till now and in connection with our previous examples we have
@@ -2141,7 +2036,6 @@ plt.show()
 # are very different scales. Therefore, it is typical to scale
 # the features in a way to avoid such outlier values.
 # 
-# 
 # **Scikit-Learn** has several functions which allow us to rescale the
 # data, normally resulting in much better results in terms of various
 # accuracy scores.  The **StandardScaler** function in **Scikit-Learn**
@@ -2151,7 +2045,6 @@ plt.show()
 # we have a particular maximum or minimum in our data set. Another
 # function included in **Scikit-Learn** is the **MinMaxScaler** which
 # ensures that all features are exactly between $0$ and $1$. The
-# 
 # 
 # The **Normalizer** scales each data
 # point such that the feature vector has a euclidean length of one. In other words, it
@@ -2170,7 +2063,6 @@ plt.show()
 # outliers, and might often lead to trouble for other scaling
 # techniques.
 # 
-# 
 # Many features are often scaled using standardization to improve
 # performance. In **Scikit-Learn** this is given by the **StandardScaler**
 # function as discussed above. It is easy however to write your own.
@@ -2187,14 +2079,12 @@ plt.show()
 # where we do not have the standard deviation or don't wish to calculate
 # it, it is then common to simply set it to one.
 # 
-# 
-# 
 # Let us consider the following vanilla example where we use both
 # **Scikit-Learn** and write our own function as well.  We produce a
 # simple test design matrix with random numbers. Each column could then
 # represent a specific feature whose mean value is subracted.
 
-# In[ ]:
+# In[38]:
 
 
 import sklearn.linear_model as skl
@@ -2224,8 +2114,6 @@ display(XPandas-Xscaled)
 
 # Small exercise: perform the standard scaling by including the standard deviation and compare with what Scikit-Learn gives.
 # 
-# 
-# 
 # Another commonly used scaling method is min-max scaling. This is very
 # useful for when we want the features to lie in a certain interval. To
 # scale the feature $x_j$ to the interval $[a, b]$, we can apply the
@@ -2236,12 +2124,8 @@ display(XPandas-Xscaled)
 # $$
 
 # where $\min(x_j)$ and $\max(x_j)$ return the minimum and maximum value of $x_j$ over the data set, respectively.
-# 
-# 
-# 
-# 
+
 # ## Testing the Means Squared Error as function of Complexity
-# 
 # 
 # Before we proceed with a more detailed analysis of the so-called
 # Bias-Variance tradeoff, we present here an example of the relation
@@ -2254,10 +2138,9 @@ display(XPandas-Xscaled)
 # 
 # The results here will vary as function of model complexity and the amount od data used for training. 
 # 
-# 
 # Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
 
-# In[ ]:
+# In[39]:
 
 
 import matplotlib.pyplot as plt
@@ -2296,7 +2179,7 @@ plt.show()
 
 
 # ## Exercises
-# 
+
 # ### Exercise: Setting up various Python environments
 # 
 # The first exercise here is of a mere technical art. We want you to have 
@@ -2357,16 +2240,13 @@ plt.show()
 # license.
 # 
 # We recommend using **Anaconda** if you are not too familiar with setting paths in a terminal environment.
-# 
-# 
-# 
-# 
+
 # ### Exercise: making your own data and exploring scikit-learn
 # 
 # We will generate our own dataset for a function $y(x)$ where $x \in [0,1]$ and defined by random numbers computed with the uniform distribution. The function $y$ is a quadratic polynomial in $x$ with added stochastic noise according to the normal distribution $\cal {N}(0,1)$.
 # The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
 
-# In[ ]:
+# In[40]:
 
 
 x = np.random.rand(100,1)
@@ -2399,10 +2279,7 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 
 # You can use the functionality included in scikit-learn. If you feel for it, you can use your own program and define functions which compute the above two functions. 
 # Discuss the meaning of these results. Try also to vary the coefficient in front of the added stochastic noise term and discuss the quality of the fits.
-# 
-# 
-# 
-# 
+
 # ### Exercise: Normalizing our data
 # 
 # A much used approach before starting to train the data is  to preprocess our
@@ -2419,7 +2296,6 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 # we have a particular maximum or minimum in our data set. Another
 # function included in **Scikit-Learn** is the **MinMaxScaler** which
 # ensures that all features are exactly between $0$ and $1$. The
-# 
 # 
 # The **Normalizer** scales each data
 # point such that the feature vector has a euclidean length of one. In other words, it
@@ -2438,11 +2314,10 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 # outliers, and might often lead to trouble for other scaling
 # techniques.
 # 
-# 
 # It also common to split the data in a **training** set and a **testing** set. A typical split is to use $80\%$ of the data for training and the rest
 # for testing. This can be done as follows with our design matrix $\boldsymbol{X}$ and data $\boldsymbol{y}$ (remember to import **scikit-learn**)
 
-# In[ ]:
+# In[41]:
 
 
 # split in training and test data
@@ -2451,7 +2326,7 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 
 # Then we can use the standard scaler to scale our data as
 
-# In[ ]:
+# In[42]:
 
 
 scaler = StandardScaler()
@@ -2467,11 +2342,9 @@ X_test_scaled = scaler.transform(X_test)
 # One of 
 # the aims is to reproduce Figure 2.11 of [Hastie et al](https://github.com/CompPhysics/MLErasmus/blob/master/doc/Textbooks/elementsstat.pdf).
 # 
-# 
-# 
 # Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
 
-# In[ ]:
+# In[43]:
 
 
 np.random.seed()
@@ -2484,18 +2357,13 @@ y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
 
 # where $y$ is the function we want to fit with a given polynomial.
 # 
-# 
 # Write a first code which sets up a design matrix $X$ defined by a
 # fifth-order polynomial.  Scale your data and split it in training and
 # test data.
 # 
-# 
-# 
 # Perform an ordinary least squares and compute the means squared error
 # and the $R2$ factor for the training data and the test data, with and
 # without scaling.
-# 
-# 
 # 
 # Add now a model which allows you to make polynomials up to degree
 # $15$.  Perform a standard OLS fitting of the training data and compute
