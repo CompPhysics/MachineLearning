@@ -25,7 +25,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 34 August 22-26
 - Lab Wednesday: Introduction to software and repetition of Python Programming
 - Lecture Thursday: Introduction to the course, what is Machine Learning and introduction to Linear Regression.
-- Video of Lecture August 25, 2022 at 
+- Video of Lecture August 25, 2022 at https://youtu.be/KL0m3-yhd5w
 - Lecture Friday: Basics of Linear Regression
 - Video of Lecture August 26, 2022 at 
 
