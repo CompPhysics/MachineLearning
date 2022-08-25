@@ -73,10 +73,10 @@ the theory and various algorithms discussed during the lectures. We recommend st
 * _Email_: morten.hjorth-jensen@fys.uio.no
 * _Phone_: +47-48257387
 * _Office_: Department of Physics, University of Oslo, Eastern wing, room FØ470 
-* _Office hours_: *Anytime*! In Fall Semester 2021 we hope to be able to meet in person. Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning. In-person meetings may also be possible if allowed by the University of Oslo's COVID-19 instructions (see below for links).
+* _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning. 
 
 
-##  Teaching Assistants FS21
+##  Teaching Assistants FS22
 * Bennosh Ashrafi, behnoosh.ashrafi@fys.uio.no
 * Frida Marie Engøy Westbye, f.m.e.westby@fys.uio.no
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
