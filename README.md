@@ -176,6 +176,11 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 * _Scipy_:https://www.scipy.org/ (pronounced “Sigh Pie”) is a Python-based ecosystem of open-source software for mathematics, science, and engineering. 
 * _Matplotlib_:https://matplotlib.org/ is a Python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms.
 * _Autograd_:https://github.com/HIPS/autograd can automatically differentiate native Python and Numpy code. It can handle a large subset of Python's features, including loops, ifs, recursion and closures, and it can even take derivatives of derivatives of derivatives
+* _JAX_" https://jax.readthedocs.io/en/latest/index.html has now more or less replaced _Autograd_.
+  JAX is Autograd and XLA, brought together for high-performance numerical computing and machine learning research.
+  It provides composable transformations of Python+NumPy programs: differentiate, vectorize, parallelize, Just-In-Time compile to GPU/TPU, and more.
+* _SymPy_:https://www.sympy.org/en/index.html is a Python library for symbolic mathematics.
+
 * _SymPy_:https://www.sympy.org/en/index.html is a Python library for symbolic mathematics. 
 * _scikit-learn_:https://scikit-learn.org/stable/ has simple and efficient tools for machine learning, data mining and data analysis
 * _TensorFlow_:https://www.tensorflow.org/ is a Python library for fast numerical computing created and released by Google
