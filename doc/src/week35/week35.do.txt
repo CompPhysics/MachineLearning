@@ -6,7 +6,7 @@ DATE: today
 !split
 =====  Plans for week 35 =====
 
-* Lab Wednesday: Work on exercises 1-5 for week 35
+* Lab Wednesday: Work on exercises 1-5 for week 35, see end of these slides for the exercises
 * Thursday: Review of  ordinary Least Squares with applications, reminder on statistics  and start discussion of Ridge Regression and Singular Value Decom\
 position
 * Friday: Discussion of Ridge and Lasso Regression and links with Singular Value Decomposition
@@ -2521,19 +2521,252 @@ and reordering we have
 This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package "CVXOPT":"https://cvxopt.org/". We will discuss this later. 
 
 !split
-===== Exercises for week 36, September 6-10 =====
+===== Exercises for week 35 =====
 
 The exercises here are meant to prepare you for work with project 1. The first exercise is a follow-up of exercise 2 from week 35 August 30-September 3).
 
+===== Exercise: Setting up various Python environments  =====
 
-===== Exercise: Adding Ridge and Lasso Regression  =====
+The first exercise here is of a mere technical art. We want you to have 
+* git as a version control software and to establish a user account on a provider like GitHub. Other providers like GitLab etc are equally fine. You can also use the University of Oslo "GitHub facilities":"https://www.uio.no/tjenester/it/maskin/filer/versjonskontroll/github.html". 
+* Install various Python packages
+
+We will make extensive use of Python as programming language and its
+myriad of available libraries.  You will find
+IPython/Jupyter notebooks invaluable in your work.  You can run _R_
+codes in the Jupyter/IPython notebooks, with the immediate benefit of
+visualizing your data. You can also use compiled languages like C++,
+Rust, Fortran etc if you prefer. The focus in these lectures will be
+on Python.
+
+If you have Python installed (we recommend Python3) and you feel
+pretty familiar with installing different packages, we recommend that
+you install the following Python packages via _pip_ as 
+
+o pip install numpy scipy matplotlib ipython scikit-learn sympy pandas pillow 
+
+For _Tensorflow_, we recommend following the instructions in the text of 
+"Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly":"http://shop.oreilly.com/product/0636920052289.do"
+
+We will come back to _tensorflow_ later. 
+
+For Python3, replace _pip_ with _pip3_.
+
+For OSX users we recommend, after having installed Xcode, to
+install _brew_. Brew allows for a seamless installation of additional
+software via for example 
+
+o brew install python3
+
+For Linux users, with its variety of distributions like for example the widely popular Ubuntu distribution,
+you can use _pip_ as well and simply install Python as 
+
+o sudo apt-get install python3  (or python for Python2.7)
+
+If you don't want to perform these operations separately and venture
+into the hassle of exploring how to set up dependencies and paths, we
+recommend two widely used distrubutions which set up all relevant
+dependencies for Python, namely 
+
+* "Anaconda":"https://docs.anaconda.com/", 
+
+which is an open source
+distribution of the Python and R programming languages for large-scale
+data processing, predictive analytics, and scientific computing, that
+aims to simplify package management and deployment. Package versions
+are managed by the package management system _conda_. 
+
+* "Enthought canopy":"https://www.enthought.com/product/canopy/" 
+
+is a Python
+distribution for scientific and analytic computing distribution and
+analysis environment, available for free and under a commercial
+license.
+
+We recommend using _Anaconda_ if you are not too familiar with setting paths in a terminal environment.
 
 
-This exercise is a continuation of exercise 2 from exercise set 1
-(week 35, August 30-September 3). We will use the same function to
+
+
+===== Exercise: making your own data and exploring scikit-learn =====
+
+
+We will generate our own dataset for a function $y(x)$ where $x \in [0,1]$ and defined by random numbers computed with the uniform distribution. The function $y$ is a quadratic polynomial in $x$ with added stochastic noise according to the normal distribution $\cal {N}(0,1)$.
+The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
+!bc pycod
+x = np.random.rand(100,1)
+y = 2.0+5*x*x+0.1*np.random.randn(100,1)
+!ec
+
+o Write your own code (following the examples under the "regression notes":"https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter1.html") for computing the parametrization of the data set fitting a second-order polynomial. 
+o Use thereafter _scikit-learn_ (see again the examples in the regression slides) and compare with your own code.   
+o Using scikit-learn, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+!bt 
+\[ MSE(\bm{y},\bm{\tilde{y}}) = \frac{1}{n}
+\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
+\] 
+!et 
+and the $R^2$ score function.
+If $\tilde{\bm{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+!bt
+\[
+R^2(\bm{y}, \tilde{\bm{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\]
+!et
+where we have defined the mean value  of $\bm{y}$ as
+!bt
+\[
+\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\]
+!et
+You can use the functionality included in scikit-learn. If you feel for it, you can use your own program and define functions which compute the above two functions. 
+Discuss the meaning of these results. Try also to vary the coefficient in front of the added stochastic noise term and discuss the quality of the fits.
+
+!bsol
+The code here is an example of where we define our own design matrix and fit parameters $\beta$.
+!bc pycod
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),3))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x**2
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# matrix inversion to find beta
+beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(beta)
+# and then make the prediction
+ytilde = X_train @ beta
+print("Training R2")
+print(R2(y_train,ytilde))
+print("Training MSE")
+print(MSE(y_train,ytilde))
+ypredict = X_test @ beta
+print("Test R2")
+print(R2(y_test,ypredict))
+print("Test MSE")
+print(MSE(y_test,ypredict))
+!ec
+!esol
+
+
+
+===== Exercise: Normalizing our data  =====
+
+
+A much used approach before starting to train the data is  to preprocess our
+data. Normally the data may need a rescaling and/or may be sensitive
+to extreme values. Scaling the data renders our inputs much more
+suitable for the algorithms we want to employ.
+
+_Scikit-Learn_ has several functions which allow us to rescale the
+data, normally resulting in much better results in terms of various
+accuracy scores.  The _StandardScaler_ function in _Scikit-Learn_
+ensures that for each feature/predictor we study the mean value is
+zero and the variance is one (every column in the design/feature
+matrix).  This scaling has the drawback that it does not ensure that
+we have a particular maximum or minimum in our data set. Another
+function included in _Scikit-Learn_ is the _MinMaxScaler_ which
+ensures that all features are exactly between $0$ and $1$. The
+
+
+The _Normalizer_ scales each data
+point such that the feature vector has a euclidean length of one. In other words, it
+projects a data point on the circle (or sphere in the case of higher dimensions) with a
+radius of 1. This means every data point is scaled by a different number (by the
+inverse of it’s length).
+This normalization is often used when only the direction (or angle) of the data matters,
+not the length of the feature vector.
+
+The _RobustScaler_ works similarly to the StandardScaler in that it
+ensures statistical properties for each feature that guarantee that
+they are on the same scale. However, the RobustScaler uses the median
+and quartiles, instead of mean and variance. This makes the
+RobustScaler ignore data points that are very different from the rest
+(like measurement errors). These odd data points are also called
+outliers, and might often lead to trouble for other scaling
+techniques.
+
+
+It also common to split the data in a _training_ set and a _testing_ set. A typical split is to use $80\%$ of the data for training and the rest
+for testing. This can be done as follows with our design matrix $\bm{X}$ and data $\bm{y}$ (remember to import _scikit-learn_)
+!bc pycod
+# split in training and test data
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+!ec
+Then we can use the standard scaler to scale our data as
+!bc pycod
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+!ec
+
+
+In this exercise we want you to to compute the MSE for the training
+data and the test data as function of the complexity of a polynomial,
+that is the degree of a given polynomial. We want you also to compute the $R2$ score as function of the complexity of the model for both training data and test data.  You should also run the calculation with and without scaling. 
+
+One of 
+the aims is to reproduce Figure 2.11 of "Hastie et al":"https://github.com/CompPhysics/MLErasmus/blob/master/doc/Textbooks/elementsstat.pdf".
+
+
+
+Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
+!bc pycod
+np.random.seed()
+n = 100
+maxdegree = 14
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+!ec
+where $y$ is the function we want to fit with a given polynomial.
+!bsubex
+Write a first code which sets up a design matrix $X$ defined by a fifth-order polynomial.  Scale your data and split it in training and test data. 
+!esubex
+
+!bsubex
+Perform an ordinary least squares and compute the means squared error and the $R2$ factor for the training data and the test data, with and without scaling.
+!esubex
+
+!bsubex
+Add now a model which allows you to make polynomials up to degree $15$.  Perform a standard OLS fitting of the training data and compute the MSE and $R2$ for the training and test data and plot both test and training data MSE and $R2$ as functions of the polynomial degree. Compare what you see with Figure 2.11 of Hastie et al. Comment your results. For which polynomial degree do you find an optimal MSE (smallest value)?
+
+!esubex
+
+
+
+
+
+
+
+===== Exercise: Adding Ridge Regression  =====
+
+
+This exercise is a continuation of exercise 2. We will use the same function to
 generate our data set, still staying with a simple function $y(x)$
 which we want to fit using linear regression, but now extending the
-analysis to include the Ridge and the Lasso regression methods.
+analysis to include the Ridge regression method.
 
 We will thus again generate our own dataset for a function $y(x)$ where 
 $x \in [0,1]$ and defined by random numbers computed with the uniform
@@ -2654,191 +2887,38 @@ where we have defined the mean value  of $\hat{y}$ as
 \bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
 \]
 !et
-Discuss these quantities as functions of the variable $\lambda$ in the Ridge and Lasso regression methods.
+Discuss these quantities as functions of the variable $\lambda$ in Ridge regression.
 
 
 
+===== Exercise: Analytical exercises  =====
 
+In this exercise we derive the expressions for various derivatives of
+products of vectors and matrices. Such derivatives are central to the
+optimization of various cost functions. Although we will often use
+automatic differentiation in actual calculations, to be able to have
+analytical expressions is extremely helpful in case we have simpler
+derivatives as well as when we analyze various properties (like second
+derivatives) of the chosen cost functions.  Vectors are always written
+as boldfaced lower case letters and matrices as upper case boldfaced
+letters.
 
-
-
-=== Exercise: Linear Regression for  a two-dimensional function  ===
-
-This is a longer  exercise and the aim is to study in more detail various
-regression methods, including the Ordinary Least Squares (OLS) method,
-Ridge regression and finally Lasso regression.
-This exercise forms a part of project 1.
-
-We will study how to fit polynomials to a specific
-two-dimensional function called "Franke's
-function":"http://www.dtic.mil/dtic/tr/fulltext/u2/a081688.pdf".  This
-is a function which has been widely used when testing various
-interpolation and fitting algorithms. 
-
-The Franke function, which is a weighted sum of four exponentials  reads as follows
-!bt
-\begin{align*}
-f(x,y) &= \frac{3}{4}\exp{\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right)}+\frac{3}{4}\exp{\left(-\frac{(9x+1)^2}{49}- \frac{(9y+1)}{10}\right)} \\
-&+\frac{1}{2}\exp{\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right)} -\frac{1}{5}\exp{\left(-(9x-4)^2 - (9y-7)^2\right) }.
-\end{align*}
-!et
-
-The function will be defined for $x,y\in [0,1]$.  Our first step will
-be to perform an OLS regression analysis of this function, trying out
-a polynomial fit with an $x$ and $y$ dependence of the form $[x, y,
-x^2, y^2, xy, \dots]$.   We will fit a
-function (for example a polynomial) of $x$ and $y$.  Thereafter we
-will repeat much of the same procedure using the Ridge and Lasso
-regression methods, introducing thus a dependence on the bias
-(penalty) $\lambda$.
-
-
-The Python fucntion for the Franke function is included here (it performs also a three-dimensional plot of it)
-!bc pycod
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import numpy as np
-from random import random, seed
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-
-# Make data.
-x = np.arange(0, 1, 0.05)
-y = np.arange(0, 1, 0.05)
-x, y = np.meshgrid(x,y)
-
-
-def FrankeFunction(x,y):
-    term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-    term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-    term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-    term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
-    return term1 + term2 + term3 + term4
-
-
-z = FrankeFunction(x, y)
-
-# Plot the surface.
-surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
-
-# Customize the z axis.
-ax.set_zlim(-0.10, 1.40)
-ax.zaxis.set_major_locator(LinearLocator(10))
-ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-
-# Add a color bar which maps values to colors.
-fig.colorbar(surf, shrink=0.5, aspect=5)
-
-plt.show()
-
-!ec
-
-
-
-We will generate our own dataset for a function
-$\mathrm{FrankeFunction}(x,y)$ with $x,y \in [0,1]$. The function
-$f(x,y)$ is the Franke function. You should explore also the addition
-an added stochastic noise to this function using the normal
-distribution $\cal{N}(0,1)$.
-
-Write your own code (using either a matrix inversion or a singular
-value decomposition from e.g., _numpy_ ) or use your code and perform a standard least square regression
-analysis using polynomials in $x$ and $y$ up to fifth order. You can use _scikit-learn_ as well.
-
-
-Evaluate the Mean Squared error (MSE)
-
-!bt 
-\[ MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
-\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2, 
-\] 
-!et 
-
-and the $R^2$ score function.  If $\tilde{\hat{y}}_i$ is the predicted
-value of the $i-th$ sample and $y_i$ is the corresponding true value,
-then the score $R^2$ is defined as
-
+Show that
 !bt
 \[
-R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+\frac{\partial (\bm{b}^T\bm{a})}{\partial \bm{a}} = \bm{b},
 \]
 !et
-
-where we have defined the mean value  of $\hat{y}$ as
-
+and
 !bt
 \[
-\bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+\frac{\partial (\bm{a}^T\bm{A}\bm{a})}{\partial \bm{a}} = (\bm{A}+\bm{A}^T)\bm{a},
 \]
 !et
-
-
-You should split your data in train and test and also consider scaling the data.
-
-To set up the design matrix, the following code can be used
-!bc pycod
-def FrankeFunction(x,y):
-	term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-	term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-	term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-	term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
-	return term1 + term2 + term3 + term4
-
-
-def create_X(x, y, n ):
-	if len(x.shape) > 1:
-		x = np.ravel(x)
-		y = np.ravel(y)
-
-	N = len(x)
-	l = int((n+1)*(n+2)/2)		# Number of elements in beta
-	X = np.ones((N,l))
-
-	for i in range(1,n+1):
-		q = int((i)*(i+1)/2)
-		for k in range(i+1):
-			X[:,q+k] = (x**(i-k))*(y**k)
-
-	return X
-
-
-# Making meshgrid of datapoints and compute Franke's function
-n = 5
-N = 1000
-x = np.sort(np.random.uniform(0, 1, N))
-y = np.sort(np.random.uniform(0, 1, N))
-z = FrankeFunction(x, y)
-X = create_X(x, y, n=n)    
-!ec
-
-
-
-Write then your own code for the Ridge method or use _Scikit-Learn_.
-Perform the same analysis as you did for ordinary Least Squares (for the same polynomials) but now for different values of $\lambda$. Compare and
-analyze your results with those obtained with ordinary Least Squares. Study the
-dependence on $\lambda$.
-
-
-This part is essentially a repeat of the previous ones, but now
-with Lasso regression. Write either your own code or
-use the functionalities of _Scikit-Learn_ (recommended). 
-Give a
-critical discussion of the three methods and a judgement of which
-model fits the data best.
-
-
-
-
-
-
-
-
-
-
-
-
-
+and
+!bt
+\[
+\frac{\partial \left(\bm{x}-\bm{A}\bm{s}\right)^T\left(\bm{x}-\bm{A}\bm{s}\right)}{\partial \bm{s}} = -2\left(\bm{x}-\bm{A}\bm{s}\right)^T\bm{A},
+\]
+!et
+and finally find the second derivative of this function with respect to the vector $\bm{s}$.
