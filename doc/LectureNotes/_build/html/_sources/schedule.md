@@ -36,23 +36,24 @@ For the reading assignments we use the following abbreviations:
   - See lecture notes for week 34 at https://compphysics.github.io/MachineLearning/doc/web/course.html
 
 ###  Week 35 August 29-September 2
-- Lab Wednesday: Work on exercises 1-3 for week 35
-- Thursday: Review of  ordinary Least Squares with applications and discussion of Ridge Regression and Singular Value Decomposition
+- Lab Wednesday: Work on exercises 1-5 for week 35
+- Thursday: Review of  ordinary Least Squares with applications, reminder on statistics  and start discussion of Ridge Regression and Singular Value Decomposition
 - Video of lecture Thursday at 
-- Friday: Analysis of Ridge and Lasso Regression and links with Singular Value Decomposition
+- Friday: Discussion of Ridge and Lasso Regression and links with Singular Value Decomposition
 - Video of lecture Friday at 
 
 - Reading recommendations:
   - See lecture notes for week 35 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
+  - For a review on statistics see jupyter-book https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/statistics.html, the most relevant parts are covered by sections 1.1.1-1.1.5
   - HTF chapter 3. GBC chapters 1 and and sections 3.1-3.11 and 5.1
   - CMB sections 1.1 and 3.1
-
+  - A good review on statistics is given by Murphy's text, chapter 2, see https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/MachineLearningMurphy.pdf
 
 ###  Week 36 September 5-9
 - Lab Wednesday:  Exercises 1 and 2 from week 36
-- Lecture Thursday: Summary from last week on SVD, Statistics, probability theory and linear regression
+- Lecture Thursday: Summary from last week on SVD, more on Statistics, probability theory and linear regression
 - Video of Lecture 
-- Friday: Linear Regression and links with Statistics, Resampling methods and presentation of first project. 
+- Friday: Linear Regression and more links with Statistics, Resampling methods and presentation of first project. 
 - Video of Lecture 
 
 - Reading recommendations:
