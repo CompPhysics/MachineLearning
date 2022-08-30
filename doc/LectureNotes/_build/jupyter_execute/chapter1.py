@@ -1269,21 +1269,23 @@ display(DesignMatrix)
 # matrices as upper case boldfaced letters.
 
 # $$
-# \frac{\partial\boldsymbol{b}^T\boldsymbol{a}}{\partial\boldsymbol{a}}=\boldsymbol{b},
+# \frac{\partial (\boldsymbol{b}^T\boldsymbol{a})}{\partial \boldsymbol{a}} = \boldsymbol{b},
 # $$
 
-# $$
-# \frac{\partial\boldsymbol{a}^T\boldsymbol{A}\boldsymbol{a}}{\partial\boldsymbol{a}}=(\boldsymbol{A}+\boldsymbol{A}^T)\boldsymbol{a},
-# $$
+# and
 
 # $$
-# \frac{\partial tr(\boldsymbol{B}\boldsymbol{A})}{\partial\boldsymbol{A}}=\boldsymbol{B}^T,
+# \frac{\partial (\boldsymbol{a}^T\boldsymbol{A}\boldsymbol{a})}{\partial \boldsymbol{a}} = \boldsymbol{a}^T(\boldsymbol{A}+\boldsymbol{A}^T),
 # $$
 
+# and
+
 # $$
-# \frac{\partial\log{\vert\boldsymbol{A}\vert}}{\partial \boldsymbol{A}}=(\boldsymbol{A}^{-1})^T.
+# \frac{\partial \left(\boldsymbol{x}-\boldsymbol{A}\boldsymbol{s}\right)^T\left(\boldsymbol{x}-\boldsymbol{A}\boldsymbol{s}\right)}{\partial \boldsymbol{s}} = -2\left(\boldsymbol{x}-\boldsymbol{A}\boldsymbol{s}\right)^T\boldsymbol{A},
 # $$
 
+# These and other relations are discussed in the exercises following this chapter (see the end of the chapter).
+# The latter equation is similar to the equation for the mean-squared error function we have been discussing. 
 # We can then compute the second derivative of the cost function, which in our case is the second derivative
 # of the means squared error. This leads to
 
@@ -1291,7 +1293,7 @@ display(DesignMatrix)
 # \frac{\partial^2 C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}^T\partial \boldsymbol{\beta}} =\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.
 # $$
 
-# This quantity defines was what is called the Hessian matrix (the second derivative of a function we want to optimize).
+# This quantity defines the so- called the Hessian matrix.
 # 
 # The Hessian matrix plays an important role and is defined for the mean squared error  as
 
@@ -2180,7 +2182,7 @@ plt.show()
 
 # ## Exercises
 
-# ### Exercise: Setting up various Python environments
+# ## Exercise 1: Setting up various Python environments
 # 
 # The first exercise here is of a mere technical art. We want you to have 
 # * git as a version control software and to establish a user account on a provider like GitHub. Other providers like GitLab etc are equally fine. You can also use the University of Oslo [GitHub facilities](https://www.uio.no/tjenester/it/maskin/filer/versjonskontroll/github.html). 
@@ -2241,7 +2243,7 @@ plt.show()
 # 
 # We recommend using **Anaconda** if you are not too familiar with setting paths in a terminal environment.
 
-# ### Exercise: making your own data and exploring scikit-learn
+# ## Exercise 2: making your own data and exploring scikit-learn
 # 
 # We will generate our own dataset for a function $y(x)$ where $x \in [0,1]$ and defined by random numbers computed with the uniform distribution. The function $y$ is a quadratic polynomial in $x$ with added stochastic noise according to the normal distribution $\cal {N}(0,1)$.
 # The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
@@ -2255,7 +2257,7 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 
 # 1. Write your own code (following the examples under the [regression notes](https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter1.html)) for computing the parametrization of the data set fitting a second-order polynomial. 
 # 
-# 2. Use thereafter **scikit-learn** (see again the examples in the regression slides) and compare with your own code.   
+# 2. Use thereafter **scikit-learn** (see again the examples in the regression slides) and compare with your own code.   When compairing with _scikit_learn_, make sure you set the option for the intercept to **FALSE**, see <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html>. This feature will be explained in more detail during the lectures of week 35 and week 36. You can find more in <https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter3.html#more-on-rescaling-data>.
 # 
 # 3. Using scikit-learn, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
 
@@ -2279,8 +2281,59 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 
 # You can use the functionality included in scikit-learn. If you feel for it, you can use your own program and define functions which compute the above two functions. 
 # Discuss the meaning of these results. Try also to vary the coefficient in front of the added stochastic noise term and discuss the quality of the fits.
+# 
+# <!-- --- begin solution of exercise --- -->
+# **Solution.**
+# The code here is an example of where we define our own design matrix and fit parameters $\beta$.
 
-# ### Exercise: Normalizing our data
+# In[41]:
+
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),3))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x**2
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# matrix inversion to find beta
+beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(beta)
+# and then make the prediction
+ytilde = X_train @ beta
+print("Training R2")
+print(R2(y_train,ytilde))
+print("Training MSE")
+print(MSE(y_train,ytilde))
+ypredict = X_test @ beta
+print("Test R2")
+print(R2(y_test,ypredict))
+print("Test MSE")
+print(MSE(y_test,ypredict))
+
+
+# <!-- --- end solution of exercise --- -->
+
+# ## Exercise 3: Normalizing our data
 # 
 # A much used approach before starting to train the data is  to preprocess our
 # data. Normally the data may need a rescaling and/or may be sensitive
@@ -2317,16 +2370,16 @@ y = 2.0+5*x*x+0.1*np.random.randn(100,1)
 # It also common to split the data in a **training** set and a **testing** set. A typical split is to use $80\%$ of the data for training and the rest
 # for testing. This can be done as follows with our design matrix $\boldsymbol{X}$ and data $\boldsymbol{y}$ (remember to import **scikit-learn**)
 
-# In[41]:
+# In[42]:
 
 
 # split in training and test data
-# X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
 
 # Then we can use the standard scaler to scale our data as
 
-# In[42]:
+# In[43]:
 
 
 scaler = StandardScaler()
@@ -2344,7 +2397,7 @@ X_test_scaled = scaler.transform(X_test)
 # 
 # Our data is defined by $x\in [-3,3]$ with a total of for example $100$ data points.
 
-# In[43]:
+# In[44]:
 
 
 np.random.seed()
@@ -2357,18 +2410,299 @@ y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
 
 # where $y$ is the function we want to fit with a given polynomial.
 # 
-# Write a first code which sets up a design matrix $X$ defined by a
-# fifth-order polynomial.  Scale your data and split it in training and
-# test data.
+# <!-- --- begin solution of exercise --- -->
+# **Solution.**
+# We present here the solution for the last exercise. All elements here can be used to solve exercises a) and b) as well.
+# Note that in this example we have used the polynomial fitting functions of **scikit-learn**.
+
+# In[45]:
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+
+
+np.random.seed(2018)
+n = 30
+maxdegree = 14
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+TestError = np.zeros(maxdegree)
+TrainError = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+
+for degree in range(maxdegree):
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
+    clf = model.fit(x_train,y_train)
+    y_fit = clf.predict(x_train)
+    y_pred = clf.predict(x_test) 
+    polydegree[degree] = degree
+    TestError[degree] = np.mean( np.mean((y_test - y_pred)**2) )
+    TrainError[degree] = np.mean( np.mean((y_train - y_fit)**2) )
+
+plt.plot(polydegree, TestError, label='Test Error')
+plt.plot(polydegree, TrainError, label='Train Error')
+plt.legend()
+plt.show()
+
+
+# <!-- --- end solution of exercise --- -->
+
+# **a)**
+# Write a first code which sets up a design matrix $X$ defined by a fifth-order polynomial.  Scale your data and split it in training and test data.
+
+# **b)**
+# Perform an ordinary least squares and compute the means squared error and the $R2$ factor for the training data and the test data, with and without scaling.
+
+# **c)**
+# Add now a model which allows you to make polynomials up to degree $15$.  Perform a standard OLS fitting of the training data and compute the MSE and $R2$ for the training and test data and plot both test and training data MSE and $R2$ as functions of the polynomial degree. Compare what you see with Figure 2.11 of Hastie et al. Comment your results. For which polynomial degree do you find an optimal MSE (smallest value)?
+
+# ## Exercise 4: Adding Ridge Regression
 # 
-# Perform an ordinary least squares and compute the means squared error
-# and the $R2$ factor for the training data and the test data, with and
-# without scaling.
+# This exercise is a continuation of exercise 2. We will use the same function to
+# generate our data set, still staying with a simple function $y(x)$
+# which we want to fit using linear regression, but now extending the
+# analysis to include the Ridge regression method.
 # 
-# Add now a model which allows you to make polynomials up to degree
-# $15$.  Perform a standard OLS fitting of the training data and compute
-# the MSE and $R2$ for the training and test data and plot both test and
-# training data MSE and $R2$ as functions of the polynomial
-# degree. Compare what you see with Figure 2.11 of Hastie et al. Comment
-# your results. For which polynomial degree do you find an optimal MSE
-# (smallest value)?
+# We will thus again generate our own dataset for a function $y(x)$ where 
+# $x \in [0,1]$ and defined by random numbers computed with the uniform
+# distribution. The function $y$ is a quadratic polynomial in $x$ with
+# added stochastic noise according to the normal distribution $\cal{N}(0,1)$.
+# 
+# The following simple Python instructions define our $x$ and $y$ values (with 100 data points).
+
+# In[46]:
+
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+
+# Write your own code for the Ridge method (see chapter 3.4 of Hastie *et al.*, equations (3.43) and (3.44)) and compute the parametrization for different values of $\lambda$. Compare and analyze your results with those from exercise 3. Study the dependence on $\lambda$ while also varying the strength of the noise in your expression for $y(x)$. 
+# 
+# Repeat the above but using the functionality of
+# **Scikit-Learn**. Compare your code with the results from
+# **Scikit-Learn**. Remember to run with the same random numbers for
+# generating $x$ and $y$.  Observe also that when you compare with **Scikit-Learn**, you need to pay attention to how the intercept is dealt with.
+# 
+# Finally, using **Scikit-Learn** or your own code, compute also the mean square error, a risk metric corresponding to the expected value of the squared (quadratic) error defined as
+
+# $$
+# MSE(\hat{y},\hat{\tilde{y}}) = \frac{1}{n}
+# \sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2,
+# $$
+
+# and the $R^2$ score function.
+# If $\tilde{\hat{y}}_i$ is the predicted value of the $i-th$ sample and $y_i$ is the corresponding true value, then the score $R^2$ is defined as
+
+# $$
+# R^2(\hat{y}, \tilde{\hat{y}}) = 1 - \frac{\sum_{i=0}^{n - 1} (y_i - \tilde{y}_i)^2}{\sum_{i=0}^{n - 1} (y_i - \bar{y})^2},
+# $$
+
+# where we have defined the mean value  of $\hat{y}$ as
+
+# $$
+# \bar{y} =  \frac{1}{n} \sum_{i=0}^{n - 1} y_i.
+# $$
+
+# Discuss these quantities as functions of the variable $\lambda$ in Ridge regression.
+# 
+# <!-- --- begin solution of exercise --- -->
+# **Solution.**
+# The code here allows you to perform your own Ridge calculation and
+# perform calculations for various values of the regularization
+# parameter $\lambda$. This program can easily be extended upon.
+
+# In[47]:
+
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+# number of features p (here degree of polynomial
+p = 3
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),p))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x*x
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X_train @ OLSbeta
+print("Training R2 for OLS")
+print(R2(y_train,ytildeOLS))
+print("Training MSE for OLS")
+print(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+print("Test R2 for OLS")
+print(R2(y_test,ypredictOLS))
+print("Test MSE OLS")
+print(MSE(y_test,ypredictOLS))
+
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 20
+OwnMSEPredict = np.zeros(nlambdas)
+OwnMSETrain = np.zeros(nlambdas)
+MSERidgePredict =  np.zeros(nlambdas)
+lambdas = np.logspace(-4, 1, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    OwnRidgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    # and then make the prediction
+    OwnytildeRidge = X_train @ OwnRidgebeta
+    OwnypredictRidge = X_test @ OwnRidgebeta
+    OwnMSEPredict[i] = MSE(y_test,OwnypredictRidge)
+    OwnMSETrain[i] = MSE(y_train,OwnytildeRidge)
+    # Make the fit using Ridge from Sklearn
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
+    RegRidge.fit(X_train,y_train)
+    # and then make the prediction
+    ypredictRidge = RegRidge.predict(X_test)
+    # Compute the MSE and print it
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), OwnMSETrain, label = 'MSE Ridge train, Own code')
+plt.plot(np.log10(lambdas), OwnMSEPredict, 'r--', label = 'MSE Ridge Test, Own code')
+plt.plot(np.log10(lambdas), MSERidgePredict, 'g--', label = 'MSE Ridge Test, Sklearn code')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+
+# <!-- --- end solution of exercise --- -->
+
+# ## Exercise 5: Analytical exercises
+# 
+# In this exercise we derive the expressions for various derivatives of
+# products of vectors and matrices. Such derivatives are central to the
+# optimization of various cost functions. Although we will often use
+# automatic differentiation in actual calculations, to be able to have
+# analytical expressions is extremely helpful in case we have simpler
+# derivatives as well as when we analyze various properties (like second
+# derivatives) of the chosen cost functions.  Vectors are always written
+# as boldfaced lower case letters and matrices as upper case boldfaced
+# letters.
+# 
+# Show that
+
+# $$
+# \frac{\partial (\boldsymbol{b}^T\boldsymbol{a})}{\partial \boldsymbol{a}} = \boldsymbol{b},
+# $$
+
+# and
+
+# $$
+# \frac{\partial (\boldsymbol{a}^T\boldsymbol{A}\boldsymbol{a})}{\partial \boldsymbol{a}} = \boldsymbol{a}^T(\boldsymbol{A}+\boldsymbol{A}^T),
+# $$
+
+# and
+
+# $$
+# \frac{\partial \left(\boldsymbol{x}-\boldsymbol{A}\boldsymbol{s}\right)^T\left(\boldsymbol{x}-\boldsymbol{A}\boldsymbol{s}\right)}{\partial \boldsymbol{s}} = -2\left(\boldsymbol{x}-\boldsymbol{A}\boldsymbol{s}\right)^T\boldsymbol{A},
+# $$
+
+# and finally find the second derivative of this function with respect to the vector $\boldsymbol{s}$.
+# 
+# <!-- --- begin solution of exercise --- -->
+# **Solution.**
+# In these exercises it is always useful to write out with summation indices the various quantities.
+# As an example, consider the function
+
+# $$
+# f(\boldsymbol{x}) =\boldsymbol{A}\boldsymbol{x},
+# $$
+
+# which reads for a specific component $f_i$ (we define the matrix $\boldsymbol{A}$ to have dimension $n\times n$ and the vector $\boldsymbol{x}$ to have length $n$)
+
+# $$
+# f_i =\sum_{j=0}^{n-1}a_{ij}x_j,
+# $$
+
+# which leads to
+
+# $$
+# \frac{\partial f_i}{\partial x_j}= a_{ij},
+# $$
+
+# and written out in terms of the vector $\boldsymbol{x}$ we have
+
+# $$
+# \frac{\partial f(\boldsymbol{x})}{\partial \boldsymbol{x}}= \boldsymbol{A}.
+# $$
+
+# For the first derivative
+
+# $$
+# \frac{\partial (\boldsymbol{b}^T\boldsymbol{a})}{\partial \boldsymbol{a}} = \boldsymbol{b},
+# $$
+
+# we can write out the inner product as (assuming all elements are real)
+
+# $$
+# \boldsymbol{b}^T\boldsymbol{a}=\sum_i b_ia_i,
+# $$
+
+# taking the derivative
+
+# $$
+# \frac{\partial \left( \sum_i b_ia_i\right)}{\partial a_k}= b_k,
+# $$
+
+# leading to
+
+# $$
+# \frac{\partial \boldsymbol{b}^T\boldsymbol{a}}{\partial \boldsymbol{a}}= \begin{bmatrix} b_0 \\ b_1 \\ b_2 \\ \dots \\ \dots \\ b_{n-1}\end{bmatrix} = \boldsymbol{b}.
+# $$
+
+# For the second exercise we have
+
+# $$
+# \frac{\partial (\boldsymbol{a}^T\boldsymbol{A}\boldsymbol{a})}{\partial \boldsymbol{a}}.
+# $$
+
+# Defining a vector $\boldsymbol{f}=\boldsymbol{A}\boldsymbol{a}$ with components $f_i=\sum_ja_{ij}a_i$  we have
+
+# $$
+# \frac{\partial (\boldsymbol{a}^T\boldsymbol{f})}{\partial \boldsymbol{a}}=\boldsymbol{a}^T\boldsymbol{A}+\boldsymbol{f}^T=\boldsymbol{a}^T\left(\boldsymbol{A}+\boldsymbol{A}^T\right),
+# $$
+
+# since $f$ depends on $a$ and we have used the chain rule for derivatives on the derivative of $f$ with respect to $a$.
+# 
+# <!-- --- end solution of exercise --- -->
