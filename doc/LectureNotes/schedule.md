@@ -38,7 +38,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 35 August 29-September 2
 - Lab Wednesday: Work on exercises 1-5 for week 35
 - Thursday: Review of  ordinary Least Squares with applications, reminder on statistics  and start discussion of Ridge Regression and Singular Value Decomposition
-- Video of lecture Thursday at 
+- Video of lecture Thursday at https://youtu.be/jYdg2xzKa5E
 - Friday: Discussion of Ridge and Lasso Regression and links with Singular Value Decomposition
 - Video of lecture Friday at 
 
