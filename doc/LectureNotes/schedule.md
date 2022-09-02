@@ -40,7 +40,7 @@ For the reading assignments we use the following abbreviations:
 - Thursday: Review of  ordinary Least Squares with applications, reminder on statistics  and start discussion of Ridge Regression and Singular Value Decomposition
 - Video of lecture Thursday at https://youtu.be/jYdg2xzKa5E
 - Friday: Discussion of Ridge and Lasso Regression and links with Singular Value Decomposition
-- Video of lecture Friday at 
+- Video of lecture Friday at https://youtu.be/07e-SUYRzM0
 
 - Reading recommendations:
   - See lecture notes for week 35 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
