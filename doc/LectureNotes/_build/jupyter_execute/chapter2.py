@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html chapter2.do.txt  -->
+
 # # Ridge and Lasso Regression
-# 
-# 
-# 
+
 # ## Mathematical Interpretation of Ordinary Least Squares
 # 
 # What is presented here is a mathematical analysis of various regression algorithms (ordinary least  squares, Ridge and Lasso Regression). The analysis is based on an important algorithm in linear algebra, the so-called Singular Value Decomposition (SVD). 
-# 
 # 
 # We have shown that in ordinary least squares (OLS) the optimal parameters $\beta$ are given by
 
@@ -39,9 +39,6 @@
 # The matrix $\boldsymbol{A}$ has the important property that $\boldsymbol{A}^2=\boldsymbol{A}$. This is the definition of a [projection matrix](https://en.wikipedia.org/wiki/Projection_matrix).
 # We can then interpret our optimal model $\tilde{\boldsymbol{y}}$ as being represented  by an orthogonal  projection of $\boldsymbol{y}$ onto a space defined by the column vectors of $\boldsymbol{X}$.  In our case here the matrix $\boldsymbol{A}$ is a square matrix. If it is a general rectangular matrix we have an oblique projection matrix.
 # 
-# 
-# 
-# 
 # We have defined the residual error as
 
 # $$
@@ -49,7 +46,6 @@
 # $$
 
 # The residual errors are then the projections of $\boldsymbol{y}$ onto the orthogonal component of the space defined by the column vectors of $\boldsymbol{X}$.
-# 
 # 
 # If the matrix $\boldsymbol{X}$ is an orthogonal (or unitary in case of complex values) matrix, we have
 
@@ -69,13 +65,9 @@
 # \boldsymbol{\epsilon}=\boldsymbol{y}-\tilde{\boldsymbol{y}}=0.
 # $$
 
-# This serves also as a useful test of our codes. 
-# 
-# 
-# 
-# 
+# This serves also as a useful test of our codes.
+
 # ## The singular value decomposition
-# 
 # 
 # The examples we have looked at so far are cases where we normally can
 # invert the matrix $\boldsymbol{X}^T\boldsymbol{X}$. Using a polynomial expansion where we fit of various functions leads to
@@ -83,7 +75,6 @@
 # to the polynomial character of our model. Obtaining the inverse of the
 # design matrix is then often done via a so-called LU, QR or Cholesky
 # decomposition.
-# 
 # 
 # As we will also see in the first project, 
 # this may
@@ -107,9 +98,6 @@
 # turn the variance of a given quantity. It plays also an important role
 # in the principal component analysis where high-dimensional data can be
 # reduced to the statistically relevant features.
-# 
-# 
-# 
 # 
 # One of the typical problems we encounter with linear regression, in particular 
 # when the matrix $\boldsymbol{X}$ (our so-called design matrix) is high-dimensional, 
@@ -156,8 +144,6 @@
 # We see easily that  $\mbox{det}(\boldsymbol{X}) = x_{11} x_{22} - x_{12} x_{21} = 1 \times (-1) - 1 \times (-1) = 0$. Hence, $\mathbf{X}$ is singular and its inverse is undefined.
 # This is equivalent to saying that the matrix $\boldsymbol{X}$ has at least an eigenvalue which is zero.
 # 
-# 
-# 
 # If our design matrix $\boldsymbol{X}$ which enters the linear regression problem
 
 # <!-- Equation labels as ordinary links -->
@@ -182,13 +168,9 @@
 # \boldsymbol{X}^{T} \boldsymbol{X} \rightarrow \boldsymbol{X}^{T} \boldsymbol{X}+\lambda \boldsymbol{I},
 # $$
 
-# where $\boldsymbol{I}$ is the identity matrix.  When we discuss **Ridge** regression this is actually what we end up evaluating. The parameter $\lambda$ is called a hyperparameter. More about this later. 
-# 
-# 
-# 
-# 
+# where $\boldsymbol{I}$ is the identity matrix.  When we discuss **Ridge** regression this is actually what we end up evaluating. The parameter $\lambda$ is called a hyperparameter. More about this later.
+
 # ## Basic math of the SVD
-# 
 # 
 # From standard linear algebra we know that a square matrix $\boldsymbol{X}$ can be diagonalized if and only it is 
 # a so-called [normal matrix](https://en.wikipedia.org/wiki/Normal_matrix), that is if $\boldsymbol{X}\in {\mathbb{R}}^{n\times n}$
@@ -224,10 +206,6 @@
 
 # is not diagonalizable, it is a so-called [defective matrix](https://en.wikipedia.org/wiki/Defective_matrix). It is easy to see that the condition
 # $\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{X}^T\boldsymbol{X}$ is not fulfilled. 
-# 
-# 
-# 
-# 
 # 
 # However, and this is the strength of the SVD algorithm, any general
 # matrix $\boldsymbol{X}$ can be decomposed in terms of a diagonal matrix and
@@ -270,7 +248,6 @@
 # 
 # The columns of $\boldsymbol{U}$ are called the left singular vectors while the columns of $\boldsymbol{V}$ are the right singular vectors.
 # 
-# 
 # If we assume that $n > p$, then our matrix $\boldsymbol{U}$ has dimension $n
 # \times n$. The last $n-p$ columns of $\boldsymbol{U}$ become however
 # irrelevant in our calculations since they are multiplied with the
@@ -287,7 +264,7 @@
 # If $p > n$, then only the first $n$ columns of $\boldsymbol{V}$ are computed and $\boldsymbol{\Sigma}$ has dimension $n\times n$.
 # The $n=p$ case is obvious, we retain the full SVD. 
 # In general the economy-size SVD leads to less FLOPS and still conserving the desired accuracy.
-# 
+
 # ## Codes for the SVD
 
 # In[1]:
@@ -333,8 +310,6 @@ print(C-X)
 # inversion algorithm for matrix inversion with $\boldsymbol{X}^T\boldsymbol{X}$ results
 # in the program terminating due to a singular matrix.
 # 
-# 
-# 
 # The $U$, $S$, and $V$ matrices returned from the **svd()** function
 # cannot be multiplied directly.
 # 
@@ -347,8 +322,7 @@ print(C-X)
 # If you wish to include the zero singular values, you will need to
 # resize the matrices and set up a diagonal matrix as done in the above
 # example
-# 
-# 
+
 # ## Code for SVD and Inversion of Matrices
 # 
 # How do we use the SVD to invert a matrix $\boldsymbol{X}^T\boldsymbol{X}$ which is singular or near singular?
@@ -410,7 +384,7 @@ print(np.abs(B-C))
 # \boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
 # $$
 
-# where $\boldsymbol{D}_{\mathrm{PI}}$ can be calculated by creating a diagonal matrix from $\boldsymbol{Sigma}$ where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
+# where $\boldsymbol{D}_{\mathrm{PI}}$ can be calculated by creating a diagonal matrix from $\boldsymbol{\Sigma}$ where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
 
 # In[4]:
 
@@ -441,11 +415,7 @@ print(np.abs(C-B))
 
 
 # As you can see from these examples, our own decomposition based on the SVD agrees the pseudoinverse algorithm provided by **Numpy**.
-# 
-# 
-# 
-# 
-# 
+
 # ## Mathematics of the SVD and implications
 # 
 # Let us take a closer look at the mathematics of the SVD and the various implications for machine learning studies.
@@ -480,7 +450,6 @@ print(np.abs(C-B))
 # $$
 
 # All values beyond $p-1$ are all zero.
-# 
 # 
 # As an example, consider the following $3\times 2$ example for the matrix $\boldsymbol{\Sigma}$
 
@@ -538,8 +507,6 @@ print(np.abs(C-B))
 # contain only zeros. This will have important consequences for our SVD
 # decomposition of the design matrix.
 # 
-# 
-# 
 # The matrix that may cause problems for us is $\boldsymbol{X}^T\boldsymbol{X}$. Using the SVD we can rewrite this matrix as
 
 # $$
@@ -554,12 +521,6 @@ print(np.abs(C-B))
 
 # We define $\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}=\tilde{\boldsymbol{\Sigma}}^2$ which is  a diagonal matrix containing only the singular values squared. It has dimensionality $p \times p$.
 # 
-# This means, using the orthogonality of $\boldsymbol{V}$,  that we get
-
-# $$
-# \boldsymbol{X}^T\boldsymbol{X}=\tilde{\boldsymbol{\Sigma}}^2.
-# $$
-
 # We can now insert the result for the matrix $\boldsymbol{X}^T\boldsymbol{X}$ into our equation for ordinary least squares where
 
 # $$
@@ -569,10 +530,10 @@ print(np.abs(C-B))
 # and using our SVD decomposition of $\boldsymbol{X}$ we have
 
 # $$
-# \tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\tilde{\boldsymbol{\Sigma}}^{-2}\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{y},
+# \tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\left(\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^{2}(\boldsymbol{V}^T\right)^{-1}\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{y},
 # $$
 
-# which gives us, using the orthogonality of the matrices $\boldsymbol{U}$ and $\boldsymbol{V}$,
+# which gives us, using the orthogonality of the matrices $\boldsymbol{U}$ and $\boldsymbol{V}$,,
 
 # $$
 # \tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_i\boldsymbol{u}^T_j\boldsymbol{y},
@@ -587,8 +548,7 @@ print(np.abs(C-B))
 # that belong to $i>p-1$, result in only  zeros when we perform the multiplications. This means that the sum above has non-zero elements only up to $i=p-1$. This corresponds also to the number of singular values (these are all non-zero).
 # 
 # It means that the ordinary least square model (with the optimal parameters) $\boldsymbol{\tilde{y}}$, corresponds to an orthogonal transformation of the output (or target) vector $\boldsymbol{y}$ by the vectors of the matrix $\boldsymbol{U}$.
-# 
-# 
+
 # ## Further properties (important for our analyses later)
 # 
 # Let us study again $\boldsymbol{X}^T\boldsymbol{X}$ in terms of our SVD,
@@ -638,10 +598,8 @@ print(np.abs(C-B))
 # number of rows represents the number of data inputs. Note that in
 # other texts you may find the opposite notation. This has consequences
 # for the definition of for example the covariance matrix and its relation to the SVD.
-# 
-# 
+
 # ## Meet the Covariance Matrix
-# 
 # 
 # Before we move on to a discussion of Ridge and Lasso regression, we want to show an important example of the above.
 # 
@@ -665,8 +623,6 @@ print(np.abs(C-B))
 # the covariance matrix. This means also that we can use the SVD to find
 # the eigenvalues of the covariance matrix and the Hessian matrix in
 # terms of the singular values.   Let us develop these arguments, as they will play an important role in our machine learning studies.
-# 
-# 
 # 
 # Before we discuss the link between for example Ridge regression and the singular value decomposition, we need to remind ourselves about
 # the definition of the covariance and the correlation function. These are quantities that play a central role in machine learning methods.
@@ -709,7 +665,6 @@ print(np.abs(C-B))
 # **Scikit-Learn** or **nunmpy's** function calculate the covariance, this
 # quantity will be computed with a factor $1/(n-1)$.
 # 
-# 
 # The covariance takes values between zero and infinity and may thus
 # lead to problems with loss of numerical precision for particularly
 # large values. It is common to scale the covariance matrix by
@@ -732,8 +687,6 @@ print(np.abs(C-B))
 # $$
 
 # In the above example this is the function we constructed using **pandas**.
-# 
-# 
 # 
 # In our derivation of the various regression algorithms like **Ordinary Least Squares** or **Ridge regression**
 # we defined the design/feature matrix $\boldsymbol{X}$ as
@@ -865,8 +818,6 @@ print(C)
 # 
 # The above procedure with **numpy** can be made more compact if we use **pandas**.
 # 
-# 
-# 
 # We whow here how we can set up the correlation matrix using **pandas**, as done in this simple code
 
 # In[7]:
@@ -947,8 +898,6 @@ print(covariance_matrix)
 # drop these elements and construct a correlation
 # matrix without these elements. 
 # 
-# 
-# 
 # We can rewrite the covariance matrix in a more compact form in terms of the design/feature matrix $\boldsymbol{X}$ as
 
 # $$
@@ -983,12 +932,12 @@ print(covariance_matrix)
 #              \end{bmatrix},
 # $$
 
-# where we wrote $$\boldsymbol{C}[\boldsymbol{x}_0,\boldsymbol{x}_1] = \boldsymbol{C}[\boldsymbol{x}]$$ to indicate that this is the covariance of the vectors $\boldsymbol{x}$ of the design/feature matrix $\boldsymbol{X}$.
+# where we wrote $\boldsymbol{C}[\boldsymbol{x}_0,\boldsymbol{x}_1]=\boldsymbol{C}[\boldsymbol{x}]$ to indicate
+# that this is the covariance of the vectors $\boldsymbol{x}$ of the
+# design/feature matrix $\boldsymbol{X}$.
 # 
 # It is easy to generalize this to a matrix $\boldsymbol{X}\in {\mathbb{R}}^{n\times p}$.
-# 
-# 
-# 
+
 # ## Linking with the SVD
 # 
 # We saw earlier that
@@ -1042,7 +991,6 @@ print(covariance_matrix)
 # $\boldsymbol{v}_i$ are hierarchically ordered by how much correlation they
 # encode from the columns of $\boldsymbol{X}$. 
 # 
-# 
 # Note that these are also the eigenvectors and eigenvalues of the
 # Hessian matrix.
 # 
@@ -1059,7 +1007,6 @@ print(covariance_matrix)
 # root of an eigenvalue of $\boldsymbol{X}^T\boldsymbol{X}$. If the matrix $\boldsymbol{X}$ is
 # self-adjoint, the singular values of $\boldsymbol{X}$ are equal to the
 # absolute value of the eigenvalues of $\boldsymbol{X}$.
-# 
 # 
 # For $\boldsymbol{X}\boldsymbol{X}^T$ we found
 
@@ -1093,10 +1040,7 @@ print(covariance_matrix)
 # Since we will mainly be interested in the correlations among the features
 # of our data (the columns of $\boldsymbol{X}$, the quantity of interest for us are the non-zero singular
 # values and the column vectors of $\boldsymbol{V}$.
-# 
-# 
-# 
-# 
+
 # ## Ridge and Lasso Regression
 # 
 # Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
@@ -1184,14 +1128,11 @@ print(covariance_matrix)
 
 # which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$.
 # 
-# 
 # We see that Ridge regression is nothing but the standard OLS with a
 # modified diagonal term added to $\boldsymbol{X}^T\boldsymbol{X}$. The consequences, in
 # particular for our discussion of the bias-variance tradeoff are rather
 # interesting. We will see that for specific values of $\lambda$, we may
 # even reduce the variance of the optimal parameters $\boldsymbol{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
-# 
-# 
 # 
 # Using our insights about the SVD of the design matrix $\boldsymbol{X}$ 
 # We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\boldsymbol{U}$ as
@@ -1208,8 +1149,6 @@ print(covariance_matrix)
 
 # with the vectors $\boldsymbol{u}_j$ being the columns of $\boldsymbol{U}$ from the SVD of the matrix $\boldsymbol{X}$. 
 # 
-# 
-# 
 # Since $\lambda \geq 0$, it means that compared to OLS, we have
 
 # $$
@@ -1223,8 +1162,6 @@ print(covariance_matrix)
 # \sigma_{i+1}$.
 # 
 # For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
-# 
-# 
 # 
 # For the sake of simplicity, let us assume that the design matrix is orthonormal, that is
 
@@ -1249,8 +1186,6 @@ print(covariance_matrix)
 # infinity.
 # 
 # We will come back to more interpreations after we have gone through some of the statistical analysis part. 
-# 
-# 
 # 
 # Using the matrix-vector expression for Lasso regression and dropping the parameter $1/n$ in front of the standard mean squared error equation, we have the following **cost** function
 
@@ -1277,10 +1212,6 @@ print(covariance_matrix)
 # $$
 
 # This equation does not lead to a nice analytical equation as in Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package [CVXOPT](https://cvxopt.org/). We will discuss this later. 
-# 
-# 
-# 
-# 
 # 
 # Let us assume that our design matrix is given by unit (identity) matrix, that is a square diagonal matrix with ones only along the
 # diagonal. In this case we have an equal number of rows and columns $n=p$.
@@ -1331,7 +1262,6 @@ print(covariance_matrix)
 
 # Plotting these results ([figure in handwritten notes for week 36](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2021/NotesSeptember9.pdf)) shows clearly that Lasso regression suppresses (sets to zero) values of $\beta_i$ for specific values of $\lambda$. Ridge regression reduces on the other hand the values of $\beta_i$ as function of $\lambda$.
 # 
-# 
 # As another examples, 
 # let us assume we have a data set with outputs/targets given by the vector
 
@@ -1347,7 +1277,6 @@ print(covariance_matrix)
 
 # meaning that we have two features and two unknown parameters $\beta_0$ and $\beta_1$ to be determined either by ordinary least squares, Ridge or Lasso regression.
 # 
-# 
 # For ordinary least squares (OLS) we know that the optimal solution is
 
 # $$
@@ -1361,7 +1290,6 @@ print(covariance_matrix)
 # $$
 
 # The code which implements this simpler case is presented after the discussion of Ridge and Lasso.
-# 
 # 
 # For Ridge regression we have
 
@@ -1379,8 +1307,6 @@ print(covariance_matrix)
 # Let us for simplicity assume that $\beta_0^2+\beta_1^2=1$ as constraint. This will allow us to find an expression for the optimal values of $\beta$ and $\lambda$.
 # 
 # To see this, let us write the cost function for Ridge regression.  
-# 
-# 
 # 
 # We define the MSE without the $1/n$ factor and have then, using that
 
@@ -1411,7 +1337,6 @@ print(covariance_matrix)
 # $$
 
 # which gives $\lambda=4.571$ and $\beta_0=0.933$ and $\beta_1=0.359$.
-# 
 # 
 # For Lasso we need now, keeping a  constraint on $\vert\beta_0\vert+\vert\beta_1\vert=1$,  to take the derivative of the absolute values of $\beta_0$
 # and $\beta_1$. This gives us the following derivatives of the cost function
@@ -1464,7 +1389,6 @@ print(covariance_matrix)
 # $$
 
 # Using the constraint on $\beta_0$ and $\beta_1$ we can then find the optimal value of $\lambda$ for the different cases. We leave this as an exercise to you.
-# 
 # 
 # Here we set up the OLS, Ridge and Lasso functionality in order to study the above example. Note that here we have opted for a set of values of $\lambda$, meaning that we need to perform a search in order to find the optimal values.
 # 
@@ -1694,285 +1618,8 @@ plt.show()
 # for the optimal values of $\lambda$. We will see this throughout these
 # series of lectures.
 # 
-# 
 # As a small addendum, we note that you can also solve this problem using the convex optimization package [CVXOPT](https://cvxopt.org/examples/mlbook/l1regls.html). This requires, in addition to having installed **CVXOPT**, you need to download the file *l1regl.py*.
-# The following code example solves the simpler problem we discussed above, where we have added the latter python file.
 
-# In[12]:
-
-
-from cvxopt import matrix, spdiag, mul, div, sqrt, normal, setseed
-from cvxopt import blas, lapack, solvers, sparse, spmatrix
-import math
-
-try:
-    import mosek
-    import sys
-    __MOSEK = True
-except: __MOSEK = False
-
-if __MOSEK:
-
-    def l1regls_mosek(A, b):
-        """
-
-        Returns the solution of l1-norm regularized least-squares problem
-
-            minimize    || A*x - b ||_2^2  + e'*u
-
-            subject to  -u <= x <= u
-
-        """
-
-        m, n = A.size
-
-        env  = mosek.Env()
-        task = env.Task(0,0)
-        task.set_Stream(mosek.streamtype.log, lambda x: sys.stdout.write(x))
-
-        task.appendvars( 2*n)            # number of variables
-        task.appendcons( 2*n)            # number of constraints
-
-        # input quadratic objective
-        Q = matrix(0.0, (n,n)) 
-        blas.syrk(A, Q, alpha = 2.0, trans='T')
-
-        I = []
-        for i in range(n):
-            I.extend(range(i,n))
-
-        J = []
-        for i in range(n):
-            J.extend((n-i)*[i])
-
-        task.putqobj(I, J, list(Q[matrix(I) + matrix(J)*n]))
-        task.putclist(range(2*n), list(-2*A.T*b) + n*[1.0])  # setup linear objective
-
-        # input constraint matrix row by row
-        for i in range(n):
-            task.putarow(   i, [i, n+i], [1.0, -1.0])
-            task.putarow( n+i, [i, n+i], [1.0,  1.0])
-
-        # setup bounds on constraints
-        task.putboundslice(mosek.accmode.con,
-                           0, n, n*[mosek.boundkey.up], n*[0.0], n*[0.0])
-        task.putboundslice(mosek.accmode.con,
-                           n, 2*n, n*[mosek.boundkey.lo], n*[0.0], n*[0.0])
-
-        # setup variable bounds
-        task.putboundslice(mosek.accmode.var,
-                           0, 2*n, 2*n*[mosek.boundkey.fr], 2*n*[0.0], 2*n*[0.0])
-
-        # optimize the task
-        task.putobjsense(mosek.objsense.minimize)
-        task.optimize()
-        task.solutionsummary(mosek.streamtype.log)
-        x = n*[0.0]
-        task.getsolutionslice(mosek.soltype.itr, mosek.solitem.xx, 0, n, x)
-
-        return matrix(x)
-
-    def l1regls_mosek2(A, b):
-        """
-
-        Returns the solution of l1-norm regularized least-squares problem
-
-            minimize     w'*w + e'*u
-
-            subject to  -u <= x <= u
-
-                         A*x - w = b
-
-        """
-
-        m, n = A.size
-
-        env  = mosek.Env()
-        task = env.Task(0,0)
-        task.set_Stream(mosek.streamtype.log, lambda x: sys.stdout.write(x))
-
-        task.appendvars(2*n + m)     # number of variables
-        task.appendcons(2*n + m)     # number of constraints
-
-        # input quadratic objective
-        task.putqobj(range(2*n,2*n+m), range(2*n,2*n+m), m*[2.0])
-
-        task.putclist(range(2*n+m), n*[0.0] + n*[1.0] + m*[0.0])  # setup linear objective
-
-        # input constraint matrix row by row
-        for i in range(n):
-            task.putarow(   i, [i, n+i], [1.0, -1.0])
-            task.putarow( n+i, [i, n+i], [1.0,  1.0])
-
-        for i in range(m):
-            task.putarow( 2*n+i, range(n) + [2*n+i], list(A[i,:]) + [-1.0])
-
-        # setup bounds on constraints
-        task.putboundslice(mosek.accmode.con,
-                           0, n, n*[mosek.boundkey.up], n*[0.0], n*[0.0])
-        task.putboundslice(mosek.accmode.con,
-                           n, 2*n, n*[mosek.boundkey.lo], n*[0.0], n*[0.0])
-        task.putboundslice(mosek.accmode.con,
-                           2*n, 2*n+m, m*[mosek.boundkey.fx], list(b), list(b))
-
-        # setup variable bounds
-        task.putboundslice(mosek.accmode.var, 0, 2*n+m, (2*n+m)*[mosek.boundkey.fr], 
-                           (2*n+m)*[0.0], (2*n+m)*[0.0])
-
-        # optimize the task
-        task.putobjsense(mosek.objsense.minimize)
-        task.optimize()
-        task.solutionsummary(mosek.streamtype.log)
-        x = n*[0.0]
-        task.getsolutionslice(mosek.soltype.itr, mosek.solitem.xx, 0, n, x)
-
-        return matrix(x)
-
-def l1regls(A, b):
-    """
-    
-    Returns the solution of l1-norm regularized least-squares problem
-  
-        minimize || A*x - b ||_2^2  + || x ||_1.
-
-    """
-
-    m, n = A.size
-    q = matrix(1.0, (2*n,1))
-    q[:n] = -2.0 * A.T * b
-
-    def P(u, v, alpha = 1.0, beta = 0.0 ):
-        """
-            v := alpha * 2.0 * [ A'*A, 0; 0, 0 ] * u + beta * v 
-        """
-        v *= beta
-        v[:n] += alpha * 2.0 * A.T * (A * u[:n])
-
-
-    def G(u, v, alpha=1.0, beta=0.0, trans='N'):
-        """
-            v := alpha*[I, -I; -I, -I] * u + beta * v  (trans = 'N' or 'T')
-        """
-
-        v *= beta
-        v[:n] += alpha*(u[:n] - u[n:])
-        v[n:] += alpha*(-u[:n] - u[n:])
-
-    h = matrix(0.0, (2*n,1))
-
-
-    # Customized solver for the KKT system 
-    #
-    #     [  2.0*A'*A  0    I      -I     ] [x[:n] ]     [bx[:n] ]
-    #     [  0         0   -I      -I     ] [x[n:] ]  =  [bx[n:] ].
-    #     [  I        -I   -D1^-1   0     ] [zl[:n]]     [bzl[:n]]
-    #     [ -I        -I    0      -D2^-1 ] [zl[n:]]     [bzl[n:]]
-    #
-    # where D1 = W['di'][:n]**2, D2 = W['di'][:n]**2.
-    #    
-    # We first eliminate zl and x[n:]:
-    #
-    #     ( 2*A'*A + 4*D1*D2*(D1+D2)^-1 ) * x[:n] = 
-    #         bx[:n] - (D2-D1)*(D1+D2)^-1 * bx[n:] + 
-    #         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - 
-    #         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:]           
-    #
-    #     x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) 
-    #         - (D2-D1)*(D1+D2)^-1 * x[:n]         
-    #
-    #     zl[:n] = D1 * ( x[:n] - x[n:] - bzl[:n] )
-    #     zl[n:] = D2 * (-x[:n] - x[n:] - bzl[n:] ).
-    #
-    # The first equation has the form
-    #
-    #     (A'*A + D)*x[:n]  =  rhs
-    #
-    # and is equivalent to
-    #
-    #     [ D    A' ] [ x:n] ]  = [ rhs ]
-    #     [ A   -I  ] [ v    ]    [ 0   ].
-    #
-    # It can be solved as 
-    #
-    #     ( A*D^-1*A' + I ) * v = A * D^-1 * rhs
-    #     x[:n] = D^-1 * ( rhs - A'*v ).
-
-    S = matrix(0.0, (m,m))
-    Asc = matrix(0.0, (m,n))
-    v = matrix(0.0, (m,1))
-
-    def Fkkt(W):
-
-        # Factor 
-        #
-        #     S = A*D^-1*A' + I 
-        #
-        # where D = 2*D1*D2*(D1+D2)^-1, D1 = d[:n]**-2, D2 = d[n:]**-2.
-
-        d1, d2 = W['di'][:n]**2, W['di'][n:]**2
-
-        # ds is square root of diagonal of D
-        ds = math.sqrt(2.0) * div( mul( W['di'][:n], W['di'][n:]), 
-            sqrt(d1+d2) )
-        d3 =  div(d2 - d1, d1 + d2)
-     
-        # Asc = A*diag(d)^-1/2
-        Asc = A * spdiag(ds**-1)
-
-        # S = I + A * D^-1 * A'
-        blas.syrk(Asc, S)
-        S[::m+1] += 1.0 
-        lapack.potrf(S)
-
-        def g(x, y, z):
-
-            x[:n] = 0.5 * ( x[:n] - mul(d3, x[n:]) + 
-                mul(d1, z[:n] + mul(d3, z[:n])) - mul(d2, z[n:] - 
-                mul(d3, z[n:])) )
-            x[:n] = div( x[:n], ds) 
-
-            # Solve
-            #
-            #     S * v = 0.5 * A * D^-1 * ( bx[:n] - 
-            #         (D2-D1)*(D1+D2)^-1 * bx[n:] + 
-            #         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - 
-            #         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:] )
-                
-            blas.gemv(Asc, x, v)
-            lapack.potrs(S, v)
-            
-            # x[:n] = D^-1 * ( rhs - A'*v ).
-            blas.gemv(Asc, v, x, alpha=-1.0, beta=1.0, trans='T')
-            x[:n] = div(x[:n], ds)
-
-            # x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) 
-            #         - (D2-D1)*(D1+D2)^-1 * x[:n]         
-            x[n:] = div( x[n:] - mul(d1, z[:n]) - mul(d2, z[n:]), d1+d2 )                - mul( d3, x[:n] )
-                
-            # zl[:n] = D1^1/2 * (  x[:n] - x[n:] - bzl[:n] )
-            # zl[n:] = D2^1/2 * ( -x[:n] - x[n:] - bzl[n:] ).
-            z[:n] = mul( W['di'][:n],  x[:n] - x[n:] - z[:n] ) 
-            z[n:] = mul( W['di'][n:], -x[:n] - x[n:] - z[n:] ) 
-
-        return g
-
-    return solvers.coneqp(P, q, G, h, kktsolver = Fkkt)['x'][:n]
-
-
-# Then we call the above functions and solve the problem, as done here
-
-# In[ ]:
-
-
-from cvxopt import matrix, normal
-
-X = matrix( [ [ 2, 0, 1], [0, 1, 3]])
-y = matrix( [4, 2, 3])
-x = l1regls(X,y)
-
-
-# **More text will be added to this example.**
-# 
 # ## Linking the regression analysis with a statistical interpretation
 # 
 # We will now couple the discussions of ordinary least squares, Ridge
@@ -1983,14 +1630,12 @@ x = l1regls(X,y)
 # parameter can reduce considerably the variance of the parameters
 # $\beta$.
 # 
-# 
 # The
 # advantage of doing linear regression is that we actually end up with
 # analytical expressions for several statistical quantities.  
 # Standard least squares and Ridge regression  allow us to
 # derive quantities like the variance and other expectation values in a
 # rather straightforward way.
-# 
 # 
 # It is assumed that $\varepsilon_i
 # \sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
@@ -2014,8 +1659,6 @@ x = l1regls(X,y)
 # Recall that $\boldsymbol{X}$ is a matrix of dimensionality $n\times p$. The
 # notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
 # row number $i$ and perform a sum over all values $p$.
-# 
-# 
 # 
 # The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
 # that there exists a function $f(\boldsymbol{x})$ and  a normal distributed error $\boldsymbol{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
@@ -2063,7 +1706,6 @@ x = l1regls(X,y)
 # Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta}, \sigma^2)$, that is $\boldsymbol{y}$ follows a normal distribution with 
 # mean value $\boldsymbol{X}\boldsymbol{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD). 
 # 
-# 
 # With the OLS expressions for the parameters $\boldsymbol{\beta}$ we can evaluate the expectation value
 
 # $$
@@ -2107,7 +1749,6 @@ x = l1regls(X,y)
 # $\boldsymbol{\sigma}^2 (\boldsymbol{\beta}_j ) = \boldsymbol{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
 # construct a confidence interval for the estimates.
 # 
-# 
 # In a similar way, we can obtain analytical expressions for say the
 # expectation values of the parameters $\boldsymbol{\beta}$ and their variance
 # when we employ Ridge regression, allowing us again to define a confidence interval. 
@@ -2137,10 +1778,8 @@ x = l1regls(X,y)
 
 # The difference is non-negative definite since each component of the
 # matrix product is non-negative definite. 
-# This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\boldsymbol{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
-# 
-# 
-# 
+# This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\boldsymbol{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below.
+
 # ## Deriving OLS from a probability distribution
 # 
 # Our basic assumption when we derived the OLS equations was to assume
@@ -2193,20 +1832,17 @@ x = l1regls(X,y)
 # likelihood of a domain of events $\boldsymbol{D}$ given a set of parameters
 # $\boldsymbol{\beta}$.
 # 
-# 
 # In statistics, maximum likelihood estimation (MLE) is a method of
 # estimating the parameters of an assumed probability distribution,
 # given some observed data. This is achieved by maximizing a likelihood
 # function so that, under the assumed statistical model, the observed
 # data is the most probable. 
 # 
-# 
 # We will assume here that our events are given by the above Gaussian
 # distribution and we will determine the optimal parameters $\beta$ by
 # maximizing the above PDF. However, computing the derivatives of a
 # product function is cumbersome and can easily lead to overflow and/or
 # underflowproblems, with potentials for loss of numerical precision.
-# 
 # 
 # In practice, it is more convenient to maximize the logarithm of the
 # PDF because it is a monotonically increasing function of the argument.
@@ -2216,9 +1852,6 @@ x = l1regls(X,y)
 # 
 # Note also that maximization/minimization of the logarithm of the PDF
 # is equivalent to the maximization/minimization of the function itself.
-# 
-# 
-# 
 # 
 # We could now define a new cost function to minimize, namely the negative logarithm of the above PDF
 
@@ -2246,7 +1879,6 @@ x = l1regls(X,y)
 
 # Before we make a similar analysis for Ridge and Lasso regression, we need a short reminder on statistics. 
 # 
-# 
 # A central theorem in statistics is Bayes' theorem. This theorem plays a similar role as the good old Pythagoras' theorem in geometry.
 # Bayes' theorem is extremely simple to derive. But to do so we need some basic axioms from statistics.
 # 
@@ -2270,8 +1902,6 @@ x = l1regls(X,y)
 # where we read $p(X\vert Y)$ as the likelihood of obtaining $X$ given $Y$.
 # 
 # If we have independent events then $p(X,Y)=p(X)p(Y)$.
-# 
-# 
 # 
 # The marginal probability is defined in terms of only one of the set of variables $X,Y$. For a discrete probability we have
 
@@ -2299,7 +1929,6 @@ x = l1regls(X,y)
 
 # which is Bayes' theorem. It allows us to evaluate the uncertainty in in $X$ after we have observed $Y$. We can easily interchange $X$ with $Y$.  
 # 
-# 
 # The quantity $p(Y\vert X)$ on the right-hand side of the theorem is
 # evaluated for the observed data $Y$ and can be viewed as a function of
 # the parameter space represented by $X$. This function is not
@@ -2311,7 +1940,6 @@ x = l1regls(X,y)
 # normalization factor for the posterior distribution.
 # 
 # Let us try to illustrate Bayes' theorem through an example.
-# 
 # 
 # Let us suppose that you are undergoing a series of mammography scans
 # in order to rule out possible breast cancer cases.  We define the
@@ -2341,8 +1969,6 @@ x = l1regls(X,y)
 # $$
 
 # instead  of $p(X=1\vert Y=1)$.
-# 
-# 
 # 
 # If we look at various national surveys on breast cancer, the general
 # likelihood of developing breast cancer is a very small number.  Let us
@@ -2384,9 +2010,7 @@ x = l1regls(X,y)
 # $$
 
 # That is, in case of a positive test, there is only a $3\%$ chance of having breast cancer!
-# 
-# 
-# 
+
 # ## Bayes' Theorem and Ridge and Lasso Regression
 # 
 # Hitherto we have discussed Ridge and Lasso regression in terms of a
@@ -2395,7 +2019,6 @@ x = l1regls(X,y)
 # more intuitive way of understanding what Ridge and Lasso express.
 # 
 # Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit. 
-# 
 # 
 # We will play around with a study of the values for the optimal
 # parameters $\boldsymbol{\beta}$ using OLS, Ridge and Lasso regression.  For
@@ -2408,7 +2031,7 @@ x = l1regls(X,y)
 # typically be reduced, providing thereby less fluctuations from one
 # order to another one.
 
-# In[ ]:
+# In[12]:
 
 
 import numpy as np
@@ -2497,7 +2120,7 @@ plt.show()
 # quench the fluctuations in the parameters of $\beta_i$ which have a
 # large variance (normally for higher orders in the polynomial).
 
-# In[ ]:
+# In[13]:
 
 
 import numpy as np
@@ -2546,11 +2169,8 @@ for i in range(nlambdas):
 # noise. Here we recommend to use $\sigma^2=1$ as variance for the
 # added noise (which follows a normal distribution with mean value zero).
 # Comment your results. If you have a large noise term, do the parameters $\beta_j$ vary more as function
-# model complexity? And what about their variance? 
-# 
-# 
-# 
-# 
+# model complexity? And what about their variance?
+
 # ## Linking Bayes' Theorem with Ridge and Lasso Regression
 # 
 # We have seen that Ridge regression suppresses those features which
@@ -2585,8 +2205,6 @@ for i in range(nlambdas):
 
 # We have a model for $p(\boldsymbol{D}\vert\boldsymbol{\beta})$ but need one for the **prior** $p(\boldsymbol{\beta}$!   
 # 
-# 
-# 
 # With the posterior probability defined by a likelihood which we have
 # already modeled and an unknown prior, we are now ready to make
 # additional models for the prior.
@@ -2594,7 +2212,6 @@ for i in range(nlambdas):
 # We can, based on our discussions of the variance of $\boldsymbol{\beta}$ and
 # the mean value, assume that the prior for the values $\boldsymbol{\beta}$ is
 # given by a Gaussian with mean value zero and variance $\tau^2$, that
-# is
 
 # $$
 # p(\boldsymbol{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
@@ -2623,7 +2240,6 @@ for i in range(nlambdas):
 
 # which is our Ridge cost function!  Nice, isn't it?
 # 
-# 
 # To derive the Lasso cost function, we simply replace the Gaussian prior with an exponential distribution ([Laplace in this case](https://en.wikipedia.org/wiki/Laplace_distribution)) with zero mean value,  that is
 
 # $$
@@ -2651,7 +2267,6 @@ for i in range(nlambdas):
 # $$
 
 # which is our Lasso cost function!  
-# 
 # 
 # Plotting these prior functions shows us that we can use the parameter
 # $\lambda$ to shrink or increase the role of a given parameter
