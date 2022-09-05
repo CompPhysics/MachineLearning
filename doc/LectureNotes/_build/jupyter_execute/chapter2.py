@@ -2274,4 +2274,4 @@ for i in range(nlambdas):
 # $2\tau^2=1/\lambda$ while for the Gaussian distribution it is
 # $\sigma^2=1/(2\lambda)$. Thus, increasing the variance means
 # decreasing $\lambda$ and shrinking the variance means increasing
-# $\lamdbda$. When we increase $\lambda$, this corresponds to shrinking the role of less important features (small singular values).
+# $\lambda$. When we increase $\lambda$, this corresponds to shrinking the role of less important features (small singular values).
