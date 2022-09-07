@@ -536,17 +536,9 @@ print(np.abs(C-B))
 # which gives us, using the orthogonality of the matrices $\boldsymbol{U}$ and $\boldsymbol{V}$,,
 
 # $$
-# \tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_i\boldsymbol{u}^T_j\boldsymbol{y},
+# \tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_i\boldsymbol{u}^T_i\boldsymbol{y},
 # $$
 
-# Note here that when we perform the  multiplication of the various matrices, the orthogonal vectors of the matrix $\boldsymbol{U}$
-
-# $$
-# \boldsymbol{U}=[\boldsymbol{u}_0,\boldsymbol{u}_1,\dots,\boldsymbol{u}_{n-1}],
-# $$
-
-# that belong to $i>p-1$, result in only  zeros when we perform the multiplications. This means that the sum above has non-zero elements only up to $i=p-1$. This corresponds also to the number of singular values (these are all non-zero).
-# 
 # It means that the ordinary least square model (with the optimal parameters) $\boldsymbol{\tilde{y}}$, corresponds to an orthogonal transformation of the output (or target) vector $\boldsymbol{y}$ by the vectors of the matrix $\boldsymbol{U}$.
 
 # ## Further properties (important for our analyses later)
