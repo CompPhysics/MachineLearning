@@ -213,8 +213,25 @@ div.toc p,a {
                2,
                None,
                'another-example-now-with-a-polynomial-fit'),
-              ('Using CVXOPT', 2, None, 'using-cvxopt'),
-              ('The simpler Example', 2, None, 'the-simpler-example'),
+              ('To think about, first part',
+               2,
+               None,
+               'to-think-about-first-part'),
+              ('More thinking', 2, None, 'more-thinking'),
+              ('Still thinking', 2, None, 'still-thinking'),
+              ('What does centering (subtracting the mean values) mean '
+               'mathematically?',
+               2,
+               None,
+               'what-does-centering-subtracting-the-mean-values-mean-mathematically'),
+              ('Further Manipulations', 2, None, 'further-manipulations'),
+              ('Wrapping it up', 2, None, 'wrapping-it-up'),
+              ('Linear Regression code, Intercept handling first',
+               2,
+               None,
+               'linear-regression-code-intercept-handling-first'),
+              ('Code Examples', 2, None, 'code-examples'),
+              ('Taking out the mean', 2, None, 'taking-out-the-mean'),
               ('Friday September 9', 2, None, 'friday-september-9'),
               ('Linking the regression analysis with a statistical '
                'interpretation',
@@ -315,7 +332,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Sep 5, 2022</h4>
+<h4>Sep 7, 2022</h4>
 </center> <!-- date -->
 <br>
 
@@ -759,7 +776,7 @@ $$
 
 <p>In this case the standard OLS results in </p>
 $$
-\boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\boldsymbol{y},
+\boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{n-1}\boldsymbol{u}_i\boldsymbol{u}_i^T\boldsymbol{y},
 $$
 
 <p>and</p>
@@ -1264,18 +1281,67 @@ plt<span style="color: #666666">.</span>show()
 
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="using-cvxopt">Using CVXOPT </h2>
+<h2 id="to-think-about-first-part">To think about, first part </h2>
 
-<p>As a small addendum, we note that you can also solve this problem
-using the convex optimization package
-<a href="https://cvxopt.org/examples/mlbook/l1regls.html" target="_blank">CVXOPT</a>. This
-requires, in addition to having installed <b>CVXOPT</b>, you need to
-download the file <em>l1regl.py</em>.  The following code example solves the
-simpler problem we discussed above, where we have added the latter
-python file.
+<p>When you are comparing your own code with for example <b>Scikit-Learn</b>'s
+library, there are some technicalities to keep in mind.  The examples
+here demonstrate some of these aspects with potential pitfalls.
 </p>
 
-<p>We list first the needed file. Thereafter we set up the problem to solve.</p>
+<p>The discussion here focuses on the role of the intercept, how we can
+set up the design matrix, what scaling we should use and other topics
+which tend  confuse us.
+</p>
+
+<p>The intercept can be interpreted as the expected value of our
+target/output variables when all other predictors are set to zero.
+Thus, if we cannot assume that the expected outputs/targets are zero
+when all predictors are zero (the columns in the design matrix), it
+may be a bad idea to implement a model which penalizes the intercept.
+Furthermore, in for example Ridge and Lasso regression, the default solutions
+from the library <b>Scikit-Learn</b> (when not shrinking \( \beta_0 \)) for the unknown parameters
+\( \boldsymbol{\beta} \), are derived&#160;under the assumption that both \( \boldsymbol{y} \) and
+\( \boldsymbol{X} \) are zero centered, that is we subtract the mean values.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="more-thinking">More thinking </h2>
+
+<p>If our predictors&#160;represent different&#160;scales, then it is important to
+standardize the design matrix \( \boldsymbol{X} \) by subtracting the mean of each
+column from the corresponding column and dividing the column with its
+standard deviation. Most machine learning libraries do this as a default. This means that if you compare your code with the results from a given library,
+the results may differ. 
+</p>
+
+<p>The
+<a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html" target="_blank">Standadscaler</a>
+function in <b>Scikit-Learn</b> does this for us.  For the data sets we
+have been studying in our various examples, the data are in many cases
+already scaled and there is no need to scale them. You as a user of different machine learning algorithms, should always perform  a
+survey of your data, with a critical assessment of them in case you need to scale the data.
+</p>
+
+<p>If you need to scale the data, not doing so will give an <em>unfair</em>
+penalization of the parameters since their magnitude&#160;depends on the
+scale of their corresponding&#160;predictor.
+</p>
+
+<p>Suppose as an example that you 
+you have an input&#160;variable given by the heights of different persons.
+Human height might be measured in inches or meters or
+kilometers. If measured in kilometers, a&#160;standard linear regression
+model with this predictor would probably give a much bigger
+coefficient term, than if measured in millimeters.
+This can clearly lead to problems in evaluating the cost/loss functions.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="still-thinking">Still thinking </h2>
+
+<p>Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
+on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as follows
+</p>
 
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1284,263 +1350,20 @@ python file.
     <div class="inner_cell">
       <div class="input_area">
         <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">cvxopt</span> <span style="color: #008000; font-weight: bold">import</span> matrix, spdiag, mul, div, sqrt, normal, setseed
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">cvxopt</span> <span style="color: #008000; font-weight: bold">import</span> blas, lapack, solvers, sparse, spmatrix
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">math</span>
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic">#Model training, we compute the mean value of y and X</span>
+y_train_mean <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(y_train)
+X_train_mean <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(X_train,axis<span style="color: #666666">=0</span>)
+X_train <span style="color: #666666">=</span> X_train <span style="color: #666666">-</span> X_train_mean
+y_train <span style="color: #666666">=</span> y_train <span style="color: #666666">-</span> y_train_mean
 
-<span style="color: #008000; font-weight: bold">try</span>:
-    <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">mosek</span>
-    <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">sys</span>
-    __MOSEK <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">True</span>
-<span style="color: #008000; font-weight: bold">except</span>: __MOSEK <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">False</span>
-
-<span style="color: #008000; font-weight: bold">if</span> __MOSEK:
-
-    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">l1regls_mosek</span>(A, b):
-        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-
-<span style="color: #BA2121; font-style: italic">        Returns the solution of l1-norm regularized least-squares problem</span>
-
-<span style="color: #BA2121; font-style: italic">            minimize    || A*x - b ||_2^2  + e&#39;*u</span>
-
-<span style="color: #BA2121; font-style: italic">            subject to  -u &lt;= x &lt;= u</span>
-
-<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
-
-        m, n <span style="color: #666666">=</span> A<span style="color: #666666">.</span>size
-
-        env  <span style="color: #666666">=</span> mosek<span style="color: #666666">.</span>Env()
-        task <span style="color: #666666">=</span> env<span style="color: #666666">.</span>Task(<span style="color: #666666">0</span>,<span style="color: #666666">0</span>)
-        task<span style="color: #666666">.</span>set_Stream(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log, <span style="color: #008000; font-weight: bold">lambda</span> x: sys<span style="color: #666666">.</span>stdout<span style="color: #666666">.</span>write(x))
-
-        task<span style="color: #666666">.</span>appendvars( <span style="color: #666666">2*</span>n)            <span style="color: #408080; font-style: italic"># number of variables</span>
-        task<span style="color: #666666">.</span>appendcons( <span style="color: #666666">2*</span>n)            <span style="color: #408080; font-style: italic"># number of constraints</span>
-
-        <span style="color: #408080; font-style: italic"># input quadratic objective</span>
-        Q <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (n,n)) 
-        blas<span style="color: #666666">.</span>syrk(A, Q, alpha <span style="color: #666666">=</span> <span style="color: #666666">2.0</span>, trans<span style="color: #666666">=</span><span style="color: #BA2121">&#39;T&#39;</span>)
-
-        I <span style="color: #666666">=</span> []
-        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
-            I<span style="color: #666666">.</span>extend(<span style="color: #008000">range</span>(i,n))
-
-        J <span style="color: #666666">=</span> []
-        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
-            J<span style="color: #666666">.</span>extend((n<span style="color: #666666">-</span>i)<span style="color: #666666">*</span>[i])
-
-        task<span style="color: #666666">.</span>putqobj(I, J, <span style="color: #008000">list</span>(Q[matrix(I) <span style="color: #666666">+</span> matrix(J)<span style="color: #666666">*</span>n]))
-        task<span style="color: #666666">.</span>putclist(<span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n), <span style="color: #008000">list</span>(<span style="color: #666666">-2*</span>A<span style="color: #666666">.</span>T<span style="color: #666666">*</span>b) <span style="color: #666666">+</span> n<span style="color: #666666">*</span>[<span style="color: #666666">1.0</span>])  <span style="color: #408080; font-style: italic"># setup linear objective</span>
-
-        <span style="color: #408080; font-style: italic"># input constraint matrix row by row</span>
-        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
-            task<span style="color: #666666">.</span>putarow(   i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>, <span style="color: #666666">-1.0</span>])
-            task<span style="color: #666666">.</span>putarow( n<span style="color: #666666">+</span>i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>,  <span style="color: #666666">1.0</span>])
-
-        <span style="color: #408080; font-style: italic"># setup bounds on constraints</span>
-        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
-                           <span style="color: #666666">0</span>, n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>up], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
-        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
-                           n, <span style="color: #666666">2*</span>n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>lo], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
-
-        <span style="color: #408080; font-style: italic"># setup variable bounds</span>
-        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>var,
-                           <span style="color: #666666">0</span>, <span style="color: #666666">2*</span>n, <span style="color: #666666">2*</span>n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>fr], <span style="color: #666666">2*</span>n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], <span style="color: #666666">2*</span>n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
-
-        <span style="color: #408080; font-style: italic"># optimize the task</span>
-        task<span style="color: #666666">.</span>putobjsense(mosek<span style="color: #666666">.</span>objsense<span style="color: #666666">.</span>minimize)
-        task<span style="color: #666666">.</span>optimize()
-        task<span style="color: #666666">.</span>solutionsummary(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log)
-        x <span style="color: #666666">=</span> n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>]
-        task<span style="color: #666666">.</span>getsolutionslice(mosek<span style="color: #666666">.</span>soltype<span style="color: #666666">.</span>itr, mosek<span style="color: #666666">.</span>solitem<span style="color: #666666">.</span>xx, <span style="color: #666666">0</span>, n, x)
-
-        <span style="color: #008000; font-weight: bold">return</span> matrix(x)
-
-    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">l1regls_mosek2</span>(A, b):
-        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-
-<span style="color: #BA2121; font-style: italic">        Returns the solution of l1-norm regularized least-squares problem</span>
-
-<span style="color: #BA2121; font-style: italic">            minimize     w&#39;*w + e&#39;*u</span>
-
-<span style="color: #BA2121; font-style: italic">            subject to  -u &lt;= x &lt;= u</span>
-
-<span style="color: #BA2121; font-style: italic">                         A*x - w = b</span>
-
-<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
-
-        m, n <span style="color: #666666">=</span> A<span style="color: #666666">.</span>size
-
-        env  <span style="color: #666666">=</span> mosek<span style="color: #666666">.</span>Env()
-        task <span style="color: #666666">=</span> env<span style="color: #666666">.</span>Task(<span style="color: #666666">0</span>,<span style="color: #666666">0</span>)
-        task<span style="color: #666666">.</span>set_Stream(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log, <span style="color: #008000; font-weight: bold">lambda</span> x: sys<span style="color: #666666">.</span>stdout<span style="color: #666666">.</span>write(x))
-
-        task<span style="color: #666666">.</span>appendvars(<span style="color: #666666">2*</span>n <span style="color: #666666">+</span> m)     <span style="color: #408080; font-style: italic"># number of variables</span>
-        task<span style="color: #666666">.</span>appendcons(<span style="color: #666666">2*</span>n <span style="color: #666666">+</span> m)     <span style="color: #408080; font-style: italic"># number of constraints</span>
-
-        <span style="color: #408080; font-style: italic"># input quadratic objective</span>
-        task<span style="color: #666666">.</span>putqobj(<span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n,<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m), <span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n,<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m), m<span style="color: #666666">*</span>[<span style="color: #666666">2.0</span>])
-
-        task<span style="color: #666666">.</span>putclist(<span style="color: #008000">range</span>(<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m), n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>] <span style="color: #666666">+</span> n<span style="color: #666666">*</span>[<span style="color: #666666">1.0</span>] <span style="color: #666666">+</span> m<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])  <span style="color: #408080; font-style: italic"># setup linear objective</span>
-
-        <span style="color: #408080; font-style: italic"># input constraint matrix row by row</span>
-        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n):
-            task<span style="color: #666666">.</span>putarow(   i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>, <span style="color: #666666">-1.0</span>])
-            task<span style="color: #666666">.</span>putarow( n<span style="color: #666666">+</span>i, [i, n<span style="color: #666666">+</span>i], [<span style="color: #666666">1.0</span>,  <span style="color: #666666">1.0</span>])
-
-        <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
-            task<span style="color: #666666">.</span>putarow( <span style="color: #666666">2*</span>n<span style="color: #666666">+</span>i, <span style="color: #008000">range</span>(n) <span style="color: #666666">+</span> [<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>i], <span style="color: #008000">list</span>(A[i,:]) <span style="color: #666666">+</span> [<span style="color: #666666">-1.0</span>])
-
-        <span style="color: #408080; font-style: italic"># setup bounds on constraints</span>
-        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
-                           <span style="color: #666666">0</span>, n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>up], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
-        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
-                           n, <span style="color: #666666">2*</span>n, n<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>lo], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
-        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>con,
-                           <span style="color: #666666">2*</span>n, <span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m, m<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>fx], <span style="color: #008000">list</span>(b), <span style="color: #008000">list</span>(b))
-
-        <span style="color: #408080; font-style: italic"># setup variable bounds</span>
-        task<span style="color: #666666">.</span>putboundslice(mosek<span style="color: #666666">.</span>accmode<span style="color: #666666">.</span>var, <span style="color: #666666">0</span>, <span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m, (<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m)<span style="color: #666666">*</span>[mosek<span style="color: #666666">.</span>boundkey<span style="color: #666666">.</span>fr], 
-                           (<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m)<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>], (<span style="color: #666666">2*</span>n<span style="color: #666666">+</span>m)<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>])
-
-        <span style="color: #408080; font-style: italic"># optimize the task</span>
-        task<span style="color: #666666">.</span>putobjsense(mosek<span style="color: #666666">.</span>objsense<span style="color: #666666">.</span>minimize)
-        task<span style="color: #666666">.</span>optimize()
-        task<span style="color: #666666">.</span>solutionsummary(mosek<span style="color: #666666">.</span>streamtype<span style="color: #666666">.</span>log)
-        x <span style="color: #666666">=</span> n<span style="color: #666666">*</span>[<span style="color: #666666">0.0</span>]
-        task<span style="color: #666666">.</span>getsolutionslice(mosek<span style="color: #666666">.</span>soltype<span style="color: #666666">.</span>itr, mosek<span style="color: #666666">.</span>solitem<span style="color: #666666">.</span>xx, <span style="color: #666666">0</span>, n, x)
-
-        <span style="color: #008000; font-weight: bold">return</span> matrix(x)
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">l1regls</span>(A, b):
-    <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-<span style="color: #BA2121; font-style: italic">    </span>
-<span style="color: #BA2121; font-style: italic">    Returns the solution of l1-norm regularized least-squares problem</span>
-<span style="color: #BA2121; font-style: italic">  </span>
-<span style="color: #BA2121; font-style: italic">        minimize || A*x - b ||_2^2  + || x ||_1.</span>
-
-<span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
-
-    m, n <span style="color: #666666">=</span> A<span style="color: #666666">.</span>size
-    q <span style="color: #666666">=</span> matrix(<span style="color: #666666">1.0</span>, (<span style="color: #666666">2*</span>n,<span style="color: #666666">1</span>))
-    q[:n] <span style="color: #666666">=</span> <span style="color: #666666">-2.0</span> <span style="color: #666666">*</span> A<span style="color: #666666">.</span>T <span style="color: #666666">*</span> b
-
-    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">P</span>(u, v, alpha <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>, beta <span style="color: #666666">=</span> <span style="color: #666666">0.0</span> ):
-        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-<span style="color: #BA2121; font-style: italic">            v := alpha * 2.0 * [ A&#39;*A, 0; 0, 0 ] * u + beta * v </span>
-<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
-        v <span style="color: #666666">*=</span> beta
-        v[:n] <span style="color: #666666">+=</span> alpha <span style="color: #666666">*</span> <span style="color: #666666">2.0</span> <span style="color: #666666">*</span> A<span style="color: #666666">.</span>T <span style="color: #666666">*</span> (A <span style="color: #666666">*</span> u[:n])
+<span style="color: #408080; font-style: italic"># The we fit our model with the training data</span>
+trained_model <span style="color: #666666">=</span> some_model<span style="color: #666666">.</span>fit(X_train,y_train)
 
 
-    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">G</span>(u, v, alpha<span style="color: #666666">=1.0</span>, beta<span style="color: #666666">=0.0</span>, trans<span style="color: #666666">=</span><span style="color: #BA2121">&#39;N&#39;</span>):
-        <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-<span style="color: #BA2121; font-style: italic">            v := alpha*[I, -I; -I, -I] * u + beta * v  (trans = &#39;N&#39; or &#39;T&#39;)</span>
-<span style="color: #BA2121; font-style: italic">        &quot;&quot;&quot;</span>
-
-        v <span style="color: #666666">*=</span> beta
-        v[:n] <span style="color: #666666">+=</span> alpha<span style="color: #666666">*</span>(u[:n] <span style="color: #666666">-</span> u[n:])
-        v[n:] <span style="color: #666666">+=</span> alpha<span style="color: #666666">*</span>(<span style="color: #666666">-</span>u[:n] <span style="color: #666666">-</span> u[n:])
-
-    h <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (<span style="color: #666666">2*</span>n,<span style="color: #666666">1</span>))
-
-
-    <span style="color: #408080; font-style: italic"># Customized solver for the KKT system </span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic">#     [  2.0*A&#39;*A  0    I      -I     ] [x[:n] ]     [bx[:n] ]</span>
-    <span style="color: #408080; font-style: italic">#     [  0         0   -I      -I     ] [x[n:] ]  =  [bx[n:] ].</span>
-    <span style="color: #408080; font-style: italic">#     [  I        -I   -D1^-1   0     ] [zl[:n]]     [bzl[:n]]</span>
-    <span style="color: #408080; font-style: italic">#     [ -I        -I    0      -D2^-1 ] [zl[n:]]     [bzl[n:]]</span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic"># where D1 = W[&#39;di&#39;][:n]**2, D2 = W[&#39;di&#39;][:n]**2.</span>
-    <span style="color: #408080; font-style: italic">#    </span>
-    <span style="color: #408080; font-style: italic"># We first eliminate zl and x[n:]:</span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic">#     ( 2*A&#39;*A + 4*D1*D2*(D1+D2)^-1 ) * x[:n] = </span>
-    <span style="color: #408080; font-style: italic">#         bx[:n] - (D2-D1)*(D1+D2)^-1 * bx[n:] + </span>
-    <span style="color: #408080; font-style: italic">#         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - </span>
-    <span style="color: #408080; font-style: italic">#         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:]           </span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic">#     x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) </span>
-    <span style="color: #408080; font-style: italic">#         - (D2-D1)*(D1+D2)^-1 * x[:n]         </span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic">#     zl[:n] = D1 * ( x[:n] - x[n:] - bzl[:n] )</span>
-    <span style="color: #408080; font-style: italic">#     zl[n:] = D2 * (-x[:n] - x[n:] - bzl[n:] ).</span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic"># The first equation has the form</span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic">#     (A&#39;*A + D)*x[:n]  =  rhs</span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic"># and is equivalent to</span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic">#     [ D    A&#39; ] [ x:n] ]  = [ rhs ]</span>
-    <span style="color: #408080; font-style: italic">#     [ A   -I  ] [ v    ]    [ 0   ].</span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic"># It can be solved as </span>
-    <span style="color: #408080; font-style: italic">#</span>
-    <span style="color: #408080; font-style: italic">#     ( A*D^-1*A&#39; + I ) * v = A * D^-1 * rhs</span>
-    <span style="color: #408080; font-style: italic">#     x[:n] = D^-1 * ( rhs - A&#39;*v ).</span>
-
-    S <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (m,m))
-    Asc <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (m,n))
-    v <span style="color: #666666">=</span> matrix(<span style="color: #666666">0.0</span>, (m,<span style="color: #666666">1</span>))
-
-    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">Fkkt</span>(W):
-
-        <span style="color: #408080; font-style: italic"># Factor </span>
-        <span style="color: #408080; font-style: italic">#</span>
-        <span style="color: #408080; font-style: italic">#     S = A*D^-1*A&#39; + I </span>
-        <span style="color: #408080; font-style: italic">#</span>
-        <span style="color: #408080; font-style: italic"># where D = 2*D1*D2*(D1+D2)^-1, D1 = d[:n]**-2, D2 = d[n:]**-2.</span>
-
-        d1, d2 <span style="color: #666666">=</span> W[<span style="color: #BA2121">&#39;di&#39;</span>][:n]<span style="color: #666666">**2</span>, W[<span style="color: #BA2121">&#39;di&#39;</span>][n:]<span style="color: #666666">**2</span>
-
-        <span style="color: #408080; font-style: italic"># ds is square root of diagonal of D</span>
-        ds <span style="color: #666666">=</span> math<span style="color: #666666">.</span>sqrt(<span style="color: #666666">2.0</span>) <span style="color: #666666">*</span> div( mul( W[<span style="color: #BA2121">&#39;di&#39;</span>][:n], W[<span style="color: #BA2121">&#39;di&#39;</span>][n:]), 
-            sqrt(d1<span style="color: #666666">+</span>d2) )
-        d3 <span style="color: #666666">=</span>  div(d2 <span style="color: #666666">-</span> d1, d1 <span style="color: #666666">+</span> d2)
-     
-        <span style="color: #408080; font-style: italic"># Asc = A*diag(d)^-1/2</span>
-        Asc <span style="color: #666666">=</span> A <span style="color: #666666">*</span> spdiag(ds<span style="color: #666666">**-1</span>)
-
-        <span style="color: #408080; font-style: italic"># S = I + A * D^-1 * A&#39;</span>
-        blas<span style="color: #666666">.</span>syrk(Asc, S)
-        S[::m<span style="color: #666666">+1</span>] <span style="color: #666666">+=</span> <span style="color: #666666">1.0</span> 
-        lapack<span style="color: #666666">.</span>potrf(S)
-
-        <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">g</span>(x, y, z):
-
-            x[:n] <span style="color: #666666">=</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> ( x[:n] <span style="color: #666666">-</span> mul(d3, x[n:]) <span style="color: #666666">+</span> 
-                mul(d1, z[:n] <span style="color: #666666">+</span> mul(d3, z[:n])) <span style="color: #666666">-</span> mul(d2, z[n:] <span style="color: #666666">-</span> 
-                mul(d3, z[n:])) )
-            x[:n] <span style="color: #666666">=</span> div( x[:n], ds) 
-
-            <span style="color: #408080; font-style: italic"># Solve</span>
-            <span style="color: #408080; font-style: italic">#</span>
-            <span style="color: #408080; font-style: italic">#     S * v = 0.5 * A * D^-1 * ( bx[:n] - </span>
-            <span style="color: #408080; font-style: italic">#         (D2-D1)*(D1+D2)^-1 * bx[n:] + </span>
-            <span style="color: #408080; font-style: italic">#         D1 * ( I + (D2-D1)*(D1+D2)^-1 ) * bzl[:n] - </span>
-            <span style="color: #408080; font-style: italic">#         D2 * ( I - (D2-D1)*(D1+D2)^-1 ) * bzl[n:] )</span>
-                
-            blas<span style="color: #666666">.</span>gemv(Asc, x, v)
-            lapack<span style="color: #666666">.</span>potrs(S, v)
-            
-            <span style="color: #408080; font-style: italic"># x[:n] = D^-1 * ( rhs - A&#39;*v ).</span>
-            blas<span style="color: #666666">.</span>gemv(Asc, v, x, alpha<span style="color: #666666">=-1.0</span>, beta<span style="color: #666666">=1.0</span>, trans<span style="color: #666666">=</span><span style="color: #BA2121">&#39;T&#39;</span>)
-            x[:n] <span style="color: #666666">=</span> div(x[:n], ds)
-
-            <span style="color: #408080; font-style: italic"># x[n:] = (D1+D2)^-1 * ( bx[n:] - D1*bzl[:n]  - D2*bzl[n:] ) </span>
-            <span style="color: #408080; font-style: italic">#         - (D2-D1)*(D1+D2)^-1 * x[:n]         </span>
-            x[n:] <span style="color: #666666">=</span> div( x[n:] <span style="color: #666666">-</span> mul(d1, z[:n]) <span style="color: #666666">-</span> mul(d2, z[n:]), d1<span style="color: #666666">+</span>d2 )\
-                <span style="color: #666666">-</span> mul( d3, x[:n] )
-                
-            <span style="color: #408080; font-style: italic"># zl[:n] = D1^1/2 * (  x[:n] - x[n:] - bzl[:n] )</span>
-            <span style="color: #408080; font-style: italic"># zl[n:] = D2^1/2 * ( -x[:n] - x[n:] - bzl[n:] ).</span>
-            z[:n] <span style="color: #666666">=</span> mul( W[<span style="color: #BA2121">&#39;di&#39;</span>][:n],  x[:n] <span style="color: #666666">-</span> x[n:] <span style="color: #666666">-</span> z[:n] ) 
-            z[n:] <span style="color: #666666">=</span> mul( W[<span style="color: #BA2121">&#39;di&#39;</span>][n:], <span style="color: #666666">-</span>x[:n] <span style="color: #666666">-</span> x[n:] <span style="color: #666666">-</span> z[n:] ) 
-
-        <span style="color: #008000; font-weight: bold">return</span> g
-
-    <span style="color: #008000; font-weight: bold">return</span> solvers<span style="color: #666666">.</span>coneqp(P, q, G, h, kktsolver <span style="color: #666666">=</span> Fkkt)[<span style="color: #BA2121">&#39;x&#39;</span>][:n]
+<span style="color: #408080; font-style: italic">#Model prediction, we need also to transform our data set used for the prediction.</span>
+X_test <span style="color: #666666">=</span> X_test <span style="color: #666666">-</span> X_train_mean <span style="color: #408080; font-style: italic">#Use mean from training data</span>
+y_pred <span style="color: #666666">=</span> trained_model(X_test)
+y_pred <span style="color: #666666">=</span> y_pred <span style="color: #666666">+</span> y_train_mean
 </pre>
 </div>
       </div>
@@ -1558,7 +1381,108 @@ python file.
 
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="the-simpler-example">The simpler Example </h2>
+<h2 id="what-does-centering-subtracting-the-mean-values-mean-mathematically">What does centering (subtracting the mean values) mean mathematically? </h2>
+
+<p>Let us try to understand what this may imply mathematically when we
+subtract the mean values, also known as <em>zero centering</em>. For
+simplicity, we will focus on  ordinary regression, as done in the above example.
+</p>
+
+<p>The cost/loss function  for regression is</p>
+$$
+C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
+$$
+
+<p>Recall also that we use the squared value since this leads to an increase of the penalty for higher differences between predicted and output/target values.</p>
+
+<p>What we have done is to single out the \( \beta_0 \) term in the definition of the mean squared error (MSE).
+The design matrix
+\( X \) does in this case not contain any intercept column.
+When we take the derivative with respect to \( \beta_0 \), we want the derivative to obey
+</p>
+$$
+\frac{\partial C}{\partial \beta_j} = 0,
+$$
+
+<p>for all \( j \). For \( \beta_0 \) we have</p>
+
+$$
+\frac{\partial C}{\partial \beta_0} = -\frac{2}{n}\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right).
+$$
+
+<p>Multiplying away the constant \( 2/n \), we obtain</p>
+$$
+\sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="further-manipulations">Further Manipulations </h2>
+
+<p>Let us special first to the case where we have only two parameters \( \beta_0 \) and \( \beta_1 \).
+Our result for \( \beta_0 \) simplifies then to
+</p>
+$$
+n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
+$$
+
+<p>We obtain then</p>
+$$
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
+$$
+
+<p>If we define</p>
+$$
+\mu_1=\frac{1}{n}\sum_{i=0}^{n-1} (X_{i1},
+$$
+
+<p>and if we define the mean value of the outputs as</p>
+$$
+\mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
+$$
+
+<p>we have</p>
+$$
+\beta_0 = \mu_y - \beta_1\mu_{1}.
+$$
+
+<p>In the general case, that is we have more parameters than \( \beta_0 \) and \( \beta_1 \), we have</p>
+$$
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
+$$
+
+<p>Replacing \( y_i \) with \( y_i - y_i - \overline{\boldsymbol{y}} \) and centering also our design matrix results in a cost function (in vector-matrix disguise)</p>
+$$
+C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}). 
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="wrapping-it-up">Wrapping it up </h2>
+
+<p>If we minimize with respect to \( \boldsymbol{\beta} \) we have then</p>
+
+$$
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{\tilde{y}},
+$$
+
+<p>where \( \boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\boldsymbol{y}} \)
+and \( \tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=0}^{n-1}X_{kj} \).
+</p>
+
+<p>For Ridge regression we need to add \( \lambda \boldsymbol{\beta}^T\boldsymbol{\beta} \) to the cost function and get then</p>
+$$
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}.
+$$
+
+<p>What does this mean? And why do we insist on all this? Let us look at some examples.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="linear-regression-code-intercept-handling-first">Linear Regression code, Intercept handling first </h2>
+
+<p>This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (<em>code example thanks to  &#216;yvind Sigmundson Sch&#248;yen</em>). Here our scaling of the data is done by subtracting the mean values only.
+Note also that we do not split the data into training and test.
+</p>
 
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
@@ -1567,11 +1491,92 @@ python file.
     <div class="inner_cell">
       <div class="input_area">
         <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">cvxopt</span> <span style="color: #008000; font-weight: bold">import</span> matrix, normal
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
 
-X <span style="color: #666666">=</span> matrix( [ [ <span style="color: #666666">2</span>, <span style="color: #666666">0</span>, <span style="color: #666666">1</span>], [<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">3</span>]])
-y <span style="color: #666666">=</span> matrix( [<span style="color: #666666">4</span>, <span style="color: #666666">2</span>, <span style="color: #666666">3</span>])
-x <span style="color: #666666">=</span> l1regls(X,y)
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> LinearRegression
+
+
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">2021</span>)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">fit_beta</span>(X, y):
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X) <span style="color: #666666">@</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y
+
+
+true_beta <span style="color: #666666">=</span> [<span style="color: #666666">2</span>, <span style="color: #666666">0.5</span>, <span style="color: #666666">3.7</span>]
+
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linspace(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>, <span style="color: #666666">11</span>)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>sum(
+    np<span style="color: #666666">.</span>asarray([x <span style="color: #666666">**</span> p <span style="color: #666666">*</span> b <span style="color: #008000; font-weight: bold">for</span> p, b <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">enumerate</span>(true_beta)]), axis<span style="color: #666666">=0</span>
+) <span style="color: #666666">+</span> <span style="color: #666666">0.1</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>normal(size<span style="color: #666666">=</span><span style="color: #008000">len</span>(x))
+
+degree <span style="color: #666666">=</span> <span style="color: #666666">3</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(x), degree))
+
+<span style="color: #408080; font-style: italic"># Include the intercept in the design matrix</span>
+<span style="color: #008000; font-weight: bold">for</span> p <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(degree):
+    X[:, p] <span style="color: #666666">=</span> x <span style="color: #666666">**</span> p
+
+beta <span style="color: #666666">=</span> fit_beta(X, y)
+
+<span style="color: #408080; font-style: italic"># Intercept is included in the design matrix</span>
+skl <span style="color: #666666">=</span> LinearRegression(fit_intercept<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)<span style="color: #666666">.</span>fit(X, y)
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;True beta: </span><span style="color: #BB6688; font-weight: bold">{</span>true_beta<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Fitted beta: </span><span style="color: #BB6688; font-weight: bold">{</span>beta<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sklearn fitted beta: </span><span style="color: #BB6688; font-weight: bold">{</span>skl<span style="color: #666666">.</span>coef_<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+ypredictOwn <span style="color: #666666">=</span> X <span style="color: #666666">@</span> beta
+ypredictSKL <span style="color: #666666">=</span> skl<span style="color: #666666">.</span>predict(X)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;MSE with intercept column&quot;</span>)
+<span style="color: #008000">print</span>(MSE(y,ypredictOwn))
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;MSE with intercept column from SKL&quot;</span>)
+<span style="color: #008000">print</span>(MSE(y,ypredictSKL))
+
+
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>scatter(x, y, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Data&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, X <span style="color: #666666">@</span> beta, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Fit&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, skl<span style="color: #666666">.</span>predict(X), label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Sklearn (fit_intercept=False)&quot;</span>)
+
+
+<span style="color: #408080; font-style: italic"># Do not include the intercept in the design matrix</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((<span style="color: #008000">len</span>(x), degree <span style="color: #666666">-</span> <span style="color: #666666">1</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> p <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(degree <span style="color: #666666">-</span> <span style="color: #666666">1</span>):
+    X[:, p] <span style="color: #666666">=</span> x <span style="color: #666666">**</span> (p <span style="color: #666666">+</span> <span style="color: #666666">1</span>)
+
+<span style="color: #408080; font-style: italic"># Intercept is not included in the design matrix</span>
+skl <span style="color: #666666">=</span> LinearRegression(fit_intercept<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>)<span style="color: #666666">.</span>fit(X, y)
+
+<span style="color: #408080; font-style: italic"># Use centered values for X and y when computing coefficients</span>
+y_offset <span style="color: #666666">=</span> np<span style="color: #666666">.</span>average(y, axis<span style="color: #666666">=0</span>)
+X_offset <span style="color: #666666">=</span> np<span style="color: #666666">.</span>average(X, axis<span style="color: #666666">=0</span>)
+
+beta <span style="color: #666666">=</span> fit_beta(X <span style="color: #666666">-</span> X_offset, y <span style="color: #666666">-</span> y_offset)
+intercept <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(y_offset <span style="color: #666666">-</span> X_offset <span style="color: #666666">@</span> beta)
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Manual intercept: </span><span style="color: #BB6688; font-weight: bold">{</span>intercept<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Fitted beta (wiothout intercept): </span><span style="color: #BB6688; font-weight: bold">{</span>beta<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sklearn intercept: </span><span style="color: #BB6688; font-weight: bold">{</span>skl<span style="color: #666666">.</span>intercept_<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sklearn fitted beta (without intercept): </span><span style="color: #BB6688; font-weight: bold">{</span>skl<span style="color: #666666">.</span>coef_<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+ypredictOwn <span style="color: #666666">=</span> X <span style="color: #666666">@</span> beta
+ypredictSKL <span style="color: #666666">=</span> skl<span style="color: #666666">.</span>predict(X)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;MSE with Manual intercept&quot;</span>)
+<span style="color: #008000">print</span>(MSE(y,ypredictOwn<span style="color: #666666">+</span>intercept))
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;MSE with Sklearn intercept&quot;</span>)
+<span style="color: #008000">print</span>(MSE(y,ypredictSKL))
+
+plt<span style="color: #666666">.</span>plot(x, X <span style="color: #666666">@</span> beta <span style="color: #666666">+</span> intercept, <span style="color: #BA2121">&quot;--&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Fit (manual intercept)&quot;</span>)
+plt<span style="color: #666666">.</span>plot(x, skl<span style="color: #666666">.</span>predict(X), <span style="color: #BA2121">&quot;--&quot;</span>, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Sklearn (fit_intercept=True)&quot;</span>)
+plt<span style="color: #666666">.</span>grid()
+plt<span style="color: #666666">.</span>legend()
+
+plt<span style="color: #666666">.</span>show()
 </pre>
 </div>
       </div>
@@ -1587,6 +1592,245 @@ x <span style="color: #666666">=</span> l1regls(X,y)
   </div>
 </div>
 
+<p>The intercept is the value of our output/target variable
+when all our features are zero and our function crosses the \( y \)-axis (for a one-dimensional case). 
+</p>
+
+<p>Printing the MSE, we see first that both methods give the same MSE, as
+they should.  However, when we move to for example Ridge regression,
+the way we treat the intercept may give a larger or smaller MSE,
+meaning that the MSE can be penalized by the value of the
+intercept. Not including the intercept in the fit, means that the
+regularization term does not include \( \beta_0 \). For different values
+of \( \lambda \), this may lead to differeing MSE values. 
+</p>
+
+<p>To remind the reader, the regularization term, with the intercept in Ridge regression is given by</p>
+$$
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=0}^{p-1}\beta_j^2,
+$$
+
+<p>but when we take out the intercept, this equation becomes</p>
+$$
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=1}^{p-1}\beta_j^2.
+$$
+
+<p>For Lasso regression we have</p>
+$$
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_1 = \lambda \sum_{j=1}^{p-1}\vert\beta_j\vert.
+$$
+
+<p>It means that, when scaling the design matrix and the outputs/targets, by subtracting the mean values, we have an optimization problem which is not penalized by the intercept. The MSE value can then be smaller since it focuses only on the remaining quantities. If we however bring back the intercept, we will get a MSE which then contains the intercept. </p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="code-examples">Code Examples </h2>
+
+<p>Armed with this wisdom, we attempt first to simply set the intercept equal to <b>False</b> in our implementation of Ridge regression for our well-known  vanilla data set.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> linear_model
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
+
+
+<span style="color: #408080; font-style: italic"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #408080; font-style: italic"># Useful for eventual debugging.</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">3155</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)
+
+Maxpolydegree <span style="color: #666666">=</span> <span style="color: #666666">20</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((n,Maxpolydegree))
+<span style="color: #408080; font-style: italic">#We include explicitely the intercept column</span>
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Maxpolydegree):
+    X[:,degree] <span style="color: #666666">=</span> x<span style="color: #666666">**</span>degree
+<span style="color: #408080; font-style: italic"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.2</span>)
+
+p <span style="color: #666666">=</span> Maxpolydegree
+I <span style="color: #666666">=</span> np<span style="color: #666666">.</span>eye(p,p)
+<span style="color: #408080; font-style: italic"># Decide which values of lambda to use</span>
+nlambdas <span style="color: #666666">=</span> <span style="color: #666666">6</span>
+MSEOwnRidgePredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+MSERidgePredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-4</span>, <span style="color: #666666">2</span>, nlambdas)
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(nlambdas):
+    lmb <span style="color: #666666">=</span> lambdas[i]
+    OwnRidgeBeta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X_train<span style="color: #666666">+</span>lmb<span style="color: #666666">*</span>I) <span style="color: #666666">@</span> X_train<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y_train
+    <span style="color: #408080; font-style: italic"># Note: we include the intercept column and no scaling</span>
+    RegRidge <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>Ridge(lmb,fit_intercept<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">False</span>)
+    RegRidge<span style="color: #666666">.</span>fit(X_train,y_train)
+    <span style="color: #408080; font-style: italic"># and then make the prediction</span>
+    ytildeOwnRidge <span style="color: #666666">=</span> X_train <span style="color: #666666">@</span> OwnRidgeBeta
+    ypredictOwnRidge <span style="color: #666666">=</span> X_test <span style="color: #666666">@</span> OwnRidgeBeta
+    ytildeRidge <span style="color: #666666">=</span> RegRidge<span style="color: #666666">.</span>predict(X_train)
+    ypredictRidge <span style="color: #666666">=</span> RegRidge<span style="color: #666666">.</span>predict(X_test)
+    MSEOwnRidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictOwnRidge)
+    MSERidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictRidge)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for own Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(OwnRidgeBeta)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(RegRidge<span style="color: #666666">.</span>coef_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for own Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSEOwnRidgePredict[i])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSERidgePredict[i])
+
+<span style="color: #408080; font-style: italic"># Now plot the results</span>
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSEOwnRidgePredict, <span style="color: #BA2121">&#39;r&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE own Ridge Test&#39;</span>)
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSERidgePredict, <span style="color: #BA2121">&#39;g&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE Ridge Test&#39;</span>)
+
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;log10(lambda)&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>The results here agree when we force <b>Scikit-Learn</b>'s Ridge function to include the first column in our design matrix.
+We see that the results agree very well. Here we have thus explicitely included the intercept column in the design matrix.
+What happens if we do not include the intercept in our fit?
+Let us see how we can change this code by zero centering (thanks to Stian Bilek for inpouts here).
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="taking-out-the-mean">Taking out the mean </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.model_selection</span> <span style="color: #008000; font-weight: bold">import</span> train_test_split
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn</span> <span style="color: #008000; font-weight: bold">import</span> linear_model
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.preprocessing</span> <span style="color: #008000; font-weight: bold">import</span> StandardScaler
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">MSE</span>(y_data,y_model):
+    n <span style="color: #666666">=</span> np<span style="color: #666666">.</span>size(y_model)
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y_data<span style="color: #666666">-</span>y_model)<span style="color: #666666">**2</span>)<span style="color: #666666">/</span>n
+<span style="color: #408080; font-style: italic"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #408080; font-style: italic"># Useful for eventual debugging.</span>
+np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>seed(<span style="color: #666666">315</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n)
+y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x<span style="color: #666666">**2</span>) <span style="color: #666666">+</span> <span style="color: #666666">1.5</span> <span style="color: #666666">*</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>(x<span style="color: #666666">-2</span>)<span style="color: #666666">**2</span>)
+
+Maxpolydegree <span style="color: #666666">=</span> <span style="color: #666666">20</span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros((n,Maxpolydegree<span style="color: #666666">-1</span>))
+
+<span style="color: #008000; font-weight: bold">for</span> degree <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,Maxpolydegree): <span style="color: #408080; font-style: italic">#No intercept column</span>
+    X[:,degree<span style="color: #666666">-1</span>] <span style="color: #666666">=</span> x<span style="color: #666666">**</span>(degree)
+
+<span style="color: #408080; font-style: italic"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test <span style="color: #666666">=</span> train_test_split(X, y, test_size<span style="color: #666666">=0.2</span>)
+
+<span style="color: #408080; font-style: italic">#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable</span>
+X_train_mean <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(X_train,axis<span style="color: #666666">=0</span>)
+<span style="color: #408080; font-style: italic">#Center by removing mean from each feature</span>
+X_train_scaled <span style="color: #666666">=</span> X_train <span style="color: #666666">-</span> X_train_mean 
+X_test_scaled <span style="color: #666666">=</span> X_test <span style="color: #666666">-</span> X_train_mean
+<span style="color: #408080; font-style: italic">#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered)</span>
+<span style="color: #408080; font-style: italic">#Remove the intercept from the training data.</span>
+y_scaler <span style="color: #666666">=</span> np<span style="color: #666666">.</span>mean(y_train)           
+y_train_scaled <span style="color: #666666">=</span> y_train <span style="color: #666666">-</span> y_scaler   
+
+p <span style="color: #666666">=</span> Maxpolydegree<span style="color: #666666">-1</span>
+I <span style="color: #666666">=</span> np<span style="color: #666666">.</span>eye(p,p)
+<span style="color: #408080; font-style: italic"># Decide which values of lambda to use</span>
+nlambdas <span style="color: #666666">=</span> <span style="color: #666666">6</span>
+MSEOwnRidgePredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+MSERidgePredict <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(nlambdas)
+
+lambdas <span style="color: #666666">=</span> np<span style="color: #666666">.</span>logspace(<span style="color: #666666">-4</span>, <span style="color: #666666">2</span>, nlambdas)
+<span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(nlambdas):
+    lmb <span style="color: #666666">=</span> lambdas[i]
+    OwnRidgeBeta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(X_train_scaled<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X_train_scaled<span style="color: #666666">+</span>lmb<span style="color: #666666">*</span>I) <span style="color: #666666">@</span> X_train_scaled<span style="color: #666666">.</span>T <span style="color: #666666">@</span> (y_train_scaled)
+    intercept_ <span style="color: #666666">=</span> y_scaler <span style="color: #666666">-</span> X_train_mean<span style="color: #AA22FF">@OwnRidgeBeta</span> <span style="color: #408080; font-style: italic">#The intercept can be shifted so the model can predict on uncentered data</span>
+    <span style="color: #408080; font-style: italic">#Add intercept to prediction</span>
+    ypredictOwnRidge <span style="color: #666666">=</span> X_test_scaled <span style="color: #666666">@</span> OwnRidgeBeta <span style="color: #666666">+</span> y_scaler 
+    RegRidge <span style="color: #666666">=</span> linear_model<span style="color: #666666">.</span>Ridge(lmb)
+    RegRidge<span style="color: #666666">.</span>fit(X_train,y_train)
+    ypredictRidge <span style="color: #666666">=</span> RegRidge<span style="color: #666666">.</span>predict(X_test)
+    MSEOwnRidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictOwnRidge)
+    MSERidgePredict[i] <span style="color: #666666">=</span> MSE(y_test,ypredictRidge)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for own Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(OwnRidgeBeta) <span style="color: #408080; font-style: italic">#Intercept is given by mean of target variable</span>
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(RegRidge<span style="color: #666666">.</span>coef_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Intercept from own implementation:&#39;</span>)
+    <span style="color: #008000">print</span>(intercept_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Intercept from Scikit-Learn Ridge implementation&#39;</span>)
+    <span style="color: #008000">print</span>(RegRidge<span style="color: #666666">.</span>intercept_)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for own Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSEOwnRidgePredict[i])
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;MSE values for Scikit-Learn Ridge implementation&quot;</span>)
+    <span style="color: #008000">print</span>(MSERidgePredict[i])
+
+
+<span style="color: #408080; font-style: italic"># Now plot the results</span>
+plt<span style="color: #666666">.</span>figure()
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSEOwnRidgePredict, <span style="color: #BA2121">&#39;b--&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE own Ridge Test&#39;</span>)
+plt<span style="color: #666666">.</span>plot(np<span style="color: #666666">.</span>log10(lambdas), MSERidgePredict, <span style="color: #BA2121">&#39;g--&#39;</span>, label <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;MSE SL Ridge Test&#39;</span>)
+plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;log10(lambda)&#39;</span>)
+plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;MSE&#39;</span>)
+plt<span style="color: #666666">.</span>legend()
+plt<span style="color: #666666">.</span>show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>We see here, when compared to the code which includes explicitely the
+intercept column, that our MSE value is actually smaller. This is
+because the regularization term does not include the intercept value
+\( \beta_0 \) in the fitting.  This applies to Lasso regularization as
+well.  It means that our optimization is now done only with the
+centered matrix and/or vector that enter the fitting procedure. Note
+also that the problem with the intercept occurs mainly in these type
+of polynomial fitting problem.
+</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="friday-september-9">Friday September 9  </h2>
