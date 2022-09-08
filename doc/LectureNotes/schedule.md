@@ -52,7 +52,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 36 September 5-9
 - Lab Wednesday:  Exercises 1 and 2 from week 36
 - Lecture Thursday: Summary from last week on SVD, more on Statistics, probability theory and linear regression
-- Video of Lecture 
+- Video of Lecture at https://youtu.be/qn_BAVhMD8U
 - Friday: Linear Regression and more links with Statistics, Resampling methods and presentation of first project. 
 - Video of Lecture 
 
