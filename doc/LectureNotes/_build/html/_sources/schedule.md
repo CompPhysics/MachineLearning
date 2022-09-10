@@ -54,7 +54,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Summary from last week on SVD, more on Statistics, probability theory and linear regression
 - Video of Lecture at https://youtu.be/qn_BAVhMD8U
 - Friday: Linear Regression and more links with Statistics, Resampling methods and presentation of first project. 
-- Video of Lecture 
+- Video of Lecture at https://youtu.be/_CPGg0JYH8M
 
 - Reading recommendations:
   - Lectures on Regression for week 36 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
