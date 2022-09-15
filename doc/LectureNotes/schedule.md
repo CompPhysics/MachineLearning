@@ -65,7 +65,7 @@ For the reading assignments we use the following abbreviations:
 - Lab Wednesday:  Work on  Project 1
 - Lecture Thursday: Resampling methods, cross-validation and Bootstrap
   - Thursday September: Summary of Ridge and Lasso with examples and start resampling techniques
-    - Video of Lecture
+    - Video of Lecture at https://youtu.be/YVQGvcsovpw
 - Lecture Friday: More on Resampling methods and summary of linear regression
     - Video of Lecture  
 - Reading recommendations: 
