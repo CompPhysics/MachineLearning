@@ -1,4 +1,4 @@
-y# Applied Data Analysis and Machine Learning
+# Applied Data Analysis and Machine Learning
 
 
 This site contains all material relevant for the course on Applied
