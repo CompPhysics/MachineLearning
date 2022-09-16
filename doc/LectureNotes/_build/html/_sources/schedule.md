@@ -67,7 +67,7 @@ For the reading assignments we use the following abbreviations:
   - Thursday September: Summary of Ridge and Lasso with examples and start resampling techniques
     - Video of Lecture at https://youtu.be/YVQGvcsovpw
 - Lecture Friday: More on Resampling methods and summary of linear regression
-    - Video of Lecture  
+    - Video of Lecture  at https://youtu.be/rbaHRF-7bsQ
 - Reading recommendations: 
   - Lectures on Resampling methods for week 37 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Bishop 1.3 (cross-validation) and 3.2 (bias-variance tradeoff)
