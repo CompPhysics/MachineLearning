@@ -77,8 +77,8 @@ For the reading assignments we use the following abbreviations:
 
 ###  Week 38 September 19-23
 - Lab Wednesday: Work on  Project 1
-- Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories
-  - Video of Lecture at 
+- Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories and gradient optmization
+  - Video of Lecture at https://youtu.be/sdt_BFla8uA
 - Lecture Friday: Logistic Regression and gradient optimization
   - Video of Lecture at 
 - Reading recommendations:
