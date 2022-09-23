@@ -742,6 +742,191 @@ methods":"https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Spl
 !split
 ===== Friday September 23 =====
 
+!split
+===== Searching for Optimal Regularization Parameters $\lambda$ =====
+
+In project 1, when using Ridge and Lasso regression, we end up
+searching for the optimal parameter $\lambda$ which minimizes our
+selected scores (MSE or $R2$ values for example). The brute force
+approach, as discussed in the code here for Ridge regression, consists
+in evaluating the MSE as function of different $\lambda$ values.
+Based on these calculations, one tries then to determine the value of the hyperparameter $\lambda$
+which results in optimal scores (for example the smallest MSE or an $R2=1$).
+!bc pycod
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(2021)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
+
+Maxpolydegree = 5
+X = np.zeros((n,Maxpolydegree-1))
+
+for degree in range(1,Maxpolydegree): #No intercept column
+    X[:,degree-1] = x**(degree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Decide which values of lambda to use
+nlambdas = 500
+MSERidgePredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 2, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    RegRidge = linear_model.Ridge(lmb)
+    RegRidge.fit(X_train,y_train)
+    ypredictRidge = RegRidge.predict(X_test)
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, 'g--', label = 'MSE SL Ridge Test')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+!ec
+
+Here we have performed a rather data greedy calculation as function of the regularization parameter $\lambda$. There is no resampling here. The latter can easily be added by employing the function _RidgeCV_ instead of just calling the _Ridge_ function. For _RidgeCV_ we need to pass the array of $\lambda$ values.
+By inspecting the figure we can in turn determine which is the optimal regularization parameter.
+This becomes however less functional in the long run. 
+
+
+!split
+===== Grid Search =====
+
+
+An alternative is to use the so-called grid search functionality
+included with the library _Scikit-Learn_, as demonstrated for the same
+example here.
+
+!bc pycod
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(2021)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
+
+Maxpolydegree = 5
+X = np.zeros((n,Maxpolydegree-1))
+
+for degree in range(1,Maxpolydegree): #No intercept column
+    X[:,degree-1] = x**(degree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Decide which values of lambda to use
+nlambdas = 10
+lambdas = np.logspace(-4, 2, nlambdas)
+# create and fit a ridge regression model, testing each alpha
+model = Ridge()
+gridsearch = GridSearchCV(estimator=model, param_grid=dict(alpha=lambdas))
+gridsearch.fit(X_train, y_train)
+print(gridsearch)
+ypredictRidge = gridsearch.predict(X_test)
+# summarize the results of the grid search
+print(f"Best estimated lambda-value: {gridsearch.best_estimator_.alpha}")
+print(f"MSE score: {MSE(y_test,ypredictRidge)}")
+print(f"R2 score: {R2(y_test,ypredictRidge)}")
+
+!ec
+
+By default the grid search function includes cross validation with
+five folds. The "Scikit-Learn
+documentation":"https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV"
+contains more information on how to set the different parameters.
+
+If we take out the random noise, running the above codes results in $\lambda=0$ yielding the best fit. 
+
+
+!split
+===== Randomized Grid Search =====
+
+An alternative to the above manual grid set up, is to use a random
+search where the parameters are tuned from a random distribution
+(uniform below) for a fixed number of iterations. A model is
+constructed and evaluated for each combination of chosen parameters.
+We repeat the previous example but now with a random search.  Note
+that values of $\lambda$ are now limited to be within $x\in
+[0,1]$. This domain may not be the most relevant one for the specific
+case under study.
+
+
+!bc pycod
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+from scipy.stats import uniform as randuniform
+from sklearn.model_selection import RandomizedSearchCV
+
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(2021)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
+
+Maxpolydegree = 5
+X = np.zeros((n,Maxpolydegree-1))
+
+for degree in range(1,Maxpolydegree): #No intercept column
+    X[:,degree-1] = x**(degree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+param_grid = {'alpha': randuniform()}
+# create and fit a ridge regression model, testing each alpha
+model = Ridge()
+gridsearch = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=100)
+gridsearch.fit(X_train, y_train)
+print(gridsearch)
+ypredictRidge = gridsearch.predict(X_test)
+# summarize the results of the grid search
+print(f"Best estimated lambda-value: {gridsearch.best_estimator_.alpha}")
+print(f"MSE score: {MSE(y_test,ypredictRidge)}")
+print(f"R2 score: {R2(y_test,ypredictRidge)}")
+
+!ec
+
 
 
 
@@ -1174,5 +1359,844 @@ large we can experience erratic behavior.
 Many of these shortcomings can be alleviated by introducing
 randomness. One such method is that of Stochastic Gradient Descent
 (SGD), see below.
+
+
+
+
+
+!split
+=====  Revisiting our Logistic Regression case =====
+
+In our discussion on Logistic Regression we studied the 
+case of
+two classes, with $y_i$ either
+$0$ or $1$. Furthermore we assumed also that we have only two
+parameters $\beta$ in our fitting, that is we
+defined probabilities
+
+!bt
+\begin{align*}
+p(y_i=1|x_i,\bm{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
+p(y_i=0|x_i,\bm{\beta}) &= 1 - p(y_i=1|x_i,\bm{\beta}),
+\end{align*}
+!et
+where $\bm{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
+
+!split
+===== The equations to solve =====
+
+Our compact equations used a definition of a vector $\bm{y}$ with $n$
+elements $y_i$, an $n\times p$ matrix $\bm{X}$ which contains the
+$x_i$ values and a vector $\bm{p}$ of fitted probabilities
+$p(y_i\vert x_i,\bm{\beta})$. We rewrote in a more compact form
+the first derivative of the cost function as
+
+!bt
+\[
+\frac{\partial \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}} = -\bm{X}^T\left(\bm{y}-\bm{p}\right). 
+\]
+!et
+
+If we in addition define a diagonal matrix $\bm{W}$ with elements 
+$p(y_i\vert x_i,\bm{\beta})(1-p(y_i\vert x_i,\bm{\beta})$, we can obtain a compact expression of the second derivative as 
+
+!bt
+\[
+\frac{\partial^2 \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}\partial \bm{\beta}^T} = \bm{X}^T\bm{W}\bm{X}. 
+\]
+!et
+This defines what is called  the Hessian matrix.
+
+
+
+
+
+!split
+===== Solving using Newton-Raphson's method =====
+
+If we can set up these equations, Newton-Raphson's iterative method is normally the method of choice. It requires however that we can compute in an efficient way the  matrices that define the first and second derivatives. 
+
+Our iterative scheme is then given by
+
+!bt
+\[
+\bm{\beta}^{\mathrm{new}} = \bm{\beta}^{\mathrm{old}}-\left(\frac{\partial^2 \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}\partial \bm{\beta}^T}\right)^{-1}_{\bm{\beta}^{\mathrm{old}}}\times \left(\frac{\partial \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}}\right)_{\bm{\beta}^{\mathrm{old}}},
+\]
+!et
+or in matrix form as
+
+!bt
+\[
+\bm{\beta}^{\mathrm{new}} = \bm{\beta}^{\mathrm{old}}-\left(\bm{X}^T\bm{W}\bm{X} \right)^{-1}\times \left(-\bm{X}^T(\bm{y}-\bm{p}) \right)_{\bm{\beta}^{\mathrm{old}}}.
+\]
+!et
+The right-hand side is computed with the old values of $\beta$. 
+
+If we can compute these matrices, in particular the Hessian, the above is often the easiest method to implement. 
+
+
+
+!split 
+===== Convex functions ===== 
+
+Ideally we want our cost/loss function to be convex(concave).
+
+First we give the definition of a convex set: A set $C$ in
+$\mathbb{R}^n$ is said to be convex if, for all $x$ and $y$ in $C$ and
+all $t \in (0,1)$ , the point $(1 − t)x + ty$ also belongs to
+C. Geometrically this means that every point on the line segment
+connecting $x$ and $y$ is in $C$ as discussed below.
+
+The convex subsets of $\mathbb{R}$ are the intervals of
+$\mathbb{R}$. Examples of convex sets of $\mathbb{R}^2$ are the
+regular polygons (triangles, rectangles, pentagons, etc...).
+
+!split
+===== Convex function =====
+
+_Convex function_: Let $X \subset \mathbb{R}^n$ be a convex set. Assume that the function $f: X \rightarrow \mathbb{R}$ is continuous, then $f$ is said to be convex if $$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$ for all $x_1, x_2 \in X$ and for all $t \in [0,1]$. If $\leq$ is replaced with a strict inequaltiy in the definition, we demand $x_1 \neq x_2$ and $t\in(0,1)$ then $f$ is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting $f(x_1)$ and $f(x_2)$, the value of the function on the interval $[x_1,x_2]$ is always below the line as illustrated below.
+
+!split
+===== Conditions on convex functions =====
+
+In the following we state first and second-order conditions which
+ensures convexity of a function $f$. We write $D_f$ to denote the
+domain of $f$, i.e the subset of $R^n$ where $f$ is defined. For more
+details and proofs we refer to: "S. Boyd and L. Vandenberghe. Convex Optimization. Cambridge University Press":"http://stanford.edu/boyd/cvxbook/, 2004".
+
+!bblock First order condition
+Suppose $f$ is differentiable (i.e $\nabla f(x)$ is well defined for
+all $x$ in the domain of $f$). Then $f$ is convex if and only if $D_f$
+is a convex set and $$f(y) \geq f(x) + \nabla f(x)^T (y-x) $$ holds
+for all $x,y \in D_f$. This condition means that for a convex function
+the first order Taylor expansion (right hand side above) at any point
+a global under estimator of the function. To convince yourself you can
+make a drawing of $f(x) = x^2+1$ and draw the tangent line to $f(x)$ and
+note that it is always below the graph.  
+!eblock
+
+!bblock Second order condition 
+Assume that $f$ is twice
+differentiable, i.e the Hessian matrix exists at each point in
+$D_f$. Then $f$ is convex if and only if $D_f$ is a convex set and its
+Hessian is positive semi-definite for all $x\in D_f$. For a
+single-variable function this reduces to $f''(x) \geq 0$. Geometrically this means that $f$ has nonnegative curvature
+everywhere.
+!eblock
+
+This condition is particularly useful since it gives us an procedure for determining if the function under consideration is convex, apart from using the definition.
+
+!split
+===== More on convex functions =====
+
+The next result is of great importance to us and the reason why we are
+going on about convex functions. In machine learning we frequently
+have to minimize a loss/cost function in order to find the best
+parameters for the model we are considering. 
+
+Ideally we want the
+global minimum (for high-dimensional models it is hard to know
+if we have local or global minimum). However, if the cost/loss function
+is convex the following result provides invaluable information:
+
+!bblock Any minimum is global for convex functions
+Consider the problem of finding $x \in \mathbb{R}^n$ such that $f(x)$
+is minimal, where $f$ is convex and differentiable. Then, any point
+$x^*$ that satisfies $\nabla f(x^*) = 0$ is a global minimum.
+!eblock
+
+This result means that if we know that the cost/loss function is convex and we are able to find a minimum, we are guaranteed that it is a global minimum.
+
+!split
+===== Some simple problems =====
+
+o Show that $f(x)=x^2$ is convex for $x \in \mathbb{R}$ using the definition of convexity. Hint: If you re-write the definition, $f$ is convex if the following holds for all $x,y \in D_f$ and any $\lambda \in [0,1]$ $\lambda f(x)+(1-\lambda)f(y)-f(\lambda x + (1-\lambda) y ) \geq 0$.
+
+o Using the second order condition show that the following functions are convex on the specified domain.
+ * $f(x) = e^x$ is convex for $x \in \mathbb{R}$.
+ * $g(x) = -\ln(x)$ is convex for $x \in (0,\infty)$.
+o Let $f(x) = x^2$ and $g(x) = e^x$. Show that $f(g(x))$ and $g(f(x))$ is convex for $x \in \mathbb{R}$. Also show that if $f(x)$ is any convex function than $h(x) = e^{f(x)}$ is convex.
+
+o A norm is any function that satisfy the following properties
+ * $f(\alpha x) = |\alpha| f(x)$ for all $\alpha \in \mathbb{R}$.
+ * $f(x+y) \leq f(x) + f(y)$
+ * $f(x) \leq 0$ for all $x \in \mathbb{R}^n$ with equality if and only if $x = 0$
+
+Using the definition of convexity, try to show that a function satisfying the properties above is convex (the third condition is not needed to show this).
+
+
+
+
+!split
+===== Standard steepest descent =====
+
+
+Before we proceed, we would like to discuss the approach called the
+_standard Steepest descent_ (different from the above steepest descent discussion), which again leads to us having to be able
+to compute a matrix. It belongs to the class of Conjugate Gradient methods (CG).
+
+"The success of the CG method":"https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf"
+for finding solutions of non-linear problems is based on the theory
+of conjugate gradients for linear systems of equations. It belongs to
+the class of iterative methods for solving problems from linear
+algebra of the type 
+!bt 
+\begin{equation*} 
+\bm{A}\bm{x} = \bm{b}.
+\end{equation*} 
+!et 
+
+In the iterative process we end up with a problem like
+
+!bt
+\begin{equation*}
+  \bm{r}= \bm{b}-\bm{A}\bm{x},
+\end{equation*}
+!et
+where $\bm{r}$ is the so-called residual or error in the iterative process.
+
+When we have found the exact solution, $\bm{r}=0$.
+
+!split
+===== Gradient method =====
+
+The residual is zero when we reach the minimum of the quadratic equation
+!bt
+\begin{equation*}
+  P(\bm{x})=\frac{1}{2}\bm{x}^T\bm{A}\bm{x} - \bm{x}^T\bm{b},
+\end{equation*}
+!et
+
+with the constraint that the matrix $\bm{A}$ is positive definite and
+symmetric.  This defines also the Hessian and we want it to be  positive definite.  
+
+
+!split
+===== Steepest descent  method ===== 
+
+We denote the initial guess for $\bm{x}$ as $\bm{x}_0$. 
+We can assume without loss of generality that
+!bt
+\begin{equation*}
+\bm{x}_0=0,
+\end{equation*}
+!et
+or consider the system
+!bt
+\begin{equation*}
+\bm{A}\bm{z} = \bm{b}-\bm{A}\bm{x}_0,
+\end{equation*}
+!et
+instead.
+
+
+!split
+===== Steepest descent  method ===== 
+!bblock
+One can show that the solution $\bm{x}$ is also the unique minimizer of the quadratic form
+!bt
+\begin{equation*}
+  f(\bm{x}) = \frac{1}{2}\bm{x}^T\bm{A}\bm{x} - \bm{x}^T \bm{x} , \quad \bm{x}\in\mathbf{R}^n. 
+\end{equation*}
+!et
+This suggests taking the first basis vector $\bm{r}_1$ (see below for definition) 
+to be the gradient of $f$ at $\bm{x}=\bm{x}_0$, 
+which equals
+!bt
+\begin{equation*}
+\bm{A}\bm{x}_0-\bm{b},
+\end{equation*}
+!et
+and 
+$\bm{x}_0=0$ it is equal $-\bm{b}$.
+
+!eblock
+
+!split
+===== Final expressions ===== 
+!bblock
+We can compute the residual iteratively as
+!bt
+\begin{equation*}
+\bm{r}_{k+1}=\bm{b}-\bm{A}\bm{x}_{k+1},
+ \end{equation*}
+!et
+which equals
+!bt
+\begin{equation*}
+\bm{b}-\bm{A}(\bm{x}_k+\alpha_k\bm{r}_k),
+ \end{equation*}
+!et
+or
+!bt
+\begin{equation*}
+(\bm{b}-\bm{A}\bm{x}_k)-\alpha_k\bm{A}\bm{r}_k,
+ \end{equation*}
+!et
+which gives
+
+!bt
+\[
+\alpha_k = \frac{\bm{r}_k^T\bm{r}_k}{\bm{r}_k^T\bm{A}\bm{r}_k}
+\]
+!et
+leading to the iterative scheme
+!bt
+\begin{equation*}
+\bm{x}_{k+1}=\bm{x}_k-\alpha_k\bm{r}_{k},
+ \end{equation*}
+!et
+!eblock
+
+
+
+!split
+===== Steepest descent example =====
+
+!bc pycod
+import numpy as np
+import numpy.linalg as la
+
+import scipy.optimize as sopt
+
+import matplotlib.pyplot as pt
+from mpl_toolkits.mplot3d import axes3d
+
+def f(x):
+    return x[0]**2 + 3.0*x[1]**2
+
+def df(x):
+    return np.array([2*x[0], 6*x[1]])
+
+fig = pt.figure()
+ax = fig.gca(projection="3d")
+
+xmesh, ymesh = np.mgrid[-3:3:50j,-3:3:50j]
+fmesh = f(np.array([xmesh, ymesh]))
+ax.plot_surface(xmesh, ymesh, fmesh)
+!ec
+And then as countor plot
+!bc pycod
+pt.axis("equal")
+pt.contour(xmesh, ymesh, fmesh)
+guesses = [np.array([2, 2./5])]
+!ec
+Find guesses
+!bc pycod
+x = guesses[-1]
+s = -df(x)
+!ec
+Run it!
+!bc pycod
+def f1d(alpha):
+    return f(x + alpha*s)
+
+alpha_opt = sopt.golden(f1d)
+next_guess = x + alpha_opt * s
+guesses.append(next_guess)
+print(next_guess)
+!ec
+What happened?
+!bc pycod
+pt.axis("equal")
+pt.contour(xmesh, ymesh, fmesh, 50)
+it_array = np.array(guesses)
+pt.plot(it_array.T[0], it_array.T[1], "x-")
+!ec
+
+Note that we did only one iteration here. We can easily add more using our previous guesses.
+
+!split
+===== Conjugate gradient method ===== 
+!bblock
+In the CG method we define so-called conjugate directions and two vectors 
+$\bm{s}$ and $\bm{t}$
+are said to be
+conjugate if
+!bt
+\begin{equation*}
+\bm{s}^T\bm{A}\bm{t}= 0.
+\end{equation*}
+!et
+The philosophy of the CG method is to perform searches in various conjugate directions
+of our vectors $\bm{x}_i$ obeying the above criterion, namely
+!bt
+\begin{equation*}
+\bm{x}_i^T\bm{A}\bm{x}_j= 0.
+\end{equation*}
+!et
+Two vectors are conjugate if they are orthogonal with respect to 
+this inner product. Being conjugate is a symmetric relation: if $\bm{s}$ is conjugate to $\bm{t}$, then $\bm{t}$ is conjugate to $\bm{s}$.
+!eblock
+
+!split
+===== Conjugate gradient method ===== 
+!bblock
+An example is given by the eigenvectors of the matrix
+!bt
+\begin{equation*}
+\bm{v}_i^T\bm{A}\bm{v}_j= \lambda\bm{v}_i^T\bm{v}_j,
+\end{equation*}
+!et
+which is zero unless $i=j$. 
+!eblock
+
+
+!split
+===== Conjugate gradient method ===== 
+!bblock
+Assume now that we have a symmetric positive-definite matrix $\bm{A}$ of size
+$n\times n$. At each iteration $i+1$ we obtain the conjugate direction of a vector
+!bt
+\begin{equation*}
+\bm{x}_{i+1}=\bm{x}_{i}+\alpha_i\bm{p}_{i}. 
+\end{equation*}
+!et
+We assume that $\bm{p}_{i}$ is a sequence of $n$ mutually conjugate directions. 
+Then the $\bm{p}_{i}$  form a basis of $R^n$ and we can expand the solution 
+$  \bm{A}\bm{x} = \bm{b}$ in this basis, namely
+
+!bt
+\begin{equation*}
+  \bm{x}  = \sum^{n}_{i=1} \alpha_i \bm{p}_i.
+\end{equation*}
+!et
+!eblock
+
+!split
+===== Conjugate gradient method ===== 
+!bblock
+The coefficients are given by
+!bt
+\begin{equation*}
+    \mathbf{A}\mathbf{x} = \sum^{n}_{i=1} \alpha_i \mathbf{A} \mathbf{p}_i = \mathbf{b}.
+\end{equation*}
+!et
+Multiplying with $\bm{p}_k^T$  from the left gives
+
+!bt
+\begin{equation*}
+  \bm{p}_k^T \bm{A}\bm{x} = \sum^{n}_{i=1} \alpha_i\bm{p}_k^T \bm{A}\bm{p}_i= \bm{p}_k^T \bm{b},
+\end{equation*}
+!et
+and we can define the coefficients $\alpha_k$ as
+
+!bt
+\begin{equation*}
+    \alpha_k = \frac{\bm{p}_k^T \bm{b}}{\bm{p}_k^T \bm{A} \bm{p}_k}
+\end{equation*}
+!et 
+!eblock
+
+!split
+===== Conjugate gradient method and iterations ===== 
+!bblock
+
+If we choose the conjugate vectors $\bm{p}_k$ carefully, 
+then we may not need all of them to obtain a good approximation to the solution 
+$\bm{x}$. 
+We want to regard the conjugate gradient method as an iterative method. 
+This will us to solve systems where $n$ is so large that the direct 
+method would take too much time.
+
+We denote the initial guess for $\bm{x}$ as $\bm{x}_0$. 
+We can assume without loss of generality that
+!bt
+\begin{equation*}
+\bm{x}_0=0,
+\end{equation*}
+!et
+or consider the system
+!bt
+\begin{equation*}
+\bm{A}\bm{z} = \bm{b}-\bm{A}\bm{x}_0,
+\end{equation*}
+!et
+instead.
+!eblock
+
+
+!split
+===== Conjugate gradient method ===== 
+!bblock
+One can show that the solution $\bm{x}$ is also the unique minimizer of the quadratic form
+!bt
+\begin{equation*}
+  f(\bm{x}) = \frac{1}{2}\bm{x}^T\bm{A}\bm{x} - \bm{x}^T \bm{x} , \quad \bm{x}\in\mathbf{R}^n. 
+\end{equation*}
+!et
+This suggests taking the first basis vector $\bm{p}_1$ 
+to be the gradient of $f$ at $\bm{x}=\bm{x}_0$, 
+which equals
+!bt
+\begin{equation*}
+\bm{A}\bm{x}_0-\bm{b},
+\end{equation*}
+!et
+and 
+$\bm{x}_0=0$ it is equal $-\bm{b}$.
+The other vectors in the basis will be conjugate to the gradient, 
+hence the name conjugate gradient method.
+!eblock
+
+
+!split
+===== Conjugate gradient method ===== 
+!bblock
+Let  $\bm{r}_k$ be the residual at the $k$-th step:
+!bt
+\begin{equation*}
+\bm{r}_k=\bm{b}-\bm{A}\bm{x}_k.
+\end{equation*}
+!et
+Note that $\bm{r}_k$ is the negative gradient of $f$ at 
+$\bm{x}=\bm{x}_k$, 
+so the gradient descent method would be to move in the direction $\bm{r}_k$. 
+Here, we insist that the directions $\bm{p}_k$ are conjugate to each other, 
+so we take the direction closest to the gradient $\bm{r}_k$  
+under the conjugacy constraint. 
+This gives the following expression
+!bt
+\begin{equation*}
+\bm{p}_{k+1}=\bm{r}_k-\frac{\bm{p}_k^T \bm{A}\bm{r}_k}{\bm{p}_k^T\bm{A}\bm{p}_k} \bm{p}_k.
+\end{equation*}
+!et
+!eblock
+
+!split
+===== Conjugate gradient method ===== 
+!bblock
+We can also  compute the residual iteratively as
+!bt
+\begin{equation*}
+\bm{r}_{k+1}=\bm{b}-\bm{A}\bm{x}_{k+1},
+ \end{equation*}
+!et
+which equals
+!bt
+\begin{equation*}
+\bm{b}-\bm{A}(\bm{x}_k+\alpha_k\bm{p}_k),
+ \end{equation*}
+!et
+or
+!bt
+\begin{equation*}
+(\bm{b}-\bm{A}\bm{x}_k)-\alpha_k\bm{A}\bm{p}_k,
+ \end{equation*}
+!et
+which gives
+
+!bt
+\begin{equation*}
+\bm{r}_{k+1}=\bm{r}_k-\bm{A}\bm{p}_{k},
+ \end{equation*}
+!et
+!eblock
+
+
+
+
+
+!split 
+===== Revisiting our first homework =====
+
+We will use linear regression as a case study for the gradient descent
+methods. Linear regression is a great test case for the gradient
+descent methods discussed in the lectures since it has several
+desirable properties such as:
+
+o An analytical solution (recall homework set 1).
+o The gradient can be computed analytically.
+o The cost function is convex which guarantees that gradient descent converges for small enough learning rates
+
+We revisit an example similar to what we had in the first homework set. We had a function  of the type
+
+!bc pycod
+x = 2*np.random.rand(m,1)
+y = 4+3*x+np.random.randn(m,1)
+!ec
+with $x_i \in [0,1] $ is chosen randomly using a uniform distribution. Additionally we have a stochastic noise chosen according to a normal distribution $\cal {N}(0,1)$. 
+The linear regression model is given by 
+!bt
+\[
+h_\beta(x) = \bm{y} = \beta_0 + \beta_1 x,
+\] 
+!et
+such that 
+!bt
+\[
+\bm{y}_i = \beta_0 + \beta_1 x_i.
+\]
+!et
+
+!split 
+===== Gradient descent example =====
+
+Let $\mathbf{y} = (y_1,\cdots,y_n)^T$, $\mathbf{\bm{y}} = (\bm{y}_1,\cdots,\bm{y}_n)^T$ and $\beta = (\beta_0, \beta_1)^T$
+
+It is convenient to write $\mathbf{\bm{y}} = X\beta$ where $X \in \mathbb{R}^{100 \times 2} $ is the design matrix given by (we keep the intercept here)
+!bt
+\[
+X \equiv \begin{bmatrix}
+1 & x_1  \\
+\vdots & \vdots  \\
+1 & x_{100} &  \\
+\end{bmatrix}.
+\]
+!et
+The cost/loss/risk function is given by (
+!bt
+\[
+C(\beta) = \frac{1}{n}||X\beta-\mathbf{y}||_{2}^{2} = \frac{1}{n}\sum_{i=1}^{100}\left[ (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2\right] 
+\]
+!et
+and we want to find $\beta$ such that $C(\beta)$ is minimized.
+
+!split
+===== The derivative of the cost/loss function =====
+
+Computing $\partial C(\beta) / \partial \beta_0$ and $\partial C(\beta) / \partial \beta_1$ we can show  that the gradient can be written as
+!bt
+\[
+\nabla_{\beta} C(\beta) = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} = \frac{2}{n}X^T(X\beta - \mathbf{y}), 
+\]
+!et
+where $X$ is the design matrix defined above.
+
+!split
+===== The Hessian matrix =====
+The Hessian matrix of $C(\beta)$ is given by 
+!bt
+\[
+\bm{H} \equiv \begin{bmatrix}
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X.
+\]
+!et
+This result implies that $C(\beta)$ is a convex function since the matrix $X^T X$ always is positive semi-definite.
+
+
+
+
+!split
+===== Simple program =====
+
+We can now write a program that minimizes $C(\beta)$ using the gradient descent method with a constant learning rate $\gamma$ according to 
+!bt
+\[
+\beta_{k+1} = \beta_k - \gamma \nabla_\beta C(\beta_k), \ k=0,1,\cdots 
+\]
+!et
+
+We can use the expression we computed for the gradient and let use a
+$\beta_0$ be chosen randomly and let $\gamma = 0.001$. Stop iterating
+when $||\nabla_\beta C(\beta_k) || \leq \epsilon = 10^{-8}$. _Note that the code below does not include the latter stop criterion_.
+
+And finally we can compare our solution for $\beta$ with the analytic result given by 
+$\beta= (X^TX)^{-1} X^T \mathbf{y}$.
+
+!split
+===== Gradient Descent Example =====
+
+Here our simple example
+!bc pycod
+
+# Importing various packages
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import sys
+
+# the number of datapoints
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x]
+# Hessian matrix
+H = (2.0/n)* X.T @ X
+# Get the eigenvalues
+EigValues, EigVectors = np.linalg.eig(H)
+print(f"Eigenvalues of Hessian Matrix:{EigValues}")
+
+beta_linreg = np.linalg.inv(X.T @ X) @ X.T @ y
+print(beta_linreg)
+beta = np.random.randn(2,1)
+
+eta = 1.0/np.max(EigValues)
+Niterations = 1000
+
+for iter in range(Niterations):
+    gradient = (2.0/n)*X.T @ (X @ beta-y)
+    beta -= eta*gradient
+
+print(beta)
+xnew = np.array([[0],[2]])
+xbnew = np.c_[np.ones((2,1)), xnew]
+ypredict = xbnew.dot(beta)
+ypredict2 = xbnew.dot(beta_linreg)
+plt.plot(xnew, ypredict, "r-")
+plt.plot(xnew, ypredict2, "b-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Gradient descent example')
+plt.show()
+
+!ec
+
+!split
+===== And a corresponding example using _scikit-learn_ =====
+
+!bc pycod
+# Importing various packages
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import SGDRegressor
+
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x]
+beta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
+print(beta_linreg)
+sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
+sgdreg.fit(x,y.ravel())
+print(sgdreg.intercept_, sgdreg.coef_)
+
+!ec
+
+
+
+!split 
+===== Gradient descent and Ridge =====
+
+We have also discussed Ridge regression where the loss function contains a regularized term given by the $L_2$ norm of $\beta$, 
+!bt
+\[
+C_{\text{ridge}}(\beta) = \frac{1}{n}||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
+\]
+!et
+
+In order to minimize $C_{\text{ridge}}(\beta)$ using GD we adjust the gradient as follows 
+!bt
+\[
+\nabla_\beta C_{\text{ridge}}(\beta)  = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} + 2\lambda\begin{bmatrix} \beta_0 \\ \beta_1\end{bmatrix} = 2 (\frac{1}{n}X^T(X\beta - \mathbf{y})+\lambda \beta).
+\]
+!et
+
+We can easily extend our program to minimize $C_{\text{ridge}}(\beta)$ using gradient descent and compare with the analytical solution given by 
+!bt
+\[
+\beta_{\text{ridge}} = \left(X^T X + n\lambda I_{2 \times 2} \right)^{-1} X^T \mathbf{y}.
+\]
+!et
+
+!split
+===== The Hessian matrix for Ridge Regression =====
+The Hessian matrix of Ridge Regression for our simple example  is given by 
+!bt
+\[
+\bm{H} \equiv \begin{bmatrix}
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X+2\lambda\bm{I}.
+\]
+!et
+This implies that the Hessian matrix  is positive definite, hence the stationary point is a
+minimum.
+Note that the Ridge cost function is convex being  a sum of two convex
+functions. Therefore, the stationary point is a global
+minimum of this function.
+
+
+!split
+===== Program example for gradient descent with Ridge Regression =====
+!bc pycod
+from random import random, seed
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import sys
+
+# the number of datapoints
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x]
+XT_X = X.T @ X
+
+#Ridge parameter lambda
+lmbda  = 0.001
+Id = n*lmbda* np.eye(XT_X.shape[0])
+
+# Hessian matrix
+H = (2.0/n)* XT_X+2*lmbda* np.eye(XT_X.shape[0])
+# Get the eigenvalues
+EigValues, EigVectors = np.linalg.eig(H)
+print(f"Eigenvalues of Hessian Matrix:{EigValues}")
+
+
+beta_linreg = np.linalg.inv(XT_X+Id) @ X.T @ y
+print(beta_linreg)
+# Start plain gradient descent
+beta = np.random.randn(2,1)
+
+eta = 1.0/np.max(EigValues)
+Niterations = 100
+
+for iter in range(Niterations):
+    gradients = 2.0/n*X.T @ (X @ (beta)-y)+2*lmbda*beta
+    beta -= eta*gradients
+
+print(beta)
+ypredict = X @ beta
+ypredict2 = X @ beta_linreg
+plt.plot(x, ypredict, "r-")
+plt.plot(x, ypredict2, "b-")
+plt.plot(x, y ,'ro')
+plt.axis([0,2.0,0, 15.0])
+plt.xlabel(r'$x$')
+plt.ylabel(r'$y$')
+plt.title(r'Gradient descent example for Ridge')
+plt.show()
+
+
+!ec
+
+!split
+===== Using gradient descent methods, limitations =====
+
+* _Gradient descent (GD) finds local minima of our function_. Since the GD algorithm is deterministic, if it converges, it will converge to a local minimum of our cost/loss/risk function. Because in ML we are often dealing with extremely rugged landscapes with many local minima, this can lead to poor performance.
+
+* _GD is sensitive to initial conditions_. One consequence of the local nature of GD is that initial conditions matter. Depending on where one starts, one will end up at a different local minima. Therefore, it is very important to think about how one initializes the training process. This is true for GD as well as more complicated variants of GD.
+
+* _Gradients are computationally expensive to calculate for large datasets_. In many cases in statistics and ML, the cost/loss/risk function is a sum of terms, with one term for each data point. For example, in linear regression, $E \propto \sum_{i=1}^n (y_i - \mathbf{w}^T\cdot\mathbf{x}_i)^2$; for logistic regression, the square error is replaced by the cross entropy. To calculate the gradient we have to sum over *all* $n$ data points. Doing this at every GD step becomes extremely computationally expensive. An ingenious solution to this, is to calculate the gradients using small subsets of the data called ``mini batches''. This has the added benefit of introducing stochasticity into our algorithm.
+
+* _GD is very sensitive to choices of learning rates_. GD is extremely sensitive to the choice of learning rates. If the learning rate is very small, the training process take an extremely long time. For larger learning rates, GD can diverge and give poor results. Furthermore, depending on what the local landscape looks like, we have to modify the learning rates to ensure convergence. Ideally, we would *adaptively* choose the learning rates to match the landscape.
+
+* _GD treats all directions in parameter space uniformly._ Another major drawback of GD is that unlike Newton's method, the learning rate for GD is the same in all directions in parameter space. For this reason, the maximum learning rate is set by the behavior of the steepest direction and this can significantly slow down training. Ideally, we would like to take large steps in flat directions and small steps in steep directions. Since we are exploring rugged landscapes where curvatures change, this requires us to keep track of not only the gradient but second derivatives. The ideal scenario would be to calculate the Hessian but this proves to be too computationally expensive. 
+	
+* GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.
+	
+
+!split
+===== Challenge yourself this weekend =====
+
+Write a code which implements gradient descent for a logistic regression example.
 
 

@@ -1069,6 +1069,249 @@ methods</a>.
 </section>
 
 <section>
+<h2 id="searching-for-optimal-regularization-parameters-lambda">Searching for Optimal Regularization Parameters \( \lambda \) </h2>
+
+<p>In project 1, when using Ridge and Lasso regression, we end up
+searching for the optimal parameter \( \lambda \) which minimizes our
+selected scores (MSE or \( R2 \) values for example). The brute force
+approach, as discussed in the code here for Ridge regression, consists
+in evaluating the MSE as function of different \( \lambda \) values.
+Based on these calculations, one tries then to determine the value of the hyperparameter \( \lambda \)
+which results in optimal scores (for example the smallest MSE or an \( R2=1 \)).
+</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pandas</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pd</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">2021</span>)
+
+n = <span style="color: #B452CD">100</span>
+x = np.random.rand(n)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+Maxpolydegree = <span style="color: #B452CD">5</span>
+X = np.zeros((n,Maxpolydegree-<span style="color: #B452CD">1</span>))
+
+<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,Maxpolydegree): <span style="color: #228B22">#No intercept column</span>
+    X[:,degree-<span style="color: #B452CD">1</span>] = x**(degree)
+
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">500</span>
+MSERidgePredict = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    RegRidge = linear_model.Ridge(lmb)
+    RegRidge.fit(X_train,y_train)
+    ypredictRidge = RegRidge.predict(X_test)
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;g--&#39;</span>, label = <span style="color: #CD5555">&#39;MSE SL Ridge Test&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Here we have performed a rather data greedy calculation as function of the regularization parameter \( \lambda \). There is no resampling here. The latter can easily be added by employing the function <b>RidgeCV</b> instead of just calling the <b>Ridge</b> function. For <b>RidgeCV</b> we need to pass the array of \( \lambda \) values.
+By inspecting the figure we can in turn determine which is the optimal regularization parameter.
+This becomes however less functional in the long run. 
+</p>
+</section>
+
+<section>
+<h2 id="grid-search">Grid Search </h2>
+
+<p>An alternative is to use the so-called grid search functionality
+included with the library <b>Scikit-Learn</b>, as demonstrated for the same
+example here.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> GridSearchCV
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">2021</span>)
+
+n = <span style="color: #B452CD">100</span>
+x = np.random.rand(n)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+Maxpolydegree = <span style="color: #B452CD">5</span>
+X = np.zeros((n,Maxpolydegree-<span style="color: #B452CD">1</span>))
+
+<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,Maxpolydegree): <span style="color: #228B22">#No intercept column</span>
+    X[:,degree-<span style="color: #B452CD">1</span>] = x**(degree)
+
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">10</span>
+lambdas = np.logspace(-<span style="color: #B452CD">4</span>, <span style="color: #B452CD">2</span>, nlambdas)
+<span style="color: #228B22"># create and fit a ridge regression model, testing each alpha</span>
+model = Ridge()
+gridsearch = GridSearchCV(estimator=model, param_grid=<span style="color: #658b00">dict</span>(alpha=lambdas))
+gridsearch.fit(X_train, y_train)
+<span style="color: #658b00">print</span>(gridsearch)
+ypredictRidge = gridsearch.predict(X_test)
+<span style="color: #228B22"># summarize the results of the grid search</span>
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Best estimated lambda-value: {</span>gridsearch.best_estimator_.alpha<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;MSE score: {</span>MSE(y_test,ypredictRidge)<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;R2 score: {</span>R2(y_test,ypredictRidge)<span style="color: #CD5555">}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>By default the grid search function includes cross validation with
+five folds. The <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV" target="_blank">Scikit-Learn
+documentation</a>
+contains more information on how to set the different parameters.
+</p>
+
+<p>If we take out the random noise, running the above codes results in \( \lambda=0 \) yielding the best fit. </p>
+</section>
+
+<section>
+<h2 id="randomized-grid-search">Randomized Grid Search </h2>
+
+<p>An alternative to the above manual grid set up, is to use a random
+search where the parameters are tuned from a random distribution
+(uniform below) for a fixed number of iterations. A model is
+constructed and evaluated for each combination of chosen parameters.
+We repeat the previous example but now with a random search.  Note
+that values of \( \lambda \) are now limited to be within \( x\in
+[0,1] \). This domain may not be the most relevant one for the specific
+case under study.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> Ridge
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> GridSearchCV
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">scipy.stats</span> <span style="color: #8B008B; font-weight: bold">import</span> uniform <span style="color: #8B008B; font-weight: bold">as</span> randuniform
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> RandomizedSearchCV
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+<span style="color: #228B22"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span style="color: #228B22"># Useful for eventual debugging.</span>
+np.random.seed(<span style="color: #B452CD">2021</span>)
+
+n = <span style="color: #B452CD">100</span>
+x = np.random.rand(n)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+Maxpolydegree = <span style="color: #B452CD">5</span>
+X = np.zeros((n,Maxpolydegree-<span style="color: #B452CD">1</span>))
+
+<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,Maxpolydegree): <span style="color: #228B22">#No intercept column</span>
+    X[:,degree-<span style="color: #B452CD">1</span>] = x**(degree)
+
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+param_grid = {<span style="color: #CD5555">&#39;alpha&#39;</span>: randuniform()}
+<span style="color: #228B22"># create and fit a ridge regression model, testing each alpha</span>
+model = Ridge()
+gridsearch = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=<span style="color: #B452CD">100</span>)
+gridsearch.fit(X_train, y_train)
+<span style="color: #658b00">print</span>(gridsearch)
+ypredictRidge = gridsearch.predict(X_test)
+<span style="color: #228B22"># summarize the results of the grid search</span>
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Best estimated lambda-value: {</span>gridsearch.best_estimator_.alpha<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;MSE score: {</span>MSE(y_test,ypredictRidge)<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;R2 score: {</span>R2(y_test,ypredictRidge)<span style="color: #CD5555">}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
 <h2 id="wisconsin-cancer-data">Wisconsin Cancer Data  </h2>
 
 <p>We show here how we can use a simple regression case on the breast
@@ -1628,6 +1871,1178 @@ large we can experience erratic behavior.
 randomness. One such method is that of Stochastic Gradient Descent
 (SGD), see below.
 </p>
+</section>
+
+<section>
+<h2 id="revisiting-our-logistic-regression-case">Revisiting our Logistic Regression case </h2>
+
+<p>In our discussion on Logistic Regression we studied the 
+case of
+two classes, with \( y_i \) either
+\( 0 \) or \( 1 \). Furthermore we assumed also that we have only two
+parameters \( \beta \) in our fitting, that is we
+defined probabilities
+</p>
+
+<p>&nbsp;<br>
+$$
+\begin{align*}
+p(y_i=1|x_i,\boldsymbol{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
+p(y_i=0|x_i,\boldsymbol{\beta}) &= 1 - p(y_i=1|x_i,\boldsymbol{\beta}),
+\end{align*}
+$$
+<p>&nbsp;<br>
+
+<p>where \( \boldsymbol{\beta} \) are the weights we wish to extract from data, in our case \( \beta_0 \) and \( \beta_1 \). </p>
+</section>
+
+<section>
+<h2 id="the-equations-to-solve">The equations to solve </h2>
+
+<p>Our compact equations used a definition of a vector \( \boldsymbol{y} \) with \( n \)
+elements \( y_i \), an \( n\times p \) matrix \( \boldsymbol{X} \) which contains the
+\( x_i \) values and a vector \( \boldsymbol{p} \) of fitted probabilities
+\( p(y_i\vert x_i,\boldsymbol{\beta}) \). We rewrote in a more compact form
+the first derivative of the cost function as
+</p>
+
+<p>&nbsp;<br>
+$$
+\frac{\partial \mathcal{C}(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}} = -\boldsymbol{X}^T\left(\boldsymbol{y}-\boldsymbol{p}\right). 
+$$
+<p>&nbsp;<br>
+
+<p>If we in addition define a diagonal matrix \( \boldsymbol{W} \) with elements 
+\( p(y_i\vert x_i,\boldsymbol{\beta})(1-p(y_i\vert x_i,\boldsymbol{\beta}) \), we can obtain a compact expression of the second derivative as 
+</p>
+
+<p>&nbsp;<br>
+$$
+\frac{\partial^2 \mathcal{C}(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}\partial \boldsymbol{\beta}^T} = \boldsymbol{X}^T\boldsymbol{W}\boldsymbol{X}. 
+$$
+<p>&nbsp;<br>
+
+<p>This defines what is called  the Hessian matrix.</p>
+</section>
+
+<section>
+<h2 id="solving-using-newton-raphson-s-method">Solving using Newton-Raphson's method </h2>
+
+<p>If we can set up these equations, Newton-Raphson's iterative method is normally the method of choice. It requires however that we can compute in an efficient way the  matrices that define the first and second derivatives. </p>
+
+<p>Our iterative scheme is then given by</p>
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{\beta}^{\mathrm{new}} = \boldsymbol{\beta}^{\mathrm{old}}-\left(\frac{\partial^2 \mathcal{C}(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}\partial \boldsymbol{\beta}^T}\right)^{-1}_{\boldsymbol{\beta}^{\mathrm{old}}}\times \left(\frac{\partial \mathcal{C}(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}\right)_{\boldsymbol{\beta}^{\mathrm{old}}},
+$$
+<p>&nbsp;<br>
+
+<p>or in matrix form as</p>
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{\beta}^{\mathrm{new}} = \boldsymbol{\beta}^{\mathrm{old}}-\left(\boldsymbol{X}^T\boldsymbol{W}\boldsymbol{X} \right)^{-1}\times \left(-\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{p}) \right)_{\boldsymbol{\beta}^{\mathrm{old}}}.
+$$
+<p>&nbsp;<br>
+
+<p>The right-hand side is computed with the old values of \( \beta \). </p>
+
+<p>If we can compute these matrices, in particular the Hessian, the above is often the easiest method to implement. </p>
+</section>
+
+<section>
+<h2 id="convex-functions">Convex functions </h2>
+
+<p>Ideally we want our cost/loss function to be convex(concave).</p>
+
+<p>First we give the definition of a convex set: A set \( C \) in
+\( \mathbb{R}^n \) is said to be convex if, for all \( x \) and \( y \) in \( C \) and
+all \( t \in (0,1) \) , the point \( (1 &#8722; t)x + ty \) also belongs to
+C. Geometrically this means that every point on the line segment
+connecting \( x \) and \( y \) is in \( C \) as discussed below.
+</p>
+
+<p>The convex subsets of \( \mathbb{R} \) are the intervals of
+\( \mathbb{R} \). Examples of convex sets of \( \mathbb{R}^2 \) are the
+regular polygons (triangles, rectangles, pentagons, etc...).
+</p>
+</section>
+
+<section>
+<h2 id="convex-function">Convex function </h2>
+
+<p><b>Convex function</b>: Let \( X \subset \mathbb{R}^n \) be a convex set. Assume that the function \( f: X \rightarrow \mathbb{R} \) is continuous, then \( f \) is said to be convex if <p>&nbsp;<br>
+$$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$
+<p>&nbsp;<br> for all \( x_1, x_2 \in X \) and for all \( t \in [0,1] \). If \( \leq \) is replaced with a strict inequaltiy in the definition, we demand \( x_1 \neq x_2 \) and \( t\in(0,1) \) then \( f \) is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting \( f(x_1) \) and \( f(x_2) \), the value of the function on the interval \( [x_1,x_2] \) is always below the line as illustrated below.</p>
+</section>
+
+<section>
+<h2 id="conditions-on-convex-functions">Conditions on convex functions </h2>
+
+<p>In the following we state first and second-order conditions which
+ensures convexity of a function \( f \). We write \( D_f \) to denote the
+domain of \( f \), i.e the subset of \( R^n \) where \( f \) is defined. For more
+details and proofs we refer to: <a href="http://stanford.edu/boyd/cvxbook/, 2004" target="_blank">S. Boyd and L. Vandenberghe. Convex Optimization. Cambridge University Press</a>.
+</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>First order condition</b>
+<p>
+<p>Suppose \( f \) is differentiable (i.e \( \nabla f(x) \) is well defined for
+all \( x \) in the domain of \( f \)). Then \( f \) is convex if and only if \( D_f \)
+is a convex set and <p>&nbsp;<br>
+$$f(y) \geq f(x) + \nabla f(x)^T (y-x) $$
+<p>&nbsp;<br> holds
+for all \( x,y \in D_f \). This condition means that for a convex function
+the first order Taylor expansion (right hand side above) at any point
+a global under estimator of the function. To convince yourself you can
+make a drawing of \( f(x) = x^2+1 \) and draw the tangent line to \( f(x) \) and
+note that it is always below the graph.  
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Second order condition</b>
+<p>
+<p>Assume that \( f \) is twice
+differentiable, i.e the Hessian matrix exists at each point in
+\( D_f \). Then \( f \) is convex if and only if \( D_f \) is a convex set and its
+Hessian is positive semi-definite for all \( x\in D_f \). For a
+single-variable function this reduces to \( f''(x) \geq 0 \). Geometrically this means that \( f \) has nonnegative curvature
+everywhere.
+</p>
+</div>
+
+<p>This condition is particularly useful since it gives us an procedure for determining if the function under consideration is convex, apart from using the definition.</p>
+</section>
+
+<section>
+<h2 id="more-on-convex-functions">More on convex functions </h2>
+
+<p>The next result is of great importance to us and the reason why we are
+going on about convex functions. In machine learning we frequently
+have to minimize a loss/cost function in order to find the best
+parameters for the model we are considering. 
+</p>
+
+<p>Ideally we want the
+global minimum (for high-dimensional models it is hard to know
+if we have local or global minimum). However, if the cost/loss function
+is convex the following result provides invaluable information:
+</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Any minimum is global for convex functions</b>
+<p>
+<p>Consider the problem of finding \( x \in \mathbb{R}^n \) such that \( f(x) \)
+is minimal, where \( f \) is convex and differentiable. Then, any point
+\( x^* \) that satisfies \( \nabla f(x^*) = 0 \) is a global minimum.
+</p>
+</div>
+
+<p>This result means that if we know that the cost/loss function is convex and we are able to find a minimum, we are guaranteed that it is a global minimum.</p>
+</section>
+
+<section>
+<h2 id="some-simple-problems">Some simple problems </h2>
+
+<ol>
+<p><li> Show that \( f(x)=x^2 \) is convex for \( x \in \mathbb{R} \) using the definition of convexity. Hint: If you re-write the definition, \( f \) is convex if the following holds for all \( x,y \in D_f \) and any \( \lambda \in [0,1] \) $\lambda f(x)+(1-\lambda)f(y)-f(\lambda x + (1-\lambda) y ) \geq 0$.</li>
+<p><li> Using the second order condition show that the following functions are convex on the specified domain.</li>
+<ul>
+ <p><li> \( f(x) = e^x \) is convex for \( x \in \mathbb{R} \).</li>
+ <p><li> \( g(x) = -\ln(x) \) is convex for \( x \in (0,\infty) \).</li>
+</ul>
+<p>
+<p><li> Let \( f(x) = x^2 \) and \( g(x) = e^x \). Show that \( f(g(x)) \) and \( g(f(x)) \) is convex for \( x \in \mathbb{R} \). Also show that if \( f(x) \) is any convex function than \( h(x) = e^{f(x)} \) is convex.</li>
+<p><li> A norm is any function that satisfy the following properties</li>
+<ul>
+ <p><li> \( f(\alpha x) = |\alpha| f(x) \) for all \( \alpha \in \mathbb{R} \).</li>
+ <p><li> \( f(x+y) \leq f(x) + f(y) \)</li>
+ <p><li> \( f(x) \leq 0 \) for all \( x \in \mathbb{R}^n \) with equality if and only if \( x = 0 \)</li>
+</ul>
+<p>
+</ol>
+<p>
+<p>Using the definition of convexity, try to show that a function satisfying the properties above is convex (the third condition is not needed to show this).</p>
+</section>
+
+<section>
+<h2 id="standard-steepest-descent">Standard steepest descent </h2>
+
+<p>Before we proceed, we would like to discuss the approach called the
+<b>standard Steepest descent</b> (different from the above steepest descent discussion), which again leads to us having to be able
+to compute a matrix. It belongs to the class of Conjugate Gradient methods (CG).
+</p>
+
+<a href="https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf" target="_blank">The success of the CG method</a>
+<p>for finding solutions of non-linear problems is based on the theory
+of conjugate gradients for linear systems of equations. It belongs to
+the class of iterative methods for solving problems from linear
+algebra of the type 
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*} 
+\boldsymbol{A}\boldsymbol{x} = \boldsymbol{b}.
+\end{equation*} 
+$$
+<p>&nbsp;<br>
+
+<p>In the iterative process we end up with a problem like</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+  \boldsymbol{r}= \boldsymbol{b}-\boldsymbol{A}\boldsymbol{x},
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>where \( \boldsymbol{r} \) is the so-called residual or error in the iterative process.</p>
+
+<p>When we have found the exact solution, \( \boldsymbol{r}=0 \).</p>
+</section>
+
+<section>
+<h2 id="gradient-method">Gradient method </h2>
+
+<p>The residual is zero when we reach the minimum of the quadratic equation</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+  P(\boldsymbol{x})=\frac{1}{2}\boldsymbol{x}^T\boldsymbol{A}\boldsymbol{x} - \boldsymbol{x}^T\boldsymbol{b},
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>with the constraint that the matrix \( \boldsymbol{A} \) is positive definite and
+symmetric.  This defines also the Hessian and we want it to be  positive definite.  
+</p>
+</section>
+
+<section>
+<h2 id="steepest-descent-method">Steepest descent  method </h2>
+
+<p>We denote the initial guess for \( \boldsymbol{x} \) as \( \boldsymbol{x}_0 \). 
+We can assume without loss of generality that
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{x}_0=0,
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>or consider the system</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{A}\boldsymbol{z} = \boldsymbol{b}-\boldsymbol{A}\boldsymbol{x}_0,
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>instead.</p>
+</section>
+
+<section>
+<h2 id="steepest-descent-method">Steepest descent  method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>One can show that the solution \( \boldsymbol{x} \) is also the unique minimizer of the quadratic form</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+  f(\boldsymbol{x}) = \frac{1}{2}\boldsymbol{x}^T\boldsymbol{A}\boldsymbol{x} - \boldsymbol{x}^T \boldsymbol{x} , \quad \boldsymbol{x}\in\mathbf{R}^n. 
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>This suggests taking the first basis vector \( \boldsymbol{r}_1 \) (see below for definition) 
+to be the gradient of \( f \) at \( \boldsymbol{x}=\boldsymbol{x}_0 \), 
+which equals
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{A}\boldsymbol{x}_0-\boldsymbol{b},
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>and 
+\( \boldsymbol{x}_0=0 \) it is equal \( -\boldsymbol{b} \).
+</p>
+</div>
+</section>
+
+<section>
+<h2 id="final-expressions">Final expressions </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>We can compute the residual iteratively as</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{r}_{k+1}=\boldsymbol{b}-\boldsymbol{A}\boldsymbol{x}_{k+1},
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>which equals</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{b}-\boldsymbol{A}(\boldsymbol{x}_k+\alpha_k\boldsymbol{r}_k),
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>or</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+(\boldsymbol{b}-\boldsymbol{A}\boldsymbol{x}_k)-\alpha_k\boldsymbol{A}\boldsymbol{r}_k,
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>which gives</p>
+
+<p>&nbsp;<br>
+$$
+\alpha_k = \frac{\boldsymbol{r}_k^T\boldsymbol{r}_k}{\boldsymbol{r}_k^T\boldsymbol{A}\boldsymbol{r}_k}
+$$
+<p>&nbsp;<br>
+
+<p>leading to the iterative scheme</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{x}_{k+1}=\boldsymbol{x}_k-\alpha_k\boldsymbol{r}_{k},
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+</div>
+</section>
+
+<section>
+<h2 id="steepest-descent-example">Steepest descent example </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy.linalg</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">la</span>
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scipy.optimize</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sopt</span>
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">pt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">mpl_toolkits.mplot3d</span> <span style="color: #8B008B; font-weight: bold">import</span> axes3d
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">f</span>(x):
+    <span style="color: #8B008B; font-weight: bold">return</span> x[<span style="color: #B452CD">0</span>]**<span style="color: #B452CD">2</span> + <span style="color: #B452CD">3.0</span>*x[<span style="color: #B452CD">1</span>]**<span style="color: #B452CD">2</span>
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">df</span>(x):
+    <span style="color: #8B008B; font-weight: bold">return</span> np.array([<span style="color: #B452CD">2</span>*x[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">6</span>*x[<span style="color: #B452CD">1</span>]])
+
+fig = pt.figure()
+ax = fig.gca(projection=<span style="color: #CD5555">&quot;3d&quot;</span>)
+
+xmesh, ymesh = np.mgrid[-<span style="color: #B452CD">3</span>:<span style="color: #B452CD">3</span>:<span style="color: #B452CD">50</span>j,-<span style="color: #B452CD">3</span>:<span style="color: #B452CD">3</span>:<span style="color: #B452CD">50</span>j]
+fmesh = f(np.array([xmesh, ymesh]))
+ax.plot_surface(xmesh, ymesh, fmesh)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>And then as countor plot</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;">pt.axis(<span style="color: #CD5555">&quot;equal&quot;</span>)
+pt.contour(xmesh, ymesh, fmesh)
+guesses = [np.array([<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2.</span>/<span style="color: #B452CD">5</span>])]
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Find guesses</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;">x = guesses[-<span style="color: #B452CD">1</span>]
+s = -df(x)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Run it!</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">f1d</span>(alpha):
+    <span style="color: #8B008B; font-weight: bold">return</span> f(x + alpha*s)
+
+alpha_opt = sopt.golden(f1d)
+next_guess = x + alpha_opt * s
+guesses.append(next_guess)
+<span style="color: #658b00">print</span>(next_guess)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>What happened?</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;">pt.axis(<span style="color: #CD5555">&quot;equal&quot;</span>)
+pt.contour(xmesh, ymesh, fmesh, <span style="color: #B452CD">50</span>)
+it_array = np.array(guesses)
+pt.plot(it_array.T[<span style="color: #B452CD">0</span>], it_array.T[<span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;x-&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Note that we did only one iteration here. We can easily add more using our previous guesses.</p>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method">Conjugate gradient method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>In the CG method we define so-called conjugate directions and two vectors 
+\( \boldsymbol{s} \) and \( \boldsymbol{t} \)
+are said to be
+conjugate if
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{s}^T\boldsymbol{A}\boldsymbol{t}= 0.
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>The philosophy of the CG method is to perform searches in various conjugate directions
+of our vectors \( \boldsymbol{x}_i \) obeying the above criterion, namely
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{x}_i^T\boldsymbol{A}\boldsymbol{x}_j= 0.
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>Two vectors are conjugate if they are orthogonal with respect to 
+this inner product. Being conjugate is a symmetric relation: if \( \boldsymbol{s} \) is conjugate to \( \boldsymbol{t} \), then \( \boldsymbol{t} \) is conjugate to \( \boldsymbol{s} \).
+</p>
+</div>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method">Conjugate gradient method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>An example is given by the eigenvectors of the matrix</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{v}_i^T\boldsymbol{A}\boldsymbol{v}_j= \lambda\boldsymbol{v}_i^T\boldsymbol{v}_j,
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>which is zero unless \( i=j \). </p>
+</div>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method">Conjugate gradient method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Assume now that we have a symmetric positive-definite matrix \( \boldsymbol{A} \) of size
+\( n\times n \). At each iteration \( i+1 \) we obtain the conjugate direction of a vector
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{x}_{i+1}=\boldsymbol{x}_{i}+\alpha_i\boldsymbol{p}_{i}. 
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>We assume that \( \boldsymbol{p}_{i} \) is a sequence of \( n \) mutually conjugate directions. 
+Then the \( \boldsymbol{p}_{i} \)  form a basis of \( R^n \) and we can expand the solution 
+$  \boldsymbol{A}\boldsymbol{x} = \boldsymbol{b}$ in this basis, namely
+</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+  \boldsymbol{x}  = \sum^{n}_{i=1} \alpha_i \boldsymbol{p}_i.
+\end{equation*}
+$$
+<p>&nbsp;<br>
+</div>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method">Conjugate gradient method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>The coefficients are given by</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+    \mathbf{A}\mathbf{x} = \sum^{n}_{i=1} \alpha_i \mathbf{A} \mathbf{p}_i = \mathbf{b}.
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>Multiplying with \( \boldsymbol{p}_k^T \)  from the left gives</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+  \boldsymbol{p}_k^T \boldsymbol{A}\boldsymbol{x} = \sum^{n}_{i=1} \alpha_i\boldsymbol{p}_k^T \boldsymbol{A}\boldsymbol{p}_i= \boldsymbol{p}_k^T \boldsymbol{b},
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>and we can define the coefficients \( \alpha_k \) as</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+    \alpha_k = \frac{\boldsymbol{p}_k^T \boldsymbol{b}}{\boldsymbol{p}_k^T \boldsymbol{A} \boldsymbol{p}_k}
+\end{equation*}
+$$
+<p>&nbsp;<br>
+</div>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method-and-iterations">Conjugate gradient method and iterations </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<p>If we choose the conjugate vectors \( \boldsymbol{p}_k \) carefully, 
+then we may not need all of them to obtain a good approximation to the solution 
+\( \boldsymbol{x} \). 
+We want to regard the conjugate gradient method as an iterative method. 
+This will us to solve systems where \( n \) is so large that the direct 
+method would take too much time.
+</p>
+
+<p>We denote the initial guess for \( \boldsymbol{x} \) as \( \boldsymbol{x}_0 \). 
+We can assume without loss of generality that
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{x}_0=0,
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>or consider the system</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{A}\boldsymbol{z} = \boldsymbol{b}-\boldsymbol{A}\boldsymbol{x}_0,
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>instead.</p>
+</div>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method">Conjugate gradient method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>One can show that the solution \( \boldsymbol{x} \) is also the unique minimizer of the quadratic form</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+  f(\boldsymbol{x}) = \frac{1}{2}\boldsymbol{x}^T\boldsymbol{A}\boldsymbol{x} - \boldsymbol{x}^T \boldsymbol{x} , \quad \boldsymbol{x}\in\mathbf{R}^n. 
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>This suggests taking the first basis vector \( \boldsymbol{p}_1 \) 
+to be the gradient of \( f \) at \( \boldsymbol{x}=\boldsymbol{x}_0 \), 
+which equals
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{A}\boldsymbol{x}_0-\boldsymbol{b},
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>and 
+\( \boldsymbol{x}_0=0 \) it is equal \( -\boldsymbol{b} \).
+The other vectors in the basis will be conjugate to the gradient, 
+hence the name conjugate gradient method.
+</p>
+</div>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method">Conjugate gradient method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Let  \( \boldsymbol{r}_k \) be the residual at the \( k \)-th step:</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{r}_k=\boldsymbol{b}-\boldsymbol{A}\boldsymbol{x}_k.
+\end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>Note that \( \boldsymbol{r}_k \) is the negative gradient of \( f \) at 
+\( \boldsymbol{x}=\boldsymbol{x}_k \), 
+so the gradient descent method would be to move in the direction \( \boldsymbol{r}_k \). 
+Here, we insist that the directions \( \boldsymbol{p}_k \) are conjugate to each other, 
+so we take the direction closest to the gradient \( \boldsymbol{r}_k \)  
+under the conjugacy constraint. 
+This gives the following expression
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{p}_{k+1}=\boldsymbol{r}_k-\frac{\boldsymbol{p}_k^T \boldsymbol{A}\boldsymbol{r}_k}{\boldsymbol{p}_k^T\boldsymbol{A}\boldsymbol{p}_k} \boldsymbol{p}_k.
+\end{equation*}
+$$
+<p>&nbsp;<br>
+</div>
+</section>
+
+<section>
+<h2 id="conjugate-gradient-method">Conjugate gradient method </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>We can also  compute the residual iteratively as</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{r}_{k+1}=\boldsymbol{b}-\boldsymbol{A}\boldsymbol{x}_{k+1},
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>which equals</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{b}-\boldsymbol{A}(\boldsymbol{x}_k+\alpha_k\boldsymbol{p}_k),
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>or</p>
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+(\boldsymbol{b}-\boldsymbol{A}\boldsymbol{x}_k)-\alpha_k\boldsymbol{A}\boldsymbol{p}_k,
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+
+<p>which gives</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation*}
+\boldsymbol{r}_{k+1}=\boldsymbol{r}_k-\boldsymbol{A}\boldsymbol{p}_{k},
+ \end{equation*}
+$$
+<p>&nbsp;<br>
+</div>
+</section>
+
+<section>
+<h2 id="revisiting-our-first-homework">Revisiting our first homework </h2>
+
+<p>We will use linear regression as a case study for the gradient descent
+methods. Linear regression is a great test case for the gradient
+descent methods discussed in the lectures since it has several
+desirable properties such as:
+</p>
+
+<ol>
+<p><li> An analytical solution (recall homework set 1).</li>
+<p><li> The gradient can be computed analytically.</li>
+<p><li> The cost function is convex which guarantees that gradient descent converges for small enough learning rates</li>
+</ol>
+<p>
+<p>We revisit an example similar to what we had in the first homework set. We had a function  of the type</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;">x = <span style="color: #B452CD">2</span>*np.random.rand(m,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(m,<span style="color: #B452CD">1</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>with \( x_i \in [0,1]  \) is chosen randomly using a uniform distribution. Additionally we have a stochastic noise chosen according to a normal distribution \( \cal {N}(0,1) \). 
+The linear regression model is given by 
+</p>
+<p>&nbsp;<br>
+$$
+h_\beta(x) = \boldsymbol{y} = \beta_0 + \beta_1 x,
+$$
+<p>&nbsp;<br>
+
+<p>such that </p>
+<p>&nbsp;<br>
+$$
+\boldsymbol{y}_i = \beta_0 + \beta_1 x_i.
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="gradient-descent-example">Gradient descent example </h2>
+
+<p>Let \( \mathbf{y} = (y_1,\cdots,y_n)^T \), \( \mathbf{\boldsymbol{y}} = (\boldsymbol{y}_1,\cdots,\boldsymbol{y}_n)^T \) and \( \beta = (\beta_0, \beta_1)^T \)</p>
+
+<p>It is convenient to write \( \mathbf{\boldsymbol{y}} = X\beta \) where \( X \in \mathbb{R}^{100 \times 2}  \) is the design matrix given by (we keep the intercept here)</p>
+<p>&nbsp;<br>
+$$
+X \equiv \begin{bmatrix}
+1 & x_1  \\
+\vdots & \vdots  \\
+1 & x_{100} &  \\
+\end{bmatrix}.
+$$
+<p>&nbsp;<br>
+
+<p>The cost/loss/risk function is given by (</p>
+<p>&nbsp;<br>
+$$
+C(\beta) = \frac{1}{n}||X\beta-\mathbf{y}||_{2}^{2} = \frac{1}{n}\sum_{i=1}^{100}\left[ (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2\right] 
+$$
+<p>&nbsp;<br>
+
+<p>and we want to find \( \beta \) such that \( C(\beta) \) is minimized.</p>
+</section>
+
+<section>
+<h2 id="the-derivative-of-the-cost-loss-function">The derivative of the cost/loss function </h2>
+
+<p>Computing \( \partial C(\beta) / \partial \beta_0 \) and \( \partial C(\beta) / \partial \beta_1 \) we can show  that the gradient can be written as</p>
+<p>&nbsp;<br>
+$$
+\nabla_{\beta} C(\beta) = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} = \frac{2}{n}X^T(X\beta - \mathbf{y}), 
+$$
+<p>&nbsp;<br>
+
+<p>where \( X \) is the design matrix defined above.</p>
+</section>
+
+<section>
+<h2 id="the-hessian-matrix">The Hessian matrix </h2>
+<p>The Hessian matrix of \( C(\beta) \) is given by </p>
+<p>&nbsp;<br>
+$$
+\boldsymbol{H} \equiv \begin{bmatrix}
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X.
+$$
+<p>&nbsp;<br>
+
+<p>This result implies that \( C(\beta) \) is a convex function since the matrix \( X^T X \) always is positive semi-definite.</p>
+</section>
+
+<section>
+<h2 id="simple-program">Simple program </h2>
+
+<p>We can now write a program that minimizes \( C(\beta) \) using the gradient descent method with a constant learning rate \( \gamma \) according to </p>
+<p>&nbsp;<br>
+$$
+\beta_{k+1} = \beta_k - \gamma \nabla_\beta C(\beta_k), \ k=0,1,\cdots 
+$$
+<p>&nbsp;<br>
+
+<p>We can use the expression we computed for the gradient and let use a
+\( \beta_0 \) be chosen randomly and let \( \gamma = 0.001 \). Stop iterating
+when \( ||\nabla_\beta C(\beta_k) || \leq \epsilon = 10^{-8} \). <b>Note that the code below does not include the latter stop criterion</b>.
+</p>
+
+<p>And finally we can compare our solution for \( \beta \) with the analytic result given by 
+\( \beta= (X^TX)^{-1} X^T \mathbf{y} \).
+</p>
+</section>
+
+<section>
+<h2 id="gradient-descent-example">Gradient Descent Example </h2>
+
+<p>Here our simple example</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># Importing various packages</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">mpl_toolkits.mplot3d</span> <span style="color: #8B008B; font-weight: bold">import</span> Axes3D
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> cm
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib.ticker</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearLocator, FormatStrFormatter
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sys</span>
+
+<span style="color: #228B22"># the number of datapoints</span>
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+<span style="color: #228B22"># Hessian matrix</span>
+H = (<span style="color: #B452CD">2.0</span>/n)* X.T @ X
+<span style="color: #228B22"># Get the eigenvalues</span>
+EigValues, EigVectors = np.linalg.eig(H)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Eigenvalues of Hessian Matrix:{</span>EigValues<span style="color: #CD5555">}&quot;</span>)
+
+beta_linreg = np.linalg.inv(X.T @ X) @ X.T @ y
+<span style="color: #658b00">print</span>(beta_linreg)
+beta = np.random.randn(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)
+
+eta = <span style="color: #B452CD">1.0</span>/np.max(EigValues)
+Niterations = <span style="color: #B452CD">1000</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> <span style="color: #658b00">iter</span> <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Niterations):
+    gradient = (<span style="color: #B452CD">2.0</span>/n)*X.T @ (X @ beta-y)
+    beta -= eta*gradient
+
+<span style="color: #658b00">print</span>(beta)
+xnew = np.array([[<span style="color: #B452CD">0</span>],[<span style="color: #B452CD">2</span>]])
+xbnew = np.c_[np.ones((<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)), xnew]
+ypredict = xbnew.dot(beta)
+ypredict2 = xbnew.dot(beta_linreg)
+plt.plot(xnew, ypredict, <span style="color: #CD5555">&quot;r-&quot;</span>)
+plt.plot(xnew, ypredict2, <span style="color: #CD5555">&quot;b-&quot;</span>)
+plt.plot(x, y ,<span style="color: #CD5555">&#39;ro&#39;</span>)
+plt.axis([<span style="color: #B452CD">0</span>,<span style="color: #B452CD">2.0</span>,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">15.0</span>])
+plt.xlabel(<span style="color: #CD5555">r&#39;$x$&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">r&#39;$y$&#39;</span>)
+plt.title(<span style="color: #CD5555">r&#39;Gradient descent example&#39;</span>)
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="and-a-corresponding-example-using-scikit-learn">And a corresponding example using <b>scikit-learn</b> </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># Importing various packages</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> SGDRegressor
+
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+beta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
+<span style="color: #658b00">print</span>(beta_linreg)
+sgdreg = SGDRegressor(max_iter = <span style="color: #B452CD">50</span>, penalty=<span style="color: #8B008B; font-weight: bold">None</span>, eta0=<span style="color: #B452CD">0.1</span>)
+sgdreg.fit(x,y.ravel())
+<span style="color: #658b00">print</span>(sgdreg.intercept_, sgdreg.coef_)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="gradient-descent-and-ridge">Gradient descent and Ridge </h2>
+
+<p>We have also discussed Ridge regression where the loss function contains a regularized term given by the \( L_2 \) norm of \( \beta \), </p>
+<p>&nbsp;<br>
+$$
+C_{\text{ridge}}(\beta) = \frac{1}{n}||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
+$$
+<p>&nbsp;<br>
+
+<p>In order to minimize \( C_{\text{ridge}}(\beta) \) using GD we adjust the gradient as follows </p>
+<p>&nbsp;<br>
+$$
+\nabla_\beta C_{\text{ridge}}(\beta)  = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} + 2\lambda\begin{bmatrix} \beta_0 \\ \beta_1\end{bmatrix} = 2 (\frac{1}{n}X^T(X\beta - \mathbf{y})+\lambda \beta).
+$$
+<p>&nbsp;<br>
+
+<p>We can easily extend our program to minimize \( C_{\text{ridge}}(\beta) \) using gradient descent and compare with the analytical solution given by </p>
+<p>&nbsp;<br>
+$$
+\beta_{\text{ridge}} = \left(X^T X + n\lambda I_{2 \times 2} \right)^{-1} X^T \mathbf{y}.
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="the-hessian-matrix-for-ridge-regression">The Hessian matrix for Ridge Regression </h2>
+<p>The Hessian matrix of Ridge Regression for our simple example  is given by </p>
+<p>&nbsp;<br>
+$$
+\boldsymbol{H} \equiv \begin{bmatrix}
+\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
+\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X+2\lambda\boldsymbol{I}.
+$$
+<p>&nbsp;<br>
+
+<p>This implies that the Hessian matrix  is positive definite, hence the stationary point is a
+minimum.
+Note that the Ridge cost function is convex being  a sum of two convex
+functions. Therefore, the stationary point is a global
+minimum of this function.
+</p>
+</section>
+
+<section>
+<h2 id="program-example-for-gradient-descent-with-ridge-regression">Program example for gradient descent with Ridge Regression </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">mpl_toolkits.mplot3d</span> <span style="color: #8B008B; font-weight: bold">import</span> Axes3D
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> cm
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib.ticker</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearLocator, FormatStrFormatter
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sys</span>
+
+<span style="color: #228B22"># the number of datapoints</span>
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+XT_X = X.T @ X
+
+<span style="color: #228B22">#Ridge parameter lambda</span>
+lmbda  = <span style="color: #B452CD">0.001</span>
+Id = n*lmbda* np.eye(XT_X.shape[<span style="color: #B452CD">0</span>])
+
+<span style="color: #228B22"># Hessian matrix</span>
+H = (<span style="color: #B452CD">2.0</span>/n)* XT_X+<span style="color: #B452CD">2</span>*lmbda* np.eye(XT_X.shape[<span style="color: #B452CD">0</span>])
+<span style="color: #228B22"># Get the eigenvalues</span>
+EigValues, EigVectors = np.linalg.eig(H)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Eigenvalues of Hessian Matrix:{</span>EigValues<span style="color: #CD5555">}&quot;</span>)
+
+
+beta_linreg = np.linalg.inv(XT_X+Id) @ X.T @ y
+<span style="color: #658b00">print</span>(beta_linreg)
+<span style="color: #228B22"># Start plain gradient descent</span>
+beta = np.random.randn(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)
+
+eta = <span style="color: #B452CD">1.0</span>/np.max(EigValues)
+Niterations = <span style="color: #B452CD">100</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> <span style="color: #658b00">iter</span> <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Niterations):
+    gradients = <span style="color: #B452CD">2.0</span>/n*X.T @ (X @ (beta)-y)+<span style="color: #B452CD">2</span>*lmbda*beta
+    beta -= eta*gradients
+
+<span style="color: #658b00">print</span>(beta)
+ypredict = X @ beta
+ypredict2 = X @ beta_linreg
+plt.plot(x, ypredict, <span style="color: #CD5555">&quot;r-&quot;</span>)
+plt.plot(x, ypredict2, <span style="color: #CD5555">&quot;b-&quot;</span>)
+plt.plot(x, y ,<span style="color: #CD5555">&#39;ro&#39;</span>)
+plt.axis([<span style="color: #B452CD">0</span>,<span style="color: #B452CD">2.0</span>,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">15.0</span>])
+plt.xlabel(<span style="color: #CD5555">r&#39;$x$&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">r&#39;$y$&#39;</span>)
+plt.title(<span style="color: #CD5555">r&#39;Gradient descent example for Ridge&#39;</span>)
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="using-gradient-descent-methods-limitations">Using gradient descent methods, limitations </h2>
+
+<ul>
+<p><li> <b>Gradient descent (GD) finds local minima of our function</b>. Since the GD algorithm is deterministic, if it converges, it will converge to a local minimum of our cost/loss/risk function. Because in ML we are often dealing with extremely rugged landscapes with many local minima, this can lead to poor performance.</li>
+<p><li> <b>GD is sensitive to initial conditions</b>. One consequence of the local nature of GD is that initial conditions matter. Depending on where one starts, one will end up at a different local minima. Therefore, it is very important to think about how one initializes the training process. This is true for GD as well as more complicated variants of GD.</li>
+<p><li> <b>Gradients are computationally expensive to calculate for large datasets</b>. In many cases in statistics and ML, the cost/loss/risk function is a sum of terms, with one term for each data point. For example, in linear regression, \( E \propto \sum_{i=1}^n (y_i - \mathbf{w}^T\cdot\mathbf{x}_i)^2 \); for logistic regression, the square error is replaced by the cross entropy. To calculate the gradient we have to sum over <em>all</em> \( n \) data points. Doing this at every GD step becomes extremely computationally expensive. An ingenious solution to this, is to calculate the gradients using small subsets of the data called &quot;mini batches&quot;. This has the added benefit of introducing stochasticity into our algorithm.</li>
+<p><li> <b>GD is very sensitive to choices of learning rates</b>. GD is extremely sensitive to the choice of learning rates. If the learning rate is very small, the training process take an extremely long time. For larger learning rates, GD can diverge and give poor results. Furthermore, depending on what the local landscape looks like, we have to modify the learning rates to ensure convergence. Ideally, we would <em>adaptively</em> choose the learning rates to match the landscape.</li>
+<p><li> <b>GD treats all directions in parameter space uniformly.</b> Another major drawback of GD is that unlike Newton's method, the learning rate for GD is the same in all directions in parameter space. For this reason, the maximum learning rate is set by the behavior of the steepest direction and this can significantly slow down training. Ideally, we would like to take large steps in flat directions and small steps in steep directions. Since we are exploring rugged landscapes where curvatures change, this requires us to keep track of not only the gradient but second derivatives. The ideal scenario would be to calculate the Hessian but this proves to be too computationally expensive.</li> 
+<p><li> GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.</li>
+</ul>
+</section>
+
+<section>
+<h2 id="challenge-yourself-this-weekend">Challenge yourself this weekend </h2>
+
+<p>Write a code which implements gradient descent for a logistic regression example.</p>
 </section>
 
 
