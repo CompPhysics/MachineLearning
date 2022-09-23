@@ -80,7 +80,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday:  Classification problems and Logistic Regression, from binary cases to several categories and gradient optmization
   - Video of Lecture at https://youtu.be/sdt_BFla8uA
 - Lecture Friday: Logistic Regression and gradient optimization
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/7OdqoLOphTA
 - Reading recommendations:
   - See lecture notes for week 38 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Bishop 4.1, 4.2 and 4.3. Not all the material is relevant or will be covered. Section 4.3 is the most relevant, but 4.1 and 4.2 give interesting background readings  for logistic regression
