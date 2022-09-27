@@ -141,7 +141,6 @@ div.toc p,a {
 <!-- tocinfo
 {'highest level': 2,
  'sections': [('Plan for week 39', 2, None, 'plan-for-week-39'),
-              ('Thursday September 29', 2, None, 'thursday-september-29'),
               ('Optimization, the central part of any Machine Learning '
                'algortithm',
                2,
@@ -271,11 +270,6 @@ div.toc p,a {
                None,
                'stochastic-gradient-descent'),
               ('Computation of gradients', 2, None, 'computation-of-gradients'),
-              ('Stochastic Gradient Descent',
-               2,
-               None,
-               'stochastic-gradient-descent'),
-              ('Computation of gradients', 2, None, 'computation-of-gradients'),
               ('SGD example', 2, None, 'sgd-example'),
               ('The gradient step', 2, None, 'the-gradient-step'),
               ('Simple example code', 2, None, 'simple-example-code'),
@@ -284,26 +278,11 @@ div.toc p,a {
                2,
                None,
                'slightly-different-approach'),
-              ('Program for stochastic gradient',
-               2,
-               None,
-               'program-for-stochastic-gradient'),
+              ('Time decay rate', 2, None, 'time-decay-rate'),
               ('Code with a Number of Minibatches which varies',
                2,
                None,
                'code-with-a-number-of-minibatches-which-varies'),
-              ('SGD example', 2, None, 'sgd-example'),
-              ('The gradient step', 2, None, 'the-gradient-step'),
-              ('Simple example code', 2, None, 'simple-example-code'),
-              ('When do we stop?', 2, None, 'when-do-we-stop'),
-              ('Slightly different approach',
-               2,
-               None,
-               'slightly-different-approach'),
-              ('Program for stochastic gradient',
-               2,
-               None,
-               'program-for-stochastic-gradient'),
               ('Replace or not', 2, None, 'replace-or-not'),
               ('Momentum based GD', 2, None, 'momentum-based-gd'),
               ('More on momentum based approaches',
@@ -350,7 +329,11 @@ div.toc p,a {
                2,
                None,
                'including-stochastic-gradient-descent-with-autograd'),
-              ('And Logistic Regression', 2, None, 'and-logistic-regression')]}
+              ('And Logistic Regression', 2, None, 'and-logistic-regression'),
+              ('Introducing "JAX":"https://jax.readthedocs.io/en/latest/"',
+               2,
+               None,
+               'introducing-jax-https-jax-readthedocs-io-en-latest')]}
 end of tocinfo -->
 
 <body>
@@ -396,7 +379,7 @@ MathJax.Hub.Config({
 <h2 id="plan-for-week-39">Plan for week 39 </h2>
 
 <ul>
-<li> Thursday: Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Examples on how to implement Logistic Regression</li>
+<li> Thursday: Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Examples on how to implement Logistic Regression and discussion of stochastic gradient descent</li>
 <li> Friday: Stochastic Gradient descent with examples and automatic differentiation</li>
 <li> Reading recommendations:</li>
 </ul>
@@ -408,11 +391,6 @@ For a good discussion on gradient methods, we would like to recommend Goodfellow
 
 <b>For more discussions of project 1, chapter 5 of Goodfellow et al is a good read, in particular sections 5.1-5.5 and 5.7-5.11</b>.
 <p>These sections summarize neatly what we have done till now and point to what is coming with respect to deep learning. </p>
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="thursday-september-29">Thursday September 29 </h2>
-
-<a href="https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/OverarchingAimsWeek39.mp4?vrtx=view-as-webpage" target="_blank">Overview Video, why do we care about gradient methods?</a>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="optimization-the-central-part-of-any-machine-learning-algortithm">Optimization, the central part of any Machine Learning algortithm </h2>
@@ -1759,41 +1737,6 @@ minibatches. We denote these minibatches by \( B_k \) where
 </p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="stochastic-gradient-descent">Stochastic Gradient Descent </h2>
-
-<p>Stochastic gradient descent (SGD) and variants thereof address some of
-the shortcomings of the Gradient descent method discussed above.
-</p>
-
-<p>The underlying idea of SGD comes from the observation that the cost
-function, which we want to minimize, can almost always be written as a
-sum over \( n \) data points \( \{\mathbf{x}_i\}_{i=1}^n \),
-</p>
-$$
-C(\mathbf{\beta}) = \sum_{i=1}^n c_i(\mathbf{x}_i,
-\mathbf{\beta}). 
-$$
-
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="computation-of-gradients">Computation of gradients </h2>
-
-<p>This in turn means that the gradient can be
-computed as a sum over \( i \)-gradients 
-</p>
-$$
-\nabla_\beta C(\mathbf{\beta}) = \sum_i^n \nabla_\beta c_i(\mathbf{x}_i,
-\mathbf{\beta}).
-$$
-
-<p>Stochasticity/randomness is introduced by only taking the
-gradient on a subset of the data called minibatches.  If there are \( n \)
-data points and the size of each minibatch is \( M \), there will be \( n/M \)
-minibatches. We denote these minibatches by \( B_k \) where
-\( k=1,\cdots,n/M \).
-</p>
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="sgd-example">SGD example </h2>
 <p>As an example, suppose we have \( 10 \) data points \( (\mathbf{x}_1,\cdots, \mathbf{x}_{10}) \) 
 and we choose to have \( M=5 \) minibathces,
@@ -1901,8 +1844,17 @@ gave the lowest value.
 
 <p>Another approach is to let the step length \( \gamma_j \) depend on the
 number of epochs in such a way that it becomes very small after a
-reasonable time such that we do not move at all.
+reasonable time such that we do not move at all. Such approaches are
+also called scaling. There are many such ways to <a href="https://towardsdatascience.com/gradient-descent-the-learning-rate-and-the-importance-of-feature-scaling-6c0b416596e1" target="_blank">scale the learning
+rate</a>
+and <a href="https://www.jmlr.org/papers/volume23/20-1258/20-1258.pdf" target="_blank">discussions here</a>. See
+also
+<a href="https://towardsdatascience.com/learning-rate-schedules-and-adaptive-learning-rate-methods-for-deep-learning-2c8f433990d1" target="_blank"><tt>https://towardsdatascience.com/learning-rate-schedules-and-adaptive-learning-rate-methods-for-deep-learning-2c8f433990d1</tt></a>
+for a discussion of different scaling functions for the learning rate.
 </p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="time-decay-rate">Time decay rate </h2>
 
 <p>As an example, let \( e = 0,1,2,3,\cdots \) denote the current epoch and let \( t_0, t_1 > 0 \) be two fixed numbers. Furthermore, let \( t = e \cdot m + i \) where \( m \) is the number of minibatches and \( i=0,\cdots,m-1 \). Then the function $$\gamma_j(t; t_0, t_1) = \frac{t_0}{t+t_1} $$ goes to zero as the number of epochs gets large. I.e. we start with a step length \( \gamma_j (0; t_0, t_1) = t_0/t_1 \) which decays in <em>time</em> \( t \).</p>
 
@@ -1959,98 +1911,6 @@ j <span style="color: #666666">=</span> <span style="color: #666666">0</span>
   </div>
 </div>
 
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="program-for-stochastic-gradient">Program for stochastic gradient </h2>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Importing various packages</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">math</span> <span style="color: #008000; font-weight: bold">import</span> exp, sqrt
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">sklearn.linear_model</span> <span style="color: #008000; font-weight: bold">import</span> SGDRegressor
-
-m <span style="color: #666666">=</span> <span style="color: #666666">100</span>
-x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(m,<span style="color: #666666">1</span>)
-y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(m,<span style="color: #666666">1</span>)
-
-X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((m,<span style="color: #666666">1</span>)), x]
-theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
-<span style="color: #008000">print</span>(theta_linreg)
-sgdreg <span style="color: #666666">=</span> SGDRegressor(max_iter <span style="color: #666666">=</span> <span style="color: #666666">50</span>, penalty<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">None</span>, eta0<span style="color: #666666">=0.1</span>)
-sgdreg<span style="color: #666666">.</span>fit(x,y<span style="color: #666666">.</span>ravel())
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;sgdreg from scikit&quot;</span>)
-<span style="color: #008000">print</span>(sgdreg<span style="color: #666666">.</span>intercept_, sgdreg<span style="color: #666666">.</span>coef_)
-
-
-theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
-eta <span style="color: #666666">=</span> <span style="color: #666666">0.1</span>
-Niterations <span style="color: #666666">=</span> <span style="color: #666666">1000</span>
-
-
-<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
-    gradients <span style="color: #666666">=</span> <span style="color: #666666">2.0/</span>m<span style="color: #666666">*</span>X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> ((X <span style="color: #666666">@</span> theta)<span style="color: #666666">-</span>y)
-    theta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own gd&quot;</span>)
-<span style="color: #008000">print</span>(theta)
-
-xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([[<span style="color: #666666">0</span>],[<span style="color: #666666">2</span>]])
-Xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)), xnew]
-ypredict <span style="color: #666666">=</span> Xnew<span style="color: #666666">.</span>dot(theta)
-ypredict2 <span style="color: #666666">=</span> Xnew<span style="color: #666666">.</span>dot(theta_linreg)
-
-
-n_epochs <span style="color: #666666">=</span> <span style="color: #666666">50</span>
-t0, t1 <span style="color: #666666">=</span> <span style="color: #666666">5</span>, <span style="color: #666666">50</span>
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">learning_schedule</span>(t):
-    <span style="color: #008000; font-weight: bold">return</span> t0<span style="color: #666666">/</span>(t<span style="color: #666666">+</span>t1)
-
-theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
-
-<span style="color: #408080; font-style: italic"># note: here the number of minibatches is equal to the number of points!!</span>
-<span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_epochs):
-    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
-        random_index <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m)
-        xi <span style="color: #666666">=</span> X[random_index:random_index<span style="color: #666666">+1</span>]
-        yi <span style="color: #666666">=</span> y[random_index:random_index<span style="color: #666666">+1</span>]
-        gradients <span style="color: #666666">=</span> <span style="color: #666666">2</span> <span style="color: #666666">*</span> xi<span style="color: #666666">.</span>T <span style="color: #666666">@</span> ((xi <span style="color: #666666">@</span> theta)<span style="color: #666666">-</span>yi)
-        eta <span style="color: #666666">=</span> learning_schedule(epoch<span style="color: #666666">*</span>m<span style="color: #666666">+</span>i)
-        theta <span style="color: #666666">=</span> theta <span style="color: #666666">-</span> eta<span style="color: #666666">*</span>gradients
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own sdg&quot;</span>)
-<span style="color: #008000">print</span>(theta)
-
-plt<span style="color: #666666">.</span>plot(xnew, ypredict, <span style="color: #BA2121">&quot;r-&quot;</span>)
-plt<span style="color: #666666">.</span>plot(xnew, ypredict2, <span style="color: #BA2121">&quot;b-&quot;</span>)
-plt<span style="color: #666666">.</span>plot(x, y ,<span style="color: #BA2121">&#39;ro&#39;</span>)
-plt<span style="color: #666666">.</span>axis([<span style="color: #666666">0</span>,<span style="color: #666666">2.0</span>,<span style="color: #666666">0</span>, <span style="color: #666666">15.0</span>])
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&#39;$x$&#39;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&#39;$y$&#39;</span>)
-plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&#39;Random numbers &#39;</span>)
-plt<span style="color: #666666">.</span>show()
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<p><b>Challenge</b>: try to write a similar code for a Logistic Regression case.</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="code-with-a-number-of-minibatches-which-varies">Code with a Number of Minibatches which varies </h2>
@@ -2103,6 +1963,7 @@ n_epochs = 50
 M = 5   #size of each minibatch
 m = int(n/M) #number of minibatches
 t0, t1 = 5, 50
+
 def learning_schedule(t):
     return t0/(t+t1)
 
@@ -2128,270 +1989,6 @@ plt.xlabel(r&#39;$x$&#39;)
 plt.ylabel(r&#39;$y$&#39;)
 plt.title(r&#39;Random numbers &#39;)
 plt.show()
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="sgd-example">SGD example </h2>
-
-<p>As an example, suppose we have \( 10 \) data points \( (\mathbf{x}_1,\cdots, \mathbf{x}_{10}) \) 
-and we choose to have \( M=5 \) minibathces,
-then each minibatch contains two data points. In particular we have
-\( B_1 = (\mathbf{x}_1,\mathbf{x}_2), \cdots, B_5 =
-(\mathbf{x}_9,\mathbf{x}_{10}) \). Note that if you choose \( M=1 \) you
-have only a single batch with all data points and on the other extreme,
-you may choose \( M=n \) resulting in a minibatch for each datapoint, i.e
-\( B_k = \mathbf{x}_k \).
-</p>
-
-<p>The idea is now to approximate the gradient by replacing the sum over
-all data points with a sum over the data points in one the minibatches
-picked at random in each gradient descent step 
-</p>
-$$
-\nabla_{\beta}
-C(\mathbf{\beta}) = \sum_{i=1}^n \nabla_\beta c_i(\mathbf{x}_i,
-\mathbf{\beta}) \rightarrow \sum_{i \in B_k}^n \nabla_\beta
-c_i(\mathbf{x}_i, \mathbf{\beta}).
-$$
-
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="the-gradient-step">The gradient step </h2>
-
-<p>Thus a gradient descent step now looks like </p>
-$$
-\beta_{j+1} = \beta_j - \gamma_j \sum_{i \in B_k}^n \nabla_\beta c_i(\mathbf{x}_i,
-\mathbf{\beta})
-$$
-
-<p>where \( k \) is picked at random with equal
-probability from \( [1,n/M] \). An iteration over the number of
-minibathces (n/M) is commonly referred to as an epoch. Thus it is
-typical to choose a number of epochs and for each epoch iterate over
-the number of minibatches, as exemplified in the code below.
-</p>
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="simple-example-code">Simple example code </h2>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span> 
-
-n <span style="color: #666666">=</span> <span style="color: #666666">100</span> <span style="color: #408080; font-style: italic">#100 datapoints </span>
-M <span style="color: #666666">=</span> <span style="color: #666666">5</span>   <span style="color: #408080; font-style: italic">#size of each mini-batche</span>
-m <span style="color: #666666">=</span> <span style="color: #008000">int</span>(n<span style="color: #666666">/</span>M) <span style="color: #408080; font-style: italic">#number of minibatches</span>
-n_epochs <span style="color: #666666">=</span> <span style="color: #666666">10</span> <span style="color: #408080; font-style: italic">#number of epochs</span>
-
-j <span style="color: #666666">=</span> <span style="color: #666666">0</span>
-<span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,n_epochs<span style="color: #666666">+1</span>):
-    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
-        k <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m) <span style="color: #408080; font-style: italic">#Pick the k-th minibatch at random</span>
-        <span style="color: #408080; font-style: italic">#Compute the gradient using the data in minibatch Bk</span>
-        <span style="color: #408080; font-style: italic">#Compute new suggestion for </span>
-        j <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<p>Taking the gradient only on a subset of the data has two important
-benefits. First, it introduces randomness which decreases the chance
-that our opmization scheme gets stuck in a local minima. Second, if
-the size of the minibatches are small relative to the number of
-datapoints (\( M <  n \)), the computation of the gradient is much
-cheaper since we sum over the datapoints in the \( k-th \) minibatch and not
-all \( n \) datapoints.
-</p>
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="when-do-we-stop">When do we stop? </h2>
-
-<p>A natural question is when do we stop the search for a new minimum?
-One possibility is to compute the full gradient after a given number
-of epochs and check if the norm of the gradient is smaller than some
-threshold and stop if true. However, the condition that the gradient
-is zero is valid also for local minima, so this would only tell us
-that we are close to a local/global minimum. However, we could also
-evaluate the cost function at this point, store the result and
-continue the search. If the test kicks in at a later stage we can
-compare the values of the cost function and keep the \( \beta \) that
-gave the lowest value.
-</p>
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="slightly-different-approach">Slightly different approach </h2>
-
-<p>Another approach is to let the step length \( \gamma_j \) depend on the
-number of epochs in such a way that it becomes very small after a
-reasonable time such that we do not move at all.
-</p>
-
-<p>As an example, let \( e = 0,1,2,3,\cdots \) denote the current epoch and let \( t_0, t_1 > 0 \) be two fixed numbers. Furthermore, let \( t = e \cdot m + i \) where \( m \) is the number of minibatches and \( i=0,\cdots,m-1 \). Then the function $$\gamma_j(t; t_0, t_1) = \frac{t_0}{t+t_1} $$ goes to zero as the number of epochs gets large. I.e. we start with a step length \( \gamma_j (0; t_0, t_1) = t_0/t_1 \) which decays in <em>time</em> \( t \).</p>
-
-<p>In this way we can fix the number of epochs, compute \( \beta \) and
-evaluate the cost function at the end. Repeating the computation will
-give a different result since the scheme is random by design. Then we
-pick the final \( \beta \) that gives the lowest value of the cost
-function.
-</p>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span> 
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">step_length</span>(t,t0,t1):
-    <span style="color: #008000; font-weight: bold">return</span> t0<span style="color: #666666">/</span>(t<span style="color: #666666">+</span>t1)
-
-n <span style="color: #666666">=</span> <span style="color: #666666">100</span> <span style="color: #408080; font-style: italic">#100 datapoints </span>
-M <span style="color: #666666">=</span> <span style="color: #666666">5</span>   <span style="color: #408080; font-style: italic">#size of each minibatch</span>
-m <span style="color: #666666">=</span> <span style="color: #008000">int</span>(n<span style="color: #666666">/</span>M) <span style="color: #408080; font-style: italic">#number of minibatches</span>
-n_epochs <span style="color: #666666">=</span> <span style="color: #666666">500</span> <span style="color: #408080; font-style: italic">#number of epochs</span>
-t0 <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>
-t1 <span style="color: #666666">=</span> <span style="color: #666666">10</span>
-
-gamma_j <span style="color: #666666">=</span> t0<span style="color: #666666">/</span>t1
-j <span style="color: #666666">=</span> <span style="color: #666666">0</span>
-<span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">1</span>,n_epochs<span style="color: #666666">+1</span>):
-    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
-        k <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m) <span style="color: #408080; font-style: italic">#Pick the k-th minibatch at random</span>
-        <span style="color: #408080; font-style: italic">#Compute the gradient using the data in minibatch Bk</span>
-        <span style="color: #408080; font-style: italic">#Compute new suggestion for beta</span>
-        t <span style="color: #666666">=</span> epoch<span style="color: #666666">*</span>m<span style="color: #666666">+</span>i
-        gamma_j <span style="color: #666666">=</span> step_length(t,t0,t1)
-        j <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
-
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;gamma_j after </span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BA2121"> epochs: </span><span style="color: #BB6688; font-weight: bold">%g</span><span style="color: #BA2121">&quot;</span> <span style="color: #666666">%</span> (n_epochs,gamma_j))
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<p>We note that we have defined several hyperparameters. These are now the number of epochs, the number of mini-batches and the parameters \( t_0 \) and \( t_1 \).</p>
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="program-for-stochastic-gradient">Program for stochastic gradient </h2>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Importing various packages</span>
-<span style="color: #408080; font-style: italic"># Importing various packages</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">math</span> <span style="color: #008000; font-weight: bold">import</span> exp, sqrt
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-
-n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
-x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
-y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n,<span style="color: #666666">1</span>)
-
-X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x]
-XT_X <span style="color: #666666">=</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X
-theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>inv(X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
-<span style="color: #008000">print</span>(theta_linreg)
-<span style="color: #408080; font-style: italic"># Hessian matrix</span>
-H <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span> XT_X
-EigValues, EigVectors <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>eig(H)
-<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Eigenvalues of Hessian Matrix:</span><span style="color: #BB6688; font-weight: bold">{</span>EigValues<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
-
-theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
-eta <span style="color: #666666">=</span> <span style="color: #666666">1.0/</span>np<span style="color: #666666">.</span>max(EigValues)
-Niterations <span style="color: #666666">=</span> <span style="color: #666666">1000</span>
-
-
-<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
-    gradients <span style="color: #666666">=</span> <span style="color: #666666">2.0/</span>n<span style="color: #666666">*</span>X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> ((X <span style="color: #666666">@</span> theta)<span style="color: #666666">-</span>y)
-    theta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own gd&quot;</span>)
-<span style="color: #008000">print</span>(theta)
-
-xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([[<span style="color: #666666">0</span>],[<span style="color: #666666">2</span>]])
-Xnew <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)), xnew]
-ypredict <span style="color: #666666">=</span> Xnew<span style="color: #666666">.</span>dot(theta)
-ypredict2 <span style="color: #666666">=</span> Xnew<span style="color: #666666">.</span>dot(theta_linreg)
-
-n_epochs <span style="color: #666666">=</span> <span style="color: #666666">50</span>
-M <span style="color: #666666">=</span> <span style="color: #666666">5</span>   <span style="color: #408080; font-style: italic">#size of each minibatch</span>
-m <span style="color: #666666">=</span> <span style="color: #008000">int</span>(n<span style="color: #666666">/</span>M) <span style="color: #408080; font-style: italic">#number of minibatches</span>
-t0, t1 <span style="color: #666666">=</span> <span style="color: #666666">5</span>, <span style="color: #666666">50</span>
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">learning_schedule</span>(t):
-    <span style="color: #008000; font-weight: bold">return</span> t0<span style="color: #666666">/</span>(t<span style="color: #666666">+</span>t1)
-
-theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
-
-<span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_epochs):
-<span style="color: #408080; font-style: italic"># Can you figure out a better way of setting up the contributions to each batch?</span>
-    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
-        random_index <span style="color: #666666">=</span> M<span style="color: #666666">*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m)
-        xi <span style="color: #666666">=</span> X[random_index:random_index<span style="color: #666666">+</span>M]
-        yi <span style="color: #666666">=</span> y[random_index:random_index<span style="color: #666666">+</span>M]
-        gradients <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>M)<span style="color: #666666">*</span> xi<span style="color: #666666">.</span>T <span style="color: #666666">@</span> ((xi <span style="color: #666666">@</span> theta)<span style="color: #666666">-</span>yi)
-        eta <span style="color: #666666">=</span> learning_schedule(epoch<span style="color: #666666">*</span>m<span style="color: #666666">+</span>i)
-        theta <span style="color: #666666">=</span> theta <span style="color: #666666">-</span> eta<span style="color: #666666">*</span>gradients
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own sdg&quot;</span>)
-<span style="color: #008000">print</span>(theta)
-
-
-
-
-plt<span style="color: #666666">.</span>plot(xnew, ypredict, <span style="color: #BA2121">&quot;r-&quot;</span>)
-plt<span style="color: #666666">.</span>plot(xnew, ypredict2, <span style="color: #BA2121">&quot;b-&quot;</span>)
-plt<span style="color: #666666">.</span>plot(x, y ,<span style="color: #BA2121">&#39;ro&#39;</span>)
-plt<span style="color: #666666">.</span>axis([<span style="color: #666666">0</span>,<span style="color: #666666">2.0</span>,<span style="color: #666666">0</span>, <span style="color: #666666">15.0</span>])
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">r&#39;$x$&#39;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">r&#39;$y$&#39;</span>)
-plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">r&#39;Random numbers &#39;</span>)
-plt<span style="color: #666666">.</span>show()
 </pre>
 </div>
       </div>
@@ -3514,6 +3111,49 @@ weights <span style="color: #666666">=</span> np<span style="color: #666666">.</
   </div>
 </div>
 
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="introducing-jax-https-jax-readthedocs-io-en-latest">Introducing <a href="https://jax.readthedocs.io/en/latest/" target="_blank">JAX</a> </h2>
+
+<p>Presently, instead of using <b>autograd</b>, we recommend using <a href="https://jax.readthedocs.io/en/latest/" target="_blank">JAX</a></p>
+
+<p><b>JAX</b> is Autograd and <a href="https://www.tensorflow.org/xla" target="_blank">XLA (Accelerated Linear Algebra))</a>,
+brought together for high-performance numerical computing and machine learning research.
+It provides composable transformations of Python+NumPy programs: differentiate, vectorize, parallelize, Just-In-Time compile to GPU/TPU, and more.
+</p>
+
+<p>Here's a simple example on how you can use <b>JAX</b> to compute the derivate of the logistic function.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">jax.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">jnp</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">jax</span> <span style="color: #008000; font-weight: bold">import</span> grad, jit, vmap
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">sum_logistic</span>(x):
+  <span style="color: #008000; font-weight: bold">return</span> jnp<span style="color: #666666">.</span>sum(<span style="color: #666666">1.0</span> <span style="color: #666666">/</span> (<span style="color: #666666">1.0</span> <span style="color: #666666">+</span> jnp<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>x)))
+
+x_small <span style="color: #666666">=</span> jnp<span style="color: #666666">.</span>arange(<span style="color: #666666">3.</span>)
+derivative_fn <span style="color: #666666">=</span> grad(sum_logistic)
+<span style="color: #008000">print</span>(derivative_fn(x_small))
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ------------------- end of main content --------------- -->
 <center style="font-size:80%">
