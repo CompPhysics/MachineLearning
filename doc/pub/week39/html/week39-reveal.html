@@ -184,7 +184,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Sep 27, 2022</h4>
+<h4>Sep 29, 2022</h4>
 </center> <!-- date -->
 <br>
 
@@ -1619,6 +1619,178 @@ plt.show()
 <p><li> <b>GD treats all directions in parameter space uniformly.</b> Another major drawback of GD is that unlike Newton's method, the learning rate for GD is the same in all directions in parameter space. For this reason, the maximum learning rate is set by the behavior of the steepest direction and this can significantly slow down training. Ideally, we would like to take large steps in flat directions and small steps in steep directions. Since we are exploring rugged landscapes where curvatures change, this requires us to keep track of not only the gradient but second derivatives. The ideal scenario would be to calculate the Hessian but this proves to be too computationally expensive.</li> 
 <p><li> GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.</li>
 </ul>
+</section>
+
+<section>
+<h2 id="improving-gradient-descent-with-momentum">Improving gradient descent with momentum </h2>
+
+<p>We discuss here some simple examples where we introduce what is called 'memory'about previous steps, or what is normally called momentum gradient descent. The mathematics is explained below in connection with Stochastic gradient descent.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> asarray
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> arange
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> rand
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> seed
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> pyplot
+ 
+<span style="color: #228B22"># objective function</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">objective</span>(x):
+	<span style="color: #8B008B; font-weight: bold">return</span> x**<span style="color: #B452CD">2.0</span>
+ 
+<span style="color: #228B22"># derivative of objective function</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">derivative</span>(x):
+	<span style="color: #8B008B; font-weight: bold">return</span> x * <span style="color: #B452CD">2.0</span>
+ 
+<span style="color: #228B22"># gradient descent algorithm</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">gradient_descent</span>(objective, derivative, bounds, n_iter, step_size):
+	<span style="color: #228B22"># track all solutions</span>
+	solutions, scores = <span style="color: #658b00">list</span>(), <span style="color: #658b00">list</span>()
+	<span style="color: #228B22"># generate an initial point</span>
+	solution = bounds[:, <span style="color: #B452CD">0</span>] + rand(<span style="color: #658b00">len</span>(bounds)) * (bounds[:, <span style="color: #B452CD">1</span>] - bounds[:, <span style="color: #B452CD">0</span>])
+	<span style="color: #228B22"># run the gradient descent</span>
+	<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_iter):
+		<span style="color: #228B22"># calculate gradient</span>
+		gradient = derivative(solution)
+		<span style="color: #228B22"># take a step</span>
+		solution = solution - step_size * gradient
+		<span style="color: #228B22"># evaluate candidate point</span>
+		solution_eval = objective(solution)
+		<span style="color: #228B22"># store solution</span>
+		solutions.append(solution)
+		scores.append(solution_eval)
+		<span style="color: #228B22"># report progress</span>
+		<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;&gt;%d f(%s) = %.5f&#39;</span> % (i, solution, solution_eval))
+	<span style="color: #8B008B; font-weight: bold">return</span> [solutions, scores]
+ 
+<span style="color: #228B22"># seed the pseudo random number generator</span>
+seed(<span style="color: #B452CD">4</span>)
+<span style="color: #228B22"># define range for input</span>
+bounds = asarray([[-<span style="color: #B452CD">1.0</span>, <span style="color: #B452CD">1.0</span>]])
+<span style="color: #228B22"># define the total iterations</span>
+n_iter = <span style="color: #B452CD">30</span>
+<span style="color: #228B22"># define the step size</span>
+step_size = <span style="color: #B452CD">0.1</span>
+<span style="color: #228B22"># perform the gradient descent search</span>
+solutions, scores = gradient_descent(objective, derivative, bounds, n_iter, step_size)
+<span style="color: #228B22"># sample input range uniformly at 0.1 increments</span>
+inputs = arange(bounds[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>], bounds[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">1</span>]+<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.1</span>)
+<span style="color: #228B22"># compute targets</span>
+results = objective(inputs)
+<span style="color: #228B22"># create a line plot of input vs result</span>
+pyplot.plot(inputs, results)
+<span style="color: #228B22"># plot the solutions found</span>
+pyplot.plot(solutions, scores, <span style="color: #CD5555">&#39;.-&#39;</span>, color=<span style="color: #CD5555">&#39;red&#39;</span>)
+<span style="color: #228B22"># show the plot</span>
+pyplot.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="same-code-but-now-with-momentum-gradient-descent">Same code but now with momentum gradient descent </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> asarray
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">import</span> arange
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> rand
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">numpy.random</span> <span style="color: #8B008B; font-weight: bold">import</span> seed
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> pyplot
+ 
+<span style="color: #228B22"># objective function</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">objective</span>(x):
+	<span style="color: #8B008B; font-weight: bold">return</span> x**<span style="color: #B452CD">2.0</span>
+ 
+<span style="color: #228B22"># derivative of objective function</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">derivative</span>(x):
+	<span style="color: #8B008B; font-weight: bold">return</span> x * <span style="color: #B452CD">2.0</span>
+ 
+<span style="color: #228B22"># gradient descent algorithm</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">gradient_descent</span>(objective, derivative, bounds, n_iter, step_size, momentum):
+	<span style="color: #228B22"># track all solutions</span>
+	solutions, scores = <span style="color: #658b00">list</span>(), <span style="color: #658b00">list</span>()
+	<span style="color: #228B22"># generate an initial point</span>
+	solution = bounds[:, <span style="color: #B452CD">0</span>] + rand(<span style="color: #658b00">len</span>(bounds)) * (bounds[:, <span style="color: #B452CD">1</span>] - bounds[:, <span style="color: #B452CD">0</span>])
+	<span style="color: #228B22"># keep track of the change</span>
+	change = <span style="color: #B452CD">0.0</span>
+	<span style="color: #228B22"># run the gradient descent</span>
+	<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_iter):
+		<span style="color: #228B22"># calculate gradient</span>
+		gradient = derivative(solution)
+		<span style="color: #228B22"># calculate update</span>
+		new_change = step_size * gradient + momentum * change
+		<span style="color: #228B22"># take a step</span>
+		solution = solution - new_change
+		<span style="color: #228B22"># save the change</span>
+		change = new_change
+		<span style="color: #228B22"># evaluate candidate point</span>
+		solution_eval = objective(solution)
+		<span style="color: #228B22"># store solution</span>
+		solutions.append(solution)
+		scores.append(solution_eval)
+		<span style="color: #228B22"># report progress</span>
+		<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;&gt;%d f(%s) = %.5f&#39;</span> % (i, solution, solution_eval))
+	<span style="color: #8B008B; font-weight: bold">return</span> [solutions, scores]
+ 
+<span style="color: #228B22"># seed the pseudo random number generator</span>
+seed(<span style="color: #B452CD">4</span>)
+<span style="color: #228B22"># define range for input</span>
+bounds = asarray([[-<span style="color: #B452CD">1.0</span>, <span style="color: #B452CD">1.0</span>]])
+<span style="color: #228B22"># define the total iterations</span>
+n_iter = <span style="color: #B452CD">30</span>
+<span style="color: #228B22"># define the step size</span>
+step_size = <span style="color: #B452CD">0.1</span>
+<span style="color: #228B22"># define momentum</span>
+momentum = <span style="color: #B452CD">0.3</span>
+<span style="color: #228B22"># perform the gradient descent search with momentum</span>
+solutions, scores = gradient_descent(objective, derivative, bounds, n_iter, step_size, momentum)
+<span style="color: #228B22"># sample input range uniformly at 0.1 increments</span>
+inputs = arange(bounds[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">0</span>], bounds[<span style="color: #B452CD">0</span>,<span style="color: #B452CD">1</span>]+<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">0.1</span>)
+<span style="color: #228B22"># compute targets</span>
+results = objective(inputs)
+<span style="color: #228B22"># create a line plot of input vs result</span>
+pyplot.plot(inputs, results)
+<span style="color: #228B22"># plot the solutions found</span>
+pyplot.plot(solutions, scores, <span style="color: #CD5555">&#39;.-&#39;</span>, color=<span style="color: #CD5555">&#39;red&#39;</span>)
+<span style="color: #228B22"># show the plot</span>
+pyplot.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </section>
 
 <section>
