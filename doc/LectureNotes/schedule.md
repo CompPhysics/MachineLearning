@@ -90,6 +90,8 @@ For the reading assignments we use the following abbreviations:
 ###  Week 39 September 26-30
 - Lab Wednesday: Work on  Project 1
 - Lecture Thursday: * Thursday: Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Examples on how to implement Logistic Regression and discussion of stochastic gradient descent
+  - Video of lecture at https://youtu.be/rDBj50Lv3Go
+
 * Friday: Stochastic Gradient descent with examples and automatic differentiation
 
 * Reading recommendations:
