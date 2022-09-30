@@ -336,10 +336,18 @@ div.toc p,a {
                'the-syntax-a-dot-b-when-finding-the-dot-product'),
               ('Recommended to avoid', 2, None, 'recommended-to-avoid'),
               ('Using Autograd with OLS', 2, None, 'using-autograd-with-ols'),
+              ('Same code but now with momentum gradient descent',
+               2,
+               None,
+               'same-code-but-now-with-momentum-gradient-descent'),
               ('Including Stochastic Gradient Descent with Autograd',
                2,
                None,
                'including-stochastic-gradient-descent-with-autograd'),
+              ('Same code but now with momentum gradient descent',
+               2,
+               None,
+               'same-code-but-now-with-momentum-gradient-descent'),
               ('And Logistic Regression', 2, None, 'and-logistic-regression'),
               ('Introducing "JAX":"https://jax.readthedocs.io/en/latest/"',
                2,
@@ -382,7 +390,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Sep 29, 2022</h4>
+<h4>Sep 30, 2022</h4>
 </center> <!-- date -->
 <br>
 
@@ -3139,6 +3147,84 @@ plt<span style="color: #666666">.</span>show()
 
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="same-code-but-now-with-momentum-gradient-descent">Same code but now with momentum gradient descent </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Using Autograd to calculate gradients for OLS</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">autograd.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">autograd</span> <span style="color: #008000; font-weight: bold">import</span> grad
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">CostOLS</span>(beta):
+    <span style="color: #008000; font-weight: bold">return</span> (<span style="color: #666666">1.0/</span>n)<span style="color: #666666">*</span>np<span style="color: #666666">.</span>sum((y<span style="color: #666666">-</span>X <span style="color: #666666">@</span> beta)<span style="color: #666666">**2</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #408080; font-style: italic">#+np.random.randn(n,1)</span>
+
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x]
+XT_X <span style="color: #666666">=</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X
+theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(XT_X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
+<span style="color: #008000">print</span>(theta_linreg)
+<span style="color: #408080; font-style: italic"># Hessian matrix</span>
+H <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span> XT_X
+EigValues, EigVectors <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>eig(H)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Eigenvalues of Hessian Matrix:</span><span style="color: #BB6688; font-weight: bold">{</span>EigValues<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+
+theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
+eta <span style="color: #666666">=</span> <span style="color: #666666">1.0/</span>np<span style="color: #666666">.</span>max(EigValues)
+Niterations <span style="color: #666666">=</span> <span style="color: #666666">30</span>
+
+<span style="color: #408080; font-style: italic"># define the gradient</span>
+training_gradient <span style="color: #666666">=</span> grad(CostOLS)
+
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    gradients <span style="color: #666666">=</span> training_gradient(theta)
+    theta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
+    <span style="color: #008000">print</span>(<span style="color: #008000">iter</span>,gradients[<span style="color: #666666">0</span>],gradients[<span style="color: #666666">1</span>])
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own gd&quot;</span>)
+<span style="color: #008000">print</span>(theta)
+
+<span style="color: #408080; font-style: italic"># Now improve with momentum gradient descent</span>
+change <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+delta_momentum <span style="color: #666666">=</span> <span style="color: #666666">0.3</span>
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    <span style="color: #408080; font-style: italic"># calculate gradient</span>
+    gradients <span style="color: #666666">=</span> training_gradient(theta)
+    <span style="color: #408080; font-style: italic"># calculate update</span>
+    new_change <span style="color: #666666">=</span> eta<span style="color: #666666">*</span>gradients<span style="color: #666666">+</span>delta_momentum<span style="color: #666666">*</span>change
+    <span style="color: #408080; font-style: italic"># take a step</span>
+    theta <span style="color: #666666">-=</span> new_change
+    <span style="color: #408080; font-style: italic"># save the change</span>
+    change <span style="color: #666666">=</span> new_change
+    <span style="color: #008000">print</span>(<span style="color: #008000">iter</span>,gradients[<span style="color: #666666">0</span>],gradients[<span style="color: #666666">1</span>])
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own gd wth momentum&quot;</span>)
+<span style="color: #008000">print</span>(theta)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="including-stochastic-gradient-descent-with-autograd">Including Stochastic Gradient Descent with Autograd </h2>
 <p>In this code we include the stochastic gradient descent approach discussed above. Note here that we specify which argument we are taking the derivative with respect to when using <b>autograd</b>.</p>
 
@@ -3221,6 +3307,98 @@ theta <span style="color: #666666">=</span> np<span style="color: #666666">.</sp
         eta <span style="color: #666666">=</span> learning_schedule(epoch<span style="color: #666666">*</span>m<span style="color: #666666">+</span>i)
         theta <span style="color: #666666">=</span> theta <span style="color: #666666">-</span> eta<span style="color: #666666">*</span>gradients
 <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own sdg&quot;</span>)
+<span style="color: #008000">print</span>(theta)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="same-code-but-now-with-momentum-gradient-descent">Same code but now with momentum gradient descent </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Using Autograd to calculate gradients using SGD</span>
+<span style="color: #408080; font-style: italic"># OLS example</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">autograd.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">autograd</span> <span style="color: #008000; font-weight: bold">import</span> grad
+
+<span style="color: #408080; font-style: italic"># Note change from previous example</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">CostOLS</span>(y,X,theta):
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y<span style="color: #666666">-</span>X <span style="color: #666666">@</span> theta)<span style="color: #666666">**2</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n,<span style="color: #666666">1</span>)
+
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x]
+XT_X <span style="color: #666666">=</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X
+theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(XT_X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
+<span style="color: #008000">print</span>(theta_linreg)
+<span style="color: #408080; font-style: italic"># Hessian matrix</span>
+H <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span> XT_X
+EigValues, EigVectors <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>eig(H)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Eigenvalues of Hessian Matrix:</span><span style="color: #BB6688; font-weight: bold">{</span>EigValues<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+
+theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
+eta <span style="color: #666666">=</span> <span style="color: #666666">1.0/</span>np<span style="color: #666666">.</span>max(EigValues)
+Niterations <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+
+<span style="color: #408080; font-style: italic"># Note that we request the derivative wrt third argument (theta, 2 here)</span>
+training_gradient <span style="color: #666666">=</span> grad(CostOLS,<span style="color: #666666">2</span>)
+
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    gradients <span style="color: #666666">=</span> (<span style="color: #666666">1.0/</span>n)<span style="color: #666666">*</span>training_gradient(y, X, theta)
+    theta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own gd&quot;</span>)
+<span style="color: #008000">print</span>(theta)
+
+
+n_epochs <span style="color: #666666">=</span> <span style="color: #666666">50</span>
+M <span style="color: #666666">=</span> <span style="color: #666666">5</span>   <span style="color: #408080; font-style: italic">#size of each minibatch</span>
+m <span style="color: #666666">=</span> <span style="color: #008000">int</span>(n<span style="color: #666666">/</span>M) <span style="color: #408080; font-style: italic">#number of minibatches</span>
+t0, t1 <span style="color: #666666">=</span> <span style="color: #666666">5</span>, <span style="color: #666666">50</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">learning_schedule</span>(t):
+    <span style="color: #008000; font-weight: bold">return</span> t0<span style="color: #666666">/</span>(t<span style="color: #666666">+</span>t1)
+
+theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
+
+change <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+delta_momentum <span style="color: #666666">=</span> <span style="color: #666666">0.3</span>
+
+<span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_epochs):
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
+        random_index <span style="color: #666666">=</span> M<span style="color: #666666">*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m)
+        xi <span style="color: #666666">=</span> X[random_index:random_index<span style="color: #666666">+</span>M]
+        yi <span style="color: #666666">=</span> y[random_index:random_index<span style="color: #666666">+</span>M]
+        gradients <span style="color: #666666">=</span> (<span style="color: #666666">1.0/</span>M)<span style="color: #666666">*</span>training_gradient(yi, xi, theta)
+        eta <span style="color: #666666">=</span> learning_schedule(epoch<span style="color: #666666">*</span>m<span style="color: #666666">+</span>i)
+        <span style="color: #408080; font-style: italic"># calculate update</span>
+        new_change <span style="color: #666666">=</span> eta<span style="color: #666666">*</span>gradients<span style="color: #666666">+</span>delta_momentum<span style="color: #666666">*</span>change
+        <span style="color: #408080; font-style: italic"># take a step</span>
+        theta <span style="color: #666666">-=</span> new_change
+        <span style="color: #408080; font-style: italic"># save the change</span>
+        change <span style="color: #666666">=</span> new_change
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own sdg with momentum&quot;</span>)
 <span style="color: #008000">print</span>(theta)
 </pre>
 </div>
