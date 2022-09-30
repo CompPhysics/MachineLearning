@@ -43,9 +43,9 @@ M = 5   #size of each minibatch
 m = int(n/M) #number of minibatches
 theta = np.random.randn(2,1)
 
-
 # Including AdaGrad
 delta  = 0.000001
+r = [0.0 for _ in range(gradients.shape[0])]
 for epoch in range(n_epochs):
     for i in range(m):
         random_index = M*np.random.randint(m)
@@ -55,8 +55,8 @@ for epoch in range(n_epochs):
         # calculate squared gradient by Hadamard multiplication
         r -= gradients*gradients
         # compute update
-        update = (1.0/delta+np.sqrt(r))*gradients
-        theta = eta*update
+        update = 1.0/(delta+np.sqrt(r))*gradients
+        theta -= eta*update
 print("theta from own AdaGrad")
 print(theta)
 
