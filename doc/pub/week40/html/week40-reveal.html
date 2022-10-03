@@ -184,7 +184,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Oct 2, 2022</h4>
+<h4>Oct 3, 2022</h4>
 </center> <!-- date -->
 <br>
 
@@ -199,7 +199,7 @@ MathJax.Hub.Config({
 
 <ul>
 <p><li> Thursday: Repetion and summary of Stochastic Gradient descent with examples and automatic differentiation and begin Neural Networks.</li> 
-<p><li> Friday: Neural Networks, setting up the basic steps, from the simple perceptron model to the multi-layer perceptron model.</li> 
+<p><li> Friday: Neural Networks, setting up the basic steps, from the simple perceptron model to the multi-layer perceptron model. Presentation of project 2.</li>
 </ul>
 <p>
 <p>Reading suggestions for both days: <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf" target="_blank">Aurelien Geron's chapter 10</a> and Hastie et al chapter 11.
@@ -1466,6 +1466,1424 @@ $$
 <p>The parameter \( \eta \) is the learning parameter discussed in connection with the gradient descent methods.
 Here it is convenient to use stochastic gradient descent (see the examples below) with mini-batches with an outer loop that steps through multiple epochs of training.
 </p>
+</section>
+
+<section>
+<h2 id="setting-up-the-back-propagation-algorithm">Setting up the Back propagation algorithm </h2>
+
+<p>The four equations  above  provide us with a way of computing the gradient of the cost function. Let us write this out in the form of an algorithm.</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>First, we set up the input data \( \boldsymbol{x} \) and the activations
+\( \boldsymbol{z}_1 \) of the input layer and compute the activation function and
+the pertinent outputs \( \boldsymbol{a}^1 \).
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Secondly, we perform then the feed forward till we reach the output
+layer and compute all \( \boldsymbol{z}_l \) of the input layer and compute the
+activation function and the pertinent outputs \( \boldsymbol{a}^l \) for
+\( l=2,3,\dots,L \).
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Thereafter we compute the ouput error \( \boldsymbol{\delta}^L \) by computing all</p>
+<p>&nbsp;<br>
+$$
+\delta_j^L = f'(z_j^L)\frac{\partial {\cal C}}{\partial (a_j^L)}.
+$$
+<p>&nbsp;<br>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Then we compute the back propagate error for each \( l=L-1,L-2,\dots,2 \) as</p>
+<p>&nbsp;<br>
+$$
+\delta_j^l = \sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l).
+$$
+<p>&nbsp;<br>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Finally, we update the weights and the biases using gradient descent for each \( l=L-1,L-2,\dots,2 \) and update the weights and biases according to the rules</p>
+<p>&nbsp;<br>
+$$
+w_{jk}^l\leftarrow  = w_{jk}^l- \eta \delta_j^la_k^{l-1},
+$$
+<p>&nbsp;<br>
+
+<p>&nbsp;<br>
+$$
+b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta \delta_j^l,
+$$
+<p>&nbsp;<br>
+</div>
+
+<p>The parameter \( \eta \) is the learning parameter discussed in connection with the gradient descent methods.
+Here it is convenient to use stochastic gradient descent (see the examples below) with mini-batches with an outer loop that steps through multiple epochs of training.
+</p>
+</section>
+
+<section>
+<h2 id="setting-up-a-multi-layer-perceptron-model-for-classification">Setting up a Multi-layer perceptron model for classification  </h2>
+
+<p>We are now gong to develop an example based on the MNIST data
+base. This is a classification problem and we need to use our
+cross-entropy function we discussed in connection with logistic
+regression. The cross-entropy defines our cost function for the
+classificaton problems with neural networks.
+</p>
+
+<p>In binary classification with two classes \( (0, 1) \) we define the
+logistic/sigmoid function as the probability that a particular input
+is in class \( 0 \) or \( 1 \).  This is possible because the logistic
+function takes any input from the real numbers and inputs a number
+between 0 and 1, and can therefore be interpreted as a probability. It
+also has other nice properties, such as a derivative that is simple to
+calculate.
+</p>
+
+<p>For an input \( \boldsymbol{a} \) from the hidden layer, the probability that the input \( \boldsymbol{x} \)
+is in class 0 or 1 is just. We let \( \theta \) represent the unknown weights and biases to be adjusted by our equations). The variable \( x \)
+represents our activation values \( z \). We have
+</p>
+<p>&nbsp;<br>
+$$
+P(y = 0 \mid \boldsymbol{x}, \boldsymbol{\theta}) = \frac{1}{1 + \exp{(- \boldsymbol{x}})} ,
+$$
+<p>&nbsp;<br>
+
+<p>and</p>
+<p>&nbsp;<br>
+$$
+P(y = 1 \mid \boldsymbol{x}, \boldsymbol{\theta}) = 1 - P(y = 0 \mid \boldsymbol{x}, \boldsymbol{\theta}) ,
+$$
+<p>&nbsp;<br>
+
+<p>where \( y \in \{0, 1\} \)  and \( \boldsymbol{\theta} \) represents the weights and biases
+of our network.
+</p>
+</section>
+
+<section>
+<h2 id="defining-the-cost-function">Defining the cost function </h2>
+
+<p>Our cost function is given as (see the Logistic regression lectures)</p>
+<p>&nbsp;<br>
+$$
+\mathcal{C}(\boldsymbol{\theta}) = - \ln P(\mathcal{D} \mid \boldsymbol{\theta}) = - \sum_{i=1}^n
+y_i \ln[P(y_i = 0)] + (1 - y_i) \ln [1 - P(y_i = 0)] = \sum_{i=1}^n \mathcal{L}_i(\boldsymbol{\theta}) .
+$$
+<p>&nbsp;<br>
+
+<p>This last equality means that we can interpret our <em>cost</em> function as a sum over the <em>loss</em> function
+for each point in the dataset \( \mathcal{L}_i(\boldsymbol{\theta}) \).  
+The negative sign is just so that we can think about our algorithm as minimizing a positive number, rather
+than maximizing a negative number.  
+</p>
+
+<p>In <em>multiclass</em> classification it is common to treat each integer label as a so called <em>one-hot</em> vector:  </p>
+
+<p>\( y = 5 \quad \rightarrow \quad \boldsymbol{y} = (0, 0, 0, 0, 0, 1, 0, 0, 0, 0) , \) and</p>
+
+\( y = 1 \quad \rightarrow \quad \boldsymbol{y} = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0) , \)
+
+<p>i.e. a binary bit string of length \( C \), where \( C = 10 \) is the number of classes in the MNIST dataset (numbers from \( 0 \) to \( 9 \))..  </p>
+
+<p>If \( \boldsymbol{x}_i \) is the \( i \)-th input (image), \( y_{ic} \) refers to the \( c \)-th component of the \( i \)-th
+output vector \( \boldsymbol{y}_i \).  
+The probability of \( \boldsymbol{x}_i \) being in class \( c \) will be given by the softmax function:  
+</p>
+
+<p>&nbsp;<br>
+$$
+P(y_{ic} = 1 \mid \boldsymbol{x}_i, \boldsymbol{\theta}) = \frac{\exp{((\boldsymbol{a}_i^{hidden})^T \boldsymbol{w}_c)}}
+{\sum_{c'=0}^{C-1} \exp{((\boldsymbol{a}_i^{hidden})^T \boldsymbol{w}_{c'})}} ,
+$$
+<p>&nbsp;<br>
+
+<p>which reduces to the logistic function in the binary case.  
+The likelihood of this \( C \)-class classifier
+is now given as:  
+</p>
+
+<p>&nbsp;<br>
+$$
+P(\mathcal{D} \mid \boldsymbol{\theta}) = \prod_{i=1}^n \prod_{c=0}^{C-1} [P(y_{ic} = 1)]^{y_{ic}} .
+$$
+<p>&nbsp;<br>
+
+<p>Again we take the negative log-likelihood to define our cost function:  </p>
+
+<p>&nbsp;<br>
+$$
+\mathcal{C}(\boldsymbol{\theta}) = - \log{P(\mathcal{D} \mid \boldsymbol{\theta})}.
+$$
+<p>&nbsp;<br>
+
+<p>See the logistic regression lectures for a full definition of the cost function.</p>
+
+<p>The back propagation equations need now only a small change, namely the definition of a new cost function. We are thus ready to use the same equations as before!</p>
+</section>
+
+<section>
+<h2 id="example-binary-classification-problem">Example: binary classification problem </h2>
+
+<p>As an example of the above, relevant for project 2 as well, let us consider a binary class. As discussed in our logistic regression lectures, we defined a cost function in terms of the parameters \( \beta \) as</p>
+<p>&nbsp;<br>
+$$
+\mathcal{C}(\boldsymbol{\beta}) = - \sum_{i=1}^n \left(y_i\log{p(y_i \vert x_i,\boldsymbol{\beta})}+(1-y_i)\log{1-p(y_i \vert x_i,\boldsymbol{\beta})}\right),
+$$
+<p>&nbsp;<br>
+
+<p>where we had defined the logistic (sigmoid) function</p>
+<p>&nbsp;<br>
+$$
+p(y_i =1\vert x_i,\boldsymbol{\beta})=\frac{\exp{(\beta_0+\beta_1 x_i)}}{1+\exp{(\beta_0+\beta_1 x_i)}},
+$$
+<p>&nbsp;<br>
+
+<p>and</p>
+<p>&nbsp;<br>
+$$
+p(y_i =0\vert x_i,\boldsymbol{\beta})=1-p(y_i =1\vert x_i,\boldsymbol{\beta}).
+$$
+<p>&nbsp;<br>
+
+<p>The parameters \( \boldsymbol{\beta} \) were defined using a minimization method like gradient descent or Newton-Raphson's method. </p>
+
+<p>Now we replace \( x_i \) with the activation \( z_i^l \) for a given layer \( l \) and the outputs as \( y_i=a_i^l=f(z_i^l) \), with \( z_i^l \) now being a function of the weights \( w_{ij}^l \) and biases \( b_i^l \). 
+We have then
+</p>
+<p>&nbsp;<br>
+$$
+a_i^l = y_i = \frac{\exp{(z_i^l)}}{1+\exp{(z_i^l)}},
+$$
+<p>&nbsp;<br>
+
+<p>with </p>
+<p>&nbsp;<br>
+$$
+z_i^l = \sum_{j}w_{ij}^l a_j^{l-1}+b_i^l,
+$$
+<p>&nbsp;<br>
+
+<p>where the superscript \( l-1 \) indicates that these are the outputs from layer \( l-1 \).
+Our cost function at the final layer \( l=L \) is now
+</p>
+<p>&nbsp;<br>
+$$
+\mathcal{C}(\boldsymbol{W}) = - \sum_{i=1}^n \left(t_i\log{a_i^L}+(1-t_i)\log{(1-a_i^L)}\right),
+$$
+<p>&nbsp;<br>
+
+<p>where we have defined the targets \( t_i \). The derivatives of the cost function with respect to the output \( a_i^L \) are then easily calculated and we get</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial \mathcal{C}(\boldsymbol{W})}{\partial a_i^L} = \frac{a_i^L-t_i}{a_i^L(1-a_i^L)}. 
+$$
+<p>&nbsp;<br>
+
+<p>In case we use another activation function than the logistic one, we need to evaluate other derivatives. </p>
+</section>
+
+<section>
+<h2 id="the-softmax-function">The Softmax function </h2>
+<p>In case we employ the more general case given by the Softmax equation, we need to evaluate the derivative of the activation function with respect to the activation \( z_i^l \), that is we need</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial f(z_i^l)}{\partial w_{jk}^l} =
+\frac{\partial f(z_i^l)}{\partial z_j^l} \frac{\partial z_j^l}{\partial w_{jk}^l}= \frac{\partial f(z_i^l)}{\partial z_j^l}a_k^{l-1}.
+$$
+<p>&nbsp;<br>
+
+<p>For the Softmax function we have</p>
+<p>&nbsp;<br>
+$$
+f(z_i^l) = \frac{\exp{(z_i^l)}}{\sum_{m=1}^K\exp{(z_m^l)}}.
+$$
+<p>&nbsp;<br>
+
+<p>Its derivative with respect to \( z_j^l \) gives </p>
+<p>&nbsp;<br>
+$$
+\frac{\partial f(z_i^l)}{\partial z_j^l}= f(z_i^l)\left(\delta_{ij}-f(z_j^l)\right), 
+$$
+<p>&nbsp;<br>
+
+<p>which in case of the simply binary model reduces to  having \( i=j \). </p>
+</section>
+
+<section>
+<h2 id="developing-a-code-for-doing-neural-networks-with-back-propagation">Developing a code for doing neural networks with back propagation </h2>
+
+<p>One can identify a set of key steps when using neural networks to solve supervised learning problems:  </p>
+
+<ol>
+<p><li> Collect and pre-process data</li>
+
+<p><li> Define model and architecture</li>
+
+<p><li> Choose cost function and optimizer</li>
+
+<p><li> Train the model</li>
+
+<p><li> Evaluate model performance on test data</li>
+
+<p><li> Adjust hyperparameters (if necessary, network architecture)</li>
+</ol>
+</section>
+
+<section>
+<h2 id="collect-and-pre-process-data">Collect and pre-process data </h2>
+
+<p>Here we will be using the MNIST dataset, which is readily available through the <b>scikit-learn</b>
+package. You may also find it for example <a href="http://yann.lecun.com/exdb/mnist/" target="_blank">here</a>.  
+The <em>MNIST</em> (Modified National Institute of Standards and Technology) database is a large database
+of handwritten digits that is commonly used for training various image processing systems.  
+The MNIST dataset consists of 70 000 images of size \( 28\times 28 \) pixels, each labeled from 0 to 9.  
+The scikit-learn dataset we will use consists of a selection of 1797 images of size \( 8\times 8 \) collected and processed from this database.  
+</p>
+
+<p>To feed data into a feed-forward neural network we need to represent
+the inputs as a design/feature matrix \( X = (n_{inputs}, n_{features}) \).  Each
+row represents an <em>input</em>, in this case a handwritten digit, and
+each column represents a <em>feature</em>, in this case a pixel.  The
+correct answers, also known as <em>labels</em> or <em>targets</em> are
+represented as a 1D array of integers 
+\( Y = (n_{inputs}) = (5, 3, 1, 8,...) \).
+</p>
+
+<p>As an example, say we want to build a neural network using supervised learning to predict Body-Mass Index (BMI) from
+measurements of height (in m)  
+and weight (in kg). If we have measurements of 5 people the design/feature matrix could be for example:  
+</p>
+
+<p><p>&nbsp;<br>
+$$ X = \begin{bmatrix}
+1.85 &amp; 81\\
+1.71 &amp; 65\\
+1.95 &amp; 103\\
+1.55 &amp; 42\\
+1.63 &amp; 56
+\end{bmatrix} ,$$
+<p>&nbsp;<br>  
+</p>
+
+<p>and the targets would be:  </p>
+
+<p><p>&nbsp;<br>
+$$ Y = (23.7, 22.2, 27.1, 17.5, 21.1) $$
+<p>&nbsp;<br>  </p>
+
+<p>Since each input image is a 2D matrix, we need to flatten the image
+(i.e. "unravel" the 2D matrix into a 1D array) to turn the data into a
+design/feature matrix. This means we lose all spatial information in the
+image, such as locality and translational invariance. More complicated
+architectures such as Convolutional Neural Networks can take advantage
+of such information, and are most commonly applied when analyzing
+images.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># import necessary packages</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets
+
+
+<span style="color: #228B22"># ensure the same random numbers appear every time</span>
+np.random.seed(<span style="color: #B452CD">0</span>)
+
+<span style="color: #228B22"># display images in notebook</span>
+%matplotlib inline
+plt.rcParams[<span style="color: #CD5555">&#39;figure.figsize&#39;</span>] = (<span style="color: #B452CD">12</span>,<span style="color: #B452CD">12</span>)
+
+
+<span style="color: #228B22"># download MNIST dataset</span>
+digits = datasets.load_digits()
+
+<span style="color: #228B22"># define inputs and labels</span>
+inputs = digits.images
+labels = digits.target
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;inputs = (n_inputs, pixel_width, pixel_height) = &quot;</span> + <span style="color: #658b00">str</span>(inputs.shape))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;labels = (n_inputs) = &quot;</span> + <span style="color: #658b00">str</span>(labels.shape))
+
+
+<span style="color: #228B22"># flatten the image</span>
+<span style="color: #228B22"># the value -1 means dimension is inferred from the remaining dimensions: 8x8 = 64</span>
+n_inputs = <span style="color: #658b00">len</span>(inputs)
+inputs = inputs.reshape(n_inputs, -<span style="color: #B452CD">1</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;X = (n_inputs, n_features) = &quot;</span> + <span style="color: #658b00">str</span>(inputs.shape))
+
+
+<span style="color: #228B22"># choose some random images to display</span>
+indices = np.arange(n_inputs)
+random_indices = np.random.choice(indices, size=<span style="color: #B452CD">5</span>)
+
+<span style="color: #8B008B; font-weight: bold">for</span> i, image <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(digits.images[random_indices]):
+    plt.subplot(<span style="color: #B452CD">1</span>, <span style="color: #B452CD">5</span>, i+<span style="color: #B452CD">1</span>)
+    plt.axis(<span style="color: #CD5555">&#39;off&#39;</span>)
+    plt.imshow(image, cmap=plt.cm.gray_r, interpolation=<span style="color: #CD5555">&#39;nearest&#39;</span>)
+    plt.title(<span style="color: #CD5555">&quot;Label: %d&quot;</span> % digits.target[random_indices[i]])
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="train-and-test-datasets">Train and test datasets </h2>
+
+<p>Performing analysis before partitioning the dataset is a major error, that can lead to incorrect conclusions.  </p>
+
+<p>We will reserve \( 80 \% \) of our dataset for training and \( 20 \% \) for testing.  </p>
+
+<p>It is important that the train and test datasets are drawn randomly from our dataset, to ensure
+no bias in the sampling.  
+Say you are taking measurements of weather data to predict the weather in the coming 5 days.
+You don't want to train your model on measurements taken from the hours 00.00 to 12.00, and then test it on data
+collected from 12.00 to 24.00.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+
+<span style="color: #228B22"># one-liner from scikit-learn library</span>
+train_size = <span style="color: #B452CD">0.8</span>
+test_size = <span style="color: #B452CD">1</span> - train_size
+X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
+                                                    test_size=test_size)
+
+<span style="color: #228B22"># equivalently in numpy</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">train_test_split_numpy</span>(inputs, labels, train_size, test_size):
+    n_inputs = <span style="color: #658b00">len</span>(inputs)
+    inputs_shuffled = inputs.copy()
+    labels_shuffled = labels.copy()
+    
+    np.random.shuffle(inputs_shuffled)
+    np.random.shuffle(labels_shuffled)
+    
+    train_end = <span style="color: #658b00">int</span>(n_inputs*train_size)
+    X_train, X_test = inputs_shuffled[:train_end], inputs_shuffled[train_end:]
+    Y_train, Y_test = labels_shuffled[:train_end], labels_shuffled[train_end:]
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> X_train, X_test, Y_train, Y_test
+
+<span style="color: #228B22">#X_train, X_test, Y_train, Y_test = train_test_split_numpy(inputs, labels, train_size, test_size)</span>
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Number of training images: &quot;</span> + <span style="color: #658b00">str</span>(<span style="color: #658b00">len</span>(X_train)))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Number of test images: &quot;</span> + <span style="color: #658b00">str</span>(<span style="color: #658b00">len</span>(X_test)))
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="define-model-and-architecture">Define model and architecture </h2>
+
+<p>Our simple feed-forward neural network will consist of an <em>input</em> layer, a single <em>hidden</em> layer and an <em>output</em> layer. The activation \( y \) of each neuron is a weighted sum of inputs, passed through an activation function. In case of the simple perceptron model we have </p>
+
+<p><p>&nbsp;<br>
+$$ z = \sum_{i=1}^n w_i a_i ,$$
+<p>&nbsp;<br></p>
+
+<p><p>&nbsp;<br>
+$$ y = f(z) ,$$
+<p>&nbsp;<br></p>
+
+<p>where \( f \) is the activation function, \( a_i \) represents input from neuron \( i \) in the preceding layer
+and \( w_i \) is the weight to input \( i \).  
+The activation of the neurons in the input layer is just the features (e.g. a pixel value).  
+</p>
+
+<p>The simplest activation function for a neuron is the <em>Heaviside</em> function:</p>
+
+<p><p>&nbsp;<br>
+$$ f(z) = 
+\begin{cases}
+1,  &  z > 0\\
+0,  & \text{otherwise}
+\end{cases}
+$$
+<p>&nbsp;<br>
+</p>
+
+<p>A feed-forward neural network with this activation is known as a <em>perceptron</em>.  
+For a binary classifier (i.e. two classes, 0 or 1, dog or not-dog) we can also use this in our output layer.  
+This activation can be generalized to \( k \) classes (using e.g. the <em>one-against-all</em> strategy), 
+and we call these architectures <em>multiclass perceptrons</em>.  
+</p>
+
+<p>However, it is now common to use the terms Single Layer Perceptron (SLP) (1 hidden layer) and  
+Multilayer Perceptron (MLP) (2 or more hidden layers) to refer to feed-forward neural networks with any activation function.  
+</p>
+
+<p>Typical choices for activation functions include the sigmoid function, hyperbolic tangent, and Rectified Linear Unit (ReLU).  
+We will be using the sigmoid function \( \sigma(x) \):  
+</p>
+
+<p><p>&nbsp;<br>
+$$ f(x) = \sigma(x) = \frac{1}{1 + e^{-x}} ,$$
+<p>&nbsp;<br></p>
+
+<p>which is inspired by probability theory (see logistic regression) and was most commonly used until about 2011. See the discussion below concerning other activation functions.</p>
+</section>
+
+<section>
+<h2 id="layers">Layers </h2>
+
+<ul>
+<p><li> Input</li> 
+</ul>
+<p>
+<p>Since each input image has 8x8 = 64 pixels or features, we have an input layer of 64 neurons.  </p>
+
+<ul>
+<p><li> Hidden layer</li>
+</ul>
+<p>
+<p>We will use 50 neurons in the hidden layer receiving input from the neurons in the input layer.  
+Since each neuron in the hidden layer is connected to the 64 inputs we have 64x50 = 3200 weights to the hidden layer.  
+</p>
+
+<ul>
+<p><li> Output</li>
+</ul>
+<p>
+<p>If we were building a binary classifier, it would be sufficient with a single neuron in the output layer,
+which could output 0 or 1 according to the Heaviside function. This would be an example of a <em>hard</em> classifier, meaning it outputs the class of the input directly. However, if we are dealing with noisy data it is often beneficial to use a <em>soft</em> classifier, which outputs the probability of being in class 0 or 1.  
+</p>
+
+<p>For a soft binary classifier, we could use a single neuron and interpret the output as either being the probability of being in class 0 or the probability of being in class 1. Alternatively we could use 2 neurons, and interpret each neuron as the probability of being in each class.  </p>
+
+<p>Since we are doing multiclass classification, with 10 categories, it is natural to use 10 neurons in the output layer. We number the neurons \( j = 0,1,...,9 \). The activation of each output neuron \( j \) will be according to the <em>softmax</em> function:  </p>
+
+<p><p>&nbsp;<br>
+$$ P(\text{class \( j \)} \mid \text{input \( \boldsymbol{a} \)}) = \frac{\exp{(\boldsymbol{a}^T \boldsymbol{w}_j)}}
+{\sum_{c=0}^{9} \exp{(\boldsymbol{a}^T \boldsymbol{w}_c)}} ,$$
+<p>&nbsp;<br>  
+</p>
+
+<p>i.e. each neuron \( j \) outputs the probability of being in class \( j \) given an input from the hidden layer \( \boldsymbol{a} \), with \( \boldsymbol{w}_j \) the weights of neuron \( j \) to the inputs.  
+The denominator is a normalization factor to ensure the outputs (probabilities) sum up to 1.  
+The exponent is just the weighted sum of inputs as before:  
+</p>
+
+<p><p>&nbsp;<br>
+$$ z_j = \sum_{i=1}^n w_ {ij} a_i+b_j.$$
+<p>&nbsp;<br>  </p>
+
+<p>Since each neuron in the output layer is connected to the 50 inputs from the hidden layer we have 50x10 = 500
+weights to the output layer.
+</p>
+</section>
+
+<section>
+<h2 id="weights-and-biases">Weights and biases </h2>
+
+<p>Typically weights are initialized with small values distributed around zero, drawn from a uniform
+or normal distribution. Setting all weights to zero means all neurons give the same output, making the network useless.  
+</p>
+
+<p>Adding a bias value to the weighted sum of inputs allows the neural network to represent a greater range
+of values. Without it, any input with the value 0 will be mapped to zero (before being passed through the activation). The bias unit has an output of 1, and a weight to each neuron \( j \), \( b_j \):  
+</p>
+
+<p><p>&nbsp;<br>
+$$ z_j = \sum_{i=1}^n w_ {ij} a_i + b_j.$$
+<p>&nbsp;<br>  </p>
+
+<p>The bias weights \( \boldsymbol{b} \) are often initialized to zero, but a small value like \( 0.01 \) ensures all neurons have some output which can be backpropagated in the first training cycle.</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># building our neural network</span>
+
+n_inputs, n_features = X_train.shape
+n_hidden_neurons = <span style="color: #B452CD">50</span>
+n_categories = <span style="color: #B452CD">10</span>
+
+<span style="color: #228B22"># we make the weights normally distributed using numpy.random.randn</span>
+
+<span style="color: #228B22"># weights and bias in the hidden layer</span>
+hidden_weights = np.random.randn(n_features, n_hidden_neurons)
+hidden_bias = np.zeros(n_hidden_neurons) + <span style="color: #B452CD">0.01</span>
+
+<span style="color: #228B22"># weights and bias in the output layer</span>
+output_weights = np.random.randn(n_hidden_neurons, n_categories)
+output_bias = np.zeros(n_categories) + <span style="color: #B452CD">0.01</span>
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="feed-forward-pass">Feed-forward pass </h2>
+
+<p>Denote \( F \) the number of features, \( H \) the number of hidden neurons and \( C \) the number of categories.  
+For each input image we calculate a weighted sum of input features (pixel values) to each neuron \( j \) in the hidden layer \( l \):  
+</p>
+
+<p><p>&nbsp;<br>
+$$ z_{j}^{l} = \sum_{i=1}^{F} w_{ij}^{l} x_i + b_{j}^{l},$$
+<p>&nbsp;<br></p>
+
+<p>this is then passed through our activation function  </p>
+
+<p><p>&nbsp;<br>
+$$ a_{j}^{l} = f(z_{j}^{l}) .$$
+<p>&nbsp;<br>  </p>
+
+<p>We calculate a weighted sum of inputs (activations in the hidden layer) to each neuron \( j \) in the output layer:  </p>
+
+<p><p>&nbsp;<br>
+$$ z_{j}^{L} = \sum_{i=1}^{H} w_{ij}^{L} a_{i}^{l} + b_{j}^{L}.$$
+<p>&nbsp;<br>  </p>
+
+<p>Finally we calculate the output of neuron \( j \) in the output layer using the softmax function:  </p>
+
+<p><p>&nbsp;<br>
+$$ a_{j}^{L} = \frac{\exp{(z_j^{L})}}
+{\sum_{c=0}^{C-1} \exp{(z_c^{L})}} .$$
+<p>&nbsp;<br>  
+</p>
+</section>
+
+<section>
+<h2 id="matrix-multiplications">Matrix multiplications </h2>
+
+<p>Since our data has the dimensions \( X = (n_{inputs}, n_{features}) \) and our weights to the hidden
+layer have the dimensions  
+\( W_{hidden} = (n_{features}, n_{hidden}) \),
+we can easily feed the network all our training data in one go by taking the matrix product  
+</p>
+
+<p><p>&nbsp;<br>
+$$ X W^{h} = (n_{inputs}, n_{hidden}),$$
+<p>&nbsp;<br> </p>
+
+<p>and obtain a matrix that holds the weighted sum of inputs to the hidden layer
+for each input image and each hidden neuron.    
+We also add the bias to obtain a matrix of weighted sums to the hidden layer \( Z^{h} \):  
+</p>
+
+<p><p>&nbsp;<br>
+$$ \boldsymbol{z}^{l} = \boldsymbol{X} \boldsymbol{W}^{l} + \boldsymbol{b}^{l} ,$$
+<p>&nbsp;<br></p>
+
+<p>meaning the same bias (1D array with size equal number of hidden neurons) is added to each input image.  
+This is then passed through the activation:  
+</p>
+
+<p><p>&nbsp;<br>
+$$ \boldsymbol{a}^{l} = f(\boldsymbol{z}^l) .$$
+<p>&nbsp;<br>  </p>
+
+<p>This is fed to the output layer:  </p>
+
+<p><p>&nbsp;<br>
+$$ \boldsymbol{z}^{L} = \boldsymbol{a}^{L} \boldsymbol{W}^{L} + \boldsymbol{b}^{L} .$$
+<p>&nbsp;<br></p>
+
+<p>Finally we receive our output values for each image and each category by passing it through the softmax function:  </p>
+
+<p><p>&nbsp;<br>
+$$ output = softmax (\boldsymbol{z}^{L}) = (n_{inputs}, n_{categories}) .$$
+<p>&nbsp;<br></p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># setup the feed-forward pass, subscript h = hidden layer</span>
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">sigmoid</span>(x):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span>/(<span style="color: #B452CD">1</span> + np.exp(-x))
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">feed_forward</span>(X):
+    <span style="color: #228B22"># weighted sum of inputs to the hidden layer</span>
+    z_h = np.matmul(X, hidden_weights) + hidden_bias
+    <span style="color: #228B22"># activation in the hidden layer</span>
+    a_h = sigmoid(z_h)
+    
+    <span style="color: #228B22"># weighted sum of inputs to the output layer</span>
+    z_o = np.matmul(a_h, output_weights) + output_bias
+    <span style="color: #228B22"># softmax output</span>
+    <span style="color: #228B22"># axis 0 holds each input and axis 1 the probabilities of each category</span>
+    exp_term = np.exp(z_o)
+    probabilities = exp_term / np.sum(exp_term, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>)
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> probabilities
+
+probabilities = feed_forward(X_train)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;probabilities = (n_inputs, n_categories) = &quot;</span> + <span style="color: #658b00">str</span>(probabilities.shape))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;probability that image 0 is in category 0,1,2,...,9 = \n&quot;</span> + <span style="color: #658b00">str</span>(probabilities[<span style="color: #B452CD">0</span>]))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;probabilities sum up to: &quot;</span> + <span style="color: #658b00">str</span>(probabilities[<span style="color: #B452CD">0</span>].sum()))
+<span style="color: #658b00">print</span>()
+
+<span style="color: #228B22"># we obtain a prediction by taking the class with the highest likelihood</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">predict</span>(X):
+    probabilities = feed_forward(X)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.argmax(probabilities, axis=<span style="color: #B452CD">1</span>)
+
+predictions = predict(X_train)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;predictions = (n_inputs) = &quot;</span> + <span style="color: #658b00">str</span>(predictions.shape))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;prediction for image 0: &quot;</span> + <span style="color: #658b00">str</span>(predictions[<span style="color: #B452CD">0</span>]))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;correct label for image 0: &quot;</span> + <span style="color: #658b00">str</span>(Y_train[<span style="color: #B452CD">0</span>]))
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="choose-cost-function-and-optimizer">Choose cost function and optimizer </h2>
+
+<p>To measure how well our neural network is doing we need to introduce a cost function.  
+We will call the function that gives the error of a single sample output the <em>loss</em> function, and the function
+that gives the total error of our network across all samples the <em>cost</em> function.
+A typical choice for multiclass classification is the <em>cross-entropy</em> loss, also known as the negative log likelihood.  
+</p>
+
+<p>In <em>multiclass</em> classification it is common to treat each integer label as a so called <em>one-hot</em> vector:  </p>
+
+<p><p>&nbsp;<br>
+$$ y = 5 \quad \rightarrow \quad \boldsymbol{y} = (0, 0, 0, 0, 0, 1, 0, 0, 0, 0) ,$$
+<p>&nbsp;<br>  </p>
+
+<p><p>&nbsp;<br>
+$$ y = 1 \quad \rightarrow \quad \boldsymbol{y} = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0) ,$$
+<p>&nbsp;<br>  </p>
+
+<p>i.e. a binary bit string of length \( C \), where \( C = 10 \) is the number of classes in the MNIST dataset.  </p>
+
+<p>Let \( y_{ic} \) denote the \( c \)-th component of the \( i \)-th one-hot vector.  
+We define the cost function \( \mathcal{C} \) as a sum over the cross-entropy loss for each point \( \boldsymbol{x}_i \) in the dataset.
+</p>
+
+<p>In the one-hot representation only one of the terms in the loss function is non-zero, namely the
+probability of the correct category \( c' \)  
+(i.e. the category \( c' \) such that \( y_{ic'} = 1 \)). This means that the cross entropy loss only punishes you for how wrong
+you got the correct label. The probability of category \( c \) is given by the softmax function. The vector \( \boldsymbol{\theta} \) represents the parameters of our network, i.e. all the weights and biases.  
+</p>
+</section>
+
+<section>
+<h2 id="optimizing-the-cost-function">Optimizing the cost function </h2>
+
+<p>The network is trained by finding the weights and biases that minimize the cost function. One of the most widely used classes of methods is <em>gradient descent</em> and its generalizations. The idea behind gradient descent
+is simply to adjust the weights in the direction where the gradient of the cost function is large and negative. This ensures we flow toward a <em>local</em> minimum of the cost function.  
+Each parameter \( \theta \) is iteratively adjusted according to the rule  
+</p>
+
+<p><p>&nbsp;<br>
+$$ \theta_{i+1} = \theta_i - \eta \nabla \mathcal{C}(\theta_i) ,$$
+<p>&nbsp;<br></p>
+
+<p>where \( \eta \) is known as the <em>learning rate</em>, which controls how big a step we take towards the minimum.  
+This update can be repeated for any number of iterations, or until we are satisfied with the result.  
+</p>
+
+<p>A simple and effective improvement is a variant called <em>Batch Gradient Descent</em>.  
+Instead of calculating the gradient on the whole dataset, we calculate an approximation of the gradient
+on a subset of the data called a <em>minibatch</em>.  
+If there are \( N \) data points and we have a minibatch size of \( M \), the total number of batches
+is \( N/M \).  
+We denote each minibatch \( B_k \), with \( k = 1, 2,...,N/M \). The gradient then becomes:  
+</p>
+
+<p><p>&nbsp;<br>
+$$ \nabla \mathcal{C}(\theta) = \frac{1}{N} \sum_{i=1}^N \nabla \mathcal{L}_i(\theta) \quad \rightarrow \quad
+\frac{1}{M} \sum_{i \in B_k} \nabla \mathcal{L}_i(\theta) ,$$
+<p>&nbsp;<br>
+</p>
+
+<p>i.e. instead of averaging the loss over the entire dataset, we average over a minibatch.  </p>
+
+<p>This has two important benefits:  </p>
+<ol>
+<p><li> Introducing stochasticity decreases the chance that the algorithm becomes stuck in a local minima.</li>
+
+<p><li> It significantly speeds up the calculation, since we do not have to use the entire dataset to calculate the gradient.</li>  
+</ol>
+<p>
+<p>The various optmization  methods, with codes and algorithms,  are discussed in our lectures on <a href="https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html" target="_blank">Gradient descent approaches</a>.</p>
+</section>
+
+<section>
+<h2 id="regularization">Regularization </h2>
+
+<p>It is common to add an extra term to the cost function, proportional
+to the size of the weights.  This is equivalent to constraining the
+size of the weights, so that they do not grow out of control.
+Constraining the size of the weights means that the weights cannot
+grow arbitrarily large to fit the training data, and in this way
+reduces <em>overfitting</em>.
+</p>
+
+<p>We will measure the size of the weights using the so called <em>L2-norm</em>, meaning our cost function becomes:  </p>
+
+<p><p>&nbsp;<br>
+$$  \mathcal{C}(\theta) = \frac{1}{N} \sum_{i=1}^N \mathcal{L}_i(\theta) \quad \rightarrow \quad
+\frac{1}{N} \sum_{i=1}^N  \mathcal{L}_i(\theta) + \lambda \lvert \lvert \boldsymbol{w} \rvert \rvert_2^2 
+= \frac{1}{N} \sum_{i=1}^N  \mathcal{L}(\theta) + \lambda \sum_{ij} w_{ij}^2,$$
+<p>&nbsp;<br>  
+</p>
+
+<p>i.e. we sum up all the weights squared. The factor \( \lambda \) is known as a regularization parameter.</p>
+
+<p>In order to train the model, we need to calculate the derivative of
+the cost function with respect to every bias and weight in the
+network.  In total our network has \( (64 + 1)\times 50=3250 \) weights in
+the hidden layer and \( (50 + 1)\times 10=510 \) weights to the output
+layer (\( +1 \) for the bias), and the gradient must be calculated for
+every parameter.  We use the <em>backpropagation</em> algorithm discussed
+above. This is a clever use of the chain rule that allows us to
+calculate the gradient efficently. 
+</p>
+</section>
+
+<section>
+<h2 id="matrix-multiplication">Matrix  multiplication </h2>
+
+<p>To more efficently train our network these equations are implemented using matrix operations.  
+The error in the output layer is calculated simply as, with \( \boldsymbol{t} \) being our targets,  
+</p>
+
+<p><p>&nbsp;<br>
+$$ \delta_L = \boldsymbol{t} - \boldsymbol{y} = (n_{inputs}, n_{categories}) .$$
+<p>&nbsp;<br>  </p>
+
+<p>The gradient for the output weights is calculated as  </p>
+
+<p><p>&nbsp;<br>
+$$ \nabla W_{L} = \boldsymbol{a}^T \delta_L   = (n_{hidden}, n_{categories}) ,$$
+<p>&nbsp;<br></p>
+
+<p>where \( \boldsymbol{a} = (n_{inputs}, n_{hidden}) \). This simply means that we are summing up the gradients for each input.  
+Since we are going backwards we have to transpose the activation matrix.  
+</p>
+
+<p>The gradient with respect to the output bias is then  </p>
+
+<p><p>&nbsp;<br>
+$$ \nabla \boldsymbol{b}_{L} = \sum_{i=1}^{n_{inputs}} \delta_L = (n_{categories}) .$$
+<p>&nbsp;<br>  </p>
+
+<p>The error in the hidden layer is  </p>
+
+<p><p>&nbsp;<br>
+$$ \Delta_h = \delta_L W_{L}^T \circ f'(z_{h}) = \delta_L W_{L}^T \circ a_{h} \circ (1 - a_{h}) = (n_{inputs}, n_{hidden}) ,$$
+<p>&nbsp;<br>  </p>
+
+<p>where \( f'(a_{h}) \) is the derivative of the activation in the hidden layer. The matrix products mean
+that we are summing up the products for each neuron in the output layer. The symbol \( \circ \) denotes
+the <em>Hadamard product</em>, meaning element-wise multiplication.  
+</p>
+
+<p>This again gives us the gradients in the hidden layer:  </p>
+
+<p><p>&nbsp;<br>
+$$ \nabla W_{h} = X^T \delta_h = (n_{features}, n_{hidden}) ,$$
+<p>&nbsp;<br>  </p>
+
+<p><p>&nbsp;<br>
+$$ \nabla b_{h} = \sum_{i=1}^{n_{inputs}} \delta_h = (n_{hidden}) .$$
+<p>&nbsp;<br></p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># to categorical turns our integer vector into a onehot representation</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> accuracy_score
+
+<span style="color: #228B22"># one-hot in numpy</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">to_categorical_numpy</span>(integer_vector):
+    n_inputs = <span style="color: #658b00">len</span>(integer_vector)
+    n_categories = np.max(integer_vector) + <span style="color: #B452CD">1</span>
+    onehot_vector = np.zeros((n_inputs, n_categories))
+    onehot_vector[<span style="color: #658b00">range</span>(n_inputs), integer_vector] = <span style="color: #B452CD">1</span>
+    
+    <span style="color: #8B008B; font-weight: bold">return</span> onehot_vector
+
+<span style="color: #228B22">#Y_train_onehot, Y_test_onehot = to_categorical(Y_train), to_categorical(Y_test)</span>
+Y_train_onehot, Y_test_onehot = to_categorical_numpy(Y_train), to_categorical_numpy(Y_test)
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">feed_forward_train</span>(X):
+    <span style="color: #228B22"># weighted sum of inputs to the hidden layer</span>
+    z_h = np.matmul(X, hidden_weights) + hidden_bias
+    <span style="color: #228B22"># activation in the hidden layer</span>
+    a_h = sigmoid(z_h)
+    
+    <span style="color: #228B22"># weighted sum of inputs to the output layer</span>
+    z_o = np.matmul(a_h, output_weights) + output_bias
+    <span style="color: #228B22"># softmax output</span>
+    <span style="color: #228B22"># axis 0 holds each input and axis 1 the probabilities of each category</span>
+    exp_term = np.exp(z_o)
+    probabilities = exp_term / np.sum(exp_term, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>)
+    
+    <span style="color: #228B22"># for backpropagation need activations in hidden and output layers</span>
+    <span style="color: #8B008B; font-weight: bold">return</span> a_h, probabilities
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">backpropagation</span>(X, Y):
+    a_h, probabilities = feed_forward_train(X)
+    
+    <span style="color: #228B22"># error in the output layer</span>
+    error_output = probabilities - Y
+    <span style="color: #228B22"># error in the hidden layer</span>
+    error_hidden = np.matmul(error_output, output_weights.T) * a_h * (<span style="color: #B452CD">1</span> - a_h)
+    
+    <span style="color: #228B22"># gradients for the output layer</span>
+    output_weights_gradient = np.matmul(a_h.T, error_output)
+    output_bias_gradient = np.sum(error_output, axis=<span style="color: #B452CD">0</span>)
+    
+    <span style="color: #228B22"># gradient for the hidden layer</span>
+    hidden_weights_gradient = np.matmul(X.T, error_hidden)
+    hidden_bias_gradient = np.sum(error_hidden, axis=<span style="color: #B452CD">0</span>)
+
+    <span style="color: #8B008B; font-weight: bold">return</span> output_weights_gradient, output_bias_gradient, hidden_weights_gradient, hidden_bias_gradient
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Old accuracy on training data: &quot;</span> + <span style="color: #658b00">str</span>(accuracy_score(predict(X_train), Y_train)))
+
+eta = <span style="color: #B452CD">0.01</span>
+lmbd = <span style="color: #B452CD">0.01</span>
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1000</span>):
+    <span style="color: #228B22"># calculate gradients</span>
+    dWo, dBo, dWh, dBh = backpropagation(X_train, Y_train_onehot)
+    
+    <span style="color: #228B22"># regularization term gradients</span>
+    dWo += lmbd * output_weights
+    dWh += lmbd * hidden_weights
+    
+    <span style="color: #228B22"># update weights and biases</span>
+    output_weights -= eta * dWo
+    output_bias -= eta * dBo
+    hidden_weights -= eta * dWh
+    hidden_bias -= eta * dBh
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;New accuracy on training data: &quot;</span> + <span style="color: #658b00">str</span>(accuracy_score(predict(X_train), Y_train)))
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="improving-performance">Improving performance </h2>
+
+<p>As we can see the network does not seem to be learning at all. It seems to be just guessing the label for each image.  
+In order to obtain a network that does something useful, we will have to do a bit more work.  
+</p>
+
+<p>The choice of <em>hyperparameters</em> such as learning rate and regularization parameter is hugely influential for the performance of the network. Typically a <em>grid-search</em> is performed, wherein we test different hyperparameters separated by orders of magnitude. For example we could test the learning rates \( \eta = 10^{-6}, 10^{-5},...,10^{-1} \) with different regularization parameters \( \lambda = 10^{-6},...,10^{-0} \).  </p>
+
+<p>Next, we haven't implemented minibatching yet, which introduces stochasticity and is though to act as an important regularizer on the weights. We call a feed-forward + backward pass with a minibatch an <em>iteration</em>, and a full training period
+going through the entire dataset (\( n/M \) batches) an <em>epoch</em>.
+</p>
+
+<p>If this does not improve network performance, you may want to consider altering the network architecture, adding more neurons or hidden layers.  
+Andrew Ng goes through some of these considerations in this <a href="https://youtu.be/F1ka6a13S9I" target="_blank">video</a>. You can find a summary of the video <a href="https://kevinzakka.github.io/2016/09/26/applying-deep-learning/" target="_blank">here</a>.  
+</p>
+</section>
+
+<section>
+<h2 id="full-object-oriented-implementation">Full object-oriented implementation </h2>
+
+<p>It is very natural to think of the network as an object, with specific instances of the network
+being realizations of this object with different hyperparameters. An implementation using Python classes provides a clean structure and interface, and the full implementation of our neural network is given below.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">NeuralNetwork</span>:
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(
+            <span style="color: #658b00">self</span>,
+            X_data,
+            Y_data,
+            n_hidden_neurons=<span style="color: #B452CD">50</span>,
+            n_categories=<span style="color: #B452CD">10</span>,
+            epochs=<span style="color: #B452CD">10</span>,
+            batch_size=<span style="color: #B452CD">100</span>,
+            eta=<span style="color: #B452CD">0.1</span>,
+            lmbd=<span style="color: #B452CD">0.0</span>):
+
+        <span style="color: #658b00">self</span>.X_data_full = X_data
+        <span style="color: #658b00">self</span>.Y_data_full = Y_data
+
+        <span style="color: #658b00">self</span>.n_inputs = X_data.shape[<span style="color: #B452CD">0</span>]
+        <span style="color: #658b00">self</span>.n_features = X_data.shape[<span style="color: #B452CD">1</span>]
+        <span style="color: #658b00">self</span>.n_hidden_neurons = n_hidden_neurons
+        <span style="color: #658b00">self</span>.n_categories = n_categories
+
+        <span style="color: #658b00">self</span>.epochs = epochs
+        <span style="color: #658b00">self</span>.batch_size = batch_size
+        <span style="color: #658b00">self</span>.iterations = <span style="color: #658b00">self</span>.n_inputs // <span style="color: #658b00">self</span>.batch_size
+        <span style="color: #658b00">self</span>.eta = eta
+        <span style="color: #658b00">self</span>.lmbd = lmbd
+
+        <span style="color: #658b00">self</span>.create_biases_and_weights()
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_biases_and_weights</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #658b00">self</span>.hidden_weights = np.random.randn(<span style="color: #658b00">self</span>.n_features, <span style="color: #658b00">self</span>.n_hidden_neurons)
+        <span style="color: #658b00">self</span>.hidden_bias = np.zeros(<span style="color: #658b00">self</span>.n_hidden_neurons) + <span style="color: #B452CD">0.01</span>
+
+        <span style="color: #658b00">self</span>.output_weights = np.random.randn(<span style="color: #658b00">self</span>.n_hidden_neurons, <span style="color: #658b00">self</span>.n_categories)
+        <span style="color: #658b00">self</span>.output_bias = np.zeros(<span style="color: #658b00">self</span>.n_categories) + <span style="color: #B452CD">0.01</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">feed_forward</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #228B22"># feed-forward for training</span>
+        <span style="color: #658b00">self</span>.z_h = np.matmul(<span style="color: #658b00">self</span>.X_data, <span style="color: #658b00">self</span>.hidden_weights) + <span style="color: #658b00">self</span>.hidden_bias
+        <span style="color: #658b00">self</span>.a_h = sigmoid(<span style="color: #658b00">self</span>.z_h)
+
+        <span style="color: #658b00">self</span>.z_o = np.matmul(<span style="color: #658b00">self</span>.a_h, <span style="color: #658b00">self</span>.output_weights) + <span style="color: #658b00">self</span>.output_bias
+
+        exp_term = np.exp(<span style="color: #658b00">self</span>.z_o)
+        <span style="color: #658b00">self</span>.probabilities = exp_term / np.sum(exp_term, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>)
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">feed_forward_out</span>(<span style="color: #658b00">self</span>, X):
+        <span style="color: #228B22"># feed-forward for output</span>
+        z_h = np.matmul(X, <span style="color: #658b00">self</span>.hidden_weights) + <span style="color: #658b00">self</span>.hidden_bias
+        a_h = sigmoid(z_h)
+
+        z_o = np.matmul(a_h, <span style="color: #658b00">self</span>.output_weights) + <span style="color: #658b00">self</span>.output_bias
+        
+        exp_term = np.exp(z_o)
+        probabilities = exp_term / np.sum(exp_term, axis=<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>)
+        <span style="color: #8B008B; font-weight: bold">return</span> probabilities
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">backpropagation</span>(<span style="color: #658b00">self</span>):
+        error_output = <span style="color: #658b00">self</span>.probabilities - <span style="color: #658b00">self</span>.Y_data
+        error_hidden = np.matmul(error_output, <span style="color: #658b00">self</span>.output_weights.T) * <span style="color: #658b00">self</span>.a_h * (<span style="color: #B452CD">1</span> - <span style="color: #658b00">self</span>.a_h)
+
+        <span style="color: #658b00">self</span>.output_weights_gradient = np.matmul(<span style="color: #658b00">self</span>.a_h.T, error_output)
+        <span style="color: #658b00">self</span>.output_bias_gradient = np.sum(error_output, axis=<span style="color: #B452CD">0</span>)
+
+        <span style="color: #658b00">self</span>.hidden_weights_gradient = np.matmul(<span style="color: #658b00">self</span>.X_data.T, error_hidden)
+        <span style="color: #658b00">self</span>.hidden_bias_gradient = np.sum(error_hidden, axis=<span style="color: #B452CD">0</span>)
+
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.lmbd &gt; <span style="color: #B452CD">0.0</span>:
+            <span style="color: #658b00">self</span>.output_weights_gradient += <span style="color: #658b00">self</span>.lmbd * <span style="color: #658b00">self</span>.output_weights
+            <span style="color: #658b00">self</span>.hidden_weights_gradient += <span style="color: #658b00">self</span>.lmbd * <span style="color: #658b00">self</span>.hidden_weights
+
+        <span style="color: #658b00">self</span>.output_weights -= <span style="color: #658b00">self</span>.eta * <span style="color: #658b00">self</span>.output_weights_gradient
+        <span style="color: #658b00">self</span>.output_bias -= <span style="color: #658b00">self</span>.eta * <span style="color: #658b00">self</span>.output_bias_gradient
+        <span style="color: #658b00">self</span>.hidden_weights -= <span style="color: #658b00">self</span>.eta * <span style="color: #658b00">self</span>.hidden_weights_gradient
+        <span style="color: #658b00">self</span>.hidden_bias -= <span style="color: #658b00">self</span>.eta * <span style="color: #658b00">self</span>.hidden_bias_gradient
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">predict</span>(<span style="color: #658b00">self</span>, X):
+        probabilities = <span style="color: #658b00">self</span>.feed_forward_out(X)
+        <span style="color: #8B008B; font-weight: bold">return</span> np.argmax(probabilities, axis=<span style="color: #B452CD">1</span>)
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">predict_probabilities</span>(<span style="color: #658b00">self</span>, X):
+        probabilities = <span style="color: #658b00">self</span>.feed_forward_out(X)
+        <span style="color: #8B008B; font-weight: bold">return</span> probabilities
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">train</span>(<span style="color: #658b00">self</span>):
+        data_indices = np.arange(<span style="color: #658b00">self</span>.n_inputs)
+
+        <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">self</span>.epochs):
+            <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">self</span>.iterations):
+                <span style="color: #228B22"># pick datapoints with replacement</span>
+                chosen_datapoints = np.random.choice(
+                    data_indices, size=<span style="color: #658b00">self</span>.batch_size, replace=<span style="color: #8B008B; font-weight: bold">False</span>
+                )
+
+                <span style="color: #228B22"># minibatch training data</span>
+                <span style="color: #658b00">self</span>.X_data = <span style="color: #658b00">self</span>.X_data_full[chosen_datapoints]
+                <span style="color: #658b00">self</span>.Y_data = <span style="color: #658b00">self</span>.Y_data_full[chosen_datapoints]
+
+                <span style="color: #658b00">self</span>.feed_forward()
+                <span style="color: #658b00">self</span>.backpropagation()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="evaluate-model-performance-on-test-data">Evaluate model performance on test data </h2>
+
+<p>To measure the performance of our network we evaluate how well it does it data it has never seen before, i.e. the test data.  
+We measure the performance of the network using the <em>accuracy</em> score.  
+The accuracy is as you would expect just the number of images correctly labeled divided by the total number of images. A perfect classifier will have an accuracy score of \( 1 \).  
+</p>
+
+<p><p>&nbsp;<br>
+$$ \text{Accuracy} = \frac{\sum_{i=1}^n I(\tilde{y}_i = y_i)}{n} ,$$
+<p>&nbsp;<br>  </p>
+
+<p>where \( I \) is the indicator function, \( 1 \) if \( \tilde{y}_i = y_i \) and \( 0 \) otherwise.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;">epochs = <span style="color: #B452CD">100</span>
+batch_size = <span style="color: #B452CD">100</span>
+
+dnn = NeuralNetwork(X_train, Y_train_onehot, eta=eta, lmbd=lmbd, epochs=epochs, batch_size=batch_size,
+                    n_hidden_neurons=n_hidden_neurons, n_categories=n_categories)
+dnn.train()
+test_predict = dnn.predict(X_test)
+
+<span style="color: #228B22"># accuracy score from scikit library</span>
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Accuracy score on test set: &quot;</span>, accuracy_score(Y_test, test_predict))
+
+<span style="color: #228B22"># equivalent in numpy</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">accuracy_score_numpy</span>(Y_test, Y_pred):
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum(Y_test == Y_pred) / <span style="color: #658b00">len</span>(Y_test)
+
+<span style="color: #228B22">#print(&quot;Accuracy score on test set: &quot;, accuracy_score_numpy(Y_test, test_predict))</span>
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="adjust-hyperparameters">Adjust hyperparameters </h2>
+
+<p>We now perform a grid search to find the optimal hyperparameters for the network.  
+Note that we are only using 1 layer with 50 neurons, and human performance is estimated to be around \( 98\% \) (\( 2\% \) error rate).
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;">eta_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
+lmbd_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
+<span style="color: #228B22"># store the models for later use</span>
+DNN_numpy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)), dtype=<span style="color: #658b00">object</span>)
+
+<span style="color: #228B22"># grid search</span>
+<span style="color: #8B008B; font-weight: bold">for</span> i, eta <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(eta_vals):
+    <span style="color: #8B008B; font-weight: bold">for</span> j, lmbd <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(lmbd_vals):
+        dnn = NeuralNetwork(X_train, Y_train_onehot, eta=eta, lmbd=lmbd, epochs=epochs, batch_size=batch_size,
+                            n_hidden_neurons=n_hidden_neurons, n_categories=n_categories)
+        dnn.train()
+        
+        DNN_numpy[i][j] = dnn
+        
+        test_predict = dnn.predict(X_test)
+        
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Learning rate  = &quot;</span>, eta)
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Accuracy score on test set: &quot;</span>, accuracy_score(Y_test, test_predict))
+        <span style="color: #658b00">print</span>()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="visualization">Visualization </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># visual representation of grid search</span>
+<span style="color: #228B22"># uses seaborn heatmap, you can also do this with matplotlib imshow</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
+
+sns.set()
+
+train_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+test_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(eta_vals)):
+    <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(lmbd_vals)):
+        dnn = DNN_numpy[i][j]
+        
+        train_pred = dnn.predict(X_train) 
+        test_pred = dnn.predict(X_test)
+
+        train_accuracy[i][j] = accuracy_score(Y_train, train_pred)
+        test_accuracy[i][j] = accuracy_score(Y_test, test_pred)
+
+        
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(train_accuracy, annot=<span style="color: #8B008B; font-weight: bold">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Training Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(test_accuracy, annot=<span style="color: #8B008B; font-weight: bold">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Test Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="scikit-learn-implementation">scikit-learn implementation </h2>
+
+<p><b>scikit-learn</b> focuses more
+on traditional machine learning methods, such as regression,
+clustering, decision trees, etc. As such, it has only two types of
+neural networks: Multi Layer Perceptron outputting continuous values,
+<em>MPLRegressor</em>, and Multi Layer Perceptron outputting labels,
+<em>MLPClassifier</em>. We will see how simple it is to use these classes.
+</p>
+
+<p><b>scikit-learn</b> implements a few improvements from our neural network,
+such as early stopping, a varying learning rate, different
+optimization methods, etc. We would therefore expect a better
+performance overall.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.neural_network</span> <span style="color: #8B008B; font-weight: bold">import</span> MLPClassifier
+<span style="color: #228B22"># store models for later use</span>
+DNN_scikit = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)), dtype=<span style="color: #658b00">object</span>)
+
+<span style="color: #8B008B; font-weight: bold">for</span> i, eta <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(eta_vals):
+    <span style="color: #8B008B; font-weight: bold">for</span> j, lmbd <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(lmbd_vals):
+        dnn = MLPClassifier(hidden_layer_sizes=(n_hidden_neurons), activation=<span style="color: #CD5555">&#39;logistic&#39;</span>,
+                            alpha=lmbd, learning_rate_init=eta, max_iter=epochs)
+        dnn.fit(X_train, Y_train)
+        
+        DNN_scikit[i][j] = dnn
+        
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Learning rate  = &quot;</span>, eta)
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Lambda = &quot;</span>, lmbd)
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Accuracy score on test set: &quot;</span>, dnn.score(X_test, Y_test))
+        <span style="color: #658b00">print</span>()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="visualization">Visualization </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># optional</span>
+<span style="color: #228B22"># visual representation of grid search</span>
+<span style="color: #228B22"># uses seaborn heatmap, could probably do this in matplotlib</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
+
+sns.set()
+
+train_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+test_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
+
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(eta_vals)):
+    <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(lmbd_vals)):
+        dnn = DNN_scikit[i][j]
+        
+        train_pred = dnn.predict(X_train) 
+        test_pred = dnn.predict(X_test)
+
+        train_accuracy[i][j] = accuracy_score(Y_train, train_pred)
+        test_accuracy[i][j] = accuracy_score(Y_test, test_pred)
+
+        
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(train_accuracy, annot=<span style="color: #8B008B; font-weight: bold">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Training Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+
+fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
+sns.heatmap(test_accuracy, annot=<span style="color: #8B008B; font-weight: bold">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
+ax.set_title(<span style="color: #CD5555">&quot;Test Accuracy&quot;</span>)
+ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
+ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </section>
 
 
