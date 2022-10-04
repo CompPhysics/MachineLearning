@@ -93,7 +93,7 @@ For the reading assignments we use the following abbreviations:
   - Video of lecture at https://youtu.be/rDBj50Lv3Go
 
 * Friday: Stochastic Gradient descent with examples and automatic differentiation
-
+  - Video of lecture at https://youtu.be/OH6I_oscwPc
 * Reading recommendations:
   - See lecture notes for week 39 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For a good discussion on gradient methods, see Goodfellow et al section 4.3-4.5 and chapter 8. We will come back to the latter chapter in our discussion of Neural networks as well.
