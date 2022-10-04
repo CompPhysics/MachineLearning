@@ -3566,6 +3566,89 @@ delta  = <span style="color: #B452CD">1e-8</span>
 </section>
 
 <section>
+<h2 id="rmsprop-for-adaptive-learning-rate-with-stochastic-gradient-descent">RMSprop for adaptive learning rate with Stochastic Gradient Descent </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent</span>
+<span style="color: #228B22"># OLS example</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">autograd</span> <span style="color: #8B008B; font-weight: bold">import</span> grad
+
+<span style="color: #228B22"># Note change from previous example</span>
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">CostOLS</span>(y,X,theta):
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y-X @ theta)**<span style="color: #B452CD">2</span>)
+
+n = <span style="color: #B452CD">10000</span>
+x = np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">3</span>*x +<span style="color: #B452CD">4</span>*x*x<span style="color: #228B22"># +np.random.randn(n,1)</span>
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x, x*x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Own inversion&quot;</span>)
+<span style="color: #658b00">print</span>(theta_linreg)
+
+
+<span style="color: #228B22"># Note that we request the derivative wrt third argument (theta, 2 here)</span>
+training_gradient = grad(CostOLS,<span style="color: #B452CD">2</span>)
+<span style="color: #228B22"># Define parameters for Stochastic Gradient Descent</span>
+n_epochs = <span style="color: #B452CD">50</span>
+M = <span style="color: #B452CD">5</span>   <span style="color: #228B22">#size of each minibatch</span>
+m = <span style="color: #658b00">int</span>(n/M) <span style="color: #228B22">#number of minibatches</span>
+<span style="color: #228B22"># Guess for unknown parameters theta</span>
+theta = np.random.randn(<span style="color: #B452CD">3</span>,<span style="color: #B452CD">1</span>)
+
+<span style="color: #228B22"># Value for learning rate</span>
+eta = <span style="color: #B452CD">0.01</span>
+<span style="color: #228B22"># Value for parameter rho</span>
+rho = <span style="color: #B452CD">0.99</span>
+<span style="color: #228B22"># Including AdaGrad parameter to avoid possible division by zero</span>
+delta  = <span style="color: #B452CD">1e-8</span>
+<span style="color: #8B008B; font-weight: bold">for</span> epoch <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_epochs):
+    Giter = np.zeros(shape=(<span style="color: #B452CD">3</span>,<span style="color: #B452CD">3</span>))
+    <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(m):
+        random_index = M*np.random.randint(m)
+        xi = X[random_index:random_index+M]
+        yi = y[random_index:random_index+M]
+        gradients = (<span style="color: #B452CD">1.0</span>/M)*training_gradient(yi, xi, theta)
+	<span style="color: #228B22"># Previous value for the outer product of gradients</span>
+        Previous = Giter
+	<span style="color: #228B22"># Accumulated gradient</span>
+        Giter +=gradients @ gradients.T
+	<span style="color: #228B22"># Scaling with rho the new and the previous results</span>
+        Gnew = (rho*Previous+(<span style="color: #B452CD">1</span>-rho)*Giter)
+	<span style="color: #228B22"># Taking the diagonal only and inverting</span>
+        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Gnew)))]
+	<span style="color: #228B22"># Hadamard product</span>
+        update = np.multiply(Ginverse,gradients)
+        theta -= update
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;theta from own RMSprop&quot;</span>)
+<span style="color: #658b00">print</span>(theta)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
 <h2 id="and-logistic-regression">And Logistic Regression </h2>
 
 
