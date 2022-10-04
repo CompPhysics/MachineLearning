@@ -1,4 +1,4 @@
-# Using Autograd to calculate gradients using AdaGrad and Stochastic Gradient descent
+# Using Autograd to calculate gradients using Adam and Stochastic Gradient descent
 # OLS example
 from random import random, seed
 import numpy as np
@@ -32,21 +32,30 @@ theta = np.random.randn(3,1)
 
 # Value for learning rate
 eta = 0.01
-rho = 0.99
+rho1 = 0.9
+rho2 = 0.99
 # Including AdaGrad parameter to avoid possible division by zero
 delta  = 1e-8
 for epoch in range(n_epochs):
     Giter = np.zeros(shape=(3,3))
+    t = 0
+    s = np.zeros(shape=(3,1))
     for i in range(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
         yi = y[random_index:random_index+M]
         gradients = (1.0/M)*training_gradient(yi, xi, theta)
+        t += 1
         Previous = Giter
         Giter +=gradients @ gradients.T
-        Gnew = (rho*Previous+(1-rho)*Giter)
+        Gnew = (rho2*Previous+(1-rho2)*Giter)
+        Gnew = Gnew#/(1.0-rho2*t)
         Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Gnew)))]
-        update = np.multiply(Ginverse,gradients)
-        theta -= update
-print("theta from own AdaGrad")
+        s += rho1*s+(1-rho1)*gradients
+#        snew = s/(1.0-rho1*t)
+        theta -= Ginverse.T @ s
+print("theta from own Adam")
 print(theta)
+
+
+from math import sqrt
