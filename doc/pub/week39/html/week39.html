@@ -352,10 +352,11 @@ div.toc p,a {
                2,
                None,
                'same-code-but-now-with-momentum-gradient-descent'),
-              ('Same problem but now with AdaGrad',
+              ('Similar (second order function now) problem but now with '
+               'AdaGrad',
                2,
                None,
-               'same-problem-but-now-with-adagrad'),
+               'similar-second-order-function-now-problem-but-now-with-adagrad'),
               ('And Logistic Regression', 2, None, 'and-logistic-regression'),
               ('Introducing "JAX":"https://jax.readthedocs.io/en/latest/"',
                2,
@@ -399,7 +400,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Sep 30, 2022</h4>
+<h4>Oct 4, 2022</h4>
 </center> <!-- date -->
 <br>
 
@@ -3490,7 +3491,7 @@ delta_momentum <span style="color: #666666">=</span> <span style="color: #666666
 
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="same-problem-but-now-with-adagrad">Same problem but now with AdaGrad </h2>
+<h2 id="similar-second-order-function-now-problem-but-now-with-adagrad">Similar (second order function now) problem but now with AdaGrad </h2>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
 <div class="cell border-box-sizing code_cell rendered">
@@ -3498,8 +3499,8 @@ delta_momentum <span style="color: #666666">=</span> <span style="color: #666666
     <div class="inner_cell">
       <div class="input_area">
         <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Using Autograd to calculate gradients using SGD</span>
-<span style="color: #408080; font-style: italic"># OLS example with AdaGrad</span>
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Using Autograd to calculate gradients using AdaGrad and Stochastic Gradient descent</span>
+<span style="color: #408080; font-style: italic"># OLS example</span>
 <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">autograd.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
@@ -3510,53 +3511,45 @@ delta_momentum <span style="color: #666666">=</span> <span style="color: #666666
 <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">CostOLS</span>(y,X,theta):
     <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y<span style="color: #666666">-</span>X <span style="color: #666666">@</span> theta)<span style="color: #666666">**2</span>)
 
-n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
-x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
-y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n,<span style="color: #666666">1</span>)
+n <span style="color: #666666">=</span> <span style="color: #666666">10000</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">2.0+3*</span>x <span style="color: #666666">+4*</span>x<span style="color: #666666">*</span>x<span style="color: #408080; font-style: italic"># +np.random.randn(n,1)</span>
 
-X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x]
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x, x<span style="color: #666666">*</span>x]
 XT_X <span style="color: #666666">=</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X
 theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(XT_X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
 <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
 <span style="color: #008000">print</span>(theta_linreg)
-<span style="color: #408080; font-style: italic"># Hessian matrix</span>
-H <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span> XT_X
-EigValues, EigVectors <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>eig(H)
-<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Eigenvalues of Hessian Matrix:</span><span style="color: #BB6688; font-weight: bold">{</span>EigValues<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
 
-theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
-eta <span style="color: #666666">=</span> <span style="color: #666666">1.0/</span>np<span style="color: #666666">.</span>max(EigValues)
-Niterations <span style="color: #666666">=</span> <span style="color: #666666">100</span>
 
 <span style="color: #408080; font-style: italic"># Note that we request the derivative wrt third argument (theta, 2 here)</span>
 training_gradient <span style="color: #666666">=</span> grad(CostOLS,<span style="color: #666666">2</span>)
-
-<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
-    gradients <span style="color: #666666">=</span> (<span style="color: #666666">1.0/</span>n)<span style="color: #666666">*</span>training_gradient(y, X, theta)
-    theta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own gd&quot;</span>)
-<span style="color: #008000">print</span>(theta)
-<span style="color: #008000">print</span>(np<span style="color: #666666">.</span>size(gradients))
-
+<span style="color: #408080; font-style: italic"># Define parameters for Stochastic Gradient Descent</span>
 n_epochs <span style="color: #666666">=</span> <span style="color: #666666">50</span>
 M <span style="color: #666666">=</span> <span style="color: #666666">5</span>   <span style="color: #408080; font-style: italic">#size of each minibatch</span>
 m <span style="color: #666666">=</span> <span style="color: #008000">int</span>(n<span style="color: #666666">/</span>M) <span style="color: #408080; font-style: italic">#number of minibatches</span>
-theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
+<span style="color: #408080; font-style: italic"># Guess for unknown parameters theta</span>
+theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">3</span>,<span style="color: #666666">1</span>)
 
-<span style="color: #408080; font-style: italic"># Including AdaGrad</span>
-delta  <span style="color: #666666">=</span> <span style="color: #666666">0.000001</span>
-r <span style="color: #666666">=</span> [<span style="color: #666666">0.0</span> <span style="color: #008000; font-weight: bold">for</span> _ <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(gradients<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>])]
+<span style="color: #408080; font-style: italic"># Value for learning rate</span>
+eta <span style="color: #666666">=</span> <span style="color: #666666">0.01</span>
+<span style="color: #408080; font-style: italic"># Including AdaGrad parameter to avoid possible division by zero</span>
+delta  <span style="color: #666666">=</span> <span style="color: #666666">1e-8</span>
 <span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_epochs):
+    <span style="color: #408080; font-style: italic"># The outer product is calculated from scratch for each epoch</span>
+    Giter <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(shape<span style="color: #666666">=</span>(<span style="color: #666666">3</span>,<span style="color: #666666">3</span>))
     <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
         random_index <span style="color: #666666">=</span> M<span style="color: #666666">*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m)
         xi <span style="color: #666666">=</span> X[random_index:random_index<span style="color: #666666">+</span>M]
         yi <span style="color: #666666">=</span> y[random_index:random_index<span style="color: #666666">+</span>M]
         gradients <span style="color: #666666">=</span> (<span style="color: #666666">1.0/</span>M)<span style="color: #666666">*</span>training_gradient(yi, xi, theta)
-        <span style="color: #408080; font-style: italic"># calculate squared gradient by Hadamard multiplication</span>
-        r <span style="color: #666666">-=</span> gradients<span style="color: #666666">*</span>gradients
+	<span style="color: #408080; font-style: italic"># Calculate the outer product of the gradients</span>
+        Giter <span style="color: #666666">+=</span>gradients <span style="color: #666666">@</span> gradients<span style="color: #666666">.</span>T
+	<span style="color: #408080; font-style: italic"># Simpler algorithm with only diagonal elements</span>
+        Ginverse <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[eta<span style="color: #666666">/</span>(delta<span style="color: #666666">+</span>np<span style="color: #666666">.</span>sqrt(np<span style="color: #666666">.</span>diagonal(Giter)))]
         <span style="color: #408080; font-style: italic"># compute update</span>
-        update <span style="color: #666666">=</span> <span style="color: #666666">1.0/</span>(delta<span style="color: #666666">+</span>np<span style="color: #666666">.</span>sqrt(r))<span style="color: #666666">*</span>gradients
-        theta <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>update
+        update <span style="color: #666666">=</span> np<span style="color: #666666">.</span>multiply(Ginverse,gradients)
+        theta <span style="color: #666666">-=</span> update
 <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own AdaGrad&quot;</span>)
 <span style="color: #008000">print</span>(theta)
 </pre>
@@ -3574,6 +3567,7 @@ r <span style="color: #666666">=</span> [<span style="color: #666666">0.0</span>
   </div>
 </div>
 
+<p>Running this code we note an almost perfect agreement with the results from matrix inversion.</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="and-logistic-regression">And Logistic Regression </h2>
