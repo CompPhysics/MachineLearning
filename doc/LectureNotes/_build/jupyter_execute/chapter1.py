@@ -87,7 +87,7 @@
 # Machine learning is an extremely rich field, in spite of its young
 # age. The increases we have seen during the last three decades in
 # computational capabilities have been followed by developments of
-# methods and techniques for analyzing and handling large date sets,
+# methods and techniques for analyzing and handling large data sets,
 # relying heavily on statistics, computer science and mathematics.  The
 # field is rather new and developing rapidly. Popular software packages
 # written in Python for machine learning like
@@ -110,7 +110,7 @@
 # problem, and let the computer deduce the logic behind it. On the other
 # hand, *unsupervised learning* is a method for finding patterns and
 # relationship in data sets without any prior knowledge of the system.
-# Some authours also operate with a third category, namely
+# Some authors also operate with a third category, namely
 # *reinforcement learning*. This is a paradigm of learning inspired by
 # behavioral psychology, where learning is achieved by trial-and-error,
 # solely from rewards and punishment.
@@ -166,14 +166,14 @@
 # In science and engineering we often end up in situations where we want to infer (or learn) a
 # quantitative model $M$ for a given set of sample points $\boldsymbol{X} \in [x_1, x_2,\dots x_N]$.
 # 
-# As we will see repeatedely in these lectures, we could try to fit these data points to a model given by a
+# As we will see repeatedly in these lectures, we could try to fit these data points to a model given by a
 # straight line, or if we wish to be more sophisticated to a more complex
 # function.
 # 
 # The reason for inferring such a model is that it
 # serves many useful purposes. On the one hand, the model can reveal information
 # encoded in the data or underlying mechanisms from which the data were generated. For instance, we could discover important
-# corelations that relate interesting physics interpretations.
+# correlations that relate interesting physics interpretations.
 # 
 # In addition, it can simplify the representation of the given data set and help
 # us in making predictions about  future data samples.
@@ -304,7 +304,7 @@ plt.show()
 # where $x$ is defined as before.  Does the fit look better? Indeed, by
 # reducing the role of the noise given by the normal distribution we see immediately that
 # our linear prediction seemingly reproduces better the training
-# set. However, this testing 'by the eye' is obviouly not satisfactory in the
+# set. However, this testing 'by the eye' is obviously not satisfactory in the
 # long run. Here we have only defined the training data and our model, and 
 # have not discussed a more rigorous approach to the **cost** function.
 # 

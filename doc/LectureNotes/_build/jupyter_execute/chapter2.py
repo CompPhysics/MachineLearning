@@ -88,7 +88,7 @@
 # This is given by the **Singular Value Decomposition** (SVD) algorithm,
 # perhaps the most powerful linear algebra algorithm.  The SVD provides
 # a numerically stable matrix decomposition that is used in a large
-# swath oc applications and the decomposition is always stable
+# swath of applications and the decomposition is always stable
 # numerically.
 # 
 # In machine learning it plays a central role in dealing with for
@@ -104,7 +104,7 @@
 # are problems with near singular or singular matrices. The column vectors of $\boldsymbol{X}$ 
 # may be linearly dependent, normally referred to as super-collinearity.  
 # This means that the matrix may be rank deficient and it is basically impossible to 
-# to model the data using linear regression. As an example, consider the matrix
+# model the data using linear regression. As an example, consider the matrix
 
 # $$
 # \begin{align*}
@@ -125,7 +125,7 @@
 # the first column is the row-wise sum of the other two columns. The rank (more correct,
 # the column rank) of a matrix is the dimension of the space spanned by the
 # column vectors. Hence, the rank of $\mathbf{X}$ is equal to the number
-# of linearly independent columns. In this particular case the matrix has rank 2.
+# of linearly independent columns. In this particular case the matrix has rank 1.
 # 
 # Super-collinearity of an $(n \times p)$-dimensional design matrix $\mathbf{X}$ implies
 # that the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$ (the matrix we need to invert to solve the linear regression equations) is non-invertible. If we have a square matrix that does not have an inverse, we say this matrix singular. The example here demonstrates this
@@ -158,7 +158,7 @@
 
 # has linearly dependent column vectors, we will not be able to compute the inverse
 # of $\boldsymbol{X}^T\boldsymbol{X}$ and we cannot find the parameters (estimators) $\beta_i$. 
-# The estimators are only well-defined if $(\boldsymbol{X}^{T}\boldsymbol{X})^{-1}$ exits. 
+# The estimators are only well-defined if $(\boldsymbol{X}^{T}\boldsymbol{X})$ can be inverted. 
 # This is more likely to happen when the matrix $\boldsymbol{X}$ is high-dimensional. In this case it is likely to encounter a situation where 
 # the regression parameters $\beta_i$ cannot be estimated.
 # 
@@ -172,7 +172,7 @@
 
 # ## Basic math of the SVD
 # 
-# From standard linear algebra we know that a square matrix $\boldsymbol{X}$ can be diagonalized if and only it is 
+# From standard linear algebra we know that a square matrix $\boldsymbol{X}$ can be diagonalized if and only if it is 
 # a so-called [normal matrix](https://en.wikipedia.org/wiki/Normal_matrix), that is if $\boldsymbol{X}\in {\mathbb{R}}^{n\times n}$
 # we have $\boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{X}^T\boldsymbol{X}$ or if $\boldsymbol{X}\in {\mathbb{C}}^{n\times n}$ we have $\boldsymbol{X}\boldsymbol{X}^{\dagger}=\boldsymbol{X}^{\dagger}\boldsymbol{X}$.
 # The matrix has then a set of eigenpairs
@@ -359,7 +359,6 @@ def SVDinv(A):
     return np.matmul(V,np.matmul(invD,UT))
 
 
-#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
 # Non-singular square matrix
 X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
 print(X)
@@ -378,7 +377,7 @@ print(np.abs(B-C))
 # It is also called the the Moore-Penrose Inverse after two independent discoverers of the method or the Generalized Inverse.
 # It is used for the calculation of the inverse for singular or near singular matrices and for rectangular matrices.
 # 
-# Using the SVD we can obtain the pseudoinverse of a matrix $\boldsymbol{A}$ (labeled here as $\boldsymbol{A}_{\mathrm{PI}}$
+# Using the SVD we can obtain the pseudoinverse (PI) of a matrix $\boldsymbol{A}$ (labeled here as $\boldsymbol{A}_{\mathrm{PI}}$
 
 # $$
 # \boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
@@ -441,7 +440,7 @@ print(np.abs(C-B))
 
 # where $\boldsymbol{U}$ is an orthogonal matrix of dimension $n\times n$, meaning that $\boldsymbol{U}\boldsymbol{U}^T=\boldsymbol{U}^T\boldsymbol{U}=\boldsymbol{I}_n$. Here $\boldsymbol{I}_n$ is the unit matrix of dimension $n \times n$.
 # 
-# Similarly, $\boldsymbol{V}$ is an orthogonal matrix of dimension $p\times p$, meaning that $\boldsymbol{V}\boldsymbol{V}^T=\boldsymbol{V}^T\boldsymbol{V}=\boldsymbol{I}_p$. Here $\boldsymbol{I}_n$ is the unit matrix of dimension $p \times p$.
+# Similarly, $\boldsymbol{V}$ is an orthogonal matrix of dimension $p\times p$, meaning that $\boldsymbol{V}\boldsymbol{V}^T=\boldsymbol{V}^T\boldsymbol{V}=\boldsymbol{I}_p$. Here $\boldsymbol{I}_p$ is the unit matrix of dimension $p \times p$.
 # 
 # Finally $\boldsymbol{\Sigma}$ contains the singular values $\sigma_i$. This matrix has dimension $n\times p$ and the singular values $\sigma_i$ are all positive. The non-zero values are ordered in descending order, that is
 
@@ -603,7 +602,7 @@ print(np.abs(C-B))
 # \frac{\partial^2 C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}^T\partial \boldsymbol{\beta}} =\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.
 # $$
 
-# This quantity defines was what is called the Hessian matrix (the second derivative of a function we want to optimize).
+# This quantity defines  what is called the Hessian matrix (the second derivative of the cost function we want to optimize).
 # 
 # The Hessian matrix plays an important role and is defined in this course as
 
@@ -709,7 +708,7 @@ print(np.abs(C-B))
 # $$
 
 # With these definitions, we can now rewrite our $2\times 2$
-# correlation/covariance matrix in terms of a moe general design/feature
+# correlation/covariance matrix in terms of a more general design/feature
 # matrix $\boldsymbol{X}\in {\mathbb{R}}^{n\times p}$. This leads to a $p\times p$
 # covariance matrix for the vectors $\boldsymbol{x}_i$ with $i=0,1,\dots,p-1$
 
@@ -810,7 +809,7 @@ print(C)
 # 
 # The above procedure with **numpy** can be made more compact if we use **pandas**.
 # 
-# We whow here how we can set up the correlation matrix using **pandas**, as done in this simple code
+# We know here how we can set up the correlation matrix using **pandas**, as done in this simple code
 
 # In[7]:
 
@@ -1208,7 +1207,7 @@ print(covariance_matrix)
 # Let us assume that our design matrix is given by unit (identity) matrix, that is a square diagonal matrix with ones only along the
 # diagonal. In this case we have an equal number of rows and columns $n=p$.
 # 
-# Our model approximation is just $\tilde{\boldsymbol{y}}=\boldsymbol{\beta}$ and the mean squared error and thereby the cost function for ordinary least sqquares (OLS) is then (we drop the term $1/n$)
+# Our model approximation is just $\tilde{\boldsymbol{y}}=\boldsymbol{\beta}$ and the mean squared error and thereby the cost function for ordinary least squares (OLS) is then (we drop the term $1/n$)
 
 # $$
 # C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2,
@@ -1254,7 +1253,7 @@ print(covariance_matrix)
 
 # Plotting these results ([figure in handwritten notes for week 36](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2021/NotesSeptember9.pdf)) shows clearly that Lasso regression suppresses (sets to zero) values of $\beta_i$ for specific values of $\lambda$. Ridge regression reduces on the other hand the values of $\beta_i$ as function of $\lambda$.
 # 
-# As another examples, 
+# As another example, 
 # let us assume we have a data set with outputs/targets given by the vector
 
 # $$
@@ -1443,13 +1442,13 @@ plt.legend()
 plt.show()
 
 
-# We see here that we reach a plateau for the Ridge results. Writing out the coefficients $\boldsymbol{\beta}$, we that they are getting smaller and smaller and our error stabilizes since the predicted values of $\tilde{\boldsymbol{y}}$ approach zero.
+# We see here that we reach a plateau for the Ridge results. Writing out the coefficients $\boldsymbol{\beta}$, we observe that they are getting smaller and smaller and our error stabilizes since the predicted values of $\tilde{\boldsymbol{y}}$ approach zero.
 # 
 # This happens also for Lasso regression, as seen from the next code
 # output. The difference is that Lasso shrinks the values of $\beta$ to
 # zero at a much earlier stage and the results flatten out. We see that
 # Lasso gives also an excellent fit for small values of $\lambda$ and
-# shows rthe best performance of the three regression methods.
+# shows the best performance of the three regression methods.
 
 # In[10]:
 
@@ -1800,7 +1799,7 @@ plt.show()
 
 # which reads as finding the likelihood of an event $y_i$ with the input variables $\boldsymbol{X}$ given the parameters (to be determined) $\boldsymbol{\beta}$.
 # 
-# Since these events are assumed to be independent and identicall distributed we can build the probability distribution function (PDF) for all possible event $\boldsymbol{y}$ as the product of the single events, that is we have
+# Since these events are assumed to be independent and identically distributed we can build the probability distribution function (PDF) for all possible event $\boldsymbol{y}$ as the product of the single events, that is we have
 
 # $$
 # p(\boldsymbol{y},\boldsymbol{X}\vert\boldsymbol{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}=\prod_{i=0}^{n-1}p(y_i,\boldsymbol{X}\vert\boldsymbol{\beta}).
@@ -1888,7 +1887,7 @@ plt.show()
 # The product rule (aka joint probability) is given by
 
 # $$
-# p(X \cup Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(X),
+# p(X \cap Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(X),
 # $$
 
 # where we read $p(X\vert Y)$ as the likelihood of obtaining $X$ given $Y$.
@@ -2161,7 +2160,7 @@ for i in range(nlambdas):
 # noise. Here we recommend to use $\sigma^2=1$ as variance for the
 # added noise (which follows a normal distribution with mean value zero).
 # Comment your results. If you have a large noise term, do the parameters $\beta_j$ vary more as function
-# model complexity? And what about their variance?
+# of model complexity? And what about their variance?
 
 # ## Linking Bayes' Theorem with Ridge and Lasso Regression
 # 
@@ -2195,7 +2194,7 @@ for i in range(nlambdas):
 # p(\boldsymbol{\beta}\vert\boldsymbol{D})\propto p(\boldsymbol{D}\vert\boldsymbol{\beta})p(\boldsymbol{\beta}).
 # $$
 
-# We have a model for $p(\boldsymbol{D}\vert\boldsymbol{\beta})$ but need one for the **prior** $p(\boldsymbol{\beta}$!   
+# We have a model for $p(\boldsymbol{D}\vert\boldsymbol{\beta})$ but need one for the **prior** $p(\boldsymbol{\beta})$!   
 # 
 # With the posterior probability defined by a likelihood which we have
 # already modeled and an unknown prior, we are now ready to make
@@ -2249,13 +2248,13 @@ for i in range(nlambdas):
 # constants terms that do not depend on $\beta$, we have
 
 # $$
-# C(\boldsymbol{\beta}=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{\tau}\vert\vert\boldsymbol{\beta}\vert\vert_1,
+# C(\boldsymbol{\beta})=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{\tau}\vert\vert\boldsymbol{\beta}\vert\vert_1,
 # $$
 
 # and replacing $1/\tau$ with $\lambda$ we have
 
 # $$
-# C(\boldsymbol{\beta}=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+# C(\boldsymbol{\beta})=\frac{\vert\vert (\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
 # $$
 
 # which is our Lasso cost function!  
