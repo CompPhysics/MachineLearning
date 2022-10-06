@@ -101,7 +101,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 40 October 3-7
 - Lab Wednesday: Wrap up project 1
 - Lecture Thursday: Stochastic gradient descent, automatic differentiation and start discussion of  feed-forward Neural Network code for regression and classification
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/sCHiGSoG2lE
 - Lecture Friday:  Deep Learning and Neural Networks: the back propagation algorithm
   - Video of Lecture at 
 - Reading recommendations:
