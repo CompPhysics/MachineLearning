@@ -269,20 +269,16 @@
 # domain of $f$, i.e the subset of $R^n$ where $f$ is defined. For more
 # details and proofs we refer to: [S. Boyd and L. Vandenberghe. Convex Optimization. Cambridge University Press](http://stanford.edu/boyd/cvxbook/, 2004).
 # 
-# **First order condition.**
-# 
-# Suppose $f$ is differentiable (i.e $\nabla f(x)$ is well defined for
+# **First order condition**: Suppose $f$ is differentiable (i.e $\nabla f(x)$ is well defined for
 # all $x$ in the domain of $f$). Then $f$ is convex if and only if $D_f$
-# is a convex set and $$f(y) \geq f(x) + \nabla f(x)^T (y-x) $$ holds
+# is a convex set and $f(y) \geq f(x) + \nabla f(x)^T (y-x)$ holds
 # for all $x,y \in D_f$. This condition means that for a convex function
 # the first order Taylor expansion (right hand side above) at any point
 # is a global under estimator of the function. To convince yourself you can
 # make a drawing of $f(x) = x^2+1$ and draw the tangent line to $f(x)$ and
-# note that it is always below the graph.
+# note that it is always below the graph.  
 # 
-# **Second order condition.**
-# 
-# Assume that $f$ is twice
+# **Second order condition**: Assume that $f$ is twice
 # differentiable, i.e the Hessian matrix exists at each point in
 # $D_f$. Then $f$ is convex if and only if $D_f$ is a convex set and its
 # Hessian is positive semi-definite for all $x\in D_f$. For a
@@ -1689,6 +1685,7 @@ print("The analytical derivative of f7 at n = %d is: %g"%(n,f7_grad_analytical))
 # In[22]:
 
 
+"""
 import autograd.numpy as np
 from autograd import grad
 def f8(x): # Assume x is an array
@@ -1700,6 +1697,7 @@ f8_grad = grad(f8)
 x = 8.4
 
 print("The derivative of f8 is:",f8_grad(x))
+"""
 
 
 # Here, Autograd tells us that an 'ArrayBox' does not support item assignment. The item assignment is done when the program tries to assign x[2] to the value 3. However, Autograd has implemented the computation of the derivative such that this assignment is not possible.
