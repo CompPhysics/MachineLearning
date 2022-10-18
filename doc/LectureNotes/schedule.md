@@ -112,9 +112,9 @@ For the reading assignments we use the following abbreviations:
 ###  Week 41 October 10-14
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Deep learning and Neural Networks, developing a code for Neural Networks
-  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h21/forelesningsvideoer/LectureOctober14.mp4?vrtx=view-as-webpage
+  - Video of Lecture at https://youtu.be/yzbxJI6LgL0
 - Lecture Friday: Tensorflow and the mathematics of neural network
-  - Video of Lecture at https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h21/forelesningsvideoer/LectureOctober15.mp4?vrtx=view-as-webpage
+  - Video of Lecture at 
 - Reading recommendations:
   - See lecture notes for week 41 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For neural networks we recommend Goodfellow et al chapters 6 and 7. For CNNs, see Goodfellow et al chapter 9. chapter 11 and 12 on practicalities and applications
