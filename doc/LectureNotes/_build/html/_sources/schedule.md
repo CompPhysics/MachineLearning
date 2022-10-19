@@ -114,7 +114,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Deep learning and Neural Networks, developing a code for Neural Networks
   - Video of Lecture at https://youtu.be/yzbxJI6LgL0
 - Lecture Friday: Tensorflow and the mathematics of neural network
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/CPj4mh7M9no
 - Reading recommendations:
   - See lecture notes for week 41 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For neural networks we recommend Goodfellow et al chapters 6 and 7. For CNNs, see Goodfellow et al chapter 9. chapter 11 and 12 on practicalities and applications
