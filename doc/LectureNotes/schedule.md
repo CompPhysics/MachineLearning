@@ -113,7 +113,7 @@ For the reading assignments we use the following abbreviations:
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Deep learning and Neural Networks, developing a code for Neural Networks
   - Video of Lecture at https://youtu.be/yzbxJI6LgL0
-- Lecture Friday: Tensorflow and the mathematics of neural network
+- Lecture Friday: Developing a neural network code
   - Video of Lecture at https://youtu.be/CPj4mh7M9no
 - Reading recommendations:
   - See lecture notes for week 41 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
@@ -122,8 +122,8 @@ For the reading assignments we use the following abbreviations:
   
 ###  Week 42 October 17-21
 - Lab Wednesday: Work on project 2
-- Lecture Thursday: Solving differential equations with neural networks and start Convolutional Neural Networks and classification problems
-  - Video of Lecture at 
+- Lecture Thursday: Discussion of Neural Network calculations and tensorflow. Solving differential equations with neural networks
+  - Video of Lecture at https://youtu.be/MdYT6uwOkT0
 - Lecture Friday: Convolutional Neural Networks and classification problems
   - Video of Lecture at 
 - Reading recommendations:
