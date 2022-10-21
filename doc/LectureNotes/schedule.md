@@ -125,7 +125,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Discussion of Neural Network calculations and tensorflow. Solving differential equations with neural networks
   - Video of Lecture at https://youtu.be/MdYT6uwOkT0
 - Lecture Friday: Convolutional Neural Networks and classification problems
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/3bDkrB-E7cU
 - Reading recommendations:
   - See lecture notes for week 42 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For neural networks we recommend Goodfellow et al chapters 6 and 7. For CNNs, see Goodfellow et al chapter 9. See also chapter 11 and 12 on practicalities and applications
