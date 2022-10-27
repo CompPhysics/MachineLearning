@@ -133,7 +133,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 43 October 24-28
 - Lab Wednesday: Work on project 2
 - Lecture Thursday:  Recurrent Neural Networks
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/Hm6Ay5DS6o0
 - Lecture Friday: Recurrent Neural Networks and time series and principal component analysis (PCA)
   - Video of Lecture at 
 - Reading recommendations:
