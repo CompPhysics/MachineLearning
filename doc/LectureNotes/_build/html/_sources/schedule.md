@@ -135,7 +135,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday:  Recurrent Neural Networks
   - Video of Lecture at https://youtu.be/Hm6Ay5DS6o0
 - Lecture Friday: Recurrent Neural Networks and time series and principal component analysis (PCA)
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/JHfgQ77fpqs
 - Reading recommendations:
   - See lecture notes for week 43 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - For RNNs, see Goodfellow et al chapter 10 and discussions in chapter 11 and 12 on practicalities and applications
