@@ -366,12 +366,15 @@ div.toc p,a {
                2,
                None,
                'rmsprop-for-adaptive-learning-rate-with-stochastic-gradient-descent'),
+              ('And finally "ADAM":"https://arxiv.org/pdf/1412.6980.pdf"',
+               2,
+               None,
+               'and-finally-adam-https-arxiv-org-pdf-1412-6980-pdf'),
               ('And Logistic Regression', 2, None, 'and-logistic-regression'),
               ('Introducing "JAX":"https://jax.readthedocs.io/en/latest/"',
                2,
                None,
-               'introducing-jax-https-jax-readthedocs-io-en-latest'),
-              ('Weekend challenge', 2, None, 'weekend-challenge')]}
+               'introducing-jax-https-jax-readthedocs-io-en-latest')]}
 end of tocinfo -->
 
 <body>
@@ -3649,18 +3652,99 @@ delta  <span style="color: #666666">=</span> <span style="color: #666666">1e-8</
         xi <span style="color: #666666">=</span> X[random_index:random_index<span style="color: #666666">+</span>M]
         yi <span style="color: #666666">=</span> y[random_index:random_index<span style="color: #666666">+</span>M]
         gradients <span style="color: #666666">=</span> (<span style="color: #666666">1.0/</span>M)<span style="color: #666666">*</span>training_gradient(yi, xi, theta)
-	<span style="color: #408080; font-style: italic"># Previous value for the outer product of gradients</span>
-        Previous <span style="color: #666666">=</span> Giter
-	<span style="color: #408080; font-style: italic"># Accumulated gradient</span>
-<span style="color: #408080; font-style: italic">#        Giter +=gradients @ gradients.T</span>
 	<span style="color: #408080; font-style: italic"># Scaling with rho the new and the previous results</span>
         Giter <span style="color: #666666">=</span> (rho<span style="color: #666666">*</span>Giter<span style="color: #666666">+</span>(<span style="color: #666666">1-</span>rho)<span style="color: #666666">*</span>gradients<span style="color: #666666">*</span>gradients)
 	<span style="color: #408080; font-style: italic"># Taking the diagonal only and inverting</span>
         Ginverse <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[eta<span style="color: #666666">/</span>(delta<span style="color: #666666">+</span>np<span style="color: #666666">.</span>sqrt(np<span style="color: #666666">.</span>diagonal(Giter)))]
 	<span style="color: #408080; font-style: italic"># Hadamard product</span>
-        update <span style="color: #666666">=</span> np<span style="color: #666666">.</span>multiply(Ginverse,gradients)
+        update <span style="color: #666666">=</span> Ginverse<span style="color: #666666">*</span>gradients
         theta <span style="color: #666666">-=</span> update
 <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own RMSprop&quot;</span>)
+<span style="color: #008000">print</span>(theta)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="and-finally-adam-https-arxiv-org-pdf-1412-6980-pdf">And finally <a href="https://arxiv.org/pdf/1412.6980.pdf" target="_blank">ADAM</a> </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent</span>
+<span style="color: #408080; font-style: italic"># OLS example</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">autograd.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">autograd</span> <span style="color: #008000; font-weight: bold">import</span> grad
+
+<span style="color: #408080; font-style: italic"># Note change from previous example</span>
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">CostOLS</span>(y,X,theta):
+    <span style="color: #008000; font-weight: bold">return</span> np<span style="color: #666666">.</span>sum((y<span style="color: #666666">-</span>X <span style="color: #666666">@</span> theta)<span style="color: #666666">**2</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">1000</span>
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">2.0+3*</span>x <span style="color: #666666">+4*</span>x<span style="color: #666666">*</span>x<span style="color: #408080; font-style: italic"># +np.random.randn(n,1)</span>
+
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x, x<span style="color: #666666">*</span>x]
+XT_X <span style="color: #666666">=</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X
+theta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(XT_X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
+<span style="color: #008000">print</span>(theta_linreg)
+
+
+<span style="color: #408080; font-style: italic"># Note that we request the derivative wrt third argument (theta, 2 here)</span>
+training_gradient <span style="color: #666666">=</span> grad(CostOLS,<span style="color: #666666">2</span>)
+<span style="color: #408080; font-style: italic"># Define parameters for Stochastic Gradient Descent</span>
+n_epochs <span style="color: #666666">=</span> <span style="color: #666666">50</span>
+M <span style="color: #666666">=</span> <span style="color: #666666">5</span>   <span style="color: #408080; font-style: italic">#size of each minibatch</span>
+m <span style="color: #666666">=</span> <span style="color: #008000">int</span>(n<span style="color: #666666">/</span>M) <span style="color: #408080; font-style: italic">#number of minibatches</span>
+<span style="color: #408080; font-style: italic"># Guess for unknown parameters theta</span>
+theta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">3</span>,<span style="color: #666666">1</span>)
+
+<span style="color: #408080; font-style: italic"># Value for learning rate</span>
+eta <span style="color: #666666">=</span> <span style="color: #666666">0.01</span>
+<span style="color: #408080; font-style: italic"># Value for parameters beta1 and beta2, see https://arxiv.org/abs/1412.6980</span>
+beta1 <span style="color: #666666">=</span> <span style="color: #666666">0.9</span>
+beta2 <span style="color: #666666">=</span> <span style="color: #666666">0.999</span>
+<span style="color: #408080; font-style: italic"># Including AdaGrad parameter to avoid possible division by zero</span>
+delta  <span style="color: #666666">=</span> <span style="color: #666666">1e-7</span>
+<span style="color: #008000">iter</span> <span style="color: #666666">=</span> <span style="color: #666666">0</span>
+<span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n_epochs):
+    first_moment <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+    second_moment <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+    <span style="color: #008000">iter</span> <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(m):
+        random_index <span style="color: #666666">=</span> M<span style="color: #666666">*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randint(m)
+        xi <span style="color: #666666">=</span> X[random_index:random_index<span style="color: #666666">+</span>M]
+        yi <span style="color: #666666">=</span> y[random_index:random_index<span style="color: #666666">+</span>M]
+        gradients <span style="color: #666666">=</span> (<span style="color: #666666">1.0/</span>M)<span style="color: #666666">*</span>training_gradient(yi, xi, theta)
+        <span style="color: #408080; font-style: italic"># Computing moments first</span>
+        first_moment <span style="color: #666666">=</span> beta1<span style="color: #666666">*</span>first_moment <span style="color: #666666">+</span> (<span style="color: #666666">1-</span>beta1)<span style="color: #666666">*</span>gradients
+        second_moment <span style="color: #666666">=</span> beta2<span style="color: #666666">*</span>second_moment<span style="color: #666666">+</span>(<span style="color: #666666">1-</span>beta2)<span style="color: #666666">*</span>gradients<span style="color: #666666">*</span>gradients
+        first_term <span style="color: #666666">=</span> first_moment<span style="color: #666666">/</span>(<span style="color: #666666">1.0-</span>beta1<span style="color: #666666">**</span><span style="color: #008000">iter</span>)
+        second_term <span style="color: #666666">=</span> second_moment<span style="color: #666666">/</span>(<span style="color: #666666">1.0-</span>beta2<span style="color: #666666">**</span><span style="color: #008000">iter</span>)
+	<span style="color: #408080; font-style: italic"># Scaling with rho the new and the previous results</span>
+        update <span style="color: #666666">=</span> eta<span style="color: #666666">*</span>first_term<span style="color: #666666">/</span>(np<span style="color: #666666">.</span>sqrt(second_term)<span style="color: #666666">+</span>delta)
+        theta <span style="color: #666666">-=</span> update
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own ADAM&quot;</span>)
 <span style="color: #008000">print</span>(theta)
 </pre>
 </div>
@@ -3781,14 +3865,6 @@ derivative_fn <span style="color: #666666">=</span> grad(sum_logistic)
 </div>
 
 
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="weekend-challenge">Weekend challenge </h2>
-
-<ul>
-<li> Try to run the above codes and implement the stochastic gradient descent with the ADAM. Here you can use as examples the Adagrad and the RMSprop algorithms.</li>
-<li> Add a more complicated function and study the rate of convergence for the derivatives as function of the different methods</li>
-<li> Extend from linear regression to logistic regression.</li>
-</ul>
 <!-- ------------------- end of main content --------------- -->
 <center style="font-size:80%">
 <!-- copyright --> &copy; 1999-2022, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license

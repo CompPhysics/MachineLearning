@@ -10,7 +10,7 @@ from autograd import grad
 def CostOLS(y,X,theta):
     return np.sum((y-X @ theta)**2)
 
-n = 10000
+n = 1000
 x = np.random.rand(n,1)
 y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
 
@@ -32,25 +32,28 @@ theta = np.random.randn(3,1)
 
 # Value for learning rate
 eta = 0.01
-# Value for parameter rho
-rho = 0.99
+# Value for parameters beta1 and beta2, see https://arxiv.org/abs/1412.6980
+beta1 = 0.9
+beta2 = 0.999
 # Including AdaGrad parameter to avoid possible division by zero
-delta  = 1e-8
+delta  = 1e-7
+iter = 0
 for epoch in range(n_epochs):
-    Giter = np.zeros(shape=(3,3))
+    first_moment = 0.0
+    second_moment = 0.0
+    iter += 1
     for i in range(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
         yi = y[random_index:random_index+M]
         gradients = (1.0/M)*training_gradient(yi, xi, theta)
-	# Accumulated gradient
+        # Computing moments first
+        first_moment = beta1*first_moment + (1-beta1)*gradients
+        second_moment = beta2*second_moment+(1-beta2)*gradients*gradients
+        first_term = first_moment/(1.0-beta1**iter)
+        second_term = second_moment/(1.0-beta2**iter)
 	# Scaling with rho the new and the previous results
-        Giter = (rho*Giter+(1-rho)*gradients*gradients)
-	# Taking the diagonal only and inverting
-        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Giter)))]
-	# Hadamard product
-        update = Ginverse*gradients
-#        update = np.multiply(Ginverse,gradients)
+        update = eta*first_term/(np.sqrt(second_term)+delta)
         theta -= update
-print("theta from own RMSprop")
+print("theta from own ADAM")
 print(theta)
