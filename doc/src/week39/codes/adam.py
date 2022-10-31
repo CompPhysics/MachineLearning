@@ -1,78 +1,59 @@
-from math import sqrt
-from numpy import asarray
-from numpy import arange
-from numpy.random import rand
-from numpy.random import seed
-from numpy import meshgrid
-from matplotlib import pyplot
-from mpl_toolkits.mplot3d import Axes3D
- 
-# objective function
-def objective(x, y):
-	return x**2.0 + y**2.0
- 
-# derivative of objective function
-def derivative(x, y):
-	return asarray([x * 2.0, y * 2.0])
- 
-# gradient descent algorithm with adam
-def adam(objective, derivative, bounds, n_iter, alpha, beta1, beta2, eps=1e-8):
-	solutions = list()
-	# generate an initial point
-	x = bounds[:, 0] + rand(len(bounds)) * (bounds[:, 1] - bounds[:, 0])
-	score = objective(x[0], x[1])
-	# initialize first and second moments
-	m = [0.0 for _ in range(bounds.shape[0])]
-	v = [0.0 for _ in range(bounds.shape[0])]
-	# run the gradient descent updates
-	for t in range(n_iter):
-		# calculate gradient g(t)
-		g = derivative(x[0], x[1])
-		# build a solution one variable at a time
-		for i in range(bounds.shape[0]):
-			# m(t) = beta1 * m(t-1) + (1 - beta1) * g(t)
-			m[i] = beta1 * m[i] + (1.0 - beta1) * g[i]
-			# v(t) = beta2 * v(t-1) + (1 - beta2) * g(t)^2
-			v[i] = beta2 * v[i] + (1.0 - beta2) * g[i]**2
-			# mhat(t) = m(t) / (1 - beta1(t))
-			mhat = m[i] / (1.0 - beta1**(t+1))
-			# vhat(t) = v(t) / (1 - beta2(t))
-			vhat = v[i] / (1.0 - beta2**(t+1))
-			# x(t) = x(t-1) - alpha * mhat(t) / (sqrt(vhat(t)) + ep)
-			x[i] = x[i] - alpha * mhat / (sqrt(vhat) + eps)
-		# evaluate candidate point
-		score = objective(x[0], x[1])
-		# keep track of solutions
-		solutions.append(x.copy())
-		# report progress
-		print('>%d f(%s) = %.5f' % (t, x, score))
-	return solutions
- 
-# seed the pseudo random number generator
-seed(1)
-# define range for input
-bounds = asarray([[-1.0, 1.0], [-1.0, 1.0]])
-# define the total iterations
-n_iter = 60
-# steps size
-alpha = 0.02
-# factor for average gradient
-beta1 = 0.8
-# factor for average squared gradient
+# Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
+# OLS example
+from random import random, seed
+import numpy as np
+import autograd.numpy as np
+import matplotlib.pyplot as plt
+from autograd import grad
+
+# Note change from previous example
+def CostOLS(y,X,theta):
+    return np.sum((y-X @ theta)**2)
+
+n = 1000
+x = np.random.rand(n,1)
+y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x, x*x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+print("Own inversion")
+print(theta_linreg)
+
+
+# Note that we request the derivative wrt third argument (theta, 2 here)
+training_gradient = grad(CostOLS,2)
+# Define parameters for Stochastic Gradient Descent
+n_epochs = 50
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
+# Guess for unknown parameters theta
+theta = np.random.randn(3,1)
+
+# Value for learning rate
+eta = 0.01
+# Value for parameters beta1 and beta2, see https://arxiv.org/abs/1412.6980
+beta1 = 0.9
 beta2 = 0.999
-# perform the gradient descent search with adam
-solutions = adam(objective, derivative, bounds, n_iter, alpha, beta1, beta2)
-# sample input range uniformly at 0.1 increments
-xaxis = arange(bounds[0,0], bounds[0,1], 0.1)
-yaxis = arange(bounds[1,0], bounds[1,1], 0.1)
-# create a mesh from the axis
-x, y = meshgrid(xaxis, yaxis)
-# compute targets
-results = objective(x, y)
-# create a filled contour plot with 50 levels and jet color scheme
-pyplot.contourf(x, y, results, levels=50, cmap='jet')
-# plot the sample as black circles
-solutions = asarray(solutions)
-pyplot.plot(solutions[:, 0], solutions[:, 1], '.-', color='w')
-# show the plot
-pyplot.show()
+# Including AdaGrad parameter to avoid possible division by zero
+delta  = 1e-7
+iter = 0
+for epoch in range(n_epochs):
+    first_moment = 0.0
+    second_moment = 0.0
+    iter += 1
+    for i in range(m):
+        random_index = M*np.random.randint(m)
+        xi = X[random_index:random_index+M]
+        yi = y[random_index:random_index+M]
+        gradients = (1.0/M)*training_gradient(yi, xi, theta)
+        # Computing moments first
+        first_moment = beta1*first_moment + (1-beta1)*gradients
+        second_moment = beta2*second_moment+(1-beta2)*gradients*gradients
+        first_term = first_moment/(1.0-beta1**iter)
+        second_term = second_moment/(1.0-beta2**iter)
+	# Scaling with rho the new and the previous results
+        update = eta*first_term/(np.sqrt(second_term)+delta)
+        theta -= update
+print("theta from own ADAM")
+print(theta)
