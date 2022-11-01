@@ -142,13 +142,13 @@ For the reading assignments we use the following abbreviations:
   - For PCA, see lecture notes chapter 11 and Geron's text chapter 8
 ###  Week 44 October 31-November 4
 - Lab Wednesday: Work on project 2
-- Lecture Thursday: Summary on PCA and discussion of Clustering for unsupervised learning. Decision trees, classification and regression
+- Lecture Thursday: Decision trees, basic algorithms for classification and regression
   - Video of Lecture at 
-- Lecture Friday: Decision trees, basic algorithms
+- Lecture Friday: From trees to forests and ensemble methods
   - Video of Lecture at 
 - Reading recommendations:
   - See lecture notes for week 44 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees) and chapter 8 on PCA and Clustering
+  - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees)
 
 ###  Week 45 November 7-11 
 - Lab Wednesday: Work on project 2, project 3 available.
@@ -178,7 +178,7 @@ For the reading assignments we use the following abbreviations:
 - Reading recommendations:
   - See lecture notes for week 47 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Geron's chapter 5.
-  - Hastie et al Chapter 12 (sections 12.1-12.3 are the most relevant ones)
+  - Hastie et al Chapter 12 (sections 1,2.1-12.3 are the most relevant ones)
   - Bishop chapter 7, with sections 7.1 and 7.2 as the essential ones
  
-
+ 
