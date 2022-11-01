@@ -335,7 +335,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Oct 31, 2022</h4>
+<h4>Nov 1, 2022</h4>
 </center> <!-- date -->
 <br>
 
@@ -3463,9 +3463,9 @@ delta_momentum = <span style="color: #B452CD">0.3</span>
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">CostOLS</span>(y,X,theta):
     <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y-X @ theta)**<span style="color: #B452CD">2</span>)
 
-n = <span style="color: #B452CD">10000</span>
+n = <span style="color: #B452CD">1000</span>
 x = np.random.rand(n,<span style="color: #B452CD">1</span>)
-y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">3</span>*x +<span style="color: #B452CD">4</span>*x*x<span style="color: #228B22"># +np.random.randn(n,1)</span>
+y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">3</span>*x +<span style="color: #B452CD">4</span>*x*x
 
 X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x, x*x]
 XT_X = X.T @ X
@@ -3488,19 +3488,14 @@ eta = <span style="color: #B452CD">0.01</span>
 <span style="color: #228B22"># Including AdaGrad parameter to avoid possible division by zero</span>
 delta  = <span style="color: #B452CD">1e-8</span>
 <span style="color: #8B008B; font-weight: bold">for</span> epoch <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_epochs):
-    <span style="color: #228B22"># The outer product is calculated from scratch for each epoch</span>
-    Giter = np.zeros(shape=(<span style="color: #B452CD">3</span>,<span style="color: #B452CD">3</span>))
+    Giter = <span style="color: #B452CD">0.0</span>
     <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
         yi = y[random_index:random_index+M]
         gradients = (<span style="color: #B452CD">1.0</span>/M)*training_gradient(yi, xi, theta)
-	<span style="color: #228B22"># Calculate the outer product of the gradients</span>
-        Giter +=gradients @ gradients.T
-	<span style="color: #228B22"># Simpler algorithm with only diagonal elements</span>
-        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Giter)))]
-        <span style="color: #228B22"># compute update</span>
-        update = np.multiply(Ginverse,gradients)
+        Giter += gradients*gradients
+        update = gradients*eta/(delta+np.sqrt(Giter))
         theta -= update
 <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;theta from own AdaGrad&quot;</span>)
 <span style="color: #658b00">print</span>(theta)
@@ -3542,7 +3537,7 @@ delta  = <span style="color: #B452CD">1e-8</span>
 <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">CostOLS</span>(y,X,theta):
     <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y-X @ theta)**<span style="color: #B452CD">2</span>)
 
-n = <span style="color: #B452CD">10000</span>
+n = <span style="color: #B452CD">1000</span>
 x = np.random.rand(n,<span style="color: #B452CD">1</span>)
 y = <span style="color: #B452CD">2.0</span>+<span style="color: #B452CD">3</span>*x +<span style="color: #B452CD">4</span>*x*x<span style="color: #228B22"># +np.random.randn(n,1)</span>
 
@@ -3569,18 +3564,18 @@ rho = <span style="color: #B452CD">0.99</span>
 <span style="color: #228B22"># Including AdaGrad parameter to avoid possible division by zero</span>
 delta  = <span style="color: #B452CD">1e-8</span>
 <span style="color: #8B008B; font-weight: bold">for</span> epoch <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_epochs):
-    Giter = np.zeros(shape=(<span style="color: #B452CD">3</span>,<span style="color: #B452CD">3</span>))
+    Giter = <span style="color: #B452CD">0.0</span>
     <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
         yi = y[random_index:random_index+M]
         gradients = (<span style="color: #B452CD">1.0</span>/M)*training_gradient(yi, xi, theta)
+	<span style="color: #228B22"># Accumulated gradient</span>
 	<span style="color: #228B22"># Scaling with rho the new and the previous results</span>
         Giter = (rho*Giter+(<span style="color: #B452CD">1</span>-rho)*gradients*gradients)
 	<span style="color: #228B22"># Taking the diagonal only and inverting</span>
-        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Giter)))]
+        update = gradients*eta/(delta+np.sqrt(Giter))
 	<span style="color: #228B22"># Hadamard product</span>
-        update = Ginverse*gradients
         theta -= update
 <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;theta from own RMSprop&quot;</span>)
 <span style="color: #658b00">print</span>(theta)

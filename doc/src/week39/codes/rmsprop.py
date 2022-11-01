@@ -10,7 +10,7 @@ from autograd import grad
 def CostOLS(y,X,theta):
     return np.sum((y-X @ theta)**2)
 
-n = 10000
+n = 1000
 x = np.random.rand(n,1)
 y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
 
@@ -37,7 +37,7 @@ rho = 0.99
 # Including AdaGrad parameter to avoid possible division by zero
 delta  = 1e-8
 for epoch in range(n_epochs):
-    Giter = np.zeros(shape=(3,3))
+    Giter = 0.0
     for i in range(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
@@ -47,10 +47,8 @@ for epoch in range(n_epochs):
 	# Scaling with rho the new and the previous results
         Giter = (rho*Giter+(1-rho)*gradients*gradients)
 	# Taking the diagonal only and inverting
-        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Giter)))]
+        update = gradients*eta/(delta+np.sqrt(Giter))
 	# Hadamard product
-        update = Ginverse*gradients
-#        update = np.multiply(Ginverse,gradients)
         theta -= update
 print("theta from own RMSprop")
 print(theta)

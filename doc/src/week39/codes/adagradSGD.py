@@ -10,9 +10,9 @@ from autograd import grad
 def CostOLS(y,X,theta):
     return np.sum((y-X @ theta)**2)
 
-n = 10000
+n = 1000
 x = np.random.rand(n,1)
-y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
+y = 2.0+3*x +4*x*x
 
 X = np.c_[np.ones((n,1)), x, x*x]
 XT_X = X.T @ X
@@ -35,16 +35,15 @@ eta = 0.01
 # Including AdaGrad parameter to avoid possible division by zero
 delta  = 1e-8
 for epoch in range(n_epochs):
-    Giter = np.zeros(shape=(3,3))
+    Giter = 0.0
     for i in range(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
         yi = y[random_index:random_index+M]
         gradients = (1.0/M)*training_gradient(yi, xi, theta)
-        Giter +=gradients @ gradients.T
-        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Giter)))]
-        update = np.multiply(Ginverse,gradients)
-        theta -= update
+        Giter += gradients*gradients
+        Ginverse = gradients*eta/(delta+np.sqrt(Giter))
+        theta -= Ginverse
 print("theta from own AdaGrad")
 print(theta)
 

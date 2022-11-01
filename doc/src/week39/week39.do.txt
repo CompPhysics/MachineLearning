@@ -2457,9 +2457,9 @@ from autograd import grad
 def CostOLS(y,X,theta):
     return np.sum((y-X @ theta)**2)
 
-n = 10000
+n = 1000
 x = np.random.rand(n,1)
-y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
+y = 2.0+3*x +4*x*x
 
 X = np.c_[np.ones((n,1)), x, x*x]
 XT_X = X.T @ X
@@ -2482,22 +2482,19 @@ eta = 0.01
 # Including AdaGrad parameter to avoid possible division by zero
 delta  = 1e-8
 for epoch in range(n_epochs):
-    # The outer product is calculated from scratch for each epoch
-    Giter = np.zeros(shape=(3,3))
+    Giter = 0.0
     for i in range(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
         yi = y[random_index:random_index+M]
         gradients = (1.0/M)*training_gradient(yi, xi, theta)
-	# Calculate the outer product of the gradients
-        Giter +=gradients @ gradients.T
-	# Simpler algorithm with only diagonal elements
-        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Giter)))]
-        # compute update
-        update = np.multiply(Ginverse,gradients)
+        Giter += gradients*gradients
+        update = gradients*eta/(delta+np.sqrt(Giter))
         theta -= update
 print("theta from own AdaGrad")
 print(theta)
+
+
 !ec
 
 Running this code we note an almost perfect agreement with the results from matrix inversion.
@@ -2517,7 +2514,7 @@ from autograd import grad
 def CostOLS(y,X,theta):
     return np.sum((y-X @ theta)**2)
 
-n = 10000
+n = 1000
 x = np.random.rand(n,1)
 y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
 
@@ -2544,22 +2541,21 @@ rho = 0.99
 # Including AdaGrad parameter to avoid possible division by zero
 delta  = 1e-8
 for epoch in range(n_epochs):
-    Giter = np.zeros(shape=(3,3))
+    Giter = 0.0
     for i in range(m):
         random_index = M*np.random.randint(m)
         xi = X[random_index:random_index+M]
         yi = y[random_index:random_index+M]
         gradients = (1.0/M)*training_gradient(yi, xi, theta)
+	# Accumulated gradient
 	# Scaling with rho the new and the previous results
         Giter = (rho*Giter+(1-rho)*gradients*gradients)
 	# Taking the diagonal only and inverting
-        Ginverse = np.c_[eta/(delta+np.sqrt(np.diagonal(Giter)))]
+        update = gradients*eta/(delta+np.sqrt(Giter))
 	# Hadamard product
-        update = Ginverse*gradients
         theta -= update
 print("theta from own RMSprop")
 print(theta)
-
 !ec
 
 !split
