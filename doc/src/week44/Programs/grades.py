@@ -45,12 +45,15 @@ display(grades)
 X = grades.loc[:, grades.columns != 'Grade'].values
 y = grades.loc[:, grades.columns == 'Grade'].values
 print(X)
+"""
 # Create the encoder.
 encoder = OneHotEncoder(handle_unknown="ignore")
 # Assume for simplicity all features are categorical.
 encoder.fit(X)    
 # Apply the encoder.
 X = encoder.transform(X)
+print(X)
+"""
 # Then do a Classification tree
 tree_clf = DecisionTreeClassifier(max_depth=2)
 tree_clf.fit(X, y)
