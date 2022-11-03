@@ -143,7 +143,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 44 October 31-November 4
 - Lab Wednesday: Work on project 2
 - Lecture Thursday: Decision trees, basic algorithms for classification and regression
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/7jexGH5SOOE
 - Lecture Friday: From trees to forests and ensemble methods
   - Video of Lecture at 
 - Reading recommendations:
