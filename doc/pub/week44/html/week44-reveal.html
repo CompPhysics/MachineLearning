@@ -184,7 +184,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Nov 3, 2022</h4>
+<h4>Nov 4, 2022</h4>
 </center> <!-- date -->
 <br>
 
@@ -2451,6 +2451,391 @@ rnd_clf = RandomForestClassifier(n_estimators=<span style="color: #B452CD">500</
 rnd_clf.fit(X_train, y_train)
 y_pred_rf = rnd_clf.predict(X_test)
 np.sum(y_pred == y_pred_rf) / <span style="color: #658b00">len</span>(y_pred) 
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="boosting-a-bird-s-eye-view">Boosting, a Bird's Eye View </h2>
+
+<p>The basic idea is to combine weak classifiers in order to create a good
+classifier. With a weak classifier we often intend a classifier which
+produces results which are only slightly better than we would get by
+random guesses.
+</p>
+
+<p>This is done by applying in an iterative way a weak (or a standard
+classifier like decision trees) to modify the data. In each iteration
+we emphasize those observations which are misclassified by weighting
+them with a factor.
+</p>
+</section>
+
+<section>
+<h2 id="what-is-boosting-additive-modelling-iterative-fitting">What is boosting? Additive Modelling/Iterative Fitting </h2>
+
+<p>Boosting is a way of fitting an additive expansion in a set of
+elementary basis functions like for example some simple polynomials.
+Assume for example that we have a function
+</p>
+<p>&nbsp;<br>
+$$
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
+$$
+<p>&nbsp;<br>
+
+<p>where \( \beta_m \) are the expansion parameters to be determined in a
+minimization process and \( b(x;\gamma_m) \) are some simple functions of
+the multivariable parameter \( x \) which is characterized by the
+parameters \( \gamma_m \).
+</p>
+
+<p>As an example, consider the Sigmoid function we used in logistic
+regression. In that case, we can translate the function
+\( b(x;\gamma_m) \) into the Sigmoid function
+</p>
+
+<p>&nbsp;<br>
+$$
+\sigma(t) = \frac{1}{1+\exp{(-t)}},
+$$
+<p>&nbsp;<br>
+
+<p>where \( t=\gamma_0+\gamma_1 x \) and the parameters \( \gamma_0 \) and
+\( \gamma_1 \) were determined by the Logistic Regression fitting
+algorithm.
+</p>
+
+<p>As another example, consider the cost function we defined for linear regression</p>
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{y},\boldsymbol{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+$$
+<p>&nbsp;<br>
+
+<p>In this case the function \( f(x) \) was replaced by the design matrix
+\( \boldsymbol{X} \) and the unknown linear regression parameters \( \boldsymbol{\beta} \),
+that is \( \boldsymbol{f}=\boldsymbol{X}\boldsymbol{\beta} \). In linear regression we can 
+simply invert a matrix and obtain the parameters \( \beta \) by
+</p>
+
+<p>&nbsp;<br>
+$$
+\boldsymbol{\beta}=\left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+$$
+<p>&nbsp;<br>
+
+<p>In iterative fitting or additive modeling, we minimize the cost function with respect to the parameters \( \beta_m \) and \( \gamma_m \).</p>
+</section>
+
+<section>
+<h2 id="iterative-fitting-regression-and-squared-error-cost-function">Iterative Fitting, Regression and Squared-error Cost Function </h2>
+
+<p>The way we proceed is as follows (here we specialize to the squared-error cost function)</p>
+
+<ol>
+<p><li> Establish a cost function, here \( {\cal C}(\boldsymbol{y},\boldsymbol{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f_M(x_i))^2 \) with \( f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m) \).</li>
+<p><li> Initialize with a guess \( f_0(x) \). It could be one or even zero or some random numbers.</li>
+<p><li> For \( m=1:M \)
+<ol type="a"></li>
+ <p><li> minimize \( \sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2 \) wrt \( \gamma \) and \( \beta \)</li>
+ <p><li> This gives the optimal values \( \beta_m \) and \( \gamma_m \)</li>
+ <p><li> Determine then the new values \( f_m(x)=f_{m-1}(x) +\beta_m b(x;\gamma_m) \)</li>
+</ol>
+<p>
+</ol>
+<p>
+<p>We could use any of the algorithms we have discussed till now. If we
+use trees, \( \gamma \) parameterizes the split variables and split points
+at the internal nodes, and the predictions at the terminal nodes.
+</p>
+</section>
+
+<section>
+<h2 id="squared-error-example-and-iterative-fitting">Squared-Error Example and Iterative Fitting </h2>
+
+<p>To better understand what happens, let us develop the steps for the iterative fitting using the above squared error function.</p>
+
+<p>For simplicity we assume also that our functions \( b(x;\gamma)=1+\gamma x \). </p>
+
+<p>This means that for every iteration \( m \), we need to optimize</p>
+
+<p>&nbsp;<br>
+$$
+(\beta_m,\gamma_m) = \mathrm{argmin}_{\beta,\lambda}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2=\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta(1+\gamma x_i))^2.
+$$
+<p>&nbsp;<br>
+
+<p>We start our iteration by simply setting \( f_0(x)=0 \). 
+Taking the derivatives  with respect to \( \beta \) and \( \gamma \) we obtain
+</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial {\cal C}}{\partial \beta} = -2\sum_{i}(1+\gamma x_i)(y_i-\beta(1+\gamma x_i))=0,
+$$
+<p>&nbsp;<br>
+
+<p>and</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial {\cal C}}{\partial \gamma} =-2\sum_{i}\beta x_i(y_i-\beta(1+\gamma x_i))=0.
+$$
+<p>&nbsp;<br>
+
+<p>We can then rewrite these equations as (defining \( \boldsymbol{w}=\boldsymbol{e}+\gamma \boldsymbol{x}) \) with \( \boldsymbol{e} \) being the unit vector)</p>
+<p>&nbsp;<br>
+$$
+\gamma \boldsymbol{w}^T(\boldsymbol{y}-\beta\gamma \boldsymbol{w})=0,
+$$
+<p>&nbsp;<br>
+
+<p>which gives us \( \beta = \boldsymbol{w}^T\boldsymbol{y}/(\boldsymbol{w}^T\boldsymbol{w}) \). Similarly we have </p>
+<p>&nbsp;<br>
+$$
+\beta\gamma \boldsymbol{x}^T(\boldsymbol{y}-\beta(1+\gamma \boldsymbol{x}))=0,
+$$
+<p>&nbsp;<br>
+
+<p>which leads to \( \gamma =(\boldsymbol{x}^T\boldsymbol{y}-\beta\boldsymbol{x}^T\boldsymbol{e})/(\beta\boldsymbol{x}^T\boldsymbol{x}) \).  Inserting
+for \( \beta \) gives us an equation for \( \gamma \). This is a non-linear equation in the unknown \( \gamma \) and has to be solved numerically. 
+</p>
+
+<p>The solution to these two equations gives us in turn \( \beta_1 \) and \( \gamma_1 \) leading to the new expression for \( f_1(x) \) as
+\( f_1(x) = \beta_1(1+\gamma_1x) \). Doing this \( M \) times results in our final estimate for the function \( f \). 
+</p>
+</section>
+
+<section>
+<h2 id="iterative-fitting-classification-and-adaboost">Iterative Fitting, Classification and AdaBoost </h2>
+
+<p>Let us consider a binary classification problem with two outcomes \( y_i \in \{-1,1\} \) and \( i=0,1,2,\dots,n-1 \) as our set of
+observations. We define a classification function \( G(x) \) which produces a prediction taking one or the other of the two values 
+\( \{-1,1\} \).
+</p>
+
+<p>The error rate of the training sample is then</p>
+
+<p>&nbsp;<br>
+$$
+\mathrm{\overline{err}}=\frac{1}{n} \sum_{i=0}^{n-1} I(y_i\ne G(x_i)). 
+$$
+<p>&nbsp;<br>
+
+<p>The iterative procedure starts with defining a weak classifier whose
+error rate is barely better than random guessing.  The iterative
+procedure in boosting is to sequentially apply a  weak
+classification algorithm to repeatedly modified versions of the data
+producing a sequence of weak classifiers \( G_m(x) \).
+</p>
+
+<p>Here we will express our  function \( f(x) \) in terms of \( G(x) \). That is</p>
+<p>&nbsp;<br>
+$$
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
+$$
+<p>&nbsp;<br>
+
+<p>will be a function of </p>
+<p>&nbsp;<br>
+$$
+G_M(x) = \mathrm{sign} \sum_{i=1}^M \alpha_m G_m(x).
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="adaptive-boosting-adaboost">Adaptive Boosting, AdaBoost </h2>
+
+<p>In our iterative procedure we define thus</p>
+<p>&nbsp;<br>
+$$
+f_m(x) = f_{m-1}(x)+\beta_mG_m(x).
+$$
+<p>&nbsp;<br>
+
+<p>The simplest possible cost function which leads (also simple from a computational point of view) to the AdaBoost algorithm is the
+exponential cost/loss function defined as
+</p>
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{y},\boldsymbol{f}) = \sum_{i=0}^{n-1}\exp{(-y_i(f_{m-1}(x_i)+\beta G(x_i))}.
+$$
+<p>&nbsp;<br>
+
+<p>We optimize \( \beta \) and \( G \) for each value of \( m=1:M \) as we did in the regression case.
+This is normally done in two steps. Let us however first rewrite the cost function as 
+</p>
+
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{y},\boldsymbol{f}) = \sum_{i=0}^{n-1}w_i^{m}\exp{(-y_i\beta G(x_i))},
+$$
+<p>&nbsp;<br>
+
+<p>where we have defined \( w_i^m= \exp{(-y_if_{m-1}(x_i))} \).</p>
+</section>
+
+<section>
+<h2 id="building-up-adaboost">Building up AdaBoost </h2>
+
+<p>First, for any \( \beta > 0 \), we optimize \( G \) by setting</p>
+<p>&nbsp;<br>
+$$
+G_m(x) = \mathrm{sign} \sum_{i=0}^{n-1} w_i^m I(y_i \ne G_(x_i)),
+$$
+<p>&nbsp;<br>
+
+<p>which is the classifier that minimizes the weighted error rate in predicting \( y \).</p>
+
+<p>We can do this by rewriting</p>
+<p>&nbsp;<br>
+$$
+\exp{-(\beta)}\sum_{y_i=G(x_i)}w_i^m+\exp{(\beta)}\sum_{y_i\ne G(x_i)}w_i^m,
+$$
+<p>&nbsp;<br>
+
+<p>which can be rewritten as</p>
+<p>&nbsp;<br>
+$$
+(\exp{(\beta)}-\exp{-(\beta)})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{(-\beta)}\sum_{i=0}^{n-1}w_i^m=0,
+$$
+<p>&nbsp;<br>
+
+<p>which leads to</p>
+<p>&nbsp;<br>
+$$
+\beta_m = \frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+$$
+<p>&nbsp;<br>
+
+<p>where we have redefined the error as </p>
+<p>&nbsp;<br>
+$$
+\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i)}{\sum_{i=0}^{n-1}w_i^m},
+$$
+<p>&nbsp;<br>
+
+<p>which leads to an update of</p>
+<p>&nbsp;<br>
+$$
+f_m(x) = f_{m-1}(x) +\beta_m G_m(x).
+$$
+<p>&nbsp;<br>
+
+<p>This leads to the new weights</p>
+<p>&nbsp;<br>
+$$
+w_i^{m+1} = w_i^m \exp{(-y_i\beta_m G_m(x_i))}
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="adaptive-boosting-adaboost-basic-algorithm">Adaptive boosting: AdaBoost, Basic Algorithm </h2>
+
+<p>The algorithm here is rather straightforward. Assume that our weak
+classifier is a decision tree and we consider a binary set of outputs
+with \( y_i \in \{-1,1\} \) and \( i=0,1,2,\dots,n-1 \) as our set of
+observations. Our design matrix is given in terms of the
+feature/predictor vectors
+\( \boldsymbol{X}=[\boldsymbol{x}_0\boldsymbol{x}_1\dots\boldsymbol{x}_{p-1}] \). Finally, we define also a
+classifier determined by our data via a function \( G(x) \). This function tells us how well we are able to classify our outputs/targets \( \boldsymbol{y} \). 
+</p>
+
+<p>We have already defined the misclassification error \( \mathrm{err} \) as</p>
+<p>&nbsp;<br>
+$$
+\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(x_i)),
+$$
+<p>&nbsp;<br>
+
+<p>where the function \( I() \) is one if we misclassify and zero if we classify correctly. </p>
+</section>
+
+<section>
+<h2 id="basic-steps-of-adaboost">Basic Steps of AdaBoost </h2>
+
+<p>With the above definitions we are now ready to set up the algorithm for AdaBoost.
+The basic idea is to set up weights which will be used to scale the correctly classified and the misclassified cases.
+</p>
+<ol>
+<p><li> We start by initializing all weights to \( w_i = 1/n \), with \( i=0,1,2,\dots n-1 \). It is easy to see that we must have \( \sum_{i=0}^{n-1}w_i = 1 \).</li>
+<p><li> We rewrite the misclassification error as</li> 
+</ol>
+<p>
+<p>&nbsp;<br>
+$$
+\mathrm{\overline{err}}_m=\frac{\sum_{i=0}^{n-1}w_i^m I(y_i\ne G(x_i))}{\sum_{i=0}^{n-1}w_i},
+$$
+<p>&nbsp;<br>
+
+<ol>
+<p><li> Then we start looping over all attempts at classifying, namely we start an iterative process for \( m=1:M \), where \( M \) is the final number of classifications. Our given classifier could for example be a plain decision tree.
+<ol type="a"></li>
+ <p><li> Fit then a given classifier to the training set using the weights \( w_i \).</li>
+ <p><li> Compute then \( \mathrm{err} \) and figure out which events are classified properly and which are classified wrongly.</li>
+ <p><li> Define a quantity \( \alpha_{m} = \log{(1-\mathrm{\overline{err}}_m)/\mathrm{\overline{err}}_m} \)</li>
+ <p><li> Set the new weights to \( w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)} \).</li>
+</ol>
+<p>
+<p><li> Compute the new classifier \( G(x)= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(x_i) \).</li>
+</ol>
+<p>
+<p>For the iterations with \( m \le 2 \) the weights are modified
+individually at each steps. The observations which were misclassified
+at iteration \( m-1 \) have a weight which is larger than those which were
+classified properly. As this proceeds, the observations which were
+difficult to classifiy correctly are given a larger influence. Each
+new classification step \( m \) is then forced to concentrate on those
+observations that are missed in the previous iterations.
+</p>
+</section>
+
+<section>
+<h2 id="adaboost-examples">AdaBoost Examples </h2>
+
+<p>Using <b>Scikit-Learn</b> it is easy to apply the adaptive boosting algorithm, as done here.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> AdaBoostClassifier
+
+ada_clf = AdaBoostClassifier(
+    DecisionTreeClassifier(max_depth=<span style="color: #B452CD">1</span>), n_estimators=<span style="color: #B452CD">200</span>,
+    algorithm=<span style="color: #CD5555">&quot;SAMME.R&quot;</span>, learning_rate=<span style="color: #B452CD">0.5</span>, random_state=<span style="color: #B452CD">42</span>)
+ada_clf.fit(X_train, y_train)
+
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.ensemble</span> <span style="color: #8B008B; font-weight: bold">import</span> AdaBoostClassifier
+
+ada_clf = AdaBoostClassifier(
+    DecisionTreeClassifier(max_depth=<span style="color: #B452CD">1</span>), n_estimators=<span style="color: #B452CD">200</span>,
+    algorithm=<span style="color: #CD5555">&quot;SAMME.R&quot;</span>, learning_rate=<span style="color: #B452CD">0.5</span>, random_state=<span style="color: #B452CD">42</span>)
+ada_clf.fit(X_train_scaled, y_train)
+y_pred = ada_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=<span style="color: #8B008B; font-weight: bold">True</span>)
+plt.show()
+y_probas = ada_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
 </pre>
 </div>
       </div>
