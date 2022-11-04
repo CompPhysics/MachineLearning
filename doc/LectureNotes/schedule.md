@@ -145,7 +145,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Decision trees, basic algorithms for classification and regression
   - Video of Lecture at https://youtu.be/7jexGH5SOOE
 - Lecture Friday: From trees to forests and ensemble methods
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/9QcU8VcXxRU
 - Reading recommendations:
   - See lecture notes for week 44 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees)
