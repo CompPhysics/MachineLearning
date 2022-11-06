@@ -6,15 +6,17 @@ DATE: today
 ===== Overview of week 45 =====
 
 * Thursday: Boosting methods, froma AdaBoost to Gradient boosting
-* Friday:  Gradient boosting and discussion of Decision trees and ensemble methods
+* Friday:  Gradient boosting and discussion of Decision trees and ensemble methods. Wrapping up trees and start discussing Support Vector Machines
 
 !bblock Videos
 o "Video on Decision trees":"https://www.youtube.com/watch?v=RmajweUFKvM&ab_channel=Simplilearn"
 o "Video on boosting methods by Hastie":"https://www.youtube.com/watch?v=wPqtzj5VZus&ab_channel=H2O.ai".
+o "Video on AdaBoost":"https://www.youtube.com/watch?v=LsK-xG1cLYA"
+o "Video on Gradient boost, part 1, parts 2-4 follows":"https://www.youtube.com/watch?v=3CC4N4z3GJc"
 !eblock
 
 !bblock Reading  
-o Add material about AdaBoost and Gradient boosting
+o "Hastie et al, chapter 10.1-10.10":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/elementsstat.pdf"
 !eblock
 
 
@@ -22,25 +24,27 @@ o Add material about AdaBoost and Gradient boosting
 ===== Brief code reminder from last wekk =====
 
 !bc pycod
+%matplotlib inline
+
 # Common imports
 from IPython.display import Image 
 from pydot import graph_from_dot_data
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.tree import export_graphviz
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-from IPython.display import Image 
 from pydot import graph_from_dot_data
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import BaggingClassifier
-
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_validate
+import scikitplot as skplt
+from sklearn.preprocessing import StandardScaler
 import os
 
 # Where to save the figures and data files
@@ -73,37 +77,31 @@ X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,ra
 print(X_train.shape)
 print(X_test.shape)
 #Scale the data
-from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 #define methods
 # Logistic Regression
+logreg = LogisticRegression(solver='lbfgs')
 logreg.fit(X_train_scaled, y_train)
 print("Test set accuracy Logistic Regression with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
-# Support Vector Machine
-svm.fit(X_train_scaled, y_train)
-print("Test set accuracy SVM with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
 # Decision Trees
+deep_tree_clf = DecisionTreeClassifier(max_depth=None)
 deep_tree_clf.fit(X_train_scaled, y_train)
 print("Test set accuracy with Decision Trees and scaled data: {:.2f}".format(deep_tree_clf.score(X_test_scaled,y_test)))
-
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import cross_validate
-# Data set not specificied
+# Support Vector Machine
+svm = SVC(gamma='auto', C=100)
+svm.fit(X_train_scaled, y_train)
+print("Test set accuracy SVM with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Random forests
 #Instantiate the model with 500 trees and entropy as splitting criteria
 Random_Forest_model = RandomForestClassifier(n_estimators=500,criterion="entropy")
 Random_Forest_model.fit(X_train_scaled, y_train)
-#Cross validation
-accuracy = cross_validate(Random_Forest_model,X_test_scaled,y_test,cv=10)['test_score']
-print(accuracy)
 print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(Random_Forest_model.score(X_test_scaled,y_test)))
 
 
-import scikitplot as skplt
+
 y_pred = Random_Forest_model.predict(X_test_scaled)
 skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
 plt.show()
@@ -112,7 +110,6 @@ skplt.metrics.plot_roc(y_test, y_probas)
 plt.show()
 skplt.metrics.plot_cumulative_gain(y_test, y_probas)
 plt.show()
-
 !ec
 
 
