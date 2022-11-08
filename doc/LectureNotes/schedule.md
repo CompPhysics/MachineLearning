@@ -151,14 +151,14 @@ For the reading assignments we use the following abbreviations:
   - Hastie et al sections 9.1 and 9.2. Geron's text chapter 6 (Decision trees)
 
 ###  Week 45 November 7-11 
-- Lab Wednesday: Work on project 2, project 3 available.
-- Lecture Thursday: Ensemble methods, bagging and random forests
+- Lab Wednesday: Work on project 2, project 3 available November 11.
+- Lecture Thursday: Ensemble methods, bagging and random forests, boosting.
   - Video of Lecture at 
-- Lecture Friday: Boosting and gradient boosting
+- Lecture Friday: Adaptive boosting and gradient boosting, summary of decision trees and ensemble methods
   - Video of Lecture at 
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - Hastie et al chapter 10
+  - Hastie et al chapter 10 and Geron chapters 5 and 6
 
 ###  Week 46 November 14-18
 - Lab Wednesday: Work on project 3
