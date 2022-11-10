@@ -744,8 +744,632 @@ plt.show()
 
 
 
+!split
+===== Support Vector Machines, overarching aims  =====
+
+A Support Vector Machine (SVM) is a very powerful and versatile
+Machine Learning method, capable of performing linear or nonlinear
+classification, regression, and even outlier detection. It is one of
+the most popular models in Machine Learning, and anyone interested in
+Machine Learning should have it in their toolbox. SVMs are
+particularly well suited for classification of complex but small-sized or
+medium-sized datasets.  
+
+The case with two well-separated classes only can be understood in an
+intuitive way in terms of lines in a two-dimensional space separating
+the two classes (see figure below).
+
+The basic mathematics behind the SVM is however less familiar to most of us. 
+It relies on the definition of hyperplanes and the
+definition of a _margin_ which separates classes (in case of
+classification problems) of variables. It is also used for regression
+problems.
+
+With SVMs we distinguish between hard margin and soft margins. The
+latter introduces a so-called softening parameter to be discussed
+below.  We distinguish also between linear and non-linear
+approaches. The latter are the most frequent ones since it is rather
+unlikely that we can separate classes easily by say straight lines.
+
+!split
+===== Hyperplanes and all that =====
+
+The theory behind support vector machines (SVM hereafter) is based on
+the mathematical description of so-called hyperplanes. Let us start
+with a two-dimensional case. This will also allow us to introduce our
+first SVM examples. These will be tailored to the case of two specific
+classes, as displayed in the figure here based on the usage of the petal data.
+
+We assume here that our data set can be well separated into two
+domains, where a straight line does the job in the separating the two
+classes. Here the two classes are represented by either squares or
+circles.
+!bc pycod
+from sklearn import datasets
+from sklearn.svm import SVC, LinearSVC
+from sklearn.linear_model import SGDClassifier
+from sklearn.preprocessing import StandardScaler
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+
+
+iris = datasets.load_iris()
+X = iris["data"][:, (2, 3)]  # petal length, petal width
+y = iris["target"]
+
+setosa_or_versicolor = (y == 0) | (y == 1)
+X = X[setosa_or_versicolor]
+y = y[setosa_or_versicolor]
+
+
+
+C = 5
+alpha = 1 / (C * len(X))
+
+lin_clf = LinearSVC(loss="hinge", C=C, random_state=42)
+svm_clf = SVC(kernel="linear", C=C)
+sgd_clf = SGDClassifier(loss="hinge", learning_rate="constant", eta0=0.001, alpha=alpha,
+                        max_iter=100000, random_state=42)
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+lin_clf.fit(X_scaled, y)
+svm_clf.fit(X_scaled, y)
+sgd_clf.fit(X_scaled, y)
+
+print("LinearSVC:                   ", lin_clf.intercept_, lin_clf.coef_)
+print("SVC:                         ", svm_clf.intercept_, svm_clf.coef_)
+print("SGDClassifier(alpha={:.5f}):".format(sgd_clf.alpha), sgd_clf.intercept_, sgd_clf.coef_)
+
+# Compute the slope and bias of each decision boundary
+w1 = -lin_clf.coef_[0, 0]/lin_clf.coef_[0, 1]
+b1 = -lin_clf.intercept_[0]/lin_clf.coef_[0, 1]
+w2 = -svm_clf.coef_[0, 0]/svm_clf.coef_[0, 1]
+b2 = -svm_clf.intercept_[0]/svm_clf.coef_[0, 1]
+w3 = -sgd_clf.coef_[0, 0]/sgd_clf.coef_[0, 1]
+b3 = -sgd_clf.intercept_[0]/sgd_clf.coef_[0, 1]
+
+# Transform the decision boundary lines back to the original scale
+line1 = scaler.inverse_transform([[-10, -10 * w1 + b1], [10, 10 * w1 + b1]])
+line2 = scaler.inverse_transform([[-10, -10 * w2 + b2], [10, 10 * w2 + b2]])
+line3 = scaler.inverse_transform([[-10, -10 * w3 + b3], [10, 10 * w3 + b3]])
+
+# Plot all three decision boundaries
+plt.figure(figsize=(11, 4))
+plt.plot(line1[:, 0], line1[:, 1], "k:", label="LinearSVC")
+plt.plot(line2[:, 0], line2[:, 1], "b--", linewidth=2, label="SVC")
+plt.plot(line3[:, 0], line3[:, 1], "r-", label="SGDClassifier")
+plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs") # label="Iris-Versicolor"
+plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo") # label="Iris-Setosa"
+plt.xlabel("Petal length", fontsize=14)
+plt.ylabel("Petal width", fontsize=14)
+plt.legend(loc="upper center", fontsize=14)
+plt.axis([0, 5.5, 0, 2])
+
+plt.show()
+
+
+
+!ec
 
 
 
 
+!split
+===== What is a hyperplane? =====
+
+The aim of the SVM algorithm is to find a hyperplane in a
+$p$-dimensional space, where $p$ is the number of features that
+distinctly classifies the data points.
+
+In a $p$-dimensional space, a hyperplane is what we call an affine subspace of dimension of $p-1$.
+As an example, in two dimension, a hyperplane is simply as straight line while in three dimensions it is 
+a two-dimensional subspace, or stated simply, a plane. 
+
+In two dimensions, with the variables $x_1$ and $x_2$, the hyperplane is defined as
+!bt
+\[
+b+w_1x_1+w_2x_2=0,
+\]
+!et
+
+where $b$ is the intercept and $w_1$ and $w_2$ define the elements of a vector orthogonal to the line 
+$b+w_1x_1+w_2x_2=0$. 
+In two dimensions we define the vectors $\bm{x} =[x1,x2]$ and $\bm{w}=[w1,w2]$. 
+We can then rewrite the above equation as 
+
+!bt
+\[
+\bm{x}^T\bm{w}+b=0.
+\]
+!et
+
+!split
+===== A $p$-dimensional space of features =====
+
+We limit ourselves to two classes of outputs $y_i$ and assign these classes the values $y_i = \pm 1$. 
+In a $p$-dimensional space of say $p$ features we have a hyperplane defines as 
+!bt
+\[
+b+wx_1+w_2x_2+\dots +w_px_p=0.
+\]
+!et
+If we define a 
+matrix $\bm{X}=\left[\bm{x}_1,\bm{x}_2,\dots, \bm{x}_p\right]$
+of dimension $n\times p$, where $n$ represents the observations for each feature and each vector $x_i$ is a column vector of the matrix $\bm{X}$, 
+!bt
+\[
+\bm{x}_i = \begin{bmatrix} x_{i1} \\ x_{i2} \\ \dots \\ \dots \\ x_{ip} \end{bmatrix}.
+\]
+!et
+If the above condition is not met for a given vector $\bm{x}_i$ we have 
+!bt
+\[
+b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip} >0,
+\]
+!et
+if our output $y_i=1$.
+In this case we say that $\bm{x}_i$ lies on one of the sides of the hyperplane and if 
+!bt
+\[
+b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip} < 0,
+\]
+!et
+for the class of observations $y_i=-1$, 
+then $\bm{x}_i$ lies on the other side. 
+
+Equivalently, for the two classes of observations we have 
+!bt
+\[
+y_i\left(b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip}\right) > 0. 
+\]
+!et
+
+When we try to separate hyperplanes, if it exists, we can use it to construct a natural classifier: a test observation is assigned a given class depending on which side of the hyperplane it is located.
+
+!split 
+===== The two-dimensional case ===== 
+
+Let us try to develop our intuition about SVMs by limiting ourselves to a two-dimensional
+plane.  To separate the two classes of data points, there are many
+possible lines (hyperplanes if you prefer a more strict naming)  
+that could be chosen. Our objective is to find a
+plane that has the maximum margin, i.e the maximum distance between
+data points of both classes. Maximizing the margin distance provides
+some reinforcement so that future data points can be classified with
+more confidence.
+
+What a linear classifier attempts to accomplish is to split the
+feature space into two half spaces by placing a hyperplane between the
+data points.  This hyperplane will be our decision boundary.  All
+points on one side of the plane will belong to class one and all points
+on the other side of the plane will belong to the second class two.
+
+Unfortunately there are many ways in which we can place a hyperplane
+to divide the data.  Below is an example of two candidate hyperplanes
+for our data sample.
+
+!split
+===== Getting into the details =====
+
+Let us define the function
+!bt
+\[
+f(x) = \bm{w}^T\bm{x}+b = 0,
+\]
+!et
+as the function that determines the line $L$ that separates two classes (our two features), see the figure here. 
+
+
+Any point defined by $\bm{x}_i$ and $\bm{x}_2$ on the line $L$ will satisfy $\bm{w}^T(\bm{x}_1-\bm{x}_2)=0$. 
+
+The signed distance $\delta$ from any point defined by a vector $\bm{x}$ and a point $\bm{x}_0$ on the line $L$ is then
+!bt
+\[
+\delta = \frac{1}{\vert\vert \bm{w}\vert\vert}(\bm{w}^T\bm{x}+b).
+\]
+!et
+
+!split
+===== First attempt at a minimization approach =====
+
+How do we find the parameter $b$ and the vector $\bm{w}$? What we could
+do is to define a cost function which now contains the set of all
+misclassified points $M$ and attempt to minimize this function
+
+!bt
+\[
+C(\bm{w},b) = -\sum_{i\in M} y_i(\bm{w}^T\bm{x}_i+b).
+\]
+!et
+
+We could now for example define all values $y_i =1$ as misclassified in case we have $\bm{w}^T\bm{x}_i+b < 0$ and the opposite if we have $y_i=-1$. Taking the derivatives gives us
+!bt
+\[
+\frac{\partial C}{\partial b} = -\sum_{i\in M} y_i,
+\]
+!et
+and 
+!bt
+\[
+\frac{\partial C}{\partial \bm{w}} = -\sum_{i\in M} y_ix_i.
+\]
+!et
+
+!split
+===== Solving the equations =====
+
+We can now use the Newton-Raphson method or different variants of the gradient descent family (from plain gradient descent to various stochastic gradient descent approaches) to solve the equations
+!bt
+\[
+b \leftarrow b +\eta \frac{\partial C}{\partial b},
+\]
+!et
+and
+!bt
+\[
+\bm{w} \leftarrow \bm{w} +\eta \frac{\partial C}{\partial \bm{w}},
+\]
+!et
+where $\eta$ is our by now well-known learning rate. 
+
+
+!split
+===== Code Example =====
+
+The equations we discussed above can be coded rather easily (the
+framework is similar to what we developed for logistic
+regression). We are going to set up a simple case with two classes only and we want to find a line which separates them the best possible way.
+!bc pycod
+
+!ec
+
+!split
+===== Problems with the Simpler Approach =====
+
+
+There are however problems with this approach, although it looks
+pretty straightforward to implement. When running the above code, we see that we can easily end up with many diffeent lines which separate the two classes.
+
+
+For small
+gaps between the entries, we may also end up needing many iterations
+before the solutions converge and if the data cannot be separated
+properly into two distinct classes, we may not experience a converge
+at all.
+
+!split
+===== A better approach =====
+
+A better approach is rather to try to define a large margin between
+the two classes (if they are well separated from the beginning).
+
+Thus, we wish to find a margin $M$ with $\bm{w}$ normalized to
+$\vert\vert \bm{w}\vert\vert =1$ subject to the condition
+
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, p. 
+\]
+!et
+All points are thus at a signed distance from the decision boundary defined by the line $L$. The parameters $b$ and $w_1$ and $w_2$ define this line. 
+
+We seek thus the largest value $M$ defined by
+!bt
+\[
+\frac{1}{\vert \vert \bm{w}\vert\vert}y_i(\bm{w}^T\bm{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, n, 
+\]
+!et
+or just 
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b) \geq M\vert \vert \bm{w}\vert\vert \hspace{0.1cm}\forall i. 
+\]
+!et
+If we scale the equation so that $\vert \vert \bm{w}\vert\vert = 1/M$, we have to find the minimum of 
+$\bm{w}^T\bm{w}=\vert \vert \bm{w}\vert\vert$ (the norm) subject to the condition
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b) \geq 1 \hspace{0.1cm}\forall i.
+\]
+!et
+
+We have thus defined our margin as the invers of the norm of
+$\bm{w}$. We want to minimize the norm in order to have a as large as
+possible margin $M$. Before we proceed, we need to remind ourselves
+about Lagrangian multipliers.
+
+!split
+===== A quick Reminder on Lagrangian Multipliers =====
+
+Consider a function of three independent variables $f(x,y,z)$ . For the function $f$ to be an
+extreme we have
+!bt
+\[
+df=0.
+\]
+!et
+A necessary and sufficient condition is
+!bt
+\[
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+\]
+!et
+due to
+!bt
+\[
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz.
+\]
+!et
+In many problems the variables $x,y,z$ are often subject to constraints (such as those above for the margin)
+so that they are no longer all independent. It is possible at least in principle to use each 
+constraint to eliminate one variable
+and to proceed with a new and smaller set of independent varables.
+
+The use of so-called Lagrangian  multipliers is an alternative technique  when the elimination
+of variables is incovenient or undesirable.  Assume that we have an equation of constraint on 
+the variables $x,y,z$
+!bt
+\[
+\phi(x,y,z) = 0,
+\]
+!et
+ resulting in
+!bt
+\[
+d\phi = \frac{\partial \phi}{\partial x}dx+\frac{\partial \phi}{\partial y}dy+\frac{\partial \phi}{\partial z}dz =0.
+\]
+!et
+Now we cannot set anymore
+!bt
+\[
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+\]
+!et
+if $df=0$ is wanted
+because there are now only two independent variables!  Assume $x$ and $y$ are the independent 
+variables.
+Then $dz$ is no longer arbitrary.
+
+!split
+===== Adding the Multiplier =====
+
+However, we can add to
+!bt
+\[
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz,
+\]
+!et
+a multiplum of $d\phi$, viz. $\lambda d\phi$, resulting  in
+!bt
+\[
+df+\lambda d\phi = (\frac{\partial f}{\partial z}+\lambda
+\frac{\partial \phi}{\partial x})dx+(\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y})dy+
+(\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z})dz =0.
+\]
+!et
+Our multiplier is chosen so that
+!bt
+\[
+\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z} =0.
+\]
+!et
+
+We need to remember that we took $dx$ and $dy$ to be arbitrary and thus we must have
+!bt
+\[
+\frac{\partial f}{\partial x}+\lambda\frac{\partial \phi}{\partial x} =0,
+\]
+!et
+and
+!bt
+\[
+\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y} =0.
+\]
+!et
+When all these equations are satisfied, $df=0$.  We have four unknowns, $x,y,z$ and
+$\lambda$. Actually we want only $x,y,z$, $\lambda$ needs not to be determined, 
+it is therefore often called
+Lagrange's undetermined multiplier.
+If we have a set of constraints $\phi_k$ we have the equations
+!bt
+\[
+\frac{\partial f}{\partial x_i}+\sum_k\lambda_k\frac{\partial \phi_k}{\partial x_i} =0.
+\]
+!et
+
+!split
+===== Setting up the Problem =====
+In order to solve the above problem, we define the following Lagrangian function to be minimized 
+!bt
+\[
+{\cal L}(\lambda,b,\bm{w})=\frac{1}{2}\bm{w}^T\bm{w}-\sum_{i=1}^n\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b)-1\right],
+\]
+!et
+where $\lambda_i$ is a so-called Lagrange multiplier subject to the condition $\lambda_i \geq 0$.
+
+Taking the derivatives  with respect to $b$ and $\bm{w}$ we obtain 
+!bt
+\[
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+\]
+!et
+and 
+!bt
+\[
+\frac{\partial {\cal L}}{\partial \bm{w}} = 0 = \bm{w}-\sum_{i} \lambda_iy_i\bm{x}_i.
+\]
+!et
+Inserting these constraints into the equation for ${\cal L}$ we obtain
+!bt
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{x}_i^T\bm{x}_j,
+\]
+!et
+subject to the constraints $\lambda_i\geq 0$ and $\sum_i\lambda_iy_i=0$. 
+We must in addition satisfy the "Karush-Kuhn-Tucker":"https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions" (KKT) condition
+!bt
+\[
+\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b) -1\right] \hspace{0.1cm}\forall i.
+\]
+!et
+o If $\lambda_i > 0$, then $y_i(\bm{w}^T\bm{x}_i+b)=1$ and we say that $x_i$ is on the boundary.
+o If $y_i(\bm{w}^T\bm{x}_i+b)> 1$, we say $x_i$ is not on the boundary and we set $\lambda_i=0$. 
+When $\lambda_i > 0$, the vectors $\bm{x}_i$ are called support vectors. They are the vectors closest to the line (or hyperplane) and define the margin $M$. 
+
+!split
+===== The problem to solve =====
+
+We can rewrite 
+!bt
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{x}_i^T\bm{x}_j,
+\]
+!et
+and its constraints in terms of a matrix-vector problem where we minimize w.r.t. $\lambda$ the following problem
+!bt
+\[
+\frac{1}{2} \bm{\lambda}^T\begin{bmatrix} y_1y_1\bm{x}_1^T\bm{x}_1 & y_1y_2\bm{x}_1^T\bm{x}_2 & \dots & \dots & y_1y_n\bm{x}_1^T\bm{x}_n \\
+y_2y_1\bm{x}_2^T\bm{x}_1 & y_2y_2\bm{x}_2^T\bm{x}_2 & \dots & \dots & y_1y_n\bm{x}_2^T\bm{x}_n \\
+\dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots \\
+y_ny_1\bm{x}_n^T\bm{x}_1 & y_ny_2\bm{x}_n^T\bm{x}_2 & \dots & \dots & y_ny_n\bm{x}_n^T\bm{x}_n \\
+\end{bmatrix}\bm{\lambda}-\mathbb{1}\bm{\lambda}, 
+\]
+!et
+subject to $\bm{y}^T\bm{\lambda}=0$. Here we defined the vectors $\bm{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
+$\bm{y}=[y_1,y_2,\dots,y_n]$. 
+
+
+!split
+===== The last steps =====
+
+Solving the above problem, yields the values of $\lambda_i$.
+To find the coefficients of your hyperplane we need simply to compute 
+!bt
+\[
+\bm{w}=\sum_{i} \lambda_iy_i\bm{x}_i.
+\]
+!et
+With our vector $\bm{w}$ we can in turn find the value of the intercept $b$ (here in two dimensions) via 
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b)=1,
+\]
+!et
+resulting in
+!bt
+\[
+b = \frac{1}{y_i}-\bm{w}^T\bm{x}_i,
+\]
+!et
+or if we write it out in terms of the support vectors only, with $N_s$ being their number,  we have
+!bt
+\[
+b = \frac{1}{N_s}\sum_{j\in N_s}\left(y_j-\sum_{i=1}^n\lambda_iy_i\bm{x}_i^T\bm{x}_j\right).
+\]
+!et
+With our hyperplane coefficients we can use our classifier to assign any observation by simply using 
+!bt
+\[
+y_i = \mathrm{sign}(\bm{w}^T\bm{x}_i+b).
+\]
+!et
+Below we discuss how to find the optimal values of $\lambda_i$. Before we proceed however, we discuss now the so-called soft classifier. 
+
+!split
+===== A soft classifier =====
+
+Till now, the margin is strictly defined by the support vectors. This defines what is called a hard classifier, that is the margins are well defined.
+
+Suppose now that classes overlap in feature space, as shown in the
+figure here. One way to deal with this problem before we define the
+so-called _kernel approach_, is to allow a kind of slack in the sense
+that we allow some points to be on the wrong side of the margin.
+
+We introduce thus the so-called _slack_ variables $\bm{\xi} =[\xi_1,x_2,\dots,x_n]$ and 
+modify our previous equation
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b)=1,
+\]
+!et
+to 
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b)=1-\xi_i,
+\]
+!et
+with the requirement $\xi_i\geq 0$. The total violation is now $\sum_i\xi$. 
+The value $\xi_i$ in the constraint the last constraint corresponds to the  amount by which the prediction
+$y_i(\bm{w}^T\bm{x}_i+b)=1$ is on the wrong side of its margin. Hence by bounding the sum $\sum_i \xi_i$,
+we bound the total amount by which predictions fall on the wrong side of their margins.
+
+Misclassifications occur when $\xi_i > 1$. Thus bounding the total sum by some value $C$ bounds in turn the total number of
+misclassifications.
+
+!split
+===== Soft optmization problem =====
+
+
+This has in turn the consequences that we change our optmization problem to finding the minimum of 
+!bt
+\[
+{\cal L}=\frac{1}{2}\bm{w}^T\bm{w}-\sum_{i=1}^n\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b)-(1-\xi_)\right]+C\sum_{i=1}^n\xi_i-\sum_{i=1}^n\gamma_i\xi_i,
+\]
+!et
+subject to 
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b)=1-\xi_i \hspace{0.1cm}\forall i,
+\]
+!et
+with the requirement $\xi_i\geq 0$.
+
+Taking the derivatives  with respect to $b$ and $\bm{w}$ we obtain 
+!bt
+\[
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+\]
+!et
+and 
+!bt
+\[
+\frac{\partial {\cal L}}{\partial \bm{w}} = 0 = \bm{w}-\sum_{i} \lambda_iy_i\bm{x}_i, 
+\]
+!et
+and
+!bt
+\[
+\lambda_i = C-\gamma_i \hspace{0.1cm}\forall i.
+\]
+!et
+Inserting these constraints into the equation for ${\cal L}$ we obtain the same equation as before
+!bt
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{x}_i^T\bm{x}_j,
+\]
+!et
+but now subject to the constraints $\lambda_i\geq 0$, $\sum_i\lambda_iy_i=0$ and $0\leq\lambda_i \leq C$. 
+We must in addition satisfy the Karush-Kuhn-Tucker condition which now reads
+!bt
+\[
+\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b) -(1-\xi_)\right]=0 \hspace{0.1cm}\forall i,
+\]
+!et
+!bt
+\[
+\gamma_i\xi_i = 0,
+\]
+!et
+and 
+!bt
+\[
+y_i(\bm{w}^T\bm{x}_i+b) -(1-\xi_) \geq 0 \hspace{0.1cm}\forall i.
+\]
+!et
 

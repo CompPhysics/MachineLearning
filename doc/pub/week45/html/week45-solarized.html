@@ -129,7 +129,43 @@ div.toc p,a {
               ('Xgboost on the Cancer Data',
                2,
                None,
-               'xgboost-on-the-cancer-data')]}
+               'xgboost-on-the-cancer-data'),
+              ('Support Vector Machines, overarching aims',
+               2,
+               None,
+               'support-vector-machines-overarching-aims'),
+              ('Hyperplanes and all that', 2, None, 'hyperplanes-and-all-that'),
+              ('What is a hyperplane?', 2, None, 'what-is-a-hyperplane'),
+              ('A $p$-dimensional space of features',
+               2,
+               None,
+               'a-p-dimensional-space-of-features'),
+              ('The two-dimensional case', 2, None, 'the-two-dimensional-case'),
+              ('Getting into the details', 2, None, 'getting-into-the-details'),
+              ('First attempt at a minimization approach',
+               2,
+               None,
+               'first-attempt-at-a-minimization-approach'),
+              ('Solving the equations', 2, None, 'solving-the-equations'),
+              ('Code Example', 2, None, 'code-example'),
+              ('Problems with the Simpler Approach',
+               2,
+               None,
+               'problems-with-the-simpler-approach'),
+              ('A better approach', 2, None, 'a-better-approach'),
+              ('A quick Reminder on Lagrangian Multipliers',
+               2,
+               None,
+               'a-quick-reminder-on-lagrangian-multipliers'),
+              ('Adding the Multiplier', 2, None, 'adding-the-multiplier'),
+              ('Setting up the Problem', 2, None, 'setting-up-the-problem'),
+              ('The problem to solve', 2, None, 'the-problem-to-solve'),
+              ('The last steps', 2, None, 'the-last-steps'),
+              ('A soft classifier', 2, None, 'a-soft-classifier'),
+              ('Soft optmization problem',
+               2,
+               None,
+               'soft-optmization-problem')]}
 end of tocinfo -->
 
 <body>
@@ -1009,6 +1045,643 @@ plt.show()
   </div>
 </div>
 
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="support-vector-machines-overarching-aims">Support Vector Machines, overarching aims  </h2>
+
+<p>A Support Vector Machine (SVM) is a very powerful and versatile
+Machine Learning method, capable of performing linear or nonlinear
+classification, regression, and even outlier detection. It is one of
+the most popular models in Machine Learning, and anyone interested in
+Machine Learning should have it in their toolbox. SVMs are
+particularly well suited for classification of complex but small-sized or
+medium-sized datasets.  
+</p>
+
+<p>The case with two well-separated classes only can be understood in an
+intuitive way in terms of lines in a two-dimensional space separating
+the two classes (see figure below).
+</p>
+
+<p>The basic mathematics behind the SVM is however less familiar to most of us. 
+It relies on the definition of hyperplanes and the
+definition of a <b>margin</b> which separates classes (in case of
+classification problems) of variables. It is also used for regression
+problems.
+</p>
+
+<p>With SVMs we distinguish between hard margin and soft margins. The
+latter introduces a so-called softening parameter to be discussed
+below.  We distinguish also between linear and non-linear
+approaches. The latter are the most frequent ones since it is rather
+unlikely that we can separate classes easily by say straight lines.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="hyperplanes-and-all-that">Hyperplanes and all that </h2>
+
+<p>The theory behind support vector machines (SVM hereafter) is based on
+the mathematical description of so-called hyperplanes. Let us start
+with a two-dimensional case. This will also allow us to introduce our
+first SVM examples. These will be tailored to the case of two specific
+classes, as displayed in the figure here based on the usage of the petal data.
+</p>
+
+<p>We assume here that our data set can be well separated into two
+domains, where a straight line does the job in the separating the two
+classes. Here the two classes are represented by either squares or
+circles.
+</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.svm</span> <span style="color: #8B008B; font-weight: bold">import</span> SVC, LinearSVC
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> SGDClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> StandardScaler
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+plt.rcParams[<span style="color: #CD5555">&#39;axes.labelsize&#39;</span>] = <span style="color: #B452CD">14</span>
+plt.rcParams[<span style="color: #CD5555">&#39;xtick.labelsize&#39;</span>] = <span style="color: #B452CD">12</span>
+plt.rcParams[<span style="color: #CD5555">&#39;ytick.labelsize&#39;</span>] = <span style="color: #B452CD">12</span>
+
+
+iris = datasets.load_iris()
+X = iris[<span style="color: #CD5555">&quot;data&quot;</span>][:, (<span style="color: #B452CD">2</span>, <span style="color: #B452CD">3</span>)]  <span style="color: #228B22"># petal length, petal width</span>
+y = iris[<span style="color: #CD5555">&quot;target&quot;</span>]
+
+setosa_or_versicolor = (y == <span style="color: #B452CD">0</span>) | (y == <span style="color: #B452CD">1</span>)
+X = X[setosa_or_versicolor]
+y = y[setosa_or_versicolor]
+
+
+
+C = <span style="color: #B452CD">5</span>
+alpha = <span style="color: #B452CD">1</span> / (C * <span style="color: #658b00">len</span>(X))
+
+lin_clf = LinearSVC(loss=<span style="color: #CD5555">&quot;hinge&quot;</span>, C=C, random_state=<span style="color: #B452CD">42</span>)
+svm_clf = SVC(kernel=<span style="color: #CD5555">&quot;linear&quot;</span>, C=C)
+sgd_clf = SGDClassifier(loss=<span style="color: #CD5555">&quot;hinge&quot;</span>, learning_rate=<span style="color: #CD5555">&quot;constant&quot;</span>, eta0=<span style="color: #B452CD">0.001</span>, alpha=alpha,
+                        max_iter=<span style="color: #B452CD">100000</span>, random_state=<span style="color: #B452CD">42</span>)
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+lin_clf.fit(X_scaled, y)
+svm_clf.fit(X_scaled, y)
+sgd_clf.fit(X_scaled, y)
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;LinearSVC:                   &quot;</span>, lin_clf.intercept_, lin_clf.coef_)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;SVC:                         &quot;</span>, svm_clf.intercept_, svm_clf.coef_)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;SGDClassifier(alpha={:.5f}):&quot;</span>.format(sgd_clf.alpha), sgd_clf.intercept_, sgd_clf.coef_)
+
+<span style="color: #228B22"># Compute the slope and bias of each decision boundary</span>
+w1 = -lin_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>]/lin_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>]
+b1 = -lin_clf.intercept_[<span style="color: #B452CD">0</span>]/lin_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>]
+w2 = -svm_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>]/svm_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>]
+b2 = -svm_clf.intercept_[<span style="color: #B452CD">0</span>]/svm_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>]
+w3 = -sgd_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>]/sgd_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>]
+b3 = -sgd_clf.intercept_[<span style="color: #B452CD">0</span>]/sgd_clf.coef_[<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>]
+
+<span style="color: #228B22"># Transform the decision boundary lines back to the original scale</span>
+line1 = scaler.inverse_transform([[-<span style="color: #B452CD">10</span>, -<span style="color: #B452CD">10</span> * w1 + b1], [<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span> * w1 + b1]])
+line2 = scaler.inverse_transform([[-<span style="color: #B452CD">10</span>, -<span style="color: #B452CD">10</span> * w2 + b2], [<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span> * w2 + b2]])
+line3 = scaler.inverse_transform([[-<span style="color: #B452CD">10</span>, -<span style="color: #B452CD">10</span> * w3 + b3], [<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span> * w3 + b3]])
+
+<span style="color: #228B22"># Plot all three decision boundaries</span>
+plt.figure(figsize=(<span style="color: #B452CD">11</span>, <span style="color: #B452CD">4</span>))
+plt.plot(line1[:, <span style="color: #B452CD">0</span>], line1[:, <span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;k:&quot;</span>, label=<span style="color: #CD5555">&quot;LinearSVC&quot;</span>)
+plt.plot(line2[:, <span style="color: #B452CD">0</span>], line2[:, <span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;b--&quot;</span>, linewidth=<span style="color: #B452CD">2</span>, label=<span style="color: #CD5555">&quot;SVC&quot;</span>)
+plt.plot(line3[:, <span style="color: #B452CD">0</span>], line3[:, <span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;r-&quot;</span>, label=<span style="color: #CD5555">&quot;SGDClassifier&quot;</span>)
+plt.plot(X[:, <span style="color: #B452CD">0</span>][y==<span style="color: #B452CD">1</span>], X[:, <span style="color: #B452CD">1</span>][y==<span style="color: #B452CD">1</span>], <span style="color: #CD5555">&quot;bs&quot;</span>) <span style="color: #228B22"># label=&quot;Iris-Versicolor&quot;</span>
+plt.plot(X[:, <span style="color: #B452CD">0</span>][y==<span style="color: #B452CD">0</span>], X[:, <span style="color: #B452CD">1</span>][y==<span style="color: #B452CD">0</span>], <span style="color: #CD5555">&quot;yo&quot;</span>) <span style="color: #228B22"># label=&quot;Iris-Setosa&quot;</span>
+plt.xlabel(<span style="color: #CD5555">&quot;Petal length&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+plt.ylabel(<span style="color: #CD5555">&quot;Petal width&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+plt.legend(loc=<span style="color: #CD5555">&quot;upper center&quot;</span>, fontsize=<span style="color: #B452CD">14</span>)
+plt.axis([<span style="color: #B452CD">0</span>, <span style="color: #B452CD">5.5</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">2</span>])
+
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="what-is-a-hyperplane">What is a hyperplane? </h2>
+
+<p>The aim of the SVM algorithm is to find a hyperplane in a
+\( p \)-dimensional space, where \( p \) is the number of features that
+distinctly classifies the data points.
+</p>
+
+<p>In a \( p \)-dimensional space, a hyperplane is what we call an affine subspace of dimension of \( p-1 \).
+As an example, in two dimension, a hyperplane is simply as straight line while in three dimensions it is 
+a two-dimensional subspace, or stated simply, a plane. 
+</p>
+
+<p>In two dimensions, with the variables \( x_1 \) and \( x_2 \), the hyperplane is defined as</p>
+$$
+b+w_1x_1+w_2x_2=0,
+$$
+
+<p>where \( b \) is the intercept and \( w_1 \) and \( w_2 \) define the elements of a vector orthogonal to the line 
+\( b+w_1x_1+w_2x_2=0 \). 
+In two dimensions we define the vectors \( \boldsymbol{x} =[x1,x2] \) and \( \boldsymbol{w}=[w1,w2] \). 
+We can then rewrite the above equation as 
+</p>
+
+$$
+\boldsymbol{x}^T\boldsymbol{w}+b=0.
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="a-p-dimensional-space-of-features">A \( p \)-dimensional space of features </h2>
+
+<p>We limit ourselves to two classes of outputs \( y_i \) and assign these classes the values \( y_i = \pm 1 \). 
+In a \( p \)-dimensional space of say \( p \) features we have a hyperplane defines as 
+</p>
+$$
+b+wx_1+w_2x_2+\dots +w_px_p=0.
+$$
+
+<p>If we define a 
+matrix \( \boldsymbol{X}=\left[\boldsymbol{x}_1,\boldsymbol{x}_2,\dots, \boldsymbol{x}_p\right] \)
+of dimension \( n\times p \), where \( n \) represents the observations for each feature and each vector \( x_i \) is a column vector of the matrix \( \boldsymbol{X} \), 
+</p>
+$$
+\boldsymbol{x}_i = \begin{bmatrix} x_{i1} \\ x_{i2} \\ \dots \\ \dots \\ x_{ip} \end{bmatrix}.
+$$
+
+<p>If the above condition is not met for a given vector \( \boldsymbol{x}_i \) we have </p>
+$$
+b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip} >0,
+$$
+
+<p>if our output \( y_i=1 \).
+In this case we say that \( \boldsymbol{x}_i \) lies on one of the sides of the hyperplane and if 
+</p>
+$$
+b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip} < 0,
+$$
+
+<p>for the class of observations \( y_i=-1 \), 
+then \( \boldsymbol{x}_i \) lies on the other side. 
+</p>
+
+<p>Equivalently, for the two classes of observations we have </p>
+$$
+y_i\left(b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip}\right) > 0. 
+$$
+
+<p>When we try to separate hyperplanes, if it exists, we can use it to construct a natural classifier: a test observation is assigned a given class depending on which side of the hyperplane it is located.</p>
+
+<!-- !split  -->
+<h2 id="the-two-dimensional-case">The two-dimensional case </h2>
+
+<p>Let us try to develop our intuition about SVMs by limiting ourselves to a two-dimensional
+plane.  To separate the two classes of data points, there are many
+possible lines (hyperplanes if you prefer a more strict naming)  
+that could be chosen. Our objective is to find a
+plane that has the maximum margin, i.e the maximum distance between
+data points of both classes. Maximizing the margin distance provides
+some reinforcement so that future data points can be classified with
+more confidence.
+</p>
+
+<p>What a linear classifier attempts to accomplish is to split the
+feature space into two half spaces by placing a hyperplane between the
+data points.  This hyperplane will be our decision boundary.  All
+points on one side of the plane will belong to class one and all points
+on the other side of the plane will belong to the second class two.
+</p>
+
+<p>Unfortunately there are many ways in which we can place a hyperplane
+to divide the data.  Below is an example of two candidate hyperplanes
+for our data sample.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="getting-into-the-details">Getting into the details </h2>
+
+<p>Let us define the function</p>
+$$
+f(x) = \boldsymbol{w}^T\boldsymbol{x}+b = 0,
+$$
+
+<p>as the function that determines the line \( L \) that separates two classes (our two features), see the figure here. </p>
+
+<p>Any point defined by \( \boldsymbol{x}_i \) and \( \boldsymbol{x}_2 \) on the line \( L \) will satisfy \( \boldsymbol{w}^T(\boldsymbol{x}_1-\boldsymbol{x}_2)=0 \). </p>
+
+<p>The signed distance \( \delta \) from any point defined by a vector \( \boldsymbol{x} \) and a point \( \boldsymbol{x}_0 \) on the line \( L \) is then</p>
+$$
+\delta = \frac{1}{\vert\vert \boldsymbol{w}\vert\vert}(\boldsymbol{w}^T\boldsymbol{x}+b).
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="first-attempt-at-a-minimization-approach">First attempt at a minimization approach </h2>
+
+<p>How do we find the parameter \( b \) and the vector \( \boldsymbol{w} \)? What we could
+do is to define a cost function which now contains the set of all
+misclassified points \( M \) and attempt to minimize this function
+</p>
+
+$$
+C(\boldsymbol{w},b) = -\sum_{i\in M} y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b).
+$$
+
+<p>We could now for example define all values \( y_i =1 \) as misclassified in case we have \( \boldsymbol{w}^T\boldsymbol{x}_i+b < 0 \) and the opposite if we have \( y_i=-1 \). Taking the derivatives gives us</p>
+$$
+\frac{\partial C}{\partial b} = -\sum_{i\in M} y_i,
+$$
+
+<p>and </p>
+$$
+\frac{\partial C}{\partial \boldsymbol{w}} = -\sum_{i\in M} y_ix_i.
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="solving-the-equations">Solving the equations </h2>
+
+<p>We can now use the Newton-Raphson method or different variants of the gradient descent family (from plain gradient descent to various stochastic gradient descent approaches) to solve the equations</p>
+$$
+b \leftarrow b +\eta \frac{\partial C}{\partial b},
+$$
+
+<p>and</p>
+$$
+\boldsymbol{w} \leftarrow \boldsymbol{w} +\eta \frac{\partial C}{\partial \boldsymbol{w}},
+$$
+
+<p>where \( \eta \) is our by now well-known learning rate. </p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="code-example">Code Example </h2>
+
+<p>The equations we discussed above can be coded rather easily (the
+framework is similar to what we developed for logistic
+regression). We are going to set up a simple case with two classes only and we want to find a line which separates them the best possible way.
+</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="problems-with-the-simpler-approach">Problems with the Simpler Approach </h2>
+
+<p>There are however problems with this approach, although it looks
+pretty straightforward to implement. When running the above code, we see that we can easily end up with many diffeent lines which separate the two classes.
+</p>
+
+<p>For small
+gaps between the entries, we may also end up needing many iterations
+before the solutions converge and if the data cannot be separated
+properly into two distinct classes, we may not experience a converge
+at all.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="a-better-approach">A better approach </h2>
+
+<p>A better approach is rather to try to define a large margin between
+the two classes (if they are well separated from the beginning).
+</p>
+
+<p>Thus, we wish to find a margin \( M \) with \( \boldsymbol{w} \) normalized to
+\( \vert\vert \boldsymbol{w}\vert\vert =1 \) subject to the condition
+</p>
+
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, p. 
+$$
+
+<p>All points are thus at a signed distance from the decision boundary defined by the line \( L \). The parameters \( b \) and \( w_1 \) and \( w_2 \) define this line. </p>
+
+<p>We seek thus the largest value \( M \) defined by</p>
+$$
+\frac{1}{\vert \vert \boldsymbol{w}\vert\vert}y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, n, 
+$$
+
+<p>or just </p>
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq M\vert \vert \boldsymbol{w}\vert\vert \hspace{0.1cm}\forall i. 
+$$
+
+<p>If we scale the equation so that \( \vert \vert \boldsymbol{w}\vert\vert = 1/M \), we have to find the minimum of 
+\( \boldsymbol{w}^T\boldsymbol{w}=\vert \vert \boldsymbol{w}\vert\vert \) (the norm) subject to the condition
+</p>
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) \geq 1 \hspace{0.1cm}\forall i.
+$$
+
+<p>We have thus defined our margin as the invers of the norm of
+\( \boldsymbol{w} \). We want to minimize the norm in order to have a as large as
+possible margin \( M \). Before we proceed, we need to remind ourselves
+about Lagrangian multipliers.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="a-quick-reminder-on-lagrangian-multipliers">A quick Reminder on Lagrangian Multipliers </h2>
+
+<p>Consider a function of three independent variables \( f(x,y,z) \) . For the function \( f \) to be an
+extreme we have
+</p>
+$$
+df=0.
+$$
+
+<p>A necessary and sufficient condition is</p>
+$$
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+$$
+
+<p>due to</p>
+$$
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz.
+$$
+
+<p>In many problems the variables \( x,y,z \) are often subject to constraints (such as those above for the margin)
+so that they are no longer all independent. It is possible at least in principle to use each 
+constraint to eliminate one variable
+and to proceed with a new and smaller set of independent varables.
+</p>
+
+<p>The use of so-called Lagrangian  multipliers is an alternative technique  when the elimination
+of variables is incovenient or undesirable.  Assume that we have an equation of constraint on 
+the variables \( x,y,z \)
+</p>
+$$
+\phi(x,y,z) = 0,
+$$
+
+<p> resulting in</p>
+$$
+d\phi = \frac{\partial \phi}{\partial x}dx+\frac{\partial \phi}{\partial y}dy+\frac{\partial \phi}{\partial z}dz =0.
+$$
+
+<p>Now we cannot set anymore</p>
+$$
+\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
+$$
+
+<p>if \( df=0 \) is wanted
+because there are now only two independent variables!  Assume \( x \) and \( y \) are the independent 
+variables.
+Then \( dz \) is no longer arbitrary.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="adding-the-multiplier">Adding the Multiplier </h2>
+
+<p>However, we can add to</p>
+$$
+df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz,
+$$
+
+<p>a multiplum of \( d\phi \), viz. \( \lambda d\phi \), resulting  in</p>
+$$
+df+\lambda d\phi = (\frac{\partial f}{\partial z}+\lambda
+\frac{\partial \phi}{\partial x})dx+(\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y})dy+
+(\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z})dz =0.
+$$
+
+<p>Our multiplier is chosen so that</p>
+$$
+\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z} =0.
+$$
+
+<p>We need to remember that we took \( dx \) and \( dy \) to be arbitrary and thus we must have</p>
+$$
+\frac{\partial f}{\partial x}+\lambda\frac{\partial \phi}{\partial x} =0,
+$$
+
+<p>and</p>
+$$
+\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y} =0.
+$$
+
+<p>When all these equations are satisfied, \( df=0 \).  We have four unknowns, \( x,y,z \) and
+\( \lambda \). Actually we want only \( x,y,z \), \( \lambda \) needs not to be determined, 
+it is therefore often called
+Lagrange's undetermined multiplier.
+If we have a set of constraints \( \phi_k \) we have the equations
+</p>
+$$
+\frac{\partial f}{\partial x_i}+\sum_k\lambda_k\frac{\partial \phi_k}{\partial x_i} =0.
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="setting-up-the-problem">Setting up the Problem </h2>
+<p>In order to solve the above problem, we define the following Lagrangian function to be minimized </p>
+$$
+{\cal L}(\lambda,b,\boldsymbol{w})=\frac{1}{2}\boldsymbol{w}^T\boldsymbol{w}-\sum_{i=1}^n\lambda_i\left[y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)-1\right],
+$$
+
+<p>where \( \lambda_i \) is a so-called Lagrange multiplier subject to the condition \( \lambda_i \geq 0 \).</p>
+
+<p>Taking the derivatives  with respect to \( b \) and \( \boldsymbol{w} \) we obtain </p>
+$$
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+$$
+
+<p>and </p>
+$$
+\frac{\partial {\cal L}}{\partial \boldsymbol{w}} = 0 = \boldsymbol{w}-\sum_{i} \lambda_iy_i\boldsymbol{x}_i.
+$$
+
+<p>Inserting these constraints into the equation for \( {\cal L} \) we obtain</p>
+$$
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\boldsymbol{x}_i^T\boldsymbol{x}_j,
+$$
+
+<p>subject to the constraints \( \lambda_i\geq 0 \) and \( \sum_i\lambda_iy_i=0 \). 
+We must in addition satisfy the <a href="https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions" target="_blank">Karush-Kuhn-Tucker</a> (KKT) condition
+</p>
+$$
+\lambda_i\left[y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) -1\right] \hspace{0.1cm}\forall i.
+$$
+
+<ol>
+<li> If \( \lambda_i > 0 \), then \( y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)=1 \) and we say that \( x_i \) is on the boundary.</li>
+<li> If \( y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)> 1 \), we say \( x_i \) is not on the boundary and we set \( \lambda_i=0 \).</li> 
+</ol>
+<p>When \( \lambda_i > 0 \), the vectors \( \boldsymbol{x}_i \) are called support vectors. They are the vectors closest to the line (or hyperplane) and define the margin \( M \). </p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-problem-to-solve">The problem to solve </h2>
+
+<p>We can rewrite </p>
+$$
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\boldsymbol{x}_i^T\boldsymbol{x}_j,
+$$
+
+<p>and its constraints in terms of a matrix-vector problem where we minimize w.r.t. \( \lambda \) the following problem</p>
+$$
+\frac{1}{2} \boldsymbol{\lambda}^T\begin{bmatrix} y_1y_1\boldsymbol{x}_1^T\boldsymbol{x}_1 & y_1y_2\boldsymbol{x}_1^T\boldsymbol{x}_2 & \dots & \dots & y_1y_n\boldsymbol{x}_1^T\boldsymbol{x}_n \\
+y_2y_1\boldsymbol{x}_2^T\boldsymbol{x}_1 & y_2y_2\boldsymbol{x}_2^T\boldsymbol{x}_2 & \dots & \dots & y_1y_n\boldsymbol{x}_2^T\boldsymbol{x}_n \\
+\dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots \\
+y_ny_1\boldsymbol{x}_n^T\boldsymbol{x}_1 & y_ny_2\boldsymbol{x}_n^T\boldsymbol{x}_2 & \dots & \dots & y_ny_n\boldsymbol{x}_n^T\boldsymbol{x}_n \\
+\end{bmatrix}\boldsymbol{\lambda}-\mathbb{1}\boldsymbol{\lambda}, 
+$$
+
+<p>subject to \( \boldsymbol{y}^T\boldsymbol{\lambda}=0 \). Here we defined the vectors \( \boldsymbol{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n] \) and 
+\( \boldsymbol{y}=[y_1,y_2,\dots,y_n] \). 
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-last-steps">The last steps </h2>
+
+<p>Solving the above problem, yields the values of \( \lambda_i \).
+To find the coefficients of your hyperplane we need simply to compute 
+</p>
+$$
+\boldsymbol{w}=\sum_{i} \lambda_iy_i\boldsymbol{x}_i.
+$$
+
+<p>With our vector \( \boldsymbol{w} \) we can in turn find the value of the intercept \( b \) (here in two dimensions) via </p>
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)=1,
+$$
+
+<p>resulting in</p>
+$$
+b = \frac{1}{y_i}-\boldsymbol{w}^T\boldsymbol{x}_i,
+$$
+
+<p>or if we write it out in terms of the support vectors only, with \( N_s \) being their number,  we have</p>
+$$
+b = \frac{1}{N_s}\sum_{j\in N_s}\left(y_j-\sum_{i=1}^n\lambda_iy_i\boldsymbol{x}_i^T\boldsymbol{x}_j\right).
+$$
+
+<p>With our hyperplane coefficients we can use our classifier to assign any observation by simply using </p>
+$$
+y_i = \mathrm{sign}(\boldsymbol{w}^T\boldsymbol{x}_i+b).
+$$
+
+<p>Below we discuss how to find the optimal values of \( \lambda_i \). Before we proceed however, we discuss now the so-called soft classifier. </p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="a-soft-classifier">A soft classifier </h2>
+
+<p>Till now, the margin is strictly defined by the support vectors. This defines what is called a hard classifier, that is the margins are well defined.</p>
+
+<p>Suppose now that classes overlap in feature space, as shown in the
+figure here. One way to deal with this problem before we define the
+so-called <b>kernel approach</b>, is to allow a kind of slack in the sense
+that we allow some points to be on the wrong side of the margin.
+</p>
+
+<p>We introduce thus the so-called <b>slack</b> variables \( \boldsymbol{\xi} =[\xi_1,x_2,\dots,x_n] \) and 
+modify our previous equation
+</p>
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)=1,
+$$
+
+<p>to </p>
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)=1-\xi_i,
+$$
+
+<p>with the requirement \( \xi_i\geq 0 \). The total violation is now \( \sum_i\xi \). 
+The value \( \xi_i \) in the constraint the last constraint corresponds to the  amount by which the prediction
+\( y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)=1 \) is on the wrong side of its margin. Hence by bounding the sum \( \sum_i \xi_i \),
+we bound the total amount by which predictions fall on the wrong side of their margins.
+</p>
+
+<p>Misclassifications occur when \( \xi_i > 1 \). Thus bounding the total sum by some value \( C \) bounds in turn the total number of
+misclassifications.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="soft-optmization-problem">Soft optmization problem </h2>
+
+<p>This has in turn the consequences that we change our optmization problem to finding the minimum of </p>
+$$
+{\cal L}=\frac{1}{2}\boldsymbol{w}^T\boldsymbol{w}-\sum_{i=1}^n\lambda_i\left[y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)-(1-\xi_)\right]+C\sum_{i=1}^n\xi_i-\sum_{i=1}^n\gamma_i\xi_i,
+$$
+
+<p>subject to </p>
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b)=1-\xi_i \hspace{0.1cm}\forall i,
+$$
+
+<p>with the requirement \( \xi_i\geq 0 \).</p>
+
+<p>Taking the derivatives  with respect to \( b \) and \( \boldsymbol{w} \) we obtain </p>
+$$
+\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
+$$
+
+<p>and </p>
+$$
+\frac{\partial {\cal L}}{\partial \boldsymbol{w}} = 0 = \boldsymbol{w}-\sum_{i} \lambda_iy_i\boldsymbol{x}_i, 
+$$
+
+<p>and</p>
+$$
+\lambda_i = C-\gamma_i \hspace{0.1cm}\forall i.
+$$
+
+<p>Inserting these constraints into the equation for \( {\cal L} \) we obtain the same equation as before</p>
+$$
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\boldsymbol{x}_i^T\boldsymbol{x}_j,
+$$
+
+<p>but now subject to the constraints \( \lambda_i\geq 0 \), \( \sum_i\lambda_iy_i=0 \) and \( 0\leq\lambda_i \leq C \). 
+We must in addition satisfy the Karush-Kuhn-Tucker condition which now reads
+</p>
+$$
+\lambda_i\left[y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) -(1-\xi_)\right]=0 \hspace{0.1cm}\forall i,
+$$
+
+$$
+\gamma_i\xi_i = 0,
+$$
+
+<p>and </p>
+$$
+y_i(\boldsymbol{w}^T\boldsymbol{x}_i+b) -(1-\xi_) \geq 0 \hspace{0.1cm}\forall i.
+$$
 
 <!-- ------------------- end of main content --------------- -->
 <center style="font-size:80%">
