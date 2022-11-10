@@ -153,7 +153,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 45 November 7-11 
 - Lab Wednesday: Work on project 2, project 3 available November 11.
 - Lecture Thursday: Ensemble methods, bagging and random forests, boosting.
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/mK48PfCxgYk
 - Lecture Friday: Adaptive boosting and gradient boosting, summary of decision trees and ensemble methods
   - Video of Lecture at 
 - Reading recommendations:
