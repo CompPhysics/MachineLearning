@@ -155,7 +155,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Ensemble methods, bagging and random forests, boosting.
   - Video of Lecture at https://youtu.be/mK48PfCxgYk
 - Lecture Friday: Adaptive boosting and gradient boosting, summary of decision trees and ensemble methods
-  - Video of Lecture at 
+  - Video of Lecture at https://youtu.be/v8eJBFeZKuI
 - Reading recommendations:
   - See lecture notes for week 45 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al chapter 10 and Geron chapters 5 and 6
