@@ -117,11 +117,11 @@ Keep always a good log of what you do.
 ### The report, the abstract
 
 The abstract gives the reader a quick overview of what has been done and the most important results. Try to be to the point and state your main findings. It could be structured as follows
-o Short introduction to topic and why its important
-o Introduce a challenge or unresolved issue with the topic (that you will try to solve)
-o What have you done to solve this
-o Main Results
-o The implications
+- Short introduction to topic and why its important
+- Introduce a challenge or unresolved issue with the topic (that you will try to solve)
+- What have you done to solve this
+- Main Results
+- The implications
 
 
 
