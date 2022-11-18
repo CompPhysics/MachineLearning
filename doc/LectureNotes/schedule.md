@@ -163,8 +163,9 @@ For the reading assignments we use the following abbreviations:
 ###  Week 46 November 14-18
 - Lab Wednesday: Work on project 3
 - Lecture Thursday: Support Vector machines
-- Lecture Friday: Workshop on project 3
   - Video of Lecture at https://youtu.be/F3CkH-opbdY
+- Lecture Friday: Workshop on project 3
+  - Video of Lecture at https://youtu.be/BbupEEvMXtg
 - Reading recommendations:
   - See lecture notes for week 46 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Hastie et al chapter 12
