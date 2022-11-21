@@ -172,14 +172,16 @@ For the reading assignments we use the following abbreviations:
 
 ###  Week 47 November 21-25
 - Lab Wednesday: Work on project 3
-- Lecture Thursday: Support Vector Machines
+- Lecture Thursday: Dimensionality reduction and unsupervised learning: Principal Component analysis (PCA) and clustering 
   - Video of Lecture 
-- Lecture Friday:  Support Vector Machines and Summary of course
+- Lecture Friday: PCA and clustering  and Summary of Course
   - Video of Lecture 
 - Reading recommendations:
   - See lecture notes for week 47 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  - Geron's chapter 5.
-  - Hastie et al Chapter 12 (sections 1,2.1-12.3 are the most relevant ones)
-  - Bishop chapter 7, with sections 7.1 and 7.2 as the essential ones
- 
- 
+  - Geron's chapter 9 on PCA
+  - Hastie et al Chapter 13 (sections 13.1-13.2 are the most relevant ones)
+- Excellent videos:
+  - We recommend highly the video on PCA by Brunton and Kutz at http://www.databookuw.com/page-2/page-4/, see in particular the video of section 1.5. 
+  - And another good video on PCA is at https://www.youtube.com/watch?v=FgakZw6K1QQ
+  - k-means clustering video at https://www.youtube.com/watch?v=4b5d3muPQmA
+
