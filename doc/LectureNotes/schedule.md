@@ -173,7 +173,7 @@ For the reading assignments we use the following abbreviations:
 ###  Week 47 November 21-25
 - Lab Wednesday: Work on project 3
 - Lecture Thursday: Dimensionality reduction and unsupervised learning: Principal Component analysis (PCA) and clustering 
-  - Video of Lecture 
+  - Video of Lecture https://youtu.be/VJIsEQM2lCI
 - Lecture Friday: PCA and clustering  and Summary of Course
   - Video of Lecture 
 - Reading recommendations:
