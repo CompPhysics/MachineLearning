@@ -175,7 +175,7 @@ For the reading assignments we use the following abbreviations:
 - Lecture Thursday: Dimensionality reduction and unsupervised learning: Principal Component analysis (PCA) and clustering 
   - Video of Lecture https://youtu.be/VJIsEQM2lCI
 - Lecture Friday: PCA and clustering  and Summary of Course
-  - Video of Lecture 
+  - Video of Lecture https://youtu.be/olXksEL3P4A
 - Reading recommendations:
   - See lecture notes for week 47 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
   - Geron's chapter 9 on PCA
