@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html chapter4.do.txt  -->
+
 # # Logistic Regression
-# 
-# 
-# 
+
 # ## Logistic Regression
 # 
 # In linear regression our main interest was centered on learning the
@@ -18,7 +19,6 @@
 # optimal parameters $\hat{\beta}$ to the mean squared error. If we can invert
 # the product of the design matrices, linear regression gives then a
 # simple recipe for fitting our data.
-# 
 # 
 # Classification problems, however, are concerned with outcomes taking
 # the form of discrete variables (i.e. categories). We may for example,
@@ -36,7 +36,6 @@
 # binary outcome, true or false, positive or negative, success or
 # failure etc.
 # 
-# 
 # Logistic regression will also serve as our stepping stone towards
 # neural network algorithms and supervised deep learning. For logistic
 # learning, the minimization of the cost function leads to a non-linear
@@ -50,9 +49,7 @@
 # We note also that many of the topics discussed here on logistic 
 # regression are also commonly used in modern supervised Deep Learning
 # models, as we will see later.
-# 
-# 
-# 
+
 # ## Basics
 # 
 # We consider the case where the dependent variables, also called the
@@ -95,7 +92,6 @@
 # where $\boldsymbol{y}$ is a vector representing the possible outcomes, $\boldsymbol{X}$ is our
 # $n\times p$ design matrix and $\boldsymbol{\beta}$ represents our estimators/predictors.
 # 
-# 
 # The main problem with our function is that it takes values on the
 # entire real axis. In the case of logistic regression, however, the
 # labels $y_i$ are discrete variables. A typical example is the credit
@@ -110,7 +106,6 @@
 # literature. This model is extremely simple. However, in many cases it is more
 # favorable to use a ``soft" classifier that outputs
 # the probability of a given category. This leads us to the logistic function.
-# 
 # 
 # The following example on data for coronary heart disease (CHD) as function of age may serve as an illustration. In the code here we read and plot whether a person has had CHD (output = 1) or not (output = 0). This ouput  is plotted the person's against age. Clearly, the figure shows that attempting to make a standard linear regression fit may not be very meaningful.
 
@@ -207,8 +202,7 @@ plt.show()
 # Sigmoid function or logistic model. We will consider this function as
 # representing the probability for finding a value of $y_i$ with a given
 # $x_i$.
-# 
-# 
+
 # ## The logistic function
 # 
 # Another widely studied model, is the so-called 
@@ -228,9 +222,8 @@ plt.show()
 # $$
 
 # Note that $1-p(t)= p(-t)$.
-# 
-# ## Examples of likelihood functions used in logistic regression and nueral networks
-# 
+
+# ## Examples of likelihood functions used in logistic regression and neural networks
 # 
 # The following code plots the logistic function, the step function and other functions we will encounter from here and on.
 
@@ -345,10 +338,8 @@ plt.show()
 # This equation is known in statistics as the **cross entropy**. Finally, we note that just as in linear regression, 
 # in practice we often supplement the cross-entropy with additional regularization terms, usually $L_1$ and $L_2$ regularization as we did for Ridge and Lasso regression.
 # 
-# 
 # The cross entropy is a convex function of the weights $\boldsymbol{\beta}$ and,
 # therefore, any local minimizer is a global minimizer. 
-# 
 # 
 # Minimizing this
 # cost function with respect to the two parameters $\beta_0$ and $\beta_1$ we obtain
@@ -414,8 +405,6 @@ plt.show()
 # and the model is specified in term of $K-1$ so-called log-odds or
 # **logit** transformations.
 # 
-# 
-# 
 # In our discussion of neural networks we will encounter the above again
 # in terms of a slightly modified function, the so-called **Softmax** function.
 # 
@@ -447,7 +436,7 @@ plt.show()
 # descent method.  Newton's method and gradient descent methods are
 # discussed in the material on [optimization
 # methods](https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html).
-# 
+
 # ## Wisconsin Cancer Data
 # 
 # We show here how we can use a simple regression case on the breast
@@ -558,6 +547,23 @@ correlation_matrix = cancerpd.corr().round(1)
 # features are of relevance and which are not. This leads  us to
 # the classical Principal Component Analysis (PCA) theorem with
 # applications. This will be discussed later this semester ([week 43](https://compphysics.github.io/MachineLearning/doc/pub/week43/html/week43-bs.html)).
+# 
+# Here we present a further way to present our results in terms of a so-called **confusion matrix**, the cumulative gain and the **ROC** curve.
+# This way of displaying our data are based upon different ways to classify our possible outcomes. Before we proceed we need some definitions.
+# 1. **TP**: true positive or in other words, something equivalent with a proper classification
+# 
+# 2. **TN**: true negative, which is equivalent with a correct rejection
+# 
+# 3. **FP**: false positive, or in simpler words something that is equivalent with a false alarm
+# 
+# 4. **FN**: false negative, which is mean to be equivalent with a miss.
+# 
+# The total data set is then the sum of the true positive and true negative targets or outputs, labeled by $n$.
+# Based on this we can then define the accuracy score as the sum of correctly predicted **TP** and **TN** cases divided by the sum of true positive and treue negative events in our data set, or as
+
+# $$
+# \mathrm{Accuracy} = \frac{\sum_{i=0}^{n-1}I(y_i=\tilde{y}_i)}{n}.
+# $$
 
 # In[8]:
 

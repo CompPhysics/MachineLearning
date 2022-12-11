@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html chapter3.do.txt  -->
+
 # # Resampling Methods
-# 
+
 # ## Introduction
 # 
 # Resampling methods are an indispensable tool in modern
@@ -24,7 +27,6 @@
 # In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
 # cross-validation and the bootstrap method. 
 # 
-# 
 # Resampling approaches can be computationally expensive, because they
 # involve fitting the same statistical method multiple times using
 # different subsets of the training data. However, due to recent
@@ -41,22 +43,19 @@
 # level of flexibility for a model is known as model selection. The
 # bootstrap is widely used.
 # 
-# 
 # * Our simulations can be treated as *computer experiments*. This is particularly the case for Monte Carlo methods
 # 
 # * The results can be analysed with the same statistical tools as we would use analysing experimental data.
 # 
 # * As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
-# 
+
 # ## Reminder on Statistics
-# 
 # 
 # * As in other experiments, many numerical  experiments have two classes of errors:
 # 
 #   * Statistical errors
 # 
 #   * Systematical errors
-# 
 # 
 # * Statistical errors can be estimated using standard tools from statistics
 # 
@@ -68,7 +67,6 @@
 # Standard least squares and Ridge regression  allow us to
 # derive quantities like the variance and other expectation values in a
 # rather straightforward way.
-# 
 # 
 # It is assumed that $\varepsilon_i
 # \sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
@@ -92,7 +90,6 @@
 # Recall that $\boldsymbol{X}$ is a matrix of dimensionality $n\times p$. The
 # notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
 # row number $i$ and perform a sum over all values $p$.
-# 
 # 
 # The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
 # that there exists a function $f(\boldsymbol{x})$ and  a normal distributed error $\boldsymbol{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
@@ -140,7 +137,6 @@
 # Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta}, \sigma^2)$, that is $\boldsymbol{y}$ follows a normal distribution with 
 # mean value $\boldsymbol{X}\boldsymbol{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD). 
 # 
-# 
 # With the OLS expressions for the parameters $\boldsymbol{\beta}$ we can evaluate the expectation value
 
 # $$
@@ -148,7 +144,7 @@
 # $$
 
 # This means that the estimator of the regression parameters is unbiased.
-# v
+# 
 # We can also calculate the variance
 # 
 # The variance of $\boldsymbol{\beta}$ is
@@ -185,7 +181,6 @@
 # [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} }$. This may be used to
 # construct a confidence interval for the estimates.
 # 
-# 
 # In a similar way, we can obtain analytical expressions for say the
 # expectation values of the parameters $\boldsymbol{\beta}$ and their variance
 # when we employ Ridge regression, allowing us again to define a confidence interval. 
@@ -215,10 +210,8 @@
 
 # The difference is non-negative definite since each component of the
 # matrix product is non-negative definite. 
-# This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\boldsymbol{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
-# 
-# 
-# 
+# This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\boldsymbol{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below.
+
 # ## Resampling methods
 # 
 # With all these analytical equations for both the OLS and Ridge
@@ -236,11 +229,9 @@
 # 
 # 2. training error $\mathrm{Err_{Train}}$, which is the average loss over the training data.
 # 
-# As our model becomes more and more complex, more of the training data tends to  used. The training may thence adapt to more complicated structures in the data. This may lead to a decrease in the bias (see below for code example) and a slight increase of the variance for the test error.
+# As our model becomes more and more complex, more of the training data tends to  be used. The training may thence adapt to more complicated structures in the data. This may lead to a decrease in the bias (see below for code example) and a slight increase of the variance for the test error.
 # For a certain level of complexity the test error will reach minimum, before starting to increase again. The
 # training error reaches a saturation.
-# 
-# 
 # 
 # Two famous
 # resampling methods are the **independent bootstrap** and **the jackknife**. 
@@ -256,7 +247,6 @@
 # independent, identically distributed, and we only want to estimate the
 # variance of $\overline{X}$ (which often is the case), then there is no
 # need for bootstrapping. 
-# 
 # 
 # The Jackknife works by making many replicas of the estimator $\widehat{\beta}$. 
 # The jackknife is a resampling method where we systematically leave out one observation from the vector of observed values $\boldsymbol{x} = (x_1,x_2,\cdots,X_n)$. 
@@ -328,8 +318,6 @@ t = jackknife(x, stat)
 # estimate all the interesting parameters of $p(\boldsymbol{t})$ using point
 # estimators.  
 # 
-# 
-# 
 # In the case that $\widehat{\beta}$ has
 # more than one component, and the components are independent, we use the
 # same estimator on each component separately.  If the probability
@@ -344,7 +332,6 @@ t = jackknife(x, stat)
 # idea is to use the relative frequency of $\widehat{\beta}^*$
 # (think of a histogram) as an estimate of $p(\boldsymbol{t})$.
 # 
-# 
 # But
 # unless there is enough information available about the process that
 # generated $X_1,X_2,\cdots,X_n$, $p(x)$ is in general
@@ -354,12 +341,10 @@ t = jackknife(x, stat)
 # the relative frequency of the observations, will we obtain the same
 # result in some asymptotic sense? The answer is yes.
 # 
-# 
 # Instead of generating the histogram for the relative
 # frequency of the observation $X_i$, just draw the values
 # $(X_1^*,X_2^*,\cdots,X_n^*)$ with replacement from the vector
 # $\boldsymbol{X}$. 
-# 
 # 
 # The independent bootstrap works like this: 
 # 
@@ -378,7 +363,7 @@ t = jackknife(x, stat)
 # histogram of the relative frequency of $\widehat{\beta}^*$. Instead
 # you use the estimators corresponding to the statistic of interest. For
 # example, if you are interested in estimating the variance of $\widehat
-# \beta$, apply the etsimator $\widehat \sigma^2$ to the values
+# \beta$, apply the estimator $\widehat \sigma^2$ to the values
 # $\widehat \beta^*$.
 # 
 # Before we proceed however, we need to remind ourselves about a central
@@ -386,7 +371,6 @@ t = jackknife(x, stat)
 # This theorem plays a central role in understanding why the Bootstrap
 # (and other resampling methods) work so well on independent and
 # identically distributed variables.
-# 
 # 
 # Suppose we have a PDF $p(x)$ from which we generate  a series $N$
 # of averages $\langle x_i \rangle$. Each mean value $\langle x_i \rangle$
@@ -404,7 +388,6 @@ t = jackknife(x, stat)
 
 # the question we pose is which is the PDF of the new variable $z$.
 # 
-# 
 # The probability of obtaining an average value $z$ is the product of the 
 # probabilities of obtaining arbitrary individual mean values $x_i$,
 # but with the constraint that the average is $z$. We can express this through
@@ -419,8 +402,6 @@ t = jackknife(x, stat)
 # All measurements that lead to each individual $x_i$ are expected to
 # be independent, which in turn means that we can express $\tilde{p}$ as the 
 # product of individual $p(x_i)$.  The independence assumption is important in the derivation of the central limit theorem.
-# 
-# 
 # 
 # If we use the integral expression for the $\delta$-function
 
@@ -472,7 +453,6 @@ t = jackknife(x, stat)
 # $\sigma^2_m=\sigma^2/m$, where $\sigma$ is the variance of the PDF $p(x)$
 # and $\mu$ is also the mean of the PDF $p(x)$. 
 # 
-# 
 # Thus, the central limit theorem states that the PDF $\tilde{p}(z)$ of
 # the average of $m$ random values corresponding to a PDF $p(x)$ 
 # is a normal distribution whose mean is the 
@@ -504,12 +484,9 @@ t = jackknife(x, stat)
 # we generate in various calculations do always exhibit some
 # correlations.
 # 
-# 
-# 
 # The theorem is satisfied by a large class of PDFs. Note however that for a
 # finite $m$, it is not always possible to find a closed form /analytic expression for
 # $\tilde{p}(x)$.
-# 
 # 
 # The following code starts with a Gaussian distribution with mean value
 # $\mu =100$ and variance $\sigma=15$. We use this to generate the data
@@ -577,7 +554,6 @@ plt.show()
 
 # ## The bias-variance tradeoff
 # 
-# 
 # We will discuss the bias-variance tradeoff in the context of
 # continuous predictions such as regression. However, many of the
 # intuitions and ideas discussed here also carry over to classification
@@ -609,13 +585,13 @@ plt.show()
 # \mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=\frac{1}{n}\sum_i(f_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2+\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2+\sigma^2.
 # $$
 
-# The three terms represent the square of the bias of the learning
+# The first term represents the square of the bias of the learning
 # method, which can be thought of as the error caused by the simplifying
 # assumptions built into the method. The second term represents the
 # variance of the chosen model and finally the last terms is variance of
 # the error $\boldsymbol{\epsilon}$.
 # 
-# To derive this equation, we need to recall that the variance of $\boldsymbol{y}$ and $\boldsymbol{\epsilon}$ are both equal to $\sigma^2$. The mean value of $\boldsymbol{\epsilon}$ is by definition equal to zero. Furthermore, the function $f$ is not a stochastics variable, idem for $\boldsymbol{\tilde{y}}$.
+# To derive this equation, we need to recall that the variance of $\boldsymbol{y}$ and $\boldsymbol{\epsilon}$ are both equal to $\sigma^2$. The mean value of $\boldsymbol{\epsilon}$ is by definition equal to zero. Furthermore, the function $f$ is not a stochastic variable, idem for $\boldsymbol{\tilde{y}}$.
 # We use a more compact notation in terms of the expectation value
 
 # $$
@@ -755,15 +731,12 @@ plt.show()
 # train and less sensitive to sampling noise arising from having a
 # finite-sized training dataset (smaller variance). 
 # 
-# 
-# 
 # The above equations tell us that in
 # order to minimize the expected test error, we need to select a
 # statistical learning method that simultaneously achieves low variance
 # and low bias. Note that variance is inherently a nonnegative quantity,
 # and squared bias is also nonnegative. Hence, we see that the expected
 # test MSE can never lie below $Var(\epsilon)$, the irreducible error.
-# 
 # 
 # What do we mean by the variance and bias of a statistical learning
 # method? The variance refers to the amount by which our model would change if we
@@ -774,7 +747,6 @@ plt.show()
 # sets. However, if a method has high variance  then small changes in
 # the training data can result in large changes in the model. In general, more
 # flexible statistical methods have higher variance.
-# 
 # 
 # You may also find this recent [article](https://www.pnas.org/content/116/32/15849) of interest.
 
@@ -954,7 +926,6 @@ plt.show()
 # choosing $k=n$. This particular case is referred to as leave-one-out
 # cross-validation (LOOCV). 
 # 
-# 
 # * Define a range of interest for the penalty parameter.
 # 
 # * Divide the data set into training and test set comprising samples $\{1, \ldots, n\} \setminus i$ and $\{ i \}$, respectively.
@@ -996,7 +967,6 @@ plt.show()
 # c. Fit a model on the training set and evaluate it on the test set
 # 
 # d. Retain the evaluation score and discard the model
-# 
 # 
 # 5. Summarize the model using the sample of model evaluation scores
 # 
@@ -1170,8 +1140,8 @@ plt.legend()
 plt.show()
 
 
-# Note that we have kept the intercept in the first column of design matrix $\boldsymbol{X}$. When we call the corresponding **Scikit-Learn** function we need thus to set the intercept to **False**. Libraries like **Scikit-Learn** normally scale the design matrix and does not fit intercept. See the discussions below.
-# 
+# Note that we have kept the intercept in the first column of design matrix $\boldsymbol{X}$. When we call the corresponding **Scikit-Learn** function we need thus to set the intercept to **False**. Libraries like **Scikit-Learn** normally scale the design matrix and do not fit intercept. See the discussions below.
+
 # ## More on Rescaling data
 # 
 # We end this chapter by adding some words on scaling and how to deal with the intercept for regression cases.
@@ -1193,7 +1163,6 @@ plt.show()
 # from the library **Scikit-Learn** (when not shrinking $\beta_0$) for the unknown parameters
 # $\boldsymbol{\beta}$, are derived under the assumption that both $\boldsymbol{y}$ and
 # $\boldsymbol{X}$ are zero centered, that is we subtract the mean values.
-# 
 # 
 # If our predictors represent different scales, then it is important to
 # standardize the design matrix $\boldsymbol{X}$ by subtracting the mean of each
@@ -1219,8 +1188,6 @@ plt.show()
 # model with this predictor would probably give a much bigger
 # coefficient term, than if measured in millimeters.
 # This can clearly lead to problems in evaluating the cost/loss functions.
-# 
-# 
 # 
 # Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
 # on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as follows
@@ -1332,8 +1299,6 @@ y_pred = y_pred + y_train_mean
 
 # the mean value for all elements of the column vector $\boldsymbol{x}_j$.
 # 
-# 
-# 
 # Replacing $y_i$ with $y_i - y_i - \overline{\boldsymbol{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
 
 # $$
@@ -1356,7 +1321,6 @@ y_pred = y_pred + y_train_mean
 # $$
 
 # What does this mean? And why do we insist on all this? Let us look at some examples.
-# 
 # 
 # This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (*code example thanks to  Øyvind Sigmundson Schøyen*). Here our scaling of the data is done by subtracting the mean values only.
 # Note also that we do not split the data into training and test.
@@ -1461,7 +1425,7 @@ plt.show()
 # meaning that the MSE can be penalized by the value of the
 # intercept. Not including the intercept in the fit, means that the
 # regularization term does not include $\beta_0$. For different values
-# of $\lambda$, this may lead to differeing MSE values. 
+# of $\lambda$, this may lead to different MSE values. 
 # 
 # To remind the reader, the regularization term, with the intercept in Ridge regression, is given by
 
@@ -1487,7 +1451,6 @@ plt.show()
 # since it focuses only on the remaining quantities. If we however bring
 # back the intercept, we will get a MSE which then contains the
 # intercept.
-# 
 # 
 # Armed with this wisdom, we attempt first to simply set the intercept equal to **False** in our implementation of Ridge regression for our well-known  vanilla data set.
 
@@ -1659,7 +1622,7 @@ plt.show()
 # of polynomial fitting problem.
 # 
 # The next example is indeed an example where all these discussions about the role of intercept are not present.
-# 
+
 # ## More complicated Example: The Ising model
 # 
 # The one-dimensional Ising model with nearest neighbor interaction, no
@@ -1885,10 +1848,6 @@ plt.show()
 # 
 # In this case our matrix inversion was actually possible. The obvious question now is what is the mathematics behind the SVD?
 # 
-# 
-# 
-# 
-# 
 # Let us now 
 # focus on Ridge and Lasso regression as well. We repeat some of the
 # basic parts of the Ising model and the setup of the training and test
@@ -2031,31 +1990,21 @@ plt.show()
 
 # The results agree perfectly with our previous discussion where we used our own code.
 # 
-# 
 # Having explored the ordinary least squares we move on to ridge
 # regression. In ridge regression we include a **regularizer**. This
 # involves a new cost function which leads to a new estimate for the
 # weights $\boldsymbol{\beta}$. This results in a penalized regression problem. The
 # cost function is given by
 
-# 6
-# 0
-#  
-# <
-# <
-# <
-# !
-# !
-# M
-# A
-# T
-# H
-# _
-# B
-# L
-# O
-# C
-# K
+# <!-- Equation labels as ordinary links -->
+# <div id="_auto11"></div>
+# 
+# $$
+# \begin{equation}
+#     C(\boldsymbol{X}, \boldsymbol{\beta}; \lambda) = (\boldsymbol{X}\boldsymbol{\beta} - \boldsymbol{y})^T(\boldsymbol{X}\boldsymbol{\beta} - \boldsymbol{y}) + \lambda \boldsymbol{\beta}^T\boldsymbol{\beta}.
+# \label{_auto11} \tag{11}
+# \end{equation}
+# $$
 
 # In[26]:
 
@@ -2108,9 +2057,6 @@ plt.show()
 # constant as opposed to ridge and OLS. We get a sparse solution with
 # $J_{j, j + 1} = -1$.
 # 
-# 
-# 
-# 
 # We see how the different models perform for a different set of values for $\lambda$.
 
 # In[28]:
@@ -2159,7 +2105,6 @@ plt.show()
 # much. Ridge is more stable over a larger range of values for
 # $\lambda$, but eventually also fades away.
 # 
-# 
 # To determine which value of $\lambda$ is best we plot the accuracy of
 # the models when predicting the training and the testing set. We expect
 # the accuracy of the training set to be quite good, but if the accuracy
@@ -2205,20 +2150,12 @@ plt.show()
 # From the above figure we can see that LASSO with $\lambda = 10^{-2}$
 # achieves a very good accuracy on the test set. This by far surpasses the
 # other models for all values of $\lambda$.
-# 
-# 
-# 
-# 
-# 
-# 
+
 # ## Exercises and Projects
-# 
-# 
 # 
 # The main aim of this project is to study in more detail various
 # regression methods, including the Ordinary Least Squares (OLS) method,
 # The total score is **100** points. Each subtask has its own final score.
-# 
 # 
 # We will first study how to fit polynomials to a specific
 # two-dimensional function called [Franke's
@@ -2229,7 +2166,6 @@ plt.show()
 # techniques such as cross-validation and/or bootstrap in order to perform a
 # proper assessment of our models. We will also study in detail the
 # so-called Bias-Variance trade off.
-# 
 # 
 # The Franke function, which is a weighted sum of four exponentials  reads as follows
 
@@ -2258,7 +2194,6 @@ plt.show()
 # reproduce these data using the same methods. We will also try to go
 # beyond the second-order polynomials metioned above and explore 
 # which polynomial fits the data best.
-# 
 # 
 # The Python code for the Franke function is included here (it performs also a three-dimensional plot of it)
 
@@ -2355,11 +2290,8 @@ plt.show()
 # data and say test data.  An accepted rule of thumb is to use
 # approximately $2/3$ to $4/5$ of the data as training data.
 # 
-# 
 # You can easily reuse the solutions to your exercises from week 35 and week 36.
-# 
-# 
-# 
+
 # ### Exercise: Bias-variance trade-off and resampling techniques
 # 
 # Our aim here is to study the bias-variance trade-off by implementing the **bootstrap** resampling technique.
@@ -2422,8 +2354,7 @@ plt.show()
 # of data points, and possibly also your training and test data using the **bootstrap** resampling method.
 # 
 # Note also that when you calculate the bias, in all applications you don't know the function values $f_i$. You would hence replace them with the actual data points $y_i$.
-# 
-# 
+
 # ### Exercise:  Cross-validation as resampling techniques, adding more complexity
 # 
 # The aim here is to write your own code for another widely popular
@@ -2440,8 +2371,7 @@ plt.show()
 # you got from your **bootstrap** code. Comment your results. Try $5-10$
 # folds.  You can also compare your own cross-validation code with the
 # one provided by **Scikit-Learn**.
-# 
-# 
+
 # ### Exercise: Ridge Regression on the Franke function  with resampling
 # 
 # Write your own code for the Ridge method, either using matrix
@@ -2452,8 +2382,8 @@ plt.show()
 # dependence on $\lambda$.
 # 
 # Study also the bias-variance trade-off as function of various values of
-# the parameter $\lambda$. For the bias-variance trade-off, use the **bootstrap** resampling method. Comment your results. 
-# 
+# the parameter $\lambda$. For the bias-variance trade-off, use the **bootstrap** resampling method. Comment your results.
+
 # ### Exercise: Lasso Regression on the Franke function  with resampling
 # 
 # This exercise is essentially a repeat of the previous two ones, but now
@@ -2461,8 +2391,8 @@ plt.show()
 # you can also use the functionalities of **Scikit-Learn** (recommended). 
 # Give a
 # critical discussion of the three methods and a judgement of which
-# model fits the data best.  Perform here as well an analysis of the bias-variance trade-off using the **bootstrap** resampling technique and an analysis of the mean squared error using cross-validation. 
-# 
+# model fits the data best.  Perform here as well an analysis of the bias-variance trade-off using the **bootstrap** resampling technique and an analysis of the mean squared error using cross-validation.
+
 # ### Exercise: Analysis of real data
 # 
 # With our codes functioning and having been tested properly on a
@@ -2491,7 +2421,7 @@ scipy.misc.imread
 # Here is a simple part of a Python code which reads and plots the data
 # from such files
 
-# In[ ]:
+# In[32]:
 
 
 """
@@ -2519,9 +2449,7 @@ plt.show()
 # Austfjell, again in Norway.
 # Feel free to produce your own terrain data.
 # 
-# 
 # Alternatively, if you would like to use another data set, feel free to do so. This could be data close to your reseach area or simply a data set you found interesting. See for example [kaggle.com](https://www.kaggle.com/datasets) for examples.
-# 
 # 
 # Our final part deals with the parameterization of your digital terrain
 # data (or your own data).  We will apply all three methods for linear regression, the same type (or higher order) of polynomial
