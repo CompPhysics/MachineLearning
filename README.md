@@ -30,13 +30,19 @@ This course aims at giving you insights and knowledge about  many of the central
 
 ## Prerequisites and background
 
-Basic knowledge in programming and mathematics, with an emphasis on linear algebra. Knowledge of Python or/and C++ as programming languages is strongly recommended and experience with Jupyter notebooks is recommended. Required courses are the equivalents to the University of Oslo mathematics courses MAT1100, MAT1110, MAT1120 and at least one of the corresponding computing and programming courses INF1000/INF1110 or MAT-INF1100/MAT-INF1100L/BIOS1100/KJM-INF1100. Most universities offer nowadays a basic programming course (often compulsory) where Python is the recurring programming language.
-We recommend also refreshing your knowledge on Statistics and Probability theory. The lecture notes at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html offer a review of Statistics and Probability theory.
+Basic knowledge in programming and mathematics, with an emphasis on
+linear algebra. Knowledge of Python or/and C++ as programming
+languages is strongly recommended and experience with Jupyter
+notebooks is recommended.
+We recommend also refreshing your knowledge on Statistics and Probability
+theory. The lecture notes at
+https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html
+offer a review of Statistics and Probability theory.
 
 ## The course has two central parts
 
 1. Statistical analysis and optimization of data
-2. Machine learning
+2. Machine learning algorithms and Deep Learning
 
 
 ### Statistical analysis and optimization of data
@@ -58,7 +64,7 @@ The following topics are typically  covered:
 - Decisions trees, Random Forests, Bagging and Boosting
 - Support vector machines
 - Bayesian linear and logistic regression
-- Boltzmann Machines
+- Boltzmann Machines and generative models
 - Unsupervised learning Dimensionality reduction, PCA, k-means and  clustering
 - Autoenconders
 
