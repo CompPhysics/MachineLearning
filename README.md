@@ -83,8 +83,8 @@ the theory and various algorithms discussed during the lectures. We recommend st
 
 
 ##  Teaching Assistants FS22
-* Bennosh Ashrafi, behnoosh.ashrafi@fys.uio.no
-* Frida Marie Engøy Westbye, f.m.e.westby@fys.uio.no
+* Karl Henrik Fredly
+* Fahimeh
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
 * Joao Guilherme Carvalho Inacio, joaogca@fys.uio.no
 * Sigurd Sørlie Rustad, s.s.rustad@fys.uio.no
