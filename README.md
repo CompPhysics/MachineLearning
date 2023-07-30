@@ -83,13 +83,12 @@ the theory and various algorithms discussed during the lectures. We recommend st
 
 
 ##  Teaching Assistants FS22
-* Karl Henrik Fredly
-* Fahimeh
+* Karl Henrik Fredly, k.h.fredly@fys.uio.no
+* Fahimeh Najafi, fahimeh.najafi@fys.uio.no
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
-* Joao Guilherme Carvalho Inacio, joaogca@fys.uio.no
-* Sigurd Sørlie Rustad, s.s.rustad@fys.uio.no
-* Stian Dysthe Bilek stian.bilek@fys.uio.no
-* Øyvind Sigmundson Schøyen, oyvinssc@student.matnat.uio.no
+* Mia-Katrin Ose Kvalsund, m.k.o.kvalsund@fys.uio.no
+* Daniel Haas Becattini Lima, d.h.b.lima@fys.uio.no
+* Adam Jakobsen, adam.jakobsen@fys.uio.no
 
 
 
