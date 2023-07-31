@@ -75,20 +75,21 @@ expected to work on numerical examples and projects which illustrate
 the theory and various algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants, if possible. 
 
 ## Instructor information
-* _Name_: Morten Hjorth-Jensen
-* _Email_: morten.hjorth-jensen@fys.uio.no
-* _Phone_: +47-48257387
-* _Office_: Department of Physics, University of Oslo, Eastern wing, room FØ470 
-* _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning. 
 
 
-##  Teaching Assistants FS22
+##  Teaching team Fall 2023
 * Karl Henrik Fredly, k.h.fredly@fys.uio.no
+* Daniel Haas Becattini Lima, d.h.b.lima@fys.uio.no
+* Morten Hjorth-Jensen, mhjensen@uio.no
+  * _Phone_: +47-48257387
+  * _Office_: Department of Physics, room FØ470 
+  * _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning. 
+* Adam Jakobsen, adam.jakobsen@fys.uio.no
 * Fahimeh Najafi, fahimeh.najafi@fys.uio.no
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
 * Mia-Katrin Ose Kvalsund, m.k.o.kvalsund@fys.uio.no
-* Daniel Haas Becattini Lima, d.h.b.lima@fys.uio.no
-* Adam Jakobsen, adam.jakobsen@fys.uio.no
+
+
 
 
 
