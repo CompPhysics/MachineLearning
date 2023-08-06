@@ -15,7 +15,20 @@ which is exactly what machine learning aims at providing.
 
 ## Learning outcomes
 
-This course aims at giving you insights and knowledge about  many of the central algorithms used in Data Analysis and Machine Learning.  The course is project based and through  various numerical projects and weekly exercises you will be exposed to fundamental research problems in these fields, with the aim to reproduce state of the art scientific results. Both supervised and unsupervised methods will be covered. The emphasis is on a frequentist approach with an emphasis on predictions and correaltions. However, we will try, where appropriate, to link our machine learning models with a Bayesian approach as well. You will learn to develop and structure large codes for studying different cases where Machine Learning is applied to, get acquainted with computing facilities and learn to handle large scientific projects. A good scientific and ethical conduct is emphasized throughout the course. More specifically, after this course you will
+This course aims at giving you insights and knowledge about many of
+the central algorithms used in Data Analysis and Machine Learning.
+The course is project based and through various numerical projects and
+weekly exercises you will be exposed to fundamental research problems
+in these fields, with the aim to reproduce state of the art scientific
+results. Both supervised and unsupervised methods will be covered. The
+emphasis is on a frequentist approach with an emphasis on predictions
+and correaltions. However, we will try, where appropriate, to link our
+machine learning models with a Bayesian approach as well. You will
+learn to develop and structure large codes for studying different
+cases where Machine Learning is applied to, get acquainted with
+computing facilities and learn to handle large scientific projects. A
+good scientific and ethical conduct is emphasized throughout the
+course. More specifically, after this course you will
 
 - Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 - Be capable of extending the acquired knowledge to other systems and cases;
@@ -70,9 +83,11 @@ The following topics are typically  covered:
 
 Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
 
-Computational aspects play a central role and you are
-expected to work on numerical examples and projects which illustrate
-the theory and various algorithms discussed during the lectures. We recommend strongly to form small project groups of 2-3 participants, if possible. 
+Computational aspects play a central role and you are expected to work
+on numerical examples and projects which illustrate the theory and
+various algorithms discussed during the lectures. We recommend
+strongly to form small project groups of 2-3 participants, if
+possible.
 
 ## Instructor information
 
@@ -96,14 +111,16 @@ the theory and various algorithms discussed during the lectures. We recommend st
 
 ## Practicalities
 
-1. Four lectures per week, Fall semester, 10 ECTS. The lectures will be recorded and linked to this site and the official University of Oslo website for the course;
-2. Two hours of laboratory sessions for work on computational projects and exercises for each group. There will  also be fully digital laboratory sessions for those who cannot attend;
-3. Three projects which are graded and count 1/3 each of the final grade;
-4. A selected number of weekly assignments;
-5. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
-6. The course is offered as a so-called _cloned_ course,  FYS-STK4155 at the Master of Science level and FYS-STK3155 as a senior undergraduate)course;
-7. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
-8. Weekly email with summary of activities will be mailed to all participants;
+1. The sessions on Tuesdays and Wednesdays last four hours for each group (four in total) and will include lectures in a flipped mode (promoting active learning) and work on exercices and projects.  The sessions will begin with lectures and questions and answers about the material to be covered every week.
+2. There are four groups, Tuesdays 815am-12pm and 1215pm-4pm and Wednesdays 815am-12pm and 1215pm-4pm. Please sign up as soon as possible for one of the groups. Max capacity per group is 30-40 participants.
+
+3. On Thursdays we have a regular lecture. These lectures start at 1215pm and end at 2pm.
+4. Three projects which are graded and count 1/3 each of the final grade;
+5. A selected number of weekly assignments;
+6. The course is part of the CS Master of Science program, but is open to other bachelor and Master of Science students at the University of Oslo;
+7. The course is offered as a so-called _cloned_ course,  FYS-STK4155 at the Master of Science level and FYS-STK3155 as a senior undergraduate)course;
+8. Videos of teaching material are available via the links at https://compphysics.github.io/MachineLearning/doc/web/course.html;
+9. Weekly email with summary of activities will be mailed to all participants;
 
 
 ## Grading
