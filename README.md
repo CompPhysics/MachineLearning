@@ -80,6 +80,9 @@ The following topics are typically  covered:
 - Boltzmann Machines and generative models
 - Unsupervised learning Dimensionality reduction, PCA, k-means and  clustering
 - Autoenconders
+- Generative algorithms
+
+Not all these topics may be covered by FYS-STK3155/4155. Some of them, like generative models and Bayesian statistics are covered by the advanced course FYS5429.
 
 Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
 
