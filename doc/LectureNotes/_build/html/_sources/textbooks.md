@@ -2,9 +2,10 @@
 ## Textbooks
 
 _Recommended textbooks_:
-The lecture notes are collected as a jupyter-book at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In addition to the electure notes, we recommend the books of Bishop and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
+The lecture notes are collected as a jupyter-book at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In addition to the lecture notes, we recommend the books of Bishop, Murphy and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
 - Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. You can download for free the textbook in PDF format at https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf
-- Ian Goodfellow, Yoshua Bengio, and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended. The lectures follow to a larg extent this text.
+- Ian Goodfellow, Yoshua Bengio, and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended. The lectures follow to a large extent this text.
+- Kevin Murphy, Probabilistic Machine Learning, an Introduction, https://probml.github.io/pml-book/book1.html
 The weekly plans will include reading suggestions from these two textbooks.
 _Additional textbooks_:
 - Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer, https://www.springer.com/gp/book/9780387848570. This is a well-known text and serves as additional literature.
