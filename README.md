@@ -146,7 +146,7 @@ The final number of points is based on the average of all projects (including ev
 | First project, _due October 9_ | 33.3% (1/3) |
 | Second  project, _due November 6_ | 33.3% (1.3) |
 | Third project, _due December 11_ |  33.3% (1/3)  |
-| Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Monday May 1)| 20% |
+| Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Fridays)| 10% |
 
 
 
