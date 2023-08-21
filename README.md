@@ -109,7 +109,8 @@ possible.
 
 
 
-
+##  Discord as discussion tool
+* Our Discord channel is at https://discord.gg/mKq3zjxP
 
 
 ## Practicalities
