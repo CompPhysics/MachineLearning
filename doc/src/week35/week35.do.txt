@@ -56,11 +56,11 @@ Similarly, "Mehta et al's article":"https://arxiv.org/abs/1803.08823" is also re
 !bblock
 
 Regression modeling deals with the description of  the sampling distribution of a given random variable $y$ and how it varies as function of another variable or a set of such variables $\bm{x} =[x_0, x_1,\dots, x_{n-1}]^T$. 
-The first variable is called the _dependent_, the _outcome_ or the _response_ variable while the set of variables $\bm{x}$ is called the independent variable, or the predictor variable or the explanatory variable. 
+The first variable is called the _dependent_, the _outcome_ or the _response_ variable while the set of variables $\bm{x}$ is called the independent variable, or the predictor variable or the explanatory variable or simply the input. 
  
 A regression model aims at finding a likelihood function $p(\bm{y}\vert \bm{x})$, that is the conditional distribution for $\bm{y}$ with a given $\bm{x}$. The estimation of  $p(\bm{y}\vert \bm{x})$ is made using a data set with 
 * $n$ cases $i = 0, 1, 2, \dots, n-1$ 
-* Response (target, dependent or outcome) variable $y_i$ with $i = 0, 1, 2, \dots, n-1$ 
+* Response, output, target, dependent or outcome variable $y_i$ with $i = 0, 1, 2, \dots, n-1$ 
 * $p$ so-called explanatory (independent or predictor) variables $\bm{x}_i=[x_{i0}, x_{i1}, \dots, x_{ip-1}]$ with $i = 0, 1, 2, \dots, n-1$ and explanatory variables running from $0$ to $p-1$. See below for more explicit examples.   
  The goal of the regression analysis is to extract/exploit relationship between $\bm{y}$ and $\bm{x}$ in or to infer causal dependencies, approximations to the likelihood functions, functional relationships and to make predictions, making fits and many other things.
 !eblock
@@ -70,8 +70,8 @@ A regression model aims at finding a likelihood function $p(\bm{y}\vert \bm{x})$
 !bblock
 
 
-Consider an experiment in which $p$ characteristics of $n$ samples are
-measured. The data from this experiment, for various explanatory variables $p$ are normally represented by a matrix  
+Consider an experiment in which $p$ characteristics (or features) of $n$ samples are
+measured. The data from this experiment, for various explanatory/feature variables $p$ are normally represented by a matrix  
 $\mathbf{X}$.
 
 The matrix $\mathbf{X}$ is called the *design
@@ -96,16 +96,14 @@ Linear regression gives us a set of analytical equations for the parameters $\be
 =====  Examples  =====
 !bblock
 In order to understand the relation among the predictors $p$, the set of data $n$ and the target (outcome, output etc) $\bm{y}$,
-consider the model we discussed for describing nuclear binding energies. 
-
-There we assumed that we could parametrize the data using a polynomial approximation based on the liquid drop model.
-Assuming 
+we condiser a simple polynomial fit.
+We assume our data can represented by a fourth-order polynomial. For the $i$th component we have 
 !bt
 \[
-BE(A) = a_0+a_1A+a_2A^{2/3}+a_3A^{-1/3}+a_4A^{-1},
+\tilde{y}_i = \beta_0+\beta_1x_i+\beta_2x_i^2+\beta_3x_i^3+\beta_4x_i^4.
 \]
 !et
-we have five predictors, that is the intercept, the $A$ dependent term, the $A^{2/3}$ term and the $A^{-1/3}$ and $A^{-1}$ terms.
+we have five predictors, that is the intercept $\beta_0$and the other terms $\beta_i$.
 This gives $p=0,1,2,3,4$. Furthermore we have $n$ entries for each predictor. It means that our design matrix is a 
 $p\times n$ matrix $\bm{X}$.
 
@@ -136,7 +134,8 @@ where $\epsilon_i$ is the error in our approximation.
 
 !split
 ===== Rewriting the fitting procedure as a linear algebra problem  =====
-!bblock
+
+
 For every set of values $y_i,x_i$ we have thus the corresponding set of equations
 !bt
 \begin{align*}
@@ -147,7 +146,7 @@ y_2&=\beta_0+\beta_1x_2^1+\beta_2x_2^2+\dots+\beta_{n-1}x_2^{n-1}+\epsilon_2\\
 y_{n-1}&=\beta_0+\beta_1x_{n-1}^1+\beta_2x_{n-1}^2+\dots+\beta_{n-1}x_{n-1}^{n-1}+\epsilon_{n-1}.\\
 \end{align*}
 !et
-!eblock
+
 
 
 !split
@@ -271,89 +270,6 @@ our matrix as $\bm{X}\in {\mathbb{R}}^{n\times p}$, with the predictors refering
 
 !split
 ===== Examples relevant for the exercises  =====
-
-In our "introductory notes":"https://compphysics.github.io/MachineLearning/doc/pub/How2ReadData/html/How2ReadData.html" we looked at the so-called "liquid drop model":"https://en.wikipedia.org/wiki/Semi-empirical_mass_formula". Let us remind ourselves about what we did by looking at the code.
-
-We restate the parts of the code we are most interested in.
-!bc pycod
-# Common imports
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from IPython.display import display
-import os
-
-# Where to save the figures and data files
-PROJECT_ROOT_DIR = "Results"
-FIGURE_ID = "Results/FigureFiles"
-DATA_ID = "DataFiles/"
-
-if not os.path.exists(PROJECT_ROOT_DIR):
-    os.mkdir(PROJECT_ROOT_DIR)
-
-if not os.path.exists(FIGURE_ID):
-    os.makedirs(FIGURE_ID)
-
-if not os.path.exists(DATA_ID):
-    os.makedirs(DATA_ID)
-
-def image_path(fig_id):
-    return os.path.join(FIGURE_ID, fig_id)
-
-def data_path(dat_id):
-    return os.path.join(DATA_ID, dat_id)
-
-def save_fig(fig_id):
-    plt.savefig(image_path(fig_id) + ".png", format='png')
-
-infile = open(data_path("MassEval2016.dat"),'r')
-
-
-# Read the experimental data with Pandas
-Masses = pd.read_fwf(infile, usecols=(2,3,4,6,11),
-              names=('N', 'Z', 'A', 'Element', 'Ebinding'),
-              widths=(1,3,5,5,5,1,3,4,1,13,11,11,9,1,2,11,9,1,3,1,12,11,1),
-              header=39,
-              index_col=False)
-
-# Extrapolated values are indicated by '#' in place of the decimal place, so
-# the Ebinding column won't be numeric. Coerce to float and drop these entries.
-Masses['Ebinding'] = pd.to_numeric(Masses['Ebinding'], errors='coerce')
-Masses = Masses.dropna()
-# Convert from keV to MeV.
-Masses['Ebinding'] /= 1000
-
-# Group the DataFrame by nucleon number, A.
-Masses = Masses.groupby('A')
-# Find the rows of the grouped DataFrame with the maximum binding energy.
-Masses = Masses.apply(lambda t: t[t.Ebinding==t.Ebinding.max()])
-A = Masses['A']
-Z = Masses['Z']
-N = Masses['N']
-Element = Masses['Element']
-Energies = Masses['Ebinding']
-
-# Now we set up the design matrix X
-X = np.zeros((len(A),5))
-X[:,0] = 1
-X[:,1] = A
-X[:,2] = A**(2.0/3.0)
-X[:,3] = A**(-1.0/3.0)
-X[:,4] = A**(-1.0)
-# Then nice printout using pandas
-DesignMatrix = pd.DataFrame(X)
-DesignMatrix.index = A
-DesignMatrix.columns = ['1', 'A', 'A^(2/3)', 'A^(-1/3)', '1/A']
-display(DesignMatrix)
-!ec
-
-With $\bm{\beta}\in {\mathbb{R}}^{p\times 1}$, it means that we will hereafter write our equations for the approximation as
-!bt
-\[
-\bm{\tilde{y}}= \bm{X}\bm{\beta},
-\]
-!et
-throughout these lectures. 
 
 
 !split
@@ -597,7 +513,7 @@ which means that (using our previous example) we have
 Since $\alpha$ is a scalar we have $\alpha =\alpha^T=\bm{x}^T\bm{A}^T\bm{y}$. Defining now $\bm{z}=\bm{x}^T\bm{A}^T$ we find that
 !bt
 \[
-\frac{\partial \alpha}{\partial \bm{y}} = \bm{z}^T=\bm{x}^T\bm{A}^T..
+\frac{\partial \alpha}{\partial \bm{y}} = \bm{z}^T=\bm{x}^T\bm{A}^T.
 \]
 !et
 
@@ -679,22 +595,74 @@ for $\forall k =0,1,2,\dots,n-1$. We can rewrite the partial derivative in a mor
 and if $\bm{y}=\bm{x}$ we have
 !bt
 \[
-\frac{\partial \alpha}{\partial \bm{z}}  = \bm{x}^T\frac{\partial \bm{x}}{\partial \bm{z}}.
+\frac{\partial \alpha}{\partial \bm{z}}  = 2\bm{x}^T\frac{\partial \bm{x}}{\partial \bm{z}}.
+\]
+!et
+
+!split
+===== The mean squared error and its derivative =====
+We defined earlier a possible cost function using the mean squared error
+!bt
+\[
+C(\bm{\beta})=\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\left\{\left(\bm{y}-\bm{\tilde{y}}\right)^T\left(\bm{y}-\bm{\tilde{y}}\right)\right\},
+\]
+!et
+or using the design/feature matrix $\bm{X}$ we have the more compact matrix-vector
+!bt
+\[
+C(\bm{\beta})=\frac{1}{n}\left\{\left(\bm{y}-\bm{X}\bm{\beta}\right)^T\left(\bm{y}-\bm{X}\bm{\beta}\right)\right\}.
+\]
+!et
+
+We note that the design matrix $\bm{X}$ does not depend on the unknown parameters defined by the vector $\bm{\beta}$.
+We are now interested in minimizing the cost function with respect to the unknown parameters $\bm{\beta}$.
+
+The mean squared error is scalar and if we use the results from the last example, we define a new vector
+!bt
+\[
+\bm{w}=\bm{y}-\bm{X}\bm{\beta},
+\]
+!et
+which depends on $\bm{\beta}$. We rewrite the cost function as
+!bt
+\[
+C(\bm{\beta})=\frac{1}{n}\bm{w}^T\bm{w},
+\]
+!et
+with partial derivative
+!bt
+\[
+\frac{\partial C(\bm{\beta})}{\partial \bm{\beta}}=\frac{2}{n}\bm{w}^T\frac{\partial \bm{w}}{\partial \bm{\beta}},
+\]
+!et
+and using that
+!bt
+\[
+\frac{\partial \bm{w}}{\partial \bm{\beta}}=-\bm{X},
+\]
+!et
+where we ued the results from example two. Inserting the last expression we obtain
+!bt
+\[
+\frac{\partial C(\bm{\beta})}{\partial \bm{\beta}}=-\frac{2}{n}\left(\bm{y}-\bm{X}\bm{\beta}\right)^T\bm{X},
+\]
+!et
+or as
+!bt
+\[
+\frac{\partial C(\bm{\beta})}{\partial \bm{\beta}^T}=-\frac{2}{n}\bm{X}^T\left(\bm{y}-\bm{X}\bm{\beta}\right).
 \]
 !et
 
 
 
+!split
+===== Other useful relations =====
 
-
+We list here some other useful relations we may encounter (recall that vectors are defined by boldfaced low-key letters)
 !bt
 \[
 \frac{\partial (\bm{b}^T\bm{a})}{\partial \bm{a}} = \bm{b},
-\]
-!et
-!bt
-\[
-\frac{\partial (\bm{a}^T\bm{A}\bm{a})}{\partial \bm{a}} = (\bm{A}+\bm{A}^T)\bm{a},
 \]
 !et
 !bt
@@ -708,8 +676,6 @@ and if $\bm{y}=\bm{x}$ we have
 \]
 !et
 
-See the jupyter-book (complete lecture notes) for the derivations of these relations.
-
 
 
 !split
@@ -719,7 +685,7 @@ A very important matrix we will meet again and again in Machine
 Learning is the Hessian.  It is given by the second derivative of the
 cost function with respect to the parameter $\beta$. Using the above
 expression for derivatives of vectors and matrices, we find that the
-second derivative of the cost function is,
+second derivative of the mean squared error as cost function is,
 
 !bt
 \[
