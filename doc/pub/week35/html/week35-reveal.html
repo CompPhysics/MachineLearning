@@ -201,7 +201,7 @@ MathJax.Hub.Config({
 
 <ol>
 <p><li> Brief repetition from last week</li>
-<p><li> Reminder on statistics with quantities like mean values, variance and covariance</li>
+<p><li> Derivation of the equations for ordinary least squares</li>
 <p><li> Discussion on how to prepare data and examples of applications of linear regression</li>
 <p><li> Mathematical interpretations of linear regression</li>
 <p><li> Ridge and Lasso regression and Singular Value Decomposition</li>
@@ -211,10 +211,7 @@ MathJax.Hub.Config({
 
 <ol>
  <p><li> See lecture notes for week 35 at <a href="https://compphysics.github.io/MachineLearning/doc/web/course.html" target="_blank"><tt>https://compphysics.github.io/MachineLearning/doc/web/course.html</tt></a></li>
- <p><li> For	a review on statistics see jupyter-book	<a href="https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/statistics.html" target="_blank"><tt>https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/statistics.html</tt></a>, the	most relevant parts are covered by sections 1.1.1-1.1.5</li>
- <p><li> HTF chapter 3. GBC chapters 1 and and sections 3.1-3.11 and 5.1</li>
  <p><li> CMB sections 1.1 and 3.1</li>
- <p><li> A good review on statistics	is given by Murphy's text, chapter 2, see <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/MachineLearningMurphy.pdf" target="_blank"><tt>https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/MachineLearningMurphy.pdf</tt></a></li>
 </ol>
 </section>
 
@@ -242,272 +239,53 @@ Similarly, <a href="https://arxiv.org/abs/1803.08823" target="_blank">Mehta et a
 </section>
 
 <section>
-<h2 id="regression-analysis-overarching-aims">Regression analysis, overarching aims  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
+<h2 id="the-equations-for-ordinary-least-squares">The equations for ordinary least squares  </h2>
 
-<p>Regression modeling deals with the description of  the sampling distribution of a given random variable \( y \) and how it varies as function of another variable or a set of such variables \( \boldsymbol{x} =[x_0, x_1,\dots, x_{n-1}]^T \). 
-The first variable is called the <b>dependent</b>, the <b>outcome</b> or the <b>response</b> variable while the set of variables \( \boldsymbol{x} \) is called the independent variable, or the predictor variable or the explanatory variable or simply the input. 
-</p>
-
-<p>A regression model aims at finding a likelihood function \( p(\boldsymbol{y}\vert \boldsymbol{x}) \), that is the conditional distribution for \( \boldsymbol{y} \) with a given \( \boldsymbol{x} \). The estimation of  \( p(\boldsymbol{y}\vert \boldsymbol{x}) \) is made using a data set with </p>
-<ul>
-<p><li> \( n \) cases \( i = 0, 1, 2, \dots, n-1 \)</li> 
-<p><li> Response, output, target, dependent or outcome variable \( y_i \) with \( i = 0, 1, 2, \dots, n-1 \)</li> 
-<p><li> \( p \) so-called explanatory (independent or predictor) variables \( \boldsymbol{x}_i=[x_{i0}, x_{i1}, \dots, x_{ip-1}] \) with \( i = 0, 1, 2, \dots, n-1 \) and explanatory variables running from \( 0 \) to \( p-1 \). See below for more explicit examples.</li>   
-</ul>
-<p>
-<p> The goal of the regression analysis is to extract/exploit relationship between \( \boldsymbol{y} \) and \( \boldsymbol{x} \) in or to infer causal dependencies, approximations to the likelihood functions, functional relationships and to make predictions, making fits and many other things.</p>
-</div>
-</section>
-
-<section>
-<h2 id="regression-analysis-overarching-aims-ii">Regression analysis, overarching aims II </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-
-<p>Consider an experiment in which \( p \) characteristics (or features) of \( n \) samples are
-measured. The data from this experiment, for various explanatory/feature variables \( p \) are normally represented by a matrix  
-\( \mathbf{X} \).
-</p>
-
-<p>The matrix \( \mathbf{X} \) is called the <em>design
-matrix</em>. Additional information of the samples is available in the
-form of \( \boldsymbol{y} \) (also as above). The variable \( \boldsymbol{y} \) is
-generally referred to as the <em>response variable</em>. The aim of
-regression analysis is to explain \( \boldsymbol{y} \) in terms of
-\( \boldsymbol{X} \) through a functional relationship like \( y_i =
-f(\mathbf{X}_{i,\ast}) \). When no prior knowledge on the form of
-\( f(\cdot) \) is available, it is common to assume a linear relationship
-between \( \boldsymbol{X} \) and \( \boldsymbol{y} \). This assumption gives rise to
-the <em>linear regression model</em> where \( \boldsymbol{\beta} = [\beta_0, \ldots,
-\beta_{p-1}]^{T} \) are the <em>regression parameters</em>. 
-</p>
-
-<p>Linear regression gives us a set of analytical equations for the parameters \( \beta_j \).</p>
-</div>
-</section>
-
-<section>
-<h2 id="examples">Examples  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<p>In order to understand the relation among the predictors \( p \), the set of data \( n \) and the target (outcome, output etc) \( \boldsymbol{y} \),
-we condiser a simple polynomial fit.
-We assume our data can represented by a fourth-order polynomial. For the $i$th component we have 
+<p>Our data which we want to apply a machine learning method on, consist
+of a set of inputs \( \boldsymbol{x}^T=[x_0,x_1,x_2,\dots,x_{n-1}] \) and the
+outputs we want to model \( \boldsymbol{x}^T=[y_0,y_1,y_2,\dots,y_{n-1}] \).
+We assumed also that the output data can be represented for a regression case by continuous function \( f \)
+through
 </p>
 <p>&nbsp;<br>
 $$
-\tilde{y}_i = \beta_0+\beta_1x_i+\beta_2x_i^2+\beta_3x_i^3+\beta_4x_i^4.
+y_i=f(x_i)+\epsilon_i,
 $$
 <p>&nbsp;<br>
 
-<p>we have five predictors, that is the intercept $\beta_0$and the other terms \( \beta_i \).
-This gives \( p=0,1,2,3,4 \). Furthermore we have \( n \) entries for each predictor. It means that our design matrix is a 
-\( p\times n \) matrix \( \boldsymbol{X} \).
+<p>where \( \epsilon_i \) represents some noise which is normally assumed to
+be distributed via a normal probability distribution with zero mean
+value and a variance \( \sigma_i^ \).
 </p>
 
-<p>Here the predictors are based on a model we have made. A popular data set which is widely encountered in ML applications is the
-so-called <a href="https://www.sciencedirect.com/science/article/pii/S0957417407006719?via%3Dihub" target="_blank">credit card default data from Taiwan</a>. The data set contains data on \( n=30000 \) credit card holders with predictors like gender, marital status, age, profession, education, etc. In total there are \( 24 \) such predictors or attributes leading to a design matrix of dimensionality \( 24 \times 30000 \). This is however a classification problem and we will come back to it when we discuss Logistic Regression. 
-</p>
-</div>
-</section>
-
-<section>
-<h2 id="general-linear-models">General linear models  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<p>Before we proceed let us study a case from linear algebra where we aim at fitting a set of data \( \boldsymbol{y}=[y_0,y_1,\dots,y_{n-1}] \). We could think of these data as a result of an experiment or a complicated numerical experiment. These data are functions of a series of variables \( \boldsymbol{x}=[x_0,x_1,\dots,x_{n-1}] \), that is \( y_i = y(x_i) \) with \( i=0,1,2,\dots,n-1 \). The variables \( x_i \) could represent physical quantities like time, temperature, position etc. We assume that \( y(x) \) is a smooth function. </p>
-
-<p>Since obtaining these data points may not be trivial, we want to use these data to fit a function which can allow us to make predictions for values of \( y \) which are not in the present set. The perhaps simplest approach is to assume we can parametrize our function in terms of a polynomial of degree \( n-1 \) with \( n \) points, that is</p>
-<p>&nbsp;<br>
-$$
-y=y(x) \rightarrow y(x_i)=\tilde{y}_i+\epsilon_i=\sum_{j=0}^{n-1} \beta_j x_i^j+\epsilon_i,
-$$
-<p>&nbsp;<br>
-
-<p>where \( \epsilon_i \) is the error in our approximation. </p>
-</div>
-</section>
-
-<section>
-<h2 id="rewriting-the-fitting-procedure-as-a-linear-algebra-problem">Rewriting the fitting procedure as a linear algebra problem  </h2>
-
-<p>For every set of values \( y_i,x_i \) we have thus the corresponding set of equations</p>
-<p>&nbsp;<br>
-$$
-\begin{align*}
-y_0&=\beta_0+\beta_1x_0^1+\beta_2x_0^2+\dots+\beta_{n-1}x_0^{n-1}+\epsilon_0\\
-y_1&=\beta_0+\beta_1x_1^1+\beta_2x_1^2+\dots+\beta_{n-1}x_1^{n-1}+\epsilon_1\\
-y_2&=\beta_0+\beta_1x_2^1+\beta_2x_2^2+\dots+\beta_{n-1}x_2^{n-1}+\epsilon_2\\
-\dots & \dots \\
-y_{n-1}&=\beta_0+\beta_1x_{n-1}^1+\beta_2x_{n-1}^2+\dots+\beta_{n-1}x_{n-1}^{n-1}+\epsilon_{n-1}.\\
-\end{align*}
-$$
-<p>&nbsp;<br>
-</section>
-
-<section>
-<h2 id="rewriting-the-fitting-procedure-as-a-linear-algebra-problem-more-details">Rewriting the fitting procedure as a linear algebra problem, more details  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<p>Defining the vectors</p>
-<p>&nbsp;<br>
-$$
-\boldsymbol{y} = [y_0,y_1, y_2,\dots, y_{n-1}]^T,
-$$
-<p>&nbsp;<br>
-
-<p>and</p>
-<p>&nbsp;<br>
-$$
-\boldsymbol{\beta} = [\beta_0,\beta_1, \beta_2,\dots, \beta_{n-1}]^T,
-$$
-<p>&nbsp;<br>
-
-<p>and</p>
-<p>&nbsp;<br>
-$$
-\boldsymbol{\epsilon} = [\epsilon_0,\epsilon_1, \epsilon_2,\dots, \epsilon_{n-1}]^T,
-$$
-<p>&nbsp;<br>
-
-<p>and the design matrix</p>
-<p>&nbsp;<br>
-$$
-\boldsymbol{X}=
-\begin{bmatrix} 
-1& x_{0}^1 &x_{0}^2& \dots & \dots &x_{0}^{n-1}\\
-1& x_{1}^1 &x_{1}^2& \dots & \dots &x_{1}^{n-1}\\
-1& x_{2}^1 &x_{2}^2& \dots & \dots &x_{2}^{n-1}\\                      
-\dots& \dots &\dots& \dots & \dots &\dots\\
-1& x_{n-1}^1 &x_{n-1}^2& \dots & \dots &x_{n-1}^{n-1}\\
-\end{bmatrix} 
-$$
-<p>&nbsp;<br>
-
-<p>we can rewrite our equations as</p>
-<p>&nbsp;<br>
-$$
-\boldsymbol{y} = \boldsymbol{X}\boldsymbol{\beta}+\boldsymbol{\epsilon}.
-$$
-<p>&nbsp;<br>
-
-<p>The above design matrix is called a <a href="https://en.wikipedia.org/wiki/Vandermonde_matrix" target="_blank">Vandermonde matrix</a>.</p>
-</div>
-</section>
-
-<section>
-<h2 id="generalizing-the-fitting-procedure-as-a-linear-algebra-problem">Generalizing the fitting procedure as a linear algebra problem  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-
-<p>We are obviously not limited to the above polynomial expansions.  We
-could replace the various powers of \( x \) with elements of Fourier
-series or instead of \( x_i^j \) we could have \( \cos{(j x_i)} \) or \( \sin{(j
-x_i)} \), or time series or other orthogonal functions.  For every set
-of values \( y_i,x_i \) we can then generalize the equations to
+<p>In linear regression we approximate the unknown function with another
+continuous function \( \tilde{\boldsymbol{y}}(\boldsymbol{x}) \) which depends linearly on
+some unknown parameters
+\( \boldsymbol{\beta}^T=[\beta_0,\beta_1,\beta_2,\dots,\beta_{p-1} \).
 </p>
 
-<p>&nbsp;<br>
-$$
-\begin{align*}
-y_0&=\beta_0x_{00}+\beta_1x_{01}+\beta_2x_{02}+\dots+\beta_{n-1}x_{0n-1}+\epsilon_0\\
-y_1&=\beta_0x_{10}+\beta_1x_{11}+\beta_2x_{12}+\dots+\beta_{n-1}x_{1n-1}+\epsilon_1\\
-y_2&=\beta_0x_{20}+\beta_1x_{21}+\beta_2x_{22}+\dots+\beta_{n-1}x_{2n-1}+\epsilon_2\\
-\dots & \dots \\
-y_{i}&=\beta_0x_{i0}+\beta_1x_{i1}+\beta_2x_{i2}+\dots+\beta_{n-1}x_{in-1}+\epsilon_i\\
-\dots & \dots \\
-y_{n-1}&=\beta_0x_{n-1,0}+\beta_1x_{n-1,2}+\beta_2x_{n-1,2}+\dots+\beta_{n-1}x_{n-1,n-1}+\epsilon_{n-1}.\\
-\end{align*}
-$$
-<p>&nbsp;<br>
-
-
-<b>Note that we have \( p=n \) here. The matrix is symmetric. This is generally not the case!</b>
-</div>
-</section>
-
-<section>
-<h2 id="generalizing-the-fitting-procedure-as-a-linear-algebra-problem">Generalizing the fitting procedure as a linear algebra problem  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<p>We redefine in turn the matrix \( \boldsymbol{X} \) as</p>
-<p>&nbsp;<br>
-$$
-\boldsymbol{X}=
-\begin{bmatrix} 
-x_{00}& x_{01} &x_{02}& \dots & \dots &x_{0,n-1}\\
-x_{10}& x_{11} &x_{12}& \dots & \dots &x_{1,n-1}\\
-x_{20}& x_{21} &x_{22}& \dots & \dots &x_{2,n-1}\\                      
-\dots& \dots &\dots& \dots & \dots &\dots\\
-x_{n-1,0}& x_{n-1,1} &x_{n-1,2}& \dots & \dots &x_{n-1,n-1}\\
-\end{bmatrix} 
-$$
-<p>&nbsp;<br>
-
-<p>and without loss of generality we rewrite again  our equations as</p>
-<p>&nbsp;<br>
-$$
-\boldsymbol{y} = \boldsymbol{X}\boldsymbol{\beta}+\boldsymbol{\epsilon}.
-$$
-<p>&nbsp;<br>
-
-<p>The left-hand side of this equation is kwown. Our error vector \( \boldsymbol{\epsilon} \) and the parameter vector \( \boldsymbol{\beta} \) are our unknow quantities. How can we obtain the optimal set of \( \beta_i \) values? </p>
-</div>
-</section>
-
-<section>
-<h2 id="optimizing-our-parameters">Optimizing our parameters  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<p>We have defined the matrix \( \boldsymbol{X} \) via the equations</p>
-<p>&nbsp;<br>
-$$
-\begin{align*}
-y_0&=\beta_0x_{00}+\beta_1x_{01}+\beta_2x_{02}+\dots+\beta_{n-1}x_{0n-1}+\epsilon_0\\
-y_1&=\beta_0x_{10}+\beta_1x_{11}+\beta_2x_{12}+\dots+\beta_{n-1}x_{1n-1}+\epsilon_1\\
-y_2&=\beta_0x_{20}+\beta_1x_{21}+\beta_2x_{22}+\dots+\beta_{n-1}x_{2n-1}+\epsilon_1\\
-\dots & \dots \\
-y_{i}&=\beta_0x_{i0}+\beta_1x_{i1}+\beta_2x_{i2}+\dots+\beta_{n-1}x_{in-1}+\epsilon_1\\
-\dots & \dots \\
-y_{n-1}&=\beta_0x_{n-1,0}+\beta_1x_{n-1,2}+\beta_2x_{n-1,2}+\dots+\beta_{n-1}x_{n-1,n-1}+\epsilon_{n-1}.\\
-\end{align*}
-$$
-<p>&nbsp;<br>
-
-<p>As we noted above, we stayed with a system with the design matrix 
- \( \boldsymbol{X}\in {\mathbb{R}}^{n\times n} \), that is we have \( p=n \). For reasons to come later (algorithmic arguments) we will hereafter define 
-our matrix as \( \boldsymbol{X}\in {\mathbb{R}}^{n\times p} \), with the predictors refering to the column numbers and the entries \( n \) being the row elements.
+<p>Last week we introduced the so-called design matrix in order to define
+the approximation \( \boldsymbol{\tilde{y}} \) via the unknown quantity
+\( \boldsymbol{\beta} \) as
 </p>
-</div>
-</section>
 
-<section>
-<h2 id="examples-relevant-for-the-exercises">Examples relevant for the exercises  </h2>
-</section>
-
-<section>
-<h2 id="optimizing-our-parameters-more-details">Optimizing our parameters, more details  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<p>With the above we use the design matrix to define the approximation \( \boldsymbol{\tilde{y}} \) via the unknown quantity \( \boldsymbol{\beta} \) as</p>
 <p>&nbsp;<br>
 $$
 \boldsymbol{\tilde{y}}= \boldsymbol{X}\boldsymbol{\beta},
 $$
 <p>&nbsp;<br>
 
-<p>and in order to find the optimal parameters \( \beta_i \) instead of solving the above linear algebra problem, we define a function which gives a measure of the spread between the values \( y_i \) (which represent hopefully the exact values) and the parameterized values \( \tilde{y}_i \), namely</p>
+<p>and in order to find the optimal parameters \( \beta_i \) we defined a function which
+gives a measure of the spread between the values \( y_i \) (which
+represent output values we want to reproduce) and the parametrized
+values \( \tilde{y}_i \), namely the so-called cost/loss function.
+</p>
+</section>
+
+<section>
+<h2 id="the-cost-loss-function">The cost/loss function </h2>
+
+<p>We used the mean squared error to define the way we measure the quality of our model</p>
 <p>&nbsp;<br>
 $$
 C(\boldsymbol{\beta})=\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{\tilde{y}}\right)^T\left(\boldsymbol{y}-\boldsymbol{\tilde{y}}\right)\right\},
@@ -521,7 +299,7 @@ C(\boldsymbol{\beta})=\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\bold
 $$
 <p>&nbsp;<br>
 
-<p>This function is one possible way to define the so-called cost function.</p>
+<p>This function represents one of many possible ways to define the so-called cost function.</p>
 
 <p>It is also common to define
 the function \( C \) as
@@ -534,14 +312,10 @@ $$
 <p>&nbsp;<br>
 
 <p>since when taking the first derivative with respect to the unknown parameters \( \beta \), the factor of \( 2 \) cancels out. </p>
-</div>
 </section>
 
 <section>
 <h2 id="interpretations-and-optimizing-our-parameters">Interpretations and optimizing our parameters  </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
 
 <p>The function </p>
 <p>&nbsp;<br>
@@ -597,7 +371,6 @@ $$
 \frac{\partial C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}} = 0 = \boldsymbol{X}^T\left( \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right).  
 $$
 <p>&nbsp;<br>
-</div>
 </section>
 
 <section>
@@ -605,7 +378,7 @@ $$
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
-<p>We can rewrite</p>
+<p>We can rewrite, see the derivations below, </p>
 <p>&nbsp;<br>
 $$
 \frac{\partial C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}} = 0 = \boldsymbol{X}^T\left( \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right),  
@@ -866,6 +639,7 @@ $$
 
 <section>
 <h2 id="the-mean-squared-error-and-its-derivative">The mean squared error and its derivative </h2>
+
 <p>We defined earlier a possible cost function using the mean squared error</p>
 <p>&nbsp;<br>
 $$
@@ -955,14 +729,14 @@ $$
 
 <p>A very important matrix we will meet again and again in Machine
 Learning is the Hessian.  It is given by the second derivative of the
-cost function with respect to the parameter \( \beta \). Using the above
+cost function with respect to the parameters \( \boldsymbol{\beta} \). Using the above
 expression for derivatives of vectors and matrices, we find that the
 second derivative of the mean squared error as cost function is,
 </p>
 
 <p>&nbsp;<br>
 $$
-\frac{\partial}{\partial \boldsymbol{\beta}^T}\frac{\partial C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}} =\frac{\partial}{\partial \boldsymbol{\beta}}\left[-\frac{2}{n}\boldsymbol{X}^T\left( \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right]=\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.  
+\frac{\partial}{\partial \boldsymbol{\beta}}\frac{\partial C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}^T} =\frac{\partial}{\partial \boldsymbol{\beta}}\left[-\frac{2}{n}\boldsymbol{X}^T\left( \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right]=\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.  
 $$
 <p>&nbsp;<br>
 
@@ -976,7 +750,7 @@ $$
 
 <p>For ordinary least squares, it is inversely proportional (derivation
 next week) with the variance of the optimal parameters
-\( \hat{\boldsymbol{\beta}} \). Furthermore, we will see later this week that is
+\( \hat{\boldsymbol{\beta}} \). Furthermore, we will see later this week that it is
 (beside \( 1/n \)) equal to the covariance matrix. It plays also a very
 important role in optmization algorithms and Principal Component
 Analysis as a way to reduce the dimensionality of a machine learning
@@ -988,6 +762,7 @@ problem.
 
 <section>
 <h2 id="interpretations-and-optimizing-our-parameters">Interpretations and optimizing our parameters  </h2>
+
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
 <p>
@@ -1012,8 +787,31 @@ $$
 $$
 <p>&nbsp;<br>
 
-<p>meaning that the solution for \( \boldsymbol{\beta} \) is the one which minimizes the residuals.  Later we will link this with the maximum likelihood approach.</p>
+<p>meaning that the solution for \( \boldsymbol{\beta} \) is the one which minimizes the residuals.  </p>
 </div>
+</section>
+
+<section>
+<h2 id="examples-relevant-for-the-exercises">Examples relevant for the exercises  </h2>
+
+<p>In order to understand the relation among the predictors \( p \), the set of data \( n \) and the target (outcome, output etc) \( \boldsymbol{y} \),
+we condiser a simple polynomial fit.
+We assume our data can represented by a fourth-order polynomial. For the $i$th component we have 
+</p>
+<p>&nbsp;<br>
+$$
+\tilde{y}_i = \beta_0+\beta_1x_i+\beta_2x_i^2+\beta_3x_i^3+\beta_4x_i^4.
+$$
+<p>&nbsp;<br>
+
+<p>we have five predictors, that is the intercept $\beta_0$and the other terms \( \beta_i \).
+This gives \( p=0,1,2,3,4 \). Furthermore we have \( n \) entries for each predictor. It means that our design matrix is a 
+\( p\times n \) matrix \( \boldsymbol{X} \).
+</p>
+
+<p>Here the predictors are based on a model we have made. A popular data set which is widely encountered in ML applications is the
+so-called <a href="https://www.sciencedirect.com/science/article/pii/S0957417407006719?via%3Dihub" target="_blank">credit card default data from Taiwan</a>. The data set contains data on \( n=30000 \) credit card holders with predictors like gender, marital status, age, profession, education, etc. In total there are \( 24 \) such predictors or attributes leading to a design matrix of dimensionality \( 24 \times 30000 \). This is however a classification problem and we will come back to it when we discuss Logistic Regression. 
+</p>
 </section>
 
 <section>
