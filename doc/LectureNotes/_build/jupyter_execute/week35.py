@@ -534,7 +534,7 @@ ytilde = X @ beta
 # In[2]:
 
 
-fit = np.linalg.lstsq(X, Energies, rcond =None)[0]
+fit = np.linalg.lstsq(X, y, rcond =None)[0]
 ytildenp = np.dot(fit,X.T)
 
 
@@ -555,7 +555,7 @@ def R2(y_data, y_model):
 # In[4]:
 
 
-print(R2(Energies,ytilde))
+print(R2(y,ytilde))
 
 
 # We can easily add our **MSE** score as
@@ -567,7 +567,7 @@ def MSE(y_data,y_model):
     n = np.size(y_model)
     return np.sum((y_data-y_model)**2)/n
 
-print(MSE(Energies,ytilde))
+print(MSE(y,ytilde))
 
 
 # and finally the relative error as
@@ -577,7 +577,7 @@ print(MSE(Energies,ytilde))
 
 def RelativeError(y_data,y_model):
     return abs((y_data-y_model)/y_data)
-print(RelativeError(Energies, ytilde))
+print(RelativeError(y, ytilde))
 
 
 # ## Splitting our Data in Training and Test data
@@ -1011,6 +1011,7 @@ print("R2 score for  scaled data: {:.2f}".format(clf.score(X_test_scaled,y_test)
 # 
 # Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
 # on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as follows
+# (note that the lines are commented since the model function has not been defined)
 
 # In[13]:
 
@@ -1022,12 +1023,12 @@ X_train = X_train - X_train_mean
 y_train = y_train - y_train_mean
 
 # The we fit our model with the training data
-trained_model = some_model.fit(X_train,y_train)
+#trained_model = some_model.fit(X_train,y_train)
 
 
 #Model prediction, we need also to transform our data set used for the prediction.
 X_test = X_test - X_train_mean #Use mean from training data
-y_pred = trained_model(X_test)
+#y_pred = trained_model(X_test)
 y_pred = y_pred + y_train_mean
 
 
