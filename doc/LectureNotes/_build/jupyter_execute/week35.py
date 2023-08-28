@@ -28,9 +28,9 @@
 # 
 # 1. See lecture notes for week 35 at <https://compphysics.github.io/MachineLearning/doc/web/course.html>
 # 
-# 2. Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra and sections 3.1-3.10 on elements of statistics
+# 2. Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra and sections 3.1-3.10 on elements of statistics (background)
 # 
-# 3. Hastie, Tibshirani and Friedman, The elements of statistical learning, sections 3.1-3.4
+# 3. Hastie, Tibshirani and Friedman, The elements of statistical learning, sections 3.1-3.4 (on relevance for the discussion of linear regression).
 
 # ## Why Linear Regression (aka Ordinary Least Squares and family), repeat from last week
 # 
@@ -193,14 +193,13 @@
 
 # We note also that since our design matrix is defined as $\boldsymbol{X}\in
 # {\mathbb{R}}^{n\times p}$, the product $\boldsymbol{X}^T\boldsymbol{X} \in
-# {\mathbb{R}}^{p\times p}$.  In the above case we have that $p \ll n$,
-# in our case $p=5$ meaning that we end up with inverting a small
+# {\mathbb{R}}^{p\times p}$.  In most cases we have that $p \ll n$. In our example case below we have $p=5$ meaning. We end up with inverting a small
 # $5\times 5$ matrix. This is a rather common situation, in many cases we end up with low-dimensional
 # matrices to invert. The methods discussed here and for many other
 # supervised learning algorithms like classification with logistic
 # regression or support vector machines, exhibit dimensionalities which
 # allow for the usage of direct linear algebra methods such as **LU** decomposition or **Singular Value Decomposition** (SVD) for finding the inverse of the matrix
-# $\boldsymbol{X}^T\boldsymbol{X}$.
+# $\boldsymbol{X}^T\boldsymbol{X}$.  This is discussed on Thursday this week.
 # 
 # **Small question**: Do you think the example we have at hand here (the nuclear binding energies) can lead to problems in inverting the matrix  $\boldsymbol{X}^T\boldsymbol{X}$? What kind of problems can we expect?
 
@@ -390,7 +389,7 @@
 # We note that the design matrix $\boldsymbol{X}$ does not depend on the unknown parameters defined by the vector $\boldsymbol{\beta}$.
 # We are now interested in minimizing the cost function with respect to the unknown parameters $\boldsymbol{\beta}$.
 # 
-# The mean squared error is a scalar and if we use the results from the last example, we define a new vector
+# The mean squared error is a scalar and if we use the results from example three above, we can define a new vector
 
 # $$
 # \boldsymbol{w}=\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta},
@@ -502,8 +501,8 @@
 # \tilde{y}_i = \beta_0+\beta_1x_i+\beta_2x_i^2+\beta_3x_i^3+\beta_4x_i^4.
 # $$
 
-# we have five predictors/features. The first is the intercept $\beta_0$. The other terms are $\beta_i$ with $i=1,2,3,4$. Furthermore we have $n$ entries for each predictor. It means that our design matrix is a 
-# $p\times n$ matrix $\boldsymbol{X}$.
+# we have five predictors/features. The first is the intercept $\beta_0$. The other terms are $\beta_i$ with $i=1,2,3,4$. Furthermore we have $n$ entries for each predictor. It means that our design matrix is an 
+# $n\times p$ matrix $\boldsymbol{X}$.
 
 # ## Own code for Ordinary Least Squares
 # 
@@ -513,6 +512,18 @@
 
 
 # matrix inversion to find beta
+# First we set up the data
+import numpy as np
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+# and then the design matrix X including the intercept
+#  The design matrix now as function of a fourth-order polynomial
+X = np.zeros((len(x),5))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x**2
+X[:,3] = x**3
+X[:,4] = x**4
 beta = (np.linalg.inv(X.T @ X) @ X.T ) @ y
 # and then make the prediction
 ytilde = X @ beta
