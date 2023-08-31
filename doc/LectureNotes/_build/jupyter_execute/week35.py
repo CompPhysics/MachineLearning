@@ -1990,7 +1990,7 @@ print(C-X)
 # function, that is we have
 
 # $$
-# \frac{\partial^2 C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}^T\partial \boldsymbol{\beta}} =\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.
+# \frac{\partial^2 C(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}\partial \boldsymbol{\beta}^T} =\frac{2}{n}\boldsymbol{X}^T\boldsymbol{X}.
 # $$
 
 # This quantity defines was what is called the Hessian matrix (the second derivative of a function we want to optimize).
@@ -2046,7 +2046,7 @@ print(C-X)
 # method corrects the bias in the estimation of the population variance
 # and covariance. It also partially corrects the bias in the estimation
 # of the population standard deviation. If you use a library like
-# **Scikit-Learn** or **nunmpy's** function calculate the covariance, this
+# **Scikit-Learn** or **nunmpy's** function to calculate the covariance, this
 # quantity will be computed with a factor $1/(n-1)$.
 
 # ## Covariance and Correlation Matrix

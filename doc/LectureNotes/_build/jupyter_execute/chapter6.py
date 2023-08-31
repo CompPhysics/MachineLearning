@@ -422,7 +422,7 @@ cmd = 'dot -Tpng DataFiles/cancer.dot -o DataFiles/cancer.png'
 os.system(cmd)
 
 
-# In[ ]:
+# In[3]:
 
 
 # Common imports
@@ -455,7 +455,7 @@ os.system(cmd)
 # 
 # **Scikit-Learn** has also another way to visualize the trees which is very useful, here with the Iris data.
 
-# In[ ]:
+# In[4]:
 
 
 from sklearn.datasets import load_iris
@@ -470,7 +470,7 @@ tree.plot_tree(tree_clf)
 # Alternatively, the tree can also be exported in textual format with the function exporttext.
 # This method doesn’t require the installation of external libraries and is more compact:
 
-# In[ ]:
+# In[5]:
 
 
 from sklearn.datasets import load_iris
@@ -584,7 +584,7 @@ print(r)
 # 
 # ### Simple Python Code to read in Data and perform Classification
 
-# In[ ]:
+# In[6]:
 
 
 # Common imports
