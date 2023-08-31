@@ -23,6 +23,10 @@
 # 4. Material for the lecture on Thursday: Mathematical interpretations of linear regression
 # 
 # 5. Thursday: Ridge and Lasso regression and Singular Value Decomposition
+# 
+# 6. [Video of lecture](https://youtu.be/qBNm-HGSxL4)
+# 
+# 7. [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesAug31.pdf)
 
 # ### Reading recommendations:
 # 
