@@ -1919,7 +1919,7 @@ print(C-X)
 # \tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\left(\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^{2}(\boldsymbol{V}^T\right)^{-1}\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{y},
 # $$
 
-# which gives us, using the orthogonality of the matrices $\boldsymbol{U}$ and $\boldsymbol{V}$,
+# which gives us, using the orthogonality of the matrix $\boldsymbol{V}$,
 
 # $$
 # \tilde{y}_{\mathrm{OLS}}=\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}=\sum_{i=0}^{p-1}\boldsymbol{u}_i\boldsymbol{u}^T_i\boldsymbol{y},
@@ -1928,8 +1928,10 @@ print(C-X)
 # It means that the ordinary least square model (with the optimal
 # parameters) $\boldsymbol{\tilde{y}}$, corresponds to an orthogonal
 # transformation of the output (or target) vector $\boldsymbol{y}$ by the
-# vectors of the matrix $\boldsymbol{U}$. Note that the summation ends at $p-1$,
-# that is $\boldsymbol{\tilde{y}}\ne \boldsymbol{y}$.
+# vectors of the matrix $\boldsymbol{U}$. **Note that the summation ends at**
+# $p-1$, that is $\boldsymbol{\tilde{y}}\ne \boldsymbol{y}$. We can thus not use the
+# orthogonality relation for the matrix $\boldsymbol{U}$. This can already be
+# when we multiply the matrices $\boldsymbol{\Sigma}^T\boldsymbol{U}^T$.
 
 # ## Further properties (important for our analyses later)
 # 
