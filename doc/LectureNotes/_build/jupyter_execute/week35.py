@@ -231,7 +231,7 @@
 # We define the partial derivatives of the various components of $\boldsymbol{y}$ as functions of $x_i$ in terms of the so-called [Jacobian matrix](https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant)
 
 # $$
-# \boldsymbol{J}=\frac{\partial \boldsymbol{y}}{\partial \boldsymbol{x}}=\begin{bmatrix} \frac{\partial y_0}{\partial x_0} & \frac{\partial y_0}{\partial x_1} & \frac{\partial y_0}{\partial x_2} & \dots & \dots & \frac{\partial y_0}{\partial x_{n-1}} \\ \frac{\partial y_0}{\partial x_0} & \frac{\partial y_1}{\partial x_1} & \frac{\partial y_1}{\partial x_2} & \dots & \dots & \frac{\partial y_1}{\partial x_{n-1}} \\
+# \boldsymbol{J}=\frac{\partial \boldsymbol{y}}{\partial \boldsymbol{x}}=\begin{bmatrix} \frac{\partial y_0}{\partial x_0} & \frac{\partial y_0}{\partial x_1} & \frac{\partial y_0}{\partial x_2} & \dots & \dots & \frac{\partial y_0}{\partial x_{n-1}} \\ \frac{\partial y_1}{\partial x_0} & \frac{\partial y_1}{\partial x_1} & \frac{\partial y_1}{\partial x_2} & \dots & \dots & \frac{\partial y_1}{\partial x_{n-1}} \\
 # \frac{\partial y_2}{\partial x_0} & \frac{\partial y_2}{\partial x_1} & \frac{\partial y_2}{\partial x_2} & \dots & \dots & \frac{\partial y_2}{\partial x_{n-1}} \\
 # \dots & \dots & \dots & \dots & \dots & \dots \\
 # \dots & \dots & \dots & \dots & \dots & \dots \\
@@ -281,7 +281,7 @@
 
 # with $\boldsymbol{y}$ a vector of length $m$, $\boldsymbol{A}$ an $m\times n$ matrix and $\boldsymbol{x}$ a vector of length $n$. We assume also that $\boldsymbol{A}$ does not depend on any of the two vectors.
 # In order to find the derivative of $\alpha$ with respect to the two vectors, we define an intermediate vector $\boldsymbol{z}$. We define first
-# $\boldsymbol{z}^T=\boldsymbol{y}^T\boldsymbol{A}$, a vector of length $n$. We have then
+# $\boldsymbol{z}^T=\boldsymbol{y}^T\boldsymbol{A}$, a vector of length $n$. We have then, using the definition of the Jacobian,
 
 # $$
 # \alpha = \boldsymbol{z}^T\boldsymbol{x},
@@ -290,9 +290,11 @@
 # which means that (using our previous example) we have
 
 # $$
-# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \boldsymbol{z}^T=\boldsymbol{y}^T\boldsymbol{A}.
+# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \boldsymbol{z}=bm{A}^T\boldsymbol{y}.
 # $$
 
+# Note that the resulting vector elements are the same for $\boldsymbol{z}^T$ and $\boldsymbol{z}$, the only difference is that one if just the transpose of the other.
+# 
 # Since $\alpha$ is a scalar we have $\alpha =\alpha^T=\boldsymbol{x}^T\boldsymbol{A}^T\boldsymbol{y}$. Defining now $\boldsymbol{z}=\boldsymbol{x}^T\boldsymbol{A}^T$ we find that
 
 # $$
@@ -2604,25 +2606,31 @@ print(covariance_matrix)
 
 # ## Deriving the  Lasso Regression Equations
 # 
-# Using the matrix-vector expression for Lasso regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have the following **cost** function
+# Using the matrix-vector expression for Lasso regression, we have the following **cost** function
 
 # $$
-# C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+# C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
 # $$
 
 # Taking the derivative with respect to $\boldsymbol{\beta}$ and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicty)
 
 # $$
-# \frac{d \vert \beta\vert}{d \boldsymbol{\beta}}=\mathrm{sgn}(\boldsymbol{\beta})=\left\{\begin{array}{cc} 1 & \beta > 0 \\-1 & \beta < 0, \end{array}\right.
+# \frac{d \vert \beta\vert}{d \beta}=\mathrm{sgn}(\beta)=\left\{\begin{array}{cc} 1 & \beta > 0 \\-1 & \beta < 0, \end{array}\right.
 # $$
 
 # we have that the derivative of the cost function is
 
 # $$
-# \frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-2\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
+# \frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-\frac{2}{n}\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
 # $$
 
 # and reordering we have
+
+# $$
+# \boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta}+\frac{n}{2}\lambda sgn(\boldsymbol{\beta})=2\boldsymbol{X}^T\boldsymbol{y}.
+# $$
+
+# We can redefine $\lambda$ to absorb the constant $n/2$ and we rewrite the last equation as
 
 # $$
 # \boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta}+\lambda sgn(\boldsymbol{\beta})=2\boldsymbol{X}^T\boldsymbol{y}.
