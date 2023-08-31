@@ -2392,7 +2392,7 @@ print(covariance_matrix)
 # encode from the columns of $\boldsymbol{X}$. 
 # 
 # Note that these are also the eigenvectors and eigenvalues of the
-# Hessian matrix.
+# Hessian matrix. Note also that the Hessian matrix we are discussing here is from a cost function defined by the  mean squared error only.
 # 
 # If we now recall the definition of the covariance matrix (not using
 # Bessel's correction) we have
