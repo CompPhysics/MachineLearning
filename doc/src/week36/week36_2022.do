@@ -1,6 +1,6 @@
 TITLE: Week 36: Statistical interpretation of Linear Regression and Resampling techniques
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
-DATE: September 4-8, 2023
+DATE: today
 
 
 !split
