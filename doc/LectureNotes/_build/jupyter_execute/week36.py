@@ -142,12 +142,14 @@
 # ## Code for SVD and Inversion of Matrices
 # 
 # How do we use the SVD to invert a matrix $\boldsymbol{X}^\boldsymbol{X}$ which is singular or near singular?
-# The simple answer is to use the linear algebra function for pseudoinvers, that is
+# The simple answer is to use the linear algebra function for the computation of the pseudoinverse of a given matrix $\boldsymbol{X}$, that is
 
 # In[1]:
 
 
-Ainv = np.linlag.pinv(A)
+import numpy as np
+X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
+Xinv = np.linlag.pinv(X)
 
 
 # Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
