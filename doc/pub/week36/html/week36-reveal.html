@@ -215,7 +215,7 @@ MathJax.Hub.Config({
 
 <p><li> Linear Regression and links with Statistics</li>
 
-<p><li> Recommended Reading: Goodfellow et al chapter 3 on probability theory, see URL:""</li>
+<p><li> <a href="https://www.deeplearningbook.org/" target="_blank">Recommended Reading: Goodfellow et al chapter 3 on probability theory</a></li>
 
 <p><li> See also Murphy, sections 2.4 (Gaussian distributions) and 3.2 (Bayesian Statistics, basis)</li>
 </ul>
@@ -1880,6 +1880,113 @@ centered matrix and/or vector that enter the fitting procedure.
 </section>
 
 <section>
+<h2 id="test-function-for-what-happens-with-ols-ridge-and-lasso">Test Function for what happens with OLS, Ridge and Lasso </h2>
+
+<p>Hitherto we have discussed Ridge and Lasso regression in terms of a
+linear analysis. This may to many of you feel rather technical and
+perhaps not that intuitive. The question is whether we can develop a
+more intuitive way of understanding what Ridge and Lasso express.
+</p>
+
+<p>Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit. </p>
+
+<p>We will play around with a study of the values for the optimal
+parameters \( \boldsymbol{\beta} \) using OLS, Ridge and Lasso regression.  For
+OLS, you will notice as function of the noise and polynomial degree,
+that the parameters \( \beta \) will fluctuate from order to order in the
+polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.
+</p>
+
+<p>For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
+    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+<span style="color: #228B22"># Make data set.</span>
+n = <span style="color: #B452CD">10000</span>
+x = np.random.rand(n)
+y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+Maxpolydegree = <span style="color: #B452CD">5</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x),Maxpolydegree))
+X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
+
+
+<span style="color: #8B008B; font-weight: bold">for</span> polydegree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>,Maxpolydegree):
+    X[:,polydegree] = x**(polydegree)
+
+<span style="color: #228B22"># We split the data in test and training data</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># matrix inversion to find beta</span>
+OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
+<span style="color: #658b00">print</span>(OLSbeta)
+ypredictOLS = X_test @ OLSbeta
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test MSE OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ypredictOLS))
+<span style="color: #228B22"># Repeat now for Lasso and Ridge regression and various values of the regularization parameter using Scikit-Learn</span>
+<span style="color: #228B22"># Decide which values of lambda to use</span>
+nlambdas = <span style="color: #B452CD">4</span>
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">1</span>, nlambdas)
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
+    lmb = lambdas[i]
+    <span style="color: #228B22"># Make the fit using Ridge and Lasso</span>
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>)
+    RegRidge.fit(X_train,y_train)
+    RegLasso = linear_model.Lasso(lmb,fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>)
+    RegLasso.fit(X_train,y_train)
+    <span style="color: #228B22"># and then make the prediction</span>
+    ypredictRidge = RegRidge.predict(X_test)
+    ypredictLasso = RegLasso.predict(X_test)
+    <span style="color: #228B22"># Compute the MSE and print it</span>
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    <span style="color: #658b00">print</span>(lmb,RegRidge.coef_)
+    <span style="color: #658b00">print</span>(lmb,RegLasso.coef_)
+<span style="color: #228B22"># Now plot the results</span>
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;b&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
+plt.plot(np.log10(lambdas), MSELassoPredict, <span style="color: #CD5555">&#39;r&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Lasso Test&#39;</span>)
+plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
+plt.legend()
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>How can we understand this?  </p>
+</section>
+
+<section>
 <h2 id="linking-the-regression-analysis-with-a-statistical-interpretation">Linking the regression analysis with a statistical interpretation </h2>
 
 <p>We will now couple the discussions of ordinary least squares, Ridge
@@ -2374,118 +2481,6 @@ $$
 
 <section>
 <h2 id="bayes-theorem-and-ridge-and-lasso-regression">Bayes' Theorem and Ridge and Lasso Regression </h2>
-
-<p>Hitherto we have discussed Ridge and Lasso regression in terms of a
-linear analysis. This may to many of you feel rather technical and
-perhaps not that intuitive. The question is whether we can develop a
-more intuitive way of understanding what Ridge and Lasso express.
-</p>
-
-<p>Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit. </p>
-</section>
-
-<section>
-<h2 id="test-function-for-what-happens-with-ols-ridge-and-lasso">Test Function for what happens with OLS, Ridge and Lasso </h2>
-
-<p>We will play around with a study of the values for the optimal
-parameters \( \boldsymbol{\beta} \) using OLS, Ridge and Lasso regression.  For
-OLS, you will notice as function of the noise and polynomial degree,
-that the parameters \( \beta \) will fluctuate from order to order in the
-polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.
-</p>
-
-<p>For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.</p>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">R2</span>(y_data, y_model):
-    <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1</span> - np.sum((y_data - y_model) ** <span style="color: #B452CD">2</span>) / np.sum((y_data - np.mean(y_data)) ** <span style="color: #B452CD">2</span>)
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
-    n = np.size(y_model)
-    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
-
-<span style="color: #228B22"># Make data set.</span>
-n = <span style="color: #B452CD">10000</span>
-x = np.random.rand(n)
-y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
-
-Maxpolydegree = <span style="color: #B452CD">5</span>
-X = np.zeros((<span style="color: #658b00">len</span>(x),Maxpolydegree))
-X[:,<span style="color: #B452CD">0</span>] = <span style="color: #B452CD">1.0</span>
-
-<span style="color: #8B008B; font-weight: bold">for</span> polydegree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>, Maxpolydegree):
-    <span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(polydegree):
-        X[:,degree] = x**(degree)
-
-
-<span style="color: #228B22"># We split the data in test and training data</span>
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
-
-<span style="color: #228B22"># matrix inversion to find beta</span>
-OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
-<span style="color: #658b00">print</span>(OLSbeta)
-ypredictOLS = X_test @ OLSbeta
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test MSE OLS&quot;</span>)
-<span style="color: #658b00">print</span>(MSE(y_test,ypredictOLS))
-<span style="color: #228B22"># Repeat now for Lasso and Ridge regression and various values of the regularization parameter using Scikit-Learn</span>
-<span style="color: #228B22"># Decide which values of lambda to use</span>
-nlambdas = <span style="color: #B452CD">4</span>
-MSERidgePredict = np.zeros(nlambdas)
-MSELassoPredict = np.zeros(nlambdas)
-lambdas = np.logspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">1</span>, nlambdas)
-<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(nlambdas):
-    lmb = lambdas[i]
-    <span style="color: #228B22"># Make the fit using Ridge and Lasso</span>
-    RegRidge = linear_model.Ridge(lmb,fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>)
-    RegRidge.fit(X_train,y_train)
-    RegLasso = linear_model.Lasso(lmb,fit_intercept=<span style="color: #8B008B; font-weight: bold">False</span>)
-    RegLasso.fit(X_train,y_train)
-    <span style="color: #228B22"># and then make the prediction</span>
-    ypredictRidge = RegRidge.predict(X_test)
-    ypredictLasso = RegLasso.predict(X_test)
-    <span style="color: #228B22"># Compute the MSE and print it</span>
-    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
-    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
-    <span style="color: #658b00">print</span>(lmb,RegRidge.coef_)
-    <span style="color: #658b00">print</span>(lmb,RegLasso.coef_)
-<span style="color: #228B22"># Now plot the results</span>
-plt.figure()
-plt.plot(np.log10(lambdas), MSERidgePredict, <span style="color: #CD5555">&#39;b&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Ridge Test&#39;</span>)
-plt.plot(np.log10(lambdas), MSELassoPredict, <span style="color: #CD5555">&#39;r&#39;</span>, label = <span style="color: #CD5555">&#39;MSE Lasso Test&#39;</span>)
-plt.xlabel(<span style="color: #CD5555">&#39;log10(lambda)&#39;</span>)
-plt.ylabel(<span style="color: #CD5555">&#39;MSE&#39;</span>)
-plt.legend()
-plt.show()
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<p>How can we understand this?  </p>
-</section>
-
-<section>
-<h2 id="invoking-bayes-theorem">Invoking Bayes' theorem </h2>
 
 <p>Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. </p>
 

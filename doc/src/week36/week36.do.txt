@@ -1417,6 +1417,97 @@ well.  It means that our optimization is now done only with the
 centered matrix and/or vector that enter the fitting procedure.
 
 
+
+
+!split
+===== Test Function for what happens with OLS, Ridge and Lasso =====
+
+Hitherto we have discussed Ridge and Lasso regression in terms of a
+linear analysis. This may to many of you feel rather technical and
+perhaps not that intuitive. The question is whether we can develop a
+more intuitive way of understanding what Ridge and Lasso express.
+
+Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit. 
+
+We will play around with a study of the values for the optimal
+parameters $\bm{\beta}$ using OLS, Ridge and Lasso regression.  For
+OLS, you will notice as function of the noise and polynomial degree,
+that the parameters $\beta$ will fluctuate from order to order in the
+polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.
+
+For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.
+
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+# Make data set.
+n = 10000
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
+
+Maxpolydegree = 5
+X = np.zeros((len(x),Maxpolydegree))
+X[:,0] = 1.0
+
+
+for polydegree in range(1,Maxpolydegree):
+    X[:,polydegree] = x**(polydegree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
+print(OLSbeta)
+ypredictOLS = X_test @ OLSbeta
+print("Test MSE OLS")
+print(MSE(y_test,ypredictOLS))
+# Repeat now for Lasso and Ridge regression and various values of the regularization parameter using Scikit-Learn
+# Decide which values of lambda to use
+nlambdas = 4
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-3, 1, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    # Make the fit using Ridge and Lasso
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
+    RegRidge.fit(X_train,y_train)
+    RegLasso = linear_model.Lasso(lmb,fit_intercept=False)
+    RegLasso.fit(X_train,y_train)
+    # and then make the prediction
+    ypredictRidge = RegRidge.predict(X_test)
+    ypredictLasso = RegLasso.predict(X_test)
+    # Compute the MSE and print it
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    print(lmb,RegRidge.coef_)
+    print(lmb,RegLasso.coef_)
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, 'b', label = 'MSE Ridge Test')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r', label = 'MSE Lasso Test')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+
+!ec
+
+How can we understand this?  
+
+
+
 !split 
 ===== Linking the regression analysis with a statistical interpretation =====
 
@@ -1852,98 +1943,6 @@ That is, in case of a positive test, there is only a $3\%$ chance of having brea
 
 !split
 ===== Bayes' Theorem and Ridge and Lasso Regression =====
-
-Hitherto we have discussed Ridge and Lasso regression in terms of a
-linear analysis. This may to many of you feel rather technical and
-perhaps not that intuitive. The question is whether we can develop a
-more intuitive way of understanding what Ridge and Lasso express.
-
-Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit. 
-
-!split
-===== Test Function for what happens with OLS, Ridge and Lasso =====
-
-We will play around with a study of the values for the optimal
-parameters $\bm{\beta}$ using OLS, Ridge and Lasso regression.  For
-OLS, you will notice as function of the noise and polynomial degree,
-that the parameters $\beta$ will fluctuate from order to order in the
-polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.
-
-For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.
-
-!bc pycod
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn import linear_model
-
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-# Make data set.
-n = 10000
-x = np.random.rand(n)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
-
-Maxpolydegree = 5
-X = np.zeros((len(x),Maxpolydegree))
-X[:,0] = 1.0
-
-for polydegree in range(1, Maxpolydegree):
-    for degree in range(polydegree):
-        X[:,degree] = x**(degree)
-
-
-# We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-# matrix inversion to find beta
-OLSbeta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train
-print(OLSbeta)
-ypredictOLS = X_test @ OLSbeta
-print("Test MSE OLS")
-print(MSE(y_test,ypredictOLS))
-# Repeat now for Lasso and Ridge regression and various values of the regularization parameter using Scikit-Learn
-# Decide which values of lambda to use
-nlambdas = 4
-MSERidgePredict = np.zeros(nlambdas)
-MSELassoPredict = np.zeros(nlambdas)
-lambdas = np.logspace(-3, 1, nlambdas)
-for i in range(nlambdas):
-    lmb = lambdas[i]
-    # Make the fit using Ridge and Lasso
-    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
-    RegRidge.fit(X_train,y_train)
-    RegLasso = linear_model.Lasso(lmb,fit_intercept=False)
-    RegLasso.fit(X_train,y_train)
-    # and then make the prediction
-    ypredictRidge = RegRidge.predict(X_test)
-    ypredictLasso = RegLasso.predict(X_test)
-    # Compute the MSE and print it
-    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
-    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
-    print(lmb,RegRidge.coef_)
-    print(lmb,RegLasso.coef_)
-# Now plot the results
-plt.figure()
-plt.plot(np.log10(lambdas), MSERidgePredict, 'b', label = 'MSE Ridge Test')
-plt.plot(np.log10(lambdas), MSELassoPredict, 'r', label = 'MSE Lasso Test')
-plt.xlabel('log10(lambda)')
-plt.ylabel('MSE')
-plt.legend()
-plt.show()
-
-
-!ec
-
-How can we understand this?  
-
-
-!split
-===== Invoking Bayes' theorem =====
 
 Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 
 
