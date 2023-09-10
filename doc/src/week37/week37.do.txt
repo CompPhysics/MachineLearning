@@ -1,22 +1,200 @@
 TITLE: Week 37: Statitsitcal interpretations and Resampling Methods
-AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and Facility for Rare Isotope Beams, Michigan State University
 DATE: today
 
 !split
 =====  Plans for week 37 =====
 
-* Summary of Ridge and Lasso with examples and statistical interpretation. Start resampling techniques and discussion of the _bias-variance_ tradeoff.
-* Resampling methods, bias-variance, overfitting, Cross-validation and Bootstrapping
+!bblock  Material for the active learning sessions on Tuesday and Wednesday
+  * Lecture from last week on calculations of expectation values
+  * Exercise for week 37
+  * Work on project 1
+  * See also additional note on scaling (jupyter-notebook) sent separately. This will be discussed during the first hour of each session.
+!eblock  
+!bblock Material for the lecture on Thursday September 7
+  * Statistical interpretation of Ridge and Lasso regression
+  * Resampling techniques, Bootstrap and cross validation
+  * Recommended Reading:
+    o Lectures on Resampling methods (these lectures)
+    o Bishop 1.3 (cross-validation) and 3.2 (bias-variance tradeoff)
+    o Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). 
+!eblock
 
-Recommended Reading:
-o Lectures on Resampling methods (these lectures), see also lectures from week 36
-o Bishop 1.3 (cross-validation) and 3.2 (bias-variance tradeoff)
-o Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). 
-o See also the excellent videos on the SVD at URL:"http://databookuw.com/page-2/page-4/". The texboook by Brunton and Kutz at URL:"http://databookuw.com" is highly recommended
+!split 
+===== Linking the regression analysis with a statistical interpretation =====
+
+We will now couple the discussions of ordinary least squares, Ridge
+and Lasso regression with a statistical interpretation, that is we
+move from a linear algebra analysis to a statistical analysis. In
+particular, we will focus on what the regularization terms can result
+in.  We will amongst other things show that the regularization
+parameter can reduce considerably the variance of the parameters
+$\beta$.
+
+
+The
+advantage of doing linear regression is that we actually end up with
+analytical expressions for several statistical quantities.  
+Standard least squares and Ridge regression  allow us to
+derive quantities like the variance and other expectation values in a
+rather straightforward way.
+
+
+It is assumed that $\varepsilon_i
+\sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
+independent, i.e.: 
+!bt
+\begin{align*} 
+\mbox{Cov}(\varepsilon_{i_1},
+\varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
+& i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
+\end{align*} 
+!et
+The randomness of $\varepsilon_i$ implies that
+$\mathbf{y}_i$ is also a random variable. In particular,
+$\mathbf{y}_i$ is normally distributed, because $\varepsilon_i \sim
+\mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \bm{\beta}$ is a
+non-random scalar. To specify the parameters of the distribution of
+$\mathbf{y}_i$ we need to calculate its first two moments. 
+
+Recall that $\bm{X}$ is a matrix of dimensionality $n\times p$. The
+notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
+row number $i$ and perform a sum over all values $p$.
 
 
 !split
-===== Summary of Ridge and Lasso Regression and start Resampling methods =====
+===== Assumptions made =====
+
+The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
+that there exists a function $f(\bm{x})$ and  a normal distributed error $\bm{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
+which describe our data
+!bt
+\[
+\bm{y} = f(\bm{x})+\bm{\varepsilon}
+\]
+!et
+
+We approximate this function with our model from the solution of the linear regression equations, that is our
+function $f$ is approximated by $\bm{\tilde{y}}$ where we want to minimize $(\bm{y}-\bm{\tilde{y}})^2$, our MSE, with
+!bt
+\[
+\bm{\tilde{y}} = \bm{X}\bm{\beta}.
+\]
+!et
+
+!split
+===== Expectation value and variance =====
+
+We can calculate the expectation value of $\bm{y}$ for a given element $i$ 
+!bt
+\begin{align*} 
+\mathbb{E}(y_i) & =
+\mathbb{E}(\mathbf{X}_{i, \ast} \, \bm{\beta}) + \mathbb{E}(\varepsilon_i)
+\, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
+\end{align*} 
+!et
+while
+its variance is 
+!bt
+\begin{align*} \mbox{Var}(y_i) & = \mathbb{E} \{ [y_i
+- \mathbb{E}(y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( y_i^2 ) -
+[\mathbb{E}(y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
+\beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 \\ &
+= \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2 \varepsilon_i
+\mathbf{X}_{i, \ast} \, \bm{\beta} + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
+\ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2
+\mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \bm{\beta} +
+\mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 
+\\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
+\mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
+\end{align*}
+!et
+Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \bm{\beta}, \sigma^2)$, that is $\bm{y}$ follows a normal distribution with 
+mean value $\bm{X}\bm{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD). 
+
+!split
+===== Expectation value and variance for $\bm{\beta}$ =====
+
+With the OLS expressions for the optimal parameters $\bm{\hat{\beta}}$ we can evaluate the expectation value
+!bt
+\[
+\mathbb{E}(\bm{\hat{\beta}}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\bm{\beta}=\bm{\beta}.
+\]
+!et
+This means that the estimator of the regression parameters is unbiased.
+
+We can also calculate the variance
+
+The variance of the optimal value $\bm{\hat{\beta}}$ is
+!bt
+\begin{eqnarray*}
+\mbox{Var}(\bm{\hat{\beta}}) & = & \mathbb{E} \{ [\bm{\beta} - \mathbb{E}(\bm{\beta})] [\bm{\beta} - \mathbb{E}(\bm{\beta})]^{T} \}
+\\
+& = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \bm{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \bm{\beta}]^{T} \}
+\\
+% & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}]^{T} \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} \, \mathbf{Y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{Y} \, \mathbf{Y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T \, \mathbf{X} \, \bm{\beta} \, \bm{\beta}^T \,  \mathbf{X}^T \, \mathbf{X} \, (\mathbf{X}^T % \mathbf{X})^{-1}
+% \\
+% & & + \, \, \sigma^2 \, (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T  \, \mathbf{X} \, (\mathbf{X}^T \mathbf{X})^{-1} - \bm{\beta} \bm{\beta}^T
+\\
+& = & \bm{\beta} \, \bm{\beta}^{T}  + \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\, \, \, = \, \, \, \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1},
+\end{eqnarray*}
+!et
+
+where we have used  that $\mathbb{E} (\mathbf{Y} \mathbf{Y}^{T}) =
+\mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \, \mathbf{X}^{T} +
+\sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\bm{\beta}) = \sigma^2
+\, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
+variance of the estimate of the $j$-th regression coefficient:
+$\bm{\sigma}^2 (\bm{\beta}_j ) = \bm{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
+construct a confidence interval for the estimates.
+
+
+In a similar way, we can obtain analytical expressions for say the
+expectation values of the parameters $\bm{\beta}$ and their variance
+when we employ Ridge regression, allowing us again to define a confidence interval. 
+
+It is rather straightforward to show that
+!bt
+\[
+\mathbb{E} \big[ \bm{\beta}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\bm{\beta}^{\mathrm{OLS}}.
+\]
+!et
+We see clearly that 
+$\mathbb{E} \big[ \bm{\beta}^{\mathrm{Ridge}} \big] \not= \bm{\beta}^{\mathrm{OLS}}$ for any $\lambda > 0$. We say then that the ridge estimator is biased.
+
+We can also compute the variance as 
+
+!bt
+\[
+\mbox{Var}[\bm{\beta}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
+\]
+!et
+and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\bm{\beta}$ goes to zero. 
+
+With this, we can compute the difference 
+
+!bt
+\[
+\mbox{Var}[\bm{\beta}^{\mathrm{OLS}}]-\mbox{Var}(\bm{\beta}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
+\]
+!et
+The difference is non-negative definite since each component of the
+matrix product is non-negative definite. 
+This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\bm{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
+
+
+
+!split
+===== Material for lecture Thursday September 14 =====
 
 
 !split
@@ -113,13 +291,13 @@ We could now define a new cost function to minimize, namely the negative logarit
 
 !bt
 \[
-C(\bm{\beta})=-\log{\prod_{i=0}^{n-1}p(y_i,\bm{X}\vert\bm{\beta})}=-\sum_{i=0}^{n-1}\log{p(y_i,\bm{X}\vert\bm{\beta})},
+C(\bm{\beta}=-\log{\prod_{i=0}^{n-1}p(y_i,\bm{X}\vert\bm{\beta})}=-\sum_{i=0}^{n-1}\log{p(y_i,\bm{X}\vert\bm{\beta})},
 \]
 !et
 which becomes
 !bt
 \[
-C(\bm{\beta})=\frac{n}{2}\log{2\pi\sigma^2}+\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}.
+C(\bm{\beta}=\frac{n}{2}\log{2\pi\sigma^2}+\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}.
 \]
 !et
 
@@ -137,6 +315,65 @@ which leads to the well-known OLS equation for the optimal paramters $\beta$
 \]
 !et
 
+
+Before we make a similar analysis for Ridge and Lasso regression, we need a short reminder on statistics. 
+
+!split
+===== More basic Statistics and Bayes' theorem =====
+
+A central theorem in statistics is Bayes' theorem. This theorem plays a similar role as the good old Pythagoras' theorem in geometry.
+Bayes' theorem is extremely simple to derive. But to do so we need some basic axioms from statistics.
+
+Assume we have two domains of events $X=[x_0,x_1,\dots,x_{n-1}]$ and $Y=[y_0,y_1,\dots,y_{n-1}]$.
+
+We define also the likelihood for $X$ and $Y$ as $p(X)$ and $p(Y)$ respectively.
+The likelihood of a specific event $x_i$ (or $y_i$) is then written as $p(X=x_i)$ or just $p(x_i)=p_i$. 
+
+!bblock Union of events is given by
+!bt
+\[
+p(X \cup Y)= p(X)+p(Y)-p(X \cap Y).
+\]
+!et
+!eblock
+
+
+!bblock The product rule (aka joint probability) is given by
+!bt
+\[
+p(X \cup Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(X),
+\]
+!et
+where we read $p(X\vert Y)$ as the likelihood of obtaining $X$ given $Y$.
+!eblock
+
+If we have independent events then $p(X,Y)=p(X)p(Y)$.
+
+
+!split
+===== Marginal Probability =====
+
+The marginal probability is defined in terms of only one of the set of variables $X,Y$. For a discrete probability we have
+!bblock 
+!bt
+\[
+p(X)=\sum_{i=0}^{n-1}p(X,Y=y_i)=\sum_{i=0}^{n-1}p(X\vert Y=y_i)p(Y=y_i)=\sum_{i=0}^{n-1}p(X\vert y_i)p(y_i).
+\]
+!et
+!eblock
+
+
+!split
+===== Conditional  Probability =====
+
+The conditional  probability, if $p(Y) > 0$, is 
+!bblock 
+!bt
+\[
+p(X\vert Y)= \frac{p(X,Y)}{p(Y)}=\frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}.
+\]
+!et
+!eblock
 
 
 !split
@@ -166,6 +403,180 @@ the parameter space represented by $X$. This function is not
 necesseraly normalized and is normally called the likelihood function.
 
 The function $p(X)$ on the right hand side is called the prior while the function on the left hand side is the called the posterior probability. The denominator on the right hand side serves as a normalization factor for the posterior distribution.
+
+Let us try to illustrate Bayes' theorem through an example.
+
+!split
+=====  Example of Usage of Bayes' theorem =====
+
+Let us suppose that you are undergoing a series of mammography scans in
+order to rule out possible breast cancer cases.  We define the
+sensitivity for a positive event by the variable $X$. It takes binary
+values with $X=1$ representing a positive event and $X=0$ being a
+negative event. We reserve $Y$ as a classification parameter for
+either a negative or a positive breast cancer confirmation. (Short note on wordings: positive here means having breast cancer, although none of us would consider this being a  positive thing).
+
+We let $Y=1$ represent the the case of having breast cancer and $Y=0$ as not.
+
+Let us assume that if you have breast cancer, the test will be positive with a probability of $0.8$, that is we have
+
+!bt
+\[
+p(X=1\vert Y=1) =0.8.
+\]
+!et
+
+This obviously sounds  scary since many would conclude that if the test is positive, there is a likelihood of $80\%$ for having cancer.
+It is however not correct, as the following Bayesian analysis shows.
+
+!split
+===== Doing it correctly =====
+
+If we look at various national surveys on breast cancer, the general likelihood of developing breast cancer is a very small number.
+Let us assume that the prior probability in the population as a whole is
+
+!bt
+\[
+p(Y=1) =0.004.
+\]
+!et
+
+We need also to account for the fact that the test may produce a false positive result (false alarm). Let us here assume that we have
+!bt
+\[
+p(X=1\vert Y=0) =0.1.
+\]
+!et
+
+Using Bayes' theorem we can then find the posterior probability that the person has breast cancer in case of a positive test, that is we can compute
+
+!bt
+\[
+p(Y=1\vert X=1)=\frac{p(X=1\vert Y=1)p(Y=1)}{p(X=1\vert Y=1)p(Y=1)+p(X=1\vert Y=0)p(Y=0)}=\frac{0.8\times 0.004}{0.8\times 0.004+0.1\times 0.996}=0.031.
+\]
+!et
+That is, in case of a positive test, there is only a $3\%$ chance of having breast cancer!
+
+
+!split
+===== Bayes' Theorem and Ridge and Lasso Regression =====
+
+Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 
+
+For ordinary least squares we postulated that the maximum likelihood for the doamin of events $\bm{D}$ (one-dimensional case)
+!bt
+\[
+\bm{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})],
+\]
+!et
+is given by
+!bt
+\[
+p(\bm{D}\vert\bm{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}.
+\]
+!et
+
+In Bayes' theorem this function plays the role of the so-called likelihood. We could now ask the question what is the posterior probability of a parameter set $\bm{\beta}$ given a domain of events $\bm{D}$?  That is, how can we define the posterior probability 
+
+!bt
+\[
+p(\bm{\beta}\vert\bm{D}).
+\]
+!et
+
+Bayes' theorem comes to our rescue here since (omitting the normalization constant)
+!bt
+\[
+p(\bm{\beta}\vert\bm{D})\propto p(\bm{D}\vert\bm{\beta})p(\bm{\beta}).
+\]
+!et
+
+We have a model for $p(\bm{D}\vert\bm{\beta})$ but need one for the _prior_ $p(\bm{\beta}$!   
+
+
+!split
+===== Ridge and Bayes =====
+
+With the posterior probability defined by a likelihood which we have
+already modeled and an unknown prior, we are now ready to make
+additional models for the prior.
+
+We can, based on our discussions of the variance of $\bm{\beta}$ and the mean value, assume that the prior for the values $\bm{\beta}$ is given by a Gaussian with mean value zero and variance $\tau^2$, that is
+
+!bt
+\[
+p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
+\]
+!et
+
+Our posterior probability becomes then (omitting the normalization factor which is just a constant)
+!bt
+\[
+p(\bm{\beta\vert\bm{D})}=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
+\]
+!et
+
+
+We can now optimize this quantity with respect to $\bm{\beta}$. As we
+did for OLS, this is most conveniently done by taking the negative
+logarithm of the posterior probability. Doing so and leaving out the
+constants terms that do not depend on $\beta$, we have
+
+
+!bt
+\[
+C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{2\tau^2}\vert\vert\bm{\beta}\vert\vert_2^2,
+\]
+!et
+and replacing $1/2\tau^2$ with $\lambda$ we have
+
+!bt
+\[
+C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_2^2,
+\]
+!et
+which is our Ridge cost function!  Nice, isn't it?
+
+!split
+===== Lasso and Bayes =====
+
+To derive the Lasso cost function, we simply replace the Gaussian prior with an exponential distribution ("Laplace in this case":"https://en.wikipedia.org/wiki/Laplace_distribution") with zero mean value,  that is
+
+!bt
+\[
+p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
+\]
+!et
+
+Our posterior probability becomes then (omitting the normalization factor which is just a constant)
+!bt
+\[
+p(\bm{\beta}\vert\bm{D})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
+\]
+!et
+
+
+Taking the negative
+logarithm of the posterior probability and leaving out the
+constants terms that do not depend on $\beta$, we have
+
+
+!bt
+\[
+C(\bm{\beta}=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{\tau}\vert\vert\bm{\beta}\vert\vert_1,
+\]
+!et
+and replacing $1/\tau$ with $\lambda$ we have
+
+!bt
+\[
+C(\bm{\beta}=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_1,
+\]
+!et
+which is our Lasso cost function!  
+
+
+
 
 !split
 ===== Test Function for what happens with OLS, Ridge and Lasso =====
@@ -316,124 +727,6 @@ for i in range(nlambdas):
 
 
 
-!split
-===== Invoking Bayes' theorem =====
-
-Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 
-
-For ordinary least squares we postulated that the maximum likelihood for the doamin of events $\bm{D}$ (one-dimensional case)
-!bt
-\[
-\bm{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})],
-\]
-!et
-is given by
-!bt
-\[
-p(\bm{D}\vert\bm{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}.
-\]
-!et
-
-In Bayes' theorem this function plays the role of the so-called likelihood. We could now ask the question what is the posterior probability of a parameter set $\bm{\beta}$ given a domain of events $\bm{D}$?  That is, how can we define the posterior probability 
-
-!bt
-\[
-p(\bm{\beta}\vert\bm{D}).
-\]
-!et
-
-Bayes' theorem comes to our rescue here since (omitting the normalization constant)
-!bt
-\[
-p(\bm{\beta}\vert\bm{D})\propto p(\bm{D}\vert\bm{\beta})p(\bm{\beta}).
-\]
-!et
-
-We have a model for $p(\bm{D}\vert\bm{\beta})$ but need one for the _prior_ $p(\bm{\beta}$!   
-
-
-!split
-===== Ridge and Bayes =====
-
-With the posterior probability defined by a likelihood which we have
-already modeled and an unknown prior, we are now ready to make
-additional models for the prior.
-
-We can, based on our discussions of the variance of $\bm{\beta}$ and the mean value, assume that the prior for the values $\bm{\beta}$ is given by a Gaussian with mean value zero and variance $\tau^2$, that is
-
-!bt
-\[
-p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
-\]
-!et
-
-Our posterior probability becomes then (omitting the normalization factor which is just a constant)
-!bt
-\[
-p(\bm{\beta\vert\bm{D})}=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
-\]
-!et
-
-
-We can now optimize this quantity with respect to $\bm{\beta}$. As we
-did for OLS, this is most conveniently done by taking the negative
-logarithm of the posterior probability. Doing so and leaving out the
-constants terms that do not depend on $\beta$, we have
-
-
-!bt
-\[
-C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{2\tau^2}\vert\vert\bm{\beta}\vert\vert_2^2,
-\]
-!et
-and replacing $1/2\tau^2$ with $\lambda$ we have
-
-!bt
-\[
-C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_2^2,
-\]
-!et
-which is our Ridge cost function!  Nice, isn't it?
-
-!split
-===== Lasso and Bayes =====
-
-To derive the Lasso cost function, we simply replace the Gaussian prior with an exponential distribution ("Laplace in this case":"https://en.wikipedia.org/wiki/Laplace_distribution") with zero mean value,  that is
-
-!bt
-\[
-p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
-\]
-!et
-
-Our posterior probability becomes then (omitting the normalization factor which is just a constant)
-!bt
-\[
-p(\bm{\beta}\vert\bm{D})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
-\]
-!et
-
-
-Taking the negative
-logarithm of the posterior probability and leaving out the
-constants terms that do not depend on $\beta$, we have
-
-
-!bt
-\[
-C(\bm{\beta}=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{\tau}\vert\vert\bm{\beta}\vert\vert_1,
-\]
-!et
-and replacing $1/\tau$ with $\lambda$ we have
-
-!bt
-\[
-C(\bm{\beta}=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_1,
-\]
-!et
-which is our Lasso cost function!  
-
-
 
 !split
 ===== Why resampling methods =====
@@ -543,79 +836,6 @@ o training error $\mathrm{Err_{Train}}$, which is the average loss over the trai
 As our model becomes more and more complex, more of the training data tends to  used. The training may thence adapt to more complicated structures in the data. This may lead to a decrease in the bias (see below for code example) and a slight increase of the variance for the test error.
 For a certain level of complexity the test error will reach minimum, before starting to increase again. The
 training error reaches a saturation.
-
-
-
-
-!split
-===== Resampling methods: Jackknife and Bootstrap =====
-
-Two famous
-resampling methods are the _independent bootstrap_ and _the jackknife_. 
-
-The jackknife is a special case of the independent bootstrap. Still, the jackknife was made
-popular prior to the independent bootstrap. And as the popularity of
-the independent bootstrap soared, new variants, such as _the dependent bootstrap_ have also been developed..
-
-The Jackknife and independent bootstrap work for
-independent, identically distributed random variables.
-If these conditions are not
-satisfied, the methods will fail.  Yet, it should be said that if the data are
-independent, identically distributed, and we only want to estimate the
-variance of $\overline{X}$ (which often is the case), then there is no
-need for bootstrapping. 
-
-!split
-===== Resampling methods: Jackknife =====
-
-The Jackknife works by making many replicas of the estimator $\widehat{\beta}$. 
-The jackknife is a resampling method where we systematically leave out one observation from the vector of observed values $\bm{x} = (x_1,x_2,\cdots,X_n)$. 
-Let $\bm{x}_i$ denote the vector
-!bt
-\[
-\bm{x}_i = (x_1,x_2,\cdots,x_{i-1},x_{i+1},\cdots,x_n),
-\]
-!et
-
-which equals the vector $\bm{x}$ with the exception that observation
-number $i$ is left out. Using this notation, define
-$\widehat{\beta}_i$ to be the estimator
-$\widehat{\beta}$ computed using $\vec{X}_i$. 
-
-
-!split
-=====  Jackknife code example =====
-!bc pycod
-from numpy import *
-from numpy.random import randint, randn
-from time import time
-
-def jackknife(data, stat):
-    n = len(data);t = zeros(n); inds = arange(n); t0 = time()
-    ## 'jackknifing' by leaving out an observation for each i                                                                                                                      
-    for i in range(n):
-        t[i] = stat(delete(data,i) )
-
-    # analysis                                                                                                                                                                     
-    print("Runtime: %g sec" % (time()-t0)); print("Jackknife Statistics :")
-    print("original           bias      std. error")
-    print("%8g %14g %15g" % (stat(data),(n-1)*mean(t)/n, (n*var(t))**.5))
-
-    return t
-
-
-# Returns mean of data samples                                                                                                                                                     
-def stat(data):
-    return mean(data)
-
-
-mu, sigma = 100, 15
-datapoints = 10000
-x = mu + sigma*random.randn(datapoints)
-# jackknife returns the data sample                                                                                                                                                
-t = jackknife(x, stat)
-
-!ec
 
 
 !split
@@ -1554,4 +1774,11 @@ plt.legend()
 plt.show()
 
 !ec
+
+
+
+
+
+
+
 
