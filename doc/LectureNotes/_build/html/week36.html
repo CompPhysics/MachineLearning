@@ -520,6 +520,16 @@ const thebe_selector_output = ".output, .cell_output"
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#important-technicalities-more-on-rescaling-data">
+   Important technicalities: More on Rescaling data
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#test-function-for-what-happens-with-ols-ridge-and-lasso">
+   Test Function for what happens with OLS, Ridge and Lasso
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#linking-the-regression-analysis-with-a-statistical-interpretation">
    Linking the regression analysis with a statistical interpretation
   </a>
@@ -600,16 +610,6 @@ const thebe_selector_output = ".output, .cell_output"
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#bayes-theorem-and-ridge-and-lasso-regression">
    Bayes’ Theorem and Ridge and Lasso Regression
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#test-function-for-what-happens-with-ols-ridge-and-lasso">
-   Test Function for what happens with OLS, Ridge and Lasso
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#invoking-bayes-theorem">
-   Invoking Bayes’ theorem
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -791,6 +791,16 @@ const thebe_selector_output = ".output, .cell_output"
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#important-technicalities-more-on-rescaling-data">
+   Important technicalities: More on Rescaling data
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#test-function-for-what-happens-with-ols-ridge-and-lasso">
+   Test Function for what happens with OLS, Ridge and Lasso
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#linking-the-regression-analysis-with-a-statistical-interpretation">
    Linking the regression analysis with a statistical interpretation
   </a>
@@ -874,16 +884,6 @@ const thebe_selector_output = ".output, .cell_output"
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#test-function-for-what-happens-with-ols-ridge-and-lasso">
-   Test Function for what happens with OLS, Ridge and Lasso
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#invoking-bayes-theorem">
-   Invoking Bayes’ theorem
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#ridge-and-bayes">
    Ridge and Bayes
   </a>
@@ -920,16 +920,19 @@ doconce format html week36.do.txt --no_mako -->
 </li>
 <li><p>Material for the lecture on Thursday September 7</p>
 <ul>
-<li><p>Linear Regression and links with Statistics, Resampling methods</p></li>
-<li><p>Recommended Reading: Goodfellow et al chapter 3 on probability theory, see URL:””</p></li>
+<li><p>Technicalities related to scaling and other issues with data handling</p></li>
+<li><p>Linear Regression and links with Statistics</p></li>
+<li><p><a class="reference external" href="https://www.deeplearningbook.org/">Recommended Reading: Goodfellow et al chapter 3 on probability theory</a></p></li>
 <li><p>See also Murphy, sections 2.4 (Gaussian distributions) and 3.2 (Bayesian Statistics, basis)</p></li>
+<li><p><a class="reference external" href="https://youtu.be/Kc20CFK0z7Y">Video of lecture</a></p></li>
+<li><p><a class="reference external" href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep7.pdf">Whiteboard notes</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="material-for-the-active-learning-sessions-tuesday-and-wednesday">
 <h2>Material for the active learning sessions Tuesday and Wednesday<a class="headerlink" href="#material-for-the-active-learning-sessions-tuesday-and-wednesday" title="Permalink to this headline">¶</a></h2>
-<p>The material here contains a summary from last Week and discussion of SVD, Ridge and Lasso regression with examples</p>
+<p>The material here contains a summary from last week and discussion of SVD, Ridge and Lasso regression with examples</p>
 </div>
 <div class="section" id="linear-regression-and-the-svd">
 <h2>Linear Regression and  the SVD<a class="headerlink" href="#linear-regression-and-the-svd" title="Permalink to this headline">¶</a></h2>
@@ -1700,6 +1703,531 @@ C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\vert\beta_0\vert+\ve
 <div class="section" id="material-for-lecture-thursday-september-7">
 <h2>Material for lecture Thursday September 7<a class="headerlink" href="#material-for-lecture-thursday-september-7" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="important-technicalities-more-on-rescaling-data">
+<h2>Important technicalities: More on Rescaling data<a class="headerlink" href="#important-technicalities-more-on-rescaling-data" title="Permalink to this headline">¶</a></h2>
+<p>When you are comparing your own code with for example <strong>Scikit-Learn</strong>’s
+library, there are some technicalities to keep in mind.  The examples
+here demonstrate some of these aspects with potential pitfalls.</p>
+<p>The discussion here focuses on the role of the intercept, how we can
+set up the design matrix, what scaling we should use and other topics
+which tend  confuse us.</p>
+<p>The intercept can be interpreted as the expected value of our
+target/output variables when all other predictors are set to zero.
+Thus, if we cannot assume that the expected outputs/targets are zero
+when all predictors are zero (the columns in the design matrix), it
+may be a bad idea to implement a model which penalizes the intercept.
+Furthermore, in for example Ridge and Lasso regression, the default solutions
+from the library <strong>Scikit-Learn</strong> (when not shrinking <span class="math notranslate nohighlight">\(\beta_0\)</span>) for the unknown parameters
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>, are derived under the assumption that both <span class="math notranslate nohighlight">\(\boldsymbol{y}\)</span> and
+<span class="math notranslate nohighlight">\(\boldsymbol{X}\)</span> are zero centered, that is we subtract the mean values.</p>
+<p>If our predictors represent different scales, then it is important to
+standardize the design matrix <span class="math notranslate nohighlight">\(\boldsymbol{X}\)</span> by subtracting the mean of each
+column from the corresponding column and dividing the column with its
+standard deviation. Most machine learning libraries do this as a default. This means that if you compare your code with the results from a given library,
+the results may differ.</p>
+<p>The
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html">Standardscaler</a>
+function in <strong>Scikit-Learn</strong> does this for us.  For the data sets we
+have been studying in our various examples, the data are in many cases
+already scaled and there is no need to scale them. You as a user of different machine learning algorithms, should always perform  a
+survey of your data, with a critical assessment of them in case you need to scale the data.</p>
+<p>If you need to scale the data, not doing so will give an <em>unfair</em>
+penalization of the parameters since their magnitude depends on the
+scale of their corresponding predictor.</p>
+<p>Suppose as an example that you
+you have an input variable given by the heights of different persons.
+Human height might be measured in inches or meters or
+kilometers. If measured in kilometers, a standard linear regression
+model with this predictor would probably give a much bigger
+coefficient term, than if measured in millimeters.
+This can clearly lead to problems in evaluating the cost/loss functions.</p>
+<p>Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
+on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">#Model training, we compute the mean value of y and X</span>
+<span class="sd">y_train_mean = np.mean(y_train)</span>
+<span class="sd">X_train_mean = np.mean(X_train,axis=0)</span>
+<span class="sd">X_train = X_train - X_train_mean</span>
+<span class="sd">y_train = y_train - y_train_mean</span>
+
+<span class="sd"># The we fit our model with the training data</span>
+<span class="sd">trained_model = some_model.fit(X_train,y_train)</span>
+
+
+<span class="sd">#Model prediction, we need also to transform our data set used for the prediction.</span>
+<span class="sd">X_test = X_test - X_train_mean #Use mean from training data</span>
+<span class="sd">y_pred = trained_model(X_test)</span>
+<span class="sd">y_pred = y_pred + y_train_mean</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Let us try to understand what this may imply mathematically when we
+subtract the mean values, also known as <em>zero centering</em>. For
+simplicity, we will focus on  ordinary regression, as done in the above example.</p>
+<p>The cost/loss function  for regression is</p>
+<div class="math notranslate nohighlight">
+\[
+C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
+\]</div>
+<p>Recall also that we use the squared value. This expression can lead to an
+increased penalty for higher differences between predicted and
+output/target values.</p>
+<p>What we have done is to single out the <span class="math notranslate nohighlight">\(\beta_0\)</span> term in the
+definition of the mean squared error (MSE).  The design matrix <span class="math notranslate nohighlight">\(X\)</span>
+does in this case not contain any intercept column.  When we take the
+derivative with respect to <span class="math notranslate nohighlight">\(\beta_0\)</span>, we want the derivative to obey</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial C}{\partial \beta_j} = 0,
+\]</div>
+<p>for all <span class="math notranslate nohighlight">\(j\)</span>. For <span class="math notranslate nohighlight">\(\beta_0\)</span> we have</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial C}{\partial \beta_0} = -\frac{2}{n}\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right).
+\]</div>
+<p>Multiplying away the constant <span class="math notranslate nohighlight">\(2/n\)</span>, we obtain</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
+\]</div>
+<p>Let us specialize first to the case where we have only two parameters <span class="math notranslate nohighlight">\(\beta_0\)</span> and <span class="math notranslate nohighlight">\(\beta_1\)</span>.
+Our result for <span class="math notranslate nohighlight">\(\beta_0\)</span> simplifies then to</p>
+<div class="math notranslate nohighlight">
+\[
+n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
+\]</div>
+<p>We obtain then</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
+\]</div>
+<p>If we define</p>
+<div class="math notranslate nohighlight">
+\[
+\mu_{\boldsymbol{x}_1}=\frac{1}{n}\sum_{i=0}^{n-1} X_{i1},
+\]</div>
+<p>and the mean value of the outputs as</p>
+<div class="math notranslate nohighlight">
+\[
+\mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
+\]</div>
+<p>we have</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \mu_y - \beta_1\mu_{\boldsymbol{x}_1}.
+\]</div>
+<p>In the general case with more parameters than <span class="math notranslate nohighlight">\(\beta_0\)</span> and <span class="math notranslate nohighlight">\(\beta_1\)</span>, we have</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
+\]</div>
+<p>We can rewrite the latter equation as</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \sum_{j=1}^{p-1} \mu_{\boldsymbol{x}_j}\beta_j,
+\]</div>
+<p>where we have defined</p>
+<div class="math notranslate nohighlight">
+\[
+\mu_{\boldsymbol{x}_j}=\frac{1}{n}\sum_{i=0}^{n-1} X_{ij},
+\]</div>
+<p>the mean value for all elements of the column vector <span class="math notranslate nohighlight">\(\boldsymbol{x}_j\)</span>.</p>
+<p>Replacing <span class="math notranslate nohighlight">\(y_i\)</span> with <span class="math notranslate nohighlight">\(y_i - y_i - \overline{\boldsymbol{y}}\)</span> and centering also our design matrix results in a cost function (in vector-matrix disguise)</p>
+<div class="math notranslate nohighlight">
+\[
+C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}).
+\]</div>
+<p>If we minimize with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> we have then</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{\tilde{y}},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\boldsymbol{y}}\)</span>
+and <span class="math notranslate nohighlight">\(\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=0}^{n-1}X_{kj}\)</span>.</p>
+<p>For Ridge regression we need to add <span class="math notranslate nohighlight">\(\lambda \boldsymbol{\beta}^T\boldsymbol{\beta}\)</span> to the cost function and get then</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}.
+\]</div>
+<p>What does this mean? And why do we insist on all this? Let us look at some examples.</p>
+<p>This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (<em>code example thanks to  Øyvind Sigmundson Schøyen</em>). Here our scaling of the data is done by subtracting the mean values only.
+Note also that we do not split the data into training and test.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span>
+
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2021</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">MSE</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span><span class="n">y_model</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">y_model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span><span class="o">-</span><span class="n">y_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">n</span>
+
+
+<span class="k">def</span> <span class="nf">fit_beta</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X</span><span class="p">)</span> <span class="o">@</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y</span>
+
+
+<span class="n">true_beta</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">]</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">x</span> <span class="o">**</span> <span class="n">p</span> <span class="o">*</span> <span class="n">b</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">true_beta</span><span class="p">)]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="n">degree</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">degree</span><span class="p">))</span>
+
+<span class="c1"># Include the intercept in the design matrix</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">degree</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">[:,</span> <span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="n">p</span>
+
+<span class="n">beta</span> <span class="o">=</span> <span class="n">fit_beta</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="c1"># Intercept is included in the design matrix</span>
+<span class="n">skl</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;True beta: </span><span class="si">{</span><span class="n">true_beta</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fitted beta: </span><span class="si">{</span><span class="n">beta</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sklearn fitted beta: </span><span class="si">{</span><span class="n">skl</span><span class="o">.</span><span class="n">coef_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">ypredictOwn</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">beta</span>
+<span class="n">ypredictSKL</span> <span class="o">=</span> <span class="n">skl</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MSE with intercept column&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">MSE</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">ypredictOwn</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MSE with intercept column from SKL&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">MSE</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">ypredictSKL</span><span class="p">))</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Data&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">beta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fit&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">skl</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sklearn (fit_intercept=False)&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Do not include the intercept in the design matrix</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">[:,</span> <span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Intercept is not included in the design matrix</span>
+<span class="n">skl</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="c1"># Use centered values for X and y when computing coefficients</span>
+<span class="n">y_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">X_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">beta</span> <span class="o">=</span> <span class="n">fit_beta</span><span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">X_offset</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">y_offset</span><span class="p">)</span>
+<span class="n">intercept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_offset</span> <span class="o">-</span> <span class="n">X_offset</span> <span class="o">@</span> <span class="n">beta</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Manual intercept: </span><span class="si">{</span><span class="n">intercept</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fitted beta (wiothout intercept): </span><span class="si">{</span><span class="n">beta</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sklearn intercept: </span><span class="si">{</span><span class="n">skl</span><span class="o">.</span><span class="n">intercept_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sklearn fitted beta (without intercept): </span><span class="si">{</span><span class="n">skl</span><span class="o">.</span><span class="n">coef_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">ypredictOwn</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">beta</span>
+<span class="n">ypredictSKL</span> <span class="o">=</span> <span class="n">skl</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MSE with Manual intercept&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">MSE</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">ypredictOwn</span><span class="o">+</span><span class="n">intercept</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MSE with Sklearn intercept&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">MSE</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">ypredictSKL</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">beta</span> <span class="o">+</span> <span class="n">intercept</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fit (manual intercept)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">skl</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sklearn (fit_intercept=True)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The intercept is the value of our output/target variable
+when all our features are zero and our function crosses the <span class="math notranslate nohighlight">\(y\)</span>-axis (for a one-dimensional case).</p>
+<p>Printing the MSE, we see first that both methods give the same MSE, as
+they should.  However, when we move to for example Ridge regression,
+the way we treat the intercept may give a larger or smaller MSE,
+meaning that the MSE can be penalized by the value of the
+intercept. Not including the intercept in the fit, means that the
+regularization term does not include <span class="math notranslate nohighlight">\(\beta_0\)</span>. For different values
+of <span class="math notranslate nohighlight">\(\lambda\)</span>, this may lead to different MSE values.</p>
+<p>To remind the reader, the regularization term, with the intercept in Ridge regression, is given by</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=0}^{p-1}\beta_j^2,
+\]</div>
+<p>but when we take out the intercept, this equation becomes</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=1}^{p-1}\beta_j^2.
+\]</div>
+<p>For Lasso regression we have</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_1 = \lambda \sum_{j=1}^{p-1}\vert\beta_j\vert.
+\]</div>
+<p>It means that, when scaling the design matrix and the outputs/targets,
+by subtracting the mean values, we have an optimization problem which
+is not penalized by the intercept. The MSE value can then be smaller
+since it focuses only on the remaining quantities. If we however bring
+back the intercept, we will get a MSE which then contains the
+intercept.</p>
+<p>Armed with this wisdom, we attempt first to simply set the intercept equal to <strong>False</strong> in our implementation of Ridge regression for our well-known  vanilla data set.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">linear_model</span>
+
+<span class="k">def</span> <span class="nf">MSE</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span><span class="n">y_model</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">y_model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span><span class="o">-</span><span class="n">y_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">n</span>
+
+
+<span class="c1"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span class="c1"># Useful for eventual debugging.</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">3155</span><span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">Maxpolydegree</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">Maxpolydegree</span><span class="p">))</span>
+<span class="c1">#We include explicitely the intercept column</span>
+<span class="k">for</span> <span class="n">degree</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Maxpolydegree</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">[:,</span><span class="n">degree</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="n">degree</span>
+<span class="c1"># We split the data in test and training data</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">Maxpolydegree</span>
+<span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+<span class="c1"># Decide which values of lambda to use</span>
+<span class="n">nlambdas</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">MSEOwnRidgePredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
+<span class="n">MSERidgePredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
+<span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nlambdas</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">):</span>
+    <span class="n">lmb</span> <span class="o">=</span> <span class="n">lambdas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">OwnRidgeBeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_train</span><span class="o">+</span><span class="n">lmb</span><span class="o">*</span><span class="n">I</span><span class="p">)</span> <span class="o">@</span> <span class="n">X_train</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y_train</span>
+    <span class="c1"># Note: we include the intercept column and no scaling</span>
+    <span class="n">RegRidge</span> <span class="o">=</span> <span class="n">linear_model</span><span class="o">.</span><span class="n">Ridge</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">RegRidge</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+    <span class="c1"># and then make the prediction</span>
+    <span class="n">ytildeOwnRidge</span> <span class="o">=</span> <span class="n">X_train</span> <span class="o">@</span> <span class="n">OwnRidgeBeta</span>
+    <span class="n">ypredictOwnRidge</span> <span class="o">=</span> <span class="n">X_test</span> <span class="o">@</span> <span class="n">OwnRidgeBeta</span>
+    <span class="n">ytildeRidge</span> <span class="o">=</span> <span class="n">RegRidge</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+    <span class="n">ypredictRidge</span> <span class="o">=</span> <span class="n">RegRidge</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">MSEOwnRidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictOwnRidge</span><span class="p">)</span>
+    <span class="n">MSERidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictRidge</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Beta values for own Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">OwnRidgeBeta</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">RegRidge</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MSE values for own Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">MSEOwnRidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MSE values for Scikit-Learn Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">MSERidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<span class="c1"># Now plot the results</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSEOwnRidgePredict</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE own Ridge Test&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSERidgePredict</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE Ridge Test&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;log10(lambda)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The results here agree when we force <strong>Scikit-Learn</strong>’s Ridge function to include the first column in our design matrix.
+We see that the results agree very well. Here we have thus explicitely included the intercept column in the design matrix.
+What happens if we do not include the intercept in our fit?
+Let us see how we can change this code by zero centering.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">linear_model</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+
+<span class="k">def</span> <span class="nf">MSE</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span><span class="n">y_model</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">y_model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span><span class="o">-</span><span class="n">y_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">n</span>
+<span class="c1"># A seed just to ensure that the random numbers are the same for every run.</span>
+<span class="c1"># Useful for eventual debugging.</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">315</span><span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">Maxpolydegree</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">Maxpolydegree</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">degree</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">Maxpolydegree</span><span class="p">):</span> <span class="c1">#No intercept column</span>
+    <span class="n">X</span><span class="p">[:,</span><span class="n">degree</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
+
+<span class="c1"># We split the data in test and training data</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="c1">#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable</span>
+<span class="n">X_train_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1">#Center by removing mean from each feature</span>
+<span class="n">X_train_scaled</span> <span class="o">=</span> <span class="n">X_train</span> <span class="o">-</span> <span class="n">X_train_mean</span> 
+<span class="n">X_test_scaled</span> <span class="o">=</span> <span class="n">X_test</span> <span class="o">-</span> <span class="n">X_train_mean</span>
+<span class="c1">#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered)</span>
+<span class="c1">#Remove the intercept from the training data.</span>
+<span class="n">y_scaler</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>           
+<span class="n">y_train_scaled</span> <span class="o">=</span> <span class="n">y_train</span> <span class="o">-</span> <span class="n">y_scaler</span>   
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">Maxpolydegree</span><span class="o">-</span><span class="mi">1</span>
+<span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+<span class="c1"># Decide which values of lambda to use</span>
+<span class="n">nlambdas</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">MSEOwnRidgePredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
+<span class="n">MSERidgePredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
+
+<span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nlambdas</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">):</span>
+    <span class="n">lmb</span> <span class="o">=</span> <span class="n">lambdas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">OwnRidgeBeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">X_train_scaled</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_train_scaled</span><span class="o">+</span><span class="n">lmb</span><span class="o">*</span><span class="n">I</span><span class="p">)</span> <span class="o">@</span> <span class="n">X_train_scaled</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">y_train_scaled</span><span class="p">)</span>
+    <span class="n">intercept_</span> <span class="o">=</span> <span class="n">y_scaler</span> <span class="o">-</span> <span class="n">X_train_mean</span><span class="nd">@OwnRidgeBeta</span> <span class="c1">#The intercept can be shifted so the model can predict on uncentered data</span>
+    <span class="c1">#Add intercept to prediction</span>
+    <span class="n">ypredictOwnRidge</span> <span class="o">=</span> <span class="n">X_test_scaled</span> <span class="o">@</span> <span class="n">OwnRidgeBeta</span> <span class="o">+</span> <span class="n">y_scaler</span> 
+    <span class="n">RegRidge</span> <span class="o">=</span> <span class="n">linear_model</span><span class="o">.</span><span class="n">Ridge</span><span class="p">(</span><span class="n">lmb</span><span class="p">)</span>
+    <span class="n">RegRidge</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+    <span class="n">ypredictRidge</span> <span class="o">=</span> <span class="n">RegRidge</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">MSEOwnRidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictOwnRidge</span><span class="p">)</span>
+    <span class="n">MSERidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictRidge</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Beta values for own Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">OwnRidgeBeta</span><span class="p">)</span> <span class="c1">#Intercept is given by mean of target variable</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Beta values for Scikit-Learn Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">RegRidge</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Intercept from own implementation:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">intercept_</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Intercept from Scikit-Learn Ridge implementation&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">RegRidge</span><span class="o">.</span><span class="n">intercept_</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MSE values for own Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">MSEOwnRidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MSE values for Scikit-Learn Ridge implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">MSERidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+
+<span class="c1"># Now plot the results</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSEOwnRidgePredict</span><span class="p">,</span> <span class="s1">&#39;b--&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE own Ridge Test&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSERidgePredict</span><span class="p">,</span> <span class="s1">&#39;g--&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE SL Ridge Test&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;log10(lambda)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We see here, when compared to the code which includes explicitely the
+intercept column, that our MSE value is actually smaller. This is
+because the regularization term does not include the intercept value
+<span class="math notranslate nohighlight">\(\beta_0\)</span> in the fitting.  This applies to Lasso regularization as
+well.  It means that our optimization is now done only with the
+centered matrix and/or vector that enter the fitting procedure.</p>
+</div>
+<div class="section" id="test-function-for-what-happens-with-ols-ridge-and-lasso">
+<h2>Test Function for what happens with OLS, Ridge and Lasso<a class="headerlink" href="#test-function-for-what-happens-with-ols-ridge-and-lasso" title="Permalink to this headline">¶</a></h2>
+<p>Hitherto we have discussed Ridge and Lasso regression in terms of a
+linear analysis. This may to many of you feel rather technical and
+perhaps not that intuitive. The question is whether we can develop a
+more intuitive way of understanding what Ridge and Lasso express.</p>
+<p>Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit.</p>
+<p>We will play around with a study of the values for the optimal
+parameters <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> using OLS, Ridge and Lasso regression.  For
+OLS, you will notice as function of the noise and polynomial degree,
+that the parameters <span class="math notranslate nohighlight">\(\beta\)</span> will fluctuate from order to order in the
+polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.</p>
+<p>For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">linear_model</span>
+
+<span class="k">def</span> <span class="nf">R2</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span> <span class="n">y_model</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span> <span class="o">-</span> <span class="n">y_model</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_data</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">MSE</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span><span class="n">y_model</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">y_model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span><span class="o">-</span><span class="n">y_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">n</span>
+
+<span class="c1"># Make data set.</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+<span class="n">Maxpolydegree</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">Maxpolydegree</span><span class="p">))</span>
+<span class="n">X</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+
+<span class="k">for</span> <span class="n">polydegree</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">Maxpolydegree</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">[:,</span><span class="n">polydegree</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="p">(</span><span class="n">polydegree</span><span class="p">)</span>
+
+<span class="c1"># We split the data in test and training data</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="c1"># matrix inversion to find beta</span>
+<span class="n">OLSbeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_train</span><span class="p">)</span> <span class="o">@</span> <span class="n">X_train</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y_train</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">OLSbeta</span><span class="p">)</span>
+<span class="n">ypredictOLS</span> <span class="o">=</span> <span class="n">X_test</span> <span class="o">@</span> <span class="n">OLSbeta</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test MSE OLS&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictOLS</span><span class="p">))</span>
+<span class="c1"># Repeat now for Lasso and Ridge regression and various values of the regularization parameter using Scikit-Learn</span>
+<span class="c1"># Decide which values of lambda to use</span>
+<span class="n">nlambdas</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">MSERidgePredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
+<span class="n">MSELassoPredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
+<span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nlambdas</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">):</span>
+    <span class="n">lmb</span> <span class="o">=</span> <span class="n">lambdas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="c1"># Make the fit using Ridge and Lasso</span>
+    <span class="n">RegRidge</span> <span class="o">=</span> <span class="n">linear_model</span><span class="o">.</span><span class="n">Ridge</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">RegRidge</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+    <span class="n">RegLasso</span> <span class="o">=</span> <span class="n">linear_model</span><span class="o">.</span><span class="n">Lasso</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">RegLasso</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+    <span class="c1"># and then make the prediction</span>
+    <span class="n">ypredictRidge</span> <span class="o">=</span> <span class="n">RegRidge</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">ypredictLasso</span> <span class="o">=</span> <span class="n">RegLasso</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="c1"># Compute the MSE and print it</span>
+    <span class="n">MSERidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictRidge</span><span class="p">)</span>
+    <span class="n">MSELassoPredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictLasso</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">RegRidge</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">RegLasso</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
+<span class="c1"># Now plot the results</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSERidgePredict</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE Ridge Test&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSELassoPredict</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE Lasso Test&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;log10(lambda)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>How can we understand this?</p>
+</div>
 <div class="section" id="linking-the-regression-analysis-with-a-statistical-interpretation">
 <h2>Linking the regression analysis with a statistical interpretation<a class="headerlink" href="#linking-the-regression-analysis-with-a-statistical-interpretation" title="Permalink to this headline">¶</a></h2>
 <p>We will now couple the discussions of ordinary least squares, Ridge
@@ -2036,93 +2564,6 @@ p(Y=1\vert X=1)=\frac{p(X=1\vert Y=1)p(Y=1)}{p(X=1\vert Y=1)p(Y=1)+p(X=1\vert Y=
 </div>
 <div class="section" id="bayes-theorem-and-ridge-and-lasso-regression">
 <h2>Bayes’ Theorem and Ridge and Lasso Regression<a class="headerlink" href="#bayes-theorem-and-ridge-and-lasso-regression" title="Permalink to this headline">¶</a></h2>
-<p>Hitherto we have discussed Ridge and Lasso regression in terms of a
-linear analysis. This may to many of you feel rather technical and
-perhaps not that intuitive. The question is whether we can develop a
-more intuitive way of understanding what Ridge and Lasso express.</p>
-<p>Before we proceed let us perform a Ridge, Lasso  and OLS analysis of a polynomial fit.</p>
-</div>
-<div class="section" id="test-function-for-what-happens-with-ols-ridge-and-lasso">
-<h2>Test Function for what happens with OLS, Ridge and Lasso<a class="headerlink" href="#test-function-for-what-happens-with-ols-ridge-and-lasso" title="Permalink to this headline">¶</a></h2>
-<p>We will play around with a study of the values for the optimal
-parameters <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> using OLS, Ridge and Lasso regression.  For
-OLS, you will notice as function of the noise and polynomial degree,
-that the parameters <span class="math notranslate nohighlight">\(\beta\)</span> will fluctuate from order to order in the
-polynomial fit and that for larger and larger polynomial degrees of freedom, the parameters will tend to increase in value for OLS.</p>
-<p>For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.</p>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">linear_model</span>
-
-<span class="k">def</span> <span class="nf">R2</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span> <span class="n">y_model</span><span class="p">):</span>
-    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span> <span class="o">-</span> <span class="n">y_model</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_data</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">MSE</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span><span class="n">y_model</span><span class="p">):</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">y_model</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_data</span><span class="o">-</span><span class="n">y_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">n</span>
-
-<span class="c1"># Make data set.</span>
-<span class="n">n</span> <span class="o">=</span> <span class="mi">10000</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-
-<span class="n">Maxpolydegree</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">Maxpolydegree</span><span class="p">))</span>
-<span class="n">X</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
-
-<span class="k">for</span> <span class="n">polydegree</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Maxpolydegree</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">degree</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">polydegree</span><span class="p">):</span>
-        <span class="n">X</span><span class="p">[:,</span><span class="n">degree</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
-
-
-<span class="c1"># We split the data in test and training data</span>
-<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
-
-<span class="c1"># matrix inversion to find beta</span>
-<span class="n">OLSbeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_train</span><span class="p">)</span> <span class="o">@</span> <span class="n">X_train</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y_train</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">OLSbeta</span><span class="p">)</span>
-<span class="n">ypredictOLS</span> <span class="o">=</span> <span class="n">X_test</span> <span class="o">@</span> <span class="n">OLSbeta</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test MSE OLS&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictOLS</span><span class="p">))</span>
-<span class="c1"># Repeat now for Lasso and Ridge regression and various values of the regularization parameter using Scikit-Learn</span>
-<span class="c1"># Decide which values of lambda to use</span>
-<span class="n">nlambdas</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">MSERidgePredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
-<span class="n">MSELassoPredict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">)</span>
-<span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nlambdas</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlambdas</span><span class="p">):</span>
-    <span class="n">lmb</span> <span class="o">=</span> <span class="n">lambdas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-    <span class="c1"># Make the fit using Ridge and Lasso</span>
-    <span class="n">RegRidge</span> <span class="o">=</span> <span class="n">linear_model</span><span class="o">.</span><span class="n">Ridge</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">RegRidge</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
-    <span class="n">RegLasso</span> <span class="o">=</span> <span class="n">linear_model</span><span class="o">.</span><span class="n">Lasso</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">RegLasso</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
-    <span class="c1"># and then make the prediction</span>
-    <span class="n">ypredictRidge</span> <span class="o">=</span> <span class="n">RegRidge</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
-    <span class="n">ypredictLasso</span> <span class="o">=</span> <span class="n">RegLasso</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
-    <span class="c1"># Compute the MSE and print it</span>
-    <span class="n">MSERidgePredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictRidge</span><span class="p">)</span>
-    <span class="n">MSELassoPredict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">MSE</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">ypredictLasso</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">RegRidge</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span><span class="n">RegLasso</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
-<span class="c1"># Now plot the results</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSERidgePredict</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE Ridge Test&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">lambdas</span><span class="p">),</span> <span class="n">MSELassoPredict</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;MSE Lasso Test&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;log10(lambda)&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-<p>How can we understand this?</p>
-</div>
-<div class="section" id="invoking-bayes-theorem">
-<h2>Invoking Bayes’ theorem<a class="headerlink" href="#invoking-bayes-theorem" title="Permalink to this headline">¶</a></h2>
 <p>Using Bayes’ theorem we can gain a better intuition about Ridge and Lasso regression.</p>
 <p>For ordinary least squares we postulated that the maximum likelihood for the doamin of events <span class="math notranslate nohighlight">\(\boldsymbol{D}\)</span> (one-dimensional case)</p>
 <div class="math notranslate nohighlight">
