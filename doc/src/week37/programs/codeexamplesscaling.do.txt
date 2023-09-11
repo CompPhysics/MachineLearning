@@ -221,7 +221,70 @@ Now we try to implement this.
 
 !bc pycod
 
+np.random.seed(2018)
+n = 100
+# we do not include the intercept
+d = 2
+Lambda = 0.01
+
+# Make data set.
+x = np.linspace(-3, 3, n)
+y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
+
+#Design matrix X does not include the intercept. 
+X = np.zeros((len(x), d))
+for p in range(d):     
+    X[:, p] = x ** (p+1)
+
+
+#Split data in train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Scale data by subtracting mean value,own implementation
+#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable
+X_train_mean = np.mean(X_train,axis=0)
+#Center by removing mean from each feature
+X_train_scaled = X_train - X_train_mean
+X_test_scaled = X_test - X_train_mean
+#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered, note)
+y_scaler = np.mean(y_train)
+y_train_scaled = y_train - y_scaler
+
+
+#Calculate beta
+beta_OLS = OLS_fit_beta(X_train_scaled, y_train_scaled)
+beta_Ridge = Ridge_fit_beta(X_train_scaled, y_train_scaled,Lambda,d)
+print(beta_OLS)
+print(beta_Ridge)
+# calculate intercepts and print them
+interceptOLS = y_scaler - X_train_mean @ beta_OLS
+interceptRidge = y_scaler - X_train_mean @ beta_Ridge
+print(interceptOLS)
+print(interceptRidge)
+
+#predict value with intercept
+ytilde_test_OLS = X_test_scaled @ beta_OLS+y_scaler
+ytilde_test_Ridge = X_test_scaled @ beta_Ridge+y_scaler
+
+
+#Calculate MSE
+
+print("  ")
+print("test MSE of OLS:")
+print(MSE(y_test,ytilde_test_OLS))
+print("  ")
+print("test MSE of Ridge")
+print(MSE(y_test,ytilde_test_Ridge))
+
+plt.scatter(x,y,label='Data')
+plt.plot(x, X @ beta_OLS+interceptOLS,'*', label="OLS_Fit")
+plt.plot(x, X @ beta_Ridge+interceptRidge, label="Ridge_Fit")
+plt.grid()
+plt.legend()
+plt.show()
+
 !ec
+
 
 
 Finally, instead of using our own function we repeat the same example
@@ -229,7 +292,68 @@ using the _standardscaler_ functionality of the library
 _Scikit-Learn_.  Here we limit ourselves to Ridge regression only. 
 
 !bc pycod
+from sklearn import linear_model
+np.random.seed(2018)
+n = 100
+d = 2
+Lambda = 0.01
+
+# Make data set.
+x = np.linspace(-3, 3, n)
+y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
+
+# Design matrix X does not include the intercept. 
+X = np.zeros((n, d))
+for p in range(d):     
+    X[:, p] = x ** (p+1)
+
+#Split data in train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Scale data by subtracting mean value using scikit-learn
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+#Calculate beta
+OLS = LinearRegression()
+OLS.fit(X_train,y_train)
+ypredictOLS = OLS.predict(X_test)
+RegRidge = linear_model.Ridge(Lambda)
+RegRidge.fit(X_train,y_train)
+ypredictRidge = RegRidge.predict(X_test)
+print(OLS.coef_)
+print(RegRidge.coef_)
+print(OLS.intercept_)
+interceptRidge = RegRidge.intercept_
+print(RegRidge.intercept_)
+#predict value without intercept
+ytilde_test_Ridge = X_test @ RegRidge.coef_+ RegRidge.intercept_
+ytilde_test_OLS = X_test @ OLS.coef_+ OLS.intercept_
+
+#Calculate MSE
+print("  ")
+print("test MSE of OLS")
+print(MSE(y_test,ytilde_test_OLS))
+print("  ")
+print("test MSE of Ridge")
+print(MSE(y_test,ytilde_test_Ridge))
+plt.scatter(x,y,label='Data')
+plt.plot(x, X @ RegRidge.coef_ + RegRidge.intercept_ , label="Ridge_Fit")
+plt.grid()
+plt.legend()
+plt.show()
 !ec
+
+
+
+
+
+
+
+
 
 
 
