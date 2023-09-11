@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 
 class linregOwn:
     """
-    A class of linear regressions. Perform ordinarly least squares (OLS) and Ridge regression manually. Lasso
+    A class of linear regressions. Perform ordinary least squares (OLS) and Ridge regression manually. Lasso
     is performed using scikit-learn functionality.
     """
     def __init__(self, method = 'ols'):
