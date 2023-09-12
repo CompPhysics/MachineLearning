@@ -1,3 +1,5 @@
+
+# tod make plot
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -35,13 +37,13 @@ def create_X(x, y, n ):
 
 
 # Making meshgrid of datapoints and compute Franke's function
-n = 5
-N = 1000
+n = 2
+N = 2
 x = np.sort(np.random.uniform(0, 1, N))
 y = np.sort(np.random.uniform(0, 1, N))
 z = FrankeFunction(x, y)
 X = create_X(x, y, n=n)    
-    
+print(X)    
 # We split the data in test and training data
 X_train, X_test, y_train, y_test = train_test_split(X, z, test_size=0.2)
 
