@@ -309,32 +309,35 @@ for p in range(d):
 
 #Split data in train and test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-# Scale data by subtracting mean value using scikit-learn
-scaler = StandardScaler()
+# Scale data by subtracting mean value of the input using scikit-learn
+scaler = StandardScaler(with_std=False)
 scaler.fit(X_train)
+X_train_mean = np.mean(X_train,axis=0)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
-
-y_train_scaled = y_train - np.mean(y_train)
-y_test_scaled = y_test - np.mean(y_test)
-
+# We scale also the output, here by our own code
+y_scaler = np.mean(y_train)
+y_train_scaled = y_train - y_scaler
+y_test_scaled = y_test- y_scaler
 
 #Calculate beta
 OLS = LinearRegression()
-OLS.fit(X_train_scaled,y_train_scaled)
+betaOLS=OLS.fit(X_train_scaled,y_train_scaled)
 ypredictOLS = OLS.predict(X_test_scaled)
-RegRidge = linear_model.Ridge(Lambda)
+linear_model.Ridge(Lambda)
 RegRidge.fit(X_train_scaled,y_train_scaled)
 ypredictRidge = RegRidge.predict(X_test_scaled)
-print(OLS.coef_)
-print(RegRidge.coef_)
-print(OLS.intercept_)
-interceptRidge = RegRidge.intercept_
-print(RegRidge.intercept_)
-#predict value without intercept
-ytilde_test_Ridge = X_test @ RegRidge.coef_+ RegRidge.intercept_
-ytilde_test_OLS = X_test @ OLS.coef_+ OLS.intercept_
+betaOLS = OLS.coef_
+betaRidge = RegRidge.coef_
+print(betaOLS)
+print(betaRidge)
+interceptOLS = np.mean(y_train) - X_train_mean @ betaOLS
+interceptRidge = y_scaler - X_train_mean @ betaRidge
+print(interceptOLS)
+print(interceptRidge)
+#predict value 
+ytilde_test_Ridge = X_test_scaled @ betaRidge+y_scaler
+ytilde_test_OLS = X_test_scaled @ betaOLS+y_scaler
 
 #Calculate MSE
 print("  ")
