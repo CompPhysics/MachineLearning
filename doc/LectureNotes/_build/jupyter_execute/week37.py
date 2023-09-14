@@ -8,7 +8,7 @@
 # # Week 37: Statitsitcal interpretations and Resampling Methods
 # **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and Facility for Rare Isotope Beams, Michigan State University
 # 
-# Date: **Sep 11, 2023**
+# Date: **Sep 14, 2023**
 # 
 # Copyright 1999-2023, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
 # 
@@ -24,22 +24,28 @@
 # 
 #   * Work on project 1
 # 
-#   * See also additional note on scaling (jupyter-notebook) sent separately. This will be discussed during the first hour of each session.
+#   * See also additional note on scaling (jupyter-notebook) sent separately. This will be discussed during the first hour of each session. This note is added at the end of these slides.
 # 
 #   * For more discussions of Ridge regression and calculation of averages, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
 # 
 #   
 # **Material for the lecture on Thursday September 7.**
 # 
-#   * Statistical interpretation of Ridge and Lasso regression
+#   * [Video of Lecture](https://youtu.be/YOBBr_toYxc)
+# 
+#   * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep14.pdf)
 # 
 #   * Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff
 # 
-#   * Reads and Videos:
+#   * Statistical interpretation of Ridge and Lasso regression
+# 
+#   * Readings and Videos:
 # 
 #     * Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). 
 # 
 #     * [Video on cross validation](https://www.youtube.com/watch?v=fSytzGwwBVw)
+# 
+#     * [Video on Bootstrapping](https://www.youtube.com/watch?v=Xz0x-8-cgaQ)
 # 
 #     * [Video on bias-variance tradeoff](https://www.youtube.com/watch?v=EuBBz3bI-aA)
 
@@ -153,13 +159,13 @@
 # \begin{eqnarray*}
 # \mbox{Var}(\boldsymbol{\hat{\beta}}) & = & \mathbb{E} \{ [\boldsymbol{\beta} - \mathbb{E}(\boldsymbol{\beta})] [\boldsymbol{\beta} - \mathbb{E}(\boldsymbol{\beta})]^{T} \}
 # \\
-# & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \boldsymbol{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \boldsymbol{\beta}]^{T} \}
+# & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \boldsymbol{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \boldsymbol{\beta}]^{T} \}
 # \\
-# % & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}]^{T} \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# % & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}]^{T} \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
 # % \\
-# % & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} \, \mathbf{Y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# % & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} \, \mathbf{y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
 # % \\
-# & = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{Y} \, \mathbf{Y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# & = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{y} \, \mathbf{y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
 # \\
 # & = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
 # % \\
@@ -172,7 +178,7 @@
 # \end{eqnarray*}
 # $$
 
-# where we have used  that $\mathbb{E} (\mathbf{Y} \mathbf{Y}^{T}) =
+# where we have used  that $\mathbb{E} (\mathbf{y} \mathbf{y}^{T}) =
 # \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^{T} \, \mathbf{X}^{T} +
 # \sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\boldsymbol{\beta}) = \sigma^2
 # \, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
@@ -187,16 +193,16 @@
 # It is rather straightforward to show that
 
 # $$
-# \mathbb{E} \big[ \boldsymbol{\beta}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\boldsymbol{\beta}^{\mathrm{OLS}}.
+# \mathbb{E} \big[ \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\boldsymbol{\beta}.
 # $$
 
 # We see clearly that 
-# $\mathbb{E} \big[ \boldsymbol{\beta}^{\mathrm{Ridge}} \big] \not= \boldsymbol{\beta}^{\mathrm{OLS}}$ for any $\lambda > 0$.
+# $\mathbb{E} \big[ \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}} \big] \not= \hat{\boldsymbol{\beta}}^{\mathrm{OLS}}$ for any $\lambda > 0$.
 # 
 # We can also compute the variance as
 
 # $$
-# \mbox{Var}[\boldsymbol{\beta}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
+# \mbox{Var}[\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
 # $$
 
 # and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\boldsymbol{\beta}$ goes to zero. 
@@ -204,7 +210,7 @@
 # With this, we can compute the difference
 
 # $$
-# \mbox{Var}[\boldsymbol{\beta}^{\mathrm{OLS}}]-\mbox{Var}(\boldsymbol{\beta}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
+# \mbox{Var}[\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}]-\mbox{Var}(\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
 # $$
 
 # The difference is non-negative definite since each component of the
@@ -1510,6 +1516,341 @@ for polydegree in range(1, Maxpolydegree):
 plt.plot(polynomial, np.log10(estimated_mse_sklearn), label='Test Error')
 plt.xlabel('Polynomial degree')
 plt.ylabel('log10[MSE]')
+plt.legend()
+plt.show()
+
+
+# ## Notes on scaling with examples
+# 
+# The programs here use both ordinrary least squares (OLS) and Ridge
+# regression with one value only for the hyperparameter $\lambda$. The
+# first example has no scaling and includes the intercept as well and we
+# are trying to fit a second-order polynomial. The second code takes out
+# the intercept and subtracts the mean values of each column of the
+# design matrix and the mean value of the outputs.
+# 
+# The third and final code uses **Scikit-Learn** as library in order to
+# calculate the optimal parameters for OLS and Ridge regression. Note
+# that it is highly recommended to not include the intercept in Ridge
+# and Lasso regression, in order to avoid penalizing the optimization by
+# the intercept. The second and third codes do thus not include the
+# intercept. In the second code we do the scaling ourselves while the
+# last code uses the standard scaler option included in **Scikit-Learn**, known as centering (where
+# we subtract the mean values).
+
+# In[9]:
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+def OLS_fit_beta(X, y):
+    return np.linalg.pinv(X.T @ X) @ X.T @ y
+
+def Ridge_fit_beta(X, y,L,d):
+    I = np.eye(d,d)
+    return np.linalg.pinv(X.T @ X + L*I) @ X.T @ y
+
+# Same random numbers for each test.
+np.random.seed(2018)
+n = 100
+d = 3
+# hyperparameter lambda
+Lambda = 0.01
+
+# Make data set, simple second-order polynomial
+x = np.linspace(-3, 3, n)
+y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
+
+# The design matrix X includes the intercept and no scaling is made
+X = np.zeros((len(x), d))
+for p in range(d):     
+    X[:, p] = x ** (p) 
+
+
+#Split data, no scaling is used and we include the intercept
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+
+#Calculate beta, own code
+beta_OLS = OLS_fit_beta(X_train, y_train)
+beta_Ridge = Ridge_fit_beta(X_train, y_train,Lambda,d)
+print(beta_OLS)
+print(beta_Ridge)
+#predict value
+ytilde_test_OLS = X_test @ beta_OLS
+ytilde_test_Ridge = X_test @ beta_Ridge
+
+#Calculate MSE
+print("  ")
+print("test MSE of OLS:")
+print(MSE(y_test,ytilde_test_OLS))
+print("  ")
+print("test MSE of Ridge")
+print(MSE(y_test,ytilde_test_Ridge))
+
+plt.scatter(x,y,label='Data')
+plt.plot(x, X @ beta_OLS,'*', label="OLS_Fit")
+plt.plot(x, X @ beta_Ridge, label="Ridge_Fit")
+plt.grid()
+plt.legend()
+plt.show()
+
+
+# In this example we do not include the intercept and we scale the data by subtracting the mean values. This follows the discussion in the [lecture material](https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter3.html#more-on-rescaling-data).
+# see also the weekly slides [for week 36](https://compphysics.github.io/MachineLearning/doc/pub/week36/html/._week36-bs029.html).
+# It is recommended whrn we use Ridge and Lasso regression to not include the intercept in the optimization process.
+# 
+# Before we discuss the code, we repeat some of the basic math from the slides of week 36.
+# 
+# Let us try to understand what this may imply mathematically when we
+# subtract the mean values, also known as *zero centering* or simply *centering*. For
+# simplicity, we will focus on  ordinary regression, as done in the above example.
+# 
+# The cost/loss function  for regression is
+
+# $$
+# C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
+# $$
+
+# Recall also that we use the squared value. This expression can lead to an
+# increased penalty for higher differences between predicted and
+# output/target values.
+# 
+# What we have done is to single out the $\beta_0$ term in the
+# definition of the mean squared error (MSE).  The design matrix $X$
+# does in this case not contain any intercept column.  When we take the
+# derivative with respect to $\beta_0$, we want the derivative to obey
+
+# $$
+# \frac{\partial C}{\partial \beta_j} = 0,
+# $$
+
+# for all $j$. For $\beta_0$ we have
+
+# $$
+# \frac{\partial C}{\partial \beta_0} = -\frac{2}{n}\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right).
+# $$
+
+# Multiplying away the constant $2/n$, we obtain
+
+# $$
+# \sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
+# $$
+
+# Let us specialize first to the case where we have only two parameters $\beta_0$ and $\beta_1$.
+# Our result for $\beta_0$ simplifies then to
+
+# $$
+# n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
+# $$
+
+# We obtain then
+
+# $$
+# \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
+# $$
+
+# If we define
+
+# $$
+# \mu_{\boldsymbol{x}_1}=\frac{1}{n}\sum_{i=0}^{n-1} X_{i1},
+# $$
+
+# and the mean value of the outputs as
+
+# $$
+# \mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
+# $$
+
+# we have
+
+# $$
+# \beta_0 = \mu_y - \beta_1\mu_{\boldsymbol{x}_1}.
+# $$
+
+# In the general case with more parameters than $\beta_0$ and $\beta_1$, we have
+
+# $$
+# \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
+# $$
+
+# We can rewrite the latter equation as
+
+# $$
+# \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \sum_{j=1}^{p-1} \mu_{\boldsymbol{x}_j}\beta_j,
+# $$
+
+# where we have defined
+
+# $$
+# \mu_{\boldsymbol{x}_j}=\frac{1}{n}\sum_{i=0}^{n-1} X_{ij},
+# $$
+
+# the mean value for all elements of the column vector $\boldsymbol{x}_j$.
+# 
+# Replacing $y_i$ with $y_i - y_i - \overline{\boldsymbol{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
+
+# $$
+# C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}).
+# $$
+
+# If we minimize with respect to $\boldsymbol{\beta}$ we have then
+
+# $$
+# \hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{\tilde{y}},
+# $$
+
+# where $\boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\boldsymbol{y}}$
+# and $\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=0}^{n-1}X_{kj}$.
+# 
+# For Ridge regression we need to add $\lambda \boldsymbol{\beta}^T\boldsymbol{\beta}$ to the cost function and get then
+
+# $$
+# \hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}.
+# $$
+
+# Now we try to implement this.
+
+# In[10]:
+
+
+
+np.random.seed(2018)
+n = 100
+# we do not include the intercept
+d = 2
+Lambda = 0.01
+
+# Make data set.
+x = np.linspace(-3, 3, n)
+y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
+
+#Design matrix X does not include the intercept. 
+X = np.zeros((len(x), d))
+for p in range(d):     
+    X[:, p] = x ** (p+1)
+
+
+#Split data in train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Scale data by subtracting mean value,own implementation
+#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable
+X_train_mean = np.mean(X_train,axis=0)
+#Center by removing mean from each feature
+X_train_scaled = X_train - X_train_mean
+X_test_scaled = X_test - X_train_mean
+#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered, note)
+y_scaler = np.mean(y_train)
+y_train_scaled = y_train - y_scaler
+
+
+#Calculate beta
+beta_OLS = OLS_fit_beta(X_train_scaled, y_train_scaled)
+beta_Ridge = Ridge_fit_beta(X_train_scaled, y_train_scaled,Lambda,d)
+print(beta_OLS)
+print(beta_Ridge)
+# calculate intercepts and print them
+interceptOLS = y_scaler - X_train_mean @ beta_OLS
+interceptRidge = y_scaler - X_train_mean @ beta_Ridge
+print(interceptOLS)
+print(interceptRidge)
+
+#predict value with intercept
+ytilde_test_OLS = X_test_scaled @ beta_OLS+y_scaler
+ytilde_test_Ridge = X_test_scaled @ beta_Ridge+y_scaler
+
+
+#Calculate MSE
+
+print("  ")
+print("test MSE of OLS:")
+print(MSE(y_test,ytilde_test_OLS))
+print("  ")
+print("test MSE of Ridge")
+print(MSE(y_test,ytilde_test_Ridge))
+
+plt.scatter(x,y,label='Data')
+plt.plot(x, X @ beta_OLS+interceptOLS,'*', label="OLS_Fit")
+plt.plot(x, X @ beta_Ridge+interceptRidge, label="Ridge_Fit")
+plt.grid()
+plt.legend()
+plt.show()
+
+
+# Finally, instead of using our own function we repeat the same example
+# using the **standardscaler** functionality of the library
+# **Scikit-Learn**.  Here we limit ourselves to Ridge regression only.
+
+# In[11]:
+
+
+from sklearn import linear_model
+np.random.seed(2018)
+n = 10
+d = 2
+Lambda = 0.01
+
+# Make data set.
+x = np.linspace(-3, 3, n)
+y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
+
+# Design matrix X does not include the intercept. 
+X = np.zeros((n, d))
+for p in range(d):     
+    X[:, p] = x ** (p+1)
+
+#Split data in train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# Scale data by subtracting mean value of the input using scikit-learn
+scaler = StandardScaler(with_std=False)
+scaler.fit(X_train)
+X_train_mean = np.mean(X_train,axis=0)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# We scale also the output, here by our own code
+y_scaler = np.mean(y_train)
+y_train_scaled = y_train - y_scaler
+y_test_scaled = y_test- y_scaler
+
+#Calculate beta
+OLS = LinearRegression()
+betaOLS=OLS.fit(X_train_scaled,y_train_scaled)
+ypredictOLS = OLS.predict(X_test_scaled)
+linear_model.Ridge(Lambda)
+RegRidge.fit(X_train_scaled,y_train_scaled)
+ypredictRidge = RegRidge.predict(X_test_scaled)
+betaOLS = OLS.coef_
+betaRidge = RegRidge.coef_
+print(betaOLS)
+print(betaRidge)
+interceptOLS = np.mean(y_train) - X_train_mean @ betaOLS
+interceptRidge = y_scaler - X_train_mean @ betaRidge
+print(interceptOLS)
+print(interceptRidge)
+#predict value 
+ytilde_test_Ridge = X_test_scaled @ betaRidge+y_scaler
+ytilde_test_OLS = X_test_scaled @ betaOLS+y_scaler
+
+#Calculate MSE
+print("  ")
+print("test MSE of OLS")
+print(MSE(y_test,ytilde_test_OLS))
+print("  ")
+print("test MSE of Ridge")
+print(MSE(y_test,ytilde_test_Ridge))
+plt.scatter(x,y,label='Data')
+plt.plot(x, X @ RegRidge.coef_ + RegRidge.intercept_ , label="Ridge_Fit")
+plt.grid()
 plt.legend()
 plt.show()
 
