@@ -210,7 +210,7 @@ MathJax.Hub.Config({
 
 <p><li> Work on project 1</li>
 
-<p><li> See also additional note on scaling (jupyter-notebook) sent separately. This will be discussed during the first hour of each session.</li>
+<p><li> See also additional note on scaling (jupyter-notebook) sent separately. This will be discussed during the first hour of each session. This note is added at the end of these slides.</li>
 
 <p><li> For more discussions of Ridge regression and calculation of averages, <a href="https://arxiv.org/abs/1509.09169" target="_blank">Wessel van Wieringen's</a> article is highly recommended.</li>
 </ul>
@@ -221,11 +221,11 @@ MathJax.Hub.Config({
 <p>
 <ul>
 
-<p><li> Statistical interpretation of Ridge and Lasso regression</li>
-
 <p><li> Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff</li>
 
-<p><li> Reads and Videos:</li>
+<p><li> Statistical interpretation of Ridge and Lasso regression</li>
+
+<p><li> Readings and Videos:</li>
 <ul>
 
 <p><li> Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap).</li>
@@ -2118,6 +2118,417 @@ kfold = KFold(n_splits = k)
 plt.plot(polynomial, np.log10(estimated_mse_sklearn), label=<span style="color: #CD5555">&#39;Test Error&#39;</span>)
 plt.xlabel(<span style="color: #CD5555">&#39;Polynomial degree&#39;</span>)
 plt.ylabel(<span style="color: #CD5555">&#39;log10[MSE]&#39;</span>)
+plt.legend()
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<h2 id="notes-on-scaling-with-examples">Notes on scaling with examples </h2>
+
+<p>The programs here use both ordinrary least squares (OLS) and Ridge
+regression with one value only for the hyperparameter \( \lambda \). The
+first example has no scaling and includes the intercept as well and we
+are trying to fit a second-order polynomial. The second code takes out
+the intercept and subtracts the mean values of each column of the
+design matrix and the mean value of the outputs.
+</p>
+
+<p>The third and final code uses <b>Scikit-Learn</b> as library in order to
+calculate the optimal parameters for OLS and Ridge regression. Note
+that it is highly recommended to not include the intercept in Ridge
+and Lasso regression, in order to avoid penalizing the optimization by
+the intercept. The second and third codes do thus not include the
+intercept. In the second code we do the scaling ourselves while the
+last code uses the standard scaler option included in <b>Scikit-Learn</b>, known as centering (where
+we subtract the mean values).
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearRegression
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> PolynomialFeatures
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> StandardScaler
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">MSE</span>(y_data,y_model):
+    n = np.size(y_model)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.sum((y_data-y_model)**<span style="color: #B452CD">2</span>)/n
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">OLS_fit_beta</span>(X, y):
+    <span style="color: #8B008B; font-weight: bold">return</span> np.linalg.pinv(X.T @ X) @ X.T @ y
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">Ridge_fit_beta</span>(X, y,L,d):
+    I = np.eye(d,d)
+    <span style="color: #8B008B; font-weight: bold">return</span> np.linalg.pinv(X.T @ X + L*I) @ X.T @ y
+
+<span style="color: #228B22"># Same random numbers for each test.</span>
+np.random.seed(<span style="color: #B452CD">2018</span>)
+n = <span style="color: #B452CD">100</span>
+d = <span style="color: #B452CD">3</span>
+<span style="color: #228B22"># hyperparameter lambda</span>
+Lambda = <span style="color: #B452CD">0.01</span>
+
+<span style="color: #228B22"># Make data set, simple second-order polynomial</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n)
+y = <span style="color: #B452CD">2.0</span> + <span style="color: #B452CD">0.5</span>*x + <span style="color: #B452CD">5.0</span>*(x**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+<span style="color: #228B22"># The design matrix X includes the intercept and no scaling is made</span>
+X = np.zeros((<span style="color: #658b00">len</span>(x), d))
+<span style="color: #8B008B; font-weight: bold">for</span> p <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(d):     
+    X[:, p] = x ** (p) 
+
+
+<span style="color: #228B22">#Split data, no scaling is used and we include the intercept</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+
+<span style="color: #228B22">#Calculate beta, own code</span>
+beta_OLS = OLS_fit_beta(X_train, y_train)
+beta_Ridge = Ridge_fit_beta(X_train, y_train,Lambda,d)
+<span style="color: #658b00">print</span>(beta_OLS)
+<span style="color: #658b00">print</span>(beta_Ridge)
+<span style="color: #228B22">#predict value</span>
+ytilde_test_OLS = X_test @ beta_OLS
+ytilde_test_Ridge = X_test @ beta_Ridge
+
+<span style="color: #228B22">#Calculate MSE</span>
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;  &quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;test MSE of OLS:&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ytilde_test_OLS))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;  &quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;test MSE of Ridge&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ytilde_test_Ridge))
+
+plt.scatter(x,y,label=<span style="color: #CD5555">&#39;Data&#39;</span>)
+plt.plot(x, X @ beta_OLS,<span style="color: #CD5555">&#39;*&#39;</span>, label=<span style="color: #CD5555">&quot;OLS_Fit&quot;</span>)
+plt.plot(x, X @ beta_Ridge, label=<span style="color: #CD5555">&quot;Ridge_Fit&quot;</span>)
+plt.grid()
+plt.legend()
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>In this example we do not include the intercept and we scale the data by subtracting the mean values. This follows the discussion in the <a href="https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter3.html#more-on-rescaling-data" target="_blank">lecture material</a>.
+see also the weekly slides <a href="https://compphysics.github.io/MachineLearning/doc/pub/week36/html/._week36-bs029.html" target="_blank">for week 36</a>.
+It is recommended whrn we use Ridge and Lasso regression to not include the intercept in the optimization process.
+</p>
+
+<p>Before we discuss the code, we repeat some of the basic math from the slides of week 36.</p>
+
+<p>Let us try to understand what this may imply mathematically when we
+subtract the mean values, also known as <em>zero centering</em> or simply <em>centering</em>. For
+simplicity, we will focus on  ordinary regression, as done in the above example.
+</p>
+
+<p>The cost/loss function  for regression is</p>
+<p>&nbsp;<br>
+$$
+C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
+$$
+<p>&nbsp;<br>
+
+<p>Recall also that we use the squared value. This expression can lead to an
+increased penalty for higher differences between predicted and
+output/target values.
+</p>
+
+<p>What we have done is to single out the \( \beta_0 \) term in the
+definition of the mean squared error (MSE).  The design matrix \( X \)
+does in this case not contain any intercept column.  When we take the
+derivative with respect to \( \beta_0 \), we want the derivative to obey
+</p>
+
+<p>&nbsp;<br>
+$$
+\frac{\partial C}{\partial \beta_j} = 0,
+$$
+<p>&nbsp;<br>
+
+<p>for all \( j \). For \( \beta_0 \) we have</p>
+
+<p>&nbsp;<br>
+$$
+\frac{\partial C}{\partial \beta_0} = -\frac{2}{n}\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right).
+$$
+<p>&nbsp;<br>
+
+<p>Multiplying away the constant \( 2/n \), we obtain</p>
+<p>&nbsp;<br>
+$$
+\sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
+$$
+<p>&nbsp;<br>
+
+<p>Let us specialize first to the case where we have only two parameters \( \beta_0 \) and \( \beta_1 \).
+Our result for \( \beta_0 \) simplifies then to
+</p>
+<p>&nbsp;<br>
+$$
+n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
+$$
+<p>&nbsp;<br>
+
+<p>We obtain then</p>
+<p>&nbsp;<br>
+$$
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
+$$
+<p>&nbsp;<br>
+
+<p>If we define</p>
+<p>&nbsp;<br>
+$$
+\mu_{\boldsymbol{x}_1}=\frac{1}{n}\sum_{i=0}^{n-1} X_{i1},
+$$
+<p>&nbsp;<br>
+
+<p>and the mean value of the outputs as</p>
+<p>&nbsp;<br>
+$$
+\mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
+$$
+<p>&nbsp;<br>
+
+<p>we have</p>
+<p>&nbsp;<br>
+$$
+\beta_0 = \mu_y - \beta_1\mu_{\boldsymbol{x}_1}.
+$$
+<p>&nbsp;<br>
+
+<p>In the general case with more parameters than \( \beta_0 \) and \( \beta_1 \), we have</p>
+<p>&nbsp;<br>
+$$
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
+$$
+<p>&nbsp;<br>
+
+<p>We can rewrite the latter equation as</p>
+<p>&nbsp;<br>
+$$
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \sum_{j=1}^{p-1} \mu_{\boldsymbol{x}_j}\beta_j,
+$$
+<p>&nbsp;<br>
+
+<p>where we have defined</p>
+<p>&nbsp;<br>
+$$
+\mu_{\boldsymbol{x}_j}=\frac{1}{n}\sum_{i=0}^{n-1} X_{ij},
+$$
+<p>&nbsp;<br>
+
+<p>the mean value for all elements of the column vector \( \boldsymbol{x}_j \).</p>
+
+<p>Replacing \( y_i \) with \( y_i - y_i - \overline{\boldsymbol{y}} \) and centering also our design matrix results in a cost function (in vector-matrix disguise)</p>
+<p>&nbsp;<br>
+$$
+C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}). 
+$$
+<p>&nbsp;<br>
+
+<p>If we minimize with respect to \( \boldsymbol{\beta} \) we have then</p>
+
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{\tilde{y}},
+$$
+<p>&nbsp;<br>
+
+<p>where \( \boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\boldsymbol{y}} \)
+and \( \tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=0}^{n-1}X_{kj} \).
+</p>
+
+<p>For Ridge regression we need to add \( \lambda \boldsymbol{\beta}^T\boldsymbol{\beta} \) to the cost function and get then</p>
+<p>&nbsp;<br>
+$$
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}.
+$$
+<p>&nbsp;<br>
+
+<p>Now we try to implement this.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;">np.random.seed(<span style="color: #B452CD">2018</span>)
+n = <span style="color: #B452CD">100</span>
+<span style="color: #228B22"># we do not include the intercept</span>
+d = <span style="color: #B452CD">2</span>
+Lambda = <span style="color: #B452CD">0.01</span>
+
+<span style="color: #228B22"># Make data set.</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n)
+y = <span style="color: #B452CD">2.0</span> + <span style="color: #B452CD">0.5</span>*x + <span style="color: #B452CD">5.0</span>*(x**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+<span style="color: #228B22">#Design matrix X does not include the intercept. </span>
+X = np.zeros((<span style="color: #658b00">len</span>(x), d))
+<span style="color: #8B008B; font-weight: bold">for</span> p <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(d):     
+    X[:, p] = x ** (p+<span style="color: #B452CD">1</span>)
+
+
+<span style="color: #228B22">#Split data in train and test</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+
+<span style="color: #228B22"># Scale data by subtracting mean value,own implementation</span>
+<span style="color: #228B22">#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable</span>
+X_train_mean = np.mean(X_train,axis=<span style="color: #B452CD">0</span>)
+<span style="color: #228B22">#Center by removing mean from each feature</span>
+X_train_scaled = X_train - X_train_mean
+X_test_scaled = X_test - X_train_mean
+<span style="color: #228B22">#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered, note)</span>
+y_scaler = np.mean(y_train)
+y_train_scaled = y_train - y_scaler
+
+
+<span style="color: #228B22">#Calculate beta</span>
+beta_OLS = OLS_fit_beta(X_train_scaled, y_train_scaled)
+beta_Ridge = Ridge_fit_beta(X_train_scaled, y_train_scaled,Lambda,d)
+<span style="color: #658b00">print</span>(beta_OLS)
+<span style="color: #658b00">print</span>(beta_Ridge)
+<span style="color: #228B22"># calculate intercepts and print them</span>
+interceptOLS = y_scaler - X_train_mean @ beta_OLS
+interceptRidge = y_scaler - X_train_mean @ beta_Ridge
+<span style="color: #658b00">print</span>(interceptOLS)
+<span style="color: #658b00">print</span>(interceptRidge)
+
+<span style="color: #228B22">#predict value with intercept</span>
+ytilde_test_OLS = X_test_scaled @ beta_OLS+y_scaler
+ytilde_test_Ridge = X_test_scaled @ beta_Ridge+y_scaler
+
+
+<span style="color: #228B22">#Calculate MSE</span>
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;  &quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;test MSE of OLS:&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ytilde_test_OLS))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;  &quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;test MSE of Ridge&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ytilde_test_Ridge))
+
+plt.scatter(x,y,label=<span style="color: #CD5555">&#39;Data&#39;</span>)
+plt.plot(x, X @ beta_OLS+interceptOLS,<span style="color: #CD5555">&#39;*&#39;</span>, label=<span style="color: #CD5555">&quot;OLS_Fit&quot;</span>)
+plt.plot(x, X @ beta_Ridge+interceptRidge, label=<span style="color: #CD5555">&quot;Ridge_Fit&quot;</span>)
+plt.grid()
+plt.legend()
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Finally, instead of using our own function we repeat the same example
+using the <b>standardscaler</b> functionality of the library
+<b>Scikit-Learn</b>.  Here we limit ourselves to Ridge regression only. 
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> linear_model
+np.random.seed(<span style="color: #B452CD">2018</span>)
+n = <span style="color: #B452CD">10</span>
+d = <span style="color: #B452CD">2</span>
+Lambda = <span style="color: #B452CD">0.01</span>
+
+<span style="color: #228B22"># Make data set.</span>
+x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n)
+y = <span style="color: #B452CD">2.0</span> + <span style="color: #B452CD">0.5</span>*x + <span style="color: #B452CD">5.0</span>*(x**<span style="color: #B452CD">2</span>)+ np.random.randn(n)
+
+<span style="color: #228B22"># Design matrix X does not include the intercept. </span>
+X = np.zeros((n, d))
+<span style="color: #8B008B; font-weight: bold">for</span> p <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(d):     
+    X[:, p] = x ** (p+<span style="color: #B452CD">1</span>)
+
+<span style="color: #228B22">#Split data in train and test</span>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=<span style="color: #B452CD">0.2</span>)
+<span style="color: #228B22"># Scale data by subtracting mean value of the input using scikit-learn</span>
+scaler = StandardScaler(with_std=<span style="color: #8B008B; font-weight: bold">False</span>)
+scaler.fit(X_train)
+X_train_mean = np.mean(X_train,axis=<span style="color: #B452CD">0</span>)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+<span style="color: #228B22"># We scale also the output, here by our own code</span>
+y_scaler = np.mean(y_train)
+y_train_scaled = y_train - y_scaler
+y_test_scaled = y_test- y_scaler
+
+<span style="color: #228B22">#Calculate beta</span>
+OLS = LinearRegression()
+betaOLS=OLS.fit(X_train_scaled,y_train_scaled)
+ypredictOLS = OLS.predict(X_test_scaled)
+linear_model.Ridge(Lambda)
+RegRidge.fit(X_train_scaled,y_train_scaled)
+ypredictRidge = RegRidge.predict(X_test_scaled)
+betaOLS = OLS.coef_
+betaRidge = RegRidge.coef_
+<span style="color: #658b00">print</span>(betaOLS)
+<span style="color: #658b00">print</span>(betaRidge)
+interceptOLS = np.mean(y_train) - X_train_mean @ betaOLS
+interceptRidge = y_scaler - X_train_mean @ betaRidge
+<span style="color: #658b00">print</span>(interceptOLS)
+<span style="color: #658b00">print</span>(interceptRidge)
+<span style="color: #228B22">#predict value </span>
+ytilde_test_Ridge = X_test_scaled @ betaRidge+y_scaler
+ytilde_test_OLS = X_test_scaled @ betaOLS+y_scaler
+
+<span style="color: #228B22">#Calculate MSE</span>
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;  &quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;test MSE of OLS&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ytilde_test_OLS))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;  &quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;test MSE of Ridge&quot;</span>)
+<span style="color: #658b00">print</span>(MSE(y_test,ytilde_test_Ridge))
+plt.scatter(x,y,label=<span style="color: #CD5555">&#39;Data&#39;</span>)
+plt.plot(x, X @ RegRidge.coef_ + RegRidge.intercept_ , label=<span style="color: #CD5555">&quot;Ridge_Fit&quot;</span>)
+plt.grid()
 plt.legend()
 plt.show()
 </pre>
