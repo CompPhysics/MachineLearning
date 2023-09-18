@@ -3,12 +3,12 @@
 
 # <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
 # doconce format html week37.do.txt --no_mako -->
-# <!-- dom:TITLE: Week 37: Statitsitcal interpretations and Resampling Methods -->
+# <!-- dom:TITLE: Week 37: Statistical interpretations and Resampling Methods -->
 
-# # Week 37: Statitsitcal interpretations and Resampling Methods
+# # Week 37: Statistical interpretations and Resampling Methods
 # **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and Facility for Rare Isotope Beams, Michigan State University
 # 
-# Date: **Sep 14, 2023**
+# Date: **Sep 18, 2023**
 # 
 # Copyright 1999-2023, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
 # 

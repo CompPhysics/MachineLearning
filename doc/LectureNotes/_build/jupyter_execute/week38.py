@@ -3,9 +3,9 @@
 
 # <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
 # doconce format html week38.do.txt --no_mako -->
-# <!-- dom:TITLE: Data Analysis and Machine Learning: Logistic Regression and Optimization -->
+# <!-- dom:TITLE: Week38: Logistic Regression and Optimization -->
 
-# # Data Analysis and Machine Learning: Logistic Regression and Optimization
+# # Week38: Logistic Regression and Optimization
 # **Morten Hjorth-Jensen**, Department of Physics and Center for Computing in Science Education, University of Oslo and Department of Physics and Astronomy and Facility for Rare Isotope Beams, Michigan State University
 # 
 # Date: **September 18-22**
