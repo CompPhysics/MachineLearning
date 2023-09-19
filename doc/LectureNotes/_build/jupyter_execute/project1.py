@@ -317,10 +317,10 @@ plt.show()
 # and
 
 # $$
-# \mathrm{var}[\tilde{y}]=\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2.
+# \mathrm{var}[\tilde{y}]=\mathbb{E}\left[\left(\tilde{\boldsymbol{y}}-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right]\right)^2\right]=\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2.
 # $$
 
-# The answer to this exercise should be included in the theory part of the report.  This exercise is also part of the weekly exercises of week 37.
+# The answer to this exercise should be included in the theory part of the report.  This exercise is also part of the weekly exercises of week 38.
 # Explain what the terms mean and discuss their interpretations.
 # 
 # Perform then a bias-variance analysis of the Franke function by
