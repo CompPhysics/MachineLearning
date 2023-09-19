@@ -305,19 +305,19 @@ plt.show()
 # That is, show that
 
 # $$
-# \mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=(\mathrm{Bias}[\tilde{y}])^2+\mathrm{var}[\tilde{f}]+\sigma^2,
+# \mathbb{E}\left[(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2\right]=\mathrm{Bias}[y]+\mathrm{var}[\tilde{y}]+\sigma^2,
 # $$
 
 # with
 
 # $$
-# (\mathrm{Bias}[\tilde{y}])^2=\left(\boldsymbol{y}-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right]\right)^2,
+# \mathrm{Bias}[y]=\mathbb{E}\left[\left(\boldsymbol{y}-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right]\right)^2\right],
 # $$
 
 # and
 
 # $$
-# \mathrm{var}[\tilde{f}]=\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2.
+# \mathrm{var}[\tilde{y}]=\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\boldsymbol{\tilde{y}}\right])^2.
 # $$
 
 # The answer to this exercise should be included in the theory part of the report.  This exercise is also part of the weekly exercises of week 37.
