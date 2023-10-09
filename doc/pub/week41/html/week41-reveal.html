@@ -9,8 +9,8 @@ doconce format html week41-reveal.html week41-reveal reveal --html_slide_theme=b
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="DocOnce: https://github.com/doconce/doconce/" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Week 41 Constructing a Neural Network code, Tensor flow and start Convolutional Neural Networks">
-<title>Week 41 Constructing a Neural Network code, Tensor flow and start Convolutional Neural Networks</title>
+<meta name="description" content="Week 41 Neural networks and constructing a neural network code">
+<title>Week 41 Neural networks and constructing a neural network code</title>
 
 <!-- reveal.js: https://lab.hakim.se/reveal-js/ -->
 
@@ -168,7 +168,7 @@ MathJax.Hub.Config({
 <section>
 <!-- ------------------- main content ---------------------- -->
 <center>
-<h1 style="text-align: center;">Week 41 Constructing a Neural Network code, Tensor flow and start Convolutional Neural Networks</h1>
+<h1 style="text-align: center;">Week 41 Neural networks and constructing a neural network code</h1>
 </center>  <!-- document title -->
 
 <!-- author(s): Morten Hjorth-Jensen -->
@@ -197,42 +197,1334 @@ MathJax.Hub.Config({
 <section>
 <h2 id="plan-for-week-41">Plan for week 41 </h2>
 
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Material for the active learning sessions on Tuesday and Wednesday</b>
+<p>
 <ul>
-<p><li> Building our own Feed-forward Neural Network and discussion of project 2.</li>
-<p><li> Playing around with our own Feed-forward Neural Network and introduction to TensorFlow. Solving differential equations with neural networks.</li> 
+
+<p><li> Exercise on writing your own stochastic gradient and gradient descent codes. This exercise continues next week with studies of automatic differentiation</li>
+
+<p><li> One lecture at the beginning of each session on the material from weeks 39 and 40 and how to write your own gradient descent code</li>
+
+<p><li> Discussion of project 2</li>
+
+<p><li> Your task before the sessions: revisit the material from weeks 39 and 40 and in particular the material from week 40 on stochastic gradient descent</li>
+</ul>
+</div>
+  
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Material for the lecture on Thursday October 12, 2023</b>
+<p>
+<ul>
+
+<p><li> Neural Networks, setting up the basic steps, from the simple perceptron model to the multi-layer perceptron model.</li>
+
+<p><li> Building our own Feed-forward Neural Network</li>
+
+<p><li> Readings and Videos:</li>
+<ul>
+
+<p><li> These lecture notes</li>
+
+<p><li> For neural networks we recommend Goodfellow et al chapter 6.</li>
+
+<p><li> <a href="https://www.youtube.com/watch?v=bxe2T-V8XRs&list=PLiaHhY2iBX9hdHaRr6b7XevZtgZRa1PoU&ab_channel=WelchLabs" target="_blank">Neural Networks demystified</a></li>
+
+<p><li> <a href="https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3&ab_channel=sentdex" target="_blank">Building Neural Networks from scratch</a></li>
+
+<p><li> <a href="https://www.youtube.com/watch?v=CqOfi41LfDw" target="_blank">Video on Neural Networks</a></li>
+
+<p><li> <a href="https://www.youtube.com/watch?v=Ilg3gGewQ5U" target="_blank">Video on the back propagation algorithm</a></li>
 </ul>
 <p>
-<p>"
-Reading suggestions: These notes, <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf" target="_blank">Aurelien Geron's chapters 10-11</a>.
-For a more in depth discussion on  neural networks we recommend Goodfellow et al chapters 6 and 7. Bishop's chapter 5 on Neural Networks is an additional good read.
+</ul>
+<p>
+<p>I also  recommend Michael Nielsen's intuitive approach to the neural networks and the universal approximation theorem, see the slides at <a href="http://neuralnetworksanddeeplearning.com/chap4.html" target="_blank"><tt>http://neuralnetworksanddeeplearning.com/chap4.html</tt></a>.</p>
+</div>
+</section>
+
+<section>
+<h2 id="lecture-thursday-october-12">Lecture Thursday October 12 </h2>
+</section>
+
+<section>
+<h2 id="introduction-to-neural-networks">Introduction to Neural networks </h2>
+
+<p>Artificial neural networks are computational systems that can learn to
+perform tasks by considering examples, generally without being
+programmed with any task-specific rules. It is supposed to mimic a
+biological system, wherein neurons interact by sending signals in the
+form of mathematical functions between layers. All layers can contain
+an arbitrary number of neurons, and each connection is represented by
+a weight variable.
 </p>
 </section>
 
 <section>
-<h2 id="videos-on-neural-networks">Videos on Neural Networks </h2>
+<h2 id="artificial-neurons">Artificial neurons  </h2>
 
-<ul>
-<p><li> <a href="https://www.youtube.com/watch?v=CqOfi41LfDw" target="_blank">Video on Neural Networks</a></li>
-<p><li> <a href="https://www.youtube.com/watch?v=Ilg3gGewQ5U" target="_blank">Video on the back propagation algorithm</a></li>
-</ul>
+<p>The field of artificial neural networks has a long history of
+development, and is closely connected with the advancement of computer
+science and computers in general. A model of artificial neurons was
+first developed by McCulloch and Pitts in 1943 to study signal
+processing in the brain and has later been refined by others. The
+general idea is to mimic neural networks in the human brain, which is
+composed of billions of neurons that communicate with each other by
+sending electrical signals.  Each neuron accumulates its incoming
+signals, which must exceed an activation threshold to yield an
+output. If the threshold is not overcome, the neuron remains inactive,
+i.e. has zero output.
+</p>
+
+<p>This behaviour has inspired a simple mathematical model for an artificial neuron.</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation}
+ y = f\left(\sum_{i=1}^n w_ix_i\right) = f(u)
+\tag{1}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>Here, the output \( y \) of the neuron is the value of its activation function, which have as input
+a weighted sum of signals \( x_i, \dots ,x_n \) received by \( n \) other neurons.
+</p>
+
+<p>Conceptually, it is helpful to divide neural networks into four
+categories:
+</p>
+<ol>
+<p><li> general purpose neural networks for supervised learning,</li>
+<p><li> neural networks designed specifically for image processing, the most prominent example of this class being Convolutional Neural Networks (CNNs),</li>
+<p><li> neural networks for sequential data such as Recurrent Neural Networks (RNNs), and</li>
+<p><li> neural networks for unsupervised learning such as Deep Boltzmann Machines.</li>
+</ol>
 <p>
-<p>I also  recommend Michael Nielsen's intuitive approach to the neural networks and the universal approximation theorem, see the slides at <a href="http://neuralnetworksanddeeplearning.com/chap4.html" target="_blank"><tt>http://neuralnetworksanddeeplearning.com/chap4.html</tt></a>.</p>
+<p>In natural science, DNNs and CNNs have already found numerous
+applications. In statistical physics, they have been applied to detect
+phase transitions in 2D Ising and Potts models, lattice gauge
+theories, and different phases of polymers, or solving the
+Navier-Stokes equation in weather forecasting.  Deep learning has also
+found interesting applications in quantum physics. Various quantum
+phase transitions can be detected and studied using DNNs and CNNs,
+topological phases, and even non-equilibrium many-body
+localization. Representing quantum states as DNNs quantum state
+tomography are among some of the impressive achievements to reveal the
+potential of DNNs to facilitate the study of quantum systems.
+</p>
+
+<p>In quantum information theory, it has been shown that one can perform
+gate decompositions with the help of neural. 
+</p>
+
+<p>The applications are not limited to the natural sciences. There is a
+plethora of applications in essentially all disciplines, from the
+humanities to life science and medicine.
+</p>
 </section>
 
 <section>
-<h2 id="review-of-the-back-propagation-algorithm">Review of the back propagation algorithm </h2>
+<h2 id="neural-network-types">Neural network types </h2>
 
-<p>During the last lecture we discussed in detail the back propagation
-algorithm. This algorithm is based on a repeated application of the
-chain rule. Let us bring back the basic equation and at the same time
-link this with the basic mathematics of automatic differentiation.
+<p>An artificial neural network (ANN), is a computational model that
+consists of layers of connected neurons, or nodes or units.  We will
+refer to these interchangeably as units or nodes, and sometimes as
+neurons.
+</p>
+
+<p>It is supposed to mimic a biological nervous system by letting each
+neuron interact with other neurons by sending signals in the form of
+mathematical functions between layers.  A wide variety of different
+ANNs have been developed, but most of them consist of an input layer,
+an output layer and eventual layers in-between, called <em>hidden
+layers</em>. All layers can contain an arbitrary number of nodes, and each
+connection between two nodes is associated with a weight variable.
+</p>
+
+<p>Neural networks (also called neural nets) are neural-inspired
+nonlinear models for supervised learning.  As we will see, neural nets
+can be viewed as natural, more powerful extensions of supervised
+learning methods such as linear and logistic regression and soft-max
+methods we discussed earlier.
+</p>
+</section>
+
+<section>
+<h2 id="feed-forward-neural-networks">Feed-forward neural networks </h2>
+
+<p>The feed-forward neural network (FFNN) was the first and simplest type
+of ANNs that were devised. In this network, the information moves in
+only one direction: forward through the layers.
+</p>
+
+<p>Nodes are represented by circles, while the arrows display the
+connections between the nodes, including the direction of information
+flow. Additionally, each arrow corresponds to a weight variable
+(figure to come).  We observe that each node in a layer is connected
+to <em>all</em> nodes in the subsequent layer, making this a so-called
+<em>fully-connected</em> FFNN.
+</p>
+</section>
+
+<section>
+<h2 id="convolutional-neural-network">Convolutional Neural Network </h2>
+
+<p>A different variant of FFNNs are <em>convolutional neural networks</em>
+(CNNs), which have a connectivity pattern inspired by the animal
+visual cortex. Individual neurons in the visual cortex only respond to
+stimuli from small sub-regions of the visual field, called a receptive
+field. This makes the neurons well-suited to exploit the strong
+spatially local correlation present in natural images. The response of
+each neuron can be approximated mathematically as a convolution
+operation.  (figure to come)
+</p>
+
+<p>Convolutional neural networks emulate the behaviour of neurons in the
+visual cortex by enforcing a <em>local</em> connectivity pattern between
+nodes of adjacent layers: Each node in a convolutional layer is
+connected only to a subset of the nodes in the previous layer, in
+contrast to the fully-connected FFNN.  Often, CNNs consist of several
+convolutional layers that learn local features of the input, with a
+fully-connected layer at the end, which gathers all the local data and
+produces the outputs. They have wide applications in image and video
+recognition.
+</p>
+</section>
+
+<section>
+<h2 id="recurrent-neural-networks">Recurrent neural networks </h2>
+
+<p>So far we have only mentioned ANNs where information flows in one
+direction: forward. <em>Recurrent neural networks</em> on the other hand,
+have connections between nodes that form directed <em>cycles</em>. This
+creates a form of internal memory which are able to capture
+information on what has been calculated before; the output is
+dependent on the previous computations. Recurrent NNs make use of
+sequential information by performing the same task for every element
+in a sequence, where each element depends on previous elements. An
+example of such information is sentences, making recurrent NNs
+especially well-suited for handwriting and speech recognition.
+</p>
+</section>
+
+<section>
+<h2 id="other-types-of-networks">Other types of networks </h2>
+
+<p>There are many other kinds of ANNs that have been developed. One type
+that is specifically designed for interpolation in multidimensional
+space is the radial basis function (RBF) network. RBFs are typically
+made up of three layers: an input layer, a hidden layer with
+non-linear radial symmetric activation functions and a linear output
+layer (''linear'' here means that each node in the output layer has a
+linear activation function). The layers are normally fully-connected
+and there are no cycles, thus RBFs can be viewed as a type of
+fully-connected FFNN. They are however usually treated as a separate
+type of NN due the unusual activation functions.
+</p>
+</section>
+
+<section>
+<h2 id="multilayer-perceptrons">Multilayer perceptrons  </h2>
+
+<p>One uses often so-called fully-connected feed-forward neural networks
+with three or more layers (an input layer, one or more hidden layers
+and an output layer) consisting of neurons that have non-linear
+activation functions.
+</p>
+
+<p>Such networks are often called <em>multilayer perceptrons</em> (MLPs).</p>
+</section>
+
+<section>
+<h2 id="why-multilayer-perceptrons">Why multilayer perceptrons?  </h2>
+
+<p>According to the <em>Universal approximation theorem</em>, a feed-forward
+neural network with just a single hidden layer containing a finite
+number of neurons can approximate a continuous multidimensional
+function to arbitrary accuracy, assuming the activation function for
+the hidden layer is a <b>non-constant, bounded and
+monotonically-increasing continuous function</b>.
+</p>
+
+<p>Note that the requirements on the activation function only applies to
+the hidden layer, the output nodes are always assumed to be linear, so
+as to not restrict the range of output values.
+</p>
+</section>
+
+<section>
+<h2 id="illustration-of-a-single-perceptron-model-and-a-multi-perceptron-model">Illustration of a single perceptron model and a multi-perceptron model </h2>
+
+<center>  <!-- FIGURE -->
+<hr class="figure">
+<center>
+<p class="caption">Figure 1:  In a) we show a single perceptron model while in b) we dispay a network with two  hidden layers, an input layer and an output layer. </p>
+</center>
+<p><img src="figures/nns.png" width="600" align="bottom"></p>
+</center>
+</section>
+
+<section>
+<h2 id="examples-of-xor-or-and-and-gates">Examples of XOR, OR and AND gates </h2>
+
+<p>Let us first try to fit various gates using standard linear
+regression. The gates we are thinking of are the classical XOR, OR and
+AND gates, well-known elements in computer science. The tables here
+show how we can set up the inputs \( x_1 \) and \( x_2 \) in order to yield a
+specific target \( y_i \).
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">Simple code that tests XOR, OR and AND gates with linear regression</span>
+<span style="color: #CD5555">&quot;&quot;&quot;</span>
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #228B22"># Design matrix</span>
+X = np.array([ [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>],[<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>]],dtype=np.float64)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The X.TX  matrix:{</span>X.T @ X<span style="color: #CD5555">}&quot;</span>)
+Xinv = np.linalg.pinv(X.T @ X)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The invers of X.TX  matrix:{</span>Xinv<span style="color: #CD5555">}&quot;</span>)
+
+<span style="color: #228B22"># The XOR gate </span>
+yXOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span> ,<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>])
+ThetaXOR  = Xinv @ X.T @ yXOR
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The values of theta for the XOR gate:{</span>ThetaXOR<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The linear regression prediction  for the XOR gate:{</span>X @ ThetaXOR<span style="color: #CD5555">}&quot;</span>)
+
+
+<span style="color: #228B22"># The OR gate </span>
+yOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span> ,<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>])
+ThetaOR  = Xinv @ X.T @ yOR
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The values of theta for the OR gate:{</span>ThetaOR<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The linear regression prediction  for the OR gate:{</span>X @ ThetaOR<span style="color: #CD5555">}&quot;</span>)
+
+
+<span style="color: #228B22"># The OR gate </span>
+yAND = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span> ,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>])
+ThetaAND  = Xinv @ X.T @ yAND
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The values of theta for the AND gate:{</span>ThetaAND<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The linear regression prediction  for the AND gate:{</span>X @ ThetaAND<span style="color: #CD5555">}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>What is happening here?</p>
+</section>
+
+<section>
+<h2 id="does-logistic-regression-do-a-better-job">Does Logistic Regression do a better Job? </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">Simple code that tests XOR and OR gates with linear regression</span>
+<span style="color: #CD5555">and logistic regression</span>
+<span style="color: #CD5555">&quot;&quot;&quot;</span>
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> LogisticRegression
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+
+<span style="color: #228B22"># Design matrix</span>
+X = np.array([ [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>],[<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>]],dtype=np.float64)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The X.TX  matrix:{</span>X.T @ X<span style="color: #CD5555">}&quot;</span>)
+Xinv = np.linalg.pinv(X.T @ X)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The invers of X.TX  matrix:{</span>Xinv<span style="color: #CD5555">}&quot;</span>)
+
+<span style="color: #228B22"># The XOR gate </span>
+yXOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span> ,<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>])
+ThetaXOR  = Xinv @ X.T @ yXOR
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The values of theta for the XOR gate:{</span>ThetaXOR<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The linear regression prediction  for the XOR gate:{</span>X @ ThetaXOR<span style="color: #CD5555">}&quot;</span>)
+
+
+<span style="color: #228B22"># The OR gate </span>
+yOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span> ,<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>])
+ThetaOR  = Xinv @ X.T @ yOR
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The values of theta for the OR gate:{</span>ThetaOR<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The linear regression prediction  for the OR gate:{</span>X @ ThetaOR<span style="color: #CD5555">}&quot;</span>)
+
+
+<span style="color: #228B22"># The OR gate </span>
+yAND = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span> ,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>])
+ThetaAND  = Xinv @ X.T @ yAND
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The values of theta for the AND gate:{</span>ThetaAND<span style="color: #CD5555">}&quot;</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;The linear regression prediction  for the AND gate:{</span>X @ ThetaAND<span style="color: #CD5555">}&quot;</span>)
+
+<span style="color: #228B22"># Now we change to logistic regression</span>
+
+
+<span style="color: #228B22"># Logistic Regression</span>
+logreg = LogisticRegression()
+logreg.fit(X, yOR)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test set accuracy with Logistic Regression for OR gate: {:.2f}&quot;</span>.format(logreg.score(X,yOR)))
+
+logreg.fit(X, yXOR)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test set accuracy with Logistic Regression for XOR gate: {:.2f}&quot;</span>.format(logreg.score(X,yXOR)))
+
+
+logreg.fit(X, yAND)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test set accuracy with Logistic Regression for AND gate: {:.2f}&quot;</span>.format(logreg.score(X,yAND)))
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Not exactly impressive, but somewhat better.</p>
+</section>
+
+<section>
+<h2 id="adding-neural-networks">Adding Neural Networks </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># and now neural networks with Scikit-Learn and the XOR</span>
+
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.neural_network</span> <span style="color: #8B008B; font-weight: bold">import</span> MLPClassifier
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> make_classification
+X, yXOR = make_classification(n_samples=<span style="color: #B452CD">100</span>, random_state=<span style="color: #B452CD">1</span>)
+FFNN = MLPClassifier(random_state=<span style="color: #B452CD">1</span>, max_iter=<span style="color: #B452CD">300</span>).fit(X, yXOR)
+FFNN.predict_proba(X)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Test set accuracy with Feed Forward Neural Network  for XOR gate:{</span>FFNN.score(X, yXOR)<span style="color: #CD5555">}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="mathematical-model">Mathematical model  </h2>
+
+<p>The output \( y \) is produced via the activation function \( f \)</p>
+<p>&nbsp;<br>
+$$
+ y = f\left(\sum_{i=1}^n w_ix_i + b_i\right) = f(z),
+$$
+<p>&nbsp;<br>
+
+<p>This function receives \( x_i \) as inputs.
+Here the activation \( z=(\sum_{i=1}^n w_ix_i+b_i) \). 
+In an FFNN of such neurons, the <em>inputs</em> \( x_i \) are the <em>outputs</em> of
+the neurons in the preceding layer. Furthermore, an MLP is
+fully-connected, which means that each neuron receives a weighted sum
+of the outputs of <em>all</em> neurons in the previous layer.
+</p>
+</section>
+
+<section>
+<h2 id="mathematical-model">Mathematical model  </h2>
+
+<p>First, for each node \( i \) in the first hidden layer, we calculate a weighted sum \( z_i^1 \) of the input coordinates \( x_j \),</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation} z_i^1 = \sum_{j=1}^{M} w_{ij}^1 x_j + b_i^1
+\tag{2}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>Here \( b_i \) is the so-called bias which is normally needed in
+case of zero activation weights or inputs. How to fix the biases and
+the weights will be discussed below.  The value of \( z_i^1 \) is the
+argument to the activation function \( f_i \) of each node \( i \), The
+variable \( M \) stands for all possible inputs to a given node \( i \) in the
+first layer.  We define  the output \( y_i^1 \) of all neurons in layer 1 as
+</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation}
+ y_i^1 = f(z_i^1) = f\left(\sum_{j=1}^M w_{ij}^1 x_j  + b_i^1\right)
+\tag{3}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>where we assume that all nodes in the same layer have identical
+activation functions, hence the notation \( f \). In general, we could assume in the more general case that different layers have different activation functions.
+In this case we would identify these functions with a superscript \( l \) for the \( l \)-th layer,
+</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation}
+ y_i^l = f^l(u_i^l) = f^l\left(\sum_{j=1}^{N_{l-1}} w_{ij}^l y_j^{l-1} + b_i^l\right)
+\tag{4}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>where \( N_l \) is the number of nodes in layer \( l \). When the output of
+all the nodes in the first hidden layer are computed, the values of
+the subsequent layer can be calculated and so forth until the output
+is obtained.
+</p>
+</section>
+
+<section>
+<h2 id="mathematical-model">Mathematical model  </h2>
+
+<p>The output of neuron \( i \) in layer 2 is thus,</p>
+
+<p>&nbsp;<br>
+$$
+\begin{align}
+ y_i^2 &= f^2\left(\sum_{j=1}^N w_{ij}^2 y_j^1 + b_i^2\right) 
+\tag{5}\\
+ &= f^2\left[\sum_{j=1}^N w_{ij}^2f^1\left(\sum_{k=1}^M w_{jk}^1 x_k + b_j^1\right) + b_i^2\right]
+\tag{6}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+<p>where we have substituted \( y_k^1 \) with the inputs \( x_k \). Finally, the ANN output reads</p>
+
+<p>&nbsp;<br>
+$$
+\begin{align}
+ y_i^3 &= f^3\left(\sum_{j=1}^N w_{ij}^3 y_j^2 + b_i^3\right) 
+\tag{7}\\
+ &= f_3\left[\sum_{j} w_{ij}^3 f^2\left(\sum_{k} w_{jk}^2 f^1\left(\sum_{m} w_{km}^1 x_m + b_k^1\right) + b_j^2\right)
+  + b_1^3\right]
+\tag{8}
+\end{align}
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="mathematical-model">Mathematical model  </h2>
+
+<p>We can generalize this expression to an MLP with \( l \) hidden
+layers. The complete functional form is,
+</p>
+
+<p>&nbsp;<br>
+$$
+\begin{align}
+&y^{l+1}_i = f^{l+1}\left[\!\sum_{j=1}^{N_l} w_{ij}^3 f^l\left(\sum_{k=1}^{N_{l-1}}w_{jk}^{l-1}\left(\dots f^1\left(\sum_{n=1}^{N_0} w_{mn}^1 x_n+ b_m^1\right)\dots\right)+b_k^2\right)+b_1^3\right] &&
+\tag{9}
+\end{align}
+$$
+<p>&nbsp;<br>
+
+<p>which illustrates a basic property of MLPs: The only independent
+variables are the input values \( x_n \).
+</p>
+</section>
+
+<section>
+<h2 id="mathematical-model">Mathematical model  </h2>
+
+<p>This confirms that an MLP, despite its quite convoluted mathematical
+form, is nothing more than an analytic function, specifically a
+mapping of real-valued vectors \( \hat{x} \in \mathbb{R}^n \rightarrow
+\hat{y} \in \mathbb{R}^m \).
+</p>
+
+<p>Furthermore, the flexibility and universality of an MLP can be
+illustrated by realizing that the expression is essentially a nested
+sum of scaled activation functions of the form
+</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation}
+ f(x) = c_1 f(c_2 x + c_3) + c_4
+\tag{10}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>where the parameters \( c_i \) are weights and biases. By adjusting these
+parameters, the activation functions can be shifted up and down or
+left and right, change slope or be rescaled which is the key to the
+flexibility of a neural network.
+</p>
+</section>
+
+<section>
+<h3 id="matrix-vector-notation">Matrix-vector notation </h3>
+
+<p>We can introduce a more convenient notation for the activations in an A NN. </p>
+
+<p>Additionally, we can represent the biases and activations
+as layer-wise column vectors \( \hat{b}_l \) and \( \hat{y}_l \), so that the \( i \)-th element of each vector 
+is the bias \( b_i^l \) and activation \( y_i^l \) of node \( i \) in layer \( l \) respectively. 
+</p>
+
+<p>We have that \( \mathrm{W}_l \) is an \( N_{l-1} \times N_l \) matrix, while \( \hat{b}_l \) and \( \hat{y}_l \) are \( N_l \times 1 \) column vectors. 
+With this notation, the sum becomes a matrix-vector multiplication, and we can write
+the equation for the activations of hidden layer 2 (assuming three nodes for simplicity) as
+</p>
+<p>&nbsp;<br>
+$$
+\begin{equation}
+ \hat{y}_2 = f_2(\mathrm{W}_2 \hat{y}_{1} + \hat{b}_{2}) = 
+ f_2\left(\left[\begin{array}{ccc}
+    w^2_{11} &w^2_{12} &w^2_{13} \\
+    w^2_{21} &w^2_{22} &w^2_{23} \\
+    w^2_{31} &w^2_{32} &w^2_{33} \\
+    \end{array} \right] \cdot
+    \left[\begin{array}{c}
+           y^1_1 \\
+           y^1_2 \\
+           y^1_3 \\
+          \end{array}\right] + 
+    \left[\begin{array}{c}
+           b^2_1 \\
+           b^2_2 \\
+           b^2_3 \\
+          \end{array}\right]\right).
+\tag{11}
+\end{equation}
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h3 id="matrix-vector-notation-and-activation">Matrix-vector notation  and activation </h3>
+
+<p>The activation of node \( i \) in layer 2 is</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation}
+ y^2_i = f_2\Bigr(w^2_{i1}y^1_1 + w^2_{i2}y^1_2 + w^2_{i3}y^1_3 + b^2_i\Bigr) = 
+ f_2\left(\sum_{j=1}^3 w^2_{ij} y_j^1 + b^2_i\right).
+\tag{12}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>This is not just a convenient and compact notation, but also a useful
+and intuitive way to think about MLPs: The output is calculated by a
+series of matrix-vector multiplications and vector additions that are
+used as input to the activation functions. For each operation
+\( \mathrm{W}_l \hat{y}_{l-1} \) we move forward one layer.
+</p>
+</section>
+
+<section>
+<h3 id="activation-functions">Activation functions  </h3>
+
+<p>A property that characterizes a neural network, other than its
+connectivity, is the choice of activation function(s).  As described
+in, the following restrictions are imposed on an activation function
+for a FFNN to fulfill the universal approximation theorem
+</p>
+
+<ul>
+
+<p><li> Non-constant</li>
+
+<p><li> Bounded</li>
+
+<p><li> Monotonically-increasing</li>
+
+<p><li> Continuous</li>
+</ul>
+</section>
+
+<section>
+<h3 id="activation-functions-logistic-and-hyperbolic-ones">Activation functions, Logistic and Hyperbolic ones  </h3>
+
+<p>The second requirement excludes all linear functions. Furthermore, in
+a MLP with only linear activation functions, each layer simply
+performs a linear transformation of its inputs.
+</p>
+
+<p>Regardless of the number of layers, the output of the NN will be
+nothing but a linear function of the inputs. Thus we need to introduce
+some kind of non-linearity to the NN to be able to fit non-linear
+functions Typical examples are the logistic <em>Sigmoid</em>
+</p>
+
+<p>&nbsp;<br>
+$$
+ f(x) = \frac{1}{1 + e^{-x}},
+$$
+<p>&nbsp;<br>
+
+<p>and the <em>hyperbolic tangent</em> function</p>
+<p>&nbsp;<br>
+$$
+ f(x) = \tanh(x)
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h3 id="relevance">Relevance </h3>
+
+<p>The <em>sigmoid</em> function are more biologically plausible because the
+output of inactive neurons are zero. Such activation function are
+called <em>one-sided</em>. However, it has been shown that the hyperbolic
+tangent performs better than the sigmoid for training MLPs.  has
+become the most popular for <em>deep neural networks</em>
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #CD5555">&quot;&quot;&quot;The sigmoid function (or the logistic curve) is a </span>
+<span style="color: #CD5555">function that takes any real number, z, and outputs a number (0,1).</span>
+<span style="color: #CD5555">It is useful in neural networks for assigning weights on a relative scale.</span>
+<span style="color: #CD5555">The value z is the weighted sum of parameters involved in the learning algorithm.&quot;&quot;&quot;</span>
+
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">math</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">mt</span>
+
+z = numpy.arange(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">5</span>, <span style="color: #B452CD">.1</span>)
+sigma_fn = numpy.vectorize(<span style="color: #8B008B; font-weight: bold">lambda</span> z: <span style="color: #B452CD">1</span>/(<span style="color: #B452CD">1</span>+numpy.exp(-z)))
+sigma = sigma_fn(z)
+
+fig = plt.figure()
+ax = fig.add_subplot(<span style="color: #B452CD">111</span>)
+ax.plot(z, sigma)
+ax.set_ylim([-<span style="color: #B452CD">0.1</span>, <span style="color: #B452CD">1.1</span>])
+ax.set_xlim([-<span style="color: #B452CD">5</span>,<span style="color: #B452CD">5</span>])
+ax.grid(<span style="color: #8B008B; font-weight: bold">True</span>)
+ax.set_xlabel(<span style="color: #CD5555">&#39;z&#39;</span>)
+ax.set_title(<span style="color: #CD5555">&#39;sigmoid function&#39;</span>)
+
+plt.show()
+
+<span style="color: #CD5555">&quot;&quot;&quot;Step Function&quot;&quot;&quot;</span>
+z = numpy.arange(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">5</span>, <span style="color: #B452CD">.02</span>)
+step_fn = numpy.vectorize(<span style="color: #8B008B; font-weight: bold">lambda</span> z: <span style="color: #B452CD">1.0</span> <span style="color: #8B008B; font-weight: bold">if</span> z &gt;= <span style="color: #B452CD">0.0</span> <span style="color: #8B008B; font-weight: bold">else</span> <span style="color: #B452CD">0.0</span>)
+step = step_fn(z)
+
+fig = plt.figure()
+ax = fig.add_subplot(<span style="color: #B452CD">111</span>)
+ax.plot(z, step)
+ax.set_ylim([-<span style="color: #B452CD">0.5</span>, <span style="color: #B452CD">1.5</span>])
+ax.set_xlim([-<span style="color: #B452CD">5</span>,<span style="color: #B452CD">5</span>])
+ax.grid(<span style="color: #8B008B; font-weight: bold">True</span>)
+ax.set_xlabel(<span style="color: #CD5555">&#39;z&#39;</span>)
+ax.set_title(<span style="color: #CD5555">&#39;step function&#39;</span>)
+
+plt.show()
+
+<span style="color: #CD5555">&quot;&quot;&quot;Sine Function&quot;&quot;&quot;</span>
+z = numpy.arange(-<span style="color: #B452CD">2</span>*mt.pi, <span style="color: #B452CD">2</span>*mt.pi, <span style="color: #B452CD">0.1</span>)
+t = numpy.sin(z)
+
+fig = plt.figure()
+ax = fig.add_subplot(<span style="color: #B452CD">111</span>)
+ax.plot(z, t)
+ax.set_ylim([-<span style="color: #B452CD">1.0</span>, <span style="color: #B452CD">1.0</span>])
+ax.set_xlim([-<span style="color: #B452CD">2</span>*mt.pi,<span style="color: #B452CD">2</span>*mt.pi])
+ax.grid(<span style="color: #8B008B; font-weight: bold">True</span>)
+ax.set_xlabel(<span style="color: #CD5555">&#39;z&#39;</span>)
+ax.set_title(<span style="color: #CD5555">&#39;sine function&#39;</span>)
+
+plt.show()
+
+<span style="color: #CD5555">&quot;&quot;&quot;Plots a graph of the squashing function used by a rectified linear</span>
+<span style="color: #CD5555">unit&quot;&quot;&quot;</span>
+z = numpy.arange(-<span style="color: #B452CD">2</span>, <span style="color: #B452CD">2</span>, <span style="color: #B452CD">.1</span>)
+zero = numpy.zeros(<span style="color: #658b00">len</span>(z))
+y = numpy.max([zero, z], axis=<span style="color: #B452CD">0</span>)
+
+fig = plt.figure()
+ax = fig.add_subplot(<span style="color: #B452CD">111</span>)
+ax.plot(z, y)
+ax.set_ylim([-<span style="color: #B452CD">2.0</span>, <span style="color: #B452CD">2.0</span>])
+ax.set_xlim([-<span style="color: #B452CD">2.0</span>, <span style="color: #B452CD">2.0</span>])
+ax.grid(<span style="color: #8B008B; font-weight: bold">True</span>)
+ax.set_xlabel(<span style="color: #CD5555">&#39;z&#39;</span>)
+ax.set_title(<span style="color: #CD5555">&#39;Rectified linear unit&#39;</span>)
+
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2 id="the-multilayer-perceptron-mlp">The multilayer  perceptron (MLP) </h2>
+
+<p>The multilayer perceptron is a very popular, and easy to implement approach, to deep learning. It consists of</p>
+<ol>
+<p><li> A neural network with one or more layers of nodes between the input and the output nodes.</li>
+<p><li> The multilayer network structure, or architecture, or topology, consists of an input layer, one or more hidden layers, and one output layer.</li>
+<p><li> The input nodes pass values to the first hidden layer, its nodes pass the information on to the second and so on till we reach the output layer.</li>
+</ol>
+<p>
+<p>As a convention it is normal to call  a  network with one layer of input units, one layer of hidden
+units and one layer of output units as  a two-layer network. A network with two layers of hidden units is called a three-layer network etc etc.
+</p>
+
+<p>For an MLP network there is no direct connection between the output nodes/neurons/units and  the input nodes/neurons/units.
+Hereafter we will call the various entities of a layer for nodes.
+There are also no connections within a single layer.
+</p>
+
+<p>The number of input nodes does not need to equal the number of output
+nodes. This applies also to the hidden layers. Each layer may have its
+own number of nodes and activation functions.
+</p>
+
+<p>The hidden layers have their name from the fact that they are not
+linked to observables and as we will see below when we define the
+so-called activation \( \hat{z} \), we can think of this as a basis
+expansion of the original inputs \( \hat{x} \). The difference however
+between neural networks and say linear regression is that now these
+basis functions (which will correspond to the weights in the network)
+are learned from data. This results in  an important difference between
+neural networks and deep learning approaches on one side and methods
+like logistic regression or linear regression and their modifications on the other side.
+</p>
+</section>
+
+<section>
+<h2 id="from-one-to-many-layers-the-universal-approximation-theorem">From one to many layers, the universal approximation theorem </h2>
+
+<p>A neural network with only one layer, what we called the simple
+perceptron, is best suited if we have a standard binary model with
+clear (linear) boundaries between the outcomes. As such it could
+equally well be replaced by standard linear regression or logistic
+regression. Networks with one or more hidden layers approximate
+systems with more complex boundaries.
+</p>
+
+<p>As stated earlier, 
+an important theorem in studies of neural networks, restated without
+proof here, is the <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.441.7873&rep=rep1&type=pdf" target="_blank">universal approximation
+theorem</a>.
+</p>
+
+<p>It states that a feed-forward network with a single hidden layer
+containing a finite number of neurons can approximate continuous
+functions on compact subsets of real functions. The theorem thus
+states that simple neural networks can represent a wide variety of
+interesting functions when given appropriate parameters. It is the
+multilayer feedforward architecture itself which gives neural networks
+the potential of being universal approximators.
+</p>
+</section>
+
+<section>
+<h2 id="deriving-the-back-propagation-code-for-a-multilayer-perceptron-model">Deriving the back propagation code for a multilayer perceptron model </h2>
+
+<p>As we have seen now in a feed forward network, we can express the final output of our network in terms of basic matrix-vector multiplications.
+The unknowwn quantities are our weights \( w_{ij} \) and we need to find an algorithm for changing them so that our errors are as small as possible.
+This leads us to the famous <a href="https://www.nature.com/articles/323533a0" target="_blank">back propagation algorithm</a>.
+</p>
+
+<p>The questions we want to ask are how do changes in the biases and the
+weights in our network change the cost function and how can we use the
+final output to modify the weights?
+</p>
+
+<p>To derive these equations let us start with a plain regression problem
+and define our cost function as
+</p>
+
+<p>&nbsp;<br>
+$$
+{\cal C}(\hat{W})  =  \frac{1}{2}\sum_{i=1}^n\left(y_i - t_i\right)^2, 
+$$
+<p>&nbsp;<br>
+
+<p>where the $t_i$s are our \( n \) targets (the values we want to
+reproduce), while the outputs of the network after having propagated
+all inputs \( \hat{x} \) are given by \( y_i \).  Below we will demonstrate
+how the basic equations arising from the back propagation algorithm
+can be modified in order to study classification problems with \( K \)
+classes.
+</p>
+</section>
+
+<section>
+<h2 id="definitions">Definitions </h2>
+
+<p>With our definition of the targets \( \hat{t} \), the outputs of the
+network \( \hat{y} \) and the inputs \( \hat{x} \) we
+define now the activation \( z_j^l \) of node/neuron/unit \( j \) of the
+\( l \)-th layer as a function of the bias, the weights which add up from
+the previous layer \( l-1 \) and the forward passes/outputs
+\( \hat{a}^{l-1} \) from the previous layer as
+</p>
+
+<p>&nbsp;<br>
+$$
+z_j^l = \sum_{i=1}^{M_{l-1}}w_{ij}^la_i^{l-1}+b_j^l,
+$$
+<p>&nbsp;<br>
+
+<p>where \( b_k^l \) are the biases from layer \( l \).  Here \( M_{l-1} \)
+represents the total number of nodes/neurons/units of layer \( l-1 \). The
+figure here illustrates this equation.  We can rewrite this in a more
+compact form as the matrix-vector products we discussed earlier,
+</p>
+
+<p>&nbsp;<br>
+$$
+\hat{z}^l = \left(\hat{W}^l\right)^T\hat{a}^{l-1}+\hat{b}^l.
+$$
+<p>&nbsp;<br>
+
+<p>With the activation values \( \hat{z}^l \) we can in turn define the
+output of layer \( l \) as \( \hat{a}^l = f(\hat{z}^l) \) where \( f \) is our
+activation function. In the examples here we will use the sigmoid
+function discussed in our logistic regression lectures. We will also use the same activation function \( f \) for all layers
+and their nodes.  It means we have
+</p>
+
+<p>&nbsp;<br>
+$$
+a_j^l = f(z_j^l) = \frac{1}{1+\exp{-(z_j^l)}}.
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="derivatives-and-the-chain-rule">Derivatives and the chain rule </h2>
+
+<p>From the definition of the activation \( z_j^l \) we have</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial z_j^l}{\partial w_{ij}^l} = a_i^{l-1},
+$$
+<p>&nbsp;<br>
+
+<p>and</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial z_j^l}{\partial a_i^{l-1}} = w_{ji}^l. 
+$$
+<p>&nbsp;<br>
+
+<p>With our definition of the activation function we have that (note that this function depends only on \( z_j^l \))</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial a_j^l}{\partial z_j^{l}} = a_j^l(1-a_j^l)=f(z_j^l)(1-f(z_j^l)). 
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="derivative-of-the-cost-function">Derivative of the cost function </h2>
+
+<p>With these definitions we can now compute the derivative of the cost function in terms of the weights.</p>
+
+<p>Let us specialize to the output layer \( l=L \). Our cost function is</p>
+<p>&nbsp;<br>
+$$
+{\cal C}(\hat{W^L})  =  \frac{1}{2}\sum_{i=1}^n\left(y_i - t_i\right)^2=\frac{1}{2}\sum_{i=1}^n\left(a_i^L - t_i\right)^2, 
+$$
+<p>&nbsp;<br>
+
+<p>The derivative of this function with respect to the weights is</p>
+
+<p>&nbsp;<br>
+$$
+\frac{\partial{\cal C}(\hat{W^L})}{\partial w_{jk}^L}  =  \left(a_j^L - t_j\right)\frac{\partial a_j^L}{\partial w_{jk}^{L}}, 
+$$
+<p>&nbsp;<br>
+
+<p>The last partial derivative can easily be computed and reads (by applying the chain rule)</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial a_j^L}{\partial w_{jk}^{L}} = \frac{\partial a_j^L}{\partial z_{j}^{L}}\frac{\partial z_j^L}{\partial w_{jk}^{L}}=a_j^L(1-a_j^L)a_k^{L-1},  
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="bringing-it-together-first-back-propagation-equation">Bringing it together, first back propagation equation </h2>
+
+<p>We have thus</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial{\cal C}(\hat{W^L})}{\partial w_{jk}^L}  =  \left(a_j^L - t_j\right)a_j^L(1-a_j^L)a_k^{L-1}, 
+$$
+<p>&nbsp;<br>
+
+<p>Defining</p>
+<p>&nbsp;<br>
+$$
+\delta_j^L = a_j^L(1-a_j^L)\left(a_j^L - t_j\right) = f'(z_j^L)\frac{\partial {\cal C}}{\partial (a_j^L)},
+$$
+<p>&nbsp;<br>
+
+<p>and using the Hadamard product of two vectors we can write this as</p>
+<p>&nbsp;<br>
+$$
+\hat{\delta}^L = f'(\hat{z}^L)\circ\frac{\partial {\cal C}}{\partial (\hat{a}^L)}.
+$$
+<p>&nbsp;<br>
+
+<p>This is an important expression. The second term on the right handside
+measures how fast the cost function is changing as a function of the $j$th
+output activation.  If, for example, the cost function doesn't depend
+much on a particular output node \( j \), then \( \delta_j^L \) will be small,
+which is what we would expect. The first term on the right, measures
+how fast the activation function \( f \) is changing at a given activation
+value \( z_j^L \).
+</p>
+
+<p>Notice that everything in the above equations is easily computed.  In
+particular, we compute \( z_j^L \) while computing the behaviour of the
+network, and it is only a small additional overhead to compute
+\( f'(z^L_j) \).  The exact form of the derivative with respect to the
+output depends on the form of the cost function.
+However, provided the cost function is known there should be little
+trouble in calculating
+</p>
+
+<p>&nbsp;<br>
+$$
+\frac{\partial {\cal C}}{\partial (a_j^L)}
+$$
+<p>&nbsp;<br>
+
+<p>With the definition of \( \delta_j^L \) we have a more compact definition of the derivative of the cost function in terms of the weights, namely</p>
+<p>&nbsp;<br>
+$$
+\frac{\partial{\cal C}(\hat{W^L})}{\partial w_{jk}^L}  =  \delta_j^La_k^{L-1}.
+$$
+<p>&nbsp;<br>
+</section>
+
+<section>
+<h2 id="derivatives-in-terms-of-z-j-l">Derivatives in terms of \( z_j^L \) </h2>
+
+<p>It is also easy to see that our previous equation can be written as</p>
+
+<p>&nbsp;<br>
+$$
+\delta_j^L =\frac{\partial {\cal C}}{\partial z_j^L}= \frac{\partial {\cal C}}{\partial a_j^L}\frac{\partial a_j^L}{\partial z_j^L},
+$$
+<p>&nbsp;<br>
+
+<p>which can also be interpreted as the partial derivative of the cost function with respect to the biases \( b_j^L \), namely</p>
+<p>&nbsp;<br>
+$$
+\delta_j^L = \frac{\partial {\cal C}}{\partial b_j^L}\frac{\partial b_j^L}{\partial z_j^L}=\frac{\partial {\cal C}}{\partial b_j^L},
+$$
+<p>&nbsp;<br>
+
+<p>That is, the error \( \delta_j^L \) is exactly equal to the rate of change of the cost function as a function of the bias. </p>
+</section>
+
+<section>
+<h2 id="bringing-it-together">Bringing it together </h2>
+
+<p>We have now three equations that are essential for the computations of the derivatives of the cost function at the output layer. These equations are needed to start the algorithm and they are</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>The starting equations</b>
+<p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation}
+\frac{\partial{\cal C}(\hat{W^L})}{\partial w_{jk}^L}  =  \delta_j^La_k^{L-1},
+\tag{13}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>and</p>
+<p>&nbsp;<br>
+$$
+\begin{equation}
+\delta_j^L = f'(z_j^L)\frac{\partial {\cal C}}{\partial (a_j^L)},
+\tag{14}
+\end{equation}
+$$
+<p>&nbsp;<br>
+
+<p>and</p>
+
+<p>&nbsp;<br>
+$$
+\begin{equation}
+\delta_j^L = \frac{\partial {\cal C}}{\partial b_j^L},
+\tag{15}
+\end{equation}
+$$
+<p>&nbsp;<br>
+</div>
+
+<p>An interesting consequence of the above equations is that when the
+activation \( a_k^{L-1} \) is small, the gradient term, that is the
+derivative of the cost function with respect to the weights, will also
+tend to be small. We say then that the weight learns slowly, meaning
+that it changes slowly when we minimize the weights via say gradient
+descent. In this case we say the system learns slowly.
+</p>
+
+<p>Another interesting feature is that is when the activation function,
+represented by the sigmoid function here, is rather flat when we move towards
+its end values \( 0 \) and \( 1 \) (see the above Python codes). In these
+cases, the derivatives of the activation function will also be close
+to zero, meaning again that the gradients will be small and the
+network learns slowly again.
+</p>
+
+<p>We need a fourth equation and we are set. We are going to propagate
+backwards in order to the determine the weights and biases. In order
+to do so we need to represent the error in the layer before the final
+one \( L-1 \) in terms of the errors in the final output layer.
+</p>
+</section>
+
+<section>
+<h2 id="final-back-propagating-equation">Final back propagating equation </h2>
+
+<p>We have that (replacing \( L \) with a general layer \( l \))</p>
+<p>&nbsp;<br>
+$$
+\delta_j^l =\frac{\partial {\cal C}}{\partial z_j^l}.
+$$
+<p>&nbsp;<br>
+
+<p>We want to express this in terms of the equations for layer \( l+1 \). Using the chain rule and summing over all \( k \) entries we have</p>
+
+<p>&nbsp;<br>
+$$
+\delta_j^l =\sum_k \frac{\partial {\cal C}}{\partial z_k^{l+1}}\frac{\partial z_k^{l+1}}{\partial z_j^{l}}=\sum_k \delta_k^{l+1}\frac{\partial z_k^{l+1}}{\partial z_j^{l}},
+$$
+<p>&nbsp;<br>
+
+<p>and recalling that</p>
+<p>&nbsp;<br>
+$$
+z_j^{l+1} = \sum_{i=1}^{M_{l}}w_{ij}^{l+1}a_i^{l}+b_j^{l+1},
+$$
+<p>&nbsp;<br>
+
+<p>with \( M_l \) being the number of nodes in layer \( l \), we obtain</p>
+<p>&nbsp;<br>
+$$
+\delta_j^l =\sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l),
+$$
+<p>&nbsp;<br>
+
+<p>This is our final equation.</p>
+
+<p>We are now ready to set up the algorithm for back propagation and learning the weights and biases.</p>
+</section>
+
+<section>
+<h2 id="setting-up-the-back-propagation-algorithm">Setting up the Back propagation algorithm </h2>
+
+<p>The four equations  provide us with a way of computing the gradient of the cost function. Let us write this out in the form of an algorithm.</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>First, we set up the input data \( \hat{x} \) and the activations
+\( \hat{z}_1 \) of the input layer and compute the activation function and
+the pertinent outputs \( \hat{a}^1 \).
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Secondly, we perform then the feed forward till we reach the output
+layer and compute all \( \hat{z}_l \) of the input layer and compute the
+activation function and the pertinent outputs \( \hat{a}^l \) for
+\( l=2,3,\dots,L \).
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Thereafter we compute the ouput error \( \hat{\delta}^L \) by computing all</p>
+<p>&nbsp;<br>
+$$
+\delta_j^L = f'(z_j^L)\frac{\partial {\cal C}}{\partial (a_j^L)}.
+$$
+<p>&nbsp;<br>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Then we compute the back propagate error for each \( l=L-1,L-2,\dots,2 \) as</p>
+<p>&nbsp;<br>
+$$
+\delta_j^l = \sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l).
+$$
+<p>&nbsp;<br>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Finally, we update the weights and the biases using gradient descent for each \( l=L-1,L-2,\dots,2 \) and update the weights and biases according to the rules</p>
+<p>&nbsp;<br>
+$$
+w_{jk}^l\leftarrow  = w_{jk}^l- \eta \delta_j^la_k^{l-1},
+$$
+<p>&nbsp;<br>
+
+<p>&nbsp;<br>
+$$
+b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta \delta_j^l,
+$$
+<p>&nbsp;<br>
+</div>
+
+<p>The parameter \( \eta \) is the learning parameter discussed in connection with the gradient descent methods.
+Here it is convenient to use stochastic gradient descent (see the examples below) with mini-batches with an outer loop that steps through multiple epochs of training.
 </p>
 </section>
 
 <section>
 <h2 id="setting-up-the-back-propagation-algorithm">Setting up the Back propagation algorithm </h2>
 
-<p>The four equations  derived last week provide us with a way of computing the gradient of the cost function. Let us write this out in the form of an algorithm.</p>
+<p>The four equations  above  provide us with a way of computing the gradient of the cost function. Let us write this out in the form of an algorithm.</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>First, we set up the input data \( \boldsymbol{x} \) and the activations
+\( \boldsymbol{z}_1 \) of the input layer and compute the activation function and
+the pertinent outputs \( \boldsymbol{a}^1 \).
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Secondly, we perform then the feed forward till we reach the output
+layer and compute all \( \boldsymbol{z}_l \) of the input layer and compute the
+activation function and the pertinent outputs \( \boldsymbol{a}^l \) for
+\( l=2,3,\dots,L \).
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Thereafter we compute the ouput error \( \boldsymbol{\delta}^L \) by computing all</p>
+<p>&nbsp;<br>
+$$
+\delta_j^L = f'(z_j^L)\frac{\partial {\cal C}}{\partial (a_j^L)}.
+$$
+<p>&nbsp;<br>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Then we compute the back propagate error for each \( l=L-1,L-2,\dots,2 \) as</p>
+<p>&nbsp;<br>
+$$
+\delta_j^l = \sum_k \delta_k^{l+1}w_{kj}^{l+1}f'(z_j^l).
+$$
+<p>&nbsp;<br>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<p>Finally, we update the weights and the biases using gradient descent for each \( l=L-1,L-2,\dots,2 \) and update the weights and biases according to the rules</p>
+<p>&nbsp;<br>
+$$
+w_{jk}^l\leftarrow  = w_{jk}^l- \eta \delta_j^la_k^{l-1},
+$$
+<p>&nbsp;<br>
+
+<p>&nbsp;<br>
+$$
+b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta \delta_j^l,
+$$
+<p>&nbsp;<br>
+</div>
+
+<p>The parameter \( \eta \) is the learning parameter discussed in connection with the gradient descent methods.
+Here it is convenient to use stochastic gradient descent (see the examples below) with mini-batches with an outer loop that steps through multiple epochs of training.
+</p>
+</section>
+
+<section>
+<h2 id="setting-up-the-back-propagation-algorithm">Setting up the Back propagation algorithm </h2>
+
+<p>The four equations  derived discussed above provide us with a way of computing the gradient of the cost function. Let us write this out in the form of an algorithm.</p>
 
 <div class="alert alert-block alert-block alert-text-normal">
 <b></b>
@@ -1894,898 +3186,6 @@ plt.show()
     </div>
   </div>
 </div>
-</section>
-
-<section>
-<h2 id="building-neural-networks-in-tensorflow-and-keras">Building neural networks in Tensorflow and Keras </h2>
-
-<p>Now we want  to build on the experience gained from our neural network implementation in NumPy and scikit-learn
-and use it to construct a neural network in Tensorflow. Once we have constructed a neural network in NumPy
-and Tensorflow, building one in Keras is really quite trivial, though the performance may suffer.  
-</p>
-
-<p>In our previous example we used only one hidden layer, and in this we will use two. From this it should be quite
-clear how to build one using an arbitrary number of hidden layers, using data structures such as Python lists or
-NumPy arrays.
-</p>
-</section>
-
-<section>
-<h2 id="tensorflow">Tensorflow </h2>
-
-<p>Tensorflow is an open source library machine learning library
-developed by the Google Brain team for internal use. It was released
-under the Apache 2.0 open source license in November 9, 2015.
-</p>
-
-<p>Tensorflow is a computational framework that allows you to construct
-machine learning models at different levels of abstraction, from
-high-level, object-oriented APIs like Keras, down to the C++ kernels
-that Tensorflow is built upon. The higher levels of abstraction are
-simpler to use, but less flexible, and our choice of implementation
-should reflect the problems we are trying to solve.
-</p>
-
-<p><a href="https://www.tensorflow.org/guide/graphs" target="_blank">Tensorflow uses</a> so-called graphs to represent your computation
-in terms of the dependencies between individual operations, such that you first build a Tensorflow <em>graph</em>
-to represent your model, and then create a Tensorflow <em>session</em> to run the graph.
-</p>
-
-<p>In this guide we will analyze the same data as we did in our NumPy and
-scikit-learn tutorial, gathered from the MNIST database of images. We
-will give an introduction to the lower level Python Application
-Program Interfaces (APIs), and see how we use them to build our graph.
-Then we will build (effectively) the same graph in Keras, to see just
-how simple solving a machine learning problem can be.
-</p>
-
-<p>To install tensorflow on Unix/Linux systems, use pip as</p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;">pip3 install tensorflow
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<p>and/or if you use <b>anaconda</b>, just write (or install from the graphical user interface)
-(current release of CPU-only TensorFlow)
-</p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;">conda create -n tf tensorflow
-conda activate tf
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<p>To install the current release of GPU TensorFlow</p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;">conda create -n tf-gpu tensorflow-gpu
-conda activate tf-gpu
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</section>
-
-<section>
-<h2 id="using-keras">Using Keras </h2>
-
-<p>Keras is a high level <a href="https://en.wikipedia.org/wiki/Application_programming_interface" target="_blank">neural network</a>
-that supports Tensorflow, CTNK and Theano as backends.  
-If you have Anaconda installed you may run the following command
-</p>
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;">conda install keras
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<p>You can look up the <a href="https://keras.io/" target="_blank">instructions here</a> for more information.</p>
-
-<p>We will to a large extent use <b>keras</b> in this course. </p>
-</section>
-
-<section>
-<h2 id="collect-and-pre-process-data">Collect and pre-process data </h2>
-
-<p>Let us look again at the MINST data set.</p>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># import necessary packages</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tensorflow</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">tf</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn</span> <span style="color: #8B008B; font-weight: bold">import</span> datasets
-
-
-<span style="color: #228B22"># ensure the same random numbers appear every time</span>
-np.random.seed(<span style="color: #B452CD">0</span>)
-
-<span style="color: #228B22"># display images in notebook</span>
-%matplotlib inline
-plt.rcParams[<span style="color: #CD5555">&#39;figure.figsize&#39;</span>] = (<span style="color: #B452CD">12</span>,<span style="color: #B452CD">12</span>)
-
-
-<span style="color: #228B22"># download MNIST dataset</span>
-digits = datasets.load_digits()
-
-<span style="color: #228B22"># define inputs and labels</span>
-inputs = digits.images
-labels = digits.target
-
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;inputs = (n_inputs, pixel_width, pixel_height) = &quot;</span> + <span style="color: #658b00">str</span>(inputs.shape))
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;labels = (n_inputs) = &quot;</span> + <span style="color: #658b00">str</span>(labels.shape))
-
-
-<span style="color: #228B22"># flatten the image</span>
-<span style="color: #228B22"># the value -1 means dimension is inferred from the remaining dimensions: 8x8 = 64</span>
-n_inputs = <span style="color: #658b00">len</span>(inputs)
-inputs = inputs.reshape(n_inputs, -<span style="color: #B452CD">1</span>)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;X = (n_inputs, n_features) = &quot;</span> + <span style="color: #658b00">str</span>(inputs.shape))
-
-
-<span style="color: #228B22"># choose some random images to display</span>
-indices = np.arange(n_inputs)
-random_indices = np.random.choice(indices, size=<span style="color: #B452CD">5</span>)
-
-<span style="color: #8B008B; font-weight: bold">for</span> i, image <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(digits.images[random_indices]):
-    plt.subplot(<span style="color: #B452CD">1</span>, <span style="color: #B452CD">5</span>, i+<span style="color: #B452CD">1</span>)
-    plt.axis(<span style="color: #CD5555">&#39;off&#39;</span>)
-    plt.imshow(image, cmap=plt.cm.gray_r, interpolation=<span style="color: #CD5555">&#39;nearest&#39;</span>)
-    plt.title(<span style="color: #CD5555">&quot;Label: %d&quot;</span> % digits.target[random_indices[i]])
-plt.show()
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.layers</span> <span style="color: #8B008B; font-weight: bold">import</span> Input
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.models</span> <span style="color: #8B008B; font-weight: bold">import</span> Sequential      <span style="color: #228B22">#This allows appending layers to existing models</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.layers</span> <span style="color: #8B008B; font-weight: bold">import</span> Dense           <span style="color: #228B22">#This allows defining the characteristics of a particular layer</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras</span> <span style="color: #8B008B; font-weight: bold">import</span> optimizers             <span style="color: #228B22">#This allows using whichever optimiser we want (sgd,adam,RMSprop)</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras</span> <span style="color: #8B008B; font-weight: bold">import</span> regularizers           <span style="color: #228B22">#This allows using whichever regularizer we want (l1,l2,l1_l2)</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.utils</span> <span style="color: #8B008B; font-weight: bold">import</span> to_categorical   <span style="color: #228B22">#This allows using categorical cross entropy as the cost function</span>
-
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
-
-<span style="color: #228B22"># one-hot representation of labels</span>
-labels = to_categorical(labels)
-
-<span style="color: #228B22"># split into train and test data</span>
-train_size = <span style="color: #B452CD">0.8</span>
-test_size = <span style="color: #B452CD">1</span> - train_size
-X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
-                                                    test_size=test_size)
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;">epochs = <span style="color: #B452CD">100</span>
-batch_size = <span style="color: #B452CD">100</span>
-n_neurons_layer1 = <span style="color: #B452CD">100</span>
-n_neurons_layer2 = <span style="color: #B452CD">50</span>
-n_categories = <span style="color: #B452CD">10</span>
-eta_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
-lmbd_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_neural_network_keras</span>(n_neurons_layer1, n_neurons_layer2, n_categories, eta, lmbd):
-    model = Sequential()
-    model.add(Dense(n_neurons_layer1, activation=<span style="color: #CD5555">&#39;sigmoid&#39;</span>, kernel_regularizer=regularizers.l2(lmbd)))
-    model.add(Dense(n_neurons_layer2, activation=<span style="color: #CD5555">&#39;sigmoid&#39;</span>, kernel_regularizer=regularizers.l2(lmbd)))
-    model.add(Dense(n_categories, activation=<span style="color: #CD5555">&#39;softmax&#39;</span>))
-    
-    sgd = optimizers.SGD(lr=eta)
-    model.compile(loss=<span style="color: #CD5555">&#39;categorical_crossentropy&#39;</span>, optimizer=sgd, metrics=[<span style="color: #CD5555">&#39;accuracy&#39;</span>])
-    
-    <span style="color: #8B008B; font-weight: bold">return</span> model
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;">DNN_keras = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)), dtype=<span style="color: #658b00">object</span>)
-        
-<span style="color: #8B008B; font-weight: bold">for</span> i, eta <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(eta_vals):
-    <span style="color: #8B008B; font-weight: bold">for</span> j, lmbd <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(lmbd_vals):
-        DNN = create_neural_network_keras(n_neurons_layer1, n_neurons_layer2, n_categories,
-                                         eta=eta, lmbd=lmbd)
-        DNN.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, verbose=<span style="color: #B452CD">0</span>)
-        scores = DNN.evaluate(X_test, Y_test)
-        
-        DNN_keras[i][j] = DNN
-        
-        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Learning rate = &quot;</span>, eta)
-        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Lambda = &quot;</span>, lmbd)
-        <span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Test accuracy: %.3f&quot;</span> % scores[<span style="color: #B452CD">1</span>])
-        <span style="color: #658b00">print</span>()
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #228B22"># optional</span>
-<span style="color: #228B22"># visual representation of grid search</span>
-<span style="color: #228B22"># uses seaborn heatmap, could probably do this in matplotlib</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
-
-sns.set()
-
-train_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
-test_accuracy = np.zeros((<span style="color: #658b00">len</span>(eta_vals), <span style="color: #658b00">len</span>(lmbd_vals)))
-
-<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(eta_vals)):
-    <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(lmbd_vals)):
-        DNN = DNN_keras[i][j]
-
-        train_accuracy[i][j] = DNN.evaluate(X_train, Y_train)[<span style="color: #B452CD">1</span>]
-        test_accuracy[i][j] = DNN.evaluate(X_test, Y_test)[<span style="color: #B452CD">1</span>]
-
-        
-fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
-sns.heatmap(train_accuracy, annot=<span style="color: #8B008B; font-weight: bold">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
-ax.set_title(<span style="color: #CD5555">&quot;Training Accuracy&quot;</span>)
-ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
-ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
-plt.show()
-
-fig, ax = plt.subplots(figsize = (<span style="color: #B452CD">10</span>, <span style="color: #B452CD">10</span>))
-sns.heatmap(test_accuracy, annot=<span style="color: #8B008B; font-weight: bold">True</span>, ax=ax, cmap=<span style="color: #CD5555">&quot;viridis&quot;</span>)
-ax.set_title(<span style="color: #CD5555">&quot;Test Accuracy&quot;</span>)
-ax.set_ylabel(<span style="color: #CD5555">&quot;$\eta$&quot;</span>)
-ax.set_xlabel(<span style="color: #CD5555">&quot;$\lambda$&quot;</span>)
-plt.show()
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</section>
-
-<section>
-<h2 id="the-breast-cancer-data-now-with-keras">The Breast Cancer Data, now with Keras </h2>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tensorflow</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">tf</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.layers</span> <span style="color: #8B008B; font-weight: bold">import</span> Input
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.models</span> <span style="color: #8B008B; font-weight: bold">import</span> Sequential      <span style="color: #228B22">#This allows appending layers to existing models</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.layers</span> <span style="color: #8B008B; font-weight: bold">import</span> Dense           <span style="color: #228B22">#This allows defining the characteristics of a particular layer</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras</span> <span style="color: #8B008B; font-weight: bold">import</span> optimizers             <span style="color: #228B22">#This allows using whichever optimiser we want (sgd,adam,RMSprop)</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras</span> <span style="color: #8B008B; font-weight: bold">import</span> regularizers           <span style="color: #228B22">#This allows using whichever regularizer we want (l1,l2,l1_l2)</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.utils</span> <span style="color: #8B008B; font-weight: bold">import</span> to_categorical   <span style="color: #228B22">#This allows using categorical cross entropy as the cost function</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">seaborn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">sns</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split <span style="color: #8B008B; font-weight: bold">as</span> splitter
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> load_breast_cancer
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">pickle</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">os</span> 
-
-
-<span style="color: #CD5555">&quot;&quot;&quot;Load breast cancer dataset&quot;&quot;&quot;</span>
-
-np.random.seed(<span style="color: #B452CD">0</span>)        <span style="color: #228B22">#create same seed for random number every time</span>
-
-cancer=load_breast_cancer()      <span style="color: #228B22">#Download breast cancer dataset</span>
-
-inputs=cancer.data                     <span style="color: #228B22">#Feature matrix of 569 rows (samples) and 30 columns (parameters)</span>
-outputs=cancer.target                  <span style="color: #228B22">#Label array of 569 rows (0 for benign and 1 for malignant)</span>
-labels=cancer.feature_names[<span style="color: #B452CD">0</span>:<span style="color: #B452CD">30</span>]
-
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;The content of the breast cancer dataset is:&#39;</span>)      <span style="color: #228B22">#Print information about the datasets</span>
-<span style="color: #658b00">print</span>(labels)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;-------------------------&#39;</span>)
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;inputs =  &quot;</span> + <span style="color: #658b00">str</span>(inputs.shape))
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;outputs =  &quot;</span> + <span style="color: #658b00">str</span>(outputs.shape))
-<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;labels =  &quot;</span>+ <span style="color: #658b00">str</span>(labels.shape))
-
-x=inputs      <span style="color: #228B22">#Reassign the Feature and Label matrices to other variables</span>
-y=outputs
-
-<span style="color: #228B22">#%% </span>
-
-<span style="color: #228B22"># Visualisation of dataset (for correlation analysis)</span>
-
-plt.figure()
-plt.scatter(x[:,<span style="color: #B452CD">0</span>],x[:,<span style="color: #B452CD">2</span>],s=<span style="color: #B452CD">40</span>,c=y,cmap=plt.cm.Spectral)
-plt.xlabel(<span style="color: #CD5555">&#39;Mean radius&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.ylabel(<span style="color: #CD5555">&#39;Mean perimeter&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.show()
-
-plt.figure()
-plt.scatter(x[:,<span style="color: #B452CD">5</span>],x[:,<span style="color: #B452CD">6</span>],s=<span style="color: #B452CD">40</span>,c=y, cmap=plt.cm.Spectral)
-plt.xlabel(<span style="color: #CD5555">&#39;Mean compactness&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.ylabel(<span style="color: #CD5555">&#39;Mean concavity&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.show()
-
-
-plt.figure()
-plt.scatter(x[:,<span style="color: #B452CD">0</span>],x[:,<span style="color: #B452CD">1</span>],s=<span style="color: #B452CD">40</span>,c=y,cmap=plt.cm.Spectral)
-plt.xlabel(<span style="color: #CD5555">&#39;Mean radius&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.ylabel(<span style="color: #CD5555">&#39;Mean texture&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.show()
-
-plt.figure()
-plt.scatter(x[:,<span style="color: #B452CD">2</span>],x[:,<span style="color: #B452CD">1</span>],s=<span style="color: #B452CD">40</span>,c=y,cmap=plt.cm.Spectral)
-plt.xlabel(<span style="color: #CD5555">&#39;Mean perimeter&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.ylabel(<span style="color: #CD5555">&#39;Mean compactness&#39;</span>,fontweight=<span style="color: #CD5555">&#39;bold&#39;</span>)
-plt.show()
-
-
-<span style="color: #228B22"># Generate training and testing datasets</span>
-
-<span style="color: #228B22">#Select features relevant to classification (texture,perimeter,compactness and symmetery) </span>
-<span style="color: #228B22">#and add to input matrix</span>
-
-temp1=np.reshape(x[:,<span style="color: #B452CD">1</span>],(<span style="color: #658b00">len</span>(x[:,<span style="color: #B452CD">1</span>]),<span style="color: #B452CD">1</span>))
-temp2=np.reshape(x[:,<span style="color: #B452CD">2</span>],(<span style="color: #658b00">len</span>(x[:,<span style="color: #B452CD">2</span>]),<span style="color: #B452CD">1</span>))
-X=np.hstack((temp1,temp2))      
-temp=np.reshape(x[:,<span style="color: #B452CD">5</span>],(<span style="color: #658b00">len</span>(x[:,<span style="color: #B452CD">5</span>]),<span style="color: #B452CD">1</span>))
-X=np.hstack((X,temp))       
-temp=np.reshape(x[:,<span style="color: #B452CD">8</span>],(<span style="color: #658b00">len</span>(x[:,<span style="color: #B452CD">8</span>]),<span style="color: #B452CD">1</span>))
-X=np.hstack((X,temp))       
-
-X_train,X_test,y_train,y_test=splitter(X,y,test_size=<span style="color: #B452CD">0.1</span>)   <span style="color: #228B22">#Split datasets into training and testing</span>
-
-y_train=to_categorical(y_train)     <span style="color: #228B22">#Convert labels to categorical when using categorical cross entropy</span>
-y_test=to_categorical(y_test)
-
-<span style="color: #8B008B; font-weight: bold">del</span> temp1,temp2,temp
-
-<span style="color: #228B22"># %%</span>
-
-<span style="color: #228B22"># Define tunable parameters&quot;</span>
-
-eta=np.logspace(-<span style="color: #B452CD">3</span>,-<span style="color: #B452CD">1</span>,<span style="color: #B452CD">3</span>)                    <span style="color: #228B22">#Define vector of learning rates (parameter to SGD optimiser)</span>
-lamda=<span style="color: #B452CD">0.01</span>                                  <span style="color: #228B22">#Define hyperparameter</span>
-n_layers=<span style="color: #B452CD">2</span>                                  <span style="color: #228B22">#Define number of hidden layers in the model</span>
-n_neuron=np.logspace(<span style="color: #B452CD">0</span>,<span style="color: #B452CD">3</span>,<span style="color: #B452CD">4</span>,dtype=<span style="color: #658b00">int</span>)       <span style="color: #228B22">#Define number of neurons per layer</span>
-epochs=<span style="color: #B452CD">100</span>                                   <span style="color: #228B22">#Number of reiterations over the input data</span>
-batch_size=<span style="color: #B452CD">100</span>                              <span style="color: #228B22">#Number of samples per gradient update</span>
-
-<span style="color: #228B22"># %%</span>
-
-<span style="color: #CD5555">&quot;&quot;&quot;Define function to return Deep Neural Network model&quot;&quot;&quot;</span>
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">NN_model</span>(inputsize,n_layers,n_neuron,eta,lamda):
-    model=Sequential()      
-    <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(n_layers):       <span style="color: #228B22">#Run loop to add hidden layers to the model</span>
-        <span style="color: #8B008B; font-weight: bold">if</span> (i==<span style="color: #B452CD">0</span>):                  <span style="color: #228B22">#First layer requires input dimensions</span>
-            model.add(Dense(n_neuron,activation=<span style="color: #CD5555">&#39;relu&#39;</span>,kernel_regularizer=regularizers.l2(lamda),input_dim=inputsize))
-        <span style="color: #8B008B; font-weight: bold">else</span>:                       <span style="color: #228B22">#Subsequent layers are capable of automatic shape inferencing</span>
-            model.add(Dense(n_neuron,activation=<span style="color: #CD5555">&#39;relu&#39;</span>,kernel_regularizer=regularizers.l2(lamda)))
-    model.add(Dense(<span style="color: #B452CD">2</span>,activation=<span style="color: #CD5555">&#39;softmax&#39;</span>))  <span style="color: #228B22">#2 outputs - ordered and disordered (softmax for prob)</span>
-    sgd=optimizers.SGD(lr=eta)
-    model.compile(loss=<span style="color: #CD5555">&#39;categorical_crossentropy&#39;</span>,optimizer=sgd,metrics=[<span style="color: #CD5555">&#39;accuracy&#39;</span>])
-    <span style="color: #8B008B; font-weight: bold">return</span> model
-
-    
-Train_accuracy=np.zeros((<span style="color: #658b00">len</span>(n_neuron),<span style="color: #658b00">len</span>(eta)))      <span style="color: #228B22">#Define matrices to store accuracy scores as a function</span>
-Test_accuracy=np.zeros((<span style="color: #658b00">len</span>(n_neuron),<span style="color: #658b00">len</span>(eta)))       <span style="color: #228B22">#of learning rate and number of hidden neurons for </span>
-
-<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(n_neuron)):     <span style="color: #228B22">#run loops over hidden neurons and learning rates to calculate </span>
-    <span style="color: #8B008B; font-weight: bold">for</span> j <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(eta)):      <span style="color: #228B22">#accuracy scores </span>
-        DNN_model=NN_model(X_train.shape[<span style="color: #B452CD">1</span>],n_layers,n_neuron[i],eta[j],lamda)
-        DNN_model.fit(X_train,y_train,epochs=epochs,batch_size=batch_size,verbose=<span style="color: #B452CD">1</span>)
-        Train_accuracy[i,j]=DNN_model.evaluate(X_train,y_train)[<span style="color: #B452CD">1</span>]
-        Test_accuracy[i,j]=DNN_model.evaluate(X_test,y_test)[<span style="color: #B452CD">1</span>]
-               
-
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">plot_data</span>(x,y,data,title=<span style="color: #8B008B; font-weight: bold">None</span>):
-
-    <span style="color: #228B22"># plot results</span>
-    fontsize=<span style="color: #B452CD">16</span>
-
-
-    fig = plt.figure()
-    ax = fig.add_subplot(<span style="color: #B452CD">111</span>)
-    cax = ax.matshow(data, interpolation=<span style="color: #CD5555">&#39;nearest&#39;</span>, vmin=<span style="color: #B452CD">0</span>, vmax=<span style="color: #B452CD">1</span>)
-    
-    cbar=fig.colorbar(cax)
-    cbar.ax.set_ylabel(<span style="color: #CD5555">&#39;accuracy (%)&#39;</span>,rotation=<span style="color: #B452CD">90</span>,fontsize=fontsize)
-    cbar.set_ticks([<span style="color: #B452CD">0</span>,<span style="color: #B452CD">.2</span>,<span style="color: #B452CD">.4</span>,<span style="color: #B452CD">0.6</span>,<span style="color: #B452CD">0.8</span>,<span style="color: #B452CD">1.0</span>])
-    cbar.set_ticklabels([<span style="color: #CD5555">&#39;0%&#39;</span>,<span style="color: #CD5555">&#39;20%&#39;</span>,<span style="color: #CD5555">&#39;40%&#39;</span>,<span style="color: #CD5555">&#39;60%&#39;</span>,<span style="color: #CD5555">&#39;80%&#39;</span>,<span style="color: #CD5555">&#39;100%&#39;</span>])
-
-    <span style="color: #228B22"># put text on matrix elements</span>
-    <span style="color: #8B008B; font-weight: bold">for</span> i, x_val <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(np.arange(<span style="color: #658b00">len</span>(x))):
-        <span style="color: #8B008B; font-weight: bold">for</span> j, y_val <span style="color: #8B008B">in</span> <span style="color: #658b00">enumerate</span>(np.arange(<span style="color: #658b00">len</span>(y))):
-            c = <span style="color: #CD5555">&quot;${0:.1f}\\%$&quot;</span>.format( <span style="color: #B452CD">100</span>*data[j,i])  
-            ax.text(x_val, y_val, c, va=<span style="color: #CD5555">&#39;center&#39;</span>, ha=<span style="color: #CD5555">&#39;center&#39;</span>)
-
-    <span style="color: #228B22"># convert axis vaues to to string labels</span>
-    x=[<span style="color: #658b00">str</span>(i) <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> x]
-    y=[<span style="color: #658b00">str</span>(i) <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> y]
-
-
-    ax.set_xticklabels([<span style="color: #CD5555">&#39;&#39;</span>]+x)
-    ax.set_yticklabels([<span style="color: #CD5555">&#39;&#39;</span>]+y)
-
-    ax.set_xlabel(<span style="color: #CD5555">&#39;$\\mathrm{learning\\ rate}$&#39;</span>,fontsize=fontsize)
-    ax.set_ylabel(<span style="color: #CD5555">&#39;$\\mathrm{hidden\\ neurons}$&#39;</span>,fontsize=fontsize)
-    <span style="color: #8B008B; font-weight: bold">if</span> title <span style="color: #8B008B">is</span> <span style="color: #8B008B">not</span> <span style="color: #8B008B; font-weight: bold">None</span>:
-        ax.set_title(title)
-
-    plt.tight_layout()
-
-    plt.show()
-    
-plot_data(eta,n_neuron,Train_accuracy, <span style="color: #CD5555">&#39;training&#39;</span>)
-plot_data(eta,n_neuron,Test_accuracy, <span style="color: #CD5555">&#39;testing&#39;</span>)
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</section>
-
-<section>
-<h2 id="fine-tuning-neural-network-hyperparameters">Fine-tuning neural network hyperparameters </h2>
-
-<p>The flexibility of neural networks is also one of their main
-drawbacks: there are many hyperparameters to tweak. Not only can you
-use any imaginable network topology (how neurons/nodes are interconnected),
-but even in a simple FFNN you can change the number of layers, the
-number of neurons per layer, the type of activation function to use in
-each layer, the weight initialization logic, the stochastic gradient optmized and much more. How do you
-know what combination of hyperparameters is the best for your task?
-</p>
-
-<ul>
-<p><li> You can use grid search with cross-validation to find the right hyperparameters.</li>
-</ul>
-<p>
-<p>However,since there are many hyperparameters to tune, and since
-training a neural network on a large dataset takes a lot of time, you
-will only be able to explore a tiny part of the hyperparameter space.
-</p>
-
-<ul>
-<p><li> You can use randomized search.</li>
-<p><li> Or use tools like <a href="http://oscar.calldesk.ai/" target="_blank">Oscar</a>, which implements more complex algorithms to help you find a good set of hyperparameters quickly.</li>  
-</ul>
-</section>
-
-<section>
-<h2 id="hidden-layers">Hidden layers </h2>
-
-<p>For many problems you can start with just one or two hidden layers and it will work just fine.
-For the MNIST data set you ca easily get a high accuracy using just one hidden layer with a
-few hundred neurons.
-You can reach for this data set above 98% accuracy using two hidden layers with the same total amount of
-neurons, in roughly the same amount of training time. 
-</p>
-
-<p>For more complex problems, you can gradually
-ramp up the number of hidden layers, until you start overfitting the training set. Very complex tasks, such
-as large image classification or speech recognition, typically require networks with dozens of layers
-and they need a huge amount
-of training data. However, you will rarely have to train such networks from scratch: it is much more
-common to reuse parts of a pretrained state-of-the-art network that performs a similar task.
-</p>
-</section>
-
-<section>
-<h2 id="which-activation-function-should-i-use">Which activation function should I use? </h2>
-
-<p>The Back propagation algorithm we derived above works by going from
-the output layer to the input layer, propagating the error gradient on
-the way. Once the algorithm has computed the gradient of the cost
-function with regards to each parameter in the network, it uses these
-gradients to update each parameter with a Gradient Descent (GD) step.
-</p>
-
-<p>Unfortunately for us, the gradients often get smaller and smaller as the
-algorithm progresses down to the first hidden layers. As a result, the
-GD update leaves the lower layer connection weights
-virtually unchanged, and training never converges to a good
-solution. This is known in the literature as 
-<b>the vanishing gradients problem</b>. 
-</p>
-
-<p>In other cases, the opposite can happen, namely the the gradients can grow bigger and
-bigger. The result is that many of the layers get large updates of the 
-weights the
-algorithm diverges. This is the <b>exploding gradients problem</b>, which is
-mostly encountered in recurrent neural networks. More generally, deep
-neural networks suffer from unstable gradients, different layers may
-learn at widely different speeds
-</p>
-</section>
-
-<section>
-<h2 id="is-the-logistic-activation-function-sigmoid-our-choice">Is the Logistic activation function (Sigmoid)  our choice? </h2>
-
-<p>Although this unfortunate behavior has been empirically observed for
-quite a while (it was one of the reasons why deep neural networks were
-mostly abandoned for a long time), it is only around 2010 that
-significant progress was made in understanding it.
-</p>
-
-<p>A paper titled <a href="http://proceedings.mlr.press/v9/glorot10a.html" target="_blank">Understanding the Difficulty of Training Deep
-Feedforward Neural Networks by Xavier Glorot and Yoshua Bengio</a> found that
-the problems with the popular logistic
-sigmoid activation function and the weight initialization technique
-that was most popular at the time, namely random initialization using
-a normal distribution with a mean of 0 and a standard deviation of
-1. 
-</p>
-
-<p>They showed that with this activation function and this
-initialization scheme, the variance of the outputs of each layer is
-much greater than the variance of its inputs. Going forward in the
-network, the variance keeps increasing after each layer until the
-activation function saturates at the top layers. This is actually made
-worse by the fact that the logistic function has a mean of 0.5, not 0
-(the hyperbolic tangent function has a mean of 0 and behaves slightly
-better than the logistic function in deep networks).
-</p>
-</section>
-
-<section>
-<h2 id="the-derivative-of-the-logistic-funtion">The derivative of the Logistic funtion </h2>
-
-<p>Looking at the logistic activation function, when inputs become large
-(negative or positive), the function saturates at 0 or 1, with a
-derivative extremely close to 0. Thus when backpropagation kicks in,
-it has virtually no gradient to propagate back through the network,
-and what little gradient exists keeps getting diluted as
-backpropagation progresses down through the top layers, so there is
-really nothing left for the lower layers.
-</p>
-
-<p>In their paper, Glorot and Bengio propose a way to significantly
-alleviate this problem. We need the signal to flow properly in both
-directions: in the forward direction when making predictions, and in
-the reverse direction when backpropagating gradients. We don&#8217;t want
-the signal to die out, nor do we want it to explode and saturate. For
-the signal to flow properly, the authors argue that we need the
-variance of the outputs of each layer to be equal to the variance of
-its inputs, and we also need the gradients to have equal variance
-before and after flowing through a layer in the reverse direction.
-</p>
-
-<p>One of the insights in the 2010 paper by Glorot and Bengio was that
-the vanishing/exploding gradients problems were in part due to a poor
-choice of activation function. Until then most people had assumed that
-if Nature had chosen to use roughly sigmoid activation functions in
-biological neurons, they must be an excellent choice. But it turns out
-that other activation functions behave much better in deep neural
-networks, in particular the ReLU activation function, mostly because
-it does not saturate for positive values (and also because it is quite
-fast to compute).
-</p>
-</section>
-
-<section>
-<h2 id="the-relu-function-family">The RELU function family </h2>
-
-<p>The ReLU activation function suffers from a problem known as the dying
-ReLUs: during training, some neurons effectively die, meaning they
-stop outputting anything other than 0.
-</p>
-
-<p>In some cases, you may find that half of your network&#8217;s neurons are
-dead, especially if you used a large learning rate. During training,
-if a neuron&#8217;s weights get updated such that the weighted sum of the
-neuron&#8217;s inputs is negative, it will start outputting 0. When this
-happen, the neuron is unlikely to come back to life since the gradient
-of the ReLU function is 0 when its input is negative.
-</p>
-
-<p>To solve this problem, nowadays practitioners use a  variant of the ReLU
-function, such as the leaky ReLU discussed above or the so-called
-exponential linear unit (ELU) function
-</p>
-
-<p>&nbsp;<br>
-$$
-ELU(z) = \left\{\begin{array}{cc} \alpha\left( \exp{(z)}-1\right) & z < 0,\\  z & z \ge 0.\end{array}\right. 
-$$
-<p>&nbsp;<br>
-</section>
-
-<section>
-<h2 id="which-activation-function-should-we-use">Which activation function should we use? </h2>
-
-<p>In general it seems that the ELU activation function is better than
-the leaky ReLU function (and its variants), which is better than
-ReLU. ReLU performs better than \( \tanh \) which in turn performs better
-than the logistic function. 
-</p>
-
-<p>If runtime
-performance is an issue, then you may opt for the  leaky ReLU function  over the 
-ELU function If you don&#8217;t
-want to tweak yet another hyperparameter, you may just use the default
-\( \alpha \) of \( 0.01 \) for the leaky ReLU, and \( 1 \) for ELU. If you have
-spare time and computing power, you can use cross-validation or
-bootstrap to evaluate other activation functions.
-</p>
-</section>
-
-<section>
-<h2 id="more-on-activation-functions-output-layers">More on activation functions, output layers </h2>
-
-<p>In most cases you can use the ReLU activation function in the hidden layers (or one of its variants).</p>
-
-<p>It is a bit faster to compute than other activation functions, and the gradient descent optimization does in general not get stuck.</p>
-
-<b>For the output layer:</b>
-
-<ul>
-<p><li> For classification the softmax activation function is generally a good choice for classification tasks (when the classes are mutually exclusive).</li>
-<p><li> For regression tasks, you can simply use no activation function at all.</li>
-</ul>
-</section>
-
-<section>
-<h2 id="batch-normalization">Batch Normalization </h2>
-
-<p>Batch Normalization
-aims to address the vanishing/exploding gradients problems, and more generally the problem that the
-distribution of each layer&#8217;s inputs changes during training, as the parameters of the previous layers change.
-</p>
-
-<p>The technique consists of adding an operation in the model just before the activation function of each
-layer, simply zero-centering and normalizing the inputs, then scaling and shifting the result using two new
-parameters per layer (one for scaling, the other for shifting). In other words, this operation lets the model
-learn the optimal scale and mean of the inputs for each layer.
-In order to zero-center and normalize the inputs, the algorithm needs to estimate the inputs&#8217; mean and
-standard deviation. It does so by evaluating the mean and standard deviation of the inputs over the current
-mini-batch, from this the name batch normalization.
-</p>
-</section>
-
-<section>
-<h2 id="dropout">Dropout </h2>
-
-<p>It is a fairly simple algorithm: at every training step, every neuron (including the input neurons but
-excluding the output neurons) has a probability \( p \) of being temporarily dropped out, meaning it will be
-entirely ignored during this training step, but it may be active during the next step.
-</p>
-
-<p>The
-hyperparameter \( p \) is called the dropout rate, and it is typically set to 50%. After training, the neurons are not dropped anymore.
- It is viewed as one of the most popular regularization techniques.
-</p>
-</section>
-
-<section>
-<h2 id="gradient-clipping">Gradient Clipping </h2>
-
-<p>A popular technique to lessen the exploding gradients problem is to simply clip the gradients during
-backpropagation so that they never exceed some threshold (this is mostly useful for recurrent neural
-networks).
-</p>
-
-<p>This technique is called Gradient Clipping.</p>
-
-<p>In general however, Batch
-Normalization is preferred.
-</p>
-</section>
-
-<section>
-<h2 id="a-very-nice-website-on-neural-networks">A very nice website on Neural Networks </h2>
-
-<p>You may find this <a href="https://playground.tensorflow.org/#activation=tanh&batchSize=10&dataset=circle&regDataset=reg-plane&learningRate=0.03&regularizationRate=0&noise=0&networkShape=4,2&seed=0.29243&showTestData=false&discretize=false&percTrainData=50&x=true&y=true&xTimesY=false&xSquared=false&ySquared=false&cosX=false&sinX=false&cosY=false&sinY=false&collectStats=false&problem=classification&initZero=false&hideText=false" target="_blank">website</a> very useful. </p>
-</section>
-
-<section>
-<h2 id="a-top-down-perspective-on-neural-networks">A top-down perspective on Neural networks </h2>
-
-<p>The first thing we would like to do is divide the data into two or three
-parts. A training set, a validation or dev (development) set, and a
-test set. The test set is the data on which we want to make
-predictions. The dev set is a subset of the training data we use to
-check how well we are doing out-of-sample, after training the model on
-the training dataset. We use the validation error as a proxy for the
-test error in order to make tweaks to our model. It is crucial that we
-do not use any of the test data to train the algorithm. This is a
-cardinal sin in ML. Then:
-</p>
-
-<ul>
-<p><li> Estimate optimal error rate</li>
-<p><li> Minimize underfitting (bias) on training data set.</li>
-<p><li> Make sure you are not overfitting.</li>
-</ul>
-<p>
-<p>If the validation and test sets are drawn from the same distributions,
-then a good performance on the validation set should lead to similarly
-good performance on the test set. 
-</p>
-
-<p>However, sometimes
-the training data and test data differ in subtle ways because, for
-example, they are collected using slightly different methods, or
-because it is cheaper to collect data in one way versus another. In
-this case, there can be a mismatch between the training and test
-data. This can lead to the neural network overfitting these small
-differences between the test and training sets, and a poor performance
-on the test set despite having a good performance on the validation
-set. To rectify this, Andrew Ng suggests making two validation or dev
-sets, one constructed from the training data and one constructed from
-the test data. The difference between the performance of the algorithm
-on these two validation sets quantifies the train-test mismatch. This
-can serve as another important diagnostic when using DNNs for
-supervised learning.
-</p>
-</section>
-
-<section>
-<h2 id="limitations-of-supervised-learning-with-deep-networks">Limitations of supervised learning with deep networks </h2>
-
-<p>Like all statistical methods, supervised learning using neural
-networks has important limitations. This is especially important when
-one seeks to apply these methods, especially to physics problems. Like
-all tools, DNNs are not a universal solution. Often, the same or
-better performance on a task can be achieved by using a few
-hand-engineered features (or even a collection of random
-features). 
-</p>
-
-<p>Here we list some of the important limitations of supervised neural network based models. </p>
-
-<ul>
-<p><li> <b>Need labeled data</b>. All supervised learning methods, DNNs for supervised learning require labeled data. Often, labeled data is harder to acquire than unlabeled data (e.g. one must pay for human experts to label images).</li>
-<p><li> <b>Supervised neural networks are extremely data intensive.</b> DNNs are data hungry. They perform best when data is plentiful. This is doubly so for supervised methods where the data must also be labeled. The utility of DNNs is extremely limited if data is hard to acquire or the datasets are small (hundreds to a few thousand samples). In this case, the performance of other methods that utilize hand-engineered features can exceed that of DNNs.</li>
-<p><li> <b>Homogeneous data.</b> Almost all DNNs deal with homogeneous data of one type. It is very hard to design architectures that mix and match data types (i.e.&nbsp;some continuous variables, some discrete variables, some time series). In applications beyond images, video, and language, this is often what is required. In contrast, ensemble models like random forests or gradient-boosted trees have no difficulty handling mixed data types.</li>
-<p><li> <b>Many problems are not about prediction.</b> In natural science we are often interested in learning something about the underlying distribution that generates the data. In this case, it is often difficult to cast these ideas in a supervised learning setting. While the problems are related, it is possible to make good predictions with a <em>wrong</em> model. The model might or might not be useful for understanding the underlying science.</li>
-</ul>
-<p>
-<p>Some of these remarks are particular to DNNs, others are shared by all supervised learning methods. This motivates the use of unsupervised methods which in part circumvent these problems.</p>
 </section>
 
 
