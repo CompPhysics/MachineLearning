@@ -1,60 +1,73 @@
-TITLE: Exercises week 41
-AUTHOR: October 9-13, 2023
-DATE: Deadline is Sunday October 15 at midnight
+#!/usr/bin/env python
+# coding: utf-8
+
+# <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
+# doconce format html exercisesweek41.do.txt  -->
+# <!-- dom:TITLE: Exercises week 41 -->
+
+# # Exercises week 41
+# **October 9-13, 2023**
+# 
+# Date: **Deadline is Sunday October 15 at midnight**
+
+# # Overarching aims of the exercises this week
+# 
+# The aim of the exercises this week is to get started with implementing
+# gradient methods of relevance for project 2. This exercise will also
+# be continued next week with the addition of automatic differentation.
+# Everything you develop here will be used in project 2. 
+# 
+# In order to get started, we will now replace in our standard ordinary
+# least squares (OLS) and Ridge regression codes (from project 1) the
+# matrix inversion algorithm with our own gradient descent (GD) and SGD
+# codes.  You can use the Franke function or the terrain data from
+# project 1. **However, we recommend using a simpler function like**
+# $f(x)=a_0+a_1x+a_2x^2$ or higher-order one-dimensional polynomials.
+# You can obviously test your final codes against for example the Franke
+# function. Automatic differentiation will be discussed next week.
+# 
+# You should include in your analysis of the GD and SGD codes the following elements
+# 1. A plain gradient descent with a fixed learning rate (you will need to tune it) using the analytical expression of the gradients
+# 
+# 2. Add momentum to the plain GD code and compare convergence with a fixed learning rate (you may need to tune the learning rate), again using the analytical expression of the gradients.
+# 
+# 3. Repeat these steps for stochastic gradient descent with mini batches and a given number of epochs. Use a tunable learning rate as discussed in the lectures from week 39. Discuss the results as functions of the various parameters (size of batches, number of epochs etc)
+# 
+# 4. Implement the Adagrad method in order to tune the learning rate. Do this with and without momentum for plain gradient descent and SGD.
+# 
+# 5. Add RMSprop and Adam to your library of methods for tuning the learning rate.
+# 
+# The lecture notes from weeks 39 and 40 contain more information and code examples. Feel free to use these examples.
+# 
+# In summary, you should 
+# perform an analysis of the results for OLS and Ridge regression as
+# function of the chosen learning rates, the number of mini-batches and
+# epochs as well as algorithm for scaling the learning rate. You can
+# also compare your own results with those that can be obtained using
+# for example **Scikit-Learn**'s various SGD options.  Discuss your
+# results. For Ridge regression you need now to study the results as functions of  the hyper-parameter $\lambda$ and 
+# the learning rate $\eta$.  Discuss your results.
+# 
+# You will need your SGD code for the setup of the Neural Network and
+# Logistic Regression codes. You will find the Python [Seaborn
+# package](https://seaborn.pydata.org/generated/seaborn.heatmap.html)
+# useful when plotting the results as function of the learning rate
+# $\eta$ and the hyper-parameter $\lambda$ when you use Ridge
+# regression.
+# 
+# We recommend reading chapter 8 on optimization from the textbook of [Goodfellow, Bengio and Courville](https://www.deeplearningbook.org/). This chapter contains many useful insights and discussions on the optimization part of machine learning.
+
+# # Code examples from week 39 and 40
+
+# ## Code with a Number of Minibatches which varies, analytical gradient
+# 
+# In the code here we vary the number of mini-batches.
+
+# In[1]:
 
 
-=======  Overarching aims of the exercises this week =======
+get_ipython().run_line_magic('matplotlib', 'inline')
 
-The aim of the exercises this week is to get started with implementing
-gradient methods of relevance for project 2. This exercise will also
-be continued next week with the addition of automatic differentation.
-Everything you develop here will be used in project 2. 
-
-In order to get started, we will now replace in our standard ordinary
-least squares (OLS) and Ridge regression codes (from project 1) the
-matrix inversion algorithm with our own gradient descent (GD) and SGD
-codes.  You can use the Franke function or the terrain data from
-project 1. _However, we recommend using a simpler function like_
-$f(x)=a_0+a_1x+a_2x^2$ or higher-order one-dimensional polynomials.
-You can obviously test your final codes against for example the Franke
-function. Automatic differentiation will be discussed next week.
-
-You should include in your analysis of the GD and SGD codes the following elements
-o A plain gradient descent with a fixed learning rate (you will need to tune it) using the analytical expression of the gradients
-o Add momentum to the plain GD code and compare convergence with a fixed learning rate (you may need to tune the learning rate), again using the analytical expression of the gradients.
-o Repeat these steps for stochastic gradient descent with mini batches and a given number of epochs. Use a tunable learning rate as discussed in the lectures from week 39. Discuss the results as functions of the various parameters (size of batches, number of epochs etc)
-o Implement the Adagrad method in order to tune the learning rate. Do this with and without momentum for plain gradient descent and SGD.
-o Add RMSprop and Adam to your library of methods for tuning the learning rate.
-The lecture notes from weeks 39 and 40 contain more information and code examples. Feel free to use these examples.
-
-In summary, you should 
-perform an analysis of the results for OLS and Ridge regression as
-function of the chosen learning rates, the number of mini-batches and
-epochs as well as algorithm for scaling the learning rate. You can
-also compare your own results with those that can be obtained using
-for example _Scikit-Learn_'s various SGD options.  Discuss your
-results. For Ridge regression you need now to study the results as functions of  the hyper-parameter $\lambda$ and 
-the learning rate $\eta$.  Discuss your results.
-
-You will need your SGD code for the setup of the Neural Network and
-Logistic Regression codes. You will find the Python "Seaborn
-package":"https://seaborn.pydata.org/generated/seaborn.heatmap.html"
-useful when plotting the results as function of the learning rate
-$\eta$ and the hyper-parameter $\lambda$ when you use Ridge
-regression.
-
-We recommend reading chapter 8 on optimization from the textbook of "Goodfellow, Bengio and Courville":"https://www.deeplearningbook.org/". This chapter contains many useful insights and discussions on the optimization part of machine learning.
-
-
-=======  Code examples from week 39 and 40 =======
-
-
-
-
-===== Code with a Number of Minibatches which varies, analytical gradient =====
-
-In the code here we vary the number of mini-batches.
-!bc pycode
 # Importing various packages
 from math import exp, sqrt
 from random import random, seed
@@ -122,76 +135,77 @@ plt.ylabel(r'$y$')
 plt.title(r'Random numbers ')
 plt.show()
 
-!ec
+
+# In the above code, we have use replacement in setting up the
+# mini-batches. The discussion
+# [here](https://sebastianraschka.com/faq/docs/sgd-methods.html) may be
+# useful.
+
+# ## Momentum based GD
+# 
+# The stochastic gradient descent (SGD) is almost always used with a
+# *momentum* or inertia term that serves as a memory of the direction we
+# are moving in parameter space.  This is typically implemented as
+# follows
+
+# $$
+# \mathbf{v}_{t}=\gamma \mathbf{v}_{t-1}+\eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t) \nonumber
+# $$
+
+# <!-- Equation labels as ordinary links -->
+# <div id="_auto1"></div>
+# 
+# $$
+# \begin{equation} 
+# \boldsymbol{\theta}_{t+1}= \boldsymbol{\theta}_t -\mathbf{v}_{t},
+# \label{_auto1} \tag{1}
+# \end{equation}
+# $$
+
+# where we have introduced a momentum parameter $\gamma$, with
+# $0\le\gamma\le 1$, and for brevity we dropped the explicit notation to
+# indicate the gradient is to be taken over a different mini-batch at
+# each step. We call this algorithm gradient descent with momentum
+# (GDM). From these equations, it is clear that $\mathbf{v}_t$ is a
+# running average of recently encountered gradients and
+# $(1-\gamma)^{-1}$ sets the characteristic time scale for the memory
+# used in the averaging procedure. Consistent with this, when
+# $\gamma=0$, this just reduces down to ordinary SGD as discussed
+# earlier. An equivalent way of writing the updates is
+
+# $$
+# \Delta \boldsymbol{\theta}_{t+1} = \gamma \Delta \boldsymbol{\theta}_t -\ \eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t),
+# $$
+
+# where we have defined $\Delta \boldsymbol{\theta}_{t}= \boldsymbol{\theta}_t-\boldsymbol{\theta}_{t-1}$.
+
+# ## Algorithms and codes for Adagrad, RMSprop and Adam
+# 
+# The algorithms we have implemented are well described in the text by [Goodfellow, Bengio and Courville, chapter 8](https://www.deeplearningbook.org/contents/optimization.html).
+# 
+# The codes which implement these algorithms are discussed after our presentation of automatic differentiation.
+
+# ## Practical tips
+# 
+# * **Randomize the data when making mini-batches**. It is always important to randomly shuffle the data when forming mini-batches. Otherwise, the gradient descent method can fit spurious correlations resulting from the order in which data is presented.
+# 
+# * **Transform your inputs**. Learning becomes difficult when our landscape has a mixture of steep and flat directions. One simple trick for minimizing these situations is to standardize the data by subtracting the mean and normalizing the variance of input variables. Whenever possible, also decorrelate the inputs. To understand why this is helpful, consider the case of linear regression. It is easy to show that for the squared error cost function, the Hessian of the cost function is just the correlation matrix between the inputs. Thus, by standardizing the inputs, we are ensuring that the landscape looks homogeneous in all directions in parameter space. Since most deep networks can be viewed as linear transformations followed by a non-linearity at each layer, we expect this intuition to hold beyond the linear case.
+# 
+# * **Monitor the out-of-sample performance.** Always monitor the performance of your model on a validation set (a small portion of the training data that is held out of the training process to serve as a proxy for the test set. If the validation error starts increasing, then the model is beginning to overfit. Terminate the learning process. This *early stopping* significantly improves performance in many settings.
+# 
+# * **Adaptive optimization methods don't always have good generalization.** Recent studies have shown that adaptive methods such as ADAM, RMSPorp, and AdaGrad tend to have poor generalization compared to SGD or SGD with momentum, particularly in the high-dimensional limit (i.e. the number of parameters exceeds the number of data points). Although it is not clear at this stage why these methods perform so well in training deep neural networks, simpler procedures like properly-tuned SGD may work as well or better in these applications.
+# 
+# Geron's text, see chapter 11, has several interesting discussions.
+
+# ## Using Automatic differentation with OLS
+# 
+# We conclude the part on optmization by showing how we can make codes
+# for linear regression and logistic regression using **autograd**. The
+# first example shows results with ordinary leats squares.
+
+# In[2]:
 
 
-
-In the above code, we have use replacement in setting up the
-mini-batches. The discussion
-"here":"https://sebastianraschka.com/faq/docs/sgd-methods.html" may be
-useful.  
-
-
-
-===== Momentum based GD =====
-
-The stochastic gradient descent (SGD) is almost always used with a
-*momentum* or inertia term that serves as a memory of the direction we
-are moving in parameter space.  This is typically implemented as
-follows
-
-!bt
-\begin{align}
-\mathbf{v}_{t}&=\gamma \mathbf{v}_{t-1}+\eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t) \nonumber \\
-\boldsymbol{\theta}_{t+1}&= \boldsymbol{\theta}_t -\mathbf{v}_{t},
-\end{align}
-!et
-
-where we have introduced a momentum parameter $\gamma$, with
-$0\le\gamma\le 1$, and for brevity we dropped the explicit notation to
-indicate the gradient is to be taken over a different mini-batch at
-each step. We call this algorithm gradient descent with momentum
-(GDM). From these equations, it is clear that $\mathbf{v}_t$ is a
-running average of recently encountered gradients and
-$(1-\gamma)^{-1}$ sets the characteristic time scale for the memory
-used in the averaging procedure. Consistent with this, when
-$\gamma=0$, this just reduces down to ordinary SGD as discussed
-earlier. An equivalent way of writing the updates is
-
-!bt
-\[
-\Delta \boldsymbol{\theta}_{t+1} = \gamma \Delta \boldsymbol{\theta}_t -\ \eta_{t}\nabla_\theta E(\boldsymbol{\theta}_t),
-\]
-!et
-where we have defined $\Delta \boldsymbol{\theta}_{t}= \boldsymbol{\theta}_t-\boldsymbol{\theta}_{t-1}$.
-
-===== Algorithms and codes for Adagrad, RMSprop and Adam =====
-
-The algorithms we have implemented are well described in the text by "Goodfellow, Bengio and Courville, chapter 8":"https://www.deeplearningbook.org/contents/optimization.html".
-
-The codes which implement these algorithms are discussed after our presentation of automatic differentiation.
-
-
-
-===== Practical tips =====
-
-* _Randomize the data when making mini-batches_. It is always important to randomly shuffle the data when forming mini-batches. Otherwise, the gradient descent method can fit spurious correlations resulting from the order in which data is presented.
-
-* _Transform your inputs_. Learning becomes difficult when our landscape has a mixture of steep and flat directions. One simple trick for minimizing these situations is to standardize the data by subtracting the mean and normalizing the variance of input variables. Whenever possible, also decorrelate the inputs. To understand why this is helpful, consider the case of linear regression. It is easy to show that for the squared error cost function, the Hessian of the cost function is just the correlation matrix between the inputs. Thus, by standardizing the inputs, we are ensuring that the landscape looks homogeneous in all directions in parameter space. Since most deep networks can be viewed as linear transformations followed by a non-linearity at each layer, we expect this intuition to hold beyond the linear case.
-
-* _Monitor the out-of-sample performance._ Always monitor the performance of your model on a validation set (a small portion of the training data that is held out of the training process to serve as a proxy for the test set. If the validation error starts increasing, then the model is beginning to overfit. Terminate the learning process. This *early stopping* significantly improves performance in many settings.
-	
-* _Adaptive optimization methods don't always have good generalization._ Recent studies have shown that adaptive methods such as ADAM, RMSPorp, and AdaGrad tend to have poor generalization compared to SGD or SGD with momentum, particularly in the high-dimensional limit (i.e. the number of parameters exceeds the number of data points). Although it is not clear at this stage why these methods perform so well in training deep neural networks, simpler procedures like properly-tuned SGD may work as well or better in these applications.
-
-Geron's text, see chapter 11, has several interesting discussions.
-
-=====  Using Automatic differentation with OLS =====
-
-We conclude the part on optmization by showing how we can make codes
-for linear regression and logistic regression using _autograd_. The
-first example shows results with ordinary leats squares.
-
-!bc pycod
 # Using Autograd to calculate gradients for OLS
 from random import random, seed
 import numpy as np
@@ -242,12 +256,12 @@ plt.ylabel(r'$y$')
 plt.title(r'Random numbers ')
 plt.show()
 
-!ec
+
+# ## Same code but now with momentum gradient descent
+
+# In[3]:
 
 
-
-===== Same code but now with momentum gradient descent =====
-!bc pycod
 # Using Autograd to calculate gradients for OLS
 from random import random, seed
 import numpy as np
@@ -302,12 +316,12 @@ for iter in range(Niterations):
 print("theta from own gd wth momentum")
 print(theta)
 
-!ec
+
+# ## But noen of these can compete with Newton's method
+
+# In[4]:
 
 
-===== But noen of these can compete with Newton's method =====
-
-!bc pycod
 # Using Newton's method
 from random import random, seed
 import numpy as np
@@ -346,14 +360,14 @@ for iter in range(Niterations):
     print(iter,gradients[0],gradients[1])
 print("beta from own Newton code")
 print(beta)
-!ec
 
 
+# ## Including Stochastic Gradient Descent with Autograd
+# In this code we include the stochastic gradient descent approach discussed above. Note here that we specify which argument we are taking the derivative with respect to when using **autograd**.
 
-===== Including Stochastic Gradient Descent with Autograd =====
-In this code we include the stochastic gradient descent approach discussed above. Note here that we specify which argument we are taking the derivative with respect to when using _autograd_.
+# In[5]:
 
-!bc pycod
+
 # Using Autograd to calculate gradients using SGD
 # OLS example
 from random import random, seed
@@ -429,12 +443,11 @@ print("theta from own sdg")
 print(theta)
 
 
-!ec
+# ## Same code but now with momentum gradient descent
+
+# In[6]:
 
 
-
-===== Same code but now with momentum gradient descent =====
-!bc pycod
 # Using Autograd to calculate gradients using SGD
 # OLS example
 from random import random, seed
@@ -502,14 +515,21 @@ for epoch in range(n_epochs):
         change = new_change
 print("theta from own sdg with momentum")
 print(theta)
-!ec
 
-===== AdaGrad algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
 
-FIGURE: [figures/adagrad.png, width=600 frac=0.8]
+# ## AdaGrad algorithm, taken from [Goodfellow et al](https://www.deeplearningbook.org/contents/optimization.html)
+# 
+# <!-- dom:FIGURE: [figures/adagrad.png, width=600 frac=0.8] -->
+# <!-- begin figure -->
+# 
+# <img src="figures/adagrad.png" width="600"><p style="font-size: 0.9em"><i>Figure 1: </i></p>
+# <!-- end figure -->
 
-===== Similar (second order function now) problem but now with AdaGrad =====
-!bc pycod
+# ## Similar (second order function now) problem but now with AdaGrad
+
+# In[7]:
+
+
 # Using Autograd to calculate gradients using AdaGrad and Stochastic Gradient descent
 # OLS example
 from random import random, seed
@@ -560,17 +580,21 @@ print("theta from own AdaGrad")
 print(theta)
 
 
-!ec
+# Running this code we note an almost perfect agreement with the results from matrix inversion.
 
-Running this code we note an almost perfect agreement with the results from matrix inversion.
+# ## RMSProp algorithm, taken from [Goodfellow et al](https://www.deeplearningbook.org/contents/optimization.html)
+# 
+# <!-- dom:FIGURE: [figures/rmsprop.png, width=600 frac=0.8] -->
+# <!-- begin figure -->
+# 
+# <img src="figures/rmsprop.png" width="600"><p style="font-size: 0.9em"><i>Figure 1: </i></p>
+# <!-- end figure -->
 
-===== RMSProp algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+# ## RMSprop for adaptive learning rate with Stochastic Gradient Descent
 
-FIGURE: [figures/rmsprop.png, width=600 frac=0.8]
+# In[8]:
 
 
-=====  RMSprop for adaptive learning rate with Stochastic Gradient Descent =====
-!bc pycod
 # Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
 # OLS example
 from random import random, seed
@@ -625,16 +649,21 @@ for epoch in range(n_epochs):
         theta -= update
 print("theta from own RMSprop")
 print(theta)
-!ec
-
-===== ADAM algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
-
-FIGURE: [figures/adam.png, width=600 frac=0.8]
 
 
-===== And finally "ADAM":"https://arxiv.org/pdf/1412.6980.pdf" =====
+# ## ADAM algorithm, taken from [Goodfellow et al](https://www.deeplearningbook.org/contents/optimization.html)
+# 
+# <!-- dom:FIGURE: [figures/adam.png, width=600 frac=0.8] -->
+# <!-- begin figure -->
+# 
+# <img src="figures/adam.png" width="600"><p style="font-size: 0.9em"><i>Figure 1: </i></p>
+# <!-- end figure -->
 
-!bc pycod
+# ## And finally [ADAM](https://arxiv.org/pdf/1412.6980.pdf)
+
+# In[9]:
+
+
 # Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
 # OLS example
 from random import random, seed
@@ -694,30 +723,34 @@ for epoch in range(n_epochs):
         theta -= update
 print("theta from own ADAM")
 print(theta)
-!ec
 
-===== Introducing "JAX":"https://jax.readthedocs.io/en/latest/" =====
 
-Presently, instead of using _autograd_, we recommend using "JAX":"https://jax.readthedocs.io/en/latest/"
+# ## Introducing [JAX](https://jax.readthedocs.io/en/latest/)
+# 
+# Presently, instead of using **autograd**, we recommend using [JAX](https://jax.readthedocs.io/en/latest/)
+# 
+# **JAX** is Autograd and [XLA (Accelerated Linear Algebra))](https://www.tensorflow.org/xla),
+# brought together for high-performance numerical computing and machine learning research.
+# It provides composable transformations of Python+NumPy programs: differentiate, vectorize, parallelize, Just-In-Time compile to GPU/TPU, and more.
 
-_JAX_ is Autograd and "XLA (Accelerated Linear Algebra))":"https://www.tensorflow.org/xla",
-brought together for high-performance numerical computing and machine learning research.
-It provides composable transformations of Python+NumPy programs: differentiate, vectorize, parallelize, Just-In-Time compile to GPU/TPU, and more.
+# ### Getting started with Jax, note the way we import numpy
 
-=== Getting started with Jax, note the way we import numpy ===
-!bc pycod
+# In[10]:
+
+
 import jax
 import jax.numpy as jnp
 import numpy as np
 import matplotlib.pyplot as plt
 
 from jax import grad as jax_grad
-!ec
 
 
-=== A warm-up example ===
+# ### A warm-up example
 
-!bc pycod
+# In[11]:
+
+
 def function(x):
     return x**2
 
@@ -752,11 +785,13 @@ jax_descend_x, jax_descend_y = gradient_descent(5, 0.1, 10, solver="jax")
 
 plt.plot(descent_x, descent_y, label="Gradient descent", marker="o")
 plt.plot(jax_descend_x, jax_descend_y, label="JAX", marker="x")
-!ec
 
-=== A more advanced example ===
 
-!bc pycod
+# ### A more advanced example
+
+# In[12]:
+
+
 backend = np
 
 def function(x):
@@ -777,5 +812,4 @@ jax_descend_x, jax_descend_y = gradient_descent(1, 0.01, 300, solver="jax")
 
 plt.scatter(descent_x, descent_y, label="Gradient descent", marker="v", s=10, color="red") 
 plt.scatter(jax_descend_x, jax_descend_y, label="JAX", marker="x", s=5, color="black")
-!ec
 
