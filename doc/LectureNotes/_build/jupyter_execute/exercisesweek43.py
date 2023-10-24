@@ -257,6 +257,8 @@ plt.show()
 # will first present some implementations of various schedulers, cost
 # functions and activation functions that can be used together with the
 # neural network.
+# 
+# The codes here were developed by Eric Reber and Gregor Kajda during spring 2023.
 
 # ### Learning rate methods
 # 
