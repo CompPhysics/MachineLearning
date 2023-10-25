@@ -160,13 +160,14 @@
 # and multiplying with $\boldsymbol{a}_h$ gives the output
 
 # $$
-# \boldsymbol{a}_o=\boldsymbol{w}_h^T\begin{bmatrix} 0 & 0 \\
+# \boldsymbol{a}_o=\begin{bmatrix} 0 & 0 \\
 #                        1 & 0 \\
 # 		       1 & 0 \\
-# 		       2 & 1 \end{bmatrix}=\begin{bmatrix} 0 \\ 1 \\ 1 \\0\end{bmatrix},
+# 		       2 & 1 \end{bmatrix}\begin{bmatrix} 1 \\
+#                        -2\end{bmatrix}=\begin{bmatrix} 0 \\ 1 \\ 1 \\0\end{bmatrix},
 # $$
 
-# the wanted result.
+# the wanted result.  Pay attention to the dimensionalities as well.
 
 # ## Setting up the Neural Network
 # 
