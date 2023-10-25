@@ -107,6 +107,67 @@
 # 
 # Everything you develop here can be used directly into the code for the project.
 
+# ## Setting up dimensionalities by hand
+# 
+# It can be useful to test the dimensionalities for the network.  Let us assume we have performed an optimization for XOR gate and found that the weights for the hidden layer are given by
+
+# $$
+# \boldsymbol{W_h}=\begin{bmatrix} 1 & 1 \\
+#                        1 & 1 \end{bmatrix},
+# $$
+
+# Multiplying $\boldsymbol{X}$ and $\boldsymbol{W}$ gives
+
+# $$
+# \boldsymbol{X}{W}_h=\begin{bmatrix} 0 & 0 \\
+#                        1 & 1 \\
+# 		       1 & 1 \\
+# 		       2 & 2 \end{bmatrix},
+# $$
+
+# Assume also that the bias vector for the hidden layer is
+
+# $$
+# \boldsymbol{b}_h=\begin{bmatrix} 0 \\
+#                        -1\end{bmatrix},
+# $$
+
+# Adding it gives us the input to the activation function of the hidden layer
+
+# $$
+# \boldsymbol{z}_h=\boldsymbol{X}\boldsymbol{W}_h+\boldsymbol{b}_h=\begin{bmatrix} 0 & -1 \\
+#                        1 & 0 \\
+# 		       1 & 0 \\
+# 		       2 & 1 \end{bmatrix},
+# $$
+
+# Let us then assume that our activation function is the RELU function, which simply means that we take the max of $0$ and the elements of the input argument $\boldsymbol{z}_h$, that is we have
+
+# $$
+# \boldsymbol{a}_h=\mathrm{RELU}(\boldsymbol{z}_h=\boldsymbol{X}\boldsymbol{W}_h+\boldsymbol{b}_h)=\begin{bmatrix} 0 & 0 \\
+#                        1 & 0 \\
+# 		       1 & 0 \\
+# 		       2 & 1 \end{bmatrix},
+# $$
+
+# Assume also that the bias of the output layer is zero and that the weights of the output layer are
+
+# $$
+# \boldsymbol{w}_o=\begin{bmatrix} 1 \\
+#                        -2\end{bmatrix},
+# $$
+
+# and multiplying with $\boldsymbol{a}_h$ gives the output
+
+# $$
+# \boldsymbol{a}_o=\boldsymbol{w}_h^T\begin{bmatrix} 0 & 0 \\
+#                        1 & 0 \\
+# 		       1 & 0 \\
+# 		       2 & 1 \end{bmatrix}=\begin{bmatrix} 0 \\ 1 \\ 1 \\0\end{bmatrix},
+# $$
+
+# the wanted result.
+
 # ## Setting up the Neural Network
 # 
 # We define first our design matrix and the various output vectors for the different gates.
@@ -141,10 +202,6 @@ def feed_forward(X):
     probabilities = sigmoid(z_o)
     return probabilities
 
-# we obtain a prediction by taking the class with the highest likelihood
-def predict(X):
-    probabilities = feed_forward(X)
-    return np.argmax(probabilities, axis=1)
 
 # ensure the same random numbers appear every time
 np.random.seed(0)
@@ -162,7 +219,7 @@ yAND = np.array( [ 0, 0 ,0, 1])
 # Defining the neural network
 n_inputs, n_features = X.shape
 n_hidden_neurons = 2
-n_categories = 2
+n_categories = 1
 n_features = 2
 
 # we make the weights normally distributed using numpy.random.randn
@@ -177,10 +234,6 @@ output_bias = np.zeros(n_categories) + 0.01
 
 probabilities = feed_forward(X)
 print(probabilities)
-
-
-predictions = predict(X)
-print(predictions)
 
 
 # Not an impressive result, but this was our first forward pass with randomly assigned weights. Let us now add the full network with the back-propagation algorithm discussed above.
@@ -211,10 +264,7 @@ yOR = np.array( [ 0, 1 ,1, 1])
 yAND = np.array( [ 0, 0 ,0, 1])
 
 # Defining the neural network
-n_inputs, n_features = X.shape
 n_hidden_neurons = 2
-n_categories = 2
-n_features = 2
 
 eta_vals = np.logspace(-5, 1, 7)
 lmbd_vals = np.logspace(-5, 1, 7)
@@ -1248,3 +1298,26 @@ multiclass.reset_weights() # reset weights such that previous runs or reruns don
 scheduler = Adam(eta=1e-4, rho=0.9, rho2=0.999)
 scores = multiclass.fit(X, target, scheduler, epochs=1000)
 
+
+# ## Testing the XOR gate and other gates
+# 
+# Let us now use our code to test the XOR gate.
+
+# In[21]:
+
+
+X = np.array([ [0, 0], [0, 1], [1, 0],[1, 1]],dtype=np.float64)
+
+# The XOR gate
+yXOR = np.array( [[ 0], [1] ,[1], [0]])
+
+input_nodes = X.shape[1]
+output_nodes = 1
+
+logistic_regression = FFNN((input_nodes, output_nodes), output_func=sigmoid, cost_func=CostLogReg, seed=2023)
+logistic_regression.reset_weights() # reset weights such that previous runs or reruns don't affect the weights
+scheduler = Adam(eta=1e-1, rho=0.9, rho2=0.999)
+scores = logistic_regression.fit(X, yXOR, scheduler, epochs=1000)
+
+
+# Not bad, but the results depend strongly on the learning reate. Try different learning rates.
