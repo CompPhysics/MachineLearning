@@ -86,6 +86,10 @@ div.toc p,a {
                2,
                None,
                'representing-the-data-sets'),
+              ('Setting up dimensionalities by hand',
+               2,
+               None,
+               'setting-up-dimensionalities-by-hand'),
               ('Setting up the Neural Network',
                2,
                None,
@@ -94,6 +98,26 @@ div.toc p,a {
                2,
                None,
                'the-code-using-scikit-learn'),
+              ('Building a neural network code',
+               2,
+               None,
+               'building-a-neural-network-code'),
+              ('Learning rate methods', 3, None, 'learning-rate-methods'),
+              ('Usage of the above learning rate schedulers',
+               3,
+               None,
+               'usage-of-the-above-learning-rate-schedulers'),
+              ('Cost functions', 3, None, 'cost-functions'),
+              ('Activation functions', 3, None, 'activation-functions'),
+              ('The Neural Network', 3, None, 'the-neural-network'),
+              ('Multiclass classification',
+               3,
+               None,
+               'multiclass-classification'),
+              ('Testing the XOR gate and other gates',
+               2,
+               None,
+               'testing-the-xor-gate-and-other-gates'),
               ('Lecture Thursday October 26',
                2,
                None,
@@ -356,7 +380,7 @@ MathJax.Hub.Config({
 </center>
 <br>
 <center>
-<h4>Oct 23, 2023</h4>
+<h4>Oct 25, 2023</h4>
 </center> <!-- date -->
 <br>
 
@@ -492,6 +516,76 @@ $$
 
 <p>while the vector of outputs is \( \boldsymbol{y}^T=[0,1,1,0] \) for the XOR gate, \( \boldsymbol{y}^T=[0,0,0,1] \) for the AND gate and \( \boldsymbol{y}^T=[0,1,1,1] \) for the OR gate.</p>
 
+<p>Your tasks here are</p>
+
+<ol>
+<li> Set up the design matrix with the inputs as discussed above and a vector containing the output, the so-called targets. Note that the design matrix is the same for all gates. You need just to define different outputs.</li>
+<li> Construct a neural network with only one hidden layer and two hidden nodes using the Sigmoid function as activation function.</li>
+<li> Set up the output layer with only one output node and use again the Sigmoid function as activation function for the output.</li>
+<li> Initialize the weights and biases and perform a feed forward pass and compare the outputs with the targets.</li>
+<li> Set up the cost function (cross entropy for classification of binary cases).</li>
+<li> Calculate the gradients needed for the back propagation part.</li>
+<li> Use the gradients to train the network in the back propagation part. Think of using automatic differentiation.</li>
+<li> Train the network and study your results and compare with results obtained either with <b>scikit-learn</b> or <b>TensorFlow</b>.</li>
+</ol>
+<p>Everything you develop here can be used directly into the code for the project.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="setting-up-dimensionalities-by-hand">Setting up dimensionalities by hand </h2>
+
+<p>It can be useful to test the dimensionalities for the network.  Let us assume we have performed an optimization for XOR gate and found that the weights for the hidden layer are given by</p>
+$$
+\boldsymbol{W_h}=\begin{bmatrix} 1 & 1 \\
+                       1 & 1 \end{bmatrix},
+$$
+
+<p>Multiplying \( \boldsymbol{X} \) and \( \boldsymbol{W} \) gives</p>
+
+$$
+\boldsymbol{X}{W}_h=\begin{bmatrix} 0 & 0 \\
+                       1 & 1 \\
+		       1 & 1 \\
+		       2 & 2 \end{bmatrix},
+$$
+
+<p>Assume also that the bias vector for the hidden layer is</p>
+$$
+\boldsymbol{b}_h=\begin{bmatrix} 0 \\
+                       -1\end{bmatrix},
+$$
+
+<p>Adding it gives us the input to the activation function of the hidden layer</p>
+$$
+\boldsymbol{z}_h=\boldsymbol{X}\boldsymbol{W}_h+\boldsymbol{b}_h=\begin{bmatrix} 0 & -1 \\
+                       1 & 0 \\
+		       1 & 0 \\
+		       2 & 1 \end{bmatrix},
+$$
+
+<p>Let us then assume that our activation function is the RELU function, which simply means that we take the max of \( 0 \) and the elements of the input argument \( \boldsymbol{z}_h \), that is we have</p>
+$$
+\boldsymbol{a}_h=\mathrm{RELU}(\boldsymbol{z}_h=\boldsymbol{X}\boldsymbol{W}_h+\boldsymbol{b}_h)=\begin{bmatrix} 0 & 0 \\
+                       1 & 0 \\
+		       1 & 0 \\
+		       2 & 1 \end{bmatrix},
+$$
+
+<p>Assume also that the bias of the output layer is zero and that the weights of the output layer are</p>
+$$
+\boldsymbol{w}_o=\begin{bmatrix} 1 \\
+                       -2\end{bmatrix},
+$$
+
+<p>and multiplying with \( \boldsymbol{a}_h \) gives the output</p>
+$$
+\boldsymbol{a}_o=\boldsymbol{w}_h^T\begin{bmatrix} 0 & 0 \\
+                       1 & 0 \\
+		       1 & 0 \\
+		       2 & 1 \end{bmatrix}=\begin{bmatrix} 0 \\ 1 \\ 1 \\0\end{bmatrix},
+$$
+
+<p>the wanted result.</p>
+
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="setting-up-the-neural-network">Setting up the Neural Network </h2>
 
@@ -529,10 +623,6 @@ $$
     probabilities = sigmoid(z_o)
     <span style="color: #8B008B; font-weight: bold">return</span> probabilities
 
-<span style="color: #228B22"># we obtain a prediction by taking the class with the highest likelihood</span>
-<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">predict</span>(X):
-    probabilities = feed_forward(X)
-    <span style="color: #8B008B; font-weight: bold">return</span> np.argmax(probabilities, axis=<span style="color: #B452CD">1</span>)
 
 <span style="color: #228B22"># ensure the same random numbers appear every time</span>
 np.random.seed(<span style="color: #B452CD">0</span>)
@@ -550,7 +640,7 @@ yAND = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B
 <span style="color: #228B22"># Defining the neural network</span>
 n_inputs, n_features = X.shape
 n_hidden_neurons = <span style="color: #B452CD">2</span>
-n_categories = <span style="color: #B452CD">2</span>
+n_categories = <span style="color: #B452CD">1</span>
 n_features = <span style="color: #B452CD">2</span>
 
 <span style="color: #228B22"># we make the weights normally distributed using numpy.random.randn</span>
@@ -565,10 +655,6 @@ output_bias = np.zeros(n_categories) + <span style="color: #B452CD">0.01</span>
 
 probabilities = feed_forward(X)
 <span style="color: #658b00">print</span>(probabilities)
-
-
-predictions = predict(X)
-<span style="color: #658b00">print</span>(predictions)
 </pre>
 </div>
       </div>
@@ -617,10 +703,7 @@ yOR = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B4
 yAND = np.array( [ <span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span> ,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>])
 
 <span style="color: #228B22"># Defining the neural network</span>
-n_inputs, n_features = X.shape
 n_hidden_neurons = <span style="color: #B452CD">2</span>
-n_categories = <span style="color: #B452CD">2</span>
-n_features = <span style="color: #B452CD">2</span>
 
 eta_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
 lmbd_vals = np.logspace(-<span style="color: #B452CD">5</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">7</span>)
@@ -668,7 +751,1356 @@ plt.show()
   </div>
 </div>
 
-<p>How do we interpret these results?</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="building-a-neural-network-code">Building a neural network code </h2>
+
+<p>Here we  present a flexible object oriented codebase
+for a feed forward neural network, along with a demonstration of how
+to use it. Before we get into the details of the neural network, we
+will first present some implementations of various schedulers, cost
+functions and activation functions that can be used together with the
+neural network.
+</p>
+
+<p>The codes here were developed by Eric Reber and Gregor Kajda during spring 2023.</p>
+<h3 id="learning-rate-methods">Learning rate methods  </h3>
+
+<p>The code below shows object oriented implementations of the Constant,
+Momentum, Adagrad, AdagradMomentum, RMS prop and Adam schedulers. All
+of the classes belong to the shared abstract Scheduler class, and
+share the update_change() and reset() methods allowing for any of the
+schedulers to be seamlessly used during the training stage, as will
+later be shown in the fit() method of the neural
+network. Update_change() only has one parameter, the gradient
+(\( &#948;^l_ja^{l&#8722;1}_k \)), and returns the change which will be subtracted
+from the weights. The reset() function takes no parameters, and resets
+the desired variables. For Constant and Momentum, reset does nothing.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">Scheduler</span>:
+    <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">    Abstract class for Schedulers</span>
+<span style="color: #CD5555">    &quot;&quot;&quot;</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, eta):
+        <span style="color: #658b00">self</span>.eta = eta
+
+    <span style="color: #228B22"># should be overwritten</span>
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">update_change</span>(<span style="color: #658b00">self</span>, gradient):
+        <span style="color: #8B008B; font-weight: bold">raise</span> <span style="color: #008b45; font-weight: bold">NotImplementedError</span>
+
+    <span style="color: #228B22"># overwritten if needed</span>
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #8B008B; font-weight: bold">pass</span>
+
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">Constant</span>(Scheduler):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, eta):
+        <span style="color: #658b00">super</span>().<span style="color: #008b45">__init__</span>(eta)
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">update_change</span>(<span style="color: #658b00">self</span>, gradient):
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">self</span>.eta * gradient
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #8B008B; font-weight: bold">pass</span>
+
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">Momentum</span>(Scheduler):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, eta: <span style="color: #658b00">float</span>, momentum: <span style="color: #658b00">float</span>):
+        <span style="color: #658b00">super</span>().<span style="color: #008b45">__init__</span>(eta)
+        <span style="color: #658b00">self</span>.momentum = momentum
+        <span style="color: #658b00">self</span>.change = <span style="color: #B452CD">0</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">update_change</span>(<span style="color: #658b00">self</span>, gradient):
+        <span style="color: #658b00">self</span>.change = <span style="color: #658b00">self</span>.momentum * <span style="color: #658b00">self</span>.change + <span style="color: #658b00">self</span>.eta * gradient
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">self</span>.change
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #8B008B; font-weight: bold">pass</span>
+
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">Adagrad</span>(Scheduler):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, eta):
+        <span style="color: #658b00">super</span>().<span style="color: #008b45">__init__</span>(eta)
+        <span style="color: #658b00">self</span>.G_t = <span style="color: #8B008B; font-weight: bold">None</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">update_change</span>(<span style="color: #658b00">self</span>, gradient):
+        delta = <span style="color: #B452CD">1e-8</span>  <span style="color: #228B22"># avoid division ny zero</span>
+
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.G_t <span style="color: #8B008B">is</span> <span style="color: #8B008B; font-weight: bold">None</span>:
+            <span style="color: #658b00">self</span>.G_t = np.zeros((gradient.shape[<span style="color: #B452CD">0</span>], gradient.shape[<span style="color: #B452CD">0</span>]))
+
+        <span style="color: #658b00">self</span>.G_t += gradient @ gradient.T
+
+        G_t_inverse = <span style="color: #B452CD">1</span> / (
+            delta + np.sqrt(np.reshape(np.diagonal(<span style="color: #658b00">self</span>.G_t), (<span style="color: #658b00">self</span>.G_t.shape[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">1</span>)))
+        )
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">self</span>.eta * gradient * G_t_inverse
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #658b00">self</span>.G_t = <span style="color: #8B008B; font-weight: bold">None</span>
+
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">AdagradMomentum</span>(Scheduler):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, eta, momentum):
+        <span style="color: #658b00">super</span>().<span style="color: #008b45">__init__</span>(eta)
+        <span style="color: #658b00">self</span>.G_t = <span style="color: #8B008B; font-weight: bold">None</span>
+        <span style="color: #658b00">self</span>.momentum = momentum
+        <span style="color: #658b00">self</span>.change = <span style="color: #B452CD">0</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">update_change</span>(<span style="color: #658b00">self</span>, gradient):
+        delta = <span style="color: #B452CD">1e-8</span>  <span style="color: #228B22"># avoid division ny zero</span>
+
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.G_t <span style="color: #8B008B">is</span> <span style="color: #8B008B; font-weight: bold">None</span>:
+            <span style="color: #658b00">self</span>.G_t = np.zeros((gradient.shape[<span style="color: #B452CD">0</span>], gradient.shape[<span style="color: #B452CD">0</span>]))
+
+        <span style="color: #658b00">self</span>.G_t += gradient @ gradient.T
+
+        G_t_inverse = <span style="color: #B452CD">1</span> / (
+            delta + np.sqrt(np.reshape(np.diagonal(<span style="color: #658b00">self</span>.G_t), (<span style="color: #658b00">self</span>.G_t.shape[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">1</span>)))
+        )
+        <span style="color: #658b00">self</span>.change = <span style="color: #658b00">self</span>.change * <span style="color: #658b00">self</span>.momentum + <span style="color: #658b00">self</span>.eta * gradient * G_t_inverse
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">self</span>.change
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #658b00">self</span>.G_t = <span style="color: #8B008B; font-weight: bold">None</span>
+
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">RMS_prop</span>(Scheduler):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, eta, rho):
+        <span style="color: #658b00">super</span>().<span style="color: #008b45">__init__</span>(eta)
+        <span style="color: #658b00">self</span>.rho = rho
+        <span style="color: #658b00">self</span>.second = <span style="color: #B452CD">0.0</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">update_change</span>(<span style="color: #658b00">self</span>, gradient):
+        delta = <span style="color: #B452CD">1e-8</span>  <span style="color: #228B22"># avoid division ny zero</span>
+        <span style="color: #658b00">self</span>.second = <span style="color: #658b00">self</span>.rho * <span style="color: #658b00">self</span>.second + (<span style="color: #B452CD">1</span> - <span style="color: #658b00">self</span>.rho) * gradient * gradient
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">self</span>.eta * gradient / (np.sqrt(<span style="color: #658b00">self</span>.second + delta))
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #658b00">self</span>.second = <span style="color: #B452CD">0.0</span>
+
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">Adam</span>(Scheduler):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, eta, rho, rho2):
+        <span style="color: #658b00">super</span>().<span style="color: #008b45">__init__</span>(eta)
+        <span style="color: #658b00">self</span>.rho = rho
+        <span style="color: #658b00">self</span>.rho2 = rho2
+        <span style="color: #658b00">self</span>.moment = <span style="color: #B452CD">0</span>
+        <span style="color: #658b00">self</span>.second = <span style="color: #B452CD">0</span>
+        <span style="color: #658b00">self</span>.n_epochs = <span style="color: #B452CD">1</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">update_change</span>(<span style="color: #658b00">self</span>, gradient):
+        delta = <span style="color: #B452CD">1e-8</span>  <span style="color: #228B22"># avoid division ny zero</span>
+
+        <span style="color: #658b00">self</span>.moment = <span style="color: #658b00">self</span>.rho * <span style="color: #658b00">self</span>.moment + (<span style="color: #B452CD">1</span> - <span style="color: #658b00">self</span>.rho) * gradient
+        <span style="color: #658b00">self</span>.second = <span style="color: #658b00">self</span>.rho2 * <span style="color: #658b00">self</span>.second + (<span style="color: #B452CD">1</span> - <span style="color: #658b00">self</span>.rho2) * gradient * gradient
+
+        moment_corrected = <span style="color: #658b00">self</span>.moment / (<span style="color: #B452CD">1</span> - <span style="color: #658b00">self</span>.rho**<span style="color: #658b00">self</span>.n_epochs)
+        second_corrected = <span style="color: #658b00">self</span>.second / (<span style="color: #B452CD">1</span> - <span style="color: #658b00">self</span>.rho2**<span style="color: #658b00">self</span>.n_epochs)
+
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">self</span>.eta * moment_corrected / (np.sqrt(second_corrected + delta))
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #658b00">self</span>.n_epochs += <span style="color: #B452CD">1</span>
+        <span style="color: #658b00">self</span>.moment = <span style="color: #B452CD">0</span>
+        <span style="color: #658b00">self</span>.second = <span style="color: #B452CD">0</span>
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<h3 id="usage-of-the-above-learning-rate-schedulers">Usage of the above learning rate schedulers </h3>
+
+<p>To initalize a scheduler, simply create the object and pass in the
+necessary parameters such as the learning rate and the momentum as
+shown below. As the Scheduler class is an abstract class it should not
+called directly, and will raise an error upon usage.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">momentum_scheduler = Momentum(eta=<span style="color: #B452CD">1e-3</span>, momentum=<span style="color: #B452CD">0.9</span>)
+adam_scheduler = Adam(eta=<span style="color: #B452CD">1e-3</span>, rho=<span style="color: #B452CD">0.9</span>, rho2=<span style="color: #B452CD">0.999</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Here is a small example for how a segment of code using schedulers
+could look. Switching out the schedulers is simple.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">weights = np.ones((<span style="color: #B452CD">3</span>,<span style="color: #B452CD">3</span>))
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Before scheduler:\n{</span>weights<span style="color: #CD5555">=}&quot;</span>)
+
+epochs = <span style="color: #B452CD">10</span>
+<span style="color: #8B008B; font-weight: bold">for</span> e <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(epochs):
+    gradient = np.random.rand(<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>)
+    change = adam_scheduler.update_change(gradient)
+    weights = weights - change
+    adam_scheduler.reset()
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;\nAfter scheduler:\n{</span>weights<span style="color: #CD5555">=}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<h3 id="cost-functions">Cost functions </h3>
+
+<p>Here we discuss cost functions that can be used when creating the
+neural network. Every cost function takes the target vector as its
+parameter, and returns a function valued only at \( x \) such that it may
+easily be differentiated.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">CostOLS</span>(target):
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">func</span>(X):
+        <span style="color: #8B008B; font-weight: bold">return</span> (<span style="color: #B452CD">1.0</span> / target.shape[<span style="color: #B452CD">0</span>]) * np.sum((target - X) ** <span style="color: #B452CD">2</span>)
+
+    <span style="color: #8B008B; font-weight: bold">return</span> func
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">CostLogReg</span>(target):
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">func</span>(X):
+        
+        <span style="color: #8B008B; font-weight: bold">return</span> -(<span style="color: #B452CD">1.0</span> / target.shape[<span style="color: #B452CD">0</span>]) * np.sum(
+            (target * np.log(X + <span style="color: #B452CD">10e-10</span>)) + ((<span style="color: #B452CD">1</span> - target) * np.log(<span style="color: #B452CD">1</span> - X + <span style="color: #B452CD">10e-10</span>))
+        )
+
+    <span style="color: #8B008B; font-weight: bold">return</span> func
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">CostCrossEntropy</span>(target):
+    
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">func</span>(X):
+        <span style="color: #8B008B; font-weight: bold">return</span> -(<span style="color: #B452CD">1.0</span> / target.size) * np.sum(target * np.log(X + <span style="color: #B452CD">10e-10</span>))
+
+    <span style="color: #8B008B; font-weight: bold">return</span> func
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Below we give a short example of how these cost function may be used
+to obtain results if you wish to test them out on your own using
+AutoGrad's automatics differentiation.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">autograd</span> <span style="color: #8B008B; font-weight: bold">import</span> grad
+
+target = np.array([[<span style="color: #B452CD">1</span>, <span style="color: #B452CD">2</span>, <span style="color: #B452CD">3</span>]]).T
+a = np.array([[<span style="color: #B452CD">4</span>, <span style="color: #B452CD">5</span>, <span style="color: #B452CD">6</span>]]).T
+
+cost_func = CostCrossEntropy
+cost_func_derivative = grad(cost_func(target))
+
+valued_at_a = cost_func_derivative(a)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Derivative of cost function {</span>cost_func.<span style="color: #00688B">__name__</span><span style="color: #CD5555">} valued at a:\n{</span>valued_at_a<span style="color: #CD5555">}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<h3 id="activation-functions">Activation functions </h3>
+
+<p>Finally, before we look at the neural network, we will look at the
+activation functions which can be specified between the hidden layers
+and as the output function. Each function can be valued for any given
+vector or matrix X, and can be differentiated via derivate().
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">autograd</span> <span style="color: #8B008B; font-weight: bold">import</span> elementwise_grad
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">identity</span>(X):
+    <span style="color: #8B008B; font-weight: bold">return</span> X
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">sigmoid</span>(X):
+    <span style="color: #8B008B; font-weight: bold">try</span>:
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #B452CD">1.0</span> / (<span style="color: #B452CD">1</span> + np.exp(-X))
+    <span style="color: #8B008B; font-weight: bold">except</span> <span style="color: #008b45; font-weight: bold">FloatingPointError</span>:
+        <span style="color: #8B008B; font-weight: bold">return</span> np.where(X &gt; np.zeros(X.shape), np.ones(X.shape), np.zeros(X.shape))
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">softmax</span>(X):
+    X = X - np.max(X, axis=-<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>)
+    delta = <span style="color: #B452CD">10e-10</span>
+    <span style="color: #8B008B; font-weight: bold">return</span> np.exp(X) / (np.sum(np.exp(X), axis=-<span style="color: #B452CD">1</span>, keepdims=<span style="color: #8B008B; font-weight: bold">True</span>) + delta)
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">RELU</span>(X):
+    <span style="color: #8B008B; font-weight: bold">return</span> np.where(X &gt; np.zeros(X.shape), X, np.zeros(X.shape))
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">LRELU</span>(X):
+    delta = <span style="color: #B452CD">10e-4</span>
+    <span style="color: #8B008B; font-weight: bold">return</span> np.where(X &gt; np.zeros(X.shape), X, delta * X)
+
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">derivate</span>(func):
+    <span style="color: #8B008B; font-weight: bold">if</span> func.<span style="color: #00688B">__name__</span> == <span style="color: #CD5555">&quot;RELU&quot;</span>:
+
+        <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">func</span>(X):
+            <span style="color: #8B008B; font-weight: bold">return</span> np.where(X &gt; <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>)
+
+        <span style="color: #8B008B; font-weight: bold">return</span> func
+
+    <span style="color: #8B008B; font-weight: bold">elif</span> func.<span style="color: #00688B">__name__</span> == <span style="color: #CD5555">&quot;LRELU&quot;</span>:
+
+        <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">func</span>(X):
+            delta = <span style="color: #B452CD">10e-4</span>
+            <span style="color: #8B008B; font-weight: bold">return</span> np.where(X &gt; <span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, delta)
+
+        <span style="color: #8B008B; font-weight: bold">return</span> func
+
+    <span style="color: #8B008B; font-weight: bold">else</span>:
+        <span style="color: #8B008B; font-weight: bold">return</span> elementwise_grad(func)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Below follows a short demonstration of how to use an activation
+function. The derivative of the activation function will be important
+when calculating the output delta term during backpropagation. Note
+that derivate() can also be used for cost functions for a more
+generalized approach.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">z = np.array([[<span style="color: #B452CD">4</span>, <span style="color: #B452CD">5</span>, <span style="color: #B452CD">6</span>]]).T
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Input to activation function:\n{</span>z<span style="color: #CD5555">}&quot;</span>)
+
+act_func = sigmoid
+a = act_func(z)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;\nOutput from {</span>act_func.<span style="color: #00688B">__name__</span><span style="color: #CD5555">} activation function:\n{</span>a<span style="color: #CD5555">}&quot;</span>)
+
+act_func_derivative = derivate(act_func)
+valued_at_z = act_func_derivative(a)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;\nDerivative of {</span>act_func.<span style="color: #00688B">__name__</span><span style="color: #CD5555">} activation function valued at z:\n{</span>valued_at_z<span style="color: #CD5555">}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<h3 id="the-neural-network">The Neural Network </h3>
+
+<p>Now that we have gotten a good understanding of the implementation of
+some important components, we can take a look at an object oriented
+implementation of a feed forward neural network. The feed forward
+neural network has been implemented as a class named FFNN, which can
+be initiated as a regressor or classifier dependant on the choice of
+cost function. The FFNN can have any number of input nodes, hidden
+layers with any amount of hidden nodes, and any amount of output nodes
+meaning it can perform multiclass classification as well as binary
+classification and regression problems. Although there is a lot of
+code present, it makes for an easy to use and generalizeable interface
+for creating many types of neural networks as will be demonstrated
+below.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">math</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sys</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">warnings</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">autograd</span> <span style="color: #8B008B; font-weight: bold">import</span> grad, elementwise_grad
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">copy</span> <span style="color: #8B008B; font-weight: bold">import</span> deepcopy, copy
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">typing</span> <span style="color: #8B008B; font-weight: bold">import</span> Tuple, Callable
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.utils</span> <span style="color: #8B008B; font-weight: bold">import</span> resample
+
+warnings.simplefilter(<span style="color: #CD5555">&quot;error&quot;</span>)
+
+
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">FFNN</span>:
+    <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">    Description:</span>
+<span style="color: #CD5555">    ------------</span>
+<span style="color: #CD5555">        Feed Forward Neural Network with interface enabling flexible design of a</span>
+<span style="color: #CD5555">        nerual networks architecture and the specification of activation function</span>
+<span style="color: #CD5555">        in the hidden layers and output layer respectively. This model can be used</span>
+<span style="color: #CD5555">        for both regression and classification problems, depending on the output function.</span>
+
+<span style="color: #CD5555">    Attributes:</span>
+<span style="color: #CD5555">    ------------</span>
+<span style="color: #CD5555">        I   dimensions (tuple[int]): A list of positive integers, which specifies the</span>
+<span style="color: #CD5555">            number of nodes in each of the networks layers. The first integer in the array</span>
+<span style="color: #CD5555">            defines the number of nodes in the input layer, the second integer defines number</span>
+<span style="color: #CD5555">            of nodes in the first hidden layer and so on until the last number, which</span>
+<span style="color: #CD5555">            specifies the number of nodes in the output layer.</span>
+<span style="color: #CD5555">        II  hidden_func (Callable): The activation function for the hidden layers</span>
+<span style="color: #CD5555">        III output_func (Callable): The activation function for the output layer</span>
+<span style="color: #CD5555">        IV  cost_func (Callable): Our cost function</span>
+<span style="color: #CD5555">        V   seed (int): Sets random seed, makes results reproducible</span>
+<span style="color: #CD5555">    &quot;&quot;&quot;</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(
+        <span style="color: #658b00">self</span>,
+        dimensions: <span style="color: #658b00">tuple</span>[<span style="color: #658b00">int</span>],
+        hidden_func: Callable = sigmoid,
+        output_func: Callable = <span style="color: #8B008B; font-weight: bold">lambda</span> x: x,
+        cost_func: Callable = CostOLS,
+        seed: <span style="color: #658b00">int</span> = <span style="color: #8B008B; font-weight: bold">None</span>,
+    ):
+        <span style="color: #658b00">self</span>.dimensions = dimensions
+        <span style="color: #658b00">self</span>.hidden_func = hidden_func
+        <span style="color: #658b00">self</span>.output_func = output_func
+        <span style="color: #658b00">self</span>.cost_func = cost_func
+        <span style="color: #658b00">self</span>.seed = seed
+        <span style="color: #658b00">self</span>.weights = <span style="color: #658b00">list</span>()
+        <span style="color: #658b00">self</span>.schedulers_weight = <span style="color: #658b00">list</span>()
+        <span style="color: #658b00">self</span>.schedulers_bias = <span style="color: #658b00">list</span>()
+        <span style="color: #658b00">self</span>.a_matrices = <span style="color: #658b00">list</span>()
+        <span style="color: #658b00">self</span>.z_matrices = <span style="color: #658b00">list</span>()
+        <span style="color: #658b00">self</span>.classification = <span style="color: #8B008B; font-weight: bold">None</span>
+
+        <span style="color: #658b00">self</span>.reset_weights()
+        <span style="color: #658b00">self</span>._set_classification()
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">fit</span>(
+        <span style="color: #658b00">self</span>,
+        X: np.ndarray,
+        t: np.ndarray,
+        scheduler: Scheduler,
+        batches: <span style="color: #658b00">int</span> = <span style="color: #B452CD">1</span>,
+        epochs: <span style="color: #658b00">int</span> = <span style="color: #B452CD">100</span>,
+        lam: <span style="color: #658b00">float</span> = <span style="color: #B452CD">0</span>,
+        X_val: np.ndarray = <span style="color: #8B008B; font-weight: bold">None</span>,
+        t_val: np.ndarray = <span style="color: #8B008B; font-weight: bold">None</span>,
+    ):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            This function performs the training the neural network by performing the feedforward and backpropagation</span>
+<span style="color: #CD5555">            algorithm to update the networks weights.</span>
+
+<span style="color: #CD5555">        Parameters:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            I    X (np.ndarray) : training data</span>
+<span style="color: #CD5555">            II   t (np.ndarray) : target data</span>
+<span style="color: #CD5555">            III  scheduler (Scheduler) : specified scheduler (algorithm for optimization of gradient descent)</span>
+<span style="color: #CD5555">            IV   scheduler_args (list[int]) : list of all arguments necessary for scheduler</span>
+
+<span style="color: #CD5555">        Optional Parameters:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            V    batches (int) : number of batches the datasets are split into, default equal to 1</span>
+<span style="color: #CD5555">            VI   epochs (int) : number of iterations used to train the network, default equal to 100</span>
+<span style="color: #CD5555">            VII  lam (float) : regularization hyperparameter lambda</span>
+<span style="color: #CD5555">            VIII X_val (np.ndarray) : validation set</span>
+<span style="color: #CD5555">            IX   t_val (np.ndarray) : validation target set</span>
+
+<span style="color: #CD5555">        Returns:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            I   scores (dict) : A dictionary containing the performance metrics of the model.</span>
+<span style="color: #CD5555">                The number of the metrics depends on the parameters passed to the fit-function.</span>
+
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+
+        <span style="color: #228B22"># setup </span>
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.seed <span style="color: #8B008B">is</span> <span style="color: #8B008B">not</span> <span style="color: #8B008B; font-weight: bold">None</span>:
+            np.random.seed(<span style="color: #658b00">self</span>.seed)
+
+        val_set = <span style="color: #8B008B; font-weight: bold">False</span>
+        <span style="color: #8B008B; font-weight: bold">if</span> X_val <span style="color: #8B008B">is</span> <span style="color: #8B008B">not</span> <span style="color: #8B008B; font-weight: bold">None</span> <span style="color: #8B008B">and</span> t_val <span style="color: #8B008B">is</span> <span style="color: #8B008B">not</span> <span style="color: #8B008B; font-weight: bold">None</span>:
+            val_set = <span style="color: #8B008B; font-weight: bold">True</span>
+
+        <span style="color: #228B22"># creating arrays for score metrics</span>
+        train_errors = np.empty(epochs)
+        train_errors.fill(np.nan)
+        val_errors = np.empty(epochs)
+        val_errors.fill(np.nan)
+
+        train_accs = np.empty(epochs)
+        train_accs.fill(np.nan)
+        val_accs = np.empty(epochs)
+        val_accs.fill(np.nan)
+
+        <span style="color: #658b00">self</span>.schedulers_weight = <span style="color: #658b00">list</span>()
+        <span style="color: #658b00">self</span>.schedulers_bias = <span style="color: #658b00">list</span>()
+
+        batch_size = X.shape[<span style="color: #B452CD">0</span>] // batches
+
+        X, t = resample(X, t)
+
+        <span style="color: #228B22"># this function returns a function valued only at X</span>
+        cost_function_train = <span style="color: #658b00">self</span>.cost_func(t)
+        <span style="color: #8B008B; font-weight: bold">if</span> val_set:
+            cost_function_val = <span style="color: #658b00">self</span>.cost_func(t_val)
+
+        <span style="color: #228B22"># create schedulers for each weight matrix</span>
+        <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.weights)):
+            <span style="color: #658b00">self</span>.schedulers_weight.append(copy(scheduler))
+            <span style="color: #658b00">self</span>.schedulers_bias.append(copy(scheduler))
+
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;{</span>scheduler.<span style="color: #00688B">__class__</span>.<span style="color: #00688B">__name__</span><span style="color: #CD5555">}: Eta={</span>scheduler.eta<span style="color: #CD5555">}, Lambda={</span>lam<span style="color: #CD5555">}&quot;</span>)
+
+        <span style="color: #8B008B; font-weight: bold">try</span>:
+            <span style="color: #8B008B; font-weight: bold">for</span> e <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(epochs):
+                <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(batches):
+                    <span style="color: #228B22"># allows for minibatch gradient descent</span>
+                    <span style="color: #8B008B; font-weight: bold">if</span> i == batches - <span style="color: #B452CD">1</span>:
+                        <span style="color: #228B22"># If the for loop has reached the last batch, take all thats left</span>
+                        X_batch = X[i * batch_size :, :]
+                        t_batch = t[i * batch_size :, :]
+                    <span style="color: #8B008B; font-weight: bold">else</span>:
+                        X_batch = X[i * batch_size : (i + <span style="color: #B452CD">1</span>) * batch_size, :]
+                        t_batch = t[i * batch_size : (i + <span style="color: #B452CD">1</span>) * batch_size, :]
+
+                    <span style="color: #658b00">self</span>._feedforward(X_batch)
+                    <span style="color: #658b00">self</span>._backpropagate(X_batch, t_batch, lam)
+
+                <span style="color: #228B22"># reset schedulers for each epoch (some schedulers pass in this call)</span>
+                <span style="color: #8B008B; font-weight: bold">for</span> scheduler <span style="color: #8B008B">in</span> <span style="color: #658b00">self</span>.schedulers_weight:
+                    scheduler.reset()
+
+                <span style="color: #8B008B; font-weight: bold">for</span> scheduler <span style="color: #8B008B">in</span> <span style="color: #658b00">self</span>.schedulers_bias:
+                    scheduler.reset()
+
+                <span style="color: #228B22"># computing performance metrics</span>
+                pred_train = <span style="color: #658b00">self</span>.predict(X)
+                train_error = cost_function_train(pred_train)
+
+                train_errors[e] = train_error
+                <span style="color: #8B008B; font-weight: bold">if</span> val_set:
+                    
+                    pred_val = <span style="color: #658b00">self</span>.predict(X_val)
+                    val_error = cost_function_val(pred_val)
+                    val_errors[e] = val_error
+
+                <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.classification:
+                    train_acc = <span style="color: #658b00">self</span>._accuracy(<span style="color: #658b00">self</span>.predict(X), t)
+                    train_accs[e] = train_acc
+                    <span style="color: #8B008B; font-weight: bold">if</span> val_set:
+                        val_acc = <span style="color: #658b00">self</span>._accuracy(pred_val, t_val)
+                        val_accs[e] = val_acc
+
+                <span style="color: #228B22"># printing progress bar</span>
+                progression = e / epochs
+                print_length = <span style="color: #658b00">self</span>._progress_bar(
+                    progression,
+                    train_error=train_errors[e],
+                    train_acc=train_accs[e],
+                    val_error=val_errors[e],
+                    val_acc=val_accs[e],
+                )
+        <span style="color: #8B008B; font-weight: bold">except</span> <span style="color: #008b45; font-weight: bold">KeyboardInterrupt</span>:
+            <span style="color: #228B22"># allows for stopping training at any point and seeing the result</span>
+            <span style="color: #8B008B; font-weight: bold">pass</span>
+
+        <span style="color: #228B22"># visualization of training progression (similiar to tensorflow progression bar)</span>
+        sys.stdout.write(<span style="color: #CD5555">&quot;\r&quot;</span> + <span style="color: #CD5555">&quot; &quot;</span> * print_length)
+        sys.stdout.flush()
+        <span style="color: #658b00">self</span>._progress_bar(
+            <span style="color: #B452CD">1</span>,
+            train_error=train_errors[e],
+            train_acc=train_accs[e],
+            val_error=val_errors[e],
+            val_acc=val_accs[e],
+        )
+        sys.stdout.write(<span style="color: #CD5555">&quot;&quot;</span>)
+
+        <span style="color: #228B22"># return performance metrics for the entire run</span>
+        scores = <span style="color: #658b00">dict</span>()
+
+        scores[<span style="color: #CD5555">&quot;train_errors&quot;</span>] = train_errors
+
+        <span style="color: #8B008B; font-weight: bold">if</span> val_set:
+            scores[<span style="color: #CD5555">&quot;val_errors&quot;</span>] = val_errors
+
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.classification:
+            scores[<span style="color: #CD5555">&quot;train_accs&quot;</span>] = train_accs
+
+            <span style="color: #8B008B; font-weight: bold">if</span> val_set:
+                scores[<span style="color: #CD5555">&quot;val_accs&quot;</span>] = val_accs
+
+        <span style="color: #8B008B; font-weight: bold">return</span> scores
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">predict</span>(<span style="color: #658b00">self</span>, X: np.ndarray, *, threshold=<span style="color: #B452CD">0.5</span>):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">         Description:</span>
+<span style="color: #CD5555">         ------------</span>
+<span style="color: #CD5555">             Performs prediction after training of the network has been finished.</span>
+
+<span style="color: #CD5555">         Parameters:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">             I   X (np.ndarray): The design matrix, with n rows of p features each</span>
+
+<span style="color: #CD5555">         Optional Parameters:</span>
+<span style="color: #CD5555">         ------------</span>
+<span style="color: #CD5555">             II  threshold (float) : sets minimal value for a prediction to be predicted as the positive class</span>
+<span style="color: #CD5555">                 in classification problems</span>
+
+<span style="color: #CD5555">         Returns:</span>
+<span style="color: #CD5555">         ------------</span>
+<span style="color: #CD5555">             I   z (np.ndarray): A prediction vector (row) for each row in our design matrix</span>
+<span style="color: #CD5555">                 This vector is thresholded if regression=False, meaning that classification results</span>
+<span style="color: #CD5555">                 in a vector of 1s and 0s, while regressions in an array of decimal numbers</span>
+
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+
+        predict = <span style="color: #658b00">self</span>._feedforward(X)
+
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.classification:
+            <span style="color: #8B008B; font-weight: bold">return</span> np.where(predict &gt; threshold, <span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>)
+        <span style="color: #8B008B; font-weight: bold">else</span>:
+            <span style="color: #8B008B; font-weight: bold">return</span> predict
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">reset_weights</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            Resets/Reinitializes the weights in order to train the network for a new problem.</span>
+
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">self</span>.seed <span style="color: #8B008B">is</span> <span style="color: #8B008B">not</span> <span style="color: #8B008B; font-weight: bold">None</span>:
+            np.random.seed(<span style="color: #658b00">self</span>.seed)
+
+        <span style="color: #658b00">self</span>.weights = <span style="color: #658b00">list</span>()
+        <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.dimensions) - <span style="color: #B452CD">1</span>):
+            weight_array = np.random.randn(
+                <span style="color: #658b00">self</span>.dimensions[i] + <span style="color: #B452CD">1</span>, <span style="color: #658b00">self</span>.dimensions[i + <span style="color: #B452CD">1</span>]
+            )
+            weight_array[<span style="color: #B452CD">0</span>, :] = np.random.randn(<span style="color: #658b00">self</span>.dimensions[i + <span style="color: #B452CD">1</span>]) * <span style="color: #B452CD">0.01</span>
+
+            <span style="color: #658b00">self</span>.weights.append(weight_array)
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">_feedforward</span>(<span style="color: #658b00">self</span>, X: np.ndarray):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            Calculates the activation of each layer starting at the input and ending at the output.</span>
+<span style="color: #CD5555">            Each following activation is calculated from a weighted sum of each of the preceeding</span>
+<span style="color: #CD5555">            activations (except in the case of the input layer).</span>
+
+<span style="color: #CD5555">        Parameters:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            I   X (np.ndarray): The design matrix, with n rows of p features each</span>
+
+<span style="color: #CD5555">        Returns:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            I   z (np.ndarray): A prediction vector (row) for each row in our design matrix</span>
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+
+        <span style="color: #228B22"># reset matrices</span>
+        <span style="color: #658b00">self</span>.a_matrices = <span style="color: #658b00">list</span>()
+        <span style="color: #658b00">self</span>.z_matrices = <span style="color: #658b00">list</span>()
+
+        <span style="color: #228B22"># if X is just a vector, make it into a matrix</span>
+        <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">len</span>(X.shape) == <span style="color: #B452CD">1</span>:
+            X = X.reshape((<span style="color: #B452CD">1</span>, X.shape[<span style="color: #B452CD">0</span>]))
+
+        <span style="color: #228B22"># Add a coloumn of zeros as the first coloumn of the design matrix, in order</span>
+        <span style="color: #228B22"># to add bias to our data</span>
+        bias = np.ones((X.shape[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">1</span>)) * <span style="color: #B452CD">0.01</span>
+        X = np.hstack([bias, X])
+
+        <span style="color: #228B22"># a^0, the nodes in the input layer (one a^0 for each row in X - where the</span>
+        <span style="color: #228B22"># exponent indicates layer number).</span>
+        a = X
+        <span style="color: #658b00">self</span>.a_matrices.append(a)
+        <span style="color: #658b00">self</span>.z_matrices.append(a)
+
+        <span style="color: #228B22"># The feed forward algorithm</span>
+        <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.weights)):
+            <span style="color: #8B008B; font-weight: bold">if</span> i &lt; <span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.weights) - <span style="color: #B452CD">1</span>:
+                z = a @ <span style="color: #658b00">self</span>.weights[i]
+                <span style="color: #658b00">self</span>.z_matrices.append(z)
+                a = <span style="color: #658b00">self</span>.hidden_func(z)
+                <span style="color: #228B22"># bias column again added to the data here</span>
+                bias = np.ones((a.shape[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">1</span>)) * <span style="color: #B452CD">0.01</span>
+                a = np.hstack([bias, a])
+                <span style="color: #658b00">self</span>.a_matrices.append(a)
+            <span style="color: #8B008B; font-weight: bold">else</span>:
+                <span style="color: #8B008B; font-weight: bold">try</span>:
+                    <span style="color: #228B22"># a^L, the nodes in our output layers</span>
+                    z = a @ <span style="color: #658b00">self</span>.weights[i]
+                    a = <span style="color: #658b00">self</span>.output_func(z)
+                    <span style="color: #658b00">self</span>.a_matrices.append(a)
+                    <span style="color: #658b00">self</span>.z_matrices.append(z)
+                <span style="color: #8B008B; font-weight: bold">except</span> <span style="color: #008b45; font-weight: bold">Exception</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; font-weight: bold">OverflowError</span>:
+                    <span style="color: #658b00">print</span>(
+                        <span style="color: #CD5555">&quot;OverflowError in fit() in FFNN\nHOW TO DEBUG ERROR: Consider lowering your learning rate or scheduler specific parameters such as momentum, or check if your input values need scaling&quot;</span>
+                    )
+
+        <span style="color: #228B22"># this will be a^L</span>
+        <span style="color: #8B008B; font-weight: bold">return</span> a
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">_backpropagate</span>(<span style="color: #658b00">self</span>, X, t, lam):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            Performs the backpropagation algorithm. In other words, this method</span>
+<span style="color: #CD5555">            calculates the gradient of all the layers starting at the</span>
+<span style="color: #CD5555">            output layer, and moving from right to left accumulates the gradient until</span>
+<span style="color: #CD5555">            the input layer is reached. Each layers respective weights are updated while</span>
+<span style="color: #CD5555">            the algorithm propagates backwards from the output layer (auto-differentation in reverse mode).</span>
+
+<span style="color: #CD5555">        Parameters:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            I   X (np.ndarray): The design matrix, with n rows of p features each.</span>
+<span style="color: #CD5555">            II  t (np.ndarray): The target vector, with n rows of p targets.</span>
+<span style="color: #CD5555">            III lam (float32): regularization parameter used to punish the weights in case of overfitting</span>
+
+<span style="color: #CD5555">        Returns:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            No return value.</span>
+
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+        out_derivative = derivate(<span style="color: #658b00">self</span>.output_func)
+        hidden_derivative = derivate(<span style="color: #658b00">self</span>.hidden_func)
+
+        <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.weights) - <span style="color: #B452CD">1</span>, -<span style="color: #B452CD">1</span>, -<span style="color: #B452CD">1</span>):
+            <span style="color: #228B22"># delta terms for output</span>
+            <span style="color: #8B008B; font-weight: bold">if</span> i == <span style="color: #658b00">len</span>(<span style="color: #658b00">self</span>.weights) - <span style="color: #B452CD">1</span>:
+                <span style="color: #228B22"># for multi-class classification</span>
+                <span style="color: #8B008B; font-weight: bold">if</span> (
+                    <span style="color: #658b00">self</span>.output_func.<span style="color: #00688B">__name__</span> == <span style="color: #CD5555">&quot;softmax&quot;</span>
+                ):
+                    delta_matrix = <span style="color: #658b00">self</span>.a_matrices[i + <span style="color: #B452CD">1</span>] - t
+                <span style="color: #228B22"># for single class classification</span>
+                <span style="color: #8B008B; font-weight: bold">else</span>:
+                    cost_func_derivative = grad(<span style="color: #658b00">self</span>.cost_func(t))
+                    delta_matrix = out_derivative(
+                        <span style="color: #658b00">self</span>.z_matrices[i + <span style="color: #B452CD">1</span>]
+                    ) * cost_func_derivative(<span style="color: #658b00">self</span>.a_matrices[i + <span style="color: #B452CD">1</span>])
+
+            <span style="color: #228B22"># delta terms for hidden layer</span>
+            <span style="color: #8B008B; font-weight: bold">else</span>:
+                delta_matrix = (
+                    <span style="color: #658b00">self</span>.weights[i + <span style="color: #B452CD">1</span>][<span style="color: #B452CD">1</span>:, :] @ delta_matrix.T
+                ).T * hidden_derivative(<span style="color: #658b00">self</span>.z_matrices[i + <span style="color: #B452CD">1</span>])
+
+            <span style="color: #228B22"># calculate gradient</span>
+            gradient_weights = <span style="color: #658b00">self</span>.a_matrices[i][:, <span style="color: #B452CD">1</span>:].T @ delta_matrix
+            gradient_bias = np.sum(delta_matrix, axis=<span style="color: #B452CD">0</span>).reshape(
+                <span style="color: #B452CD">1</span>, delta_matrix.shape[<span style="color: #B452CD">1</span>]
+            )
+
+            <span style="color: #228B22"># regularization term</span>
+            gradient_weights += <span style="color: #658b00">self</span>.weights[i][<span style="color: #B452CD">1</span>:, :] * lam
+
+            <span style="color: #228B22"># use scheduler</span>
+            update_matrix = np.vstack(
+                [
+                    <span style="color: #658b00">self</span>.schedulers_bias[i].update_change(gradient_bias),
+                    <span style="color: #658b00">self</span>.schedulers_weight[i].update_change(gradient_weights),
+                ]
+            )
+
+            <span style="color: #228B22"># update weights and bias</span>
+            <span style="color: #658b00">self</span>.weights[i] -= update_matrix
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">_accuracy</span>(<span style="color: #658b00">self</span>, prediction: np.ndarray, target: np.ndarray):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            Calculates accuracy of given prediction to target</span>
+
+<span style="color: #CD5555">        Parameters:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            I   prediction (np.ndarray): vector of predicitons output network</span>
+<span style="color: #CD5555">                (1s and 0s in case of classification, and real numbers in case of regression)</span>
+<span style="color: #CD5555">            II  target (np.ndarray): vector of true values (What the network ideally should predict)</span>
+
+<span style="color: #CD5555">        Returns:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            A floating point number representing the percentage of correctly classified instances.</span>
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+        <span style="color: #8B008B; font-weight: bold">assert</span> prediction.size == target.size
+        <span style="color: #8B008B; font-weight: bold">return</span> np.average((target == prediction))
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">_set_classification</span>(<span style="color: #658b00">self</span>):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            Decides if FFNN acts as classifier (True) og regressor (False),</span>
+<span style="color: #CD5555">            sets self.classification during init()</span>
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+        <span style="color: #658b00">self</span>.classification = <span style="color: #8B008B; font-weight: bold">False</span>
+        <span style="color: #8B008B; font-weight: bold">if</span> (
+            <span style="color: #658b00">self</span>.cost_func.<span style="color: #00688B">__name__</span> == <span style="color: #CD5555">&quot;CostLogReg&quot;</span>
+            <span style="color: #8B008B">or</span> <span style="color: #658b00">self</span>.cost_func.<span style="color: #00688B">__name__</span> == <span style="color: #CD5555">&quot;CostCrossEntropy&quot;</span>
+        ):
+            <span style="color: #658b00">self</span>.classification = <span style="color: #8B008B; font-weight: bold">True</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">_progress_bar</span>(<span style="color: #658b00">self</span>, progression, **kwargs):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            Displays progress of training</span>
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+        print_length = <span style="color: #B452CD">40</span>
+        num_equals = <span style="color: #658b00">int</span>(progression * print_length)
+        num_not = print_length - num_equals
+        arrow = <span style="color: #CD5555">&quot;&gt;&quot;</span> <span style="color: #8B008B; font-weight: bold">if</span> num_equals &gt; <span style="color: #B452CD">0</span> <span style="color: #8B008B; font-weight: bold">else</span> <span style="color: #CD5555">&quot;&quot;</span>
+        bar = <span style="color: #CD5555">&quot;[&quot;</span> + <span style="color: #CD5555">&quot;=&quot;</span> * (num_equals - <span style="color: #B452CD">1</span>) + arrow + <span style="color: #CD5555">&quot;-&quot;</span> * num_not + <span style="color: #CD5555">&quot;]&quot;</span>
+        perc_print = <span style="color: #658b00">self</span>._format(progression * <span style="color: #B452CD">100</span>, decimals=<span style="color: #B452CD">5</span>)
+        line = <span style="color: #CD5555">f&quot;  {</span>bar<span style="color: #CD5555">} {</span>perc_print<span style="color: #CD5555">}% &quot;</span>
+
+        <span style="color: #8B008B; font-weight: bold">for</span> key <span style="color: #8B008B">in</span> kwargs:
+            <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #8B008B">not</span> np.isnan(kwargs[key]):
+                value = <span style="color: #658b00">self</span>._format(kwargs[key], decimals=<span style="color: #B452CD">4</span>)
+                line += <span style="color: #CD5555">f&quot;| {</span>key<span style="color: #CD5555">}: {</span>value<span style="color: #CD5555">} &quot;</span>
+        sys.stdout.write(<span style="color: #CD5555">&quot;\r&quot;</span> + line)
+        sys.stdout.flush()
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">len</span>(line)
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">_format</span>(<span style="color: #658b00">self</span>, value, decimals=<span style="color: #B452CD">4</span>):
+        <span style="color: #CD5555">&quot;&quot;&quot;</span>
+<span style="color: #CD5555">        Description:</span>
+<span style="color: #CD5555">        ------------</span>
+<span style="color: #CD5555">            Formats decimal numbers for progress bar</span>
+<span style="color: #CD5555">        &quot;&quot;&quot;</span>
+        <span style="color: #8B008B; font-weight: bold">if</span> value &gt; <span style="color: #B452CD">0</span>:
+            v = value
+        <span style="color: #8B008B; font-weight: bold">elif</span> value &lt; <span style="color: #B452CD">0</span>:
+            v = -<span style="color: #B452CD">10</span> * value
+        <span style="color: #8B008B; font-weight: bold">else</span>:
+            v = <span style="color: #B452CD">1</span>
+        n = <span style="color: #B452CD">1</span> + math.floor(math.log10(v))
+        <span style="color: #8B008B; font-weight: bold">if</span> n &gt;= decimals - <span style="color: #B452CD">1</span>:
+            <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">str</span>(<span style="color: #658b00">round</span>(value))
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #CD5555">f&quot;{</span>value<span style="color: #CD5555">:.{</span>decimals-n-<span style="color: #B452CD">1</span><span style="color: #CD5555">}f}&quot;</span>
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Before we make a model, we will quickly generate a dataset we can use
+for our linear regression problem as shown below
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">autograd.numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">SkrankeFunction</span>(x, y):
+    <span style="color: #8B008B; font-weight: bold">return</span> np.ravel(<span style="color: #B452CD">0</span> + <span style="color: #B452CD">1</span>*x + <span style="color: #B452CD">2</span>*y + <span style="color: #B452CD">3</span>*x**<span style="color: #B452CD">2</span> + <span style="color: #B452CD">4</span>*x*y + <span style="color: #B452CD">5</span>*y**<span style="color: #B452CD">2</span>)
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">create_X</span>(x, y, n):
+    <span style="color: #8B008B; font-weight: bold">if</span> <span style="color: #658b00">len</span>(x.shape) &gt; <span style="color: #B452CD">1</span>:
+        x = np.ravel(x)
+        y = np.ravel(y)
+
+    N = <span style="color: #658b00">len</span>(x)
+    l = <span style="color: #658b00">int</span>((n + <span style="color: #B452CD">1</span>) * (n + <span style="color: #B452CD">2</span>) / <span style="color: #B452CD">2</span>)  <span style="color: #228B22"># Number of elements in beta</span>
+    X = np.ones((N, l))
+
+    <span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>, n + <span style="color: #B452CD">1</span>):
+        q = <span style="color: #658b00">int</span>((i) * (i + <span style="color: #B452CD">1</span>) / <span style="color: #B452CD">2</span>)
+        <span style="color: #8B008B; font-weight: bold">for</span> k <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(i + <span style="color: #B452CD">1</span>):
+            X[:, q + k] = (x ** (i - k)) * (y**k)
+
+    <span style="color: #8B008B; font-weight: bold">return</span> X
+
+step=<span style="color: #B452CD">0.5</span>
+x = np.arange(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, step)
+y = np.arange(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>, step)
+x, y = np.meshgrid(x, y)
+target = SkrankeFunction(x, y)
+target = target.reshape(target.shape[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">1</span>)
+
+poly_degree=<span style="color: #B452CD">3</span>
+X = create_X(x, y, poly_degree)
+
+X_train, X_test, t_train, t_test = train_test_split(X, target)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Now that we have our dataset ready for the regression, we can create
+our regressor. Note that with the seed parameter, we can make sure our
+results stay the same every time we run the neural network. For
+inititialization, we simply specify the dimensions (we wish the amount
+of input nodes to be equal to the datapoints, and the output to
+predict one value).
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">input_nodes = X_train.shape[<span style="color: #B452CD">1</span>]
+output_nodes = <span style="color: #B452CD">1</span>
+
+linear_regression = FFNN((input_nodes, output_nodes), output_func=identity, cost_func=CostOLS, seed=<span style="color: #B452CD">2023</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>We then fit our model with our training data using the scheduler of our choice.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">linear_regression.reset_weights() <span style="color: #228B22"># reset weights such that previous runs or reruns don&#39;t affect the weights</span>
+
+scheduler = Constant(eta=<span style="color: #B452CD">1e-3</span>)
+scores = linear_regression.fit(X_train, t_train, scheduler)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Due to the progress bar we can see the MSE (train_error) throughout
+the FFNN's training. Note that the fit() function has some optional
+parameters with defualt arguments. For example, the regularization
+hyperparameter can be left ignored if not needed, and equally the FFNN
+will by default run for 100 epochs. These can easily be changed, such
+as for example:
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">linear_regression.reset_weights() <span style="color: #228B22"># reset weights such that previous runs or reruns don&#39;t affect the weights</span>
+
+scores = linear_regression.fit(X_train, t_train, scheduler, lam=<span style="color: #B452CD">1e-4</span>, epochs=<span style="color: #B452CD">1000</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>We see that given more epochs to train on, the regressor reaches a lower MSE.</p>
+
+<p>Let us then switch to a binary classification. We use a binary
+classification dataset, and follow a similar setup to the regression
+case.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> load_breast_cancer
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.preprocessing</span> <span style="color: #8B008B; font-weight: bold">import</span> MinMaxScaler
+
+wisconsin = load_breast_cancer()
+X = wisconsin.data
+target = wisconsin.target
+target = target.reshape(target.shape[<span style="color: #B452CD">0</span>], <span style="color: #B452CD">1</span>)
+
+X_train, X_val, t_train, t_val = train_test_split(X, target)
+
+scaler = MinMaxScaler()
+scaler.fit(X_train)
+X_train = scaler.transform(X_train)
+X_val = scaler.transform(X_val)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">input_nodes = X_train.shape[<span style="color: #B452CD">1</span>]
+output_nodes = <span style="color: #B452CD">1</span>
+
+logistic_regression = FFNN((input_nodes, output_nodes), output_func=sigmoid, cost_func=CostLogReg, seed=<span style="color: #B452CD">2023</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>We will now make use of our validation data by passing it into our fit function as a keyword argument</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">logistic_regression.reset_weights() <span style="color: #228B22"># reset weights such that previous runs or reruns don&#39;t affect the weights</span>
+
+scheduler = Adam(eta=<span style="color: #B452CD">1e-3</span>, rho=<span style="color: #B452CD">0.9</span>, rho2=<span style="color: #B452CD">0.999</span>)
+scores = logistic_regression.fit(X_train, t_train, scheduler, epochs=<span style="color: #B452CD">1000</span>, X_val=X_val, t_val=t_val)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Finally, we will create a neural network with 2 hidden layers with activation functions.</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">input_nodes = X_train.shape[<span style="color: #B452CD">1</span>]
+hidden_nodes1 = <span style="color: #B452CD">100</span>
+hidden_nodes2 = <span style="color: #B452CD">30</span>
+output_nodes = <span style="color: #B452CD">1</span>
+
+dims = (input_nodes, hidden_nodes1, hidden_nodes2, output_nodes)
+
+neural_network = FFNN(dims, hidden_func=RELU, output_func=sigmoid, cost_func=CostLogReg, seed=<span style="color: #B452CD">2023</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">neural_network.reset_weights() <span style="color: #228B22"># reset weights such that previous runs or reruns don&#39;t affect the weights</span>
+
+scheduler = Adam(eta=<span style="color: #B452CD">1e-4</span>, rho=<span style="color: #B452CD">0.9</span>, rho2=<span style="color: #B452CD">0.999</span>)
+scores = neural_network.fit(X_train, t_train, scheduler, epochs=<span style="color: #B452CD">1000</span>, X_val=X_val, t_val=t_val)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<h3 id="multiclass-classification">Multiclass classification </h3>
+
+<p>Finally, we will demonstrate the use case of multiclass classification
+using our FFNN with the famous MNIST dataset, which contain images of
+digits between the range of 0 to 9.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.datasets</span> <span style="color: #8B008B; font-weight: bold">import</span> load_digits
+
+<span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">onehot</span>(target: np.ndarray):
+    onehot = np.zeros((target.size, target.max() + <span style="color: #B452CD">1</span>))
+    onehot[np.arange(target.size), target] = <span style="color: #B452CD">1</span>
+    <span style="color: #8B008B; font-weight: bold">return</span> onehot
+
+digits = load_digits()
+
+X = digits.data
+target = digits.target
+target = onehot(target)
+
+input_nodes = <span style="color: #B452CD">64</span>
+hidden_nodes1 = <span style="color: #B452CD">100</span>
+hidden_nodes2 = <span style="color: #B452CD">30</span>
+output_nodes = <span style="color: #B452CD">10</span>
+
+dims = (input_nodes, hidden_nodes1, hidden_nodes2, output_nodes)
+
+multiclass = FFNN(dims, hidden_func=LRELU, output_func=softmax, cost_func=CostCrossEntropy)
+
+multiclass.reset_weights() <span style="color: #228B22"># reset weights such that previous runs or reruns don&#39;t affect the weights</span>
+
+scheduler = Adam(eta=<span style="color: #B452CD">1e-4</span>, rho=<span style="color: #B452CD">0.9</span>, rho2=<span style="color: #B452CD">0.999</span>)
+scores = multiclass.fit(X, target, scheduler, epochs=<span style="color: #B452CD">1000</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="testing-the-xor-gate-and-other-gates">Testing the XOR gate and other gates </h2>
+
+<p>Let us now use our code to test the XOR gate.</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">X = np.array([ [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">0</span>, <span style="color: #B452CD">1</span>], [<span style="color: #B452CD">1</span>, <span style="color: #B452CD">0</span>],[<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>]],dtype=np.float64)
+
+<span style="color: #228B22"># The XOR gate</span>
+yXOR = np.array( [[ <span style="color: #B452CD">0</span>], [<span style="color: #B452CD">1</span>] ,[<span style="color: #B452CD">1</span>], [<span style="color: #B452CD">0</span>]])
+
+input_nodes = X.shape[<span style="color: #B452CD">1</span>]
+output_nodes = <span style="color: #B452CD">1</span>
+
+logistic_regression = FFNN((input_nodes, output_nodes), output_func=sigmoid, cost_func=CostLogReg, seed=<span style="color: #B452CD">2023</span>)
+logistic_regression.reset_weights() <span style="color: #228B22"># reset weights such that previous runs or reruns don&#39;t affect the weights</span>
+scheduler = Adam(eta=<span style="color: #B452CD">1e-1</span>, rho=<span style="color: #B452CD">0.9</span>, rho2=<span style="color: #B452CD">0.999</span>)
+scores = logistic_regression.fit(X, yXOR, scheduler, epochs=<span style="color: #B452CD">1000</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Not bad, but the results depend strongly on the learning reate. Try different learning rates.</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="lecture-thursday-october-26">Lecture Thursday October 26 </h2>
