@@ -32,6 +32,8 @@
 # 
 #   * Solving differential equations with Neural Networks and intro to **Tensorflow** with  examples.
 # 
+#   * [Video of lecture](https://youtu.be/_-AwbBh4G-8)
+# 
 #   * Readings and Videos:
 # 
 #     * These lecture notes

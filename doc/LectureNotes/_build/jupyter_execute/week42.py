@@ -30,6 +30,10 @@
 # 
 #     * These lecture notes
 # 
+#     * [Video of lecture](https://youtu.be/0q5-PhovchQ)
+# 
+#     * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesOct19.pdf)
+# 
 #     * [Aurelien Geron's chapters 10-11](https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf)
 # 
 #     * For a more in depth discussion on  neural networks we recommend Goodfellow et al chapters 6 and 7.     

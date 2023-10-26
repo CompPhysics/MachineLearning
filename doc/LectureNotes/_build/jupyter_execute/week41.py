@@ -30,6 +30,10 @@
 # 
 #   * Building our own Feed-forward Neural Network
 # 
+#   * [Video of lecture notes](https://youtu.be/5-RRTO9uDvI)
+# 
+#   * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesOct12.pdf)
+# 
 #   * Readings and Videos:
 # 
 #     * These lecture notes
