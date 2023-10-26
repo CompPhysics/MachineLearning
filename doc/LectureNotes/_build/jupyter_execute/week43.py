@@ -8,7 +8,7 @@
 # # Week 43: Deep Learning: Constructing a Neural Network code and solving differential equations
 # **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and Facility for Rare Isotope Beams, Michigan State University
 # 
-# Date: **Oct 25, 2023**
+# Date: **Oct 26, 2023**
 # 
 # Copyright 1999-2023, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
 
@@ -21,6 +21,8 @@
 #   * The exercises this week will be continued next week as well
 # 
 #   * Discussion of project 2
+# 
+#   * [Video of lab session](https://youtu.be/Ia6wwDLxqtM)
 # 
 #   
 # 
