@@ -1053,30 +1053,52 @@ print(test_acc)
 !split
 ===== Building our own CNN code ===== 
 
-# 
-# In this notebook we present flexible and readable python code for a CNN implemented with NumPy. We will present the code, showcase how to use the codebase and fit a CNN that yields a 99% accuracy on the 28x28 MNIST dataset within reasonable time.
-# 
-# The CNN is compatible with all schedulers, cost functions and activation functions presented in https://github.com/EricEReber/Neural-Network, which we will also showcase in this notebook before the CNN.
-# 
-# The CNN code consists of different types of Layer classes, including Convolution2DLayer, Pooling2DLayer, FlattenLayer, FullyConnectedLayer and OutputLayer, which can be added to the CNN object using the interface of the CNN class. This allows students to easily construct their own CNN, as well as allowing students to get used to an interface similar to that of TensorFlow which is used for real world applications.
-# 
-# Another important feature of this code is that it throws errors if unreasonable decisions are made (for example using a kernel that is larger than the image, not using a FlattenLayer, etc), and provides the user with an informative error message.
-# 
-# List of contents: \
-# I.   Schedulers \
-# II.  Activation Functions \
-# III. Cost Functions \
-# IV.  Convolution \
-# V.   Layers \
-# VI.  CNN \
-# VII. Remarks
 
-# ## I. Schedulers
-# The code below shows object oriented implementations of the Constant, Momentum, Adagrad, AdagradMomentum, RMS prop and Adam schedulers. All of the classes belong to the shared abstract Scheduler class, and share the update_change() and reset() methods allowing for any of the schedulers to be seamlessly used during the training stage, as will later be shown in the fit() method of the neural network. Update_change() only has one parameter, the gradient ($\delta^{l}_{j}a^{l-1}_k$), and returns the change which will be subtracted from the weights. The reset() function takes no parameters, and resets the desired variables. For Constant and Momentum, reset does nothing.
+Here we present a flexible and readable python code for a CNN
+implemented with NumPy. We will present the code, showcase how to use
+the codebase and fit a CNN that yields a 99% accuracy on the 28x28
+MNIST dataset within reasonable time.
 
-# In[1]:
+The CNN is compatible with all schedulers, cost functions and
+activation functions discussed in constructing our neural network
+codes.
+ 
+ The CNN code consists of different types of Layer classes, including
+Convolution2DLayer, Pooling2DLayer, FlattenLayer, FullyConnectedLayer
+and OutputLayer, which can be added to the CNN object using the
+interface of the CNN class. This allows you to easily construct your
+own CNN, as well as allowing you to get used to an interface similar
+to that of TensorFlow which is used for real world applications. 
 
+Another important feature of this code is that it throws errors if
+unreasonable decisions are made (for example using a kernel that is
+larger than the image, not using a FlattenLayer, etc), and provides
+the user with an informative error message.
 
+=== List of contents: ===
+o Schedulers
+o Activation Functions
+o Cost Functions 
+o Convolution
+o Layers
+o CNN 
+o Some final remarks
+
+=== Schedulers ===
+
+The code below shows object oriented implementations of the Constant,
+Momentum, Adagrad, AdagradMomentum, RMS prop and Adam schedulers. All
+of the classes belong to the shared abstract Scheduler class, and
+share the update_change() and reset() methods allowing for any of the
+schedulers to be seamlessly used during the training stage, as will
+later be shown in the fit() method of the neural
+network. Update_change() only has one parameter, the gradient
+($\delta^{l}_{j}a^{l-1}_k$), and returns the change which will be
+subtracted from the weights. The reset() function takes no parameters,
+and resets the desired variables. For Constant and Momentum, reset
+does nothing.
+
+!bc pycod
 import autograd.numpy as np
 
 class Scheduler:
@@ -1208,24 +1230,20 @@ class Adam(Scheduler):
         self.moment = 0
         self.second = 0
 
+!ec
 
-# ## Usage of schedulers
-# 
-# To initalize a scheduler, simply create the object and pass in the necessary parameters such as the learning rate and the momentum as shown below. As the Scheduler class is an abstract class it should not called directly, and will raise an error upon usage.
-# 
+=== Usage of schedulers ===
 
-# In[2]:
+To initalize a scheduler, simply create the object and pass in the necessary parameters such as the learning rate and the momentum as shown below. As the Scheduler class is an abstract class it should not called directly, and will raise an error upon usage.
 
-
+!bc pycod
 momentum_scheduler = Momentum(eta=1e-3, momentum=0.9)
 adam_scheduler = Adam(eta=1e-3, rho=0.9, rho2=0.999)
+!ec
 
+Here is a small example for how a segment of code using schedulers could look. Switching out the schedulers is simple.
 
-# Here is a small example for how a segment of code using schedulers could look. Switching out the schedulers is simple.
-
-# In[3]:
-
-
+!bc pycod
 weights = np.ones((3,3))
 print(f"Before scheduler:\n{weights=}")
 
@@ -1237,16 +1255,17 @@ for e in range(epochs):
     adam_scheduler.reset()
 
 print(f"\nAfter scheduler:\n{weights=}")
+!ec
+
+=== Cost functions ===
+
+In this section we will quickly look at cost functions that can be
+used when creating the neural network. Every cost function takes the
+target vector as its parameter, and returns a function valued only at
+X such that it may easily be differentiated.
 
 
-# ## II. Cost functions
-# 
-# In this section we will quickly look at cost functions that can be used when creating the neural network. Every cost function takes the target vector as its parameter, and returns a function valued only at X such that it may easily be differentiated.
-# 
-
-# In[4]:
-
-
+!bc pycod
 def CostOLS(target):
     """
     Return OLS function valued only at X, so
@@ -1284,15 +1303,15 @@ def CostCrossEntropy(target):
 
     return func
 
+!ec
 
-# ## Usage of cost functions
-# 
-# Below we will provide a short example of how these cost function may be used to obtain results if you wish to test them out on your own using AutoGrad's automatic differentiation.
-# 
+=== Usage of cost functions ===
 
-# In[5]:
+Below we will provide a short example of how these cost function may
+be used to obtain results if you wish to test them out on your own
+using AutoGrad's automatic differentiation.
 
-
+!bc pycod
 from autograd import grad
 
 target = np.array([[1, 2, 3]]).T
@@ -1303,15 +1322,18 @@ cost_func_derivative = grad(cost_func(target))
 
 valued_at_a = cost_func_derivative(a)
 print(f"Derivative of cost function {cost_func.__name__} valued at a:\n{valued_at_a}")
+!ec
+
+=== Activation functions ===
+
+Finally, before we look at the layers that make up the neural network,
+we will look at the activation functions which can be specified
+between the hidden layers and as the output function. Each function
+can be valued for any given vector or matrix X, and can be
+differentiated via derivate().
 
 
-# ## III. Activation functions
-# 
-# Finally, before we look at the layers that make up the neural network, we will look at the activation functions which can be specified between the hidden layers and as the output function. Each function can be valued for any given vector or matrix X, and can be differentiated via derivate().
-# 
-
-# In[6]:
-
+!bc pycod
 
 import autograd.numpy as np
 from autograd import elementwise_grad
@@ -1360,17 +1382,19 @@ def derivate(func):
 
     else:
         return elementwise_grad(func)
+!ec
 
 
-# 
-# ## Usage of activation functions
-# 
-# Below is a short demonstration of how to use an activation function. The derivative of the activation function will be important when calculating the output delta term during backpropagation. Note that derivate() can also be used for cost functions for a more generalized approach.
-# 
+=== Usage of activation functions ===
 
-# In[7]:
+Below we present a short demonstration of how to use an activation
+function. The derivative of the activation function will be important
+when calculating the output delta term during backpropagation. Note
+that derivate() can also be used for cost functions for a more
+generalized approach.
 
 
+!bc pycod
 z = np.array([[4, 5, 6]]).T
 print(f"Input to activation function:\n{z}")
 
@@ -1381,120 +1405,190 @@ print(f"\nOutput from {act_func.__name__} activation function:\n{a}")
 act_func_derivative = derivate(act_func)
 valued_at_z = act_func_derivative(a)
 print(f"\nDerivative of {act_func.__name__} activation function valued at z:\n{valued_at_z}")
+!ec
 
+=== Convolution ===
 
-# ## IV. Convolution
-# 
-# In order to construct a convolutional neural network (CNN), it is crucial to comprehend the fundamental principles of convolution and how it aids in extracting information from images. Convolution, at its core, is merely a mathematical operation between two functions that yields another function. It is represented by an integral between two functions, which is typically expressed as:
-# 
-# $$(f \ast g)(t):=\int_{-\infty}^{\infty} f(\tau) g(t-\tau) d \tau$$
-# 
-# Here, f and g are the two functions on which we want to perform an operation. The outcome of the convolution operation is represented by $(f \ast g)$, and it is derived by sliding the function g over f and computing the integral of their product at each position. If both functions are continuous, convolution takes the form shown above. However, if we discretize both f and g, the convolution operation will take the form of a sum between the elements of f and g:
-# 
-# 
-# $$(f \ast g)[n]=\sum_{m=0}^{n-1} f[m] g[n-m]$$
-# 
-# The key idea we utilize to extract the information contained in an image is to slide an $m \times n$ matrix *g* over an $m \times n$ matrix *f*. In our case, *f* represents the image, while *g* represents the kernel, oftentimes called a filter. However, since our convolution will be a two-dimensional variant, we need to extend our mathematical formula with an additional summation:
-# 
-# 
-# $$(f \ast g)[i, j]\sum_{m=0}^{M-1}\sum_{n=0}^{N-1} f[m,n] g[i-m, j-n]$$
-# 
-# It is imperative to note that the size of the kernel g is significantly smaller than the size of the input image f, thereby reducing the amount of computation necessary for feature extraction. Furthermore, the kernel is usually a trainable parameter in a convolutional neural network, allowing the network to learn appropriate kernels for specific tasks.
-# 
-# Now to give you an example of how 2D convolution works in practice, suppose we have an image *f* of dimension $6 \times 6$
-# 
-# $$
-# f = \begin{bmatrix}
-# 4 & 1 & 2 & 9 & 8 & 6 \\
-# 9 & 5 & 9 & 5 & 8 & 5 \\
-# 1 & 5 & 9 & 7 & 6 & 4 \\
-# 2 & 9 & 8 & 3 & 7 & 1 \\
-# 8 & 1 & 6 & 4 & 2 & 2 \\
-# 1 & 0 & 5 & 7 & 8 & 2 \\
-# \end{bmatrix}
-# $$
-# 
-# and a $3 \times 3$ kernel *g* called a low-pass filter. Note that the kernel is usually rotated by 180 degrees during convolution, however this has no effect on this kernel.
-# 
-# $$g = \frac{1}{9} 
-# \begin{bmatrix}
-# 1 & 1 & 1 \\
-# 1 & 1 & 1 \\
-# 1 & 1 & 1 \\
-# \end{bmatrix}
-# $$
-# 
-# In order to filter the image, we have to extract a $3 \times 3$ element from the upper left corner of *f*, and perform element-wise multiplication of the extracted image pixels with the elements of the kernel *g*:
-# 
-# $$
-# \begin{bmatrix}
-# 4 & 1 & 2 \\
-# 9 & 5 & 9 \\
-# 1 & 5 & 9 \\ 
-# \end{bmatrix} 
-# \cdot
-# \begin{bmatrix}
-# \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
-# \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
-# \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
-# \end{bmatrix}
-# = 
-# \begin{bmatrix}
-# \frac{4}{9} & \frac{1}{9} & \frac{2}{9} \\
-# \frac{9}{9} & \frac{5}{9} & \frac{9}{9} \\
-# \frac{1}{9} & \frac{5}{9} & \frac{9}{9} \\
-# \end {bmatrix}
-# = \textbf{A}
-# $$
-# 
-# Then, following the multiplication, we summarize all the elements of the resulting matrix A:
-# 
-# $$
-# (f \ast g)[0, 0]= \sum_{i=0}^{2} \sum_{j=0}^{2} a_{i,j} = 5
-# $$
-# 
-# Which corresponds to the first element of the filtered image $(f \ast g)$.
-# 
-# Here we use a stride of 1, a parameter denoted *s* which describes how many indexes we move the kernel *g* to the right before repeating the calculations above for the next $3 \times 3$ element of the image *f*. It is usually presumed that *s*=1, however, larger values for *s* can be used to reduce the dimentionality of the filtered image such that the convolution operation is more computationally efficient. In the context of a convolutional neural network, this will become very useful.
-# 
-# The full result of the convolution is:
-# 
-# $$
-# (f \ast g) =
-# \begin{bmatrix}
-# 5 & 5.78 & 7 & 6.44 \\ 
-# 6.33 & 6.67 & 6.89 & 5.11 \\
-# 5.44 & 5.78 & 5.78 & 4 \\
-# 4.44 & 4.78 & 5.56 & 4 \\
-# \end{bmatrix}
-# $$
-# 
-# The result is markedly smaller in shape than the original image. This occurs when using convolution without first padding the image with additional columns and rows, allowing us to keep the original image shape after sliding the kernel over the image.
-# How many rows and columns we wish to pad the image with depends strictly on the shape of the kernel, as we wish to pad the image with *r* additional rows and *c* additional columns.
-# 
-# $$r =\lfloor \frac{kernel\ height}{2} \rfloor \cdot 2 \\
-# c =\lfloor \frac{kernel\ width}{2} \rfloor \cdot 2$$
-# 
-# Note the notation $\lfloor \frac{kernel width}{2} \rfloor$ means that we floor the result of the division, meaning we round down to a whole number in case $\frac{kernel width}{2}$ results in a floating point number.
-# 
-# Using those simple equations, we find out by how much we have to extend the dimensions of the original image. Before proceeding, however, we might ask what we shall fill the additional rows and columns with? One of the most common approaches to padding is zero-padding, which as the name suggest, involves filling the rows and columns with zeros. This is the approach that we will be using for this demonstration. If we apply this padding to out original 6 x 6 image, the result will we an 8 x 8 image as the kernel has a width and height of 3. Note that the original image is encapsuled by the zero-padded rows and columns: 
-# 
-# \begin{bmatrix}
-# 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-# 0 & 4 & 1 & 2 & 9 & 8 & 6 & 0 \\
-# 0 & 9 & 5 & 9 & 5 & 8 & 5 & 0 \\
-# 0 & 1 & 5 & 9 & 7 & 6 & 4 & 0 \\
-# 0 & 2 & 9 & 8 & 3 & 7 & 1 & 0 \\
-# 0 & 8 & 1 & 6 & 4 & 2 & 2 & 0 \\
-# 0 & 1 & 0 & 5 & 7 & 8 & 2 & 0 \\
-# 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-# \end{bmatrix}
-# 
-# Below we have provided code that demonstrates padding and convolution. As you will see when we run the code, the size of the image will remain unchanged when using padding.
+In order to construct a convolutional neural network (CNN), it is
+crucial to comprehend the fundamental principles of convolution and
+how it aids in extracting information from images. Convolution, at its
+core, is merely a mathematical operation between two functions that
+yields another function. It is represented by an integral between two
+functions, which is typically expressed as:
 
-# In[8]:
+!bt
+\[
+(f \ast g)(t):=\int_{-\infty}^{\infty} f(\tau) g(t-\tau) d \tau.
+\]
+!et
 
+Here, f and g are the two functions on which we want to perform an
+operation. The outcome of the convolution operation is represented by
+$(f \ast g)$, and it is derived by sliding the function g over f and
+computing the integral of their product at each position. If both
+functions are continuous, convolution takes the form shown
+above. However, if we discretize both f and g, the convolution
+operation will take the form of a sum between the elements of f and g:
+!bt
+\[
+(f \ast g)[n]=\sum_{m=0}^{n-1} f[m] g[n-m].
+\]
+!et
 
+The key idea we utilize to extract the information contained in an
+image is to slide an $m \times n$ matrix *g* over an $m \times n$
+matrix *f*. In our case, *f* represents the image, while *g*
+represents the kernel, oftentimes called a filter. However, since our
+convolution will be a two-dimensional variant, we need to extend our
+mathematical formula with an additional summation:
+
+!bt
+\[
+(f \ast g)[i, j]\sum_{m=0}^{M-1}\sum_{n=0}^{N-1} f[m,n] g[i-m, j-n].
+\]
+!et
+
+It is imperative to note that the size of the kernel g is
+significantly smaller than the size of the input image f, thereby
+reducing the amount of computation necessary for feature
+extraction. Furthermore, the kernel is usually a trainable parameter
+in a convolutional neural network, allowing the network to learn
+appropriate kernels for specific tasks.
+
+To give you an example of how 2D convolution works in practice,
+suppose we have an image *f* of dimension $6 \times 6$
+
+!bt
+\[
+f = \begin{bmatrix}
+4 & 1 & 2 & 9 & 8 & 6 \\
+9 & 5 & 9 & 5 & 8 & 5 \\
+1 & 5 & 9 & 7 & 6 & 4 \\
+2 & 9 & 8 & 3 & 7 & 1 \\
+8 & 1 & 6 & 4 & 2 & 2 \\
+1 & 0 & 5 & 7 & 8 & 2 \\
+\end{bmatrix}
+\]
+!et
+
+and a $3 \times 3$ kernel *g* called a low-pass filter. Note that the
+kernel is usually rotated by 180 degrees during convolution, however
+this has no effect on this kernel.
+
+!bt
+\[
+g = \frac{1}{9}
+\begin{bmatrix}
+1 & 1 & 1 \\
+1 & 1 & 1 \\
+1 & 1 & 1 \\
+\end{bmatrix}
+\]
+!et
+
+In order to filter the image, we have to extract a $3 \times 3$
+element from the upper left corner of *f*, and perform element-wise
+multiplication of the extracted image pixels with the elements of the
+kernel *g*:
+
+!bt
+\[
+\begin{bmatrix}
+4 & 1 & 2 \\
+9 & 5 & 9 \\
+1 & 5 & 9 \\
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+\frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+\frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+\frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+\frac{4}{9} & \frac{1}{9} & \frac{2}{9} \\
+\frac{9}{9} & \frac{5}{9} & \frac{9}{9} \\
+\frac{1}{9} & \frac{5}{9} & \frac{9}{9} \\
+\end {bmatrix}
+= \textbf{A}
+\]
+!et
+
+Then, following the multiplication, we summarize all the elements of the resulting matrix A:
+
+!bt
+\[
+(f \ast g)[0, 0]= \sum_{i=0}^{2} \sum_{j=0}^{2} a_{i,j} = 5
+\]
+!et
+
+Which corresponds to the first element of the filtered image $(f \ast g)$.
+
+Here we use a stride of 1, a parameter denoted *s* which describes how
+many indexes we move the kernel *g* to the right before repeating the
+calculations above for the next $3 \times 3$ element of the image
+*f*. It is usually presumed that *s*=1, however, larger values for *s*
+can be used to reduce the dimentionality of the filtered image such
+that the convolution operation is more computationally efficient. In
+the context of a convolutional neural network, this will become very
+useful.
+
+The full result of the convolution is:
+
+!bt
+\[
+(f \ast g) =
+\begin{bmatrix}
+5 & 5.78 & 7 & 6.44 \\
+6.33 & 6.67 & 6.89 & 5.11 \\
+5.44 & 5.78 & 5.78 & 4 \\
+4.44 & 4.78 & 5.56 & 4 \\
+\end{bmatrix}
+\]
+!et
+The result is markedly smaller in shape than the original image. This occurs when using convolution without first padding the image with additional columns and rows, allowing us to keep the original image shape after sliding the kernel over the image.
+How many rows and columns we wish to pad the image with depends strictly on the shape of the kernel, as we wish to pad the image with *r* additional rows and *c* additional columns.
+
+!bt
+\[
+r =\lfloor \frac{kernel\ height}{2} \rfloor \cdot 2 \\
+c =\lfloor \frac{kernel\ width}{2} \rfloor \cdot 2
+\]
+!et
+
+Note the notation $\lfloor \frac{kernel width}{2} \rfloor$ means that
+we floor the result of the division, meaning we round down to a whole
+number in case $\frac{kernel width}{2}$ results in a floating point
+number.
+
+Using those simple equations, we find out by how much we have to
+extend the dimensions of the original image. Before proceeding,
+however, we might ask what we shall fill the additional rows and
+columns with? One of the most common approaches to padding is
+zero-padding, which as the name suggest, involves filling the rows and
+columns with zeros. This is the approach that we will be using for
+this demonstration. If we apply this padding to out original $6 \times 6$
+image, the result will be an $8 \times 8$ image as the kernel has a width and
+height of 3. Note that the original image is encapsuled by the
+zero-padded rows and columns:
+
+!bt
+\[
+\begin{bmatrix}
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 4 & 1 & 2 & 9 & 8 & 6 & 0 \\
+0 & 9 & 5 & 9 & 5 & 8 & 5 & 0 \\
+0 & 1 & 5 & 9 & 7 & 6 & 4 & 0 \\
+0 & 2 & 9 & 8 & 3 & 7 & 1 & 0 \\
+0 & 8 & 1 & 6 & 4 & 2 & 2 & 0 \\
+0 & 1 & 0 & 5 & 7 & 8 & 2 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+\]
+\end{bmatrix}
+!et
+Below we have provided code that demonstrates padding and convolution. As you will see when we run the code, the size of the image will remain unchanged when using padding.~
+
+!bc pycod
 import numpy as np
 
 def padding(image, kernel):
@@ -1566,14 +1660,13 @@ def convolve(image, kernel, stride=1):
             )
 
     return conv_image
+!ec
 
+Fun fact: When filtering images, you will see that convolution involves rotating the kernel by 180 degrees. 
+However, this is not the case when applying convolution in a CNN, where the same operation not rotated by 180 degrees is called 
+cross-correlation.
 
-# Fun fact: When filtering images, you will see that convolution involves rotating the kernel by 180 degrees. 
-# However, this is not the case when applying convolution in a CNN, where the same operation not rotated by 180 degrees is called 
-# cross-correlation.
-
-# In[9]:
-
+!bc pycod
 
 original_image = np.array([[4, 1, 2, 9, 8, 6],
                  [9, 5, 9, 5, 8, 5],
@@ -1590,13 +1683,21 @@ print(f"{original_image.shape=}")
 convolved_image = convolve(original_image, kernel, stride=1)
 
 print(f"{convolved_image.shape=}")
+!ec
 
+As you can see, the resulting image is of the same size as the
+original image. To round of our demonstration of convolution, we will
+present the results of convolution using commonly used kernels. In a
+CNN, the values of the kernels are randomly initialized, and then
+learned during training. These kernels will extract information
+regarding the picture, such as for example the edge detection filter
+demonstrated below extracts the edges present in the picture. Of
+course, there is no guarantee that the CNN will learn an edge
+detection filter, but this should provide some intuiton as to how the
+CNN is able to use kernels to make better predictions than a regular
+feed forward neural network.
 
-# As you can see, the resulting image is of the same size as the original image. To round of our demonstration of convolution, we will present the results of convolution using commonly used kernels. In a CNN, the values of the kernels are randomly initialized, and then learned during training. These kernels will extract information regarding the picture, such as for example the edge detection filter demonstrated below extracts the edges present in the picture. Of course, there is no guarantee that the CNN will learn an edge detection filter, but this should provide some intuiton as to how the CNN is able to use kernels to make better predictions than a regular feed forward neural network.
-
-# In[10]:
-
-
+!bc pycod
 # Now an example using a real image and first a gaussian low-pass filter and then a sobel filter
 import numpy as np
 import imageio.v3 as imageio
@@ -1636,15 +1737,15 @@ filtered_image = convolve(image_of_cute_dog, sobel_kernel)
 plt.imshow(filtered_image, cmap="gray", vmin=0, vmax=255, aspect="auto")
 plt.title("Result of convolution with sobel kernel (edge detection filter)")
 plt.show()
+!ec
 
+=== Layers ===
 
-# ## V. Layers
-# 
-# The code below initialises global variables for readability and describes the abstract class Layers. This is not important in order to understand the CNN, but is benefitial for organizing the code neatly.
+The code below initialises global variables for readability and
+describes the abstract class Layers. This is not important in order to
+understand the CNN, but is benefitial for organizing the code neatly.
 
-# In[11]:
-
-
+!bc pycod
 import math
 import autograd.numpy as np
 from copy import deepcopy, copy
@@ -1675,19 +1776,44 @@ class Layer:
 
     def _reset_weights(self, previous_nodes):
         raise NotImplementedError
+!ec
 
+=== Convolution2DLayer: convolution in a hidden layer ===
 
-# ### Convolution2DLayer: convolution in a hidden layer
-# 
-# After establishing the foundational understanding of applying convolution to spatial data, let us delve into the intricate workings of a convolutional layer in a Convolutional Neural Network (CNN). The primary function of convolution, as previously discussed, is to extract pertinent information from images while simultaneously decreasing the scale of our data. To initiate the image processing, we shall begin by partitioning the images into color channels (unless the image is grayscale), comprising three primary colors: red, green, and blue. We will subsequently utilize trainable kernels to construct a higher-dimensional encoding of each channel called feature maps. Successive layers will receive these feature maps as inputs, generating further encodings, albeit with reduced dimensions. The term trainable kernels denotes the initialization of pre-defined kernel-shaped weights, which we will then train via backpropagation, similar to how weights are trained in a Feedforward Neural Network.
-# 
-# To ensure seamless integration between our implementation of the convolutional layer and popular machine learning frameworks like Tensorflow (Keras) and PyTorch, we have adopted a design pattern that mirrors the construction of models using these APIs. This involves implementing our convolutional layer as a Python class or object, which allows for a more modular and flexible approach to building neural networks. By structuring our code in this way, users can easily incorporate our implementation into their existing machine learning pipelines without having to make significant changes to their codebase. Additionally, this design pattern promotes code reusability and makes it easier to maintain and update our convolutional layer implementation over time.
-# 
-# Note that the Convolution2DLayer takes in an activation function as a parameter, as it also performs non-linearity.
+After establishing the foundational understanding of applying
+convolution to spatial data, let us delve into the intricate workings
+of a convolutional layer in a Convolutional Neural Network (CNN). The
+primary function of convolution, as previously discussed, is to
+extract pertinent information from images while simultaneously
+decreasing the scale of our data. To initiate the image processing, we
+shall begin by partitioning the images into color channels (unless the
+image is grayscale), comprising three primary colors: red, green, and
+blue. We will subsequently utilize trainable kernels to construct a
+higher-dimensional encoding of each channel called feature
+maps. Successive layers will receive these feature maps as inputs,
+generating further encodings, albeit with reduced dimensions. The term
+trainable kernels denotes the initialization of pre-defined
+kernel-shaped weights, which we will then train via backpropagation,
+similar to how weights are trained in a Feedforward Neural Network.
 
-# In[12]:
+ 
+To ensure seamless integration between our implementation of the
+convolutional layer and popular machine learning frameworks like
+Tensorflow (Keras) and PyTorch, we have adopted a design pattern that
+mirrors the construction of models using these APIs. This involves
+implementing our convolutional layer as a Python class or object,
+which allows for a more modular and flexible approach to building
+neural networks. By structuring our code in this way, users can easily
+incorporate our implementation into their existing machine learning
+pipelines without having to make significant changes to their
+codebase. Additionally, this design pattern promotes code reusability
+and makes it easier to maintain and update our convolutional layer
+implementation over time.
 
+ 
+Note that the Convolution2DLayer takes in an activation function as a parameter, as it also performs non-linearity.
 
+!bc pycod
 class Convolution2DLayer(Layer):
     def __init__(
         self,
@@ -1963,18 +2089,28 @@ class Convolution2DLayer(Layer):
             raise AssertionError(
                 f"ERROR: Number of input channels in data ({self.X_batch_feedforward.shape[input_channel_index]}) is not equal to input channels in Convolution2DLayerOPT ({self.input_channels})! Please change the number of input channels of the Convolution2DLayer such that they are equal"
             )
+!ec
 
+=== Backpropagation in the convolutional layer ===
 
-# ### Backpropagation in the convolutional layer
-# 
-# As you may have noticed, we have not yet explained how the backpropagation algorithm works in a convolutional layer. However, having covered all other major details about convolutional layers, we are now prepared to do so. It should come as no surprise that the calculation of delta terms at each convolutional layer takes the form of convolution. After the gradient has been propagated backwards through the flattening layer, where it was reshaped into an appropriate form, calculating the update value for the kernel is simply a matter of convolving the output gradient with the input of the layer for which we are updating the weights. For more detail, this article serves as an excellent resource https://pavisj.medium.com/convolutions-and-backpropagations-46026a8f5d2c
+As you may have noticed, we have not yet explained how the
+backpropagation algorithm works in a convolutional layer. However,
+having covered all other major details about convolutional layers, we
+are now prepared to do so. It should come as no surprise that the
+calculation of delta terms at each convolutional layer takes the form
+of convolution. After the gradient has been propagated backwards
+through the flattening layer, where it was reshaped into an
+appropriate form, calculating the update value for the kernel is
+simply a matter of convolving the output gradient with the input of
+the layer for which we are updating the weights. For more detail, this
+article serves as an excellent resource, see
+URL:"https://pavisj.medium.com/convolutions-and-backpropagations-46026a8f5d2c"
 
-# ### Demonstration
-# We can use the convolutional layer above to perform a simple convolution on an image of the now familiar cute dog.
+=== Demonstration ===
 
-# In[13]:
+We can use the convolutional layer above to perform a simple convolution on an image of the now familiar cute dog.
 
-
+!bc pycod
 import numpy as np
 import imageio.v3 as imageio
 import matplotlib.pyplot as plt
@@ -2012,21 +2148,37 @@ image_of_cute_dog = image_of_cute_dog.transpose(0, 3, 1, 2)
 
 # plot the result of the convolution
 plot_convolution_result(image_of_cute_dog, layer)
+!ec
+
+We cobserve that the result has half the pixels on each axis due to
+the fact that we've used a horizontal and vertical stride of 2. The
+result of this convolution is not very insightfull, as the kernel has
+completely random values for the first feedforward pass. However, as
+we perform multiple forward and backward passes, the results of the
+convolution should provide identifying features of the image it uses
+for classification.
 
 
-# We can observe that the result has half the pixels on each axis due to the fact that we've used a horizontal and vertical stride of 2. The result of this convolution is not very insightfull, as the kernel has completely random values for the first feedforward pass. However, as we perform multiple forward and backward passes, the results of the convolution should provide identifying features of the image it uses for classification.
-# 
-# Note that image data usually comes in many different shapes and sizes, but for our CNN we require the input data be formatted as \[Number of inputs, input channels, input height, input width\]. Occasionally, the data you come accross use will be formatted like this, but on many occasions reshaping and transposing the dimensions is sadly necessary.
+Note that image data usually comes in many different shapes and sizes,
+but for our CNN we require the input data be formatted as \[Number of
+inputs, input channels, input height, input width\]. Occasionally, the
+data you come accross use will be formatted like this, but on many
+occasions reshaping and transposing the dimensions is sadly necessary.
 
-# ## Pooling Layer 
-# 
-# The pooling layer is another widely used type of layer in convolutional neural networks that enables data downsampling to a more manageable size. Despite recent technological advancements that allow for convolution without excessive size reduction of the data, the pooling layer still remains a fundamental component of convolutional neural networks. It can be used before, after, or in between convolutional layers, although finding the optimal placement of layers and network depth requires experimentation to achieve the best performance for a given problem. The code we provide allows you to perform two types of pooling known as max pooling and average pooling.
-# 
-# Below is the code for the pooling layer:
+=== Pooling Layer ===
 
-# In[14]:
+The pooling layer is another widely used type of layer in
+convolutional neural networks that enables data downsampling to a more
+manageable size. Despite recent technological advancements that allow
+for convolution without excessive size reduction of the data, the
+pooling layer still remains a fundamental component of convolutional
+neural networks. It can be used before, after, or in between
+convolutional layers, although finding the optimal placement of layers
+and network depth requires experimentation to achieve the best
+performance for a given problem. The code we provide allows you to
+perform two types of pooling known as max pooling and average pooling.
 
-
+!bc pycod
 class Pooling2DLayer(Layer):
     def __init__(
         self,
@@ -2178,15 +2330,21 @@ class Pooling2DLayer(Layer):
         assert (
             self.X_batch_feedforward.shape[height_index] >= self.kernel_height
         ), f"ERROR: Pooling kernel height_index ({self.kernel_height}) larger than data height_index ({self.X_batch_feedforward.input.shape[3]}), please lower the kernel height_index of the Pooling2DLayer"
+!ec
 
+=== Flattening Layer ===
 
-# ## Flattening Layer
-# 
-# Before we can begin building our first CNN model, we need to introduce the flattening layer. As its name suggests, the flattening layer transforms the data into a one-dimensional vector that can be fed into the feedforward layers of our network. This layer plays a crucial role in preparing the data for further processing in the network. Additionally, the flattening layer is responsible for reshaping the gradient to the proper shape during backpropagation. This ensures that the kernels are correctly updated, allowing for effective learning in the network.
+Before we can begin building our first CNN model, we need to introduce
+the flattening layer. As its name suggests, the flattening layer
+transforms the data into a one-dimensional vector that can be fed into
+the feedforward layers of our network. This layer plays a crucial role
+in preparing the data for further processing in the
+network. Additionally, the flattening layer is responsible for
+reshaping the gradient to the proper shape during
+backpropagation. This ensures that the kernels are correctly updated,
+allowing for effective learning in the network.
 
-# In[15]:
-
-
+!bc pycod
 class FlattenLayer(Layer):
     def __init__(self, act_func=LRELU, seed=None):
         super().__init__(seed)
@@ -2239,15 +2397,24 @@ class FlattenLayer(Layer):
 
     def get_prev_a(self):
         return self.a_matrix
+!ec
 
+=== Fully Connected Layers ===
 
-# ## Fully Connected Layers
-# 
-# Finally, the result from the flatten layer will pass to a series of fully connected layers, which function as a normal feed forward neural network. The fully connected layers are split into two classes; FullyConnectedLayer which acts as a hidden layer, and OutputLayer, which acts as the single output layer at the end of the CNN. If one wishes to use this codebase to construct a normal feed forward neural network, it must start with a FlattenLayer due to techincal details regarding weight intitialization. However many FullyConnectedLayers can be added to the CNN, and in each layer the amount of nodes, which activation function and scheduler to use can be specified. In practice, the scheduler will be specified in the CNN object initialization, and inherited if no other scheduler is specified.
+Finally, the result from the flatten layer will pass to a series of
+fully connected layers, which function as a normal feed forward neural
+network. The fully connected layers are split into two classes;
+FullyConnectedLayer which acts as a hidden layer, and OutputLayer,
+which acts as the single output layer at the end of the CNN. If one
+wishes to use this codebase to construct a normal feed forward neural
+network, it must start with a FlattenLayer due to techincal details
+regarding weight intitialization. However many FullyConnectedLayers
+can be added to the CNN, and in each layer the amount of nodes, which
+activation function and scheduler to use can be specified. In
+practice, the scheduler will be specified in the CNN object
+initialization, and inherited if no other scheduler is specified.
 
-# In[16]:
-
-
+!bc pycod
 class FullyConnectedLayer(Layer):
     # FullyConnectedLayer per default uses LRELU and Adam scheduler
     # with an eta of 0.0001, rho of 0.9 and rho2 of 0.999
@@ -2465,15 +2632,22 @@ class OutputLayer(FullyConnectedLayer):
     def get_pred_format(self):
         # returns format of prediction
         return self.pred_format
+!ec
+
+=== Optimized Convolution2DLayer ===
+
+For our CNN, we have also implemented an optimized version of the
+Convolution2DLayer, Convolution2DLayerOPT, which runs much faster. See
+VII. Remarks for discussion. This layer will per default be used by
+the CNN due to its computational advantages, but is much less
+readable. We've documented it such that specially interested students
+can understand the principles behind it, but it is not recommended to
+read. In short, we reshape and transpose parts of the image such that
+the convolutional operation can be swapped out for a simple matrix
+multiplication.
 
 
-# ## BONUS: Optimized Convolution2DLayer
-# 
-# For our CNN, we have also implemented an optimized version of the Convolution2DLayer, Convolution2DLayerOPT, which runs much faster. See VII. Remarks for discussion. This layer will per default be used by the CNN due to its computational advantages, but is much less readable. We've documented it such that specially interested students can understand the principles behind it, but it is not recommended to read. In short, we reshape and transpose parts of the image such that the convolutional operation can be swapped out for a simple matrix multiplication.
-
-# In[17]:
-
-
+!bc pycod
 class Convolution2DLayerOPT(Convolution2DLayer):
     """
     Am optimized version of the convolution layer above which
@@ -2767,15 +2941,13 @@ class Convolution2DLayerOPT(Convolution2DLayer):
             raise AssertionError(
                 f"ERROR: Number of input channels in data ({self.X_batch_feedforward.shape[input_channel_index]}) is not equal to input channels in Convolution2DLayerOPT ({self.input_channels})! Please change the number of input channels of the Convolution2DLayer such that they are equal"
             )
+!ec
 
+=== The Convolutional Neural Network (CNN) ===
 
-# ## VI. The Convolutional Neural Network (CNN)
-# 
-# Finally, we will present the code for the CNN. The CNN class organizes all the layers, and allows for training on image data.
+Finally, we present the code for the CNN. The CNN class organizes all the layers, and allows for training on image data.
 
-# In[18]:
-
-
+!bc pycod
 import math
 import autograd.numpy as np
 import sys
@@ -3300,24 +3472,31 @@ class CNN:
             return str(round(value))
             # or overflow
         return f"{value:.{N-n-1}f}"
+!ec
 
+=== Usage of CNN code ===
 
-# ## Usage of CNN
-# 
-# Using the CNN codebase is very simple. We begin by initiating a CNN object, which takes a cost function, a scheduler and a seed as its arguments. If a scheduler is not provided, it will per default initiate an Adam scheduler with eta=1e-4, and if a seed is not provided, the CNN will not be seeded, meaning it will run with a different random seed every run. Below we demonstrate an initiation of our CNN.
+Using the CNN codebase is very simple. We begin by initiating a CNN
+object, which takes a cost function, a scheduler and a seed as its
+arguments. If a scheduler is not provided, it will per default
+initiate an Adam scheduler with eta=1e-4, and if a seed is not
+provided, the CNN will not be seeded, meaning it will run with a
+different random seed every run. Below we demonstrate an initiation of
+our CNN.
 
-# In[19]:
-
-
+!bc pycod
 adam_scheduler = Adam(eta=1e-3, rho=0.9, rho2=0.999)
 cnn = CNN(cost_func=CostCrossEntropy, scheduler=adam_scheduler, seed=2023)
+!ec
 
+Now that we have our CNN object, we can begin to add layers to it!
+Many of the add_layer functions have default values, for example
+add_Convolution2DLayer() has a default v_stride and h_stride of
+1. However, these can of course be set to any value you please. Note
+that the input channels of a subsequent convolutional layer must equal
+the previous convolutional layer's feature maps.
 
-# Now that we have our CNN object, we can begin to add layers to it! Many of the add_layer functions have default values, for example add_Convolution2DLayer() has a default v_stride and h_stride of 1. However, these can of course be set to any value you please. Note that the input channels of a subsequent convolutional layer must equal the previous convolutional layer's feature maps.
-
-# In[20]:
-
-
+!bc pycod
 cnn.add_Convolution2DLayer(
     input_channels=1,
     feature_maps=1,
@@ -3333,25 +3512,24 @@ cnn.add_FullyConnectedLayer(30, LRELU)
 cnn.add_FullyConnectedLayer(20, LRELU)
 
 cnn.add_OutputLayer(10, softmax)
+!ec
 
+Here we have created a CNN with the following architecture:
+ 
+o A convolutional layer with 1 input channel, with a kernel height of 2 and a width of 2, which uses LRELU as its non-linearity function. This layer outputs 1 feature map, which feed into the subsequent layer.
 
-# Here we have created a CNN with the following architecture:
-# 
-# (1) A convolutional layer with 1 input channel, with a kernel height of 2 and a width of 2, which uses LRELU as its non-linearity function. This layer outputs 1 feature map, which feed into the subsequent layer.
-# 
-# (2) A flatten layer
-# 
-# (3) A hidden layer with 30 nodes, with LRELU as its activation function
-# 
-# (4) Another hidden layer but with 20 nodes
-# 
-# (5) The output layer, with softmax as its activation function and 10 nodes. We use 10 nodes because we will be using a dataset with 10 classes.
-# 
-# Now, before we can train the model, we need to load in our data. We will use the MNIST dataset and use 10000 28 x 28 images.
+o A flatten layer
 
-# In[21]:
+o A hidden layer with 30 nodes, with LRELU as its activation function
 
+o Another hidden layer but with 20 nodes
 
+o The output layer, with softmax as its activation function and 10 nodes. We use 10 nodes because we will be using a dataset with 10 classes.
+
+Now, before we can train the model, we need to load in our data. We
+will use the MNIST dataset and use 10000 $28 \times  28 images$.
+
+!bc pycod
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 
@@ -3376,15 +3554,19 @@ target = onehot(np.array([int(i) for i in dataset.target.to_numpy()[:10000]]))
 
 # split into training and validation data
 x_train, x_val, y_train, y_val = train_test_split(mnist, target)
+!ec
 
+Now we may train our model. Note that we can utilize regularization in
+the CNN by using the lam (lambda) parameter in fit(), and utilize
+different types of gradient descent by specifying the amount of
+batches via the batches parameter as shown below.
+ 
+The functionfit() returns a score dictionary of the training error and
+accuracy (and validation error and accuracy if a validation set is
+provided) which can be used to plot the error and accuracy of the
+model over epochs.
 
-# Now we may train our model. Note that we can utilize regularization in the CNN by using the lam (lambda) parameter in fit(), and utilize different types of gradient descent by specifying the amount of batches via the batches parameter as shown below.
-# 
-# fit() returns a score dictionary of the training error and accuracy (and validation error and accuracy if a validation set is provided) which can be used to plot the error and accuracy of the model over epochs.
-
-# In[22]:
-
-
+!bc pycod
 scores = cnn.fit(
     x_train,
     y_train,
@@ -3395,10 +3577,6 @@ scores = cnn.fit(
     t_val=y_val,
 )
 
-
-# In[30]:
-
-
 plt.plot(scores["train_acc"], label="Training")
 plt.plot(scores["val_acc"], label="Validation")
 plt.ylim([0.8,1])
@@ -3406,19 +3584,29 @@ plt.xlabel("Epochs")
 plt.ylabel("Accuracy")
 plt.legend()
 plt.show()
+!ec
 
+Considering we only trained the model for 100 epochs without any tuning of the hyperparameters, this result is pretty good.
+ 
+The codebase allows for great flexibility in CNN
+architectures. Pooling layers can be added before, inbetween or after
+convolutional layers, but due to the great optimizations made within
+Convolution2DLayerOPT, we recommend using the v_stride and h_stride
+parameters in add_Convolution2DLayer() to reduce the dimentionality of
+the problem as the pooling layer is slow in comparison. To use the
+unoptimized version of Convolution2DLayer, simply pass optimized=False
+as an argument in add_Convolution2DLayer().
 
-# Considering we only trained the model for 100 epochs without any tuning of the hyperparameters, this result is pretty good.
-# 
-# The codebase allows for great flexibility in CNN architectures. Pooling layers can be added before, inbetween or after convolutional layers, but due to the great optimizations made within Convolution2DLayerOPT, we recommend using the v_stride and h_stride parameters in add_Convolution2DLayer() to reduce the dimentionality of the problem as the pooling layer is slow in comparison. To use the unoptimized version of Convolution2DLayer, simply pass optimized=False as an argument in add_Convolution2DLayer(). This will however, make us sad.
-# 
-# If one wishes to perform binary classification using the CNN, simply use the cost function 'CostLogReg' when initializing the CNN and use 1 node at the OutputLayer.
-# 
-# Below we have created another, more untraditional architecture using our code to demonstrate its flexibility and different attributes such as asymmetric stride that might become useful when constructing your own CNN.
+If one wishes to perform binary classification using the CNN, simply
+use the cost function 'CostLogReg' when initializing the CNN and use 1
+node at the OutputLayer.
+ 
+Below we have created another, more untraditional architecture using
+our code to demonstrate its flexibility and different attributes such
+as asymmetric stride that might become useful when constructing your
+own CNN.
 
-# In[24]:
-
-
+!bc pycod
 adam_scheduler = Adam(eta=1e-3, rho=0.9, rho2=0.999)
 cnn = CNN(cost_func=CostCrossEntropy, scheduler=adam_scheduler, seed=2023)
 
@@ -3477,19 +3665,35 @@ cnn.add_FullyConnectedLayer(10, sigmoid)
 cnn.add_FullyConnectedLayer(101, identity)
 
 cnn.add_OutputLayer(10, softmax)
+!ec
+
+Here we see the use of asymmetrical 1D kernels such as the $7 \times
+1$ kernel in the first convolutional layer, both max and average
+pooling, asymmetric stride in the unoptimized convolutional layer,
+more pooling, a flatten layer, a hidden layer with 100 nodes using
+LRELU, another hidden layer with 10 hidden nodes that uses the sigmoid
+activation function, and another hidden layer with 101 nodes which
+utilizes no activation function (identity). Finally, we arrive at the
+output layer with 10 nodes, which uses softmax as its activation
+function.
+
+=== Additional Remarks ===
 
 
-# Here we see the use of asymmetrical 1D kernels such as the $7 \times 1$ kernel in the first convolutional layer, both max and average pooling, asymmetric stride in the unoptimized convolutional layer, more pooling, a flatten layer, a hidden layer with 100 nodes using LRELU, another hidden layer with 10 hidden nodes that uses the sigmoid activation function, and another hidden layer with 101 nodes which utilizes no activation function (identity). Finally, we arrive at the output layer with 10 nodes, which uses softmax as its activation function.
+The stride parameter controls the distance between each convolution
+and the kernel/filter. If our image is padded, stride is the only
+parameter that determines the size of the output from a convolutional
+layer. However, if we decide not to perform any padding, the size of
+the output feature map depends on both the stride and kernel size. It
+is important to note that neither the stride nor the kernel has to be
+symmetrical. This means that we can use a rectangular filter if we
+choose, and the stride in the vertical direction (axis=0 in Python)
+does not need to be the same as the stride in the horizontal direction
+(axis=1 in Python). It may even be the case that asymmetric
+combinations of stride or kernel dimensions, or both, yield better
+results than symmetric values for these parameters.
 
-# ## VII. Remarks (Extra)
-
-# ### Remarks about stride and kernel size 
-# 
-# The stride parameter controls the distance between each convolution and the kernel/filter. If our image is padded, stride is the only parameter that determines the size of the output from a convolutional layer. However, if we decide not to perform any padding, the size of the output feature map depends on both the stride and kernel size. It is important to note that neither the stride nor the kernel has to be symmetrical. This means that we can use a rectangular filter if we choose, and the stride in the vertical direction (axis=0 in Python) does not need to be the same as the stride in the horizontal direction (axis=1 in Python). It may even be the case that asymmetric combinations of stride or kernel dimensions, or both, yield better results than symmetric values for these parameters.
-
-# In[25]:
-
-
+!bc pycod
 def convolve(image, kernel, stride=1):
     for i in range(2):
         kernel = np.rot90(kernel)
@@ -3510,19 +3714,33 @@ def convolve(image, kernel, stride=1):
             )
 
     return conv_image
+!ec
 
+=== Remarks on the speed  ===
 
-# ### Remarks on the speed 
-# 
-# Despite the naive convolution algorithm shown above working finely, it is extremely slow, requiring approximately 20-30 seconds to process a single image. The time complexity of 2D convolution, which is O(NMnm), rapidly becomes a constraint and may, at worst, make computations infeasible. Consequently, optimizing the naive 2D convolution algorithm is a necessity, as the execution time of the algorithm significantly increases as the input data size expands. This can pose a bottleneck in applications that necessitate real-time processing of large data volumes, such as image and video processing, deep learning, and scientific simulations.
-# 
-# To address this issue, we shall present two widely used optimization techniques: the separable kernel approach and Fast Fourier Transform (FFT). Both of these methods can drastically reduce the computational complexity of convolution and enhance the overall efficiency of processing substantial data quantities. While we shall refrain from delving into the intricacies of these algorithms, we strongly encourage you to examine at least the application of FFT to optimize computations.
+Despite the naive convolution algorithm shown above working finely, it
+is extremely slow, requiring approximately 20-30 seconds to process a
+single image. The time complexity of 2D convolution, which is O(NMnm),
+rapidly becomes a constraint and may, at worst, make computations
+infeasible. Consequently, optimizing the naive 2D convolution
+algorithm is a necessity, as the execution time of the algorithm
+significantly increases as the input data size expands. This can pose
+a bottleneck in applications that necessitate real-time processing of
+large data volumes, such as image and video processing, deep learning,
+and scientific simulations.
 
-# ### Convolution using separable kernels
+To address this issue, we shall present two widely used optimization
+techniques: the separable kernel approach and Fast Fourier Transform
+(FFT). Both of these methods can drastically reduce the computational
+complexity of convolution and enhance the overall efficiency of
+processing substantial data quantities. While we shall refrain from
+delving into the intricacies of these algorithms, we strongly
+encourage you to examine at least the application of FFT to optimize
+computations.
 
-# In[26]:
+=== Convolution using separable kernels ===
 
-
+!bc pycod
 def conv2DSep(image, kernel, coef, stride=1, pad="zero"):
     for i in range(2):
         kernel = np.rot90(kernel)
@@ -3562,15 +3780,23 @@ filtered_image = conv2DSep(image_of_cute_dog, kernel=sobel_kernel, coef=1)
 print(f'Time taken for convolution with seperated kernel on 128x128 image {time.time() - start_time}')
 plt.imshow(filtered_image, cmap="gray", vmin=0, vmax=255, aspect="auto")
 plt.show()
+!ec
 
+By taking advantage of the capabilities of separable kernels, we can
+effectively cut the computational expense of filtering an image in
+half. Yet, if we seek even more rapid processing, we can turn to the
+Fast Fourier Transform (FFT) algorithm provided by the numpy
+library. By utilizing FFT to transform the input image and filter into
+the frequency domain, we can perform convolution in this domain. This
+approach significantly reduces the number of operations needed and
+results in a marked speedup relative to other convolution
+techniques. In addition, it is worth noting that the FFT is widely
+regarded as one of the most critical algorithms developed to date,
+with applications ranging from digital signal processing to scientific
+computing.
 
-# By taking advantage of the capabilities of separable kernels, we can effectively cut the computational expense of filtering an image in half. Yet, if we seek even more rapid processing, we can turn to the Fast Fourier Transform (FFT) algorithm provided by the numpy library. By utilizing FFT to transform the input image and filter into the frequency domain, we can perform convolution in this domain. This approach significantly reduces the number of operations needed and results in a marked speedup relative to other convolution techniques. In addition, it is worth noting that the FFT is widely regarded as one of the most critical algorithms developed to date, with applications ranging from digital signal processing to scientific computing.
-
-# ### Convolution in the Fourier domain
-
-# In[27]:
-
-
+=== Convolution in the Fourier domain ===
+!bc pycod
 start_time = time.time()
 img_fft = np.fft.fft2(image_of_cute_dog)
 kernel_fft = np.fft.fft2(sobel_kernel, s=image_of_cute_dog.shape)
@@ -3581,9 +3807,16 @@ filtered_image = np.fft.ifft2(conv_image)
 print(f'Time take for convolution in the fourier domain: {time.time() - start_time}')
 plt.imshow(filtered_image.real, cmap="gray", vmin=0, vmax=255, aspect="auto")
 plt.show()
+!ec
 
-
-# It is evident that executing convolution in the Fourier domain yields the quickest computation time. Nonetheless, one should exercise caution, particularly when dealing with images of relatively small dimensions, as one of the other methods may prove to be more expeditious than FFT-enhanced convolution. The overhead involved in transferring both the image and filter into the Fourier domain, followed by their subsequent transformation back into the spatial domain, results in a minor inconvenience. Therefore, it is imperative to remain cognizant of this fact when utilizing FFT as the primary optimization technique.
-
-# 
+It is evident that executing convolution in the Fourier domain yields
+the quickest computation time. Nonetheless, one should exercise
+caution, particularly when dealing with images of relatively small
+dimensions, as one of the other methods may prove to be more
+expeditious than FFT-enhanced convolution. The overhead involved in
+transferring both the image and filter into the Fourier domain,
+followed by their subsequent transformation back into the spatial
+domain, results in a minor inconvenience. Therefore, it is imperative
+to remain cognizant of this fact when utilizing FFT as the primary
+optimization technique.
 
