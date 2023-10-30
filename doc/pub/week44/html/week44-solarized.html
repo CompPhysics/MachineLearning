@@ -109,10 +109,6 @@ div.toc p,a {
                2,
                None,
                'convolution-examples-principle-of-superposition-and-periodic-forces-fourier-transforms'),
-              ('Principle of Superposition',
-               2,
-               None,
-               'principle-of-superposition'),
               ('Simple Code Example', 2, None, 'simple-code-example'),
               ('Wrapping up Fourier transforms',
                2,
@@ -123,17 +119,29 @@ div.toc p,a {
                2,
                None,
                'final-words-on-fourier-transforms'),
+              ('Fourier transforms and convolution',
+               3,
+               None,
+               'fourier-transforms-and-convolution'),
               ('Two-dimensional Objects', 2, None, 'two-dimensional-objects'),
-              ('Cross-Correlation', 2, None, 'cross-correlation'),
               ('More on Dimensionalities', 2, None, 'more-on-dimensionalities'),
               ('Further Dimensionality Remarks',
                2,
                None,
                'further-dimensionality-remarks'),
-              ('CNNs in more detail, Lecture from IN5400',
+              ('CNNs in more detail', 2, None, 'cnns-in-more-detail'),
+              ('Pooling', 2, None, 'pooling'),
+              ('No zero padding, unit strides',
                2,
                None,
-               'cnns-in-more-detail-lecture-from-in5400'),
+               'no-zero-padding-unit-strides'),
+              ('Zero padding, unit strides',
+               2,
+               None,
+               'zero-padding-unit-strides'),
+              ('Half (same) padding', 2, None, 'half-same-padding'),
+              ('Full padding', 2, None, 'full-padding'),
+              ('Pooling arithmetic', 2, None, 'pooling-arithmetic'),
               ('CNNs in more detail, building convolutional neural networks in '
                'Tensorflow and Keras',
                2,
@@ -631,6 +639,32 @@ We rather code the convolutions in the minimal memory footprint that they requir
 
 <p>Does the number of floating point operations change here when we use the commutative property?</p>
 
+<p>The above matrices are examples of so-called <a href="https://link.springer.com/book/10.1007/978-93-86279-04-0" target="_blank">Toeplitz
+matrices</a>. A
+Toeplitz matrix is a matrix in which each descending diagonal from
+left to right is constant. For instance the last matrix, which we
+rewrite as
+</p>
+$$
+\boldsymbol{A}=\begin{bmatrix}a_0 & 0 & 0  \\
+                            a_1 & a_0 & 0  \\
+			    a_2 & a_1 & a_0  \\
+			    a_3 & a_2 & a_1 \\
+			    0 & a_3 & a_2 \\
+			    0 & 0 & a_3
+			    \end{bmatrix},
+$$
+
+<p>with elements \( a_{ii}=a_{i+1,j+1}=a_{i-j} \) is an example of a Toeplitz
+matrix. Such a matrix does not need to be a square matrix.  Toeplitz
+matrices are also closely connected with Fourier series discussed
+below, because the multiplication operator by a trigonometric
+polynomial, compressed to a finite-dimensional space, can be
+represented by such a matrix. The example above shows that we can
+represent linear convolution as multiplication of a Toeplitz matrix by
+a vector.
+</p>
+
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="convolution-examples-principle-of-superposition-and-periodic-forces-fourier-transforms">Convolution Examples: Principle of Superposition and Periodic Forces (Fourier Transforms) </h2>
 
@@ -639,10 +673,13 @@ $$
 m\frac{d^2x}{dt^2}+\eta\frac{dx}{dt}+x(t)=F(t),
 $$
 
-<p>where \( F(t) \) is an applied external force acting on the system (often called a driving force), one can use the theory of Fourier transformations to find the solutions of this type of equations.</p>
+<p>where \( F(t) \) is an applied external force acting on the system (often
+called a driving force), one can use the theory of Fourier
+transformations to find the solutions of this type of equations.
+</p>
 
 <p>If one has several driving forces, \( F(t)=\sum_n F_n(t) \), one can find
-the particular solution to each \( F_n \), \( x_{pn}(t) \), and the particular
+the particular solution \( x_{pn}(t) \) to the above differential equation for each \( F_n \). The particular
 solution for the entire driving force is then given by a series like
 </p>
 
@@ -653,21 +690,15 @@ x_p(t)=\sum_nx_{pn}(t).
 \end{equation}
 $$
 
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="principle-of-superposition">Principle of Superposition </h2>
-
 <p>This is known as the principle of superposition. It only applies when
-the homogenous equation is linear. If there were an anharmonic term
-such as \( x^3 \) in the homogenous equation, then when one summed various
-solutions, \( x=(\sum_n x_n)^2 \), one would get cross
-terms. Superposition is especially useful when \( F(t) \) can be written
+the homogenous equation is linear. 
+Superposition is especially useful when \( F(t) \) can be written
 as a sum of sinusoidal terms, because the solutions for each
 sinusoidal (sine or cosine)  term is analytic. 
 </p>
 
 <p>Driving forces are often periodic, even when they are not
-sinusoidal. Periodicity implies that for some time \( \tau \)
+sinusoidal. Periodicity implies that for some time \( t \) our function repeats itself periodically after a period \( \tau \), that is
 </p>
 
 $$
@@ -677,7 +708,7 @@ F(t+\tau)=F(t).
 $$
 
 <p>One example of a non-sinusoidal periodic force is a square wave. Many
-components in electric circuits are non-linear, e.g. diodes, which
+components in electric circuits are non-linear, for example diodes. This 
 makes many wave forms non-sinusoidal even when the circuits are being
 driven by purely sinusoidal sources.
 </p>
@@ -685,7 +716,10 @@ driven by purely sinusoidal sources.
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="simple-code-example">Simple Code Example </h2>
 
-<p>The code here shows a typical example of such a square wave generated using the functionality included in the <b>scipy</b> Python package. We have used a period of \( \tau=0.2 \).</p>
+<p>The code here shows a typical example of such a square wave generated
+using the functionality included in the <b>scipy</b> Python package. We
+have used a period of \( \tau=0.2 \).
+</p>
 
 
 <!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
@@ -778,7 +812,7 @@ $$
 <h2 id="finding-the-coefficients">Finding the Coefficients </h2>
 
 <p>Because the forces have been applied for a long time, any non-zero
-damping eliminates the homogenous parts of the solution, so one need
+damping eliminates the homogenous parts of the solution. We need then 
 only consider the particular solution for each \( n \).
 </p>
 
@@ -804,11 +838,7 @@ Eq. \eqref{eq:fourierdef2} and see whether
 </p>
 
 $$
-\begin{eqnarray}
-f_n&=?&\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~\left\{
-\frac{f_0}{2}+\sum_{m>0}f_m\cos(m\omega t)+g_m\sin(m\omega t)
-\right\}\cos(n\omega t).
-\end{eqnarray}
+f_n=\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~\left\{\frac{f_0}{2}+\sum_{m>0}f_m\cos(m\omega t)+g_m\sin(m\omega t)\right\}\cos(n\omega t).
 $$
 
 <p>Immediately, one can throw away all the terms with \( g_m \) because they
@@ -831,11 +861,7 @@ $$
 <p>and</p>
 
 $$
-\begin{eqnarray}
-f_n&=?&\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~f_n/2\\
-\nonumber
-&=&f_n~\checkmark.
-\end{eqnarray}
+f_n=\frac{2}{\tau}\int_{-\tau/2}^{\tau/2} dt~f_n/2=f_n.
 $$
 
 <p>The same method can be used to check for the consistency of \( g_n \).</p>
@@ -902,12 +928,44 @@ plt.show()
     </div>
   </div>
 </div>
+<h3 id="fourier-transforms-and-convolution">Fourier transforms and convolution </h3>
 
+<p>We can use Fourier transforms in our studies of convolution as well. To see this, assume we have two functions \( f \) and \( g \) and their corresponding Fourier transforms \( \hat{f} \) and \( \hat{g} \). We remind the reader that the Fourier transform reads (say for the function \( f \))</p>
 
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+$$
+\hat{f}(y)=\boldsymbol{F}[f(y)]=\frac{1}{2\pi}\int_{-\infty}^{\infty} d\omega \exp{-i\omega y} f(\omega),
+$$
+
+<p>and similarly we have</p>
+$$
+\hat{g}(y)=\boldsymbol{F}[g(y)]=\frac{1}{2\pi}\int_{-\infty}^{\infty} d\omega \exp{-i\omega y} g(\omega).
+$$
+
+<p>The inverse Fourier transform is given by</p>
+$$
+\boldsymbol{F}^{-1}[g(y)]=\frac{1}{2\pi}\int_{-\infty}^{\infty} d\omega \exp{i\omega y} g(\omega).
+$$
+
+<p>The inverse Fourier transform of the product of the two functions \( \hat{f}\hat{g} \) can be written as</p>
+$$
+\boldsymbol{F}^{-1}[(\hat{f}\hat{g})(x)]=\frac{1}{2\pi}\int_{-\infty}^{\infty} d\omega \exp{i\omega x} \hat{f}(\omega)\hat{g}(\omega).
+$$
+
+<p>We can rewrite the latter as</p>
+$$
+\boldsymbol{F}^{-1}[(\hat{f}\hat{g})(x)]=\int_{-\infty}^{\infty} d\omega \exp{i\omega x} \hat{f}(\omega)\left[\frac{1}{2\pi}\int_{-\infty}^{\infty}g(y)dy \exp{-i\omega y}\right]=\frac{1}{2\pi}\int_{-\infty}^{\infty}dy g(y)\int_{-\infty}^{\infty} d\omega \hat{f}(\omega) \exp{i\omega(x- y)},
+$$
+
+<p>which is simply </p>
+$$
+\boldsymbol{F}^{-1}[(\hat{f}\hat{g})(x)]=\int_{-\infty}^{\infty}dy g(y)f(x-y)=(f*g)(x),
+$$
+
+<p>the convolution of the functions \( f \) and \( g \).</p>
 <h2 id="two-dimensional-objects">Two-dimensional Objects </h2>
 
-<p>We often use convolutions over more than one dimension at a time. If
+<p>We are now ready to start studying the discrete convolutions relevant for convolutional neural networks.
+We often use convolutions over more than one dimension at a time. If
 we have a two-dimensional image \( I \) as input, we can have a <b>filter</b>
 defined by a two-dimensional <b>kernel</b> \( K \). This leads to an output \( S \)
 </p>
@@ -921,21 +979,18 @@ $$
 S_(i,j)=(I * K)(i,j) = \sum_m\sum_n I(i-m,j-n)K(m,n).
 $$
 
-<p>Normally the latter is more straightforward to implement in  a machine elarning library since there is less variation in the range of values of \( m \) and \( n \).</p>
+<p>Normally the latter is more straightforward to implement in  a machine larning library since there is less variation in the range of values of \( m \) and \( n \).</p>
 
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="cross-correlation">Cross-Correlation </h2>
-
-<p>Many deep learning libraries implement cross-correlation instead of convolution</p>
+<p>Many deep learning libraries implement cross-correlation instead of convolution (although it is referred to s convolution)</p>
 $$
-S_(i,j)=(I * K)(i,j) = \sum_m\sum_n I(i+m,j-+)K(m,n).
+S_(i,j)=(I * K)(i,j) = \sum_m\sum_n I(i+m,j+n)K(m,n).
 $$
 
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="more-on-dimensionalities">More on Dimensionalities </h2>
 
-<p>In feilds like signal processing (and imaging as well), one designs
+<p>In fields like signal processing (and imaging as well), one designs
 so-called filters. These filters are defined by the convolutions and
 are often hand-crafted. One may specify filters for smoothing, edge
 detection, frequency reshaping, and similar operations. However with
@@ -983,11 +1038,243 @@ principles then apply to images and other similar data.
 </p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="cnns-in-more-detail-lecture-from-in5400">CNNs in more detail, Lecture from IN5400 </h2>
+<h2 id="cnns-in-more-detail">CNNs in more detail </h2>
 
-<ul>
-<li> <a href="https://www.uio.no/studier/emner/matnat/ifi/IN5400/v19/material/week5/in5400_2019_week5_convolutional_nerual_networks.pdf" target="_blank">Lectures from IN5400 spring 2019</a></li>
-</ul>
+<p>Let assume we have an input matrix \( I \) of dimensionality \( 3\times 3 \)
+and a \( 2\times 2 \) filter \( W \) given by the following matrices
+</p>
+
+$$
+\boldsymbol{I}=\begin{bmatrix}i_{00} & i_{01} & i_{02}  \\
+                      i_{10} & i_{11} & i_{12}  \\
+	              i_{20} & i_{21} & i_{22} \end{bmatrix},
+$$
+
+<p>and </p>
+$$
+\boldsymbol{W}=\begin{bmatrix}w_{00} & w_{01} \\
+	              w_{10} & w_{11}\end{bmatrix}.
+$$
+
+<p>We introduce now the hyperparameter \( S \) <b>stride</b>. Stride represents how the filter \( W \) moves the convolution process on the matrix \( I \).
+We strongly recommend the repository on <a href="https://github.com/vdumoulin/conv_arithmetic" target="_blank">Arithmetic of deep learning by Dumoulin and Visin</a> 
+</p>
+
+<p>Here we set the stride equal to \( S=1 \), which means that, starting with the element \( i_{00} \), the filter will act on \( 2\times 2 \) submatrices each time, starting with the upper corner and moving according to the stride value column by column. </p>
+
+<p>Here we perform the operation</p>
+$$
+S_(i,j)=(I * W)(i,j) = \sum_m\sum_n I(i-m,j-n)W(m,n),
+$$
+
+<p>and obtain</p>
+$$
+\boldsymbol{S}=\begin{bmatrix}i_{00}w_{00}+i_{01}w_{01}+i_{10}w_{10}+i_{11}w_{11} & i_{01}w_{00}+i_{02}w_{01}+i_{11}w_{10}+i_{12}w_{11}  \\
+	              i_{10}w_{00}+i_{11}w_{01}+i_{20}w_{10}+i_{21}w_{11} & i_{11}w_{00}+i_{12}w_{01}+i_{21}w_{10}+i_{22}w_{11}\end{bmatrix}.
+$$
+
+<p>We can rewrite this operation in terms of a matrix-vector multiplication by defining a new vector where we flatten out the inputs as a vector \( \boldsymbol{I}' \) of length \( 9 \) and
+a matrix \( \boldsymbol{W}' \) with dimension \( 4\times 9 \) as
+</p>
+
+$$
+\boldsymbol{I}'=\begin{bmatrix}i_{00} \\ i_{01} \\ i_{02} \\ i_{10} \\ i_{11} \\ i_{12} \\ i_{20} \\ i_{21} \\ i_{22} \end{bmatrix},
+$$
+
+<p>and the new matrix</p>
+$$
+\boldsymbol{W}'=\begin{bmatrix} w_{00} & w_{01} & 0 & w_{10} & w_{11} & 0 & 0 & 0 & 0 \\
+                        0  & w_{00} & w_{01} & 0 & w_{10} & w_{11} & 0 & 0 & 0 \\
+			0 & 0 & 0 & w_{00} & w_{01} & 0 & w_{10} & w_{11} & 0  \\
+                        0 & 0 & 0 & 0 & w_{00} & w_{01} & 0 & w_{10} & w_{11}\end{bmatrix}.
+$$
+
+<p>We see easily that performing the matrix-vector multiplication \( \boldsymbol{W}'\boldsymbol{I}' \) is the same as the above convolution with stride \( S=1 \), that is</p>
+
+$$
+S=(\boldsymbol{W}*\boldsymbol{I}),
+$$
+
+<p>is now given by \( \boldsymbol{W}'\boldsymbol{I}' \) which is a vector of length \( 4 \) instead of the originally resulting  \( 2\times 2 \) output matrix.</p>
+
+<p>The collection of kernels/filters \( W \) defining a discrete convolution has a shape
+corresponding to some permutation of \( (n, m, k_1, \ldots, k_N) \), where
+</p>
+
+$$
+\begin{equation*}
+\begin{split}
+    n &\equiv \text{number of output feature maps},\\
+    m &\equiv \text{number of input feature maps},\\
+    k_j &\equiv \text{kernel size along axis $j$}.
+\end{split}
+\end{equation*}
+$$
+
+<p>The following properties affect the output size \( o_j \) of a convolutional layer
+along axis \( j \):
+</p>
+
+<ol>
+<li> \( i_j \): input size along axis \( j \),</li>
+<li> \( k_j \): kernel/filter size along axis \( j \),</li>
+<li> stride (distance between two consecutive positions of the kernel/filter) along axis \( j \),</li>
+<li> zero padding (number of zeros concatenated at the beginning and at the end of an axis) along axis \( j \).</li>
+</ol>
+<p>For instance, the above examples shows a  \( 2\times 2 \) kernel/filter \( \boldsymbol{W} \)  applied to a \( 3 \times 3 \) input padded with a \( 0 \times 0 \)
+border of zeros using \( 1 \times 1 \) strides.
+</p>
+
+<p>Note that strides constitute a form of <b>subsampling</b>. As an alternative to
+being interpreted as a measure of how much the kernel/filter is translated, strides
+can also be viewed as how much of the output is retained. For instance, moving
+the kernel by hops of two is equivalent to moving the kernel by hops of one but
+retaining only odd output elements.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="pooling">Pooling </h2>
+
+<p>In addition to discrete convolutions themselves, {\em pooling\/} operations
+make up another important building block in CNNs. Pooling operations reduce
+the size of feature maps by using some function to summarize subregions, such
+as taking the average or the maximum value.
+</p>
+
+<p>Pooling works by sliding a window across the input and feeding the content of
+the window to a {\em pooling function}. In some sense, pooling works very much
+like a discrete convolution, but replaces the linear combination described by
+the kernel with some other function. Poolin
+provides an example for average pooling, and 
+does the same for max pooling.
+</p>
+
+<p>The following properties affect the output size \( o_j \) of a pooling layer
+along axis \( j \):
+</p>
+
+<ol>
+<li> \( i_j \): input size along axis \( j \),</li>
+<li> \( k_j \): pooling window size along axis \( j \),</li>
+<li> \( s_j \): stride (distance between two consecutive positions of the pooling window) along axis \( j \).</li>
+</ol>
+<p>The analysis of the relationship between convolutional layer properties is eased
+by the fact that they don't interact across axes, i.e., the choice of kernel
+size, stride and zero padding along axis \( j \) only affects the output size of
+axis \( j \). Because of that, we will focus on the following simplified
+setting:
+</p>
+
+<ol>
+<li> 2-D discrete convolutions (\( N = 2 \)),</li>
+<li> square inputs (\( i_1 = i_2 = i \)),</li>
+<li> square kernel size (\( k_1 = k_2 = k \)),</li>
+<li> same strides along both axes (\( s_1 = s_2 = s \)),</li>
+<li> same zero padding along both axes (\( p_1 = p_2 = p \)).</li>
+</ol>
+<p>This facilitates the analysis and the visualization, but keep in mind that the
+results outlined here also generalize to the N-D and non-square cases.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="no-zero-padding-unit-strides">No zero padding, unit strides </h2>
+
+<p>The simplest case to analyze is when the kernel just slides across every
+position of the input (i.e., \( s = 1 \) and \( p = 0 \)).
+</p>
+
+<p>For any \( i \) and \( k \), and for \( s = 1 \) and \( p = 0 \),</p>
+$$
+\begin{equation*}
+    o = (i - k) + 1.
+\end{equation*}
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="zero-padding-unit-strides">Zero padding, unit strides </h2>
+
+<p>To factor in zero padding (i.e., only restricting to \( s = 1 \)), let's consider
+its effect on the effective input size: padding with \( p \) zeros changes the
+effective input size from \( i \) to \( i + 2p \). In the general case, we can infer the following
+relationship
+</p>
+
+<p>For any \( i \), \( k \) and \( p \), and for \( s = 1 \),</p>
+$$
+\begin{equation*}
+    o = (i - k) + 2p + 1.
+\end{equation*}
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="half-same-padding">Half (same) padding </h2>
+
+<p>Having the output size be the same as the input size (i.e., \( o = i \)) can be a
+desirable property:
+</p>
+
+<p>For any \( i \) and for \( k \) odd (\( k = 2n + 1, \quad n \in \mathbb{N} \)), \( s = 1 \) and
+\( p = \lfloor k / 2 \rfloor = n \),
+</p>
+$$
+\begin{equation*}
+\begin{split}
+    o &= i + 2 \lfloor k / 2 \rfloor - (k - 1) \\
+      &= i + 2n - 2n \\
+      &= i.
+\end{split}
+\end{equation*}
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="full-padding">Full padding </h2>
+
+<p>While convolving a kernel generally decreases the output size with
+respect to the input size, sometimes the opposite is required. This can be
+achieved with proper zero padding:
+</p>
+
+<p>For any \( i \) and \( k \), and for \( p = k - 1 \) and \( s = 1 \),</p>
+$$
+\begin{equation*}
+\begin{split}
+    o &= i + 2(k - 1) - (k - 1) \\
+      &= i + (k - 1).
+\end{split}
+\end{equation*}
+$$
+
+<p>This is sometimes referred to as full padding, because in this
+setting every possible partial or complete superimposition of the kernel on the
+input feature map is taken into account. 
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="pooling-arithmetic">Pooling arithmetic </h2>
+
+<p>In a neural network, pooling layers provide invariance to small translations of
+the input. The most common kind of pooling is <b>max pooling</b>, which
+consists in splitting the input in (usually non-overlapping) patches and
+outputting the maximum value of each patch. Other kinds of pooling exist, e.g.,
+mean or average pooling, which all share the same idea of aggregating the input
+locally by applying a non-linearity to the content of some patches.
+</p>
+
+<p>Since pooling does not involve
+zero padding, the relationship describing the general case is as follows:
+</p>
+
+<p>For any \( i \), \( k \) and \( s \),</p>
+$$
+\begin{equation*}
+    o = \left\lfloor \frac{i - k}{s} \right\rfloor + 1.
+\end{equation*}
+$$
+
+
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="cnns-in-more-detail-building-convolutional-neural-networks-in-tensorflow-and-keras">CNNs in more detail, building convolutional neural networks in Tensorflow and Keras </h2>
 
@@ -4834,6 +5121,7 @@ domain, results in a minor inconvenience. Therefore, it is imperative
 to remain cognizant of this fact when utilizing FFT as the primary
 optimization technique.
 </p>
+
 <!-- ------------------- end of main content --------------- -->
 <center style="font-size:80%">
 <!-- copyright --> &copy; 1999-2023, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
