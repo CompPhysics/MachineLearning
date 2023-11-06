@@ -20,7 +20,11 @@
 # 
 #   * Discussion of project 2
 # 
-#   * [Video of lab session from last week](https://youtu.be/Ia6wwDLxqtM)
+#   * [Video of lab session from week 43](https://youtu.be/Ia6wwDLxqtM)
+# 
+#   * [Video of lab session from week 44](https://youtu.be/EajWMW__k0I)
+# 
+#   * [See also whiteboard notes from lab session week 44](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/Exercisesweek44.pdf)
 # 
 #   
 # 
@@ -1188,12 +1192,12 @@ train_images, test_images = train_images / 255.0, test_images / 255.0
 # 
 # To verify that the dataset looks correct, let's plot the first 25 images from the training set and display the class name below each image.
 
-# In[9]:
+# In[10]:
 
 
 class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                'dog', 'frog', 'horse', 'ship', 'truck']
-​
+
 plt.figure(figsize=(10,10))
 for i in range(25):
     plt.subplot(5,5,i+1)
@@ -1213,7 +1217,7 @@ plt.show()
 # 
 # As input, a CNN takes tensors of shape (image_height, image_width, color_channels), ignoring the batch size. If you are new to these dimensions, color_channels refers to (R,G,B). In this example, you will configure our CNN to process inputs of shape (32, 32, 3), which is the format of CIFAR images. You can do this by passing the argument input_shape to our first layer.
 
-# In[10]:
+# In[11]:
 
 
 model = models.Sequential()
@@ -1240,13 +1244,13 @@ model.summary()
 # layers on top. CIFAR has 10 output classes, so you use a final Dense
 # layer with 10 outputs and a softmax activation.
 
-# In[11]:
+# In[13]:
 
 
 model.add(layers.Flatten())
 model.add(layers.Dense(64, activation='relu'))
 model.add(layers.Dense(10))
-Here's the complete architecture of our model.
+#Here's the complete architecture of our model.
 
 model.summary()
 
@@ -1255,20 +1259,20 @@ model.summary()
 
 # ## Compile and train the model
 
-# In[12]:
+# In[14]:
 
 
 model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
-​
+
 history = model.fit(train_images, train_labels, epochs=10, 
                     validation_data=(test_images, test_labels))
 
 
 # ## Finally, evaluate the model
 
-# In[13]:
+# In[15]:
 
 
 plt.plot(history.history['accuracy'], label='accuracy')
