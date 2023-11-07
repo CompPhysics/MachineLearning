@@ -373,6 +373,23 @@ skplt.metrics.plot_cumulative_gain(y_test, y_probas)
 plt.show()
 
 
+# ## ROC curve
+# 
+# A receiver operating characteristic curve, or ROC curve, is a
+# graphical plot that illustrates the performance of a binary classifier
+# model at varying threshold values.
+# 
+# The ROC curve is the plot of the true positive rate (TPR) against the false positive rate (FPR) at each threshold setting.
+# See <https://en.wikipedia.org/wiki/Receiver_operating_characteristic> for more discussions.
+
+# ## Cumulative gain curve
+# 
+# The cumulative gain curve is a performance evaluation used typically for binary classification problems.
+# It plots the $TPR$ True Positive Rate or Sensitivity (which represents the 
+# fraction of examples correctly classified
+# against Predictive Positive Rate, which represents 
+# the fraction of positively predicted examples.
+
 # ## Material for Lecture Thursday November 9
 
 # ## Recurrent neural networks (RNNs): Overarching view
