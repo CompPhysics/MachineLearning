@@ -20,6 +20,8 @@
 # 
 #   * [Video of lab session from week 44](https://youtu.be/EajWMW__k0I)
 # 
+#   * [Video of lab session from week 45](https://youtu.be/tgkj0KAEtZo)
+# 
 #   * [See also whiteboard notes from lab session week 44](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/Exercisesweek44.pdf)
 # 
 #   
