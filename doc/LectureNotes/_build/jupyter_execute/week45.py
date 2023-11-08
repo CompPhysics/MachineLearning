@@ -334,6 +334,150 @@ correlation_matrix = cancerpd.corr().round(1)
 # the classical Principal Component Analysis (PCA) theorem with
 # applications. This will be discussed later this semester ([week 43](https://compphysics.github.io/MachineLearning/doc/pub/week43/html/week43-bs.html)).
 
+# ## Other ways of presenting a classification problem
+# 
+# For a binary classifcation matrix, the so-called **confusion matrix**, is often used. It can also be extended to more catgeories/classes as well.
+# The following quantities are then used
+# 1. positive condition number $P$, which represents the number of real positive cases in the data (output one/true etc)
+# 
+# 2. The condition negative number $N$ which is the number of negative cases (ouput zero/false etc)
+# 
+# 3. The true positive number $TP$ which represents whether a positive test result has been correctly classified (the application of our trained model on a test data set)
+# 
+# 4. The true negative $TN$ number which represents whether a negative test has been correctly classified
+# 
+# 5. The false positive $FP$ number, a so-called type I error which tells us about the fraction of  positive test result which are wrongly classified
+# 
+# 6. A false negative $FN$ number, a so-called type II error which, should be pretty obvious, indicates if a negative test has been wrongly classified.
+# 
+# It is is easy to think in terms of illness. You could think of the above as
+# 1. True positive: Sick people correctly identified as sick
+# 
+# 2. False positive: Healthy people incorrectly identified as sick
+# 
+# 3. True negative: Healthy people correctly identified as healthy
+# 
+# 4. False negative: Sick people incorrectly identified as healthy
+
+# ## Combinations of classification results
+# 
+# It is common in the literature to define various combinations the above numbers. The most commonly used are
+# 
+# **Sensitivity, recall, hit rate, or true positive rate $TPR$. It is the probability of a positive test result, conditioned on the individual truly being positive.**
+
+# $$
+# {\displaystyle \mathrm {TPR} ={\frac {\mathrm {TP} }{\mathrm {P} }}={\frac {\mathrm {TP} }{\mathrm {TP} +\mathrm {FN} }}=1-\mathrm {FNR} }
+# $$
+
+# The $TPR$ defines how many correct positive results occur among all positive samples available during the test
+# 
+# **Miss rate or false negative rate $FNR$.**
+
+# $$
+# {\displaystyle \mathrm {FNR} ={\frac {\mathrm {FN} }{\mathrm {P} }}={\frac {\mathrm {FN} }{\mathrm {FN} +\mathrm {TP} }} }
+# $$
+
+# **Specificity, selectivity or true negative rate $TNR$. It is the probability of a negative test result, conditioned on the individual truly being negative.**
+
+# $$
+# {\displaystyle \mathrm {TNR} ={\frac {\mathrm {TN} }{\mathrm {N} }}={\frac {\mathrm {TN} }{\mathrm {TN} +\mathrm {FP} }}=1-\mathrm {FPR} }
+# $$
+
+# with the fall-out false positive rate
+
+# $$
+# {\displaystyle \mathrm {FPR} ={\frac {\mathrm {FP} }{\mathrm {N} }}={\frac {\mathrm {FP} }{\mathrm {FP} +\mathrm {TN} }}=1-\mathrm {TNR} }
+# $$
+
+# The $FPR$ defines how many incorrect positive results occur among
+# all negative samples available during the test.
+
+# ## Positive and negative prediction values
+# 
+# The positive and negative predictive values 
+# are the proportions of positive and negative results in statistics and
+# diagnostic tests that are true positive and true negative results,
+# respectively.[1] The PPV and NPV describe the performance of a
+# diagnostic test or other statistical measure. A high result can be
+# interpreted as indicating the accuracy of such a statistic.
+# 
+# **Precision or positive predictive value $PPV$.**
+
+# $$
+# {\displaystyle \mathrm {PPV} ={\frac {\mathrm {TP} }{\mathrm {TP} +\mathrm {FP} }}=1-\mathrm {FDR} }
+# $$
+
+# **Negative predictive value $NPV$.**
+
+# $$
+# {\displaystyle \mathrm {NPV} ={\frac {\mathrm {TN} }{\mathrm {TN} +\mathrm {FN} }}=1-\mathrm {FOR} }
+# $$
+
+# ## Other quantities
+# 
+# **False discovery rate $FDR$.**
+
+# $$
+# {\displaystyle \mathrm {FDR} ={\frac {\mathrm {FP} }{\mathrm {FP} +\mathrm {TP} }}=1-\mathrm {PPV} }
+# $$
+
+# **False omission rate $FOR$.**
+
+# $$
+# {\displaystyle \mathrm {FOR} ={\frac {\mathrm {FN} }{\mathrm {FN} +\mathrm {TN} }}=1-\mathrm {NPV} }
+# $$
+
+# ## $F_1$ score
+# 
+# In statistical analysis of binary classification, the F-score or
+# F-measure is a measure of a test's accuracy. It is calculated from the
+# precision and recall of the test, where the precision is the number of
+# true positive results divided by the number of all positive results,
+# including those not identified correctly, and the recall is the number
+# of true positive results divided by the number of all samples that
+# should have been identified as positive. Precision is also known as
+# positive predictive value, and recall is also known as sensitivity in
+# diagnostic binary classification.
+# 
+# The F1 score is the harmonic mean of the precision and recall. It thus
+# symmetrically represents both precision and recall in one metric.  The
+# highest possible value of an F-score is 1.0, indicating perfect
+# precision and recall, and the lowest possible value is 0, if either
+# precision or recall are zero.
+# 
+# It is defined as
+
+# $$
+# {\displaystyle \mathrm {F} _{1}=2\times {\frac {\mathrm {PPV} \times \mathrm {TPR} }{\mathrm {PPV} +\mathrm {TPR} }}={\frac {2\mathrm {TP} }{2\mathrm {TP} +\mathrm {FP} +\mathrm {FN} }}}
+# $$
+
+# ## ROC curve
+# 
+# A receiver operating characteristic curve, or ROC curve, is a
+# graphical plot that illustrates the performance of a binary classifier
+# model at varying threshold values.
+# 
+# The ROC curve is the plot of the true positive rate (TPR) against the false positive rate (FPR) at each threshold setting.
+# 
+# To draw a ROC curve, only the true positive rate (TPR) and false
+# positive rate (FPR) are needed (as functions of some classifier
+# parameter). The TPR defines how many correct positive results occur
+# among all positive samples available during the test. FPR, on the
+# other hand, defines how many incorrect positive results occur among
+# all negative samples available during the test.
+# 
+# See <https://en.wikipedia.org/wiki/Receiver_operating_characteristic> for more discussions.
+
+# ## Cumulative gain curve
+# 
+# The cumulative gain curve is a performance evaluation used typically for binary classification problems.
+# It plots the $TPR$ True Positive Rate or Sensitivity (which represents the 
+# fraction of examples correctly classified
+# against Predictive Positive Rate, which represents 
+# the fraction of positively predicted examples.
+# 
+# The examples below show the confusion matrix, the ROC curve and the cumulative gain for the Wisconsin cancer data.
+
 # ## Other measures in classification studies: Cancer Data  again
 
 # In[8]:
@@ -372,23 +516,6 @@ plt.show()
 skplt.metrics.plot_cumulative_gain(y_test, y_probas)
 plt.show()
 
-
-# ## ROC curve
-# 
-# A receiver operating characteristic curve, or ROC curve, is a
-# graphical plot that illustrates the performance of a binary classifier
-# model at varying threshold values.
-# 
-# The ROC curve is the plot of the true positive rate (TPR) against the false positive rate (FPR) at each threshold setting.
-# See <https://en.wikipedia.org/wiki/Receiver_operating_characteristic> for more discussions.
-
-# ## Cumulative gain curve
-# 
-# The cumulative gain curve is a performance evaluation used typically for binary classification problems.
-# It plots the $TPR$ True Positive Rate or Sensitivity (which represents the 
-# fraction of examples correctly classified
-# against Predictive Positive Rate, which represents 
-# the fraction of positively predicted examples.
 
 # ## Material for Lecture Thursday November 9
 
