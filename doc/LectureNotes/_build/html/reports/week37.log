@@ -1,0 +1,92 @@
+Traceback (most recent call last):
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 1204, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/asyncio/base_events.py", line 642, in run_until_complete
+    return future.result()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 663, in async_execute
+    await self.async_execute_cell(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 965, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 862, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+from sklearn import linear_model
+np.random.seed(2018)
+n = 10
+d = 2
+Lambda = 0.01
+
+# Make data set.
+x = np.linspace(-3, 3, n)
+y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
+
+# Design matrix X does not include the intercept. 
+X = np.zeros((n, d))
+for p in range(d):     
+    X[:, p] = x ** (p+1)
+
+#Split data in train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# Scale data by subtracting mean value of the input using scikit-learn
+scaler = StandardScaler(with_std=False)
+scaler.fit(X_train)
+X_train_mean = np.mean(X_train,axis=0)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# We scale also the output, here by our own code
+y_scaler = np.mean(y_train)
+y_train_scaled = y_train - y_scaler
+y_test_scaled = y_test- y_scaler
+
+#Calculate beta
+OLS = LinearRegression()
+betaOLS=OLS.fit(X_train_scaled,y_train_scaled)
+ypredictOLS = OLS.predict(X_test_scaled)
+linear_model.Ridge(Lambda)
+RegRidge.fit(X_train_scaled,y_train_scaled)
+ypredictRidge = RegRidge.predict(X_test_scaled)
+betaOLS = OLS.coef_
+betaRidge = RegRidge.coef_
+print(betaOLS)
+print(betaRidge)
+interceptOLS = np.mean(y_train) - X_train_mean @ betaOLS
+interceptRidge = y_scaler - X_train_mean @ betaRidge
+print(interceptOLS)
+print(interceptRidge)
+#predict value 
+ytilde_test_Ridge = X_test_scaled @ betaRidge+y_scaler
+ytilde_test_OLS = X_test_scaled @ betaOLS+y_scaler
+
+#Calculate MSE
+print("  ")
+print("test MSE of OLS")
+print(MSE(y_test,ytilde_test_OLS))
+print("  ")
+print("test MSE of Ridge")
+print(MSE(y_test,ytilde_test_Ridge))
+plt.scatter(x,y,label='Data')
+plt.plot(x, X @ RegRidge.coef_ + RegRidge.intercept_ , label="Ridge_Fit")
+plt.grid()
+plt.legend()
+plt.show()
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mNameError[0m                                 Traceback (most recent call last)
+Input [0;32mIn [11][0m, in [0;36m<cell line: 34>[0;34m()[0m
+[1;32m     32[0m ypredictOLS [38;5;241m=[39m OLS[38;5;241m.[39mpredict(X_test_scaled)
+[1;32m     33[0m linear_model[38;5;241m.[39mRidge(Lambda)
+[0;32m---> 34[0m [43mRegRidge[49m[38;5;241m.[39mfit(X_train_scaled,y_train_scaled)
+[1;32m     35[0m ypredictRidge [38;5;241m=[39m RegRidge[38;5;241m.[39mpredict(X_test_scaled)
+[1;32m     36[0m betaOLS [38;5;241m=[39m OLS[38;5;241m.[39mcoef_
+
+[0;31mNameError[0m: name 'RegRidge' is not defined
+NameError: name 'RegRidge' is not defined
+

@@ -1,0 +1,100 @@
+Traceback (most recent call last):
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 1204, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/asyncio/base_events.py", line 642, in run_until_complete
+    return future.result()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 663, in async_execute
+    await self.async_execute_cell(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 965, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 862, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+# Common imports
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.tree import export_graphviz
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from IPython.display import Image 
+from pydot import graph_from_dot_data
+import os
+
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+infile = open(data_path("rideclass.csv"),'r')
+
+# Read the experimental data with Pandas
+from IPython.display import display
+ridedata = pd.read_csv(infile,names = ('Outlook','Temperature','Humidity','Wind','Ride'))
+ridedata = pd.DataFrame(ridedata)
+
+# Features and targets
+X = ridedata.loc[:, ridedata.columns != 'Ride'].values
+y = ridedata.loc[:, ridedata.columns == 'Ride'].values
+
+# Create the encoder.
+encoder = OneHotEncoder(handle_unknown="ignore")
+# Assume for simplicity all features are categorical.
+encoder.fit(X)    
+# Apply the encoder.
+X = encoder.transform(X)
+print(X)
+# Then do a Classification tree
+tree_clf = DecisionTreeClassifier(max_depth=2)
+tree_clf.fit(X, y)
+print("Train set accuracy with Decision Tree: {:.2f}".format(tree_clf.score(X,y)))
+#transfer to a decision tree graph
+export_graphviz(
+    tree_clf,
+    out_file="DataFiles/ride.dot",
+    rounded=True,
+    filled=True
+)
+cmd = 'dot -Tpng DataFiles/cancer.dot -o DataFiles/cancer.png'
+os.system(cmd)
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mFileNotFoundError[0m                         Traceback (most recent call last)
+Input [0;32mIn [6][0m, in [0;36m<cell line: 37>[0;34m()[0m
+[1;32m     34[0m [38;5;28;01mdef[39;00m [38;5;21msave_fig[39m(fig_id):
+[1;32m     35[0m     plt[38;5;241m.[39msavefig(image_path(fig_id) [38;5;241m+[39m [38;5;124m"[39m[38;5;124m.png[39m[38;5;124m"[39m, [38;5;28mformat[39m[38;5;241m=[39m[38;5;124m'[39m[38;5;124mpng[39m[38;5;124m'[39m)
+[0;32m---> 37[0m infile [38;5;241m=[39m [38;5;28;43mopen[39;49m[43m([49m[43mdata_path[49m[43m([49m[38;5;124;43m"[39;49m[38;5;124;43mrideclass.csv[39;49m[38;5;124;43m"[39;49m[43m)[49m[43m,[49m[38;5;124;43m'[39;49m[38;5;124;43mr[39;49m[38;5;124;43m'[39;49m[43m)[49m
+[1;32m     39[0m [38;5;66;03m# Read the experimental data with Pandas[39;00m
+[1;32m     40[0m [38;5;28;01mfrom[39;00m [38;5;21;01mIPython[39;00m[38;5;21;01m.[39;00m[38;5;21;01mdisplay[39;00m [38;5;28;01mimport[39;00m display
+
+[0;31mFileNotFoundError[0m: [Errno 2] No such file or directory: 'DataFiles/rideclass.csv'
+FileNotFoundError: [Errno 2] No such file or directory: 'DataFiles/rideclass.csv'
+

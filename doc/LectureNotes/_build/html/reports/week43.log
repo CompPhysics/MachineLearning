@@ -1,0 +1,119 @@
+Traceback (most recent call last):
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 1204, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/asyncio/base_events.py", line 642, in run_until_complete
+    return future.result()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 663, in async_execute
+    await self.async_execute_cell(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 965, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 862, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+# to categorical turns our integer vector into a onehot representation
+from sklearn.metrics import accuracy_score
+
+# one-hot in numpy
+def to_categorical_numpy(integer_vector):
+    n_inputs = len(integer_vector)
+    n_categories = np.max(integer_vector) + 1
+    onehot_vector = np.zeros((n_inputs, n_categories))
+    onehot_vector[range(n_inputs), integer_vector] = 1
+    
+    return onehot_vector
+
+#Y_train_onehot, Y_test_onehot = to_categorical(Y_train), to_categorical(Y_test)
+Y_train_onehot, Y_test_onehot = to_categorical_numpy(Y_train), to_categorical_numpy(Y_test)
+
+def feed_forward_train(X):
+    # weighted sum of inputs to the hidden layer
+    z_h = np.matmul(X, hidden_weights) + hidden_bias
+    # activation in the hidden layer
+    a_h = sigmoid(z_h)
+    
+    # weighted sum of inputs to the output layer
+    z_o = np.matmul(a_h, output_weights) + output_bias
+    # softmax output
+    # axis 0 holds each input and axis 1 the probabilities of each category
+    exp_term = np.exp(z_o)
+    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
+    
+    # for backpropagation need activations in hidden and output layers
+    return a_h, probabilities
+
+def backpropagation(X, Y):
+    a_h, probabilities = feed_forward_train(X)
+    
+    # error in the output layer
+    error_output = probabilities - Y
+    # error in the hidden layer
+    error_hidden = np.matmul(error_output, output_weights.T) * a_h * (1 - a_h)
+    
+    # gradients for the output layer
+    output_weights_gradient = np.matmul(a_h.T, error_output)
+    output_bias_gradient = np.sum(error_output, axis=0)
+    
+    # gradient for the hidden layer
+    hidden_weights_gradient = np.matmul(X.T, error_hidden)
+    hidden_bias_gradient = np.sum(error_hidden, axis=0)
+
+    return output_weights_gradient, output_bias_gradient, hidden_weights_gradient, hidden_bias_gradient
+
+print("Old accuracy on training data: " + str(accuracy_score(predict(X_train), Y_train)))
+
+eta = 0.01
+lmbd = 0.01
+for i in range(1000):
+    # calculate gradients
+    dWo, dBo, dWh, dBh = backpropagation(X_train, Y_train_onehot)
+    
+    # regularization term gradients
+    dWo += lmbd * output_weights
+    dWh += lmbd * hidden_weights
+    
+    # update weights and biases
+    output_weights -= eta * dWo
+    output_bias -= eta * dBo
+    hidden_weights -= eta * dWh
+    hidden_bias -= eta * dBh
+
+print("New accuracy on training data: " + str(accuracy_score(predict(X_train), Y_train)))
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mRuntimeWarning[0m                            Traceback (most recent call last)
+Input [0;32mIn [26][0m, in [0;36m<cell line: 54>[0;34m()[0m
+[1;32m     53[0m lmbd [38;5;241m=[39m [38;5;241m0.01[39m
+[1;32m     54[0m [38;5;28;01mfor[39;00m i [38;5;129;01min[39;00m [38;5;28mrange[39m([38;5;241m1000[39m):
+[1;32m     55[0m     [38;5;66;03m# calculate gradients[39;00m
+[0;32m---> 56[0m     dWo, dBo, dWh, dBh [38;5;241m=[39m [43mbackpropagation[49m[43m([49m[43mX_train[49m[43m,[49m[43m [49m[43mY_train_onehot[49m[43m)[49m
+[1;32m     58[0m     [38;5;66;03m# regularization term gradients[39;00m
+[1;32m     59[0m     dWo [38;5;241m+[39m[38;5;241m=[39m lmbd [38;5;241m*[39m output_weights
+
+Input [0;32mIn [26][0m, in [0;36mbackpropagation[0;34m(X, Y)[0m
+[1;32m     32[0m [38;5;28;01mdef[39;00m [38;5;21mbackpropagation[39m(X, Y):
+[0;32m---> 33[0m     a_h, probabilities [38;5;241m=[39m [43mfeed_forward_train[49m[43m([49m[43mX[49m[43m)[49m
+[1;32m     35[0m     [38;5;66;03m# error in the output layer[39;00m
+[1;32m     36[0m     error_output [38;5;241m=[39m probabilities [38;5;241m-[39m Y
+
+Input [0;32mIn [26][0m, in [0;36mfeed_forward_train[0;34m(X)[0m
+[1;32m     18[0m z_h [38;5;241m=[39m np[38;5;241m.[39mmatmul(X, hidden_weights) [38;5;241m+[39m hidden_bias
+[1;32m     19[0m [38;5;66;03m# activation in the hidden layer[39;00m
+[0;32m---> 20[0m a_h [38;5;241m=[39m [43msigmoid[49m[43m([49m[43mz_h[49m[43m)[49m
+[1;32m     22[0m [38;5;66;03m# weighted sum of inputs to the output layer[39;00m
+[1;32m     23[0m z_o [38;5;241m=[39m np[38;5;241m.[39mmatmul(a_h, output_weights) [38;5;241m+[39m output_bias
+
+Input [0;32mIn [25][0m, in [0;36msigmoid[0;34m(x)[0m
+[1;32m      3[0m [38;5;28;01mdef[39;00m [38;5;21msigmoid[39m(x):
+[0;32m----> 4[0m     [38;5;28;01mreturn[39;00m [38;5;241m1[39m[38;5;241m/[39m([38;5;241m1[39m [38;5;241m+[39m [43mnp[49m[38;5;241;43m.[39;49m[43mexp[49m[43m([49m[38;5;241;43m-[39;49m[43mx[49m[43m)[49m)
+
+[0;31mRuntimeWarning[0m: overflow encountered in exp
+RuntimeWarning: overflow encountered in exp
+
