@@ -1,1171 +1,1916 @@
-TITLE: Week 46: Support Vector Machines and Project 3. 
+TITLE: Week 46: Decision Trees, Ensemble methods  and Random Forests
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
-DATE: today
+DATE: Week 46, November 13-17
+
 
 !split
-===== Overview of week 46 =====
+===== Plan for week 46 =====
 
-* _Thursday_: Support Vector Machines, discussion of project 3
-  * "Video of lecture":"https://youtu.be/F3CkH-opbdY"
-* _Friday_: Support vector machines and start Principal Component Analysis
-  * "Video of lecture":"https://youtu.be/BbupEEvMXtg"
+!bblock  Active learning sessions on Tuesday and Wednesday
+  * Work and Discussion of project 2
+  * Discussion of project 3 as well
+!eblock  
 
-!bblock Reading
-Reading recommendations:
-  o See lecture notes for week 46 at https://compphysics.github.io/MachineLearning/doc/web/course.html.
-  o Hastie et al chapter 12
-  o Bishop chapter 7.1 and 7.2
+!bblock Material for the lecture on Thursday November 16, 2023
+  * Thursday: Basics of decision trees, classification and regression algorithms and ensemble models 
+  * Readings and Videos:
+    * These lecture notes
+    * "Video of lecture to be added":"https://youtu.be/"
+    * "Video on Decision trees":"https://www.youtube.com/watch?v=RmajweUFKvM&ab_channel=Simplilearn"
+    * Decision Trees: Geron's chapter 6 covers decision trees while ensemble models, voting and bagging are discussed in chapter 7. See also lecture from "STK-IN4300, lecture 7":"https://www.uio.no/studier/emner/matnat/math/STK-IN4300/h20/slides/lecture_7.pdf". Chapter 9.2 of Hastie et al contains also a good discussion.
 !eblock
 
 
-!bblock Videos
-o "Overview video on Support Vector Machines":"https://www.youtube.com/watch?v=efR1C6CvhmE&ab_channel=StatQuestwithJoshStarmer"
-o See also "this video":"https://www.youtube.com/watch?v=N1vOgolbjSc&ab_channel=AliceZhao".
-!eblock
+
+!split
+===== Decision trees, overarching aims  =====
+
+
+We start here with the most basic algorithm, the so-called decision
+tree. With this basic algorithm we can in turn build more complex
+networks, spanning from homogeneous and heterogenous forests (bagging,
+random forests and more) to one of the most popular supervised
+algorithms nowadays, the extreme gradient boosting, or just
+XGBoost. But let us start with the simplest possible ingredient.
+
+Decision trees are supervised learning algorithms used for both,
+classification and regression tasks.
+
+
+The main idea of decision trees
+is to find those descriptive features which contain the most
+_information_ regarding the target feature and then split the dataset
+along the values of these features such that the target feature values
+for the resulting underlying datasets are as pure as possible.
+
+The descriptive features which reproduce best the target/output features are normally  said
+to be the most informative ones. The process of finding the _most
+informative_ feature is done until we accomplish a stopping criteria
+where we then finally end up in so called _leaf nodes_. 
+
+!split
+===== Basics of a tree =====
+
+A decision tree is typically divided into a _root node_, the _interior nodes_,
+and the final _leaf nodes_ or just _leaves_. These entities are then connected by so-called _branches_.
+
+The leaf nodes
+contain the predictions we will make for new query instances presented
+to our trained model. This is possible since the model has 
+learned the underlying structure of the training data and hence can,
+given some assumptions, make predictions about the target feature value
+(class) of unseen query instances.
+
+!split
+===== A Sketch of a Tree, Regression problem  =====
+
+"See handwritten notes November 3":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesNov32022.pdf"
+
+#FIGURE: [DataFiles/Regsimpletree.png, width=600 frac=0.8]
+
+!split
+===== A Sketch of a Tree, Classification  problem  =====
+
+"See handwritten notes November 3":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesNov32022.pdf"
+#FIGURE: [DataFiles/Classimpletree.png, width=600 frac=0.8]
+
 
 
 !split
-===== Support Vector Machines, overarching aims  =====
+===== A typical Decision Tree with its pertinent Jargon, Classification Problem =====
 
-A Support Vector Machine (SVM) is a very powerful and versatile
-Machine Learning method, capable of performing linear or nonlinear
-classification, regression, and even outlier detection. It is one of
-the most popular models in Machine Learning, and anyone interested in
-Machine Learning should have it in their toolbox. SVMs are
-particularly well suited for classification of complex but small-sized or
-medium-sized datasets.  
+FIGURE: [DataFiles/cancer.png, width=600 frac=0.8]
 
-The case with two well-separated classes only can be understood in an
-intuitive way in terms of lines in a two-dimensional space separating
-the two classes (see figure below).
+This tree was produced using the Wisconsin cancer data (discussed here as well, see code examples below) using _Scikit-Learn_'s decision tree classifier. Here we have used the so-called _gini_ index (see below) to split the various branches.
 
-The basic mathematics behind the SVM is however less familiar to most of us. 
-It relies on the definition of hyperplanes and the
-definition of a _margin_ which separates classes (in case of
-classification problems) of variables. It is also used for regression
-problems.
 
-With SVMs we distinguish between hard margin and soft margins. The
-latter introduces a so-called softening parameter to be discussed
-below.  We distinguish also between linear and non-linear
-approaches. The latter are the most frequent ones since it is rather
-unlikely that we can separate classes easily by say straight lines.
 
 !split
-===== Hyperplanes and all that =====
+===== General Features =====
 
-The theory behind support vector machines (SVM hereafter) is based on
-the mathematical description of so-called hyperplanes. Let us start
-with a two-dimensional case. This will also allow us to introduce our
-first SVM examples. These will be tailored to the case of two specific
-classes, as displayed in the figure here based on the usage of the petal data.
+The overarching approach to decision trees is a top-down approach.
 
-We assume here that our data set can be well separated into two
-domains, where a straight line does the job in the separating the two
-classes. Here the two classes are represented by either squares or
-circles.
+* A leaf provides the classification of a given instance.
+* A node specifies a test of some attribute of the instance.
+* A branch corresponds to a possible values of an attribute.
+* An instance is classified by starting at the root node of the tree, testing the attribute specified by this node, then moving down the tree branch corresponding to the value of the attribute in the given example.
+
+
+This process is then repeated for the subtree rooted at the new
+node.
+
+
+!split
+===== How do we set it up? =====
+
+
+In simplified terms, the process of training a decision tree and
+predicting the target features of query instances is as follows:
+
+o Present a dataset containing of a number of training instances characterized by a number of descriptive features and a target feature
+
+o Train the decision tree model by continuously splitting the target feature along the values of the descriptive features using a measure of information gain during the training process
+
+o Grow the tree until we accomplish a stopping criteria create leaf nodes which represent the *predictions* we want to make for new query instances
+
+o Show query instances to the tree and run down the tree until we arrive at leaf nodes
+
+Then we are essentially done!
+
+
+
+
+
+!split
+===== Decision trees and Regression  =====
 !bc pycod
-from sklearn import datasets
-from sklearn.svm import SVC, LinearSVC
-from sklearn.linear_model import SGDClassifier
-from sklearn.preprocessing import StandardScaler
-import matplotlib
+import numpy as np
 import matplotlib.pyplot as plt
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['xtick.labelsize'] = 12
-plt.rcParams['ytick.labelsize'] = 12
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
 
+steps=250
 
-iris = datasets.load_iris()
-X = iris["data"][:, (2, 3)]  # petal length, petal width
-y = iris["target"]
+distance=0
+x=0
+distance_list=[]
+steps_list=[]
+while x<steps:
+    distance+=np.random.randint(-1,2)
+    distance_list.append(distance)
+    x+=1
+    steps_list.append(x)
+plt.plot(steps_list,distance_list, color='green', label="Random Walk Data")
 
-setosa_or_versicolor = (y == 0) | (y == 1)
-X = X[setosa_or_versicolor]
-y = y[setosa_or_versicolor]
+steps_list=np.asarray(steps_list)
+distance_list=np.asarray(distance_list)
 
+X=steps_list[:,np.newaxis]
 
+#Polynomial fits
 
-C = 5
-alpha = 1 / (C * len(X))
+#Degree 2
+poly_features=PolynomialFeatures(degree=2, include_bias=False)
+X_poly=poly_features.fit_transform(X)
 
-lin_clf = LinearSVC(loss="hinge", C=C, random_state=42)
-svm_clf = SVC(kernel="linear", C=C)
-sgd_clf = SGDClassifier(loss="hinge", learning_rate="constant", eta0=0.001, alpha=alpha,
-                        max_iter=100000, random_state=42)
+lin_reg=LinearRegression()
+poly_fit=lin_reg.fit(X_poly,distance_list)
+b=lin_reg.coef_
+c=lin_reg.intercept_
+print ("2nd degree coefficients:")
+print ("zero power: ",c)
+print ("first power: ", b[0])
+print ("second power: ",b[1])
 
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+z = np.arange(0, steps, .01)
+z_mod=b[1]*z**2+b[0]*z+c
 
-lin_clf.fit(X_scaled, y)
-svm_clf.fit(X_scaled, y)
-sgd_clf.fit(X_scaled, y)
+fit_mod=b[1]*X**2+b[0]*X+c
+plt.plot(z, z_mod, color='r', label="2nd Degree Fit")
+plt.title("Polynomial Regression")
 
-print("LinearSVC:                   ", lin_clf.intercept_, lin_clf.coef_)
-print("SVC:                         ", svm_clf.intercept_, svm_clf.coef_)
-print("SGDClassifier(alpha={:.5f}):".format(sgd_clf.alpha), sgd_clf.intercept_, sgd_clf.coef_)
+plt.xlabel("Steps")
+plt.ylabel("Distance")
 
-# Compute the slope and bias of each decision boundary
-w1 = -lin_clf.coef_[0, 0]/lin_clf.coef_[0, 1]
-b1 = -lin_clf.intercept_[0]/lin_clf.coef_[0, 1]
-w2 = -svm_clf.coef_[0, 0]/svm_clf.coef_[0, 1]
-b2 = -svm_clf.intercept_[0]/svm_clf.coef_[0, 1]
-w3 = -sgd_clf.coef_[0, 0]/sgd_clf.coef_[0, 1]
-b3 = -sgd_clf.intercept_[0]/sgd_clf.coef_[0, 1]
+#Degree 10
+poly_features10=PolynomialFeatures(degree=10, include_bias=False)
+X_poly10=poly_features10.fit_transform(X)
 
-# Transform the decision boundary lines back to the original scale
-line1 = scaler.inverse_transform([[-10, -10 * w1 + b1], [10, 10 * w1 + b1]])
-line2 = scaler.inverse_transform([[-10, -10 * w2 + b2], [10, 10 * w2 + b2]])
-line3 = scaler.inverse_transform([[-10, -10 * w3 + b3], [10, 10 * w3 + b3]])
+poly_fit10=lin_reg.fit(X_poly10,distance_list)
 
-# Plot all three decision boundaries
-plt.figure(figsize=(11, 4))
-plt.plot(line1[:, 0], line1[:, 1], "k:", label="LinearSVC")
-plt.plot(line2[:, 0], line2[:, 1], "b--", linewidth=2, label="SVC")
-plt.plot(line3[:, 0], line3[:, 1], "r-", label="SGDClassifier")
-plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs") # label="Iris-Versicolor"
-plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo") # label="Iris-Setosa"
-plt.xlabel("Petal length", fontsize=14)
-plt.ylabel("Petal width", fontsize=14)
-plt.legend(loc="upper center", fontsize=14)
-plt.axis([0, 5.5, 0, 2])
+y_plot=poly_fit10.predict(X_poly10)
+plt.plot(X, y_plot, color='black', label="10th Degree Fit")
 
+plt.legend()
 plt.show()
 
 
+#Decision Tree Regression
+from sklearn.tree import DecisionTreeRegressor
+regr_1=DecisionTreeRegressor(max_depth=2)
+regr_2=DecisionTreeRegressor(max_depth=5)
+regr_3=DecisionTreeRegressor(max_depth=7)
+regr_1.fit(X, distance_list)
+regr_2.fit(X, distance_list)
+regr_3.fit(X, distance_list)
+
+X_test = np.arange(0.0, steps, 0.01)[:, np.newaxis]
+y_1 = regr_1.predict(X_test)
+y_2 = regr_2.predict(X_test)
+y_3=regr_3.predict(X_test)
+
+# Plot the results
+plt.figure()
+plt.scatter(X, distance_list, s=2.5, c="black", label="data")
+plt.plot(X_test, y_1, color="red",
+         label="max_depth=2", linewidth=2)
+plt.plot(X_test, y_2, color="green", label="max_depth=5", linewidth=2)
+plt.plot(X_test, y_3, color="m", label="max_depth=7", linewidth=2)
+
+plt.xlabel("Data")
+plt.ylabel("Darget")
+plt.title("Decision Tree Regression")
+plt.legend()
+plt.show()
 
 !ec
 
 
 
+!split
+===== Building a tree, regression =====
+
+There are mainly two steps
+o We split the predictor space (the set of possible values $x_1,x_2,\dots, x_p$) into $J$ distinct and non-non-overlapping regions, $R_1,R_2,\dots,R_J$.  
+o For every observation that falls into the region $R_j$ , we make the same prediction, which is simply the mean of the response values for the training observations in $R_j$.
+
+How do we construct the regions $R_1,\dots,R_J$?  In theory, the
+regions could have any shape. However, we choose to divide the
+predictor space into high-dimensional rectangles, or boxes, for
+simplicity and for ease of interpretation of the resulting predictive
+model. The goal is to find boxes $R_1,\dots,R_J$ that minimize the
+MSE, given by
+
+!bt
+\[
+\sum_{j=1}^J\sum_{i\in R_j}(y_i-\overline{y}_{R_j})^2,
+\]
+!et
+
+where $\overline{y}_{R_j}$  is the mean response for the training observations 
+within box $j$. 
 
 !split
-===== What is a hyperplane? =====
+===== A top-down approach, recursive binary splitting =====
 
-The aim of the SVM algorithm is to find a hyperplane in a
-$p$-dimensional space, where $p$ is the number of features that
-distinctly classifies the data points.
+Unfortunately, it is computationally infeasible to consider every
+possible partition of the feature space into $J$ boxes.  The common
+strategy is to take a top-down approach
 
-In a $p$-dimensional space, a hyperplane is what we call an affine subspace of dimension of $p-1$.
-As an example, in two dimension, a hyperplane is simply as straight line while in three dimensions it is 
-a two-dimensional subspace, or stated simply, a plane. 
-
-In two dimensions, with the variables $x_1$ and $x_2$, the hyperplane is defined as
-!bt
-\[
-b+w_1x_1+w_2x_2=0,
-\]
-!et
-
-where $b$ is the intercept and $w_1$ and $w_2$ define the elements of a vector orthogonal to the line 
-$b+w_1x_1+w_2x_2=0$. 
-In two dimensions we define the vectors $\bm{x} =[x1,x2]$ and $\bm{w}=[w1,w2]$. 
-We can then rewrite the above equation as 
-
-!bt
-\[
-\bm{x}^T\bm{w}+b=0.
-\]
-!et
+The approach is top-down because it begins at the top of the tree (all
+observations belong to a single region) and then successively splits
+the predictor space; each split is indicated via two new branches
+further down on the tree. It is greedy because at each step of the
+tree-building process, the best split is made at that particular step,
+rather than looking ahead and picking a split that will lead to a
+better tree in some future step.
 
 !split
-===== A $p$-dimensional space of features =====
+===== Making a tree =====
 
-We limit ourselves to two classes of outputs $y_i$ and assign these classes the values $y_i = \pm 1$. 
-In a $p$-dimensional space of say $p$ features we have a hyperplane defines as 
+In order to implement the recursive binary splitting we start by selecting
+the predictor $x_j$ and a cutpoint $s$ that splits the predictor space into two regions $R_1$ and $R_2$
 !bt
 \[
-b+wx_1+w_2x_2+\dots +w_px_p=0.
+\left\{X\vert x_j < s\right\},
 \]
 !et
-If we define a 
-matrix $\bm{X}=\left[\bm{x}_1,\bm{x}_2,\dots, \bm{x}_p\right]$
-of dimension $n\times p$, where $n$ represents the observations for each feature and each vector $x_i$ is a column vector of the matrix $\bm{X}$, 
+and
 !bt
 \[
-\bm{x}_i = \begin{bmatrix} x_{i1} \\ x_{i2} \\ \dots \\ \dots \\ x_{ip} \end{bmatrix}.
+\left\{X\vert x_j \geq s\right\},
 \]
 !et
-If the above condition is not met for a given vector $\bm{x}_i$ we have 
+so that we obtain the lowest MSE, that is
 !bt
 \[
-b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip} >0,
-\]
-!et
-if our output $y_i=1$.
-In this case we say that $\bm{x}_i$ lies on one of the sides of the hyperplane and if 
-!bt
-\[
-b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip} < 0,
-\]
-!et
-for the class of observations $y_i=-1$, 
-then $\bm{x}_i$ lies on the other side. 
-
-Equivalently, for the two classes of observations we have 
-!bt
-\[
-y_i\left(b+w_1x_{i1}+w_2x_{i2}+\dots +w_px_{ip}\right) > 0. 
+\sum_{i:x_i\in R_j}(y_i-\overline{y}_{R_1})^2+\sum_{i:x_i\in R_2}(y_i-\overline{y}_{R_2})^2,
 \]
 !et
 
-When we try to separate hyperplanes, if it exists, we can use it to construct a natural classifier: a test observation is assigned a given class depending on which side of the hyperplane it is located.
+which we want to minimize by considering all predictors
+$x_1,x_2,\dots,x_p$.  We consider also all possible values of $s$ for
+each predictor. These values could be determined by randomly assigned
+numbers or by starting at the midpoint and then proceed till we find
+an optimal value.
+
+For any $j$ and $s$, we define the pair of half-planes where
+$\overline{y}_{R_1}$ is the mean response for the training
+observations in $R_1(j,s)$, and $\overline{y}_{R_2}$ is the mean
+response for the training observations in $R_2(j,s)$.
+
+Finding the values of $j$ and $s$ that minimize the above equation can be
+done quite quickly, especially when the number of features $p$ is not
+too large.
+
+Next, we repeat the process, looking
+for the best predictor and best cutpoint in order to split the data
+further so as to minimize the MSE within each of the resulting
+regions. However, this time, instead of splitting the entire predictor
+space, we split one of the two previously identified regions. We now
+have three regions. Again, we look to split one of these three regions
+further, so as to minimize the MSE. The process continues until a
+stopping criterion is reached; for instance, we may continue until no
+region contains more than five observations.
 
 !split 
-===== The two-dimensional case ===== 
+===== Pruning the tree =====
 
-Let us try to develop our intuition about SVMs by limiting ourselves to a two-dimensional
-plane.  To separate the two classes of data points, there are many
-possible lines (hyperplanes if you prefer a more strict naming)  
-that could be chosen. Our objective is to find a
-plane that has the maximum margin, i.e the maximum distance between
-data points of both classes. Maximizing the margin distance provides
-some reinforcement so that future data points can be classified with
-more confidence.
+The above procedure is rather straightforward, but leads often to
+overfitting and unnecessarily large and complicated trees. The basic
+idea is to grow a large tree $T_0$ and then prune it back in order to
+obtain a subtree. A smaller tree with fewer splits (fewer regions) can
+lead to smaller variance and better interpretation at the cost of a
+little more bias.
 
-What a linear classifier attempts to accomplish is to split the
-feature space into two half spaces by placing a hyperplane between the
-data points.  This hyperplane will be our decision boundary.  All
-points on one side of the plane will belong to class one and all points
-on the other side of the plane will belong to the second class two.
+The so-called Cost complexity pruning algorithm gives us a
+way to do just this. Rather than considering every possible subtree,
+we consider a sequence of trees indexed by a nonnegative tuning
+parameter $\alpha$.
 
-Unfortunately there are many ways in which we can place a hyperplane
-to divide the data.  Below is an example of two candidate hyperplanes
-for our data sample.
+Read more at the following "Scikit-Learn link on pruning":"https://scikit-learn.org/stable/auto_examples/tree/plot_cost_complexity_pruning.html#sphx-glr-auto-examples-tree-plot-cost-complexity-pruning-py".
 
 !split
-===== Getting into the details =====
+===== Cost complexity pruning =====
 
-Let us define the function
+For each value of $\alpha$  there corresponds a subtree $T \in T_0$ such that
 !bt
 \[
-f(x) = \bm{w}^T\bm{x}+b = 0,
+\sum_{m=1}^{\overline{T}}\sum_{i:x_i\in R_m}(y_i-\overline{y}_{R_m})^2+\alpha\overline{T},
 \]
 !et
-as the function that determines the line $L$ that separates two classes (our two features), see the figure here. 
+is as small as possible. Here $\overline{T}$ is 
+the number of terminal nodes of the tree $T$ , $R_m$ is the
+rectangle (i.e. the subset of predictor space)  corresponding to the $m$-th terminal node.
+
+The tuning parameter $\alpha$ controls a trade-off between the subtree’s
+complexity and its fit to the training data. When $\alpha = 0$, then the
+subtree $T$ will simply equal $T_0$, 
+because then the above equation just measures the
+training error. 
+However, as $\alpha$ increases, there is a price to pay for
+having a tree with many terminal nodes. The above equation will
+tend to be minimized for a smaller subtree. 
 
 
-Any point defined by $\bm{x}_i$ and $\bm{x}_2$ on the line $L$ will satisfy $\bm{w}^T(\bm{x}_1-\bm{x}_2)=0$. 
-
-The signed distance $\delta$ from any point defined by a vector $\bm{x}$ and a point $\bm{x}_0$ on the line $L$ is then
-!bt
-\[
-\delta = \frac{1}{\vert\vert \bm{w}\vert\vert}(\bm{w}^T\bm{x}+b).
-\]
-!et
-
-!split
-===== First attempt at a minimization approach =====
-
-How do we find the parameter $b$ and the vector $\bm{w}$? What we could
-do is to define a cost function which now contains the set of all
-misclassified points $M$ and attempt to minimize this function
-
-!bt
-\[
-C(\bm{w},b) = -\sum_{i\in M} y_i(\bm{w}^T\bm{x}_i+b).
-\]
-!et
-
-We could now for example define all values $y_i =1$ as misclassified in case we have $\bm{w}^T\bm{x}_i+b < 0$ and the opposite if we have $y_i=-1$. Taking the derivatives gives us
-!bt
-\[
-\frac{\partial C}{\partial b} = -\sum_{i\in M} y_i,
-\]
-!et
-and 
-!bt
-\[
-\frac{\partial C}{\partial \bm{w}} = -\sum_{i\in M} y_ix_i.
-\]
-!et
-
-!split
-===== Solving the equations =====
-
-We can now use the Newton-Raphson method or different variants of the gradient descent family (from plain gradient descent to various stochastic gradient descent approaches) to solve the equations
-!bt
-\[
-b \leftarrow b +\eta \frac{\partial C}{\partial b},
-\]
-!et
-and
-!bt
-\[
-\bm{w} \leftarrow \bm{w} +\eta \frac{\partial C}{\partial \bm{w}},
-\]
-!et
-where $\eta$ is our by now well-known learning rate. 
+It turns out that as we increase $\alpha$ from zero
+branches get pruned from the tree in a nested and predictable fashion,
+so obtaining the whole sequence of subtrees as a function of $\alpha$ is
+easy. We can select a value of $\alpha$ using a validation set or using
+cross-validation. We then return to the full data set and obtain the
+subtree corresponding to $\alpha$. 
 
 
 !split
-===== Code Example =====
+===== Schematic Regression Procedure =====
 
-The equations we discussed above can be coded rather easily (the
-framework is similar to what we developed for logistic
-regression). We are going to set up a simple case with two classes only and we want to find a line which separates them the best possible way.
+!bblock Building a Regression Tree
+
+o Use recursive binary splitting to grow a large tree on the training data, stopping only when each terminal node has fewer than some minimum number of observations.
+o Apply cost complexity pruning to the large tree in order to obtain a sequence of best subtrees, as a function of $\alpha$.
+o Use for example $K$-fold cross-validation to choose $\alpha$. Divide the training observations into $K$ folds. For each $k=1,2,\dots,K$ we: 
+  * repeat steps 1 and 2 on all but the $k$-th fold of the training data. 
+  * Then we valuate the mean squared prediction error on the data in the left-out $k$-th fold, as a function of $\alpha$.
+  * Finally  we average the results for each value of $\alpha$, and pick $\alpha$ to minimize the average error.
+o Return the subtree from Step 2 that corresponds to the chosen value of $\alpha$. 
+!eblock
+
+
+!split
+===== A Classification Tree =====
+
+A classification tree is very similar to a regression tree, except
+that it is used to predict a qualitative response rather than a
+quantitative one. Recall that for a regression tree, the predicted
+response for an observation is given by the mean response of the
+training observations that belong to the same terminal node. In
+contrast, for a classification tree, we predict that each observation
+belongs to the most commonly occurring class of training observations
+in the region to which it belongs. In interpreting the results of a
+classification tree, we are often interested not only in the class
+prediction corresponding to a particular terminal node region, but
+also in the class proportions among the training observations that
+fall into that region.  
+
+!split
+===== Growing a classification tree =====
+
+The task of growing a
+classification tree is quite similar to the task of growing a
+regression tree. Just as in the regression setting, we use recursive
+binary splitting to grow a classification tree. However, in the
+classification setting, the MSE cannot be used as a criterion for making
+the binary splits.  A natural alternative to MSE is the _classification
+error rate_. Since we plan to assign an observation in a given region
+to the most commonly occurring error rate class of training
+observations in that region, the classification error rate is simply
+the fraction of the training observations in that region that do not
+belong to the most common class. 
+
+When building a classification tree, either the Gini index or the
+entropy are typically used to evaluate the quality of a particular
+split, since these two approaches are more sensitive to node purity
+than is the classification error rate. 
+
+
+!split
+===== Classification tree, how to split nodes =====
+
+If our targets are the outcome of a classification process that takes
+for example $k=1,2,\dots,K$ values, the only thing we need to think of
+is to set up the splitting criteria for each node.
+
+We define a PDF $p_{mk}$ that represents the number of observations of
+a class $k$ in a region $R_m$ with $N_m$ observations. We represent
+this likelihood function in terms of the proportion $I(y_i=k)$ of
+observations of this class in the region $R_m$ as
+
+!bt
+\[
+p_{mk} = \frac{1}{N_m}\sum_{x_i\in R_m}I(y_i=k).
+\]
+!et 
+
+We let $p_{mk}$ represent the majority class of observations in region
+$m$. The three most common ways of splitting a node are given by
+
+* Misclassification error 
+!bt
+\[
+p_{mk} = \frac{1}{N_m}\sum_{x_i\in R_m}I(y_i\ne k) = 1-p_{mk}.
+\]
+!et 
+* Gini index $g$
+!bt
+\[
+g = \sum_{k=1}^K p_{mk}(1-p_{mk}).
+\]
+!et 
+* Information entropy or just entropy $s$
+!bt
+\[
+s = -\sum_{k=1}^K p_{mk}\log{p_{mk}}.
+\]
+!et 
+
+
+!split
+===== Visualizing the Tree, Classification =====
 !bc pycod
+import os
+from sklearn.datasets import load_breast_cancer
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.tree import export_graphviz
 
+from IPython.display import Image 
+from pydot import graph_from_dot_data
+import pandas as pd
+import numpy as np
+
+
+cancer = load_breast_cancer()
+X = pd.DataFrame(cancer.data, columns=cancer.feature_names)
+print(X)
+y = pd.Categorical.from_codes(cancer.target, cancer.target_names)
+y = pd.get_dummies(y)
+print(y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+tree_clf = DecisionTreeClassifier(max_depth=5)
+tree_clf.fit(X_train, y_train)
+
+export_graphviz(
+    tree_clf,
+    out_file="DataFiles/cancer.dot",
+    feature_names=cancer.feature_names,
+    class_names=cancer.target_names,
+    rounded=True,
+    filled=True
+)
+cmd = 'dot -Tpng DataFiles/cancer.dot -o DataFiles/cancer.png'
+os.system(cmd)
 !ec
 
 !split
-===== Problems with the Simpler Approach =====
-
-
-There are however problems with this approach, although it looks
-pretty straightforward to implement. When running the above code, we see that we can easily end up with many diffeent lines which separate the two classes.
-
-
-For small
-gaps between the entries, we may also end up needing many iterations
-before the solutions converge and if the data cannot be separated
-properly into two distinct classes, we may not experience a converge
-at all.
-
-!split
-===== A better approach =====
-
-A better approach is rather to try to define a large margin between
-the two classes (if they are well separated from the beginning).
-
-Thus, we wish to find a margin $M$ with $\bm{w}$ normalized to
-$\vert\vert \bm{w}\vert\vert =1$ subject to the condition
-
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, p. 
-\]
-!et
-All points are thus at a signed distance from the decision boundary defined by the line $L$. The parameters $b$ and $w_1$ and $w_2$ define this line. 
-
-We seek thus the largest value $M$ defined by
-!bt
-\[
-\frac{1}{\vert \vert \bm{w}\vert\vert}y_i(\bm{w}^T\bm{x}_i+b) \geq M \hspace{0.1cm}\forall i=1,2,\dots, n, 
-\]
-!et
-or just 
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b) \geq M\vert \vert \bm{w}\vert\vert \hspace{0.1cm}\forall i. 
-\]
-!et
-If we scale the equation so that $\vert \vert \bm{w}\vert\vert = 1/M$, we have to find the minimum of 
-$\bm{w}^T\bm{w}=\vert \vert \bm{w}\vert\vert$ (the norm) subject to the condition
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b) \geq 1 \hspace{0.1cm}\forall i.
-\]
-!et
-
-We have thus defined our margin as the invers of the norm of
-$\bm{w}$. We want to minimize the norm in order to have a as large as
-possible margin $M$. Before we proceed, we need to remind ourselves
-about Lagrangian multipliers.
-
-!split
-===== A quick Reminder on Lagrangian Multipliers =====
-
-Consider a function of three independent variables $f(x,y,z)$ . For the function $f$ to be an
-extreme we have
-!bt
-\[
-df=0.
-\]
-!et
-A necessary and sufficient condition is
-!bt
-\[
-\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
-\]
-!et
-due to
-!bt
-\[
-df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz.
-\]
-!et
-In many problems the variables $x,y,z$ are often subject to constraints (such as those above for the margin)
-so that they are no longer all independent. It is possible at least in principle to use each 
-constraint to eliminate one variable
-and to proceed with a new and smaller set of independent varables.
-
-The use of so-called Lagrangian  multipliers is an alternative technique  when the elimination
-of variables is incovenient or undesirable.  Assume that we have an equation of constraint on 
-the variables $x,y,z$
-!bt
-\[
-\phi(x,y,z) = 0,
-\]
-!et
- resulting in
-!bt
-\[
-d\phi = \frac{\partial \phi}{\partial x}dx+\frac{\partial \phi}{\partial y}dy+\frac{\partial \phi}{\partial z}dz =0.
-\]
-!et
-Now we cannot set anymore
-!bt
-\[
-\frac{\partial f}{\partial x} =\frac{\partial f}{\partial y}=\frac{\partial f}{\partial z}=0,
-\]
-!et
-if $df=0$ is wanted
-because there are now only two independent variables!  Assume $x$ and $y$ are the independent 
-variables.
-Then $dz$ is no longer arbitrary.
-
-!split
-===== Adding the Multiplier =====
-
-However, we can add to
-!bt
-\[
-df = \frac{\partial f}{\partial x}dx+\frac{\partial f}{\partial y}dy+\frac{\partial f}{\partial z}dz,
-\]
-!et
-a multiplum of $d\phi$, viz. $\lambda d\phi$, resulting  in
-!bt
-\[
-df+\lambda d\phi = (\frac{\partial f}{\partial z}+\lambda
-\frac{\partial \phi}{\partial x})dx+(\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y})dy+
-(\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z})dz =0.
-\]
-!et
-Our multiplier is chosen so that
-!bt
-\[
-\frac{\partial f}{\partial z}+\lambda\frac{\partial \phi}{\partial z} =0.
-\]
-!et
-
-We need to remember that we took $dx$ and $dy$ to be arbitrary and thus we must have
-!bt
-\[
-\frac{\partial f}{\partial x}+\lambda\frac{\partial \phi}{\partial x} =0,
-\]
-!et
-and
-!bt
-\[
-\frac{\partial f}{\partial y}+\lambda\frac{\partial \phi}{\partial y} =0.
-\]
-!et
-When all these equations are satisfied, $df=0$.  We have four unknowns, $x,y,z$ and
-$\lambda$. Actually we want only $x,y,z$, $\lambda$ needs not to be determined, 
-it is therefore often called
-Lagrange's undetermined multiplier.
-If we have a set of constraints $\phi_k$ we have the equations
-!bt
-\[
-\frac{\partial f}{\partial x_i}+\sum_k\lambda_k\frac{\partial \phi_k}{\partial x_i} =0.
-\]
-!et
-
-!split
-===== Setting up the Problem =====
-In order to solve the above problem, we define the following Lagrangian function to be minimized 
-!bt
-\[
-{\cal L}(\lambda,b,\bm{w})=\frac{1}{2}\bm{w}^T\bm{w}-\sum_{i=1}^n\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b)-1\right],
-\]
-!et
-where $\lambda_i$ is a so-called Lagrange multiplier subject to the condition $\lambda_i \geq 0$.
-
-Taking the derivatives  with respect to $b$ and $\bm{w}$ we obtain 
-!bt
-\[
-\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
-\]
-!et
-and 
-!bt
-\[
-\frac{\partial {\cal L}}{\partial \bm{w}} = 0 = \bm{w}-\sum_{i} \lambda_iy_i\bm{x}_i.
-\]
-!et
-Inserting these constraints into the equation for ${\cal L}$ we obtain
-!bt
-\[
-{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{x}_i^T\bm{x}_j,
-\]
-!et
-subject to the constraints $\lambda_i\geq 0$ and $\sum_i\lambda_iy_i=0$. 
-We must in addition satisfy the "Karush-Kuhn-Tucker":"https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions" (KKT) condition
-!bt
-\[
-\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b) -1\right] \hspace{0.1cm}\forall i.
-\]
-!et
-o If $\lambda_i > 0$, then $y_i(\bm{w}^T\bm{x}_i+b)=1$ and we say that $x_i$ is on the boundary.
-o If $y_i(\bm{w}^T\bm{x}_i+b)> 1$, we say $x_i$ is not on the boundary and we set $\lambda_i=0$. 
-When $\lambda_i > 0$, the vectors $\bm{x}_i$ are called support vectors. They are the vectors closest to the line (or hyperplane) and define the margin $M$. 
-
-!split
-===== The problem to solve =====
-
-We can rewrite 
-!bt
-\[
-{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{x}_i^T\bm{x}_j,
-\]
-!et
-and its constraints in terms of a matrix-vector problem where we minimize w.r.t. $\lambda$ the following problem
-!bt
-\[
-\frac{1}{2} \bm{\lambda}^T\begin{bmatrix} y_1y_1\bm{x}_1^T\bm{x}_1 & y_1y_2\bm{x}_1^T\bm{x}_2 & \dots & \dots & y_1y_n\bm{x}_1^T\bm{x}_n \\
-y_2y_1\bm{x}_2^T\bm{x}_1 & y_2y_2\bm{x}_2^T\bm{x}_2 & \dots & \dots & y_1y_n\bm{x}_2^T\bm{x}_n \\
-\dots & \dots & \dots & \dots & \dots \\
-\dots & \dots & \dots & \dots & \dots \\
-y_ny_1\bm{x}_n^T\bm{x}_1 & y_ny_2\bm{x}_n^T\bm{x}_2 & \dots & \dots & y_ny_n\bm{x}_n^T\bm{x}_n \\
-\end{bmatrix}\bm{\lambda}-\mathbb{1}\bm{\lambda}, 
-\]
-!et
-subject to $\bm{y}^T\bm{\lambda}=0$. Here we defined the vectors $\bm{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
-$\bm{y}=[y_1,y_2,\dots,y_n]$. 
-
-
-!split
-===== The last steps =====
-
-Solving the above problem, yields the values of $\lambda_i$.
-To find the coefficients of your hyperplane we need simply to compute 
-!bt
-\[
-\bm{w}=\sum_{i} \lambda_iy_i\bm{x}_i.
-\]
-!et
-With our vector $\bm{w}$ we can in turn find the value of the intercept $b$ (here in two dimensions) via 
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b)=1,
-\]
-!et
-resulting in
-!bt
-\[
-b = \frac{1}{y_i}-\bm{w}^T\bm{x}_i,
-\]
-!et
-or if we write it out in terms of the support vectors only, with $N_s$ being their number,  we have
-!bt
-\[
-b = \frac{1}{N_s}\sum_{j\in N_s}\left(y_j-\sum_{i=1}^n\lambda_iy_i\bm{x}_i^T\bm{x}_j\right).
-\]
-!et
-With our hyperplane coefficients we can use our classifier to assign any observation by simply using 
-!bt
-\[
-y_i = \mathrm{sign}(\bm{w}^T\bm{x}_i+b).
-\]
-!et
-Below we discuss how to find the optimal values of $\lambda_i$. Before we proceed however, we discuss now the so-called soft classifier. 
-
-!split
-===== A soft classifier =====
-
-Till now, the margin is strictly defined by the support vectors. This defines what is called a hard classifier, that is the margins are well defined.
-
-Suppose now that classes overlap in feature space, as shown in the
-figure here. One way to deal with this problem before we define the
-so-called _kernel approach_, is to allow a kind of slack in the sense
-that we allow some points to be on the wrong side of the margin.
-
-We introduce thus the so-called _slack_ variables $\bm{\xi} =[\xi_1,x_2,\dots,x_n]$ and 
-modify our previous equation
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b)=1,
-\]
-!et
-to 
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b)=1-\xi_i,
-\]
-!et
-with the requirement $\xi_i\geq 0$. The total violation is now $\sum_i\xi$. 
-The value $\xi_i$ in the constraint the last constraint corresponds to the  amount by which the prediction
-$y_i(\bm{w}^T\bm{x}_i+b)=1$ is on the wrong side of its margin. Hence by bounding the sum $\sum_i \xi_i$,
-we bound the total amount by which predictions fall on the wrong side of their margins.
-
-Misclassifications occur when $\xi_i > 1$. Thus bounding the total sum by some value $C$ bounds in turn the total number of
-misclassifications.
-
-!split
-===== Soft optmization problem =====
-
-
-This has in turn the consequences that we change our optmization problem to finding the minimum of 
-!bt
-\[
-{\cal L}=\frac{1}{2}\bm{w}^T\bm{w}-\sum_{i=1}^n\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b)-(1-\xi_)\right]+C\sum_{i=1}^n\xi_i-\sum_{i=1}^n\gamma_i\xi_i,
-\]
-!et
-subject to 
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b)=1-\xi_i \hspace{0.1cm}\forall i,
-\]
-!et
-with the requirement $\xi_i\geq 0$.
-
-Taking the derivatives  with respect to $b$ and $\bm{w}$ we obtain 
-!bt
-\[
-\frac{\partial {\cal L}}{\partial b} = -\sum_{i} \lambda_iy_i=0,
-\]
-!et
-and 
-!bt
-\[
-\frac{\partial {\cal L}}{\partial \bm{w}} = 0 = \bm{w}-\sum_{i} \lambda_iy_i\bm{x}_i, 
-\]
-!et
-and
-!bt
-\[
-\lambda_i = C-\gamma_i \hspace{0.1cm}\forall i.
-\]
-!et
-Inserting these constraints into the equation for ${\cal L}$ we obtain the same equation as before
-!bt
-\[
-{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{x}_i^T\bm{x}_j,
-\]
-!et
-but now subject to the constraints $\lambda_i\geq 0$, $\sum_i\lambda_iy_i=0$ and $0\leq\lambda_i \leq C$. 
-We must in addition satisfy the Karush-Kuhn-Tucker condition which now reads
-!bt
-\[
-\lambda_i\left[y_i(\bm{w}^T\bm{x}_i+b) -(1-\xi_)\right]=0 \hspace{0.1cm}\forall i,
-\]
-!et
-!bt
-\[
-\gamma_i\xi_i = 0,
-\]
-!et
-and 
-!bt
-\[
-y_i(\bm{w}^T\bm{x}_i+b) -(1-\xi_) \geq 0 \hspace{0.1cm}\forall i.
-\]
-!et
-
-!split
-===== Kernels and non-linearity =====
-
-The cases we have studied till now, were all characterized by two classes
-with a close to linear separability. The classifiers we have described
-so far find linear boundaries in our input feature space. It is
-possible to make our procedure more flexible by exploring the feature
-space using other basis expansions such as higher-order polynomials,
-wavelets, splines etc.
-
-If our feature space is not easy to separate, as shown in the figure
-here, we can achieve a better separation by introducing more complex
-basis functions. The ideal would be, as shown in the next figure, to, via a specific transformation to 
-obtain a separation between the classes which is almost linear. 
-
-The change of basis, from $x\rightarrow z=\phi(x)$ leads to the same type of equations to be solved, except that
-we need to introduce for example a polynomial transformation to a two-dimensional training set.
-
+===== Visualizing the Tree, The Moons  =====
 !bc pycod
+# Common imports
 import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.datasets import make_moons
+from sklearn.tree import export_graphviz
+from pydot import graph_from_dot_data
+import pandas as pd
 import os
 
 np.random.seed(42)
+X, y = make_moons(n_samples=100, noise=0.25, random_state=53)
+X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=0)
+tree_clf = DecisionTreeClassifier(max_depth=5)
+tree_clf.fit(X_train, y_train)
 
-# To plot pretty figures
-import matplotlib
-import matplotlib.pyplot as plt
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['xtick.labelsize'] = 12
-plt.rcParams['ytick.labelsize'] = 12
+export_graphviz(
+    tree_clf,
+    out_file="DataFiles/moons.dot",
+    rounded=True,
+    filled=True
+)
+cmd = 'dot -Tpng DataFiles/moons.dot -o DataFiles/moons.png'
+os.system(cmd)
+!ec
 
+!split
+===== Other ways of visualizing the trees =====
 
-from sklearn.svm import SVC
-from sklearn import datasets
+_Scikit-Learn_ has also another way to visualize the trees which is very useful, here with the Iris data.
 
+!bc pycod
+from sklearn.datasets import load_iris
+from sklearn import tree
+X, y = load_iris(return_X_y=True)
+tree_clf = tree.DecisionTreeClassifier()
+tree_clf = tree_clf.fit(X, y)
+# and then plot the tree
+tree.plot_tree(tree_clf) 
+!ec
 
+!split
+===== Printing out as text =====
 
-X1D = np.linspace(-4, 4, 9).reshape(-1, 1)
-X2D = np.c_[X1D, X1D**2]
-y = np.array([0, 0, 1, 1, 1, 1, 1, 0, 0])
+Alternatively, the tree can also be exported in textual format with the function exporttext.
+This method doesn’t require the installation of external libraries and is more compact:
 
-plt.figure(figsize=(11, 4))
-
-plt.subplot(121)
-plt.grid(True, which='both')
-plt.axhline(y=0, color='k')
-plt.plot(X1D[:, 0][y==0], np.zeros(4), "bs")
-plt.plot(X1D[:, 0][y==1], np.zeros(5), "g^")
-plt.gca().get_yaxis().set_ticks([])
-plt.xlabel(r"$x_1$", fontsize=20)
-plt.axis([-4.5, 4.5, -0.2, 0.2])
-
-plt.subplot(122)
-plt.grid(True, which='both')
-plt.axhline(y=0, color='k')
-plt.axvline(x=0, color='k')
-plt.plot(X2D[:, 0][y==0], X2D[:, 1][y==0], "bs")
-plt.plot(X2D[:, 0][y==1], X2D[:, 1][y==1], "g^")
-plt.xlabel(r"$x_1$", fontsize=20)
-plt.ylabel(r"$x_2$", fontsize=20, rotation=0)
-plt.gca().get_yaxis().set_ticks([0, 4, 8, 12, 16])
-plt.plot([-4.5, 4.5], [6.5, 6.5], "r--", linewidth=3)
-plt.axis([-4.5, 4.5, -1, 17])
-plt.subplots_adjust(right=1)
-plt.show()
-
+!bc pycod
+from sklearn.datasets import load_iris
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import export_text
+iris = load_iris()
+decision_tree = DecisionTreeClassifier(random_state=0, max_depth=2)
+decision_tree = decision_tree.fit(iris.data, iris.target)
+r = export_text(decision_tree, feature_names=iris['feature_names'])
+print(r)
 !ec
 
 
+!split
+===== Algorithms for Setting up Decision Trees =====
+
+Two algorithms stand out in the set up of decision trees:
+o The CART (Classification And Regression Tree) algorithm for both classification and regression
+o The ID3 algorithm based on the computation of the information gain for classification
+
+We discuss both algorithms with applications here. The popular library
+_Scikit-Learn_ uses the CART algorithm. For classification problems
+you can use either the _gini_ index or the _entropy_ to split a tree
+in two branches.
 
 !split
-===== The equations =====
+===== The CART algorithm for Classification =====
 
-Suppose we define a polynomial transformation of degree two only (we continue to live in a plane with $x_i$ and $y_i$ as variables)
+For classification, the CART algorithm splits the data set in two subsets using a single feature $k$ and a threshold $t_k$.
+This could be for example a threshold set by a number below a certain circumference of a malign tumor.
+
+How do we find these two quantities?
+We search for the pair $(k,t_k)$ that produces the purest subset using for example the _gini_ factor $G$.
+The cost function it tries to minimize is then
 !bt
 \[
-z = \phi(x_i) =\left(x_i^2, y_i^2, \sqrt{2}x_iy_i\right).
+C(k,t_k) = \frac{m_{\mathrm{left}}}{m}G_{\mathrm{left}}+ \frac{m_{\mathrm{right}}}{m}G_{\mathrm{right}},
 \]
 !et
+where $G_{\mathrm{left/right}}$ measures the impurity of the left/right subset  and $m_{\mathrm{left/right}}$
+ is the number of instances in the left/right subset
 
-With our new basis, the equations we solved earlier are basically the same, that is we have now (without the slack option for simplicity)
-!bt
-\[
-{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{z}_i^T\bm{z}_j,
-\]
-!et
-subject to the constraints $\lambda_i\geq 0$, $\sum_i\lambda_iy_i=0$, and for the support vectors
-!bt
-\[
-y_i(\bm{w}^T\bm{z}_i+b)= 1 \hspace{0.1cm}\forall i,
-\]
-!et
-from which we also find $b$.
-To compute $\bm{z}_i^T\bm{z}_j$ we define the kernel $K(\bm{x}_i,\bm{x}_j)$ as
-!bt
-\[
-K(\bm{x}_i,\bm{x}_j)=\bm{z}_i^T\bm{z}_j= \phi(\bm{x}_i)^T\phi(\bm{x}_j).
-\]
-!et
-For the above example, the kernel reads
-!bt
-\[
-K(\bm{x}_i,\bm{x}_j)=[x_i^2, y_i^2, \sqrt{2}x_iy_i]^T\begin{bmatrix} x_j^2 \\ y_j^2 \\ \sqrt{2}x_jy_j \end{bmatrix}=x_i^2x_j^2+2x_ix_jy_iy_j+y_i^2y_j^2.
-\]
-!et
-
-We note that this is nothing but the dot product of the two original
-vectors $(\bm{x}_i^T\bm{x}_j)^2$. Instead of thus computing the
-product in the Lagrangian of $\bm{z}_i^T\bm{z}_j$ we simply compute
-the dot product $(\bm{x}_i^T\bm{x}_j)^2$.
-
-
-This leads to the so-called
-kernel trick and the result leads to the same as if we went through
-the trouble of performing the transformation
-$\phi(\bm{x}_i)^T\phi(\bm{x}_j)$ during the SVM calculations.
-
+Once it has successfully split the training set in two, it splits the subsets using the same logic, then the subsubsets
+and so on, recursively. It stops recursing once it reaches the maximum depth (defined by the
+$max\_depth$ hyperparameter), or if it cannot find a split that will reduce impurity. A few other
+hyperparameters control additional stopping conditions such as the $min\_samples\_split$,
+$min\_samples\_leaf$, $min\_weight\_fraction\_leaf$, and $max\_leaf\_nodes$.
 
 !split
-===== The problem to solve =====
-Using our definition of the kernel We can rewrite again the Lagrangian
-!bt
-\[
-{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{x}_i^T\bm{z}_j,
-\]
-!et
-subject to the constraints $\lambda_i\geq 0$, $\sum_i\lambda_iy_i=0$ in terms of a convex optimization problem
-!bt
-\[
-\frac{1}{2} \bm{\lambda}^T\begin{bmatrix} y_1y_1K(\bm{x}_1,\bm{x}_1) & y_1y_2K(\bm{x}_1,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_1,\bm{x}_n) \\
-y_2y_1K(\bm{x}_2,\bm{x}_1) & y_2y_2(\bm{x}_2,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_2,\bm{x}_n) \\
-\dots & \dots & \dots & \dots & \dots \\
-\dots & \dots & \dots & \dots & \dots \\
-y_ny_1K(\bm{x}_n,\bm{x}_1) & y_ny_2K(\bm{x}_n\bm{x}_2) & \dots & \dots & y_ny_nK(\bm{x}_n,\bm{x}_n) \\
-\end{bmatrix}\bm{\lambda}-\mathbb{1}\bm{\lambda}, 
-\]
-!et
-subject to $\bm{y}^T\bm{\lambda}=0$. Here we defined the vectors $\bm{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
-$\bm{y}=[y_1,y_2,\dots,y_n]$. 
-If we add the slack constants this leads to the additional constraint $0\leq \lambda_i \leq C$.
+===== The CART algorithm for Regression =====
 
-We can rewrite this (see the solutions below) in terms of a convex optimization problem of the type
+The CART algorithm for regression works is similar to the one for classification except that instead of trying to split the
+training set in a way that minimizes say the _gini_ or _entropy_ impurity, it now tries to split the training set in a way that minimizes our well-known mean-squared error (MSE). The cost function is now
 !bt
-\begin{align*}
-    &\mathrm{min}_{\lambda}\hspace{0.2cm} \frac{1}{2}\bm{\lambda}^T\bm{P}\bm{\lambda}+\bm{q}^T\bm{\lambda},\\ \nonumber
-    &\mathrm{subject\hspace{0.1cm}to} \hspace{0.2cm} \bm{G}\bm{\lambda} \preceq \bm{h} \hspace{0.2cm} \wedge \bm{A}\bm{\lambda}=f.
-\end{align*}
+\[
+C(k,t_k) = \frac{m_{\mathrm{left}}}{m}\mathrm{MSE}_{\mathrm{left}}+ \frac{m_{\mathrm{right}}}{m}\mathrm{MSE}_{\mathrm{right}}.
+\]
 !et
-Below we discuss how to solve these equations. Here we note that the matrix $\bm{P}$ has matrix elements $p_{ij}=y_iy_jK(\bm{x}_i,\bm{x}_j)$.
-Given a kernel $K$ and the targets $y_i$ this matrix is easy to set up. The constraint $\bm{y}^T\bm{\lambda}=0$ leads to $f=0$ and $\bm{A}=\bm{y}$. How to set up the matrix $\bm{G}$ is discussed later. Here note that the inequalities $0\leq \lambda_i \leq C$ can be split up into
-$0\leq \lambda_i$ and $\lambda_i \leq C$. These two inequalities define then the matrix $\bm{G}$ and the vector $\bm{h}$.
+Here the MSE for a specific node is defined as
+!bt
+\[
+\mathrm{MSE}_{\mathrm{node}}=\frac{1}{m_\mathrm{node}}\sum_{i\in \mathrm{node}}(\overline{y}_{\mathrm{node}}-y_i)^2,
+\]
+!et
+with
+!bt
+\[
+\overline{y}_{\mathrm{node}}=\frac{1}{m_\mathrm{node}}\sum_{i\in \mathrm{node}}y_i,
+\]
+!et
+the mean value of all observations in a specific node.
+
+Without any regularization, the regression task for decision trees, 
+just like for classification tasks, is  prone to overfitting.
+
+!split
+===== Why binary splits? =====
+
+It is custom to split to a tree uising binary splits. The reason is
+that multiway splits fragment the data too quickly, leaving
+insufficient data at the next level down.  Multiway splits can be
+achieved by a series of binary split and this is normally preferred.
 
 
 !split
-===== Different kernels and Mercer's theorem =====
+===== Computing a Tree using the Gini Index =====
 
-There are several popular kernels being used. These are
-o Linear: $K(\bm{x},\bm{y})=\bm{x}^T\bm{y}$,
-o Polynomial: $K(\bm{x},\bm{y})=(\bm{x}^T\bm{y}+\gamma)^d$,
-o Gaussian Radial Basis Function: $K(\bm{x},\bm{y})=\exp{\left(-\gamma\vert\vert\bm{x}-\bm{y}\vert\vert^2\right)}$,
-o Tanh: $K(\bm{x},\bm{y})=\tanh{(\bm{x}^T\bm{y}+\gamma)}$,
-and many other ones.
+Consider the following example with attributes/features and two
+possible outcomes (classes)  for each attribute.  Assume we wish to find some
+correlations between the average grade of a student as function of the
+number of hours studied and hours slept. We want also to correlate the
+grade in a given course with the general trend, whether the students
+recently has gotten grades below average or above.
 
-An important theorem for us is "Mercer's
-theorem":"https://en.wikipedia.org/wiki/Mercer%27s_theorem".  The
-theorem states that if a kernel function $K$ is symmetric, continuous
-and leads to a positive semi-definite matrix $\bm{P}$ then there
-exists a function $\phi$ that maps $\bm{x}_i$ and $\bm{x}_j$ into
-another space (possibly with much higher dimensions) such that
-
-!bt
-\[
-K(\bm{x}_i,\bm{x}_j)=\phi(\bm{x}_i)^T\phi(\bm{x}_j).
-\]
-!et
-
-So you can use $K$ as a kernel since you know $\phi$ exists, even if
-you don’t know what $\phi$ is. 
-
-Note that some frequently used kernels (such as the Sigmoid kernel)
-don’t respect all of Mercer’s conditions, yet they generally work well
-in practice.
+We have three features/attributes
+o Trend of average grades before present course, classified as either below  or above  the average grade of the whole class  
+o The number of hours studies, classified again as either higher (more than 3 hours per day) or lower . Here we have used a standard for one $ECTS$ which is scaled to 25-30 hours of work for a semester which lasts 18 weeks, with 15 weeks of lectures and 3 weeks for exams, assuming a total of 30 ECTS per semester. 
+o The number of hours slept as high for more than $8$ hours and below  for less than 8 hours of sleep, classified again as either high or low
+o The final grade whether it is above or below average
 
 
 !split
-===== The moons example =====
+=====  The Table =====
+
+|---------------------------------------------------|
+| Grade Trend | Hours slept | Hours Studied | Grade |
+|---------------------------------------------------|
+| Above | Low | High | Above |
+| Below | High | Low | Below |
+| Above | Low | High | Above |
+| Above | High | High | Above |
+| Below | Low | High | Below |
+| Above | Low | Low | Below |
+| Below | High | High | Below |
+| Below | Low | High  | Below |
+| Above | Low | Low | Below |
+| Above | High | High | Above |
+|---------------------------------------------------|
+
+
+!split
+===== Computing the various Gini Indices =====
+
+In computations we will translate all classes into numbers. Being
+these binary classes, they can easily be split into ones and zeros.
+
+!bblock Gini index for Average trend
+"See handwritten notes November 3":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesNov32022.pdf"
+!eblock
+
+
+!split
+===== Computing the various Gini Indices, Hours slept =====
+
+
+!bblock Gini index for hour slept
+"See handwritten notes November 3":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesNov32022.pdf"
+!eblock
+
+
+!split
+===== Computing the various Gini Indices, Hours studied =====
+
+
+!bblock Gini index for hour studied
+"See handwritten notes November 3":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesNov32022.pdf"
+!eblock
+
+For final tree, see the above handwritten notes
+
+
+!split
+===== A possible code using Scikit-Learn =====
+
 !bc pycod
-from __future__ import division, print_function, unicode_literals
-
+# Common imports
 import numpy as np
-np.random.seed(42)
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.tree import export_graphviz
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from IPython.display import Image 
+from pydot import graph_from_dot_data
+import os
 
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+infile = open(data_path("grades.csv"),'r')
+
+# Read the experimental data with Pandas
+from IPython.display import display
+grades = pd.read_csv(infile)
+grades = pd.DataFrame(grades)
+display(grades)
+# Features and targets
+X = grades.loc[:, grades.columns != 'Grade'].values
+y = grades.loc[:, grades.columns == 'Grade'].values
+print(X)
+# Then do a Classification tree
+tree_clf = DecisionTreeClassifier(max_depth=2)
+tree_clf.fit(X, y)
+print("Train set accuracy with Decision Tree: {:.2f}".format(tree_clf.score(X,y)))
+#transfer to a decision tree graph
+export_graphviz(
+    tree_clf,
+    out_file="DataFiles/grade.dot",
+    rounded=True,
+    filled=True
+)
+cmd = 'dot -Tpng DataFiles/grade.dot -o DataFiles/grades.png'
+os.system(cmd)
+
+
+!ec
+
+
+
+!split
+===== Further example: Computing the Gini index =====
+
+The next example we will look at is a classical one in many Machine
+Learning applications. Based on various meteorological features, we
+have several so-called attributes which decide whether we at the end
+will do some outdoor activity like skiing, going for a bike ride etc
+etc.  The table here contains the feautures _outlook_, _temperature_,
+_humidity_ and _wind_.  The target or output is whether we ride
+(True=1) or whether we do something else that day (False=0). The
+attributes for each feature are then sunny, overcast and rain for the
+outlook, hot, cold and mild for temperature, high and normal for
+humidity and weak and strong for wind.
+
+The table here summarizes the various attributes and
+|-------------------------------------------|
+|Day| Outlook |Temperature | Humidity | Wind | Ride|
+|-------------------------------------------|
+|1 | Sunny | Hot | High | Weak | 0 |
+|2 | Sunny | Hot | High | Strong | 1 |
+|3 | Overcast | Hot | High | Weak | 1 |
+|4 | Rain | Mild | High | Weak | 1 |
+|5 | Rain | Cool | Normal | Weak | 1 |
+|6 | Rain | Cool | Normal | Strong | 0 |
+|7 | Overcast | Cool | Normal | Strong | 1 |
+|8 | Sunny | Mild | High | Weak | 0 |
+|9 | Sunny | Cool | Normal | Weak | 1 |
+|10 | Rain | Mild | Normal | Weak | 1 |
+|11 | Sunny | Mild | Normal | Strong | 1 |
+|12 | Overcast | Mild | High | Strong | 1 |
+|13 | Overcast | Hot | Normal | Weak | 1 |
+|14 | Rain | Mild | High | Strong | 0 |
+|-------------------------------------------|
+
+
+!split
+===== Simple Python Code to read in Data and perform Classification =====
+
+!bc pycod
+# Common imports
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.tree import export_graphviz
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from IPython.display import Image 
+from pydot import graph_from_dot_data
+import os
+
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+infile = open(data_path("rideclass.csv"),'r')
+
+# Read the experimental data with Pandas
+from IPython.display import display
+ridedata = pd.read_csv(infile,names = ('Outlook','Temperature','Humidity','Wind','Ride'))
+ridedata = pd.DataFrame(ridedata)
+
+# Features and targets
+X = ridedata.loc[:, ridedata.columns != 'Ride'].values
+y = ridedata.loc[:, ridedata.columns == 'Ride'].values
+
+# Create the encoder.
+encoder = OneHotEncoder(handle_unknown="ignore")
+# Assume for simplicity all features are categorical.
+encoder.fit(X)    
+# Apply the encoder.
+X = encoder.transform(X)
+print(X)
+# Then do a Classification tree
+tree_clf = DecisionTreeClassifier(max_depth=2)
+tree_clf.fit(X, y)
+print("Train set accuracy with Decision Tree: {:.2f}".format(tree_clf.score(X,y)))
+#transfer to a decision tree graph
+export_graphviz(
+    tree_clf,
+    out_file="DataFiles/ride.dot",
+    rounded=True,
+    filled=True
+)
+cmd = 'dot -Tpng DataFiles/cancer.dot -o DataFiles/cancer.png'
+os.system(cmd)
+
+
+!ec
+
+!split
+===== Computing the Gini Factor  =====
+
+The above functions (gini, entropy and misclassification error) are
+important components of the so-called CART algorithm. We will discuss
+this algorithm below after we have discussed the information gain
+algorithm ID3.
+
+In the example here we have converted all our attributes into numerical values $0,1,2$ etc.
+
+!bc pycod
+# Split a dataset based on an attribute and an attribute value
+def test_split(index, value, dataset):
+	left, right = list(), list()
+	for row in dataset:
+		if row[index] < value:
+			left.append(row)
+		else:
+			right.append(row)
+	return left, right
+ 
+# Calculate the Gini index for a split dataset
+def gini_index(groups, classes):
+	# count all samples at split point
+	n_instances = float(sum([len(group) for group in groups]))
+	# sum weighted Gini index for each group
+	gini = 0.0
+	for group in groups:
+		size = float(len(group))
+		# avoid divide by zero
+		if size == 0:
+			continue
+		score = 0.0
+		# score the group based on the score for each class
+		for class_val in classes:
+			p = [row[-1] for row in group].count(class_val) / size
+			score += p * p
+		# weight the group score by its relative size
+		gini += (1.0 - score) * (size / n_instances)
+	return gini
+
+# Select the best split point for a dataset
+def get_split(dataset):
+	class_values = list(set(row[-1] for row in dataset))
+	b_index, b_value, b_score, b_groups = 999, 999, 999, None
+	for index in range(len(dataset[0])-1):
+		for row in dataset:
+			groups = test_split(index, row[index], dataset)
+			gini = gini_index(groups, class_values)
+			print('X%d < %.3f Gini=%.3f' % ((index+1), row[index], gini))
+			if gini < b_score:
+				b_index, b_value, b_score, b_groups = index, row[index], gini, groups
+	return {'index':b_index, 'value':b_value, 'groups':b_groups}
+ 
+dataset = [[0,0,0,0,0],
+            [0,0,0,1,1],
+            [1,0,0,0,1],
+            [2,1,0,0,1],
+            [2,2,1,0,1],
+            [2,2,1,1,0],
+            [1,2,1,1,1],
+            [0,1,0,0,0],
+            [0,2,1,0,1],
+            [2,1,1,0,1],
+            [0,1,1,1,1],
+            [1,1,0,1,1],
+            [1,0,1,0,1],
+            [2,1,0,1,0]]
+
+split = get_split(dataset)
+print('Split: [X%d < %.3f]' % ((split['index']+1), split['value']))
+!ec
+
+
+
+!split
+===== Regression trees =====
+!bc pycod 
+# Quadratic training set + noise
+np.random.seed(42)
+m = 200
+X = np.random.rand(m, 1)
+y = 4 * (X - 0.5) ** 2
+y = y + np.random.randn(m, 1) / 10
+!ec
+
+!bc pycod 
+from sklearn.tree import DecisionTreeRegressor
+
+tree_reg = DecisionTreeRegressor(max_depth=2, random_state=42)
+tree_reg.fit(X, y)
+!ec
+
+!split
+===== Final regressor code =====
+!bc pycod
+from sklearn.tree import DecisionTreeRegressor
+
+tree_reg1 = DecisionTreeRegressor(random_state=42, max_depth=2)
+tree_reg2 = DecisionTreeRegressor(random_state=42, max_depth=3)
+tree_reg1.fit(X, y)
+tree_reg2.fit(X, y)
+
+def plot_regression_predictions(tree_reg, X, y, axes=[0, 1, -0.2, 1], ylabel="$y$"):
+    x1 = np.linspace(axes[0], axes[1], 500).reshape(-1, 1)
+    y_pred = tree_reg.predict(x1)
+    plt.axis(axes)
+    plt.xlabel("$x_1$", fontsize=18)
+    if ylabel:
+        plt.ylabel(ylabel, fontsize=18, rotation=0)
+    plt.plot(X, y, "b.")
+    plt.plot(x1, y_pred, "r.-", linewidth=2, label=r"$\hat{y}$")
+
+plt.figure(figsize=(11, 4))
+plt.subplot(121)
+plot_regression_predictions(tree_reg1, X, y)
+for split, style in ((0.1973, "k-"), (0.0917, "k--"), (0.7718, "k--")):
+    plt.plot([split, split], [-0.2, 1], style, linewidth=2)
+plt.text(0.21, 0.65, "Depth=0", fontsize=15)
+plt.text(0.01, 0.2, "Depth=1", fontsize=13)
+plt.text(0.65, 0.8, "Depth=1", fontsize=13)
+plt.legend(loc="upper center", fontsize=18)
+plt.title("max_depth=2", fontsize=14)
+
+plt.subplot(122)
+plot_regression_predictions(tree_reg2, X, y, ylabel=None)
+for split, style in ((0.1973, "k-"), (0.0917, "k--"), (0.7718, "k--")):
+    plt.plot([split, split], [-0.2, 1], style, linewidth=2)
+for split in (0.0458, 0.1298, 0.2873, 0.9040):
+    plt.plot([split, split], [-0.2, 1], "k:", linewidth=1)
+plt.text(0.3, 0.5, "Depth=2", fontsize=13)
+plt.title("max_depth=3", fontsize=14)
+
+plt.show()
+!ec
+
+!bc pycod
+tree_reg1 = DecisionTreeRegressor(random_state=42)
+tree_reg2 = DecisionTreeRegressor(random_state=42, min_samples_leaf=10)
+tree_reg1.fit(X, y)
+tree_reg2.fit(X, y)
+
+x1 = np.linspace(0, 1, 500).reshape(-1, 1)
+y_pred1 = tree_reg1.predict(x1)
+y_pred2 = tree_reg2.predict(x1)
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plt.plot(X, y, "b.")
+plt.plot(x1, y_pred1, "r.-", linewidth=2, label=r"$\hat{y}$")
+plt.axis([0, 1, -0.2, 1.1])
+plt.xlabel("$x_1$", fontsize=18)
+plt.ylabel("$y$", fontsize=18, rotation=0)
+plt.legend(loc="upper center", fontsize=18)
+plt.title("No restrictions", fontsize=14)
+
+plt.subplot(122)
+plt.plot(X, y, "b.")
+plt.plot(x1, y_pred2, "r.-", linewidth=2, label=r"$\hat{y}$")
+plt.axis([0, 1, -0.2, 1.1])
+plt.xlabel("$x_1$", fontsize=18)
+plt.title("min_samples_leaf={}".format(tree_reg2.min_samples_leaf), fontsize=14)
+
+plt.show()
+!ec
+
+
+
+
+!split
+===== Pros and cons of trees, pros =====
+
+* White box, easy to interpret model. Some people believe that decision trees more closely mirror human decision-making than do the regression and classification approaches discussed earlier (think of support vector machines)
+* Trees are very easy to explain to people. In fact, they are even easier to explain than linear regression!
+* No feature normalization needed
+* Tree models can handle both continuous and categorical data (Classification and Regression Trees)
+* Can model nonlinear relationships
+* Can model interactions between the different descriptive features
+* Trees can be displayed graphically, and are easily interpreted even by a non-expert (especially if they are small)
+
+
+!split
+===== Disadvantages =====
+
+* Unfortunately, trees generally do not have the same level of predictive accuracy as some of the other regression and classification approaches
+* If continuous features are used the tree may become quite large and hence less interpretable
+* Decision trees are prone to overfit the training data and hence do not well generalize the data if no stopping criteria or improvements like pruning, boosting or bagging are implemented
+* Small changes in the data may lead to a completely different tree. This issue can be addressed by using ensemble methods like bagging, boosting or random forests
+* Unbalanced datasets where some target feature values occur much more frequently than others may lead to biased trees since the frequently occurring feature values are preferred over the less frequently occurring ones. 
+* If the number of features is relatively large (high dimensional) and the number of instances is relatively low, the tree might overfit the data
+* Features with many levels may be preferred over features with less levels since for them it is *more easy* to split the dataset such that the sub datasets only contain pure target feature values. This issue can be addressed by preferring for instance the information gain ratio as splitting criteria over information gain
+
+However, by aggregating many decision trees, using methods like
+bagging, random forests, and boosting, the predictive performance of
+trees can be substantially improved.
+
+
+!split
+===== Ensemble Methods: From a Single Tree to Many Trees and Extreme Boosting, Meet the Jungle of Methods =====
+
+As stated above and seen in many of the examples discussed here about
+a single decision tree, we often end up overfitting our training
+data. This normally means that we have a high variance. Can we reduce
+the variance of a statistical learning method?
+
+This leads us to a set of different methods that can combine different
+machine learning algorithms or just use one of them to construct
+forests and jungles of trees, homogeneous ones or heterogenous
+ones. These methods are recognized by different names which we will
+try to explain here. These are
+
+o Voting classifiers
+o Bagging and Pasting
+o Random forests
+o Boosting methods, from adaptive to Extreme Gradient Boosting (XGBoost)
+
+We discuss these methods here.
+
+
+!split
+===== An Overview of Ensemble Methods  =====
+
+FIGURE: [DataFiles/ensembleoverview.png, width=600 frac=0.8]
+
+!split
+=====  Why Voting? =====
+
+The idea behind boosting, and voting as well can be phrased as follows:
+_Can a group of people somehow arrive at highly
+reasoned decisions, despite the weak judgement of the individual
+members?_
+
+The aim is to create a good classifier by combining several weak classifiers.
+_A weak classifier is a classifier which is able to produce results that are only slightly better than guessing at random._
+
+The basic approach is to apply repeatedly (in boosting this is done in an iterative way) a weak classifier to modifications of the data.
+In voting we simply apply the law of large numbers while in boosting we give more weight to misclassified data in
+each iteration.  
+
+Decision trees play an important role as our weak classifier. They serve as the basic method. 
+
+!split
+===== Tossing coins =====
+
+The simplest case is a so-called voting ensemble. To illustrate this,
+think of yourself tossing coins with a biased outcome of 51 per cent
+for heads and 49% for tails. With only few tosses,
+you may not clearly see this distribution for heads and tails. However, after some
+thousands of tosses, there will be a clear majority of heads.  With 2000 tosses
+you should see approximately 1020 heads and 980 tails.
+
+We can then state that the outcome is a clear majority of heads. If
+you do this ten thousand times, it is easy to see that there is a 97%
+likelihood of a majority of heads.
+
+Another example would be to collect all polls before an
+election. Different polls may show different likelihoods for a
+candidate winning with say a majority  of the popular vote. The majority vote
+would then consist in many polls indicating that this candidate will
+actually win.
+
+The example here shows how we can implement the coin tossing case,
+clealry demostrating that after some tosses we see the "law of large":"https://en.wikipedia.org/wiki/Law_of_large_numbers"
+numbers kicking in.
+
+!split
+===== Standard imports first =====
+
+!bc pycod
+# Common imports
+from IPython.display import Image 
+from pydot import graph_from_dot_data
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.tree import export_graphviz
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from IPython.display import Image 
+from pydot import graph_from_dot_data
+import os
+
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+!ec
+
+
+
+
+!split
+===== Simple Voting Example, head or tail =====
+!bc pycod
+
+# Common imports
+import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 plt.rcParams['axes.labelsize'] = 14
 plt.rcParams['xtick.labelsize'] = 12
 plt.rcParams['ytick.labelsize'] = 12
 
+heads_proba = 0.51
+coin_tosses = (np.random.rand(10000, 10) < heads_proba).astype(np.int32)
+cumulative_heads_ratio = np.cumsum(coin_tosses, axis=0) / np.arange(1, 10001).reshape(-1, 1)
+plt.figure(figsize=(8,3.5))
+plt.plot(cumulative_heads_ratio)
+plt.plot([0, 10000], [0.51, 0.51], "k--", linewidth=2, label="51%")
+plt.plot([0, 10000], [0.5, 0.5], "k-", label="50%")
+plt.xlabel("Number of coin tosses")
+plt.ylabel("Heads ratio")
+plt.legend(loc="lower right")
+plt.axis([0, 10000, 0.42, 0.58])
+save_fig("votingsimple")
+plt.show()
 
+!ec
+
+
+!split
+===== Using the Voting Classifier =====
+
+We can use the voting classifier on other data sets, here the exciting binary case of two distinct objects using the make moons functionality of _Scikit-Learn_.
+!bc pycod
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_moons
+
+X, y = make_moons(n_samples=500, noise=0.30, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
-from sklearn import datasets
+
+log_clf = LogisticRegression(solver="liblinear", random_state=42)
+rnd_clf = RandomForestClassifier(n_estimators=10, random_state=42)
+svm_clf = SVC(gamma="auto", random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='hard')
+
+voting_clf.fit(X_train, y_train)
+
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+
+log_clf = LogisticRegression(solver="liblinear", random_state=42)
+rnd_clf = RandomForestClassifier(n_estimators=10, random_state=42)
+svm_clf = SVC(gamma="auto", probability=True, random_state=42)
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='soft')
+voting_clf.fit(X_train, y_train)
+
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+
+!ec
 
 
 
-from sklearn.pipeline import Pipeline
+
+!split
+===== Voting and Bagging =====
+
+!bc pycod
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_moons
+
+X, y = make_moons(n_samples=500, noise=0.30, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
+log_clf = LogisticRegression(random_state=42)
+rnd_clf = RandomForestClassifier(random_state=42)
+svm_clf = SVC(random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='hard')
+voting_clf.fit(X_train, y_train)
+!ec
+
+!bc pycod 
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+!ec
+
+!bc pycod 
+log_clf = LogisticRegression(random_state=42)
+rnd_clf = RandomForestClassifier(random_state=42)
+svm_clf = SVC(probability=True, random_state=42)
+
+voting_clf = VotingClassifier(
+    estimators=[('lr', log_clf), ('rf', rnd_clf), ('svc', svm_clf)],
+    voting='soft')
+voting_clf.fit(X_train, y_train)
+!ec
+
+!bc pycod 
+from sklearn.metrics import accuracy_score
+
+for clf in (log_clf, rnd_clf, svm_clf, voting_clf):
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
+!ec
+
+
+
+
+
+!split
+===== Bagging =====
+
+The _plain_ decision trees suffer from high
+variance. This means that if we split the training data into two parts
+at random, and fit a decision tree to both halves, the results that we
+get could be quite different. In contrast, a procedure with low
+variance will yield similar results if applied repeatedly to distinct
+data sets; linear regression tends to have low variance, if the ratio
+of $n$ to $p$ is moderately large. 
+
+_Bootstrap aggregation_, or just _bagging_, is a
+general-purpose procedure for reducing the variance of a statistical
+learning method. 
+
+
+!split
+===== More bagging =====
+
+Bagging typically results in improved accuracy
+over prediction using a single tree. Unfortunately, however, it can be
+difficult to interpret the resulting model. Recall that one of the
+advantages of decision trees is the attractive and easily interpreted
+diagram that results.
+
+However, when we bag a large number of trees, it is no longer
+possible to represent the resulting statistical learning procedure
+using a single tree, and it is no longer clear which variables are
+most important to the procedure. Thus, bagging improves prediction
+accuracy at the expense of interpretability.  Although the collection
+of bagged trees is much more difficult to interpret than a single
+tree, one can obtain an overall summary of the importance of each
+predictor using the MSE (for bagging regression trees) or the Gini
+index (for bagging classification trees). In the case of bagging
+regression trees, we can record the total amount that the MSE is
+decreased due to splits over a given predictor, averaged over all $B$ possible
+trees. A large value indicates an important predictor. Similarly, in
+the context of bagging classification trees, we can add up the total
+amount that the Gini index  is decreased by splits over a given
+predictor, averaged over all $B$ trees.
+
+
+
+!split
+=====  Making your own Bootstrap: Changing the Level of the Decision Tree =====
+
+Let us bring up our good old boostrap example from the linear regression lectures. We change the linerar regression algorithm with
+a decision tree wth different depths and perform a bootstrap aggregate (in this case we perform as many bootstraps as data points $n$).
+!bc pycod
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.utils import resample
+from sklearn.tree import DecisionTreeRegressor
+
+n = 100
+n_boostraps = 100
+maxdepth = 8
+
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+error = np.zeros(maxdepth)
+bias = np.zeros(maxdepth)
+variance = np.zeros(maxdepth)
+polydegree = np.zeros(maxdepth)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import LinearSVC
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
+# we produce a simple tree first as benchmark
+simpletree = DecisionTreeRegressor(max_depth=3) 
+simpletree.fit(X_train_scaled, y_train)
+simpleprediction = simpletree.predict(X_test_scaled)
+for degree in range(1,maxdepth):
+    model = DecisionTreeRegressor(max_depth=degree) 
+    y_pred = np.empty((y_test.shape[0], n_boostraps))
+    for i in range(n_boostraps):
+        x_, y_ = resample(X_train_scaled, y_train)
+        model.fit(x_, y_)
+        y_pred[:, i] = model.predict(X_test_scaled)#.ravel()
 
-from sklearn.datasets import make_moons
-X, y = make_moons(n_samples=100, noise=0.15, random_state=42)
-
-def plot_dataset(X, y, axes):
-    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "bs")
-    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "g^")
-    plt.axis(axes)
-    plt.grid(True, which='both')
-    plt.xlabel(r"$x_1$", fontsize=20)
-    plt.ylabel(r"$x_2$", fontsize=20, rotation=0)
-
-plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
-plt.show()
-
-from sklearn.datasets import make_moons
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures
-
-polynomial_svm_clf = Pipeline([
-        ("poly_features", PolynomialFeatures(degree=3)),
-        ("scaler", StandardScaler()),
-        ("svm_clf", LinearSVC(C=10, loss="hinge", random_state=42))
-    ])
-
-polynomial_svm_clf.fit(X, y)
-
-def plot_predictions(clf, axes):
-    x0s = np.linspace(axes[0], axes[1], 100)
-    x1s = np.linspace(axes[2], axes[3], 100)
-    x0, x1 = np.meshgrid(x0s, x1s)
-    X = np.c_[x0.ravel(), x1.ravel()]
-    y_pred = clf.predict(X).reshape(x0.shape)
-    y_decision = clf.decision_function(X).reshape(x0.shape)
-    plt.contourf(x0, x1, y_pred, cmap=plt.cm.brg, alpha=0.2)
-    plt.contourf(x0, x1, y_decision, cmap=plt.cm.brg, alpha=0.1)
-
-plot_predictions(polynomial_svm_clf, [-1.5, 2.5, -1, 1.5])
-plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
-
-plt.show()
-
-
-from sklearn.svm import SVC
-
-poly_kernel_svm_clf = Pipeline([
-        ("scaler", StandardScaler()),
-        ("svm_clf", SVC(kernel="poly", degree=3, coef0=1, C=5))
-    ])
-poly_kernel_svm_clf.fit(X, y)
-
-poly100_kernel_svm_clf = Pipeline([
-        ("scaler", StandardScaler()),
-        ("svm_clf", SVC(kernel="poly", degree=10, coef0=100, C=5))
-    ])
-poly100_kernel_svm_clf.fit(X, y)
-
-plt.figure(figsize=(11, 4))
-
-plt.subplot(121)
-plot_predictions(poly_kernel_svm_clf, [-1.5, 2.5, -1, 1.5])
-plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
-plt.title(r"$d=3, r=1, C=5$", fontsize=18)
-
-plt.subplot(122)
-plot_predictions(poly100_kernel_svm_clf, [-1.5, 2.5, -1, 1.5])
-plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
-plt.title(r"$d=10, r=100, C=5$", fontsize=18)
-
-plt.show()
-
-def gaussian_rbf(x, landmark, gamma):
-    return np.exp(-gamma * np.linalg.norm(x - landmark, axis=1)**2)
-
-gamma = 0.3
-
-x1s = np.linspace(-4.5, 4.5, 200).reshape(-1, 1)
-x2s = gaussian_rbf(x1s, -2, gamma)
-x3s = gaussian_rbf(x1s, 1, gamma)
-
-XK = np.c_[gaussian_rbf(X1D, -2, gamma), gaussian_rbf(X1D, 1, gamma)]
-yk = np.array([0, 0, 1, 1, 1, 1, 1, 0, 0])
-
-plt.figure(figsize=(11, 4))
-
-plt.subplot(121)
-plt.grid(True, which='both')
-plt.axhline(y=0, color='k')
-plt.scatter(x=[-2, 1], y=[0, 0], s=150, alpha=0.5, c="red")
-plt.plot(X1D[:, 0][yk==0], np.zeros(4), "bs")
-plt.plot(X1D[:, 0][yk==1], np.zeros(5), "g^")
-plt.plot(x1s, x2s, "g--")
-plt.plot(x1s, x3s, "b:")
-plt.gca().get_yaxis().set_ticks([0, 0.25, 0.5, 0.75, 1])
-plt.xlabel(r"$x_1$", fontsize=20)
-plt.ylabel(r"Similarity", fontsize=14)
-plt.annotate(r'$\mathbf{x}$',
-             xy=(X1D[3, 0], 0),
-             xytext=(-0.5, 0.20),
-             ha="center",
-             arrowprops=dict(facecolor='black', shrink=0.1),
-             fontsize=18,
-            )
-plt.text(-2, 0.9, "$x_2$", ha="center", fontsize=20)
-plt.text(1, 0.9, "$x_3$", ha="center", fontsize=20)
-plt.axis([-4.5, 4.5, -0.1, 1.1])
-
-plt.subplot(122)
-plt.grid(True, which='both')
-plt.axhline(y=0, color='k')
-plt.axvline(x=0, color='k')
-plt.plot(XK[:, 0][yk==0], XK[:, 1][yk==0], "bs")
-plt.plot(XK[:, 0][yk==1], XK[:, 1][yk==1], "g^")
-plt.xlabel(r"$x_2$", fontsize=20)
-plt.ylabel(r"$x_3$  ", fontsize=20, rotation=0)
-plt.annotate(r'$\phi\left(\mathbf{x}\right)$',
-             xy=(XK[3, 0], XK[3, 1]),
-             xytext=(0.65, 0.50),
-             ha="center",
-             arrowprops=dict(facecolor='black', shrink=0.1),
-             fontsize=18,
-            )
-plt.plot([-0.1, 1.1], [0.57, -0.1], "r--", linewidth=3)
-plt.axis([-0.1, 1.1, -0.1, 1.1])
-    
-plt.subplots_adjust(right=1)
-
-plt.show()
-
-
-x1_example = X1D[3, 0]
-for landmark in (-2, 1):
-    k = gaussian_rbf(np.array([[x1_example]]), np.array([[landmark]]), gamma)
-    print("Phi({}, {}) = {}".format(x1_example, landmark, k))
-
-rbf_kernel_svm_clf = Pipeline([
-        ("scaler", StandardScaler()),
-        ("svm_clf", SVC(kernel="rbf", gamma=5, C=0.001))
-    ])
-rbf_kernel_svm_clf.fit(X, y)
-
-
-from sklearn.svm import SVC
-
-gamma1, gamma2 = 0.1, 5
-C1, C2 = 0.001, 1000
-hyperparams = (gamma1, C1), (gamma1, C2), (gamma2, C1), (gamma2, C2)
-
-svm_clfs = []
-for gamma, C in hyperparams:
-    rbf_kernel_svm_clf = Pipeline([
-            ("scaler", StandardScaler()),
-            ("svm_clf", SVC(kernel="rbf", gamma=gamma, C=C))
-        ])
-    rbf_kernel_svm_clf.fit(X, y)
-    svm_clfs.append(rbf_kernel_svm_clf)
-
-plt.figure(figsize=(11, 7))
-
-for i, svm_clf in enumerate(svm_clfs):
-    plt.subplot(221 + i)
-    plot_predictions(svm_clf, [-1.5, 2.5, -1, 1.5])
-    plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
-    gamma, C = hyperparams[i]
-    plt.title(r"$\gamma = {}, C = {}$".format(gamma, C), fontsize=16)
-
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
+    variance[degree] = np.mean( np.var(y_pred, axis=1, keepdims=True) )
+    print('Polynomial degree:', degree)
+    print('Error:', error[degree])
+    print('Bias^2:', bias[degree])
+    print('Var:', variance[degree])
+    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+ 
+mse_simpletree= np.mean( np.mean((y_test - simpleprediction)**2))
+print("Simple tree:",mse_simpletree)
+plt.xlim(1,maxdepth)
+plt.plot(polydegree, error, label='MSE')
+plt.plot(polydegree, bias, label='bias')
+plt.plot(polydegree, variance, label='Variance')
+plt.legend()
+save_fig("baggingboot")
 plt.show()
 
 !ec
 
 
 
-!split
-=====  Mathematical optimization of convex functions =====
 
-A mathematical (quadratic) optimization problem, or just optimization problem, has the form
+
+
+
+
+!split
+===== Random forests =====
+
+Random forests provide an improvement over bagged trees by way of a
+small tweak that decorrelates the trees. 
+
+As in bagging, we build a
+number of decision trees on bootstrapped training samples. But when
+building these decision trees, each time a split in a tree is
+considered, a random sample of $m$ predictors is chosen as split
+candidates from the full set of $p$ predictors. The split is allowed to
+use only one of those $m$ predictors. 
+
+A fresh sample of $m$ predictors is
+taken at each split, and typically we choose 
+
 !bt
-\begin{align*}
-    &\mathrm{min}_{\lambda}\hspace{0.2cm} \frac{1}{2}\bm{\lambda}^T\bm{P}\bm{\lambda}+\bm{q}^T\bm{\lambda},\\ \nonumber
-    &\mathrm{subject\hspace{0.1cm}to} \hspace{0.2cm} \bm{G}\bm{\lambda} \preceq \bm{h} \wedge  \bm{A}\bm{\lambda}=f.
-\end{align*}
+\[
+m\approx \sqrt{p}.
+\]
 !et
-subject to some constraints for say a selected set $i=1,2,\dots, n$.
-In our case we are optimizing with respect to the Lagrangian multipliers $\lambda_i$, and the
-vector $\bm{\lambda}=[\lambda_1, \lambda_2,\dots, \lambda_n]$ is the optimization variable we are dealing with.
 
-In our case we are particularly interested in a class of optimization problems called convex optmization problems. 
-In our discussion on gradient descent methods we discussed at length the definition of a convex function. 
+In building a random forest, at
+each split in the tree, the algorithm is not even allowed to consider
+a majority of the available predictors. 
 
-Convex optimization problems play a central role in applied mathematics and we recommend strongly "Boyd and Vandenberghe's text on the topics":"http://web.stanford.edu/~boyd/cvxbook/".
+The reason for this is rather clever. Suppose that there is one very
+strong predictor in the data set, along with a number of other
+moderately strong predictors. Then in the collection of bagged
+variable importance random forest trees, most or all of the trees will
+use this strong predictor in the top split. Consequently, all of the
+bagged trees will look quite similar to each other. Hence the
+predictions from the bagged trees will be highly correlated.
+Unfortunately, averaging many highly correlated quantities does not
+lead to as large of a reduction in variance as averaging many
+uncorrelated quantities. In particular, this means that bagging will
+not lead to a substantial reduction in variance over a single tree in
+this setting.
+
+
+!split
+===== Random Forest Algorithm =====
+The algorithm described here can be applied to both classification and regression problems.
+
+We will grow of forest of say $B$ trees.
+o For $b=1:B$
+  * Draw a bootstrap sample from the training data organized in our $\bm{X}$ matrix.
+  * We grow then a random forest tree $T_b$ based on the bootstrapped data by repeating the steps outlined till we reach the maximum node size is reached
+    o we select $m \le p$ variables at random from the $p$ predictors/features
+    o pick the best split point among the $m$ features using for example the CART algorithm and create a new node
+    o split the node into daughter nodes
+o Output then the ensemble of trees $\{T_b\}_1^{B}$ and make predictions for either a regression type of problem or a classification type of problem. 
 
 
 
 !split
-===== How do we solve these problems? =====
+===== Random Forests Compared with other Methods on the Cancer Data =====
+!bc pycod 
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import BaggingClassifier
 
-If we use Python as programming language and wish to venture beyond
-_scikit-learn_, _tensorflow_ and similar software which makes our
-lives so much easier, we need to dive into the wonderful world of
-quadratic programming. We can, if we wish, solve the minimization
-problem using say standard gradient methods or conjugate gradient
-methods. However, these methods tend to exhibit a rather slow
-converge. So, welcome to the promised land of quadratic programming.
+# Load the data
+cancer = load_breast_cancer()
 
-The functions we need are contained in the "quadratic programming library CVXOPT":"https://cvxopt.org/userguide/coneprog.html" and we need to import it together with _numpy_ as
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+#define methods
+# Logistic Regression
+logreg = LogisticRegression(solver='lbfgs')
+# Support vector machine
+svm = SVC(gamma='auto', C=100)
+# Decision Trees
+deep_tree_clf = DecisionTreeClassifier(max_depth=None)
+#Scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# Logistic Regression
+logreg.fit(X_train_scaled, y_train)
+print("Test set accuracy Logistic Regression with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Support Vector Machine
+svm.fit(X_train_scaled, y_train)
+print("Test set accuracy SVM with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Decision Trees
+deep_tree_clf.fit(X_train_scaled, y_train)
+print("Test set accuracy with Decision Trees and scaled data: {:.2f}".format(deep_tree_clf.score(X_test_scaled,y_test)))
+
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_validate
+# Data set not specificied
+#Instantiate the model with 500 trees and entropy as splitting criteria
+Random_Forest_model = RandomForestClassifier(n_estimators=500,criterion="entropy")
+Random_Forest_model.fit(X_train_scaled, y_train)
+#Cross validation
+accuracy = cross_validate(Random_Forest_model,X_test_scaled,y_test,cv=10)['test_score']
+print(accuracy)
+print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(Random_Forest_model.score(X_test_scaled,y_test)))
+
+
+import scikitplot as skplt
+y_pred = Random_Forest_model.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = Random_Forest_model.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
+
+!ec
+
+
+Recall that the cumulative gains curve shows the percentage of the
+overall number of cases in a given category *gained* by targeting a
+percentage of the total number of cases.
+
+Similarly, the receiver operating characteristic curve, or ROC curve,
+displays the diagnostic ability of a binary classifier system as its
+discrimination threshold is varied. It plots the true positive rate against the false positive rate.
+
+
+!split
+===== Compare  Bagging on Trees with Random Forests  =====
+!bc pycod
+bag_clf = BaggingClassifier(
+    DecisionTreeClassifier(splitter="random", max_leaf_nodes=16, random_state=42),
+    n_estimators=500, max_samples=1.0, bootstrap=True, n_jobs=-1, random_state=42)
+!ec
+
+
 
 !bc pycod
-import numpy
-import cvxopt
+bag_clf.fit(X_train, y_train)
+y_pred = bag_clf.predict(X_test)
+from sklearn.ensemble import RandomForestClassifier
+rnd_clf = RandomForestClassifier(n_estimators=500, max_leaf_nodes=16, n_jobs=-1, random_state=42)
+rnd_clf.fit(X_train, y_train)
+y_pred_rf = rnd_clf.predict(X_test)
+np.sum(y_pred == y_pred_rf) / len(y_pred) 
 !ec
 
-This will make our life much easier. You don't need t0 write your own optimizer.
+
+
+
+
 
 
 !split
-===== A simple example =====
+===== Boosting, a Bird's Eye View =====
 
-We remind ourselves about the general problem we want to solve
-!bt
-\begin{align*}
-    &\mathrm{min}_{x}\hspace{0.2cm} \frac{1}{2}\bm{x}^T\bm{P}\bm{x}+\bm{q}^T\bm{x},\\ \nonumber
-    &\mathrm{subject\hspace{0.1cm} to} \hspace{0.2cm} \bm{G}\bm{x} \preceq \bm{h} \wedge  \bm{A}\bm{x}=f.
-\end{align*}
-!et
+The basic idea is to combine weak classifiers in order to create a good
+classifier. With a weak classifier we often intend a classifier which
+produces results which are only slightly better than we would get by
+random guesses.
 
-Let us show how to perform the optmization using a simple case. Assume we want to optimize the following problem
-!bt
-\begin{align*}
-    &\mathrm{min}_{x}\hspace{0.2cm} \frac{1}{2}x^2+5x+3y \\ \nonumber
-    &\mathrm{subject}\hspace{0.5cm} \mathrm{to} \\ \nonumber
-    &x, y \geq 0 \\ \nonumber
-    &x+3y  \geq 15 \\ \nonumber
-    &2x+5y  \leq  100 \\ \nonumber
-    &3x+4y  \leq  80.  \\ \nonumber
-\end{align*}
-!et
-The minimization problem can be rewritten in terms of vectors and matrices as (with $x$ and $y$ being the unknowns)
-!bt
-\[
-\frac{1}{2}\begin{bmatrix} x\\ y \end{bmatrix}^T   \begin{bmatrix} 1 & 0\\ 0 & 0  \end{bmatrix}  \begin{bmatrix} x \\ y \end{bmatrix}  + \begin{bmatrix}3\\ 4  \end{bmatrix}^T \begin{bmatrix}x \\ y  \end{bmatrix}.  
-\]
-!et
-Similarly, we can now set up the inequalities (we need to change $\geq$ to $\leq$ by multiplying with $-1$ on bot sides) as the following matrix-vector equation
+This is done by applying in an iterative way a weak (or a standard
+classifier like decision trees) to modify the data. In each iteration
+we emphasize those observations which are misclassified by weighting
+them with a factor.
+
+
+!split
+===== What is boosting? Additive Modelling/Iterative Fitting =====
+
+Boosting is a way of fitting an additive expansion in a set of
+elementary basis functions like for example some simple polynomials.
+Assume for example that we have a function
 !bt
 \[
-\begin{bmatrix} -1 & 0 \\ 0 & -1 \\ -1 & -3 \\ 2 & 5 \\ 3 & 4\end{bmatrix}\begin{bmatrix} x \\ y\end{bmatrix} \preceq \begin{bmatrix}0 \\ 0\\ -15 \\ 100 \\ 80\end{bmatrix}.
-\]
-!et
-We have collapsed all the inequalities into a single matrix $\bm{G}$. We see also that our matrix 
-!bt
-\[
-\bm{P} =\begin{bmatrix} 1 & 0\\ 0 & 0  \end{bmatrix}
-\]
-!et
-is clearly positive semi-definite (all eigenvalues larger or equal zero). 
-Finally, the vector $\bm{h}$ is defined as 
-!bt
-\[
-\bm{h} = \begin{bmatrix}0 \\ 0\\ -15 \\ 100 \\ 80\end{bmatrix}.
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
 \]
 !et
 
+where $\beta_m$ are the expansion parameters to be determined in a
+minimization process and $b(x;\gamma_m)$ are some simple functions of
+the multivariable parameter $x$ which is characterized by the
+parameters $\gamma_m$.
 
-Since we don't have any equalities the matrix $\bm{A}$ is set to zero
-The following code solves the equations for us
+As an example, consider the Sigmoid function we used in logistic
+regression. In that case, we can translate the function
+$b(x;\gamma_m)$ into the Sigmoid function
+
+
+!bt
+\[
+\sigma(t) = \frac{1}{1+\exp{(-t)}},
+\]
+!et
+
+where $t=\gamma_0+\gamma_1 x$ and the parameters $\gamma_0$ and
+$\gamma_1$ were determined by the Logistic Regression fitting
+algorithm.
+
+As another example, consider the cost function we defined for linear regression
+!bt
+\[
+C(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+\]
+!et
+
+In this case the function $f(x)$ was replaced by the design matrix
+$\bm{X}$ and the unknown linear regression parameters $\bm{\beta}$,
+that is $\bm{f}=\bm{X}\bm{\beta}$. In linear regression we can 
+simply invert a matrix and obtain the parameters $\beta$ by
+
+!bt
+\[
+\bm{\beta}=\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}.
+\]
+!et
+
+In iterative fitting or additive modeling, we minimize the cost function with respect to the parameters $\beta_m$ and $\gamma_m$.
+
+
+!split
+===== Iterative Fitting, Regression and Squared-error Cost Function =====
+
+The way we proceed is as follows (here we specialize to the squared-error cost function)
+
+o Establish a cost function, here $C(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f_M(x_i))^2$ with $f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m)$.
+o Initialize with a guess $f_0(x)$. It could be one or even zero or some random numbers.
+o For $m=1:M$
+  o minimize $\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2$ wrt $\gamma$ and $\beta$
+  o This gives the optimal values $\beta_m$ and $\gamma_m$
+  o Determine then the new values $f_m(x)=f_{m-1}(x) +\beta_m b(x;\gamma_m)$
+
+We could use any of the algorithms we have discussed till now. If we
+use trees, $\gamma$ parameterizes the split variables and split points
+at the internal nodes, and the predictions at the terminal nodes.
+
+
+!split
+===== Squared-Error Example and Iterative Fitting =====
+
+To better understand what happens, let us develop the steps for the iterative fitting using the above squared error function.
+
+For simplicity we assume also that our functions $b(x;\gamma)=1+\gamma x$. 
+
+This means that for every iteration $m$, we need to optimize
+
+!bt
+\[
+(\beta_m,\gamma_m) = \mathrm{argmin}_{\beta,\lambda}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2=\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta(1+\gamma x_i))^2.
+\]
+!et
+
+We start our iteration by simply setting $f_0(x)=0$. 
+Taking the derivatives  with respect to $\beta$ and $\gamma$ we obtain
+!bt
+\[
+\frac{\partial {\cal C}}{\partial \beta} = -2\sum_{i}(1+\gamma x_i)(y_i-\beta(1+\gamma x_i))=0,
+\]
+!et
+and
+!bt
+\[
+\frac{\partial {\cal C}}{\partial \gamma} =-2\sum_{i}\beta x_i(y_i-\beta(1+\gamma x_i))=0.
+\]
+!et
+We can then rewrite these equations as (defining $\bm{w}=\bm{e}+\gamma \bm{x})$ with $\bm{e}$ being the unit vector)
+!bt
+\[
+\gamma \bm{w}^T(\bm{y}-\beta\gamma \bm{w})=0,
+\]
+!et
+which gives us $\beta = \bm{w}^T\bm{y}/(\bm{w}^T\bm{w})$. Similarly we have 
+!bt
+\[
+\beta\gamma \bm{x}^T(\bm{y}-\beta(1+\gamma \bm{x}))=0,
+\]
+!et
+
+which leads to $\gamma =(\bm{x}^T\bm{y}-\beta\bm{x}^T\bm{e})/(\beta\bm{x}^T\bm{x})$.  Inserting
+for $\beta$ gives us an equation for $\gamma$. This is a non-linear equation in the unknown $\gamma$ and has to be solved numerically. 
+
+The solution to these two equations gives us in turn $\beta_1$ and $\gamma_1$ leading to the new expression for $f_1(x)$ as
+$f_1(x) = \beta_1(1+\gamma_1x)$. Doing this $M$ times results in our final estimate for the function $f$. 
+
+
+
+!split
+===== Iterative Fitting, Classification and AdaBoost =====
+
+Let us consider a binary classification problem with two outcomes $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
+observations. We define a classification function $G(x)$ which produces a prediction taking one or the other of the two values 
+$\{-1,1\}$.
+
+The error rate of the training sample is then
+
+!bt
+\[
+\mathrm{\overline{err}}=\frac{1}{n} \sum_{i=0}^{n-1} I(y_i\ne G(x_i)). 
+\]
+!et
+
+The iterative procedure starts with defining a weak classifier whose
+error rate is barely better than random guessing.  The iterative
+procedure in boosting is to sequentially apply a  weak
+classification algorithm to repeatedly modified versions of the data
+producing a sequence of weak classifiers $G_m(x)$.
+
+Here we will express our  function $f(x)$ in terms of $G(x)$. That is
+!bt
+\[
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
+\]
+!et
+will be a function of 
+!bt
+\[
+G_M(x) = \mathrm{sign} \sum_{i=1}^M \alpha_m G_m(x).
+\]
+!et
+
+
+
+!split
+===== Adaptive Boosting, AdaBoost =====
+
+In our iterative procedure we define thus
+!bt
+\[
+f_m(x) = f_{m-1}(x)+\beta_mG_m(x).
+\]
+!et
+
+The simplest possible cost function which leads (also simple from a computational point of view) to the AdaBoost algorithm is the
+exponential cost/loss function defined as
+!bt
+\[
+C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}\exp{(-y_i(f_{m-1}(x_i)+\beta G(x_i))}.
+\]
+!et
+
+We optimize $\beta$ and $G$ for each value of $m=1:M$ as we did in the regression case.
+This is normally done in two steps. Let us however first rewrite the cost function as 
+
+!bt
+\[
+C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}w_i^{m}\exp{(-y_i\beta G(x_i))},
+\]
+!et
+where we have defined $w_i^m= \exp{(-y_if_{m-1}(x_i))}$.
+
+!split
+===== Building up AdaBoost =====
+
+First, for any $\beta > 0$, we optimize $G$ by setting
+!bt
+\[
+G_m(x) = \mathrm{sign} \sum_{i=0}^{n-1} w_i^m I(y_i \ne G_(x_i)),
+\]
+!et
+which is the classifier that minimizes the weighted error rate in predicting $y$.
+
+We can do this by rewriting
+!bt
+\[
+\exp{-(\beta)}\sum_{y_i=G(x_i)}w_i^m+\exp{(\beta)}\sum_{y_i\ne G(x_i)}w_i^m,
+\]
+!et
+which can be rewritten as
+!bt
+\[
+(\exp{(\beta)}-\exp{-(\beta)})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{(-\beta)}\sum_{i=0}^{n-1}w_i^m=0,
+\]
+!et
+which leads to
+!bt
+\[
+\beta_m = \frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+\]
+!et
+where we have redefined the error as 
+!bt
+\[
+\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i)}{\sum_{i=0}^{n-1}w_i^m},
+\]
+!et
+which leads to an update of
+!bt
+\[
+f_m(x) = f_{m-1}(x) +\beta_m G_m(x).
+\]
+!et
+This leads to the new weights
+!bt
+\[
+w_i^{m+1} = w_i^m \exp{(-y_i\beta_m G_m(x_i))}
+\]
+!et
+
+
+!split
+===== Adaptive boosting: AdaBoost, Basic Algorithm =====
+
+The algorithm here is rather straightforward. Assume that our weak
+classifier is a decision tree and we consider a binary set of outputs
+with $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
+observations. Our design matrix is given in terms of the
+feature/predictor vectors
+$\bm{X}=[\bm{x}_0\bm{x}_1\dots\bm{x}_{p-1}]$. Finally, we define also a
+classifier determined by our data via a function $G(x)$. This function tells us how well we are able to classify our outputs/targets $\bm{y}$. 
+
+We have already defined the misclassification error $\mathrm{err}$ as
+!bt
+\[
+\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(x_i)),
+\]
+!et
+where the function $I()$ is one if we misclassify and zero if we classify correctly. 
+
+!split
+===== Basic Steps of AdaBoost =====
+
+With the above definitions we are now ready to set up the algorithm for AdaBoost.
+The basic idea is to set up weights which will be used to scale the correctly classified and the misclassified cases.
+o We start by initializing all weights to $w_i = 1/n$, with $i=0,1,2,\dots n-1$. It is easy to see that we must have $\sum_{i=0}^{n-1}w_i = 1$.
+o We rewrite the misclassification error as 
+!bt
+\[
+\mathrm{\overline{err}}_m=\frac{\sum_{i=0}^{n-1}w_i^m I(y_i\ne G(x_i))}{\sum_{i=0}^{n-1}w_i},
+\]
+!et
+o Then we start looping over all attempts at classifying, namely we start an iterative process for $m=1:M$, where $M$ is the final number of classifications. Our given classifier could for example be a plain decision tree.
+  o Fit then a given classifier to the training set using the weights $w_i$.
+  o Compute then $\mathrm{err}$ and figure out which events are classified properly and which are classified wrongly.
+  o Define a quantity $\alpha_{m} = \log{(1-\mathrm{\overline{err}}_m)/\mathrm{\overline{err}}_m}$
+  o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)}$.
+o Compute the new classifier $G(x)= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(x_i)$.
+
+For the iterations with $m \le 2$ the weights are modified
+individually at each steps. The observations which were misclassified
+at iteration $m-1$ have a weight which is larger than those which were
+classified properly. As this proceeds, the observations which were
+difficult to classifiy correctly are given a larger influence. Each
+new classification step $m$ is then forced to concentrate on those
+observations that are missed in the previous iterations.
+
+
+
+!split
+===== AdaBoost Examples =====
+
+Using _Scikit-Learn_ it is easy to apply the adaptive boosting algorithm, as done here.
+
 !bc pycod
-# Import the necessary packages
-import numpy
-from cvxopt import matrix
-from cvxopt import solvers
-P = matrix(numpy.diag([1,0]), tc='d')
-q = matrix(numpy.array([3,4]), tc='d')
-G = matrix(numpy.array([[-1,0],[0,-1],[-1,-3],[2,5],[3,4]]), tc='d')
-h = matrix(numpy.array([0,0,-15,100,80]), tc='d')
-# Construct the QP, invoke solver
-sol = solvers.qp(P,q,G,h)
-# Extract optimal value and solution
-sol['x'] 
-sol['primal objective']
-print(sol['x'] )
+from sklearn.ensemble import AdaBoostClassifier
+
+ada_clf = AdaBoostClassifier(
+    DecisionTreeClassifier(max_depth=1), n_estimators=200,
+    algorithm="SAMME.R", learning_rate=0.5, random_state=42)
+ada_clf.fit(X_train, y_train)
+
+from sklearn.ensemble import AdaBoostClassifier
+
+ada_clf = AdaBoostClassifier(
+    DecisionTreeClassifier(max_depth=1), n_estimators=200,
+    algorithm="SAMME.R", learning_rate=0.5, random_state=42)
+ada_clf.fit(X_train_scaled, y_train)
+y_pred = ada_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = ada_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
 !ec
 
-!split
-===== Back to the more realistic cases =====
 
-We are now ready to return to our setup of the optmization problem for a more realistic case. Introducing the _slack_ parameter $C$ we have
-!bt
-\[
-\frac{1}{2} \bm{\lambda}^T\begin{bmatrix} y_1y_1K(\bm{x}_1,\bm{x}_1) & y_1y_2K(\bm{x}_1,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_1,\bm{x}_n) \\
-y_2y_1K(\bm{x}_2,\bm{x}_1) & y_2y_2K(\bm{x}_2,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_2,\bm{x}_n) \\
-\dots & \dots & \dots & \dots & \dots \\
-\dots & \dots & \dots & \dots & \dots \\
-y_ny_1K(\bm{x}_n,\bm{x}_1) & y_ny_2K(\bm{x}_n\bm{x}_2) & \dots & \dots & y_ny_nK(\bm{x}_n,\bm{x}_n) \\
-\end{bmatrix}\bm{\lambda}-\mathbb{I}\bm{\lambda}, 
-\]
-!et
-subject to $\bm{y}^T\bm{\lambda}=0$. Here we defined the vectors $\bm{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
-$\bm{y}=[y_1,y_2,\dots,y_n]$. 
-With  the slack constants this leads to the additional constraint $0\leq \lambda_i \leq C$.
-
-Using the _CVXOPT_ library, the matrix $P$ would then be defined by the above matrix while the KKT conditions would all be collected by the matrix $G$.
-
-
-
-!split
-===== Support vector machines for regression =====
-
-Material will be added here.
