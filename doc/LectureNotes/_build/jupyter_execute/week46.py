@@ -69,17 +69,6 @@
 # given some assumptions, make predictions about the target feature value
 # (class) of unseen query instances.
 
-# ## A Sketch of a Tree, Regression problem
-# 
-# [See handwritten notes November 3](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesNov32022.pdf)
-# 
-# <!-- FIGURE: [DataFiles/Regsimpletree.png, width=600 frac=0.8] -->
-
-# ## A Sketch of a Tree, Classification  problem
-# 
-# [See handwritten notes November 3](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesNov32022.pdf)
-# <!-- FIGURE: [DataFiles/Classimpletree.png, width=600 frac=0.8] -->
-
 # ## A typical Decision Tree with its pertinent Jargon, Classification Problem
 # 
 # <!-- dom:FIGURE: [DataFiles/cancer.png, width=600 frac=0.8] -->
