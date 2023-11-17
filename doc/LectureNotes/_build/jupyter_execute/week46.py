@@ -28,7 +28,9 @@
 # 
 #     * These lecture notes
 # 
-#     * [Video of lecture to be added](https://youtu.be/)
+#     * [Video of lecture](https://youtu.be/PMswUwhYa7k)
+# 
+#     * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesNov16.pdf)    
 # 
 #     * [Video on Decision trees](https://www.youtube.com/watch?v=RmajweUFKvM&ab_channel=Simplilearn)
 # 
