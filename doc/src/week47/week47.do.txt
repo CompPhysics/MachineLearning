@@ -1,917 +1,138 @@
-TITLE: Week 47: Unsupervised learning (PCA and Clustering)  and Summary of Course
-AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
-DATE: today
+TITLE: Week 47: From Decision Trees to Ensemble Methods, Random Forests and Boosting Methods   and Summary of Course
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and Facility for Rare Ion Beams, Michigan State University
+DATE: November 20-24, 2023
+
 
 !split
-===== Overview of week 47 =====
+===== Plan for week 47 =====
 
-* _Thursday_: Dimensionality reduction and unsupervised learning: Principal Component analysis (PCA) and clustering
-  * "Video of lecture":"https://youtu.be/VJIsEQM2lCI"
-* _Friday_: PCA and clustering  and Summary of Course
-  * "Video of lecture":"https://youtu.be/olXksEL3P4A"
-!bblock 
- o We recommend highly the video on PCA by "Brunton and Kutz":"http://www.databookuw.com/page-2/page-4/", see in particular the video of section 1.5. Repeating about the singular value discussion is also very useful as we will use this material as background.
- o "And another good video on PCA":"https://www.youtube.com/watch?v=FgakZw6K1QQ"
- o "k-means clustering video":"https://www.youtube.com/watch?v=4b5d3muPQmA"
+!bblock  Active learning sessions on Tuesday and Wednesday
+  * Work and Discussion of project 3
+  * Last weekly exercise, course feedback, to be completed by Sunday November 26
+!eblock  
+
+!bblock Material for the lecture on Thursday November 23, 2023
+  * Thursday: Basics of decision trees, classification and regression algorithms and ensemble models 
+  * Readings and Videos:
+    * These lecture notes
+    * "Video on Decision trees":"https://www.youtube.com/watch?v=RmajweUFKvM&ab_channel=Simplilearn"
+    * "Video on boosting methods by Hastie":"https://www.youtube.com/watch?v=wPqtzj5VZus&ab_channel=H2O.ai"
+    * "Video on AdaBoost":"https://www.youtube.com/watch?v=LsK-xG1cLYA"
+    * "Video on Gradient boost, part 1, parts 2-4 follow thereafter":"https://www.youtube.com/watch?v=3CC4N4z3GJc"
+    * Decision Trees: Geron's chapter 6 covers decision trees while ensemble models, voting and bagging are discussed in chapter 7. See also lecture from "STK-IN4300, lecture 7":"https://www.uio.no/studier/emner/matnat/math/STK-IN4300/h20/slides/lecture_7.pdf". Chapter 9.2 of Hastie et al contains also a good discussion.
 !eblock
 
-!bblock Reading recommendations:
- o Geron's chapter 9 on PCA
- o Hastie et al Chapter 13 (sections 13.1-13.2 are the most relevant ones)
-!eblock
+
+!split
+===== Bagging =====
+
+The _plain_ decision trees suffer from high
+variance. This means that if we split the training data into two parts
+at random, and fit a decision tree to both halves, the results that we
+get could be quite different. In contrast, a procedure with low
+variance will yield similar results if applied repeatedly to distinct
+data sets; linear regression tends to have low variance, if the ratio
+of $n$ to $p$ is moderately large. 
+
+_Bootstrap aggregation_, or just _bagging_, is a
+general-purpose procedure for reducing the variance of a statistical
+learning method. 
 
 
 !split
-===== Basic ideas of the Principal Component Analysis (PCA) =====
+===== More bagging =====
 
-The principal component analysis deals with the problem of fitting a
-low-dimensional affine subspace $S$ of dimension $d$ much smaller than
-the total dimension $D$ of the problem at hand (our data
-set). Mathematically it can be formulated as a statistical problem or
-a geometric problem.  In our discussion of the theorem for the
-classical PCA, we will stay with a statistical approach. 
-Historically, the PCA was first formulated in a statistical setting in order to estimate the principal component of a multivariate random variable.
+Bagging typically results in improved accuracy
+over prediction using a single tree. Unfortunately, however, it can be
+difficult to interpret the resulting model. Recall that one of the
+advantages of decision trees is the attractive and easily interpreted
+diagram that results.
 
-We have a data set defined by a design/feature matrix $\bm{X}$ (see below for its definition) 
-* Each data point is determined by $p$ extrinsic (measurement) variables
-* We may want to ask the following question: Are there fewer intrinsic variables (say $d << p$) that still approximately describe the data?
-* If so, these intrinsic variables may tell us something important and finding these intrinsic variables is what dimension reduction methods do. 
+However, when we bag a large number of trees, it is no longer
+possible to represent the resulting statistical learning procedure
+using a single tree, and it is no longer clear which variables are
+most important to the procedure. Thus, bagging improves prediction
+accuracy at the expense of interpretability.  Although the collection
+of bagged trees is much more difficult to interpret than a single
+tree, one can obtain an overall summary of the importance of each
+predictor using the MSE (for bagging regression trees) or the Gini
+index (for bagging classification trees). In the case of bagging
+regression trees, we can record the total amount that the MSE is
+decreased due to splits over a given predictor, averaged over all $B$ possible
+trees. A large value indicates an important predictor. Similarly, in
+the context of bagging classification trees, we can add up the total
+amount that the Gini index  is decreased by splits over a given
+predictor, averaged over all $B$ trees.
 
-A good read is for example "Vidal, Ma and Sastry":"https://www.springer.com/gp/book/9780387878102".
-
-
-!split
-===== Introducing the Covariance and Correlation functions  =====
-
-Before we discuss the PCA theorem, we need to remind ourselves about
-the definition of the covariance and the correlation function. These are quantities 
-
-Suppose we have defined two vectors
-$\hat{x}$ and $\hat{y}$ with $n$ elements each. The covariance matrix $\bm{C}$ is defined as 
-!bt
-\[
-\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} \mathrm{cov}[\bm{x},\bm{x}] & \mathrm{cov}[\bm{x},\bm{y}] \\
-                              \mathrm{cov}[\bm{y},\bm{x}] & \mathrm{cov}[\bm{y},\bm{y}] \\
-             \end{bmatrix},
-\]
-!et
-where for example
-!bt
-\[
-\mathrm{cov}[\bm{x},\bm{y}] =\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})(y_i- \overline{y}).
-\]
-!et
-With this definition and recalling that the variance is defined as
-!bt
-\[
-\mathrm{var}[\bm{x}]=\frac{1}{n} \sum_{i=0}^{n-1}(x_i- \overline{x})^2,
-\]
-!et
-we can rewrite the covariance matrix as 
-!bt
-\[
-\bm{C}[\bm{x},\bm{y}] = \begin{bmatrix} \mathrm{var}[\bm{x}] & \mathrm{cov}[\bm{x},\bm{y}] \\
-                              \mathrm{cov}[\bm{x},\bm{y}] & \mathrm{var}[\bm{y}] \\
-             \end{bmatrix}.
-\]
-!et
-
-!split
-=====  More on the covariance =====
-The covariance takes values between zero and infinity and may thus
-lead to problems with loss of numerical precision for particularly
-large values. It is common to scale the covariance matrix by
-introducing instead the correlation matrix defined via the so-called
-correlation function
-
-!bt
-\[
-\mathrm{corr}[\bm{x},\bm{y}]=\frac{\mathrm{cov}[\bm{x},\bm{y}]}{\sqrt{\mathrm{var}[\bm{x}] \mathrm{var}[\bm{y}]}}.
-\]
-!et
-
-The correlation function is then given by values $\mathrm{corr}[\bm{x},\bm{y}]
-\in [-1,1]$. This avoids eventual problems with too large values. We
-can then define the correlation matrix for the two vectors $\bm{x}$
-and $\bm{y}$ as
-
-!bt
-\[
-\bm{K}[\bm{x},\bm{y}] = \begin{bmatrix} 1 & \mathrm{corr}[\bm{x},\bm{y}] \\
-                              \mathrm{corr}[\bm{y},\bm{x}] & 1 \\
-             \end{bmatrix},
-\]
-!et
-
-In the above example this is the function we constructed using _pandas_.
-
-!split
-=====  Reminding ourselves about Linear Regression =====
-In our derivation of the various regression algorithms like _Ordinary Least Squares_ or _Ridge regression_
-we defined the design/feature matrix $\bm{X}$ as
-
-!bt
-\[
-\bm{X}=\begin{bmatrix}
-x_{0,0} & x_{0,1} & x_{0,2}& \dots & \dots x_{0,p-1}\\
-x_{1,0} & x_{1,1} & x_{1,2}& \dots & \dots x_{1,p-1}\\
-x_{2,0} & x_{2,1} & x_{2,2}& \dots & \dots x_{2,p-1}\\
-\dots & \dots & \dots & \dots \dots & \dots \\
-x_{n-2,0} & x_{n-2,1} & x_{n-2,2}& \dots & \dots x_{n-2,p-1}\\
-x_{n-1,0} & x_{n-1,1} & x_{n-1,2}& \dots & \dots x_{n-1,p-1}\\
-\end{bmatrix},
-\]
-!et
-with $\bm{X}\in {\mathbb{R}}^{n\times p}$, with the predictors/features $p$  refering to the column numbers and the
-entries $n$ being the row elements.
-We can rewrite the design/feature matrix in terms of its column vectors as
-!bt
-\[
-\bm{X}=\begin{bmatrix} \bm{x}_0 & \bm{x}_1 & \bm{x}_2 & \dots & \dots & \bm{x}_{p-1}\end{bmatrix},
-\]
-!et
-with a given vector
-!bt
-\[
-\bm{x}_i^T = \begin{bmatrix}x_{0,i} & x_{1,i} & x_{2,i}& \dots & \dots x_{n-1,i}\end{bmatrix}.
-\]
-!et
-
-!split
-===== Simple Example =====
-With these definitions, we can now rewrite our $2\times 2$
-correlation/covariance matrix in terms of a moe general design/feature
-matrix $\bm{X}\in {\mathbb{R}}^{n\times p}$. This leads to a $p\times p$
-covariance matrix for the vectors $\bm{x}_i$ with $i=0,1,\dots,p-1$
-
-!bt
-\[
-\bm{C}[\bm{x}] = \begin{bmatrix}
-\mathrm{var}[\bm{x}_0] & \mathrm{cov}[\bm{x}_0,\bm{x}_1]  & \mathrm{cov}[\bm{x}_0,\bm{x}_2] & \dots & \dots & \mathrm{cov}[\bm{x}_0,\bm{x}_{p-1}]\\
-\mathrm{cov}[\bm{x}_1,\bm{x}_0] & \mathrm{var}[\bm{x}_1]  & \mathrm{cov}[\bm{x}_1,\bm{x}_2] & \dots & \dots & \mathrm{cov}[\bm{x}_1,\bm{x}_{p-1}]\\
-\mathrm{cov}[\bm{x}_2,\bm{x}_0]   & \mathrm{cov}[\bm{x}_2,\bm{x}_1] & \mathrm{var}[\bm{x}_2] & \dots & \dots & \mathrm{cov}[\bm{x}_2,\bm{x}_{p-1}]\\
-\dots & \dots & \dots & \dots & \dots & \dots \\
-\dots & \dots & \dots & \dots & \dots & \dots \\
-\mathrm{cov}[\bm{x}_{p-1},\bm{x}_0]   & \mathrm{cov}[\bm{x}_{p-1},\bm{x}_1] & \mathrm{cov}[\bm{x}_{p-1},\bm{x}_{2}]  & \dots & \dots  & \mathrm{var}[\bm{x}_{p-1}]\\
-\end{bmatrix},
-\]
-!et
-
-!split
-===== The Correlation Matrix =====
-
-and the correlation matrix
-!bt
-\[
-\bm{K}[\bm{x}] = \begin{bmatrix}
-1 & \mathrm{corr}[\bm{x}_0,\bm{x}_1]  & \mathrm{corr}[\bm{x}_0,\bm{x}_2] & \dots & \dots & \mathrm{corr}[\bm{x}_0,\bm{x}_{p-1}]\\
-\mathrm{corr}[\bm{x}_1,\bm{x}_0] & 1  & \mathrm{corr}[\bm{x}_1,\bm{x}_2] & \dots & \dots & \mathrm{corr}[\bm{x}_1,\bm{x}_{p-1}]\\
-\mathrm{corr}[\bm{x}_2,\bm{x}_0]   & \mathrm{corr}[\bm{x}_2,\bm{x}_1] & 1 & \dots & \dots & \mathrm{corr}[\bm{x}_2,\bm{x}_{p-1}]\\
-\dots & \dots & \dots & \dots & \dots & \dots \\
-\dots & \dots & \dots & \dots & \dots & \dots \\
-\mathrm{corr}[\bm{x}_{p-1},\bm{x}_0]   & \mathrm{corr}[\bm{x}_{p-1},\bm{x}_1] & \mathrm{corr}[\bm{x}_{p-1},\bm{x}_{2}]  & \dots & \dots  & 1\\
-\end{bmatrix},
-\]
-!et
 
 
 !split
-===== Numpy Functionality =====
+=====  Making your own Bootstrap: Changing the Level of the Decision Tree =====
 
-The Numpy function _np.cov_ calculates the covariance elements using
-the factor $1/(n-1)$ instead of $1/n$ since it assumes we do not have
-the exact mean values.  The following simple function uses the
-_np.vstack_ function which takes each vector of dimension $1\times n$
-and produces a $2\times n$ matrix $\bm{W}$
-
-
-!bt
-\[
-\bm{W}^T = \begin{bmatrix} x_0 & y_0 \\
-                          x_1 & y_1 \\
-                          x_2 & y_2\\
-                          \dots & \dots \\
-                          x_{n-2} & y_{n-2}\\
-                          x_{n-1} & y_{n-1} & 
-             \end{bmatrix},
-\]
-!et
-
-which in turn is converted into into the $2\times 2$ covariance matrix
-$\bm{C}$ via the Numpy function _np.cov()_. We note that we can also calculate
-the mean value of each set of samples $\bm{x}$ etc using the Numpy
-function _np.mean(x)_. We can also extract the eigenvalues of the
-covariance matrix through the _np.linalg.eig()_ function.
-
+Let us bring up our good old boostrap example from the linear regression lectures. We change the linerar regression algorithm with
+a decision tree wth different depths and perform a bootstrap aggregate (in this case we perform as many bootstraps as data points $n$).
 !bc pycod
-# Importing various packages
-import numpy as np
-n = 100
-x = np.random.normal(size=n)
-print(np.mean(x))
-y = 4+3*x+np.random.normal(size=n)
-print(np.mean(y))
-W = np.vstack((x, y))
-C = np.cov(W)
-print(C)
-!ec
 
-
-!split
-===== Correlation Matrix again  =====
-
-The previous example can be converted into the correlation matrix by
-simply scaling the matrix elements with the variances.  We should also
-subtract the mean values for each column. This leads to the following
-code which sets up the correlations matrix for the previous example in
-a more brute force way. Here we scale the mean values for each column of the design matrix, calculate the relevant mean values and variances and then finally set up the $2\times 2$ correlation matrix (since we have only two vectors). 
-
-!bc pycod
-import numpy as np
-n = 100
-# define two vectors                                                                                           
-x = np.random.random(size=n)
-y = 4+3*x+np.random.normal(size=n)
-#scaling the x and y vectors                                                                                   
-x = x - np.mean(x)
-y = y - np.mean(y)
-variance_x = np.sum(x@x)/n
-variance_y = np.sum(y@y)/n
-print(variance_x)
-print(variance_y)
-cov_xy = np.sum(x@y)/n
-cov_xx = np.sum(x@x)/n
-cov_yy = np.sum(y@y)/n
-C = np.zeros((2,2))
-C[0,0]= cov_xx/variance_x
-C[1,1]= cov_yy/variance_y
-C[0,1]= cov_xy/np.sqrt(variance_y*variance_x)
-C[1,0]= C[0,1]
-print(C)
-!ec
-
-We see that the matrix elements along the diagonal are one as they
-should be and that the matrix is symmetric. Furthermore, diagonalizing
-this matrix we easily see that it is a positive definite matrix.
-
-The above procedure with _numpy_ can be made more compact if we use _pandas_.
-
-!split
-===== Using Pandas =====
-
-We whow here how we can set up the correlation matrix using _pandas_, as done in this simple code
-!bc pycod
-import numpy as np
-import pandas as pd
-n = 10
-x = np.random.normal(size=n)
-x = x - np.mean(x)
-y = 4+3*x+np.random.normal(size=n)
-y = y - np.mean(y)
-X = (np.vstack((x, y))).T
-print(X)
-Xpd = pd.DataFrame(X)
-print(Xpd)
-correlation_matrix = Xpd.corr()
-print(correlation_matrix)
-!ec
-
-!split
-===== And then the Franke Function =====
-
-We expand this model to the Franke function discussed above.
-
-
-!bc pycod
-# Common imports
-import numpy as np
-import pandas as pd
-
-
-def FrankeFunction(x,y):
-	term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-	term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-	term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-	term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
-	return term1 + term2 + term3 + term4
-
-
-def create_X(x, y, n ):
-	if len(x.shape) > 1:
-		x = np.ravel(x)
-		y = np.ravel(y)
-
-	N = len(x)
-	l = int((n+1)*(n+2)/2)		# Number of elements in beta
-	X = np.ones((N,l))
-
-	for i in range(1,n+1):
-		q = int((i)*(i+1)/2)
-		for k in range(i+1):
-			X[:,q+k] = (x**(i-k))*(y**k)
-
-	return X
-
-
-# Making meshgrid of datapoints and compute Franke's function
-n = 4
-N = 100
-x = np.sort(np.random.uniform(0, 1, N))
-y = np.sort(np.random.uniform(0, 1, N))
-z = FrankeFunction(x, y)
-X = create_X(x, y, n=n)    
-
-Xpd = pd.DataFrame(X)
-# subtract the mean values and set up the covariance matrix
-Xpd = Xpd - Xpd.mean()
-covariance_matrix = Xpd.cov()
-print(covariance_matrix)
-!ec
-
-We note here that the covariance is zero for the first rows and
-columns since all matrix elements in the design matrix were set to one
-(we are fitting the function in terms of a polynomial of degree $n$). We would however not include the intercept
-and wee can simply
-drop these elements and construct a correlation
-matrix without them by centering our matrix elements by subtracting the mean of each column. 
-
-!split
-===== Links with the Design Matrix =====
-
-We can rewrite the covariance matrix in a more compact form in terms of the design/feature matrix $\bm{X}$ as 
-!bt
-\[
-\bm{C}[\bm{x}] = \frac{1}{n}\bm{X}^T\bm{X}= \mathbb{E}[\bm{X}^T\bm{X}].
-\]
-!et
-
-To see this let us simply look at a design matrix $\bm{X}\in {\mathbb{R}}^{2\times 2}$
-!bt
-\[
-\bm{X}=\begin{bmatrix}
-x_{00} & x_{01}\\
-x_{10} & x_{11}\\
-\end{bmatrix}=\begin{bmatrix}
-\bm{x}_{0} & \bm{x}_{1}\\
-\end{bmatrix}.
-\]
-!et
-
-!split
-===== Computing the Expectation Values =====
-
-If we then compute the expectation value
-!bt
-\[
-\mathbb{E}[\bm{X}^T\bm{X}] = \frac{1}{n}\bm{X}^T\bm{X}=\begin{bmatrix}
-x_{00}^2+x_{01}^2 & x_{00}x_{10}+x_{01}x_{11}\\
-x_{10}x_{00}+x_{11}x_{01} & x_{10}^2+x_{11}^2\\
-\end{bmatrix},
-\]
-!et
-which is just 
-!bt
-\[
-\bm{C}[\bm{x}_0,\bm{x}_1] = \bm{C}[\bm{x}]=\begin{bmatrix} \mathrm{var}[\bm{x}_0] & \mathrm{cov}[\bm{x}_0,\bm{x}_1] \\
-                              \mathrm{cov}[\bm{x}_1,\bm{x}_0] & \mathrm{var}[\bm{x}_1] \\
-             \end{bmatrix},
-\]
-!et
-where we wrote $$\bm{C}[\bm{x}_0,\bm{x}_1] = \bm{C}[\bm{x}]$$ to indicate that this the covariance of the vectors $\bm{x}$ of the design/feature matrix $\bm{X}$.
-
-It is easy to generalize this to a matrix $\bm{X}\in {\mathbb{R}}^{n\times p}$.
-
-
-
-!split
-===== Towards the PCA theorem =====
-
-We have that the covariance matrix (the correlation matrix involves a simple rescaling) is given as
-!bt
-\[
-\bm{C}[\bm{x}] = \frac{1}{n}\bm{X}^T\bm{X}= \mathbb{E}[\bm{X}^T\bm{X}].
-\]
-!et
-Let us now assume that we can perform a series of orthogonal transformations where we employ some orthogonal matrices $\bm{S}$.
-These matrices are defined as $\bm{S}\in {\mathbb{R}}^{p\times p}$ and obey the orthogonality requirements $\bm{S}\bm{S}^T=\bm{S}^T\bm{S}=\bm{I}$. The matrix can be written out in terms of the column vectors $\bm{s}_i$ as $\bm{S}=[\bm{s}_0,\bm{s}_1,\dots,\bm{s}_{p-1}]$ and $\bm{s}_i \in {\mathbb{R}}^{p}$.
-
-Assume also that there is a transformation $\bm{S}^T\bm{C}[\bm{x}]\bm{S}=\bm{C}[\bm{y}]$ such that the new matrix $\bm{C}[\bm{y}]$ is diagonal with elements $[\lambda_0,\lambda_1,\lambda_2,\dots,\lambda_{p-1}]$.  
-
-That is we have
-!bt
-\[
-\bm{C}[\bm{y}] = \mathbb{E}[\bm{S}^T\bm{X}^T\bm{X}T\bm{S}]=\bm{S}^T\bm{C}[\bm{x}]\bm{S},
-\]
-!et
-since the matrix $\bm{S}$ is not a data dependent matrix.   Multiplying with $\bm{S}$ from the left we have
-!bt
-\[
-\bm{S}\bm{C}[\bm{y}] = \bm{C}[\bm{x}]\bm{S},
-\]
-!et
-and since $\bm{C}[\bm{y}]$ is diagonal we have for a given eigenvalue $i$ of the covariance matrix that
-
-!bt
-\[
-\bm{S}_i\lambda_i = \bm{C}[\bm{x}]\bm{S}_i.
-\]
-!et
-
-!split
-===== More on the PCA Theorem =====
-
-In the derivation of the PCA theorem we will assume that the
-eigenvalues are ordered in descending order, that is $\lambda_0 > \lambda_1 > \dots > \lambda_{p-1}$.
-
-
-The eigenvalues tell us then how much we need to stretch the
-corresponding eigenvectors. Dimensions with large eigenvalues have
-thus large variations (large variance) and define therefore useful
-dimensions. The data points are more spread out in the direction of
-these eigenvectors.  Smaller eigenvalues mean on the other hand that
-the corresponding eigenvectors are shrunk accordingly and the data
-points are tightly bunched together and there is not much variation in
-these specific directions. Hopefully then we could leave it out
-dimensions where the eigenvalues are very small. If $p$ is very large,
-we could then aim at reducing $p$ to $l << p$ and handle only $l$
-features/predictors.
-
-
-
-Here is how we would proceed in setting up the algorithm for the PCA, see also discussion below here. 
-* Set up the datapoints for the design/feature matrix with the predictors/features $p$  referring to the column numbers and the entries $n$ being the row elements.
-* Center the data by subtracting the mean value for each column. 
-* Compute then the covariance/correlation matrix.
-* Find the eigenpairs of the covariance matrix with eigenvalues $[\lambda_0,\lambda_1,\dots,\lambda_{p-1}]$ and eigenvectors $[\bm{s}_0,\bm{s}_1,\dots,\bm{s}_{p-1}]$.
-* Order the eigenvalue (and the eigenvectors accordingly) in order of decreasing eigenvalues.
-* Keep only those $l$ eigenvalues larger than a selected threshold value, discarding thus $p-l$ features since we expect small variations in the data here.
-
-
-!split
-=====  A kind of Bird's view  on PCA =====
-
-
-_Why do we maximize variance during Principal Component Analysis?_
-
-Variance is a measure of the *variability* of the data you
-have. Potentially the number of components is infinite, so you want to "squeeze" the most
-information in each component of the finite set you build.
-
-If, to exaggerate, you were to select a single principal component,
-you would want it to account for the most variability possible: hence
-the search for maximum variance, so that the one component collects
-the most "uniqueness" from the data set.
-
-
-Maximizing the component vector variances is the same as maximizing
-the 'uniqueness' of those vectors. The vectors are as distant
-from each other as possible (orthogonal to each other).
-
-
-Take for example a situation where you have 2 lines that are
-orthogonal in a 3D space. You can capture the environment much more
-completely with those orthogonal lines than 2 lines that are parallel
-(or nearly parallel). When applied to very high dimensional states
-using very few vectors, this becomes a much more important
-relationship among the vectors to maintain. In a linear algebra sense
-you want independent rows to be produced by PCA, otherwise some of
-those rows will be redundant.
-
-
-
-!split
-===== Writing our own PCA code =====
-
-We will use a simple example first with two-dimensional data
-drawn from a multivariate normal distribution with the following mean and covariance matrix (we have fixed these quantities but will play around with them below):
-!bt
-\[
-\mu = (-1,2) \qquad \Sigma = \begin{bmatrix} 4 & 2 \\
-2 & 2
-\end{bmatrix}
-\]
-!et
-Note that the mean refers to each column of data. 
-We will generate $n = 10000$ points $X = \{ x_1, \ldots, x_N \}$ from
-this distribution, and store them in the $1000 \times 2$ matrix $\bm{X}$. This is our design matrix where we have forced the covariance and mean values to take specific values.
-
-!split
-===== Implementing it =====
-The following Python code aids in setting up the data and writing out the design matrix.
-Note that the function _multivariate_ returns also the covariance discussed above and that it is defined by dividing by $n-1$ instead of $n$.
-!bc pycod 
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from IPython.display import display
-n = 10000
-mean = (-1, 2)
-cov = [[4, 2], [2, 2]]
-X = np.random.multivariate_normal(mean, cov, n)
-!ec
-
-Now we are going to implement the PCA algorithm. We will break it down into various substeps.
-
-
-
-!split
-===== First Step =====
-
-The first step of PCA is to compute the sample mean of the data and use it to center the data. Recall that the sample mean is
-!bt
-\[
-\mu_n = \frac{1}{n} \sum_{i=1}^n x_i
-\]
-!et
-and the mean-centered data $\bar{X} = \{ \bar{x}_1, \ldots, \bar{x}_n \}$ takes the form
-!bt
-\[
-\bar{x}_i = x_i - \mu_n.
-\]
-!et
-When you are done with these steps, print out $\mu_n$ to verify it is
-close to $\mu$ and plot your mean centered data to verify it is
-centered at the origin! 
-The following code elements perform these operations using _pandas_ or using our own functionality for doing so. The latter, using _numpy_ is rather simple through the _mean()_ function. 
-!bc pycod
-df = pd.DataFrame(X)
-# Pandas does the centering for us
-df = df -df.mean()
-# we center it ourselves
-X_centered = X - X.mean(axis=0)
-!ec
-
-!split
-===== Scaling =====
-Alternatively, we could use the functions we discussed
-earlier for scaling the data set.  That is, we could have used the
-_StandardScaler_ function in _Scikit-Learn_, a function which ensures
-that for each feature/predictor we study the mean value is zero and
-the variance is one (every column in the design/feature matrix).  You
-would then not get the same results, since we divide by the
-variance. The diagonal covariance matrix elements will then be one,
-while the non-diagonal ones need to be divided by $2\sqrt{2}$ for our
-specific case.
-
-!split
-===== Centered Data =====
-
-Now we are going to use the mean centered data to compute the sample covariance of the data by using the following equation
-!bt
-\begin{equation*}
-\Sigma_n = \frac{1}{n-1} \sum_{i=1}^n \bar{x}_i^T \bar{x}_i = \frac{1}{n-1} \sum_{i=1}^n (x_i - \mu_n)^T (x_i - \mu_n)
-\end{equation*}
-!et
-where the data points $x_i \in \mathbb{R}^p$ (here in this example $p = 2$) are column vectors and $x^T$ is the transpose of $x$.
-We can write our own code or simply use either the functionaly of _numpy_ or that of _pandas_, as follows
-!bc pycod
-print(df.cov())
-print(np.cov(X_centered.T))
-!ec
-Note that the way we define the covariance matrix here has a factor $n-1$ instead of $n$. This is included in the _cov()_ function by _numpy_ and _pandas_. 
-Our own code here is not very elegant and asks for obvious improvements. It is tailored to this specific $2\times 2$ covariance matrix. 
-!bc pycod
-# extract the relevant columns from the centered design matrix of dim n x 2
-x = X_centered[:,0]
-y = X_centered[:,1]
-Cov = np.zeros((2,2))
-Cov[0,1] = np.sum(x.T@y)/(n-1.0)
-Cov[0,0] = np.sum(x.T@x)/(n-1.0)
-Cov[1,1] = np.sum(y.T@y)/(n-1.0)
-Cov[1,0]= Cov[0,1]
-print("Centered covariance using own code")
-print(Cov)
-plt.plot(x, y, 'x')
-plt.axis('equal')
-plt.show()
-!ec
-
-!split
-===== Exploring =====
-
-Depending on the number of points $n$, we will get results that are close to the covariance values defined above.
-The plot shows how the data are clustered around a line with slope close to one. Is this expected?  Try to change the covariance and the mean values. For example, try to make the variance of the first element much larger than that of the second diagonal element. Try also to shrink the covariance  (the non-diagonal elements) and see how the data points are distributed. 
-
-!split
-===== Diagonalize the sample covariance matrix to obtain the principal components =====
-
-Now we are ready to solve for the principal components! To do so we
-diagonalize the sample covariance matrix $\Sigma$. We can use the
-function _np.linalg.eig_ to do so. It will return the eigenvalues and
-eigenvectors of $\Sigma$. Once we have these we can perform the 
-following tasks:
-
-* We compute the percentage of the total variance captured by the first principal component
-* We plot the mean centered data and lines along the first and second principal components
-* Then we project the mean centered data onto the first and second principal components, and plot the projected data. 
-* Finally, we approximate the data as
-
-!bt
-\begin{equation*}
-x_i \approx \tilde{x}_i = \mu_n + \langle x_i, v_0 \rangle v_0
-\end{equation*}
-!et
-where $v_0$ is the first principal component. 
-
-!split
-===== Collecting all Steps =====
-
-Collecting all these steps we can write our own PCA function and
-compare this with the functionality included in _Scikit-Learn_.  
-
-The code here outlines some of the elements we could include in the
-analysis. Feel free to extend upon this in order to address the above
-questions.
-
-!bc pycod
-# diagonalize and obtain eigenvalues, not necessarily sorted
-EigValues, EigVectors = np.linalg.eig(Cov)
-# sort eigenvectors and eigenvalues
-#permute = EigValues.argsort()
-#EigValues = EigValues[permute]
-#EigVectors = EigVectors[:,permute]
-print("Eigenvalues of Covariance matrix")
-for i in range(2):
-    print(EigValues[i])
-FirstEigvector = EigVectors[:,0]
-SecondEigvector = EigVectors[:,1]
-print("First eigenvector")
-print(FirstEigvector)
-print("Second eigenvector")
-print(SecondEigvector)
-#thereafter we do a PCA with Scikit-learn
-from sklearn.decomposition import PCA
-pca = PCA(n_components = 2)
-X2Dsl = pca.fit_transform(X)
-print("Eigenvector of largest eigenvalue")
-print(pca.components_.T[:, 0])
-
-!ec
-This code does not contain all the above elements, but it shows how we can use _Scikit-Learn_ to extract the eigenvector which corresponds to the largest eigenvalue. Try to address the questions we pose before the above code.  Try also to change the values of the covariance matrix by making one of the diagonal elements much larger than the other. What do you observe then? 
-
-!split
-===== Classical PCA Theorem   =====
-
-We assume now that we have a design matrix $\bm{X}$ which has been
-centered as discussed above. For the sake of simplicity we skip the
-overline symbol. The matrix is defined in terms of the various column
-vectors $[\bm{x}_0,\bm{x}_1,\dots, \bm{x}_{p-1}]$ each with dimension
-$\bm{x}\in {\mathbb{R}}^{n}$.
-
-
-
-The PCA theorem states that minimizing the above reconstruction error
-corresponds to setting $\bm{W}=\bm{S}$, the orthogonal matrix which
-diagonalizes the empirical covariance(correlation) matrix. The optimal
-low-dimensional encoding of the data is then given by a set of vectors
-$\bm{z}_i$ with at most $l$ vectors, with $l << p$, defined by the
-orthogonal projection of the data onto the columns spanned by the
-eigenvectors of the covariance(correlations matrix).
-
-
-
-!split
-===== The PCA Theorem =====
-
-To show the PCA theorem let us start with the assumption that there is one vector $\bm{s}_0$ which corresponds to a solution which minimized the reconstruction error $J$. This is an orthogonal vector. It means that we now approximate the reconstruction error in terms of $\bm{w}_0$ and $\bm{z}_0$ as
-
-
-
-We are almost there, we have obtained a relation between minimizing
-the reconstruction error and the variance and the covariance
-matrix. Minimizing the error is equivalent to maximizing the variance
-of the projected data.
-
-
-We could trivially maximize the variance of the projection (and
-thereby minimize the error in the reconstruction function) by letting
-the norm-2 of $\bm{w}_0$ go to infinity. However, this norm since we
-want the matrix $\bm{W}$ to be an orthogonal matrix, is constrained by
-$\vert\vert \bm{w}_0 \vert\vert_2^2=1$. Imposing this condition via a
-Lagrange multiplier we can then in turn maximize
-
-!bt
-\[
-J(\bm{w}_0)= \bm{w}_0^T\bm{C}[\bm{x}]\bm{w}_0+\lambda_0(1-\bm{w}_0^T\bm{w}_0).
-\]
-!et
-Taking the derivative with respect to $\bm{w}_0$ we obtain
-
-!bt
-\[
-\frac{\partial J(\bm{w}_0)}{\partial \bm{w}_0}= 2\bm{C}[\bm{x}]\bm{w}_0-2\lambda_0\bm{w}_0=0,
-\]
-!et
-meaning that
-!bt
-\[
-\bm{C}[\bm{x}]\bm{w}_0=\lambda_0\bm{w}_0.
-\]
-!et
-_The direction that maximizes the variance (or minimizes the construction error) is an eigenvector of the covariance matrix_! If we left multiply with $\bm{w}_0^T$ we have the variance of the projected data is
-!bt
-\[
-\bm{w}_0^T\bm{C}[\bm{x}]\bm{w}_0=\lambda_0.
-\]
-!et
-
-If we want to maximize the variance (minimize the construction error)
-we simply pick the eigenvector of the covariance matrix with the
-largest eigenvalue. This establishes the link between the minimization
-of the reconstruction function $J$ in terms of an orthogonal matrix
-and the maximization of the variance and thereby the covariance of our
-observations encoded in the design/feature matrix $\bm{X}$.
-
-The proof
-for the other eigenvectors $\bm{w}_1,\bm{w}_2,\dots$ can be
-established by applying the above arguments and using the fact that
-our basis of eigenvectors is orthogonal, see "Murphy chapter
-12.2":"https://mitpress.mit.edu/books/machine-learning-1".  The
-discussion in chapter 12.2 of Murphy's text has also a nice link with
-the Singular Value Decomposition theorem. For categorical data, see
-chapter 12.4 and discussion therein.
-
-For more details, see for example "Vidal, Ma and Sastry, chapter 2":"https://www.springer.com/gp/book/9780387878102".
-
-!split
-===== Geometric Interpretation and link with Singular Value Decomposition =====
-
-For a detailed demonstration of the geometric interpretation, see "Vidal, Ma and Sastry, section 2.1.2":"https://www.springer.com/gp/book/9780387878102".
-
-
-Principal Component Analysis (PCA) is by far the most popular dimensionality reduction algorithm.
-First it identifies the hyperplane that lies closest to the data, and then it projects the data onto it.
-
-The following Python code uses NumPy’s _svd()_ function to obtain all the principal components of the
-training set, then extracts the first two principal components. First we center the data using either _pandas_ or our own code
-!bc pycod
-import numpy as np
-import pandas as pd
-from IPython.display import display
-np.random.seed(100)
-# setting up a 10 x 5 vanilla matrix 
-rows = 10
-cols = 5
-X = np.random.randn(rows,cols)
-df = pd.DataFrame(X)
-# Pandas does the centering for us
-df = df -df.mean()
-display(df)
-
-# we center it ourselves
-X_centered = X - X.mean(axis=0)
-# Then check the difference between pandas and our own set up
-print(X_centered-df)
-#Now we do an SVD
-U, s, V = np.linalg.svd(X_centered)
-c1 = V.T[:, 0]
-c2 = V.T[:, 1]
-W2 = V.T[:, :2]
-X2D = X_centered.dot(W2)
-print(X2D)
-!ec
-
-PCA assumes that the dataset is centered around the origin. Scikit-Learn’s PCA classes take care of centering
-the data for you. However, if you implement PCA yourself (as in the preceding example), or if you use other libraries, don’t
-forget to center the data first.
-
-Once you have identified all the principal components, you can reduce the dimensionality of the dataset
-down to $d$ dimensions by projecting it onto the hyperplane defined by the first $d$ principal components.
-Selecting this hyperplane ensures that the projection will preserve as much variance as possible. 
-!bc pycod
-W2 = V.T[:, :2]
-X2D = X_centered.dot(W2)
-!ec
-
-!split
-===== PCA and scikit-learn =====
-
-Scikit-Learn’s PCA class implements PCA using SVD decomposition just like we did before. The
-following code applies PCA to reduce the dimensionality of the dataset down to two dimensions (note
-that it automatically takes care of centering the data):
-!bc pycod
-#thereafter we do a PCA with Scikit-learn
-from sklearn.decomposition import PCA
-pca = PCA(n_components = 2)
-X2D = pca.fit_transform(X)
-print(X2D)
-!ec
-After fitting the PCA transformer to the dataset, you can access the principal components using the
-components variable (note that it contains the PCs as horizontal vectors, so, for example, the first
-principal component is equal to 
-!bc pycod
-pca.components_.T[:, 0]
-!ec
-Another very useful piece of information is the explained variance ratio of each principal component,
-available via the $explained\_variance\_ratio$ variable. It indicates the proportion of the dataset’s
-variance that lies along the axis of each principal component. 
-
-!split
-===== Back to the Cancer Data =====
-We can now repeat the above but applied to real data, in this case our breast cancer data.
-Here we compute performance scores on the training data using logistic regression.
-!bc pycod
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.model_selection import  train_test_split 
-from sklearn.datasets import load_breast_cancer
-from sklearn.linear_model import LogisticRegression
-cancer = load_breast_cancer()
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.utils import resample
+from sklearn.tree import DecisionTreeRegressor
 
-X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+n = 100
+n_boostraps = 100
+maxdepth = 8
 
-logreg = LogisticRegression()
-logreg.fit(X_train, y_train)
-print("Train set accuracy from Logistic Regression: {:.2f}".format(logreg.score(X_train,y_train)))
-# We scale the data
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+error = np.zeros(maxdepth)
+bias = np.zeros(maxdepth)
+variance = np.zeros(maxdepth)
+polydegree = np.zeros(maxdepth)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
-# Then perform again a log reg fit
-logreg.fit(X_train_scaled, y_train)
-print("Train set accuracy scaled data: {:.2f}".format(logreg.score(X_train_scaled,y_train)))
-#thereafter we do a PCA with Scikit-learn
-from sklearn.decomposition import PCA
-pca = PCA(n_components = 2)
-X2D_train = pca.fit_transform(X_train_scaled)
-# and finally compute the log reg fit and the score on the training data	
-logreg.fit(X2D_train,y_train)
-print("Train set accuracy scaled and PCA data: {:.2f}".format(logreg.score(X2D_train,y_train)))
+
+# we produce a simple tree first as benchmark
+simpletree = DecisionTreeRegressor(max_depth=3) 
+simpletree.fit(X_train_scaled, y_train)
+simpleprediction = simpletree.predict(X_test_scaled)
+for degree in range(1,maxdepth):
+    model = DecisionTreeRegressor(max_depth=degree) 
+    y_pred = np.empty((y_test.shape[0], n_boostraps))
+    for i in range(n_boostraps):
+        x_, y_ = resample(X_train_scaled, y_train)
+        model.fit(x_, y_)
+        y_pred[:, i] = model.predict(X_test_scaled)#.ravel()
+
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
+    variance[degree] = np.mean( np.var(y_pred, axis=1, keepdims=True) )
+    print('Polynomial degree:', degree)
+    print('Error:', error[degree])
+    print('Bias^2:', bias[degree])
+    print('Var:', variance[degree])
+    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+ 
+mse_simpletree= np.mean( np.mean((y_test - simpleprediction)**2))
+print("Simple tree:",mse_simpletree)
+plt.xlim(1,maxdepth)
+plt.plot(polydegree, error, label='MSE')
+plt.plot(polydegree, bias, label='bias')
+plt.plot(polydegree, variance, label='Variance')
+plt.legend()
+save_fig("baggingboot")
+plt.show()
 
 !ec
 
-We see that our training data after the PCA decomposition has a performance similar to the non-scaled data. 
-
-
-Instead of arbitrarily choosing the number of dimensions to reduce down to, it is generally preferable to
-choose the number of dimensions that add up to a sufficiently large portion of the variance (e.g., 95%).
-Unless, of course, you are reducing dimensionality for data visualization — in that case you will
-generally want to reduce the dimensionality down to 2 or 3.
-The following code computes PCA without reducing dimensionality, then computes the minimum number
-of dimensions required to preserve 95% of the training set’s variance:
-!bc pycod
-pca = PCA()
-pca.fit(X)
-cumsum = np.cumsum(pca.explained_variance_ratio_)
-d = np.argmax(cumsum >= 0.95) + 1
-!ec
-You could then set $n\_components=d$ and run PCA again. However, there is a much better option: instead
-of specifying the number of principal components you want to preserve, you can set $n\_components$ to be
-a float between 0.0 and 1.0, indicating the ratio of variance you wish to preserve:
-!bc pycod
-pca = PCA(n_components=0.95)
-X_reduced = pca.fit_transform(X)
-!ec
-
-!split
-===== Incremental PCA =====
-
-One problem with the preceding implementation of PCA is that it requires the whole training set to fit in
-memory in order for the SVD algorithm to run. Fortunately, Incremental PCA (IPCA) algorithms have
-been developed: you can split the training set into mini-batches and feed an IPCA algorithm one minibatch
-at a time. This is useful for large training sets, and also to apply PCA online (i.e., on the fly, as new
-instances arrive).
-
-
-=== Randomized PCA ===
-
-Scikit-Learn offers yet another option to perform PCA, called Randomized PCA. This is a stochastic
-algorithm that quickly finds an approximation of the first d principal components. Its computational
-complexity is $O(m \times d^2)+O(d^3)$, instead of $O(m \times n^2) + O(n^3)$, so it is dramatically faster than the
-previous algorithms when $d$ is much smaller than $n$.
-
-
-=== Kernel PCA ===
-
-
-The kernel trick is a mathematical technique that implicitly maps instances into a
-very high-dimensional space (called the feature space), enabling nonlinear classification and regression
-with Support Vector Machines. Recall that a linear decision boundary in the high-dimensional feature
-space corresponds to a complex nonlinear decision boundary in the original space.
-It turns out that the same trick can be applied to PCA, making it possible to perform complex nonlinear
-projections for dimensionality reduction. This is called Kernel PCA (kPCA). It is often good at
-preserving clusters of instances after projection, or sometimes even unrolling datasets that lie close to a
-twisted manifold.
-For example, the following code uses Scikit-Learn’s KernelPCA class to perform kPCA with an
-!bc pycod
-from sklearn.decomposition import KernelPCA
-rbf_pca = KernelPCA(n_components = 2, kernel="rbf", gamma=0.04)
-X_reduced = rbf_pca.fit_transform(X)
-!ec
-
-!split
-=====  Other techniques =====
-
-
-There are many other dimensionality reduction techniques, several of which are available in Scikit-Learn.
-
-Here are some of the most popular:
-* _Multidimensional Scaling (MDS)_ reduces dimensionality while trying to preserve the distances between the instances.
-* _Isomap_ creates a graph by connecting each instance to its nearest neighbors, then reduces dimensionality while trying to preserve the geodesic distances between the instances.
-* _t-Distributed Stochastic Neighbor Embedding_ (t-SNE) reduces dimensionality while trying to keep similar instances close and dissimilar instances apart. It is mostly used for visualization, in particular to visualize clusters of instances in high-dimensional space (e.g., to visualize the MNIST images in 2D).
-* Linear Discriminant Analysis (LDA) is actually a classification algorithm, but during training it learns the most discriminative axes between the classes, and these axes can then be used to define a hyperplane onto which to project the data. The benefit is that the projection will keep classes as far apart as possible, so LDA is a good technique to reduce dimensionality before running another classification algorithm such as a Support Vector Machine (SVM) classifier discussed in the SVM lectures.
 
 
 
@@ -920,438 +141,788 @@ Here are some of the most popular:
 
 
 !split
-===== Clustering and Unsupervised Learning =====
+===== Random forests =====
 
-In general terms cluster analysis, or clustering, is the task of grouping a
-data-set into different distinct categories based on some measure of equality of
-the data. This measure is often referred to as a _metric_ or _similarity
-measure_ in the literature (note: sometimes we deal with a _dissimilarity
-measure_ instead). Usually, these metrics are formulated as some kind of
-distance function between points in a high-dimensional space.
+Random forests provide an improvement over bagged trees by way of a
+small tweak that decorrelates the trees. 
 
-The simplest, and also the most
-common is the _Euclidean distance_.
+As in bagging, we build a
+number of decision trees on bootstrapped training samples. But when
+building these decision trees, each time a split in a tree is
+considered, a random sample of $m$ predictors is chosen as split
+candidates from the full set of $p$ predictors. The split is allowed to
+use only one of those $m$ predictors. 
 
-!split
-===== Basic Idea of the $k$-means Clustering Algorithm =====
-
-The simplest of all clustering algorithms is the  _k-means algorithm_
-, sometimes also referred to as *Lloyds algorithm*. It is the simplest and also
-the most common. From its simplicity it obtains both strengths and weaknesses.
-These will be discussed in more detail later. The $k$-means algorithm is a
-_centroid based_ clustering algorithm.
-
-!split
-===== The $k$-means Algorithm =====
-
-Assume, we are given $n$ data points and we wish to split the data into $K < n$
-different categories, or clusters. We label each cluster by an integer
+A fresh sample of $m$ predictors is
+taken at each split, and typically we choose 
 
 !bt
-\[ k\in\{1, \cdots, K \}.
+\[
+m\approx \sqrt{p}.
 \]
 !et
 
-In the basic k-means algorithm each point is assigned to only
-one cluster $k$, and these assignments are *non-injective* i.e. many-to-one. We
-can think of these mappings as an encoder $k = C(i)$, which assigns the $i$-th
-data-point $\bf x_i$ to the $k$-th cluster.
+In building a random forest, at
+each split in the tree, the algorithm is not even allowed to consider
+a majority of the available predictors. 
 
-$k$-means algorithm in words:
-o We start with guesses / random initializations of our $k$ cluster centers/centroids
-o For each centroid the points that are most similar are identified
-o Then we move / replace each centroid with a coordinate average of all the points that were assigned to that centroid.
-o Iterate 2-3 until the centroids no longer move (to some tolerance)
-
-!split
-===== Basic Math of the $k$-means Algorithm =====
-
-We assume we have $n$ data-points
-!bt
-\begin{equation}\label{eq:kmeanspoints}
-  \bm{x_i}  = \{x_{i, 1}, \cdots, x_{i, p}\}\in\mathbb{R}^p.
-\end{equation}
-!et
-which we wish to group into $K < n$ clusters. For our dissimilarity measure we
-use the *squared Euclidean distance*
-!bt
-\begin{equation}\label{eq:squaredeuclidean}
-  d(\bm{x_i}, \bm{x_i'}) = \sum_{j=1}^p(x_{ij} - x_{i'j})^2
-                         = ||\bm{x_i} - \bm{x_{i'}}||^2
-\end{equation}
-!et
-
-!split
-===== Within Cluster Point Scatter =====
-
-We define the so called *within-cluster point scatter* which gives us a
-measure of how close each data point assigned to the same cluster tends to be to
-the all the others.
-!bt
-\begin{equation}\label{eq:withincluster}
-  W(C) = \frac{1}{2}\sum_{k=1}^K\sum_{C(i)=k}
-          \sum_{C(i')=k}d(\bm{x_i}, \bm{x_{i'}}) =
-          \sum_{k=1}^KN_k\sum_{C(i)=k}||\bm{x_i} - \bm{\overline{x_k}}||^2
-\end{equation}
-!et
-where $\bm{\overline{x_k}}$ is the mean vector associated with the $k$-th
-cluster, and $N_k = \sum_{i=1}^nI(C(i) = k)$, where the $I()$ notation is
-similar to the Kronecker delta (*Commonly used in statistics, it just means that
-when $i = k$ we have the encoder $C(i)$*). In other words,  the within-cluster
-scatter measures the compactness of each cluster with respect to the data points
-assigned to each cluster. This is the quantity that the $k$-means algorithm aims
-to minimize. We refer to this quantity $W(C)$ as the within cluster scatter
-because of its relation to the *total scatter*.
+The reason for this is rather clever. Suppose that there is one very
+strong predictor in the data set, along with a number of other
+moderately strong predictors. Then in the collection of bagged
+variable importance random forest trees, most or all of the trees will
+use this strong predictor in the top split. Consequently, all of the
+bagged trees will look quite similar to each other. Hence the
+predictions from the bagged trees will be highly correlated.
+Unfortunately, averaging many highly correlated quantities does not
+lead to as large of a reduction in variance as averaging many
+uncorrelated quantities. In particular, this means that bagging will
+not lead to a substantial reduction in variance over a single tree in
+this setting.
 
 
 !split
-===== More Details =====
+===== Random Forest Algorithm =====
+The algorithm described here can be applied to both classification and regression problems.
 
-We have
-!bt
-\begin{equation}\label{eq:totalscatter}
-  T = W(C) + B(C) = \frac{1}{2}\sum_{i=1}^n
-                    \sum_{i'=1}^nd(\bm{x_i}, \bm{x_{i'}})
-                  = \frac{1}{2}\sum_{k=1}^K\sum_{C(i)=k}
-                    \Big(\sum_{C(i') = k}d(\bm{x_i}, \bm{x_{i'}})
-                  + \sum_{C(i')\neq k}d(\bm{x_i}, \bm{x_{i'}})\Big).
-\end{equation}
-!et
+We will grow of forest of say $B$ trees.
+o For $b=1:B$
+  * Draw a bootstrap sample from the training data organized in our $\bm{X}$ matrix.
+  * We grow then a random forest tree $T_b$ based on the bootstrapped data by repeating the steps outlined till we reach the maximum node size is reached
+    o we select $m \le p$ variables at random from the $p$ predictors/features
+    o pick the best split point among the $m$ features using for example the CART algorithm and create a new node
+    o split the node into daughter nodes
+o Output then the ensemble of trees $\{T_b\}_1^{B}$ and make predictions for either a regression type of problem or a classification type of problem. 
 
-This is a quantity that is conserved throughout the $k$-means algorithm. It can
-be thought of as the total amount of information in the data, and it is composed
-of the aforementioned within-cluster scatter and the *between-cluster scatter*
-$B(C)$. In methods such as principle component analysis the total scatter is not
-conserved.
-
-!split
-===== Total Cluster Variance =====
-Given a cluster mean $\bm{m_k}$ we define the _total cluster variance_
-!bt
-\begin{equation}\label{eq:totalclustervariance}
-  \min_{C, \{\bm{m_k}\}_1^K}\sum_{k=1}^KN_k\sum||\bm{x_i} - \bm{m_k}||^2
-\end{equation}
-!et
-Now we have all the pieces necessary to formally revisit the $k$-means algorithm.
 
 
 !split
-===== The $k$-means Clustering Algorithm =====
-
-The $k$-means clustering algorithm goes as follows 
-
-o For a given cluster assignment $C$, and $k$ cluster means $\left\{m_1, \cdots, m_k\right\}$. We minimize the total cluster variance with respect to the cluster means $\{m_k\}$ yielding the means of the currently assigned clusters.
-o Given a current set of $k$ means $\{m_k\}$ the total cluster variance is minimized by assigning each observation to the closest (current) cluster mean. That is $$C(i) = \underset{1\leq k\leq K}{\mathrm{argmin}} ||\bm{x_i} - \bm{m_k}||^2$$
-o Steps 1 and 2 are repeated until the assignments do not change.
-
-
-!split
-===== Summarizing  =====
-
-
-o Before we start we specify a number $k$ which is the number of clusters we want to try to separate our data into.
-o We initially choose $k$ random data points in our data as our initial centroids, *or means* (this is where the name comes from).
-o Assign each data point to their closest centroid, based on the squared Euclidean distance.
-o For each of the $k$ cluster we update the centroid by calculating new mean values for all the data points in the cluster.
-o Iteratively minimize the within cluster scatter by performing steps (3, 4) until the new assignments stop changing (can be to some tolerance) or until a maximum number of iterations have passed.
-
-
-!split
-===== Writing our own Code, the Data Set  =====
-
-Let us now program the most basic version of the algorithm using nothing but
-Python with numpy arrays. This code is kept intentionally simple to gradually
-progress our understanding. There is no vectorization of any kind, and even most
-helper functions are not utilized.
-
-We need first a dataset to do our cluster analysis on. In our case
-this is a plain *vanilla* data set using random numbers using a
-Gaussian distribution.
-
-!bc pycod
-import time
-import numpy as np
-import tensorflow as tf
-from matplotlib import image
+===== Random Forests Compared with other Methods on the Cancer Data =====
+!bc pycod 
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from IPython.display import display
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import BaggingClassifier
 
-np.random.seed(2021)
+# Load the data
+cancer = load_breast_cancer()
+
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+#define methods
+# Logistic Regression
+logreg = LogisticRegression(solver='lbfgs')
+# Support vector machine
+svm = SVC(gamma='auto', C=100)
+# Decision Trees
+deep_tree_clf = DecisionTreeClassifier(max_depth=None)
+#Scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# Logistic Regression
+logreg.fit(X_train_scaled, y_train)
+print("Test set accuracy Logistic Regression with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Support Vector Machine
+svm.fit(X_train_scaled, y_train)
+print("Test set accuracy SVM with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Decision Trees
+deep_tree_clf.fit(X_train_scaled, y_train)
+print("Test set accuracy with Decision Trees and scaled data: {:.2f}".format(deep_tree_clf.score(X_test_scaled,y_test)))
+
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_validate
+# Data set not specificied
+#Instantiate the model with 500 trees and entropy as splitting criteria
+Random_Forest_model = RandomForestClassifier(n_estimators=500,criterion="entropy")
+Random_Forest_model.fit(X_train_scaled, y_train)
+#Cross validation
+accuracy = cross_validate(Random_Forest_model,X_test_scaled,y_test,cv=10)['test_score']
+print(accuracy)
+print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(Random_Forest_model.score(X_test_scaled,y_test)))
+
+
+import scikitplot as skplt
+y_pred = Random_Forest_model.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = Random_Forest_model.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
 
 !ec
 
-Next we define functions, for ease of use later, to generate Gaussians and to
-set up our toy data set.
-!bc pycod
-def gaussian_points(dim=2, n_points=1000, mean_vector=np.array([0, 0]),
-                    sample_variance=1):
-    """
-    Very simple custom function to generate gaussian distributed point clusters
-    with variable dimension, number of points, means in each direction
-    (must match dim) and sample variance.
 
-    Inputs:
-        dim (int)
-        n_points (int)
-        mean_vector (np.array) (where index 0 is x, index 1 is y etc.)
-        sample_variance (float)
+Recall that the cumulative gains curve shows the percentage of the
+overall number of cases in a given category *gained* by targeting a
+percentage of the total number of cases.
 
-    Returns:
-        data (np.array): with dimensions (dim x n_points)
-    """
-
-    mean_matrix = np.zeros(dim) + mean_vector
-    covariance_matrix = np.eye(dim) * sample_variance
-    data = np.random.multivariate_normal(mean_matrix, covariance_matrix,
-                                    n_points)
-    return data
-
-
-
-def generate_simple_clustering_dataset(dim=2, n_points=1000, plotting=True,
-                                    return_data=True):
-    """
-    Toy model to illustrate k-means clustering
-    """
-
-    data1 = gaussian_points(mean_vector=np.array([5, 5]))
-    data2 = gaussian_points()
-    data3 = gaussian_points(mean_vector=np.array([1, 4.5]))
-    data4 = gaussian_points(mean_vector=np.array([5, 1]))
-    data = np.concatenate((data1, data2, data3, data4), axis=0)
-
-    if plotting:
-        fig, ax = plt.subplots()
-        ax.scatter(data[:, 0], data[:, 1], alpha=0.2)
-        ax.set_title('Toy Model Dataset')
-        plt.show()
-
-
-    if return_data:
-        return data
-
-
-data = generate_simple_clustering_dataset()
-!ec
+Similarly, the receiver operating characteristic curve, or ROC curve,
+displays the diagnostic ability of a binary classifier system as its
+discrimination threshold is varied. It plots the true positive rate against the false positive rate.
 
 
 !split
-===== Implementing the $k$-means Algorithm =====
-
-With the above dataset we start
-implementing the $k$-means algorithm.
-
+===== Compare  Bagging on Trees with Random Forests  =====
 !bc pycod
-
-n_samples, dimensions = data.shape
-n_clusters = 4
-
-# we randomly initialize our centroids
-np.random.seed(2021)
-centroids = data[np.random.choice(n_samples, n_clusters, replace=False), :]
-distances = np.zeros((n_samples, n_clusters))
-
-# first we need to calculate the distance to each centroid from our data
-for k in range(n_clusters):
-    for n in range(n_samples):
-        dist = 0
-        for d in range(dimensions):
-            dist += np.abs(data[n, d] - centroids[k, d])**2
-            distances[n, k] = dist
-
-# we initialize an array to keep track of to which cluster each point belongs
-# the way we set it up here the index tracks which point and the value which
-# cluster the point belongs to
-cluster_labels = np.zeros(n_samples, dtype='int')
-
-# next we loop through our samples and for every point assign it to the cluster
-# to which it has the smallest distance to
-for n in range(n_samples):
-    # tracking variables (all of this is basically just an argmin)
-    smallest = 1e10
-    smallest_row_index = 1e10
-    for k in range(n_clusters):
-        if distances[n, k] < smallest:
-            smallest = distances[n, k]
-            smallest_row_index = k
-
-    cluster_labels[n] = smallest_row_index
-
+bag_clf = BaggingClassifier(
+    DecisionTreeClassifier(splitter="random", max_leaf_nodes=16, random_state=42),
+    n_estimators=500, max_samples=1.0, bootstrap=True, n_jobs=-1, random_state=42)
 !ec
 
-!split
-===== Plotting =====
+
+
 !bc pycod
-fig = plt.figure()
-ax = fig.add_subplot()
-unique_cluster_labels = np.unique(cluster_labels)
-for i in unique_cluster_labels:
-    ax.scatter(data[cluster_labels == i, 0],
-               data[cluster_labels == i, 1],
-               label = i,
-               alpha = 0.2)
-    ax.scatter(centroids[:, 0], centroids[:, 1], c='black')
+bag_clf.fit(X_train, y_train)
+y_pred = bag_clf.predict(X_test)
+from sklearn.ensemble import RandomForestClassifier
+rnd_clf = RandomForestClassifier(n_estimators=500, max_leaf_nodes=16, n_jobs=-1, random_state=42)
+rnd_clf.fit(X_train, y_train)
+y_pred_rf = rnd_clf.predict(X_test)
+np.sum(y_pred == y_pred_rf) / len(y_pred) 
+!ec
 
-ax.set_title("First Grouping of Points to Centroids")
 
+
+
+
+
+
+!split
+===== Boosting, a Bird's Eye View =====
+
+The basic idea is to combine weak classifiers in order to create a good
+classifier. With a weak classifier we often intend a classifier which
+produces results which are only slightly better than we would get by
+random guesses.
+
+This is done by applying in an iterative way a weak (or a standard
+classifier like decision trees) to modify the data. In each iteration
+we emphasize those observations which are misclassified by weighting
+them with a factor.
+
+
+!split
+===== What is boosting? Additive Modelling/Iterative Fitting =====
+
+Boosting is a way of fitting an additive expansion in a set of
+elementary basis functions like for example some simple polynomials.
+Assume for example that we have a function
+!bt
+\[
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
+\]
+!et
+
+where $\beta_m$ are the expansion parameters to be determined in a
+minimization process and $b(x;\gamma_m)$ are some simple functions of
+the multivariable parameter $x$ which is characterized by the
+parameters $\gamma_m$.
+
+As an example, consider the Sigmoid function we used in logistic
+regression. In that case, we can translate the function
+$b(x;\gamma_m)$ into the Sigmoid function
+
+
+!bt
+\[
+\sigma(t) = \frac{1}{1+\exp{(-t)}},
+\]
+!et
+
+where $t=\gamma_0+\gamma_1 x$ and the parameters $\gamma_0$ and
+$\gamma_1$ were determined by the Logistic Regression fitting
+algorithm.
+
+As another example, consider the cost function we defined for linear regression
+!bt
+\[
+C(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+\]
+!et
+
+In this case the function $f(x)$ was replaced by the design matrix
+$\bm{X}$ and the unknown linear regression parameters $\bm{\beta}$,
+that is $\bm{f}=\bm{X}\bm{\beta}$. In linear regression we can 
+simply invert a matrix and obtain the parameters $\beta$ by
+
+!bt
+\[
+\bm{\beta}=\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}.
+\]
+!et
+
+In iterative fitting or additive modeling, we minimize the cost function with respect to the parameters $\beta_m$ and $\gamma_m$.
+
+
+!split
+===== Iterative Fitting, Regression and Squared-error Cost Function =====
+
+The way we proceed is as follows (here we specialize to the squared-error cost function)
+
+o Establish a cost function, here ${\cal C}(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f_M(x_i))^2$ with $f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m)$.
+o Initialize with a guess $f_0(x)$. It could be one or even zero or some random numbers.
+o For $m=1:M$
+  o minimize $\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2$ wrt $\gamma$ and $\beta$
+  o This gives the optimal values $\beta_m$ and $\gamma_m$
+  o Determine then the new values $f_m(x)=f_{m-1}(x) +\beta_m b(x;\gamma_m)$
+
+We could use any of the algorithms we have discussed till now. If we
+use trees, $\gamma$ parameterizes the split variables and split points
+at the internal nodes, and the predictions at the terminal nodes.
+
+
+!split
+===== Squared-Error Example and Iterative Fitting =====
+
+To better understand what happens, let us develop the steps for the iterative fitting using the above squared error function.
+
+For simplicity we assume also that our functions $b(x;\gamma)=1+\gamma x$. 
+
+This means that for every iteration $m$, we need to optimize
+
+!bt
+\[
+(\beta_m,\gamma_m) = \mathrm{argmin}_{\beta,\lambda}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2=\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta(1+\gamma x_i))^2.
+\]
+!et
+
+We start our iteration by simply setting $f_0(x)=0$. 
+Taking the derivatives  with respect to $\beta$ and $\gamma$ we obtain
+!bt
+\[
+\frac{\partial {\cal C}}{\partial \beta} = -2\sum_{i}(1+\gamma x_i)(y_i-\beta(1+\gamma x_i))=0,
+\]
+!et
+and
+!bt
+\[
+\frac{\partial {\cal C}}{\partial \gamma} =-2\sum_{i}\beta x_i(y_i-\beta(1+\gamma x_i))=0.
+\]
+!et
+We can then rewrite these equations as (defining $\bm{w}=\bm{e}+\gamma \bm{x})$ with $\bm{e}$ being the unit vector)
+!bt
+\[
+\gamma \bm{w}^T(\bm{y}-\beta\gamma \bm{w})=0,
+\]
+!et
+which gives us $\beta = \bm{w}^T\bm{y}/(\bm{w}^T\bm{w})$. Similarly we have 
+!bt
+\[
+\beta\gamma \bm{x}^T(\bm{y}-\beta(1+\gamma \bm{x}))=0,
+\]
+!et
+
+which leads to $\gamma =(\bm{x}^T\bm{y}-\beta\bm{x}^T\bm{e})/(\beta\bm{x}^T\bm{x})$.  Inserting
+for $\beta$ gives us an equation for $\gamma$. This is a non-linear equation in the unknown $\gamma$ and has to be solved numerically. 
+
+The solution to these two equations gives us in turn $\beta_1$ and $\gamma_1$ leading to the new expression for $f_1(x)$ as
+$f_1(x) = \beta_1(1+\gamma_1x)$. Doing this $M$ times results in our final estimate for the function $f$. 
+
+
+
+!split
+===== Iterative Fitting, Classification and AdaBoost =====
+
+Let us consider a binary classification problem with two outcomes $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
+observations. We define a classification function $G(x)$ which produces a prediction taking one or the other of the two values 
+$\{-1,1\}$.
+
+The error rate of the training sample is then
+
+!bt
+\[
+\mathrm{\overline{err}}=\frac{1}{n} \sum_{i=0}^{n-1} I(y_i\ne G(x_i)). 
+\]
+!et
+
+The iterative procedure starts with defining a weak classifier whose
+error rate is barely better than random guessing.  The iterative
+procedure in boosting is to sequentially apply a  weak
+classification algorithm to repeatedly modified versions of the data
+producing a sequence of weak classifiers $G_m(x)$.
+
+Here we will express our  function $f(x)$ in terms of $G(x)$. That is
+!bt
+\[
+f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
+\]
+!et
+will be a function of 
+!bt
+\[
+G_M(x) = \mathrm{sign} \sum_{i=1}^M \alpha_m G_m(x).
+\]
+!et
+
+
+
+!split
+===== Adaptive Boosting, AdaBoost =====
+
+In our iterative procedure we define thus
+!bt
+\[
+f_m(x) = f_{m-1}(x)+\beta_mG_m(x).
+\]
+!et
+
+The simplest possible cost function which leads (also simple from a computational point of view) to the AdaBoost algorithm is the
+exponential cost/loss function defined as
+!bt
+\[
+C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}\exp{(-y_i(f_{m-1}(x_i)+\beta G(x_i))}.
+\]
+!et
+
+We optimize $\beta$ and $G$ for each value of $m=1:M$ as we did in the regression case.
+This is normally done in two steps. Let us however first rewrite the cost function as 
+
+!bt
+\[
+C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}w_i^{m}\exp{(-y_i\beta G(x_i))},
+\]
+!et
+where we have defined $w_i^m= \exp{(-y_if_{m-1}(x_i))}$.
+
+!split
+===== Building up AdaBoost =====
+
+First, for any $\beta > 0$, we optimize $G$ by setting
+!bt
+\[
+G_m(x) = \mathrm{sign} \sum_{i=0}^{n-1} w_i^m I(y_i \ne G_(x_i)),
+\]
+!et
+which is the classifier that minimizes the weighted error rate in predicting $y$.
+
+We can do this by rewriting
+!bt
+\[
+\exp{-(\beta)}\sum_{y_i=G(x_i)}w_i^m+\exp{(\beta)}\sum_{y_i\ne G(x_i)}w_i^m,
+\]
+!et
+which can be rewritten as
+!bt
+\[
+(\exp{(\beta)}-\exp{-(\beta)})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{(-\beta)}\sum_{i=0}^{n-1}w_i^m=0,
+\]
+!et
+which leads to
+!bt
+\[
+\beta_m = \frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
+\]
+!et
+where we have redefined the error as 
+!bt
+\[
+\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i)}{\sum_{i=0}^{n-1}w_i^m},
+\]
+!et
+which leads to an update of
+!bt
+\[
+f_m(x) = f_{m-1}(x) +\beta_m G_m(x).
+\]
+!et
+This leads to the new weights
+!bt
+\[
+w_i^{m+1} = w_i^m \exp{(-y_i\beta_m G_m(x_i))}
+\]
+!et
+
+
+!split
+===== Adaptive boosting: AdaBoost, Basic Algorithm =====
+
+The algorithm here is rather straightforward. Assume that our weak
+classifier is a decision tree and we consider a binary set of outputs
+with $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
+observations. Our design matrix is given in terms of the
+feature/predictor vectors
+$\bm{X}=[\bm{x}_0\bm{x}_1\dots\bm{x}_{p-1}]$. Finally, we define also a
+classifier determined by our data via a function $G(x)$. This function tells us how well we are able to classify our outputs/targets $\bm{y}$. 
+
+We have already defined the misclassification error $\mathrm{err}$ as
+!bt
+\[
+\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(x_i)),
+\]
+!et
+where the function $I()$ is one if we misclassify and zero if we classify correctly. 
+
+!split
+===== Basic Steps of AdaBoost =====
+
+With the above definitions we are now ready to set up the algorithm for AdaBoost.
+The basic idea is to set up weights which will be used to scale the correctly classified and the misclassified cases.
+o We start by initializing all weights to $w_i = 1/n$, with $i=0,1,2,\dots n-1$. It is easy to see that we must have $\sum_{i=0}^{n-1}w_i = 1$.
+o We rewrite the misclassification error as 
+!bt
+\[
+\mathrm{\overline{err}}_m=\frac{\sum_{i=0}^{n-1}w_i^m I(y_i\ne G(x_i))}{\sum_{i=0}^{n-1}w_i},
+\]
+!et
+o Then we start looping over all attempts at classifying, namely we start an iterative process for $m=1:M$, where $M$ is the final number of classifications. Our given classifier could for example be a plain decision tree.
+  o Fit then a given classifier to the training set using the weights $w_i$.
+  o Compute then $\mathrm{err}$ and figure out which events are classified properly and which are classified wrongly.
+  o Define a quantity $\alpha_{m} = \log{(1-\mathrm{\overline{err}}_m)/\mathrm{\overline{err}}_m}$
+  o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)}$.
+o Compute the new classifier $G(x)= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(x_i)$.
+
+For the iterations with $m \le 2$ the weights are modified
+individually at each steps. The observations which were misclassified
+at iteration $m-1$ have a weight which is larger than those which were
+classified properly. As this proceeds, the observations which were
+difficult to classifiy correctly are given a larger influence. Each
+new classification step $m$ is then forced to concentrate on those
+observations that are missed in the previous iterations.
+
+
+
+!split
+===== AdaBoost Examples =====
+
+Using _Scikit-Learn_ it is easy to apply the adaptive boosting algorithm, as done here.
+
+!bc pycod
+from sklearn.ensemble import AdaBoostClassifier
+
+ada_clf = AdaBoostClassifier(
+    DecisionTreeClassifier(max_depth=2), n_estimators=200,
+    algorithm="SAMME.R", learning_rate=0.01, random_state=42)
+ada_clf.fit(X_train, y_train)
+y_pred = ada_clf.predict(X_test)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = ada_clf.predict_proba(X_test)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
 plt.show()
 !ec
 
-So what do we have so far? We have 'picked' $k$ centroids at random from our
-data points. There are other ways of more intelligently choosing their
-initializations, however for our purposes randomly is fine. Then we have
-initialized an array 'distances' which holds the information of the distance,
-*or dissimilarity*, of every point to of our centroids. Finally, we have
-initialized an array 'cluster_labels' which according to our distances array
-holds the information of to which centroid every point is assigned. This was the
-first pass of our algorithm. Essentially, all we need to do now is repeat the
-distance and assignment steps above until we have reached a desired convergence
-or a maximum amount of iterations.
+
 
 !split
-===== Continuing =====
+===== Gradient boosting: Basics with Steepest Descent/Functional Gradient Descent =====
 
-!bc pycod
+Gradient boosting is again a similar technique to Adaptive boosting,
+it combines so-called weak classifiers or regressors into a strong
+method via a series of iterations.
 
-max_iterations = 100
-tolerance = 1e-8
-
-for iteration in range(max_iterations):
-    prev_centroids = centroids.copy()
-    for k in range(n_clusters):
-        # this array will be used to update our centroid positions
-        vector_mean = np.zeros(dimensions)
-        mean_divisor = 0
-        for n in range(n_samples):
-            if cluster_labels[n] == k:
-                vector_mean += data[n, :]
-                mean_divisor += 1
-
-        # update according to the k means
-        centroids[k, :] = vector_mean / mean_divisor
-
-    # we find the dissimilarity
-    for k in range(n_clusters):
-        for n in range(n_samples):
-            dist = 0
-            for d in range(dimensions):
-                dist += np.abs(data[n, d] - centroids[k, d])**2
-                distances[n, k] = dist
-
-    # assign each point
-    for n in range(n_samples):
-        smallest = 1e10
-        smallest_row_index = 1e10
-        for k in range(n_clusters):
-            if distances[n, k] < smallest:
-                smallest = distances[n, k]
-                smallest_row_index = k
-
-        cluster_labels[n] = smallest_row_index
-
-    # convergence criteria
-    centroid_difference = np.sum(np.abs(centroids - prev_centroids))
-    if centroid_difference < tolerance:
-        print(f'Converged at iteration {iteration}')
-        break
-
-    elif iteration == max_iterations:
-        print(f'Did not converge in {max_iterations} iterations')
-!ec
+In order to understand the method, let us illustrate its basics by
+bringing back the essential steps in linear regression, where our cost
+function was the least squares function.
 
 !split
-===== Wrapping it up =====
-We now have a simple , un-optimized $k$-means
-clustering implementation. Lets plot the final result
+===== The Squared-Error again! Steepest Descent =====
 
+We start again with our cost function ${\cal C}(\bm{y}m\bm{f})=\sum_{i=0}^{n-1}{\cal L}(y_i, f(x_i))$ where we want to minimize
+This means that for every iteration, we need to optimize
+
+!bt
+\[
+(\hat{\bm{f}}) = \mathrm{argmin}_{\bm{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+\]
+!et
+
+We define a real function $h_m(x)$ that defines our final function $f_M(x)$ as
+!bt
+\[
+f_M(x) = \sum_{m=0}^M h_m(x).
+\]
+!et
+
+In the steepest decent approach we approximate $h_m(x) = -\rho_m g_m(x)$, where $\rho_m$ is a scalar and $g_m(x)$ the gradient defined as
+!bt
+\[
+g_m(x_i) = \left[ \frac{\partial {\cal L}(y_i, f(x_i))}{\partial f(x_i)}\right]_{f(x_i)=f_{m-1}(x_i)}.
+\]
+!et
+
+With the new gradient we can update $f_m(x) = f_{m-1}(x) -\rho_m g_m(x)$. Using the above squared-error function we see that
+the gradient is $g_m(x_i) = -2(y_i-f(x_i))$.
+
+Choosing $f_0(x)=0$ we obtain $g_m(x) = -2y_i$ and inserting this into the minimization problem for the cost function we have
+!bt
+\[
+(\rho_1) = \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
+\]
+!et
+
+!split
+===== Steepest Descent Example =====
+
+Optimizing with respect to $\rho$ we obtain (taking the derivative) that $\rho_1 = -1/2$. We have then that
+!bt
+\[
+f_1(x) = f_{0}(x) -\rho_1 g_1(x)=-y_i.
+\]
+!et
+We can then proceed and compute
+!bt
+\[
+g_2(x_i) = \left[ \frac{\partial {\cal L}(y_i, f(x_i))}{\partial f(x_i)}\right]_{f(x_i)=f_{1}(x_i)=y_i}=-4y_i,
+\]
+!et
+and find a new value for $\rho_2=-1/2$ and continue till we have reached $m=M$. We can modify the steepest descent method, or steepest boosting, by introducing what is called _gradient boosting_. 
+
+!split
+===== Gradient Boosting, algorithm =====
+
+Steepest descent is however not much used, since it only optimizes $f$ at a fixed set of $n$ points,
+so we do not learn a function that can generalize. However, we can modify the algorithm by
+fitting a weak learner to approximate the negative gradient signal. 
+
+Suppose we have a cost function $C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i))$ where $y_i$ is our target and $f(x_i)$ the function which is meant to model $y_i$. The above cost function could be our standard  squared-error  function
+!bt
+\[
+C(\bm{y},\bm{f})=\sum_{i=0}^{n-1}(y_i-f(x_i))^2.
+\]
+!et
+
+The way we proceed in an iterative fashion is to
+o Initialize our estimate $f_0(x)$.
+o For $m=1:M$, we
+  o compute the negative gradient vector $\bm{u}_m = -\partial C(\bm{y},\bm{f})/\partial \bm{f}(x)$ at $f(x) = f_{m-1}(x)$;
+  o fit the so-called base-learner to the negative gradient $h_m(u_m,x)$;
+  o update the estimate $f_m(x) = f_{m-1}(x)+h_m(u_m,x)$;
+o The final estimate is then $f_M(x) = \sum_{m=1}^M h_m(u_m,x)$.
+
+
+
+!split
+===== Gradient Boosting, Examples of Regression =====
 !bc pycod
-fig = plt.figure()
-ax = fig.add_subplot()
-unique_cluster_labels = np.unique(cluster_labels)
-for i in unique_cluster_labels:
-    ax.scatter(data[cluster_labels == i, 0],
-               data[cluster_labels == i, 1],
-               label = i,
-               alpha = 0.2)
-    ax.scatter(centroids[:, 0], centroids[:, 1], c='black')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingRegressor
+import scikitplot as skplt
+from sklearn.metrics import mean_squared_error
 
-ax.set_title("Final Result of K-means Clustering")
+n = 100
+maxdegree = 6
 
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+
+error = np.zeros(maxdegree)
+bias = np.zeros(maxdegree)
+variance = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+for degree in range(1,maxdegree):
+    model = GradientBoostingRegressor(max_depth=degree, n_estimators=100, learning_rate=1.0)  
+    model.fit(X_train,y_train)
+    y_pred = model.predict(X_test)
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**2) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred))**2 )
+    variance[degree] = np.mean( np.var(y_pred) )
+    print('Max depth:', degree)
+    print('Error:', error[degree])
+    print('Bias^2:', bias[degree])
+    print('Var:', variance[degree])
+    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+
+plt.xlim(1,maxdegree-1)
+plt.plot(polydegree, error, label='Error')
+plt.plot(polydegree, bias, label='bias')
+plt.plot(polydegree, variance, label='Variance')
+plt.legend()
+save_fig("gdregression")
 plt.show()
 !ec
 
+
+!split
+===== Gradient Boosting, Classification Example =====
 !bc pycod
-def naive_kmeans(data, n_clusters=4, max_iterations=100, tolerance=1e-8):
-    start_time = time.time()
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+import scikitplot as skplt
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import cross_validate
 
-    n_samples, dimensions = data.shape
-    n_clusters = 4
-    #np.random.seed(2021)
-    centroids = data[np.random.choice(n_samples, n_clusters, replace=False), :]
-    distances = np.zeros((n_samples, n_clusters))
+# Load the data
+cancer = load_breast_cancer()
 
-    for k in range(n_clusters):
-        for n in range(n_samples):
-            dist = 0
-            for d in range(dimensions):
-                dist += np.abs(data[n, d] - centroids[k, d])**2
-                distances[n, k] = dist
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+#now scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-    cluster_labels = np.zeros(n_samples, dtype='int')
+gd_clf = GradientBoostingClassifier(max_depth=3, n_estimators=100, learning_rate=1.0)  
+gd_clf.fit(X_train_scaled, y_train)
+#Cross validation
+accuracy = cross_validate(gd_clf,X_test_scaled,y_test,cv=10)['test_score']
+print(accuracy)
+print("Test set accuracy with Gradient boosting and scaled data: {:.2f}".format(gd_clf.score(X_test_scaled,y_test)))
 
-    for n in range(n_samples):
-        smallest = 1e10
-        smallest_row_index = 1e10
-        for k in range(n_clusters):
-            if distances[n, k] < smallest:
-                smallest = distances[n, k]
-                smallest_row_index = k
+import scikitplot as skplt
+y_pred = gd_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+save_fig("gdclassiffierconfusion")
+plt.show()
+y_probas = gd_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+save_fig("gdclassiffierroc")
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+save_fig("gdclassiffiercgain")
+plt.show()
+!ec
 
-        cluster_labels[n] = smallest_row_index
 
-    for iteration in range(max_iterations):
-        prev_centroids = centroids.copy()
-        for k in range(n_clusters):
-            vector_mean = np.zeros(dimensions)
-            mean_divisor = 0
-            for n in range(n_samples):
-                if cluster_labels[n] == k:
-                    vector_mean += data[n, :]
-                    mean_divisor += 1
+!split
+===== XGBoost: Extreme Gradient Boosting =====
 
-            centroids[k, :] = vector_mean / mean_divisor
 
-        for k in range(n_clusters):
-            for n in range(n_samples):
-                dist = 0
-                for d in range(dimensions):
-                    dist += np.abs(data[n, d] - centroids[k, d])**2
-                    distances[n, k] = dist
+"XGBoost":"https://github.com/dmlc/xgboost" or Extreme Gradient
+Boosting, is an optimized distributed gradient boosting library
+designed to be highly efficient, flexible and portable. It implements
+machine learning algorithms under the Gradient Boosting
+framework. XGBoost provides a parallel tree boosting that solve many
+data science problems in a fast and accurate way. See the "article by Chen and Guestrin":"https://arxiv.org/abs/1603.02754".
 
-        for n in range(n_samples):
-            smallest = 1e10
-            smallest_row_index = 1e10
-            for k in range(n_clusters):
-                if distances[n, k] < smallest:
-                    smallest = distances[n, k]
-                    smallest_row_index = k
+The authors design and build a highly scalable end-to-end tree
+boosting system. It has  a theoretically justified weighted quantile
+sketch for efficient proposal calculation. It introduces a novel sparsity-aware algorithm for parallel tree learning and an effective cache-aware block structure for out-of-core tree learning.
 
-            cluster_labels[n] = smallest_row_index
+It is now the algorithm which wins essentially all ML competitions!!!
 
-        centroid_difference = np.sum(np.abs(centroids - prev_centroids))
-        if centroid_difference < tolerance:
-            print(f'Converged at iteration {iteration}')
-            print(f'Runtime: {time.time() - start_time} seconds')
+!split
+===== Regression Case =====
 
-            return cluster_labels, centroids
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import train_test_split
+import xgboost as xgb
+import scikitplot as skplt
+from sklearn.metrics import mean_squared_error
 
-    print(f'Did not converge in {max_iterations} iterations')
-    print(f'Runtime: {time.time() - start_time} seconds')
+n = 100
+maxdegree = 6
 
-    return cluster_labels, centroids
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+
+error = np.zeros(maxdegree)
+bias = np.zeros(maxdegree)
+variance = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+for degree in range(maxdegree):
+    model =  xgb.XGBRegressor(objective ='reg:squarederror', colsaobjective ='reg:squarederror', colsample_bytree = 0.3, learning_rate = 0.1,max_depth = degree, alpha = 10, n_estimators = 200)
+
+    model.fit(X_train,y_train)
+    y_pred = model.predict(X_test)
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**2) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred))**2 )
+    variance[degree] = np.mean( np.var(y_pred) )
+    print('Max depth:', degree)
+    print('Error:', error[degree])
+    print('Bias^2:', bias[degree])
+    print('Var:', variance[degree])
+    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+
+plt.xlim(1,maxdegree-1)
+plt.plot(polydegree, error, label='Error')
+plt.plot(polydegree, bias, label='bias')
+plt.plot(polydegree, variance, label='Variance')
+plt.legend()
+plt.show()
 
 !ec
+
+!split
+===== Xgboost on the Cancer Data =====
+
+As you will see from the confusion matrix below, XGBoots does an excellent job on the Wisconsin cancer data and outperforms essentially all agorithms we have discussed till now. 
+!bc pycod
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_validate
+import scikitplot as skplt
+import xgboost as xgb
+# Load the data
+cancer = load_breast_cancer()
+
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+#now scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+xg_clf = xgb.XGBClassifier()
+xg_clf.fit(X_train_scaled,y_train)
+
+y_test = xg_clf.predict(X_test_scaled)
+
+print("Test set accuracy with Gradient Boosting and scaled data: {:.2f}".format(xg_clf.score(X_test_scaled,y_test)))
+
+import scikitplot as skplt
+y_pred = xg_clf.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+save_fig("xdclassiffierconfusion")
+plt.show()
+y_probas = xg_clf.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+save_fig("xdclassiffierroc")
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+save_fig("gdclassiffiercgain")
+plt.show()
+
+
+xgb.plot_tree(xg_clf,num_trees=0)
+plt.rcParams['figure.figsize'] = [50, 10]
+save_fig("xgtree")
+plt.show()
+
+xgb.plot_importance(xg_clf)
+plt.rcParams['figure.figsize'] = [5, 5]
+save_fig("xgparams")
+plt.show()
+
+!ec
+
+
 
 
 
@@ -1453,7 +1024,7 @@ o Decisions trees and ensemble methods:
   o Bagging and voting
   o Random forests
   o Boosting and gradient boosting
-o Support vector machines
+o Support vector machines, not covered this year but included in notes
   o Binary classification and multiclass classification
   o Kernel methods
   o Regression
@@ -1475,7 +1046,7 @@ ethical conduct is emphasized throughout the course.
 * Understand linear methods for regression and classification;
 * Learn about neural network;
 * Learn about bagging, boosting and trees
-* Support vector machines
+* Support vector machines, not covered
 * Learn about basic data analysis;
 * Be capable of extending the acquired knowledge to other systems and cases;
 * Have an understanding of central algorithms used in data analysis and machine learning;
@@ -1583,13 +1154,13 @@ o Jackknife and many other
 !split
 ===== Other courses on Data science and Machine Learning  at UiO =====
 
-The link here URL:"https://www.mn.uio.no/english/research/about/centre-focus/innovation/data-science/studies/"  gives an excellent overview of courses on Machine learning at UiO.
 
+o "FYS5429 Advanced Machine Learning and Data Analysis for the Physical Sciences":"https://www.uio.no/studier/emner/matnat/fys/FYS5429/index-eng.html"
+o "FYS5419 Quantum Computing and Quantum Machine Learning":"https://www.uio.no/studier/emner/matnat/fys/FYS5419/index-eng.html"
 o "STK2100 Machine learning and statistical methods for prediction and classification":"http://www.uio.no/studier/emner/matnat/math/STK2100/index-eng.html". 
 o "IN3050/IN4050 Introduction to Artificial Intelligence and Machine Learning":"https://www.uio.no/studier/emner/matnat/ifi/IN3050/index-eng.html". Introductory course in machine learning and AI with an algorithmic approach. 
 o "STK-INF3000/4000 Selected Topics in Data Science":"http://www.uio.no/studier/emner/matnat/math/STK-INF3000/index-eng.html". The course provides insight into selected contemporary relevant topics within Data Science. 
-o "IN4080 Natural Language Processing":"https://www.uio.no/studier/emner/matnat/ifi/IN4080/index.html". Probabilistic and machine learning techniques applied to natural language processing. 
-o "STK-IN4300 – Statistical learning methods in Data Science":"https://www.uio.no/studier/emner/matnat/math/STK-IN4300/index-eng.html". An advanced introduction to statistical and machine learning. For students with a good mathematics and statistics background.
+o "IN4080 Natural Language Processing":"https://www.uio.no/studier/emner/matnat/ifi/IN4080/index.html". Probabilistic and machine learning techniques applied to natural language processing. o "STK-IN4300 – Statistical learning methods in Data Science":"https://www.uio.no/studier/emner/matnat/math/STK-IN4300/index-eng.html". An advanced introduction to statistical and machine learning. For students with a good mathematics and statistics background.
 o "IN-STK5000  Adaptive Methods for Data-Based Decision Making":"https://www.uio.no/studier/emner/matnat/ifi/IN-STK5000/index-eng.html". Methods for adaptive collection and processing of data based on machine learning techniques. 
 o "IN5400/INF5860 – Machine Learning for Image Analysis":"https://www.uio.no/studier/emner/matnat/ifi/IN5400/". An introduction to deep learning with particular emphasis on applications within Image analysis, but useful for other application areas too.
 o "TEK5040 – Dyp læring for autonome systemer":"https://www.uio.no/studier/emner/matnat/its/TEK5040/". The course addresses advanced algorithms and architectures for deep learning with neural networks. The course provides an introduction to how deep-learning techniques can be used in the construction of key parts of advanced autonomous systems that exist in physical environments and cyber environments.
@@ -2149,6 +1720,11 @@ _Here: with AI/ML we intend a collection of machine learning methods with an emp
 =====  Best wishes to you all and thanks so much for your heroic efforts this semester =====
 
 FIGURE: [figures/Nebbdyr2.png, width=500 frac=0.6]
+
+
+
+
+
 
 
 
