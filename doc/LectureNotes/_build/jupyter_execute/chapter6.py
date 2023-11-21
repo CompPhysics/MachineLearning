@@ -663,7 +663,7 @@ os.system(cmd)
 # 
 # In the example here we have converted all our attributes into numerical values $0,1,2$ etc.
 
-# In[ ]:
+# In[7]:
 
 
 # Split a dataset based on an attribute and an attribute value
@@ -762,7 +762,7 @@ print('Split: [X%d < %.3f]' % ((split['index']+1), split['value']))
 # 
 # ### Cancer Data again now with Decision Trees and other Methods
 
-# In[ ]:
+# In[8]:
 
 
 import matplotlib.pyplot as plt
@@ -810,7 +810,7 @@ print("Test set accuracy with Decision Trees and scaled data: {:.2f}".format(dee
 
 # ### Another example, the moons again
 
-# In[ ]:
+# In[9]:
 
 
 from __future__ import division, print_function, unicode_literals
@@ -879,7 +879,7 @@ plt.title("min_samples_leaf = {}".format(deep_tree_clf2.min_samples_leaf), fonts
 plt.show()
 
 
-# In[ ]:
+# In[10]:
 
 
 np.random.seed(6)
@@ -904,7 +904,7 @@ plot_decision_boundary(tree_clf_sr, Xsr, ys, axes=[-0.7, 0.7, -0.7, 0.7], iris=F
 plt.show()
 
 
-# In[ ]:
+# In[11]:
 
 
 # Quadratic training set + noise
@@ -915,7 +915,7 @@ y = 4 * (X - 0.5) ** 2
 y = y + np.random.randn(m, 1) / 10
 
 
-# In[ ]:
+# In[12]:
 
 
 from sklearn.tree import DecisionTreeRegressor
@@ -924,7 +924,7 @@ tree_reg = DecisionTreeRegressor(max_depth=2, random_state=42)
 tree_reg.fit(X, y)
 
 
-# In[ ]:
+# In[13]:
 
 
 from sklearn.tree import DecisionTreeRegressor
@@ -967,7 +967,7 @@ plt.title("max_depth=3", fontsize=14)
 plt.show()
 
 
-# In[ ]:
+# In[14]:
 
 
 tree_reg1 = DecisionTreeRegressor(random_state=42)
