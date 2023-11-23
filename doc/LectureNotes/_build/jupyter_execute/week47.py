@@ -28,6 +28,10 @@
 # 
 #     * These lecture notes
 # 
+#     * [Video of Lecture](https://youtu.be/SpWXsvn5I9E)
+# 
+#     * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesNov23.pdf)
+# 
 #     * [Video on Decision trees](https://www.youtube.com/watch?v=RmajweUFKvM&ab_channel=Simplilearn)
 # 
 #     * [Video on boosting methods by Hastie](https://www.youtube.com/watch?v=wPqtzj5VZus&ab_channel=H2O.ai)
@@ -86,13 +90,44 @@
 
 get_ipython().run_line_magic('matplotlib', 'inline')
 
-
+# Common imports
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.utils import resample
 from sklearn.tree import DecisionTreeRegressor
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from IPython.display import Image 
+import os
+
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
 
 n = 100
 n_boostraps = 100
@@ -1154,7 +1189,7 @@ plt.show()
 
 # ## Other courses on Data science and Machine Learning  at UiO
 # 
-# 1. [FYS5429 Advanced Machine Learning and Data Analysis for the Physical Sciences](https://www.uio.no/studier/emner/matnat/fys/FYS5429/index-eng.html)
+# 1. [FYS5429 Advanced Machine Learning and Data Analysis for the Physical Sciences](https://www.uio.no/studier/emner/matnat/fys/FYS5429/index-eng.html). Discussed deep learning and generative deep learning.
 # 
 # 2. [FYS5419 Quantum Computing and Quantum Machine Learning](https://www.uio.no/studier/emner/matnat/fys/FYS5419/index-eng.html)
 # 
@@ -1195,6 +1230,8 @@ plt.show()
 # 2. Recurrent neural networks, which can process sequential data of variable length and have been widely used in natural language understanding and speech processing;
 # 
 # 3. Encoder-decoder framework, which is mostly used for image or sequence generation, such as machine translation, text summarization, and image captioning.
+# 
+# 4. **Generative deep learning**! Recent textbook by David Foster (and obviously many other ones) at <https://www.oreilly.com/library/view/generative-deep-learning/9781492041931/>"
 
 # ## Types of Machine Learning, a repetition
 # 
@@ -1228,7 +1265,7 @@ plt.show()
 
 # ## Boltzmann Machines
 # 
-# Why use a generative model rather than the more well known discriminative deep neural networks (DNN)? 
+# Why use a generative model rather than the more well known discriminative deep neural networks (DNN)?  **Simplest approach to generative deep learning**.
 # 
 # * Discriminitave methods have several limitations: They are mainly supervised learning methods, thus requiring labeled data. And there are tasks they cannot accomplish, like drawing new examples from an unknown probability distribution.
 # 
