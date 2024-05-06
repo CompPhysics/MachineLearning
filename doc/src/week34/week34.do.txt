@@ -1499,32 +1499,36 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import accuracy_score
 import seaborn as sns
 
+
 X_train = X
 Y_train = Energies
-n_hidden_neurons = 100
+n_hidden_neurons = 50
 epochs = 100
 # store models for later use
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
+eta_vals = np.logspace(-3, 0, 4)
+lmbd_vals = np.logspace(-3, 0, 4)
 # store the models for later use
 DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
 train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
 sns.set()
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
-        dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons), activation='logistic',
+        dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons), activation='relu', solver='adam',
                             alpha=lmbd, learning_rate_init=eta, max_iter=epochs)
         dnn.fit(X_train, Y_train)
         DNN_scikit[i][j] = dnn
         train_accuracy[i][j] = dnn.score(X_train, Y_train)
-
+        fity = dnn.predict(X_train)
+        MSE = mean_squared_error(Y_train, fity)
+        print("Mean squared error: %.2f" % mean_squared_error(Y_train, fity))
+        train_accuracy[i][j] = MSE
 fig, ax = plt.subplots(figsize = (10, 10))
 sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
 ax.set_title("Training Accuracy")
 ax.set_ylabel("$\eta$")
 ax.set_xlabel("$\lambda$")
 plt.show()
-
+print(train_accuracy)
 
 
 !ec
