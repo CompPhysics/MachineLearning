@@ -229,26 +229,29 @@ Here we list several useful Python libraries we strongly recommend (if you use a
 ## Textbooks
 
 _Recommended textbooks_:
-The lecture notes are collected as a jupyter-book at https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In addition to the electure notes, we recommend the books of Bishop, Murphy and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these two texts.
-- Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. You can download for free the textbook in PDF format at https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf
+
+The lecture notes are collected as a jupyter-book at
+https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html. In
+addition to the electure notes, we recommend the books of Goodfellow et al. and Raschka et al. We will follow these texts closely and
+the weekly reading assignments refer to these two texts.
+
 - Ian Goodfellow, Yoshua Bengio, and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended. The lectures follow to a good extent this text.
-- Kevin Murphy, Probabilistic Machine Learning, an Introduction, https://probml.github.io/pml-book/book1.html
+- Sebastian Raschka, Yuxi Lie, and Vahid Mirjalili,  Machine Learning with PyTorch and Scikit-Learn at https://www.packtpub.com/product/machine-learning-with-pytorch-and-scikit-learn/9781801819312, see also https://sebastianraschka.com/blog/2022/ml-pytorch-book.html
+
+The text by Raschka et al. is well-adapted to this text and contains many coding examples. 
 The weekly plans will include reading suggestions from these two textbooks. In addition, you may find the following textbooks interesting.
+
 _Additional textbooks_:
+- Christopher M. Bishop, Pattern Recognition and Machine Learning, Springer, https://www.springer.com/gp/book/9780387310732. This is the main textbook and this course covers chapters 1-7, 11 and 12. You can download for free the textbook in PDF format at https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf
+- Kevin Murphy, Probabilistic Machine Learning, an Introduction, https://probml.github.io/pml-book/book1.html
 - Trevor Hastie, Robert Tibshirani, Jerome H. Friedman, The Elements of Statistical Learning, Springer, https://www.springer.com/gp/book/9780387848570. This is a well-known text and serves as additional literature.
 - Aurelien Geron, Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly, https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/. This text is very useful since it contains many code examples and hands-on applications of all algorithms discussed in this course.
-
-
-
+- David Foster, Generative Deep Learning, https://www.oreilly.com/library/view/generative-deep-learning/9781098134174/
+- Babcock and Gavras, Generative AI with Python and TensorFlow, https://github.com/PacktPublishing/Hands-On-Generative-AI-with-Python-and-TensorFlow-2
 
 _General learning book on statistical analysis_:
 - Christian Robert and George Casella, Monte Carlo Statistical Methods, Springer
 - Peter Hoff, A first course in Bayesian statistical models, Springer
-
-_General Machine Learning Books_:
-- Kevin Murphy, Machine Learning: A Probabilistic Perspective, MIT Press
-- David J.C. MacKay, Information Theory, Inference, and Learning Algorithms, Cambridge University Press
-- David Barber, Bayesian Reasoning and Machine Learning, Cambridge University Press 
 
 
 ## Links to relevant courses at the University of Oslo
@@ -266,6 +269,9 @@ _General Machine Learning Books_:
 - _STK4021 Applied Bayesian Analysis and Numerical Methods_ https://www.uio.no/studier/emner/matnat/math/STK4021/
 
 
+
+
+## Recommended textbooks:
 
 
 
