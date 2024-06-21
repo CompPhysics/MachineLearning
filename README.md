@@ -6,12 +6,15 @@ Data Analysis and Machine Learning.
 
 ## Introduction
 
-Probability theory and statistical methods play a central role in Science. Nowadays we are
-surrounded by huge amounts of data. For example, there are more than one trillion web pages; more than one
-hour of video is uploaded to YouTube every second, amounting to years of content every
-day; the genomes of 1000s of people, each of which has a length of more than a billion  base pairs, have
-been sequenced by various labs and so on. This deluge of data calls for automated methods of data analysis,
-which is exactly what machine learning aims at providing. 
+Probability theory and statistical methods play a central role in
+Science. Nowadays we are surrounded by huge amounts of data. For
+example, there are more than one trillion web pages; more than one
+hour of video is uploaded to YouTube every second, amounting to years
+of content every day; the genomes of 1000s of people, each of which
+has a length of more than a billion base pairs, have been sequenced by
+various labs and so on. This deluge of data calls for automated
+methods of data analysis, which is exactly what machine learning aims
+at providing.
 
 ## Learning outcomes
 
@@ -97,12 +100,12 @@ possible.
 
 ##  Teaching team Fall 2023
 * Karl Henrik Fredly, k.h.fredly@fys.uio.no
-* Daniel Haas Becattini Lima, d.h.b.lima@fys.uio.no
+* TBA
 * Morten Hjorth-Jensen, mhjensen@uio.no
   * _Phone_: +47-48257387
   * _Office_: Department of Physics, room FØ470 
   * _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning. 
-* Adam Jakobsen, adam.jakobsen@fys.uio.no
+* TBA
 * Fahimeh Najafi, fahimeh.najafi@fys.uio.no
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
 * Mia-Katrin Ose Kvalsund, m.k.o.kvalsund@fys.uio.no
