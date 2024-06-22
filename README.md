@@ -1,6 +1,5 @@
 # Applied Data Analysis and Machine Learning
 
-
 This site contains all material relevant for the course on Applied
 Data Analysis and Machine Learning.
 
@@ -100,17 +99,14 @@ possible.
 
 ##  Teaching team Fall 2023
 * Karl Henrik Fredly, k.h.fredly@fys.uio.no
-* TBA
 * Morten Hjorth-Jensen, mhjensen@uio.no
   * _Phone_: +47-48257387
   * _Office_: Department of Physics, room FØ470 
   * _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning. 
-* TBA
 * Fahimeh Najafi, fahimeh.najafi@fys.uio.no
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
 * Mia-Katrin Ose Kvalsund, m.k.o.kvalsund@fys.uio.no
-
-
+* Two more TAs TBA
 
 ##  Discord as discussion tool
 * Our Discord channel is at https://discord.gg/mKq3zjxP
