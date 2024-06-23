@@ -141,11 +141,11 @@ The final number of points is based on the average of all projects (including ev
 
 ### In summary
 
-| Activity | Percentage of total score |
+| Activity | Fraction of total grade |
 |------|-----|
-| First project, _due October 9_ | 33.3% (1/3) |
-| Second  project, _due November 6_ | 33.3% (1.3) |
-| Third project, _due December 11_ |  33.3% (1/3)  |
+| First project, _due October 7_ | 1/3 |
+| Second  project, _due November 4_ | 1.3 |
+| Third project, _due December 9_ |  1/3  |
 | Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Fridays)| 10% |
 
 
@@ -173,12 +173,17 @@ For OSX users we recommend, after having installed Xcode, to
 install _brew_. Brew allows for a seamless installation of additional
 software via for example 
 
-* brew install python3
+* brew install python
+
 
 For Linux users, with its variety of distributions like for example the widely popular Ubuntu distribution,
 you can use _pip_ as well and simply install Python as 
 
-* sudo apt-get install python3
+* sudo apt-get install python
+
+You can specify the python version you wish to install. 
+
+For various dependencies, we recommend installing a light variant of conda.
 
 ### Python installers
 
