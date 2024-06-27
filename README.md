@@ -275,12 +275,6 @@ _General learning book on statistical analysis_:
 
 
 
-## Recommended textbooks:
-
-
-
-
-
 
 
  
