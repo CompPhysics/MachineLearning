@@ -8,7 +8,7 @@
 # # Exercises week 34
 # **FYS-STK3155/4155**
 # 
-# Date: **August 21-25, 2023**
+# Date: **August 19-23, 2024**
 
 # ## Exercises
 # 

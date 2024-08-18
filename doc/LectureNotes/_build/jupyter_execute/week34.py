@@ -8,7 +8,7 @@
 # # Week 34: Introduction to the course, Logistics and Practicalities
 # **Morten Hjorth-Jensen**, Department of Physics and Center for Computing in Science Education, University of Oslo, Norway and Department of Physics and Astronomy and Facility for Rare Isotope Beams, Michigan State University, USA
 # 
-# Date: **Week 34, August 21-25, 2023**
+# Date: **Week 34, August 19-23, 2024**
 
 # ## Overview of first week
 # 
@@ -22,23 +22,25 @@
 # 
 #   * Wednesdays 815am-12pm and 1215pm-4pm.
 # 
-# 4. On Thursdays we have a regular lecture. These lectures start at 1215pm and end at 2pm and serve the aims of giving an overview over various topics. These lectures will also be recorded.
+# 4. On Mondays  we have a regular lecture which will be organized as a mix of active learning sessions and regular lectures. These lectures/active learning sessions start at 1015am and end at 12pm and serve the aims of giving an overview over various topics as well as solving specific problems. These lectures will also be recorded.
+# 
+#   * [Link to recording of lecture TBA](https://youtu.be/)
 # 
 # The labs are also available till 6pm Tuesdays and Wednesdays. Videos and learning material with reading suggestions will be made available before each week starts.
 
 # ## Schedule first week
 # 
-#   * August 22: Presentation of the course, aims and content. Introduction to software and repetition of Python Programming, linear algebra and basic elements of statistics. Please select group.
+#   * August 19: Lecture: Presentation of course, Linear regression, examples and theory 
 # 
-#   * August 23: Presentation of the course, aims and content. Introduction to software and repetition of Python Programming, linear algebra and basic elements of statistics. Please select group.
+#   * August 20: Introduction to software and repetition of Python Programming, linear algebra and basic elements of statistics. Please select group.
 # 
-#   * August 24: Lecture: Linear regression, examples and theory
+#   * August 23: Introduction to software and repetition of Python Programming, linear algebra and basic elements of statistics. Please select group.
 
 # ## Lectures and ComputerLab
 # 
-#   * The sessions on Tuesdays and Wednesdays last four hours and will include partly lectures in a flipped mode (promoting active learning) and work on exercices and projects.
+#   * Mondays: regular lectures/active learning sessions (10.15am-12pm) 
 # 
-#   * Thursdays: regular lectures (12.15pm-2pm) 
+#   * The sessions on Tuesdays and Wednesdays last four hours and will include partly lectures and discussions in the beginning.
 # 
 #   * Weekly reading assignments and videos needed to solve projects and exercises.
 # 
@@ -52,9 +54,9 @@
 
 # ## Communication channels
 # 
-# * Chat and communications via <canvas.uio.no>
+# * Communications (email and more) via <canvas.uio.no>
 # 
-# * **Discord** channel will be added asap
+# * **Discord** channel at <https://discord.gg/hAaBRWFT72>
 
 # ## Course Format
 # 
@@ -88,19 +90,19 @@
 # 
 # * Karl Henrik Fredly, k.h.fredly@fys.uio.no
 # 
-# * Adam Jakobsen, adam.jakobsen@fys.uio.no
+# * Sigurd k. Huse, s.k.huse@fys.uio.no
 # 
-# * Daniel Haas Beccatini Lima, d.h.b.lima@fys.uio.no
+# * Odin Johansen, odin.johansen@fys.uio.no
 
 # ## Deadlines for projects (tentative)
 # 
-# 1. Project 1: October 9 (available September 4) graded with feedback)
+# 1. Project 1: October 7 (available September 2) graded with feedback)
 # 
-# 2. Project 2: November 6 (available October 6, graded with feedback)
+# 2. Project 2: November 4 (available October 8, graded with feedback)
 # 
-# 3. Project 3: December 11  (available November 10, graded with feedback)
+# 3. Project 3: December 9  (available November 5, graded with feedback)
 # 
-# Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Friday same week), 10% additional score. The extra credit assignments are due each Friday and can be uploaed to **Canvas** in your preferred format (although we prefer jupyter-notebooks). First assignment is for week 35. Each weekly exercise set counts 1%.
+# Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Friday same week), 10% additional score. The extra credit assignments are due each Sunday and can be uploaed to **Canvas** in your preferred format (although we prefer jupyter-notebooks). First assignment is for week 35. Each weekly exercise set counts 1%.
 
 # ## Grading
 # 
@@ -125,12 +127,25 @@
 # ## Reading material
 # 
 # The lecture notes are collected as a jupyter-book at <https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/intro.html>.
+# The lecture notes can also be retrieved as a standard PDF file at <https://compphysics.github.io/MachineLearning/doc/LectureNotes/MLbook.pdf>.
 # 
-# In addition to the lecture notes, we recommend the books of Bishop, Hastie et al, Murphy and Goodfellow et al. We will follow these texts closely and the weekly reading assignments refer to these texts. The text by Hastie et al is also widely used in the Machine Learning community. Finally, we also recommend the hands-on text by Geron, see next slide for links.
+# In addition to the lecture notes, we recommend the books of Rasckha et
+# al and Goodfellow et al. We will follow these texts closely and the
+# weekly reading assignments refer to these texts. The text by Hastie et
+# al is also widely used in the Machine Learning community. See next slide for link to textbooks.
 
-# ## Textbooks
+# ## Main textbooks
 # 
-# * [Goodfellow, Bengio, and Courville (GBC), Deep Learning](https://www.deeplearningbook.org/)
+# * Goodfellow, Bengio, and Courville (GBC), Deep Learning <https://www.deeplearningbook.org/>
+# 
+# * Sebastian Raschka, Yuxi Lie, and Vahid Mirjalili (RLM),  Machine Learning with PyTorch and Scikit-Learn at <https://www.packtpub.com/product/machine-learning-with-pytorch-and-scikit-learn/9781801819312>, see also <https://sebastianraschka.com/blog/2022/ml-pytorch-book.html>
+# 
+# The weekly reading suggestions are all from these two texts. The text by GBC can be accessed chapter by chapter from the abovementioned URL.
+# Each chapter of RLM gives access to the pertinent notebooks. These notebooks are highly recommended.
+
+# ## Other popular texts
+# 
+# **Other texts.**
 # 
 # * Christopher M. Bishop (CB), Pattern Recognition and Machine Learning
 # 
@@ -139,10 +154,14 @@
 # * [Aurelien Geron (AG), Hands‑On Machine Learning with Scikit‑Learn and TensorFlow, O'Reilly](https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/). This text is very useful since it contains many code examples and hands-on applications of all algorithms discussed in this course.
 # 
 # * [Kevin Murphy (KM), Probabilistic Machine Learning, an Introduction](https://probml.github.io/pml-book/book1.html)
+# 
+# * David Foster (DF), Generative Deep Learning, <https://www.oreilly.com/library/view/generative-deep-learning/9781098134174/>
+# 
+# * Babcock and Gavras (BG), Generative AI with Python and TensorFlow, <https://github.com/PacktPublishing/Hands-On-Generative-AI-with-Python-and-TensorFlow-2>
 
 # ## Reading suggestions week 34
 # 
-# This week: Refresh linear algebra, GBC chapters 1 and 2. HTF chapters 2 and 3. Install scikit-learn. See lecture notes for week 34 at <https://compphysics.github.io/MachineLearning/doc/web/course.html> (these notes).
+# This week: Refresh linear algebra, GBC chapter 2. Install scikit-learn. See lecture notes for week 34 at <https://compphysics.github.io/MachineLearning/doc/web/course.html> (these notes).
 
 # ## Prerequisites
 # 
@@ -195,7 +214,9 @@
 # 
 #   * Support vector machines (only survey);
 # 
-#   * Unsupervised learning and  dimensionality reduction, from PCA to clustering;  
+#   * Unsupervised learning and  dimensionality reduction, from PCA to clustering;
+
+# ## Deep learning methods
 # 
 # * Deep learning  
 # 
@@ -207,7 +228,7 @@
 # 
 #   * Autoencoders
 # 
-#   * Generative methods with an emphasis on Boltzmann Machines, Variational Autoencoders and Generalized Adversarial Networks;
+#   * Generative methods with an emphasis on Boltzmann Machines, Variational Autoencoders and Generalized Adversarial Networks(covered by FYS5429);
 # 
 # Hands-on demonstrations, exercises and projects aim at deepening your understanding of these topics.
 
@@ -245,20 +266,6 @@
 
 # ## Learning outcomes
 # 
-# This course aims at giving you insights and knowledge about many of
-# the central algorithms used in Data Analysis and Machine Learning.
-# The course is project based and through various numerical projects,
-# normally three, you will be exposed to fundamental research problems
-# in these fields, with the aim to reproduce state of the art scientific
-# results. Both supervised and unsupervised methods will be covered. The
-# emphasis is on a frequentist approach, although we will try to link it
-# with a Bayesian approach as well. You will learn to develop and
-# structure large codes for studying different cases where Machine
-# Learning is applied to, get acquainted with computing facilities and
-# learn to handle large scientific projects. A good scientific and
-# ethical conduct is emphasized throughout the course. More
-# specifically, after this course you will
-# 
 # * Learn about basic data analysis, statistical analysis, Bayesian statistics, Monte Carlo sampling, data optimization and machine learning;
 # 
 # * Be capable of extending the acquired knowledge to other systems and cases;
@@ -278,118 +285,6 @@
 # * Generative models
 # 
 # * Work on numerical projects to illustrate the theory. The projects play a central role and you are expected to know modern programming languages like Python or C++ and/or Fortran (Fortran2003 or later) or Julia or other.
-
-# ## Introduction
-# 
-# Our emphasis throughout this series of lectures  
-# is on understanding the mathematical aspects of
-# different algorithms used in the fields of data analysis and machine learning. 
-# 
-# However, where possible we will emphasize the
-# importance of using available software. We start thus with a hands-on
-# and top-down approach to machine learning. The aim is thus to start with
-# relevant data or data we have produced 
-# and use these to introduce statistical data analysis
-# concepts and machine learning algorithms before we delve into the
-# algorithms themselves. The examples we will use in the beginning, start with simple
-# polynomials with random noise added. We will use the Python
-# software package [Scikit-Learn](http://scikit-learn.org/stable/) and
-# introduce various machine learning algorithms to make fits of
-# the data and predictions. We move thereafter to more interesting
-# cases such as data from say experiments (below we will look at experimental nuclear binding energies as an example).
-# These are examples where we can easily set up the data and
-# then use machine learning algorithms included in for example
-# **Scikit-Learn**. 
-# 
-# These examples will serve us the purpose of getting
-# started. Furthermore, they allow us to catch more than two birds with
-# a stone. They will allow us to bring in some programming specific
-# topics and tools as well as showing the power of various Python 
-# libraries for machine learning and statistical data analysis.  
-# 
-# Although we have projects where you write your own codes, we will also focus on two
-# specific Python packages for Machine Learning, Scikit-Learn and
-# Tensorflow with Keras (see below for links etc).  Moreover, the examples we
-# introduce will serve as inputs to many of our discussions later, as
-# well as allowing you to set up models and produce your own data and
-# get started with programming.
-
-# ## AI/ML and some statements you may have heard (and what do they mean?)
-# 
-# 1. Fei-Fei Li on ImageNet: **map out the entire world of objects** ([The data that transformed AI research](https://cacm.acm.org/news/219702-the-data-that-transformed-ai-research-and-possibly-the-world/fulltext))
-# 
-# 2. Russell and Norvig in their popular textbook: **relevant to any intellectual task; it is truly a universal field** ([Artificial Intelligence, A modern approach](http://aima.cs.berkeley.edu/))
-# 
-# 3. Woody Bledsoe puts it more bluntly: **in the long run, AI is the only science** (quoted in Pamilla McCorduck, [Machines who think](https://www.pamelamccorduck.com/machines-who-think))
-# 
-# If you wish to have a critical read on AI/ML from a societal point of view, see [Kate Crawford's recent text Atlas of AI](https://www.katecrawford.net/)
-# 
-# **Here: with AI/ML we intend a collection of machine learning methods with an emphasis on statistical learning and data analysis**
-
-# ## What is Machine Learning?
-# 
-# Statistics, data science and machine learning form important fields of
-# research in modern science.  They describe how to learn and make
-# predictions from data, as well as allowing us to extract important
-# correlations about physical process and the underlying laws of motion
-# in large data sets. The latter, big data sets, appear frequently in
-# essentially all disciplines, from the traditional Science, Technology,
-# Mathematics and Engineering fields to Life Science, Law, education
-# research, the Humanities and the Social Sciences. 
-# 
-# It has become more
-# and more common to see research projects on big data in for example
-# the Social Sciences where extracting patterns from complicated survey
-# data is one of many research directions.  Having a solid grasp of data
-# analysis and machine learning is thus becoming central to scientific
-# computing in many fields, and competences and skills within the fields
-# of machine learning and scientific computing are nowadays strongly
-# requested by many potential employers. The latter cannot be
-# overstated, familiarity with machine learning has almost become a
-# prerequisite for many of the most exciting employment opportunities,
-# whether they are in bioinformatics, life science, physics or finance,
-# in the private or the public sector. This author has had several
-# students or met students who have been hired recently based on their
-# skills and competences in scientific computing and data science, often
-# with marginal knowledge of machine learning.
-# 
-# Machine learning is a subfield of computer science, and is closely
-# related to computational statistics.  It evolved from the study of
-# pattern recognition in artificial intelligence (AI) research, and has
-# made contributions to AI tasks like computer vision, natural language
-# processing and speech recognition. Many of the methods we will study are also 
-# strongly rooted in basic mathematics and physics research. 
-# 
-# Ideally, machine learning represents the science of giving computers
-# the ability to learn without being explicitly programmed.  The idea is
-# that there exist generic algorithms which can be used to find patterns
-# in a broad class of data sets without having to write code
-# specifically for each problem. The algorithm will build its own logic
-# based on the data.  You should however always keep in mind that
-# machines and algorithms are to a large extent developed by humans. The
-# insights and knowledge we have about a specific system, play a central
-# role when we develop a specific machine learning algorithm. 
-# 
-# Machine learning is an extremely rich field, in spite of its young
-# age. The increases we have seen during the last three decades in
-# computational capabilities have been followed by developments of
-# methods and techniques for analyzing and handling large date sets,
-# relying heavily on statistics, computer science and mathematics.  The
-# field is rather new and developing rapidly. Popular software packages
-# written in Python for machine learning like
-# [Scikit-learn](http://scikit-learn.org/stable/),
-# [Tensorflow](https://www.tensorflow.org/),
-# [PyTorch](http://pytorch.org/) and [Keras](https://keras.io/), all
-# freely available at their respective GitHub sites, encompass
-# communities of developers in the thousands or more. And the number of
-# code developers and contributors keeps increasing. Not all the
-# algorithms and methods can be given a rigorous mathematical
-# justification, opening up thereby large rooms for experimenting and
-# trial and error and thereby exciting new developments.  However, a
-# solid command of linear algebra, multivariate theory, probability
-# theory, statistical data analysis, understanding errors and Monte
-# Carlo methods are central elements in a proper understanding of many
-# of algorithms and methods we will discuss.
 
 # ## Types of Machine Learning
 # 
@@ -579,7 +474,9 @@
 # 
 # * [Keras](https://keras.io/) is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano
 # 
-# * And many more such as [pytorch](https://pytorch.org/),  [Theano](https://pypi.org/project/Theano/) etc
+# * [Pytorch](https://pytorch.org/), highly recommened
+# 
+# * [Theano](https://pypi.org/project/Theano/) and many other
 
 # ## Installing R, C++, cython or Julia
 # 
@@ -1551,31 +1448,36 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import accuracy_score
 import seaborn as sns
 
+
 X_train = X
 Y_train = Energies
-n_hidden_neurons = 100
+n_hidden_neurons = 50
 epochs = 100
 # store models for later use
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
+eta_vals = np.logspace(-3, 0, 4)
+lmbd_vals = np.logspace(-3, 0, 4)
 # store the models for later use
 DNN_scikit = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
 train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
 sns.set()
 for i, eta in enumerate(eta_vals):
     for j, lmbd in enumerate(lmbd_vals):
-        dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons), activation='logistic',
+        dnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons), activation='relu', solver='adam',
                             alpha=lmbd, learning_rate_init=eta, max_iter=epochs)
         dnn.fit(X_train, Y_train)
         DNN_scikit[i][j] = dnn
         train_accuracy[i][j] = dnn.score(X_train, Y_train)
-
+        fity = dnn.predict(X_train)
+        MSE = mean_squared_error(Y_train, fity)
+        print("Mean squared error: %.2f" % mean_squared_error(Y_train, fity))
+        train_accuracy[i][j] = MSE
 fig, ax = plt.subplots(figsize = (10, 10))
 sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
 ax.set_title("Training Accuracy")
 ax.set_ylabel("$\eta$")
 ax.set_xlabel("$\lambda$")
 plt.show()
+print(train_accuracy)
 
 
 # ## A first summary

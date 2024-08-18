@@ -8,7 +8,7 @@
 # # Week 35: From Ordinary Linear Regression to Ridge and Lasso Regression
 # **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 # 
-# Date: **August 28-September 1**
+# Date: **August 26-30**
 
 # ## Plans for week 35
 # 
@@ -20,21 +20,15 @@
 # 
 # 3. Discussion on how to prepare data and examples of applications of linear regression
 # 
-# 4. Material for the lecture on Thursday: Mathematical interpretations of linear regression
+# 4. Material for the lecture on Monday: Mathematical interpretations of linear regression
 # 
-# 5. Thursday: Ridge and Lasso regression and Singular Value Decomposition
-# 
-# 6. [Video of lecture](https://youtu.be/qBNm-HGSxL4)
-# 
-# 7. [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesAug31.pdf)
+# 5. Monday: Ridge and Lasso regression and Singular Value Decomposition
 
 # ### Reading recommendations:
 # 
 # 1. See lecture notes for week 35 at <https://compphysics.github.io/MachineLearning/doc/web/course.html>
 # 
 # 2. Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra and sections 3.1-3.10 on elements of statistics (background)
-# 
-# 3. Hastie, Tibshirani and Friedman, The elements of statistical learning, sections 3.1-3.4 (on relevance for the discussion of linear regression).
 
 # ## Why Linear Regression (aka Ordinary Least Squares and family), repeat from last week
 # 

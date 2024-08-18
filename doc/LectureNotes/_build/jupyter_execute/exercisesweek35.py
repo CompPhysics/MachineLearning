@@ -6,9 +6,9 @@
 # <!-- dom:TITLE: Exercises week 35 -->
 
 # # Exercises week 35
-# **August 28-September 1, 2023**
+# **August 26-30, 2024**
 # 
-# Date: **Deadline is Friday September 1 at midnight**
+# Date: **Deadline is Friday August 30 at midnight**
 
 # ## Exercise 1: Analytical exercises
 # 
