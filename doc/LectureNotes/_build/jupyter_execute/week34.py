@@ -56,7 +56,7 @@
 # 
 # * Communications (email and more) via <canvas.uio.no>
 # 
-# * **Discord** channel at <https://discord.gg/hAaBRWFT72>
+# * **Discord** channel at <https://discord.gg/XBKjd4ccGq>
 
 # ## Course Format
 # 
@@ -897,6 +897,10 @@ print(df1)
 # most operations are vectorized, achieving thereby a high performance when dealing with computations of arrays, in particular labeled arrays.
 # As we will see below it leads also to a very concice code close to the mathematical operations we may be interested in.
 # For multidimensional arrays, we recommend strongly [xarray](http://xarray.pydata.org/en/stable/). **xarray** has much of the same flexibility as **pandas**, but allows for the extension to higher dimensions than two. We will see examples later of the usage of both **pandas** and **xarray**.
+
+# ## Pandas AI
+# 
+# Try out [Pandas AI](https://pandas-ai.com/)
 
 # ### Simple linear regression model using **scikit-learn**
 # 
@@ -1893,12 +1897,6 @@ display(DesignMatrix)
 # $\boldsymbol{X}^T\boldsymbol{X}$.
 # 
 # **Small question**: Do you think the example we have at hand here (the nuclear binding energies) can lead to problems in inverting the matrix  $\boldsymbol{X}^T\boldsymbol{X}$? What kind of problems can we expect?
-
-# ## Some useful matrix and vector expressions
-# 
-# See the handwritten notes at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2022/NotesExercise5Week452022.pdf>
-# 
-# These notes will be discussed during one of the lectures.
 
 # ## Interpretations and optimizing our parameters
 # The residuals $\boldsymbol{\epsilon}$ are in turn given by
