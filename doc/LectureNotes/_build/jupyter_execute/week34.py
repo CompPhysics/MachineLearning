@@ -24,7 +24,7 @@
 # 
 # 4. On Mondays  we have a regular lecture which will be organized as a mix of active learning sessions and regular lectures. These lectures/active learning sessions start at 1015am and end at 12pm and serve the aims of giving an overview over various topics as well as solving specific problems. These lectures will also be recorded.
 # 
-#   * [Link to recording of lecture TBA](https://youtu.be/)
+#   * [Link to recording of lecture](https://youtu.be/82IPtCrzbhs)
 # 
 # The labs are also available till 6pm Tuesdays and Wednesdays. Videos and learning material with reading suggestions will be made available before each week starts.
 
@@ -102,7 +102,7 @@
 # 
 # 3. Project 3: December 9  (available November 5, graded with feedback)
 # 
-# Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Friday same week), 10% additional score. The extra credit assignments are due each Sunday and can be uploaed to **Canvas** in your preferred format (although we prefer jupyter-notebooks). First assignment is for week 35. Each weekly exercise set counts 1%.
+# Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Friday same week), 10% additional score. The extra credit assignments are due each Friday and can be uploaed to **Canvas** in your preferred format (although we prefer jupyter-notebooks). First assignment is for week 35. Each weekly exercise set gives one additional point to the final score, see below on grading.
 
 # ## Grading
 # 
@@ -122,7 +122,7 @@
 # 
 #  * 0-39 points: F-failed
 # 
-# In addition you can get an extra 10% score for weekly assignments (10 in total and due each Friday). Each weekly assignment counts 1%.
+# In addition you can get an extra score for weekly assignments (10 in total and due each Friday). Each weekly assignment counts 1 point. As an example, this means that if your average after three projects is 88 points and you have handed in and gotten approved four weekly exercises, the total score is 88+4=92, which translates into an A.
 
 # ## Reading material
 # 
