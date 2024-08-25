@@ -6,9 +6,9 @@
 # <!-- dom:TITLE: Week 35: From Ordinary Linear Regression to Ridge and Lasso Regression -->
 
 # # Week 35: From Ordinary Linear Regression to Ridge and Lasso Regression
-# **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
+# **Morten Hjorth-Jensen**, Department of Physics, University of Oslo
 # 
-# Date: **August 26-30**
+# Date: **August 26-30, 2024**
 
 # ## Plans for week 35
 # 
@@ -16,7 +16,7 @@
 # 
 # 1. Brief repetition from last week
 # 
-# 2. Derivation of the equations for ordinary least squares
+# 2. Discussions  of the equations for ordinary least squares
 # 
 # 3. Discussion on how to prepare data and examples of applications of linear regression
 # 
@@ -26,11 +26,15 @@
 
 # ### Reading recommendations:
 # 
-# 1. See lecture notes for week 35 at <https://compphysics.github.io/MachineLearning/doc/web/course.html>
+# 1. These lecture notes
 # 
 # 2. Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra and sections 3.1-3.10 on elements of statistics (background)
+# 
+# 3. Raschka et al on preprocessing of data, relevant for exercise 3 this week, see chapter 4.
+# 
+# 4. For exercise 1 of week 35, the book by A. Aldo Faisal, Cheng Soon Ong, and Marc Peter Deisenroth on the Mathematics of Machine Learning, may be very relevant. In particular chapter 5 at URL"https://mml-book.github.io/" (section 5.5 on derivatives) is very useful for exercise 1 this coming week.
 
-# ## Why Linear Regression (aka Ordinary Least Squares and family), repeat from last week
+# ## For exercise sessions: Why Linear Regression (aka Ordinary Least Squares and family), repeat from last week
 # 
 # We need first a reminder from last week about linear regression. 
 # 
@@ -1264,206 +1268,7 @@ plt.show()
 # intercept. This becomes more important when we discuss Ridge and Lasso
 # regression next week.
 
-# ## The Boston housing data example
-# 
-# The Boston housing  
-# data set was originally a part of UCI Machine Learning Repository
-# and has been removed now. The data set is now included in **Scikit-Learn**'s 
-# library.  There are 506 samples and 13 feature (predictor) variables
-# in this data set. The objective is to predict the value of prices of
-# the house using the features (predictors) listed here.
-# 
-# The features/predictors are
-# 1. CRIM: Per capita crime rate by town
-# 
-# 2. ZN: Proportion of residential land zoned for lots over 25000 square feet
-# 
-# 3. INDUS: Proportion of non-retail business acres per town
-# 
-# 4. CHAS: Charles River dummy variable (= 1 if tract bounds river; 0 otherwise)
-# 
-# 5. NOX: Nitric oxide concentration (parts per 10 million)
-# 
-# 6. RM: Average number of rooms per dwelling
-# 
-# 7. AGE: Proportion of owner-occupied units built prior to 1940
-# 
-# 8. DIS: Weighted distances to five Boston employment centers
-# 
-# 9. RAD: Index of accessibility to radial highways
-# 
-# 10. TAX: Full-value property tax rate per USD10000
-# 
-# 11. B: $1000(Bk - 0.63)^2$, where $Bk$ is the proportion of [people of African American descent] by town
-# 
-# 12. LSTAT: Percentage of lower status of the population
-# 
-# 13. MEDV: Median value of owner-occupied homes in USD 1000s
-
-# ## Housing data, the code
-# We start by importing the libraries
-
-# In[15]:
-
-
-import numpy as np
-import matplotlib.pyplot as plt 
-
-import pandas as pd  
-import seaborn as sns
-
-
-# and load the Boston Housing DataSet from **Scikit-Learn**
-
-# In[16]:
-
-
-from sklearn.datasets import load_boston
-
-boston_dataset = load_boston()
-
-# boston_dataset is a dictionary
-# let's check what it contains
-boston_dataset.keys()
-
-
-# Then we invoke Pandas
-
-# In[17]:
-
-
-boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
-boston.head()
-boston['MEDV'] = boston_dataset.target
-
-
-# and preprocess the data
-
-# In[18]:
-
-
-# check for missing values in all the columns
-boston.isnull().sum()
-
-
-# We can then visualize the data
-
-# In[19]:
-
-
-# set the size of the figure
-sns.set(rc={'figure.figsize':(11.7,8.27)})
-
-# plot a histogram showing the distribution of the target values
-sns.distplot(boston['MEDV'], bins=30)
-plt.show()
-
-
-# It is now useful to look at the correlation matrix
-
-# In[20]:
-
-
-# compute the pair wise correlation for all columns  
-correlation_matrix = boston.corr().round(2)
-# use the heatmap function from seaborn to plot the correlation matrix
-# annot = True to print the values inside the square
-sns.heatmap(data=correlation_matrix, annot=True)
-
-
-# From the above coorelation plot we can see that **MEDV** is strongly correlated to **LSTAT** and  **RM**. We see also that **RAD** and **TAX** are stronly correlated, but we don't include this in our features together to avoid multi-colinearity
-
-# In[21]:
-
-
-plt.figure(figsize=(20, 5))
-
-features = ['LSTAT', 'RM']
-target = boston['MEDV']
-
-for i, col in enumerate(features):
-    plt.subplot(1, len(features) , i+1)
-    x = boston[col]
-    y = target
-    plt.scatter(x, y, marker='o')
-    plt.title(col)
-    plt.xlabel(col)
-    plt.ylabel('MEDV')
-
-
-# Now we start training our model
-
-# In[22]:
-
-
-X = pd.DataFrame(np.c_[boston['LSTAT'], boston['RM']], columns = ['LSTAT','RM'])
-Y = boston['MEDV']
-
-
-# We split the data into training and test sets
-
-# In[23]:
-
-
-from sklearn.model_selection import train_test_split
-
-# splits the training and test data set in 80% : 20%
-# assign random_state to any value.This ensures consistency.
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state=5)
-print(X_train.shape)
-print(X_test.shape)
-print(Y_train.shape)
-print(Y_test.shape)
-
-
-# Then we use the linear regression functionality from **Scikit-Learn**
-
-# In[24]:
-
-
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-
-lin_model = LinearRegression()
-lin_model.fit(X_train, Y_train)
-
-# model evaluation for training set
-
-y_train_predict = lin_model.predict(X_train)
-rmse = (np.sqrt(mean_squared_error(Y_train, y_train_predict)))
-r2 = r2_score(Y_train, y_train_predict)
-
-print("The model performance for training set")
-print("--------------------------------------")
-print('RMSE is {}'.format(rmse))
-print('R2 score is {}'.format(r2))
-print("\n")
-
-# model evaluation for testing set
-
-y_test_predict = lin_model.predict(X_test)
-# root mean square error of the model
-rmse = (np.sqrt(mean_squared_error(Y_test, y_test_predict)))
-
-# r-squared score of the model
-r2 = r2_score(Y_test, y_test_predict)
-
-print("The model performance for testing set")
-print("--------------------------------------")
-print('RMSE is {}'.format(rmse))
-print('R2 score is {}'.format(r2))
-
-
-# In[25]:
-
-
-# plotting the y_test vs y_pred
-# ideally should have been a straight line
-plt.scatter(Y_test, y_test_predict)
-plt.show()
-
-
-# ## Material for lecture Thursday, August 31
+# ## Material for lecture Monday, August 26
 
 # ## Mathematical Interpretation of Ordinary Least Squares
 # 
@@ -1738,7 +1543,7 @@ plt.show()
 
 # ## Codes for the SVD
 
-# In[26]:
+# In[15]:
 
 
 import numpy as np
@@ -2155,7 +1960,7 @@ print(C-X)
 # function **np.mean(x)**. We can also extract the eigenvalues of the
 # covariance matrix through the **np.linalg.eig()** function.
 
-# In[27]:
+# In[16]:
 
 
 # Importing various packages
@@ -2178,7 +1983,7 @@ print(C)
 # code which sets up the correlations matrix for the previous example in
 # a more brute force way. Here we scale the mean values for each column of the design matrix, calculate the relevant mean values and variances and then finally set up the $2\times 2$ correlation matrix (since we have only two vectors).
 
-# In[28]:
+# In[17]:
 
 
 import numpy as np
@@ -2214,7 +2019,7 @@ print(C)
 # 
 # We whow here how we can set up the correlation matrix using **pandas**, as done in this simple code
 
-# In[29]:
+# In[18]:
 
 
 import numpy as np
@@ -2237,7 +2042,7 @@ print(correlation_matrix)
 
 # ## Correlation Matrix with Pandas and the Franke function
 
-# In[30]:
+# In[19]:
 
 
 # Common imports
