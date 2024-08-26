@@ -28,11 +28,13 @@
 # 
 # 1. These lecture notes
 # 
-# 2. Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra and sections 3.1-3.10 on elements of statistics (background)
+# 2. [Video of lecture](https://youtu.be/VKakN-e4aUA)
 # 
-# 3. Raschka et al on preprocessing of data, relevant for exercise 3 this week, see chapter 4.
+# 3. Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra and sections 3.1-3.10 on elements of statistics (background)
 # 
-# 4. For exercise 1 of week 35, the book by A. Aldo Faisal, Cheng Soon Ong, and Marc Peter Deisenroth on the Mathematics of Machine Learning, may be very relevant. In particular chapter 5 at URL"https://mml-book.github.io/" (section 5.5 on derivatives) is very useful for exercise 1 this coming week.
+# 4. Raschka et al on preprocessing of data, relevant for exercise 3 this week, see chapter 4.
+# 
+# 5. For exercise 1 of week 35, the book by A. Aldo Faisal, Cheng Soon Ong, and Marc Peter Deisenroth on the Mathematics of Machine Learning, may be very relevant. In particular chapter 5 at URL"https://mml-book.github.io/" (section 5.5 on derivatives) is very useful for exercise 1 this coming week.
 
 # ## For exercise sessions: Why Linear Regression (aka Ordinary Least Squares and family), repeat from last week
 # 
