@@ -292,10 +292,10 @@
 # which means that (using our previous example) we have
 
 # $$
-# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \boldsymbol{z}=bm{A}^T\boldsymbol{y}.
+# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \boldsymbol{z}=\boldsymbol{A}^T\boldsymbol{y}.
 # $$
 
-# Note that the resulting vector elements are the same for $\boldsymbol{z}^T$ and $\boldsymbol{z}$, the only difference is that one if just the transpose of the other.
+# Note that the resulting vector elements are the same for $\boldsymbol{z}^T$ and $\boldsymbol{z}$, the only difference is that one is just the transpose of the other.
 # 
 # Since $\alpha$ is a scalar we have $\alpha =\alpha^T=\boldsymbol{x}^T\boldsymbol{A}^T\boldsymbol{y}$. Defining now $\boldsymbol{z}=\boldsymbol{x}^T\boldsymbol{A}^T$ we find that
 
