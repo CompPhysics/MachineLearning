@@ -21,11 +21,12 @@
 # derivatives) of the chosen cost functions.  Vectors are always written
 # as boldfaced lower case letters and matrices as upper case boldfaced
 # letters. You will find useful the notes from week 35 on derivatives of vectors and matrices.
+# See also the textbook of Faisal at al, chapter 5 and in particular sections 5.3-5.5 at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/MathMLbook.pdf>
 # 
 # Show that
 
 # $$
-# \frac{\partial (\boldsymbol{b}^T\boldsymbol{a})}{\partial \boldsymbol{a}} = \boldsymbol{b},
+# \frac{\partial (\boldsymbol{a}^T\boldsymbol{x})}{\partial \boldsymbol{x}} = \boldsymbol{a}^T,
 # $$
 
 # and
@@ -44,7 +45,8 @@
 # 
 # The second derivative of the mean squared error is then proportional to the so-called Hessian matrix $\boldsymbol{H}=\boldsymbol{X}^T\boldsymbol{X}$.
 # 
-# **Hint**: In these exercises it is always useful to write out with summation indices the various quantities.
+# **Hint**: In these exercises it is always useful to write out with summation indices the various quantities. Take also a look at the weekly slides from week 35 and the various examples included there.
+# 
 # As an example, consider the function
 
 # $$

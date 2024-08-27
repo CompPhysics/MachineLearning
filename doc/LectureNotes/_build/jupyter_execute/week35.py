@@ -291,15 +291,15 @@
 # \alpha = \boldsymbol{z}^T\boldsymbol{x},
 # $$
 
-# which means that (using our previous example) we have
+# which means that (using our previous example and keeping track of our definition of the derivative of a scalar) we have
 
 # $$
-# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \boldsymbol{z}=\boldsymbol{A}^T\boldsymbol{y}.
+# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \frac{\partial \boldsymbol{z}^T\boldsymbol{x}}{\partial \boldsymbol{x}}=\boldsymbol{z}^T=\boldsymbol{A}^T\boldsymbol{y}.
 # $$
 
 # Note that the resulting vector elements are the same for $\boldsymbol{z}^T$ and $\boldsymbol{z}$, the only difference is that one is just the transpose of the other.
 # 
-# Since $\alpha$ is a scalar we have $\alpha =\alpha^T=\boldsymbol{x}^T\boldsymbol{A}^T\boldsymbol{y}$. Defining now $\boldsymbol{z}=\boldsymbol{x}^T\boldsymbol{A}^T$ we find that
+# Since $\alpha$ is a scalar we have $\alpha =\alpha^T=\boldsymbol{x}^T\boldsymbol{A}^T\boldsymbol{y}$. Defining now $\boldsymbol{z}^T=\boldsymbol{x}^T\boldsymbol{A}^T$ we find that
 
 # $$
 # \frac{\partial \alpha}{\partial \boldsymbol{y}} = \boldsymbol{z}^T=\boldsymbol{x}^T\boldsymbol{A}^T.
@@ -436,7 +436,11 @@
 # We list here some other useful relations we may encounter (recall that vectors are defined by boldfaced low-key letters)
 
 # $$
-# \frac{\partial (\boldsymbol{b}^T\boldsymbol{a})}{\partial \boldsymbol{a}} = \boldsymbol{b},
+# \frac{\partial (\boldsymbol{x}^T\boldsymbol{a})}{\partial \boldsymbol{x}} = \boldsymbol{a}^T,
+# $$
+
+# $$
+# \frac{\partial (\boldsymbol{a}^T\boldsymbol{x})}{\partial \boldsymbol{x}} = \boldsymbol{a}^T,
 # $$
 
 # $$
