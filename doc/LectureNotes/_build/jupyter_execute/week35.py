@@ -294,10 +294,10 @@
 # which means that (using our previous example and keeping track of our definition of the derivative of a scalar) we have
 
 # $$
-# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \frac{\partial \boldsymbol{z}^T\boldsymbol{x}}{\partial \boldsymbol{x}}=\boldsymbol{z}^T=\boldsymbol{A}^T\boldsymbol{y}.
+# \frac{\partial \alpha}{\partial \boldsymbol{x}} = \frac{\partial \boldsymbol{z}^T\boldsymbol{x}}{\partial \boldsymbol{x}}=\boldsymbol{z}^T.
 # $$
 
-# Note that the resulting vector elements are the same for $\boldsymbol{z}^T$ and $\boldsymbol{z}$, the only difference is that one is just the transpose of the other.
+# Note that the resulting vector elements are the same for $\boldsymbol{z}^T$ and $\boldsymbol{z}$, the only difference is that one is just the transpose of the other. We have the transposed here since we have used that the inner product of two vectors is a scalar.
 # 
 # Since $\alpha$ is a scalar we have $\alpha =\alpha^T=\boldsymbol{x}^T\boldsymbol{A}^T\boldsymbol{y}$. Defining now $\boldsymbol{z}^T=\boldsymbol{x}^T\boldsymbol{A}^T$ we find that
 
