@@ -3,852 +3,36 @@
 
 # <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
 # doconce format html week36.do.txt --no_mako -->
-# <!-- dom:TITLE: Week 36: Statistical interpretation of Linear Regression and Resampling techniques -->
+# <!-- dom:TITLE: Week 36: Linear Rgeression and Statistical interpretations -->
 
-# # Week 36: Statistical interpretation of Linear Regression and Resampling techniques
+# # Week 36: Linear Rgeression and Statistical interpretations
 # **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 # 
-# Date: **September 4-8, 2023**
+# Date: **September 2-6, 2024**
 
 # ## Plans for week 36
+# 
+# * Material for the lecture on Monday September 2
+# 
+#   * Technicalities related to scaling and other issues with data handling
+# 
+#   * Linear Regression, ordinary least squares, Ridge and Lasso  and links with Statistics
+# 
+#   * Recommended Reading: Goodfellow et al chapter 3  (till 3.11) on probability theory, see <https://www.deeplearningbook.org/>
+# 
+#   * Raschka et al, chapter 4 pages 105-134 and chapter 6 pages 171-185. Chapter 4 and 6 contain many useful hints which will also be relevant for the various projects as well.
+# <!-- * [Video of lecture](https://youtu.be/Kc20CFK0z7Y) -->
+# <!-- * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep7.pdf) -->
 # 
 # * Material for the active learning sessions on Tuesday and Wednesday
 # 
 #   * Summary from last week on discussion of SVD, Ridge and Lasso linear regression.
 # 
-#   * Recommended Reading: Hastie et al chapter 3, see <https://link.springer.com/book/10.1007/978-0-387-84858-7>
+#   * Raschka et al, chapter 4 pages 105-134 and chapter 6 pages 171-185. Chapter 4 and 6, as for the lecture discussion
 # 
 #   * Presentation and discussion of first project
-# 
-# * Material for the lecture on Thursday September 7
-# 
-#   * Technicalities related to scaling and other issues with data handling
-# 
-#   * Linear Regression and links with Statistics
-# 
-#   * [Recommended Reading: Goodfellow et al chapter 3 on probability theory](https://www.deeplearningbook.org/)
-# 
-#   * See also Murphy, sections 2.4 (Gaussian distributions) and 3.2 (Bayesian Statistics, basis)
-# 
-#   * [Video of lecture](https://youtu.be/Kc20CFK0z7Y)  
-# 
-#   * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep7.pdf)
 
-# ## Material for the active learning sessions Tuesday and Wednesday
-# 
-# The material here contains a summary from last week and discussion of SVD, Ridge and Lasso regression with examples
-
-# ## Linear Regression and  the SVD
-# 
-# We used the SVD to analyse the matrix to invert in ordinary lineat regression
-
-# $$
-# \boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{V}^T.
-# $$
-
-# Since the matrices here have dimension $p\times p$, with $p$ corresponding to the singular values, we defined last week the matrix
-
-# $$
-# \boldsymbol{\Sigma}^T\boldsymbol{\Sigma} = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\end{bmatrix},
-# $$
-
-# where the tilde-matrix $\tilde{\boldsymbol{\Sigma}}$ is a matrix of dimension $p\times p$ containing only the singular values $\sigma_i$, that is
-
-# $$
-# \tilde{\boldsymbol{\Sigma}}=\begin{bmatrix} \sigma_0 & 0 & 0 & \dots & 0 & 0 \\
-#                                     0 & \sigma_1 & 0 & \dots & 0 & 0 \\
-# 				    0 & 0 & \sigma_2 & \dots & 0 & 0 \\
-# 				    0 & 0 & 0 & \dots & \sigma_{p-2} & 0 \\
-# 				    0 & 0 & 0 & \dots & 0 & \sigma_{p-1} \\
-# \end{bmatrix},
-# $$
-
-# meaning we can write
-
-# $$
-# \boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2\boldsymbol{V}^T.
-# $$
-
-# Multiplying from the right with $\boldsymbol{V}$ (using the orthogonality of $\boldsymbol{V}$) we get
-
-# $$
-# \left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{V}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2.
-# $$
-
-# ## What does it mean?
-# 
-# This means the vectors $\boldsymbol{v}_i$ of the orthogonal matrix $\boldsymbol{V}$
-# are the eigenvectors of the matrix $\boldsymbol{X}^T\boldsymbol{X}$ with eigenvalues
-# given by the singular values squared, that is
-
-# $$
-# \left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{v}_i=\boldsymbol{v}_i\sigma_i^2.
-# $$
-
-# In other words, each non-zero singular value of $\boldsymbol{X}$ is a positive
-# square root of an eigenvalue of $\boldsymbol{X}^T\boldsymbol{X}$.  It means also that
-# the columns of $\boldsymbol{V}$ are the eigenvectors of
-# $\boldsymbol{X}^T\boldsymbol{X}$. Since we have ordered the singular values of
-# $\boldsymbol{X}$ in a descending order, it means that the column vectors
-# $\boldsymbol{v}_i$ are hierarchically ordered by how much correlation they
-# encode from the columns of $\boldsymbol{X}$. 
-# 
-# Note that these are also the eigenvectors and eigenvalues of the
-# Hessian matrix.
-# 
-# If we now recall the definition of the covariance matrix (not using
-# Bessel's correction) we have
-
-# $$
-# \boldsymbol{C}[\boldsymbol{X}]=\frac{1}{n}\boldsymbol{X}^T\boldsymbol{X},
-# $$
-
-# meaning that every squared non-singular value of $\boldsymbol{X}$ divided by $n$ (
-# the number of samples) are the eigenvalues of the covariance
-# matrix. Every singular value of $\boldsymbol{X}$ is thus a positive square
-# root of an eigenvalue of $\boldsymbol{X}^T\boldsymbol{X}$. If the matrix $\boldsymbol{X}$ is
-# self-adjoint, the singular values of $\boldsymbol{X}$ are equal to the
-# absolute value of the eigenvalues of $\boldsymbol{X}$.
-
-# ## And finally  $\boldsymbol{X}\boldsymbol{X}^T$
-# 
-# For $\boldsymbol{X}\boldsymbol{X}^T$ we found
-
-# $$
-# \boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T=\boldsymbol{U}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{U}^T.
-# $$
-
-# Since the matrices here have dimension $n\times n$, we have
-
-# $$
-# \boldsymbol{\Sigma}\boldsymbol{\Sigma}^T = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}}  \boldsymbol{0}\\ \end{bmatrix}=\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix},
-# $$
-
-# leading to
-
-# $$
-# \boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}\boldsymbol{U}^T.
-# $$
-
-# Multiplying with $\boldsymbol{U}$ from the right gives us the eigenvalue problem
-
-# $$
-# (\boldsymbol{X}\boldsymbol{X}^T)\boldsymbol{U}=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}.
-# $$
-
-# It means that the eigenvalues of $\boldsymbol{X}\boldsymbol{X}^T$ are again given by
-# the non-zero singular values plus now a series of zeros.  The column
-# vectors of $\boldsymbol{U}$ are the eigenvectors of $\boldsymbol{X}\boldsymbol{X}^T$ and
-# measure how much correlations are contained in the rows of $\boldsymbol{X}$.
-# 
-# Since we will mainly be interested in the correlations among the features
-# of our data (the columns of $\boldsymbol{X}$, the quantity of interest for us are the non-zero singular
-# values and the column vectors of $\boldsymbol{V}$.
-
-# ## Code for SVD and Inversion of Matrices
-# 
-# How do we use the SVD to invert a matrix $\boldsymbol{X}^\boldsymbol{X}$ which is singular or near singular?
-# The simple answer is to use the linear algebra function for the computation of the pseudoinverse of a given matrix $\boldsymbol{X}$, that is
-
-# In[1]:
-
-
-import numpy as np
-X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
-Xinv = np.linlag.pinv(X)
-
-
-# Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
-
-# In[2]:
-
-
-import numpy as np
-# SVD inversion
-def SVDinv(A):
-    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
-    SVD is numerically more stable than the inversion algorithms provided by
-    numpy and scipy.linalg at the cost of being slower.
-    '''
-    U, s, VT = np.linalg.svd(A)
-    print('test U')
-    print( (np.transpose(U) @ U - U @np.transpose(U)))
-    print('test VT')
-    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
-
-
-    D = np.zeros((len(U),len(VT)))
-    D = np.diag(s)
-    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
-    return np.matmul(V,np.matmul(invD,UT))
-
-
-#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
-# Non-singular square matrix
-X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
-print(X)
-A = np.transpose(X) @ X
-# Brute force inversion
-B = np.linalg.inv(A)  # here we could use np.linalg.pinv(A)
-C = SVDinv(A)
-print(np.abs(B-C))
-
-
-# ## Inverse of Rectangular Matrix
-# 
-# Although our matrix to invert $\boldsymbol{X}^T\boldsymbol{X}$ is a square matrix, our matrix may be singular. 
-# 
-# The pseudoinverse is the generalization of the matrix inverse for square matrices to
-# rectangular matrices where the number of rows and columns are not equal.
-# 
-# It is also called the the Moore-Penrose Inverse after two independent discoverers of the method or the Generalized Inverse.
-# It is used for the calculation of the inverse for singular or near singular matrices and for rectangular matrices.
-# 
-# Using the SVD we can obtain the pseudoinverse of a matrix $\boldsymbol{A}$ (labeled here as $\boldsymbol{A}_{\mathrm{PI}}$)
-
-# $$
-# \boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
-# $$
-
-# where $\boldsymbol{D}_{\mathrm{PI}}$ can be calculated by creating a diagonal matrix from $\boldsymbol{\Sigma}$ where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
-
-# In[3]:
-
-
-import numpy as np
-# SVD inversion
-def SVDinv(A):
-    U, s, VT = np.linalg.svd(A)
-    # reciprocals of singular values of s
-    d = 1.0 / s
-    # create m x n D matrix
-    D = np.zeros(A.shape)
-    # populate D with n x n diagonal matrix
-    D[:A.shape[1], :A.shape[1]] = np.diag(d)
-    UT = np.transpose(U)
-    V = np.transpose(VT)
-    return np.matmul(V,np.matmul(D.T,UT))
-
-
-A = np.array([ [0.3, 0.4], [0.5, 0.6], [0.7, 0.8],[0.9, 1.0]])
-print(A)
-# Brute force inversion of super-collinear matrix
-B = np.linalg.pinv(A)
-print(B)
-# Compare our own algorithm with pinv
-C = SVDinv(A)
-print(np.abs(C-B))
-
-
-# As you can see from this example, our own decomposition based on the SVD agrees with  the pseudoinverse algorithm provided by **Numpy**.
-
-# ## Ridge and LASSO Regression
-# 
-# Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
-# our optimization problem is
-
-# $$
-# {\displaystyle \min_{\boldsymbol{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right\}.
-# $$
-
-# or we can state it as
-
-# $$
-# {\displaystyle \min_{\boldsymbol{\beta}\in
-# {\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2,
-# $$
-
-# where we have used the definition of  a norm-2 vector, that is
-
-# $$
-# \vert\vert \boldsymbol{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}.
-# $$
-
-# ## From OLS to Ridge and Lasso
-# 
-# By minimizing the above equation with respect to the parameters
-# $\boldsymbol{\beta}$ we could then obtain an analytical expression for the
-# parameters $\boldsymbol{\beta}$.  We can add a regularization parameter $\lambda$ by
-# defining a new cost function to be optimized, that is
-
-# $$
-# {\displaystyle \min_{\boldsymbol{\beta}\in
-# {\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
-# $$
-
-# which leads to the Ridge regression minimization problem where we
-# require that $\vert\vert \boldsymbol{\beta}\vert\vert_2^2\le t$, where $t$ is
-# a finite number larger than zero. We do not include such a constraints in the discussions here.
-# 
-# By defining
-
-# $$
-# C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1,
-# $$
-
-# we have a new optimization equation
-
-# $$
-# {\displaystyle \min_{\boldsymbol{\beta}\in
-# {\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1
-# $$
-
-# which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
-# 
-# Here we have defined the norm-1 as
-
-# $$
-# \vert\vert \boldsymbol{x}\vert\vert_1 = \sum_i \vert x_i\vert.
-# $$
-
-# ## Deriving the  Ridge Regression Equations
-# 
-# Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
-
-# $$
-# C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\boldsymbol{\beta}^T\boldsymbol{\beta},
-# $$
-
-# and 
-# taking the derivatives with respect to $\boldsymbol{\beta}$ we obtain then
-# a slightly modified matrix inversion problem which for finite values
-# of $\lambda$ does not suffer from singularity problems. We obtain
-# the optimal parameters
-
-# $$
-# \hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
-# $$
-
-# with $\boldsymbol{I}$ being a $p\times p$ identity matrix with the constraint that
-
-# $$
-# \sum_{i=0}^{p-1} \beta_i^2 \leq t,
-# $$
-
-# with $t$ a finite positive number.
-
-# ## Note on Scikit-Learn
-# 
-# Note well that a library like **Scikit-Learn** does not include the $1/n$ factor in the expression for the mean-squared error. If you include it, the optimal parameter $\beta$ becomes
-
-# $$
-# \hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+n\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
-# $$
-
-# In our codes where we compare our own codes with **Scikit-Learn**, we do thus not include the $1/n$ factor in the cost function.
-
-# ## Comparison with OLS
-# When we compare this with the ordinary least squares result we have
-
-# $$
-# \hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
-# $$
-
-# which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$.
-# 
-# We see that Ridge regression is nothing but the standard OLS with a
-# modified diagonal term added to $\boldsymbol{X}^T\boldsymbol{X}$. The consequences, in
-# particular for our discussion of the bias-variance tradeoff are rather
-# interesting. We will see that for specific values of $\lambda$, we may
-# even reduce the variance of the optimal parameters $\boldsymbol{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
-
-# ## SVD analysis
-# 
-# Using our insights about the SVD of the design matrix $\boldsymbol{X}$ 
-# We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\boldsymbol{U}$ as
-
-# $$
-# \tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\beta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
-# $$
-
-# For Ridge regression this becomes
-
-# $$
-# \tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\beta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
-# $$
-
-# with the vectors $\boldsymbol{u}_j$ being the columns of $\boldsymbol{U}$ from the SVD of the matrix $\boldsymbol{X}$.
-
-# ## Interpreting the Ridge results
-# 
-# Since $\lambda \geq 0$, it means that compared to OLS, we have
-
-# $$
-# \frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1.
-# $$
-
-# Ridge regression finds the coordinates of $\boldsymbol{y}$ with respect to the
-# orthonormal basis $\boldsymbol{U}$, it then shrinks the coordinates by
-# $\frac{\sigma_j^2}{\sigma_j^2+\lambda}$. Recall that the SVD has
-# eigenvalues ordered in a descending way, that is $\sigma_i \geq
-# \sigma_{i+1}$.
-# 
-# For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
-
-# ## More interpretations
-# 
-# For the sake of simplicity, let us assume that the design matrix is orthonormal, that is
-
-# $$
-# \boldsymbol{X}^T\boldsymbol{X}=(\boldsymbol{X}^T\boldsymbol{X})^{-1} =\boldsymbol{I}.
-# $$
-
-# In this case the standard OLS results in
-
-# $$
-# \boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{n-1}\boldsymbol{u}_i\boldsymbol{u}_i^T\boldsymbol{y},
-# $$
-
-# and
-
-# $$
-# \boldsymbol{\beta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\beta}^{\mathrm{OLS}},
-# $$
-
-# that is the Ridge estimator scales the OLS estimator by the inverse of a factor $1+\lambda$, and
-# the Ridge estimator converges to zero when the hyperparameter goes to
-# infinity.
-# 
-# We will come back to more interpreations after we have gone through some of the statistical analysis part. 
-# 
-# For more discussions of Ridge and Lasso regression, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
-# Similarly, [Mehta et al's article](https://arxiv.org/abs/1803.08823) is also recommended.
-
-# ## Deriving the  Lasso Regression Equations
-# 
-# Using the matrix-vector expression for Lasso regression, we have the following **cost** function
-
-# $$
-# C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
-# $$
-
-# Taking the derivative with respect to $\boldsymbol{\beta}$ and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicity)
-
-# $$
-# \frac{d \vert \beta\vert}{d \beta}=\mathrm{sgn}(\beta)=\left\{\begin{array}{cc} 1 & \beta > 0 \\-1 & \beta < 0, \end{array}\right.
-# $$
-
-# we have that the derivative of the cost function is
-
-# $$
-# \frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-\frac{2}{n}\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
-# $$
-
-# and reordering we have
-
-# $$
-# \boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta}+\lambda sgn(\boldsymbol{\beta})=\boldsymbol{X}^T\boldsymbol{y}.
-# $$
-
-# This equation does not lead to a nice analytical equation as in Ridge regression or ordinary least squares. We have absorbed the factor $2/n$ in a redefinition of the parameter $\lambda$. We will solve this type of problems using libraries like **scikit-learn**.
-
-# ## Simple example to illustrate Ordinary Least Squares, Ridge and Lasso Regression
-# 
-# Let us assume that our design matrix is given by unit (identity) matrix, that is a square diagonal matrix with ones only along the
-# diagonal. In this case we have an equal number of rows and columns $n=p$.
-# 
-# Our model approximation is just $\tilde{\boldsymbol{y}}=\boldsymbol{\beta}$ and the mean squared error and thereby the cost function for ordinary least sqquares (OLS) is then (we drop the term $1/n$)
-
-# $$
-# C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2,
-# $$
-
-# and minimizing we have that
-
-# $$
-# \hat{\beta}_i^{\mathrm{OLS}} = y_i.
-# $$
-
-# ## Ridge Regression
-# 
-# For Ridge regression our cost function is
-
-# $$
-# C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\beta_i^2,
-# $$
-
-# and minimizing we have that
-
-# $$
-# \hat{\beta}_i^{\mathrm{Ridge}} = \frac{y_i}{1+\lambda}.
-# $$
-
-# ## Lasso Regression
-# 
-# For Lasso regression our cost function is
-
-# $$
-# C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\vert\beta_i\vert=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\sqrt{\beta_i^2},
-# $$
-
-# and minimizing we have that
-
-# $$
-# -2\sum_{i=0}^{p-1}(y_i-\beta_i)+\lambda \sum_{i=0}^{p-1}\frac{(\beta_i)}{\vert\beta_i\vert}=0,
-# $$
-
-# which leads to
-
-# $$
-# \hat{\boldsymbol{\beta}}_i^{\mathrm{Lasso}} = \left\{\begin{array}{ccc}y_i-\frac{\lambda}{2} &\mathrm{if} & y_i> \frac{\lambda}{2}\\
-#                                                           y_i+\frac{\lambda}{2} &\mathrm{if} & y_i< -\frac{\lambda}{2}\\
-# 							  0 &\mathrm{if} & \vert y_i\vert\le  \frac{\lambda}{2}\end{array}\right.\\.
-# $$
-
-# Plotting these results shows clearly that Lasso regression suppresses (sets to zero) values of $\beta_i$ for specific values of $\lambda$. Ridge regression reduces on the other hand the values of $\beta_i$ as function of $\lambda$.
-
-# ## Yet another Example
-# 
-# Let us assume we have a data set with outputs/targets given by the vector
-
-# $$
-# \boldsymbol{y}=\begin{bmatrix}4 \\ 2 \\3\end{bmatrix},
-# $$
-
-# and our inputs as a $3\times 2$ design matrix
-
-# $$
-# \boldsymbol{X}=\begin{bmatrix}2 & 0\\ 0 & 1 \\ 0 & 0\end{bmatrix},
-# $$
-
-# meaning that we have two features and two unknown parameters $\beta_0$ and $\beta_1$ to be determined either by ordinary least squares, Ridge or Lasso regression.
-
-# ## The OLS case
-# 
-# For ordinary least squares (OLS) we know that the optimal solution is
-
-# $$
-# \hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\left( \boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
-# $$
-
-# Inserting the above values we obtain that
-
-# $$
-# \hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\begin{bmatrix}2 \\ 2\end{bmatrix},
-# $$
-
-# The code which implements this simpler case is presented after the discussion of Ridge and Lasso.
-
-# ## The Ridge case
-# 
-# For Ridge regression we have
-
-# $$
-# \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\left( \boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
-# $$
-
-# Inserting the above values we obtain that
-
-# $$
-# \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\begin{bmatrix}\frac{8}{4+\lambda} \\ \frac{2}{1+\lambda}\end{bmatrix},
-# $$
-
-# There is normally a constraint on the value of $\vert\vert \boldsymbol{\beta}\vert\vert_2$ via the parameter $\lambda$.
-# Let us for simplicity assume that $\beta_0^2+\beta_1^2=1$ as constraint. This will allow us to find an expression for the optimal values of $\beta$ and $\lambda$.
-# 
-# To see this, let us write the cost function for Ridge regression.
-
-# ## Writing the Cost Function
-# 
-# We define the MSE without the $1/n$ factor and have then, using that
-
-# $$
-# \boldsymbol{X}\boldsymbol{\beta}=\begin{bmatrix} 2\beta_0 \\ \beta_1 \\0 \end{bmatrix},
-# $$
-
-# $$
-# C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\beta_0^2+\beta_1^2),
-# $$
-
-# and taking the derivative with respect to $\beta_0$ we get
-
-# $$
-# \beta_0=\frac{8}{4+\lambda},
-# $$
-
-# and for $\beta_1$ we obtain
-
-# $$
-# \beta_1=\frac{2}{1+\lambda},
-# $$
-
-# Using the constraint for $\beta_0^2+\beta_1^2=1$ we can constrain $\lambda$ by solving
-
-# $$
-# \left(\frac{8}{4+\lambda}\right)^2+\left(\frac{2}{1+\lambda}\right)^2=1,
-# $$
-
-# which gives $\lambda=4.571$ and $\beta_0=0.933$ and $\beta_1=0.359$.
-
-# ## Lasso case
-# 
-# For Lasso we need now, keeping a  constraint on $\vert\beta_0\vert+\vert\beta_1\vert=1$,  to take the derivative of the absolute values of $\beta_0$
-# and $\beta_1$. This gives us the following derivatives of the cost function
-
-# $$
-# C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\vert\beta_0\vert+\vert\beta_1\vert),
-# $$
-
-# $$
-# \frac{\partial C(\boldsymbol{\beta})}{\partial \beta_0}=-4(4-2\beta_0)+\lambda\mathrm{sgn}(\beta_0)=0,
-# $$
-
-# and
-
-# $$
-# \frac{\partial C(\boldsymbol{\beta})}{\partial \beta_1}=-2(2-\beta_1)+\lambda\mathrm{sgn}(\beta_1)=0.
-# $$
-
-# We have now four cases to solve besides the trivial cases $\beta_0$ and/or $\beta_1$ are zero, namely
-# 1. $\beta_0 > 0$ and $\beta_1 > 0$,
-# 
-# 2. $\beta_0 > 0$ and $\beta_1 < 0$,
-# 
-# 3. $\beta_0 < 0$ and $\beta_1 > 0$,
-# 
-# 4. $\beta_0 < 0$ and $\beta_1 < 0$.
-
-# ## The first Case
-# 
-# If we consider the first case, we have then
-
-# $$
-# -4(4-2\beta_0)+\lambda=0,
-# $$
-
-# and
-
-# $$
-# -2(2-\beta_1)+\lambda=0.
-# $$
-
-# which yields
-
-# $$
-# \beta_0=\frac{16+\lambda}{8},
-# $$
-
-# and
-
-# $$
-# \beta_1=\frac{4+\lambda}{2}.
-# $$
-
-# Using the constraint on $\beta_0$ and $\beta_1$ we can then find the optimal value of $\lambda$ for the different cases. We leave this as an exercise to you.
-
-# ## Simple code for solving the above problem
-# 
-# Here we set up the OLS, Ridge and Lasso functionality in order to study the above example. Note that here we have opted for a set of values of $\lambda$, meaning that we need to perform a search in order to find the optimal values.
-# 
-# First we study and compare the OLS and Ridge results.  The next code compares all three methods.
-
-# In[4]:
-
-
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-
-X = np.array( [ [ 2, 0], [0, 1], [0,0]])
-y = np.array( [4, 2, 3])
-
-
-# matrix inversion to find beta
-OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
-print(OLSbeta)
-# and then make the prediction
-ytildeOLS = X @ OLSbeta
-print("Training MSE for OLS")
-print(MSE(y,ytildeOLS))
-ypredictOLS = X @ OLSbeta
-
-# Repeat now for Ridge regression and various values of the regularization parameter
-I = np.eye(2,2)
-# Decide which values of lambda to use
-nlambdas = 100
-MSEPredict = np.zeros(nlambdas)
-lambdas = np.logspace(-4, 4, nlambdas)
-for i in range(nlambdas):
-    lmb = lambdas[i]
-    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
-#    print(Ridgebeta)
-    # and then make the prediction
-    ypredictRidge = X @ Ridgebeta
-    MSEPredict[i] = MSE(y,ypredictRidge)
-#    print(MSEPredict[i])
-    # Now plot the results
-plt.figure()
-plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Train')
-plt.xlabel('log10(lambda)')
-plt.ylabel('MSE')
-plt.legend()
-plt.show()
-
-
-# We see here that we reach a plateau. What is actually happening?
-
-# ## With Lasso Regression
-
-# In[5]:
-
-
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn import linear_model
-
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-
-X = np.array( [ [ 2, 0], [0, 1], [0,0]])
-y = np.array( [4, 2, 3])
-
-
-# matrix inversion to find beta
-OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
-print(OLSbeta)
-# and then make the prediction
-ytildeOLS = X @ OLSbeta
-print("Training MSE for OLS")
-print(MSE(y,ytildeOLS))
-ypredictOLS = X @ OLSbeta
-
-# Repeat now for Ridge regression and various values of the regularization parameter
-I = np.eye(2,2)
-# Decide which values of lambda to use
-nlambdas = 100
-MSERidgePredict = np.zeros(nlambdas)
-MSELassoPredict = np.zeros(nlambdas)
-lambdas = np.logspace(-4, 4, nlambdas)
-for i in range(nlambdas):
-    lmb = lambdas[i]
-    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
-    print(Ridgebeta)
-    # and then make the prediction
-    ypredictRidge = X @ Ridgebeta
-    MSERidgePredict[i] = MSE(y,ypredictRidge)
-    RegLasso = linear_model.Lasso(lmb,fit_intercept=False)
-    RegLasso.fit(X,y)
-    ypredictLasso = RegLasso.predict(X)
-    print(RegLasso.coef_)
-    MSELassoPredict[i] = MSE(y,ypredictLasso)
-# Now plot the results
-plt.figure()
-plt.plot(np.log10(lambdas), MSERidgePredict, 'r--', label = 'MSE Ridge Train')
-plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Train')
-plt.xlabel('log10(lambda)')
-plt.ylabel('MSE')
-plt.legend()
-plt.show()
-
-
-# ## Another Example, now with a polynomial fit
-
-# In[6]:
-
-
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn import linear_model
-
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-np.random.seed(3155)
-
-x = np.random.rand(100)
-y = 2.0+5*x*x+0.1*np.random.randn(100)
-
-# number of features p (here degree of polynomial
-p = 3
-#  The design matrix now as function of a given polynomial
-X = np.zeros((len(x),p))
-X[:,0] = 1.0
-X[:,1] = x
-X[:,2] = x*x
-# We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-# matrix inversion to find beta
-OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
-print(OLSbeta)
-# and then make the prediction
-ytildeOLS = X_train @ OLSbeta
-print("Training MSE for OLS")
-print(MSE(y_train,ytildeOLS))
-ypredictOLS = X_test @ OLSbeta
-print("Test MSE OLS")
-print(MSE(y_test,ypredictOLS))
-
-# Repeat now for Lasso and Ridge regression and various values of the regularization parameter
-I = np.eye(p,p)
-# Decide which values of lambda to use
-nlambdas = 100
-MSEPredict = np.zeros(nlambdas)
-MSETrain = np.zeros(nlambdas)
-MSELassoPredict = np.zeros(nlambdas)
-MSELassoTrain = np.zeros(nlambdas)
-lambdas = np.logspace(-4, 4, nlambdas)
-for i in range(nlambdas):
-    lmb = lambdas[i]
-    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
-    # include lasso using Scikit-Learn
-    RegLasso = linear_model.Lasso(lmb,fit_intercept=False)
-    RegLasso.fit(X_train,y_train)
-    # and then make the prediction
-    ytildeRidge = X_train @ Ridgebeta
-    ypredictRidge = X_test @ Ridgebeta
-    ytildeLasso = RegLasso.predict(X_train)
-    ypredictLasso = RegLasso.predict(X_test)
-    MSEPredict[i] = MSE(y_test,ypredictRidge)
-    MSETrain[i] = MSE(y_train,ytildeRidge)
-    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
-    MSELassoTrain[i] = MSE(y_train,ytildeLasso)
-
-# Now plot the results
-plt.figure()
-plt.plot(np.log10(lambdas), MSETrain, label = 'MSE Ridge train')
-plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Test')
-plt.plot(np.log10(lambdas), MSELassoTrain, label = 'MSE Lasso train')
-plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Test')
-
-plt.xlabel('log10(lambda)')
-plt.ylabel('MSE')
-plt.legend()
-plt.show()
-
-
-# ## Material for lecture Thursday September 7
+# ## Material for lecture Monday September 2
 
 # ## Important technicalities: More on Rescaling data
 # 
@@ -898,7 +82,7 @@ plt.show()
 # Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
 # on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as
 
-# In[7]:
+# In[1]:
 
 
 """
@@ -1031,8 +215,10 @@ y_pred = y_pred + y_train_mean
 # This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (*code example thanks to  Øyvind Sigmundson Schøyen*). Here our scaling of the data is done by subtracting the mean values only.
 # Note also that we do not split the data into training and test.
 
-# In[8]:
+# In[2]:
 
+
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1160,7 +346,7 @@ plt.show()
 # 
 # Armed with this wisdom, we attempt first to simply set the intercept equal to **False** in our implementation of Ridge regression for our well-known  vanilla data set.
 
-# In[9]:
+# In[3]:
 
 
 import numpy as np
@@ -1235,7 +421,7 @@ plt.show()
 # What happens if we do not include the intercept in our fit?
 # Let us see how we can change this code by zero centering.
 
-# In[10]:
+# In[4]:
 
 
 import numpy as np
@@ -1342,7 +528,7 @@ plt.show()
 # 
 # For Ridge and Lasso regression, the higher order parameters will typically be reduced, providing thereby less fluctuations from one order to another one.
 
-# In[11]:
+# In[5]:
 
 
 import numpy as np
@@ -1886,3 +1072,815 @@ plt.show()
 # $$
 
 # which is our Lasso cost function!
+
+# ## Material for the active learning sessions Tuesday and Wednesday
+# 
+# The material here contains a summary from last week and discussion of SVD, Ridge and Lasso regression with examples
+
+# ## Linear Regression and  the SVD
+# 
+# We used the SVD to analyse the matrix to invert in ordinary lineat regression
+
+# $$
+# \boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T=\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{V}^T.
+# $$
+
+# Since the matrices here have dimension $p\times p$, with $p$ corresponding to the singular values, we defined last week the matrix
+
+# $$
+# \boldsymbol{\Sigma}^T\boldsymbol{\Sigma} = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\end{bmatrix},
+# $$
+
+# where the tilde-matrix $\tilde{\boldsymbol{\Sigma}}$ is a matrix of dimension $p\times p$ containing only the singular values $\sigma_i$, that is
+
+# $$
+# \tilde{\boldsymbol{\Sigma}}=\begin{bmatrix} \sigma_0 & 0 & 0 & \dots & 0 & 0 \\
+#                                     0 & \sigma_1 & 0 & \dots & 0 & 0 \\
+# 				    0 & 0 & \sigma_2 & \dots & 0 & 0 \\
+# 				    0 & 0 & 0 & \dots & \sigma_{p-2} & 0 \\
+# 				    0 & 0 & 0 & \dots & 0 & \sigma_{p-1} \\
+# \end{bmatrix},
+# $$
+
+# meaning we can write
+
+# $$
+# \boldsymbol{X}^T\boldsymbol{X}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2\boldsymbol{V}^T.
+# $$
+
+# Multiplying from the right with $\boldsymbol{V}$ (using the orthogonality of $\boldsymbol{V}$) we get
+
+# $$
+# \left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{V}=\boldsymbol{V}\tilde{\boldsymbol{\Sigma}}^2.
+# $$
+
+# ## What does it mean?
+# 
+# This means the vectors $\boldsymbol{v}_i$ of the orthogonal matrix $\boldsymbol{V}$
+# are the eigenvectors of the matrix $\boldsymbol{X}^T\boldsymbol{X}$ with eigenvalues
+# given by the singular values squared, that is
+
+# $$
+# \left(\boldsymbol{X}^T\boldsymbol{X}\right)\boldsymbol{v}_i=\boldsymbol{v}_i\sigma_i^2.
+# $$
+
+# In other words, each non-zero singular value of $\boldsymbol{X}$ is a positive
+# square root of an eigenvalue of $\boldsymbol{X}^T\boldsymbol{X}$.  It means also that
+# the columns of $\boldsymbol{V}$ are the eigenvectors of
+# $\boldsymbol{X}^T\boldsymbol{X}$. Since we have ordered the singular values of
+# $\boldsymbol{X}$ in a descending order, it means that the column vectors
+# $\boldsymbol{v}_i$ are hierarchically ordered by how much correlation they
+# encode from the columns of $\boldsymbol{X}$. 
+# 
+# Note that these are also the eigenvectors and eigenvalues of the
+# Hessian matrix.
+# 
+# If we now recall the definition of the covariance matrix (not using
+# Bessel's correction) we have
+
+# $$
+# \boldsymbol{C}[\boldsymbol{X}]=\frac{1}{n}\boldsymbol{X}^T\boldsymbol{X},
+# $$
+
+# meaning that every squared non-singular value of $\boldsymbol{X}$ divided by $n$ (
+# the number of samples) are the eigenvalues of the covariance
+# matrix. Every singular value of $\boldsymbol{X}$ is thus a positive square
+# root of an eigenvalue of $\boldsymbol{X}^T\boldsymbol{X}$. If the matrix $\boldsymbol{X}$ is
+# self-adjoint, the singular values of $\boldsymbol{X}$ are equal to the
+# absolute value of the eigenvalues of $\boldsymbol{X}$.
+
+# ## And finally  $\boldsymbol{X}\boldsymbol{X}^T$
+# 
+# For $\boldsymbol{X}\boldsymbol{X}^T$ we found
+
+# $$
+# \boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T=\boldsymbol{U}\boldsymbol{\Sigma}^T\boldsymbol{\Sigma}\boldsymbol{U}^T.
+# $$
+
+# Since the matrices here have dimension $n\times n$, we have
+
+# $$
+# \boldsymbol{\Sigma}\boldsymbol{\Sigma}^T = \begin{bmatrix} \tilde{\boldsymbol{\Sigma}} \\ \boldsymbol{0}\\ \end{bmatrix}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}}  \boldsymbol{0}\\ \end{bmatrix}=\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix},
+# $$
+
+# leading to
+
+# $$
+# \boldsymbol{X}\boldsymbol{X}^T=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}\boldsymbol{U}^T.
+# $$
+
+# Multiplying with $\boldsymbol{U}$ from the right gives us the eigenvalue problem
+
+# $$
+# (\boldsymbol{X}\boldsymbol{X}^T)\boldsymbol{U}=\boldsymbol{U}\begin{bmatrix} \tilde{\boldsymbol{\Sigma}} & \boldsymbol{0} \\ \boldsymbol{0} & \boldsymbol{0}\\ \end{bmatrix}.
+# $$
+
+# It means that the eigenvalues of $\boldsymbol{X}\boldsymbol{X}^T$ are again given by
+# the non-zero singular values plus now a series of zeros.  The column
+# vectors of $\boldsymbol{U}$ are the eigenvectors of $\boldsymbol{X}\boldsymbol{X}^T$ and
+# measure how much correlations are contained in the rows of $\boldsymbol{X}$.
+# 
+# Since we will mainly be interested in the correlations among the features
+# of our data (the columns of $\boldsymbol{X}$, the quantity of interest for us are the non-zero singular
+# values and the column vectors of $\boldsymbol{V}$.
+
+# ## Code for SVD and Inversion of Matrices
+# 
+# How do we use the SVD to invert a matrix $\boldsymbol{X}^\boldsymbol{X}$ which is singular or near singular?
+# The simple answer is to use the linear algebra function for the computation of the pseudoinverse of a given matrix $\boldsymbol{X}$, that is
+
+# In[6]:
+
+
+import numpy as np
+X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
+Xinv = np.linlag.pinv(X)
+
+
+# Let us first look at a matrix which does not causes problems and write our own function where we just use the SVD.
+
+# In[7]:
+
+
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    ''' Takes as input a numpy matrix A and returns inv(A) based on singular value decomposition (SVD).
+    SVD is numerically more stable than the inversion algorithms provided by
+    numpy and scipy.linalg at the cost of being slower.
+    '''
+    U, s, VT = np.linalg.svd(A)
+    print('test U')
+    print( (np.transpose(U) @ U - U @np.transpose(U)))
+    print('test VT')
+    print( (np.transpose(VT) @ VT - VT @np.transpose(VT)))
+
+
+    D = np.zeros((len(U),len(VT)))
+    D = np.diag(s)
+    UT = np.transpose(U); V = np.transpose(VT); invD = np.linalg.inv(D)
+    return np.matmul(V,np.matmul(invD,UT))
+
+
+#X = np.array([ [1.0, -1.0, 2.0], [1.0, 0.0, 1.0], [1.0, 2.0, -1.0], [1.0, 1.0, 0.0] ])
+# Non-singular square matrix
+X = np.array( [ [1,2,3],[2,4,5],[3,5,6]])
+print(X)
+A = np.transpose(X) @ X
+# Brute force inversion
+B = np.linalg.inv(A)  # here we could use np.linalg.pinv(A)
+C = SVDinv(A)
+print(np.abs(B-C))
+
+
+# ## Inverse of Rectangular Matrix
+# 
+# Although our matrix to invert $\boldsymbol{X}^T\boldsymbol{X}$ is a square matrix, our matrix may be singular. 
+# 
+# The pseudoinverse is the generalization of the matrix inverse for square matrices to
+# rectangular matrices where the number of rows and columns are not equal.
+# 
+# It is also called the the Moore-Penrose Inverse after two independent discoverers of the method or the Generalized Inverse.
+# It is used for the calculation of the inverse for singular or near singular matrices and for rectangular matrices.
+# 
+# Using the SVD we can obtain the pseudoinverse of a matrix $\boldsymbol{A}$ (labeled here as $\boldsymbol{A}_{\mathrm{PI}}$)
+
+# $$
+# \boldsymbol{A}_{\mathrm{PI}}= \boldsymbol{V}\boldsymbol{D}_{\mathrm{PI}}\boldsymbol{U}^T,
+# $$
+
+# where $\boldsymbol{D}_{\mathrm{PI}}$ can be calculated by creating a diagonal matrix from $\boldsymbol{\Sigma}$ where we only keep the singular values (the non-zero values). The following code computes the pseudoinvers of the matrix based on the SVD.
+
+# In[8]:
+
+
+import numpy as np
+# SVD inversion
+def SVDinv(A):
+    U, s, VT = np.linalg.svd(A)
+    # reciprocals of singular values of s
+    d = 1.0 / s
+    # create m x n D matrix
+    D = np.zeros(A.shape)
+    # populate D with n x n diagonal matrix
+    D[:A.shape[1], :A.shape[1]] = np.diag(d)
+    UT = np.transpose(U)
+    V = np.transpose(VT)
+    return np.matmul(V,np.matmul(D.T,UT))
+
+
+A = np.array([ [0.3, 0.4], [0.5, 0.6], [0.7, 0.8],[0.9, 1.0]])
+print(A)
+# Brute force inversion of super-collinear matrix
+B = np.linalg.pinv(A)
+print(B)
+# Compare our own algorithm with pinv
+C = SVDinv(A)
+print(np.abs(C-B))
+
+
+# As you can see from this example, our own decomposition based on the SVD agrees with  the pseudoinverse algorithm provided by **Numpy**.
+
+# ## Ridge and LASSO Regression
+# 
+# Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
+# our optimization problem is
+
+# $$
+# {\displaystyle \min_{\boldsymbol{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right\}.
+# $$
+
+# or we can state it as
+
+# $$
+# {\displaystyle \min_{\boldsymbol{\beta}\in
+# {\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2,
+# $$
+
+# where we have used the definition of  a norm-2 vector, that is
+
+# $$
+# \vert\vert \boldsymbol{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}.
+# $$
+
+# ## From OLS to Ridge and Lasso
+# 
+# By minimizing the above equation with respect to the parameters
+# $\boldsymbol{\beta}$ we could then obtain an analytical expression for the
+# parameters $\boldsymbol{\beta}$.  We can add a regularization parameter $\lambda$ by
+# defining a new cost function to be optimized, that is
+
+# $$
+# {\displaystyle \min_{\boldsymbol{\beta}\in
+# {\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+# $$
+
+# which leads to the Ridge regression minimization problem where we
+# require that $\vert\vert \boldsymbol{\beta}\vert\vert_2^2\le t$, where $t$ is
+# a finite number larger than zero. We do not include such a constraints in the discussions here.
+# 
+# By defining
+
+# $$
+# C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1,
+# $$
+
+# we have a new optimization equation
+
+# $$
+# {\displaystyle \min_{\boldsymbol{\beta}\in
+# {\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1
+# $$
+
+# which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
+# 
+# Here we have defined the norm-1 as
+
+# $$
+# \vert\vert \boldsymbol{x}\vert\vert_1 = \sum_i \vert x_i\vert.
+# $$
+
+# ## Deriving the  Ridge Regression Equations
+# 
+# Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
+
+# $$
+# C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\boldsymbol{\beta}^T\boldsymbol{\beta},
+# $$
+
+# and 
+# taking the derivatives with respect to $\boldsymbol{\beta}$ we obtain then
+# a slightly modified matrix inversion problem which for finite values
+# of $\lambda$ does not suffer from singularity problems. We obtain
+# the optimal parameters
+
+# $$
+# \hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+# $$
+
+# with $\boldsymbol{I}$ being a $p\times p$ identity matrix with the constraint that
+
+# $$
+# \sum_{i=0}^{p-1} \beta_i^2 \leq t,
+# $$
+
+# with $t$ a finite positive number.
+
+# ## Note on Scikit-Learn
+# 
+# Note well that a library like **Scikit-Learn** does not include the $1/n$ factor in the expression for the mean-squared error. If you include it, the optimal parameter $\beta$ becomes
+
+# $$
+# \hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+n\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+# $$
+
+# In our codes where we compare our own codes with **Scikit-Learn**, we do thus not include the $1/n$ factor in the cost function.
+
+# ## Comparison with OLS
+# When we compare this with the ordinary least squares result we have
+
+# $$
+# \hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+# $$
+
+# which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\boldsymbol{X}^T\boldsymbol{X}$.
+# 
+# We see that Ridge regression is nothing but the standard OLS with a
+# modified diagonal term added to $\boldsymbol{X}^T\boldsymbol{X}$. The consequences, in
+# particular for our discussion of the bias-variance tradeoff are rather
+# interesting. We will see that for specific values of $\lambda$, we may
+# even reduce the variance of the optimal parameters $\boldsymbol{\beta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+
+# ## SVD analysis
+# 
+# Using our insights about the SVD of the design matrix $\boldsymbol{X}$ 
+# We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix $\boldsymbol{U}$ as
+
+# $$
+# \tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\beta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
+# $$
+
+# For Ridge regression this becomes
+
+# $$
+# \tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\beta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
+# $$
+
+# with the vectors $\boldsymbol{u}_j$ being the columns of $\boldsymbol{U}$ from the SVD of the matrix $\boldsymbol{X}$.
+
+# ## Interpreting the Ridge results
+# 
+# Since $\lambda \geq 0$, it means that compared to OLS, we have
+
+# $$
+# \frac{\sigma_j^2}{\sigma_j^2+\lambda} \leq 1.
+# $$
+
+# Ridge regression finds the coordinates of $\boldsymbol{y}$ with respect to the
+# orthonormal basis $\boldsymbol{U}$, it then shrinks the coordinates by
+# $\frac{\sigma_j^2}{\sigma_j^2+\lambda}$. Recall that the SVD has
+# eigenvalues ordered in a descending way, that is $\sigma_i \geq
+# \sigma_{i+1}$.
+# 
+# For small eigenvalues $\sigma_i$ it means that their contributions become less important, a fact which can be used to reduce the number of degrees of freedom. More about this when we have covered the material on a statistical interpretation of various linear regression methods.
+
+# ## More interpretations
+# 
+# For the sake of simplicity, let us assume that the design matrix is orthonormal, that is
+
+# $$
+# \boldsymbol{X}^T\boldsymbol{X}=(\boldsymbol{X}^T\boldsymbol{X})^{-1} =\boldsymbol{I}.
+# $$
+
+# In this case the standard OLS results in
+
+# $$
+# \boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{n-1}\boldsymbol{u}_i\boldsymbol{u}_i^T\boldsymbol{y},
+# $$
+
+# and
+
+# $$
+# \boldsymbol{\beta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\beta}^{\mathrm{OLS}},
+# $$
+
+# that is the Ridge estimator scales the OLS estimator by the inverse of a factor $1+\lambda$, and
+# the Ridge estimator converges to zero when the hyperparameter goes to
+# infinity.
+# 
+# We will come back to more interpreations after we have gone through some of the statistical analysis part. 
+# 
+# For more discussions of Ridge and Lasso regression, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
+# Similarly, [Mehta et al's article](https://arxiv.org/abs/1803.08823) is also recommended.
+
+# ## Deriving the  Lasso Regression Equations
+# 
+# Using the matrix-vector expression for Lasso regression, we have the following **cost** function
+
+# $$
+# C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+# $$
+
+# Taking the derivative with respect to $\boldsymbol{\beta}$ and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicity)
+
+# $$
+# \frac{d \vert \beta\vert}{d \beta}=\mathrm{sgn}(\beta)=\left\{\begin{array}{cc} 1 & \beta > 0 \\-1 & \beta < 0, \end{array}\right.
+# $$
+
+# we have that the derivative of the cost function is
+
+# $$
+# \frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-\frac{2}{n}\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
+# $$
+
+# and reordering we have
+
+# $$
+# \boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta}+\lambda sgn(\boldsymbol{\beta})=\boldsymbol{X}^T\boldsymbol{y}.
+# $$
+
+# This equation does not lead to a nice analytical equation as in Ridge regression or ordinary least squares. We have absorbed the factor $2/n$ in a redefinition of the parameter $\lambda$. We will solve this type of problems using libraries like **scikit-learn**.
+
+# ## Simple example to illustrate Ordinary Least Squares, Ridge and Lasso Regression
+# 
+# Let us assume that our design matrix is given by unit (identity) matrix, that is a square diagonal matrix with ones only along the
+# diagonal. In this case we have an equal number of rows and columns $n=p$.
+# 
+# Our model approximation is just $\tilde{\boldsymbol{y}}=\boldsymbol{\beta}$ and the mean squared error and thereby the cost function for ordinary least sqquares (OLS) is then (we drop the term $1/n$)
+
+# $$
+# C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2,
+# $$
+
+# and minimizing we have that
+
+# $$
+# \hat{\beta}_i^{\mathrm{OLS}} = y_i.
+# $$
+
+# ## Ridge Regression
+# 
+# For Ridge regression our cost function is
+
+# $$
+# C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\beta_i^2,
+# $$
+
+# and minimizing we have that
+
+# $$
+# \hat{\beta}_i^{\mathrm{Ridge}} = \frac{y_i}{1+\lambda}.
+# $$
+
+# ## Lasso Regression
+# 
+# For Lasso regression our cost function is
+
+# $$
+# C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\vert\beta_i\vert=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\sqrt{\beta_i^2},
+# $$
+
+# and minimizing we have that
+
+# $$
+# -2\sum_{i=0}^{p-1}(y_i-\beta_i)+\lambda \sum_{i=0}^{p-1}\frac{(\beta_i)}{\vert\beta_i\vert}=0,
+# $$
+
+# which leads to
+
+# $$
+# \hat{\boldsymbol{\beta}}_i^{\mathrm{Lasso}} = \left\{\begin{array}{ccc}y_i-\frac{\lambda}{2} &\mathrm{if} & y_i> \frac{\lambda}{2}\\
+#                                                           y_i+\frac{\lambda}{2} &\mathrm{if} & y_i< -\frac{\lambda}{2}\\
+# 							  0 &\mathrm{if} & \vert y_i\vert\le  \frac{\lambda}{2}\end{array}\right.\\.
+# $$
+
+# Plotting these results shows clearly that Lasso regression suppresses (sets to zero) values of $\beta_i$ for specific values of $\lambda$. Ridge regression reduces on the other hand the values of $\beta_i$ as function of $\lambda$.
+
+# ## Yet another Example
+# 
+# Let us assume we have a data set with outputs/targets given by the vector
+
+# $$
+# \boldsymbol{y}=\begin{bmatrix}4 \\ 2 \\3\end{bmatrix},
+# $$
+
+# and our inputs as a $3\times 2$ design matrix
+
+# $$
+# \boldsymbol{X}=\begin{bmatrix}2 & 0\\ 0 & 1 \\ 0 & 0\end{bmatrix},
+# $$
+
+# meaning that we have two features and two unknown parameters $\beta_0$ and $\beta_1$ to be determined either by ordinary least squares, Ridge or Lasso regression.
+
+# ## The OLS case
+# 
+# For ordinary least squares (OLS) we know that the optimal solution is
+
+# $$
+# \hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\left( \boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+# $$
+
+# Inserting the above values we obtain that
+
+# $$
+# \hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\begin{bmatrix}2 \\ 2\end{bmatrix},
+# $$
+
+# The code which implements this simpler case is presented after the discussion of Ridge and Lasso.
+
+# ## The Ridge case
+# 
+# For Ridge regression we have
+
+# $$
+# \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\left( \boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+# $$
+
+# Inserting the above values we obtain that
+
+# $$
+# \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\begin{bmatrix}\frac{8}{4+\lambda} \\ \frac{2}{1+\lambda}\end{bmatrix},
+# $$
+
+# There is normally a constraint on the value of $\vert\vert \boldsymbol{\beta}\vert\vert_2$ via the parameter $\lambda$.
+# Let us for simplicity assume that $\beta_0^2+\beta_1^2=1$ as constraint. This will allow us to find an expression for the optimal values of $\beta$ and $\lambda$.
+# 
+# To see this, let us write the cost function for Ridge regression.
+
+# ## Writing the Cost Function
+# 
+# We define the MSE without the $1/n$ factor and have then, using that
+
+# $$
+# \boldsymbol{X}\boldsymbol{\beta}=\begin{bmatrix} 2\beta_0 \\ \beta_1 \\0 \end{bmatrix},
+# $$
+
+# $$
+# C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\beta_0^2+\beta_1^2),
+# $$
+
+# and taking the derivative with respect to $\beta_0$ we get
+
+# $$
+# \beta_0=\frac{8}{4+\lambda},
+# $$
+
+# and for $\beta_1$ we obtain
+
+# $$
+# \beta_1=\frac{2}{1+\lambda},
+# $$
+
+# Using the constraint for $\beta_0^2+\beta_1^2=1$ we can constrain $\lambda$ by solving
+
+# $$
+# \left(\frac{8}{4+\lambda}\right)^2+\left(\frac{2}{1+\lambda}\right)^2=1,
+# $$
+
+# which gives $\lambda=4.571$ and $\beta_0=0.933$ and $\beta_1=0.359$.
+
+# ## Lasso case
+# 
+# For Lasso we need now, keeping a  constraint on $\vert\beta_0\vert+\vert\beta_1\vert=1$,  to take the derivative of the absolute values of $\beta_0$
+# and $\beta_1$. This gives us the following derivatives of the cost function
+
+# $$
+# C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\vert\beta_0\vert+\vert\beta_1\vert),
+# $$
+
+# $$
+# \frac{\partial C(\boldsymbol{\beta})}{\partial \beta_0}=-4(4-2\beta_0)+\lambda\mathrm{sgn}(\beta_0)=0,
+# $$
+
+# and
+
+# $$
+# \frac{\partial C(\boldsymbol{\beta})}{\partial \beta_1}=-2(2-\beta_1)+\lambda\mathrm{sgn}(\beta_1)=0.
+# $$
+
+# We have now four cases to solve besides the trivial cases $\beta_0$ and/or $\beta_1$ are zero, namely
+# 1. $\beta_0 > 0$ and $\beta_1 > 0$,
+# 
+# 2. $\beta_0 > 0$ and $\beta_1 < 0$,
+# 
+# 3. $\beta_0 < 0$ and $\beta_1 > 0$,
+# 
+# 4. $\beta_0 < 0$ and $\beta_1 < 0$.
+
+# ## The first Case
+# 
+# If we consider the first case, we have then
+
+# $$
+# -4(4-2\beta_0)+\lambda=0,
+# $$
+
+# and
+
+# $$
+# -2(2-\beta_1)+\lambda=0.
+# $$
+
+# which yields
+
+# $$
+# \beta_0=\frac{16+\lambda}{8},
+# $$
+
+# and
+
+# $$
+# \beta_1=\frac{4+\lambda}{2}.
+# $$
+
+# Using the constraint on $\beta_0$ and $\beta_1$ we can then find the optimal value of $\lambda$ for the different cases. We leave this as an exercise to you.
+
+# ## Simple code for solving the above problem
+# 
+# Here we set up the OLS, Ridge and Lasso functionality in order to study the above example. Note that here we have opted for a set of values of $\lambda$, meaning that we need to perform a search in order to find the optimal values.
+# 
+# First we study and compare the OLS and Ridge results.  The next code compares all three methods.
+
+# In[9]:
+
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+
+X = np.array( [ [ 2, 0], [0, 1], [0,0]])
+y = np.array( [4, 2, 3])
+
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(2,2)
+# Decide which values of lambda to use
+nlambdas = 100
+MSEPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+#    print(Ridgebeta)
+    # and then make the prediction
+    ypredictRidge = X @ Ridgebeta
+    MSEPredict[i] = MSE(y,ypredictRidge)
+#    print(MSEPredict[i])
+    # Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Train')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+
+# We see here that we reach a plateau. What is actually happening?
+
+# ## With Lasso Regression
+
+# In[10]:
+
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+
+X = np.array( [ [ 2, 0], [0, 1], [0,0]])
+y = np.array( [4, 2, 3])
+
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X.T @ X) @ X.T @ y
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y,ytildeOLS))
+ypredictOLS = X @ OLSbeta
+
+# Repeat now for Ridge regression and various values of the regularization parameter
+I = np.eye(2,2)
+# Decide which values of lambda to use
+nlambdas = 100
+MSERidgePredict = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X.T @ X+lmb*I) @ X.T @ y
+    print(Ridgebeta)
+    # and then make the prediction
+    ypredictRidge = X @ Ridgebeta
+    MSERidgePredict[i] = MSE(y,ypredictRidge)
+    RegLasso = linear_model.Lasso(lmb,fit_intercept=False)
+    RegLasso.fit(X,y)
+    ypredictLasso = RegLasso.predict(X)
+    print(RegLasso.coef_)
+    MSELassoPredict[i] = MSE(y,ypredictLasso)
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSERidgePredict, 'r--', label = 'MSE Ridge Train')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Train')
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+
+# ## Another Example, now with a polynomial fit
+
+# In[11]:
+
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def R2(y_data, y_model):
+    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+x = np.random.rand(100)
+y = 2.0+5*x*x+0.1*np.random.randn(100)
+
+# number of features p (here degree of polynomial
+p = 3
+#  The design matrix now as function of a given polynomial
+X = np.zeros((len(x),p))
+X[:,0] = 1.0
+X[:,1] = x
+X[:,2] = x*x
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# matrix inversion to find beta
+OLSbeta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(OLSbeta)
+# and then make the prediction
+ytildeOLS = X_train @ OLSbeta
+print("Training MSE for OLS")
+print(MSE(y_train,ytildeOLS))
+ypredictOLS = X_test @ OLSbeta
+print("Test MSE OLS")
+print(MSE(y_test,ypredictOLS))
+
+# Repeat now for Lasso and Ridge regression and various values of the regularization parameter
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 100
+MSEPredict = np.zeros(nlambdas)
+MSETrain = np.zeros(nlambdas)
+MSELassoPredict = np.zeros(nlambdas)
+MSELassoTrain = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 4, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    Ridgebeta = np.linalg.inv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    # include lasso using Scikit-Learn
+    RegLasso = linear_model.Lasso(lmb,fit_intercept=False)
+    RegLasso.fit(X_train,y_train)
+    # and then make the prediction
+    ytildeRidge = X_train @ Ridgebeta
+    ypredictRidge = X_test @ Ridgebeta
+    ytildeLasso = RegLasso.predict(X_train)
+    ypredictLasso = RegLasso.predict(X_test)
+    MSEPredict[i] = MSE(y_test,ypredictRidge)
+    MSETrain[i] = MSE(y_train,ytildeRidge)
+    MSELassoPredict[i] = MSE(y_test,ypredictLasso)
+    MSELassoTrain[i] = MSE(y_train,ytildeLasso)
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSETrain, label = 'MSE Ridge train')
+plt.plot(np.log10(lambdas), MSEPredict, 'r--', label = 'MSE Ridge Test')
+plt.plot(np.log10(lambdas), MSELassoTrain, label = 'MSE Lasso train')
+plt.plot(np.log10(lambdas), MSELassoPredict, 'r--', label = 'MSE Lasso Test')
+
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
