@@ -3,12 +3,31 @@
 
 # <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
 # doconce format html Project1.do.txt  -->
-# <!-- dom:TITLE: Project 1 on Machine Learning, deadline October 9 (midnight), 2023 -->
+# <!-- dom:TITLE: Project 1 on Machine Learning, deadline October 7 (midnight), 2024 -->
 
-# # Project 1 on Machine Learning, deadline October 9 (midnight), 2023
+# # Project 1 on Machine Learning, deadline October 7 (midnight), 2024
 # **[Data Analysis and Machine Learning FYS-STK3155/FYS4155](http://www.uio.no/studier/emner/matnat/fys/FYS3155/index-eng.html)**, University of Oslo, Norway
 # 
-# Date: **September 3**
+# Date: **September 2**
+
+# ## Preamble: Note on writing reports, using reference material, AI and other tools
+# 
+# We want you to answer the three different projects by handing reports written like a standard scientific/technical report.
+# The link at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/ProjectWriting/projectwriting.ipynb> gives some guidance. See also the grading suggestion at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/EvaluationGrading/EvaluationForm.md>.
+# 
+# When using codes from different sources that you have not developed yourself,
+# you should refer to these in the bibliography of your report, indicating  wherefrom you
+# got the code, whether this is from the lecture notes, softwares like
+# Scikit-Learn, TensorFlow, PyTorch or  other sources. These should
+# always be cited correctly. How to cite some of the libraries is often
+# indicated from their corresponding GitHub sites or websites, see for example how to cite Scikit-Learn at  <https://scikit-learn.org/dev/about.html>. 
+# 
+# We enocurage you to use tools like
+# [ChatGPT](https://openai.com/chatgpt/) in writing the report. If you use for example ChatGPT,
+# please do cite it properly and include (if possible) your questions and answers as an addition to the report. This can
+# be uplodaed to for example your website, GitHub/GitLab or similar as supplemental material.
+# 
+# On scaling, we recommend reading the following section from the scikit-learn software description, see <https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html#plot-all-scaling-standard-scaler-section>
 
 # ## Regression analysis and resampling methods
 # 
@@ -29,7 +48,7 @@
 # recommend to do the code development and testing with a simpler
 # one-dimensional function, similar to those discussed in the exercises
 # of weeks 35 and 36. A simple test, as discussed during the lectures the first
-# two weeks is to set the design matrix equal to the identity
+# three weeks is to set the design matrix equal to the identity
 # matrix. Then your model should give a mean square error which is exactly equal to zero.
 # When you are sure that your codes function well, you can then replace
 # the one-dimensional test function with the two-dimensional **Franke** function
@@ -63,7 +82,7 @@
 # 
 # Our first step will
 # be to perform an OLS regression analysis of this function, trying out
-# a polynomial fit with an $x$ and $y$ dependence of the form $[x, y,
+# a polynomial fit with an $x$ and a $y$ dependence of the form $[x, y,
 # x^2, y^2, xy, \dots]$. We will also include bootstrap first as a
 # resampling technique.  After that we will include the cross-validation
 # technique.
