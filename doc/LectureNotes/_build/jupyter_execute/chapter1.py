@@ -800,7 +800,6 @@ plt.show()
 # In[13]:
 
 
-
 #Decision Tree Regression
 from sklearn.tree import DecisionTreeRegressor
 regr_1=DecisionTreeRegressor(max_depth=5)
