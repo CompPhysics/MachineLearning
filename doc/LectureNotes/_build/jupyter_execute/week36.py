@@ -782,7 +782,7 @@ plt.show()
 # y_i\sim \mathcal{N}(\boldsymbol{X}_{i,*}\boldsymbol{\beta}, \sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\boldsymbol{X}_{i,*}\boldsymbol{\beta})^2}{2\sigma^2}\right]}.
 # $$
 
-# ## Independent and Identically Distrubuted (iid)
+# ## Independent and Identically Distributed (iid)
 # 
 # We assume now that the various $y_i$ values are stochastically distributed according to the above Gaussian distribution. 
 # We define this distribution as
