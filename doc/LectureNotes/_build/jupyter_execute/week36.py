@@ -21,8 +21,10 @@
 #   * Recommended Reading: Goodfellow et al chapter 3  (till 3.11) on probability theory, see <https://www.deeplearningbook.org/>
 # 
 #   * Raschka et al, chapter 4 pages 105-134 and chapter 6 pages 171-185. Chapter 4 and 6 contain many useful hints which will also be relevant for the various projects as well.
-# <!-- * [Video of lecture](https://youtu.be/Kc20CFK0z7Y) -->
-# <!-- * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep7.pdf) -->
+# 
+#   * [Video of lecture](https://youtu.be/oHjqjUB36KE)  
+# 
+#   * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember2.pdf)
 # 
 # * Material for the active learning sessions on Tuesday and Wednesday
 # 
