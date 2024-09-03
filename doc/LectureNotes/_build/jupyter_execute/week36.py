@@ -3,9 +3,9 @@
 
 # <!-- HTML file automatically generated from DocOnce source (https://github.com/doconce/doconce/)
 # doconce format html week36.do.txt --no_mako -->
-# <!-- dom:TITLE: Week 36: Linear Rgeression and Statistical interpretations -->
+# <!-- dom:TITLE: Week 36: Linear Regression and Statistical interpretations -->
 
-# # Week 36: Linear Rgeression and Statistical interpretations
+# # Week 36: Linear Regression and Statistical interpretations
 # **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 # 
 # Date: **September 2-6, 2024**
@@ -72,6 +72,8 @@
 # If you need to scale the data, not doing so will give an *unfair*
 # penalization of the parameters since their magnitude depends on the
 # scale of their corresponding predictor.
+# 
+# The **Scikit-Learn** site <https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html#plot-all-scaling-standard-scaler-section> has a good discussion of different ways of preprocessing data.
 # 
 # Suppose as an example that you 
 # you have an input variable given by the heights of different persons.
@@ -292,7 +294,7 @@ beta = fit_beta(X - X_offset, y - y_offset)
 intercept = np.mean(y_offset - X_offset @ beta)
 
 print(f"Manual intercept: {intercept}")
-print(f"Fitted beta (wiothout intercept): {beta}")
+print(f"Fitted beta (without intercept): {beta}")
 print(f"Sklearn intercept: {skl.intercept_}")
 print(f"Sklearn fitted beta (without intercept): {skl.coef_}")
 ypredictOwn = X @ beta
