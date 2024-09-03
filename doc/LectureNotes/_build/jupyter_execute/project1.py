@@ -12,36 +12,35 @@
 
 # ## Preamble: Note on writing reports, using reference material, AI and other tools
 # 
-# We want you to answer the three different projects by handing reports written like a standard scientific/technical report.
-# The link at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/ProjectWriting/projectwriting.ipynb> gives some guidance. See also the grading suggestion at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/EvaluationGrading/EvaluationForm.md>.
+# We want you to answer the three different projects by handing in
+# reports written like a standard scientific/technical report.  The link
+# at
+# <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/ProjectWriting/projectwriting.ipynb>
+# gives some guidance. See also the grading suggestion at
+# <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/EvaluationGrading/EvaluationForm.md>.
 # 
-# When using codes from different sources that you have not developed yourself,
-# you should refer to these in the bibliography of your report, indicating  wherefrom you
+# Furthermore, at
+# <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/ReportExample/>
+# you can find examples of previous reports. How to write reports will
+# also be discussed during the various lab sessions. Please do ask us if you are in doubt.
+# 
+# When using codes and material from other  sources, you should refer to these in the bibliography of your report, indicating  wherefrom you for example
 # got the code, whether this is from the lecture notes, softwares like
 # Scikit-Learn, TensorFlow, PyTorch or  other sources. These should
 # always be cited correctly. How to cite some of the libraries is often
 # indicated from their corresponding GitHub sites or websites, see for example how to cite Scikit-Learn at  <https://scikit-learn.org/dev/about.html>. 
 # 
 # We enocurage you to use tools like
-# [ChatGPT](https://openai.com/chatgpt/) in writing the report. If you use for example ChatGPT,
+# [ChatGPT](https://openai.com/chatgpt/) or similar in writing the report. If you use for example ChatGPT,
 # please do cite it properly and include (if possible) your questions and answers as an addition to the report. This can
-# be uplodaed to for example your website, GitHub/GitLab or similar as supplemental material.
-# 
-# On scaling, we recommend reading the following section from the scikit-learn software description, see <https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html#plot-all-scaling-standard-scaler-section>
+# be uploaded to for example your website, GitHub/GitLab or similar as supplemental material.
 
 # ## Regression analysis and resampling methods
 # 
 # The main aim of this project is to study in more detail various
 # regression methods, including the Ordinary Least Squares (OLS) method.
 # In addition to the scientific part, in this course we want also to
-# give you an experience in writing scientific reports.  The format for
-# the delivery of your answers is namely that of a scientific report. At
-# for example
-# <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/EvaluationGrading/EvaluationForm.md>
-# we detail how to write a report. Furthermore, at
-# <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/ReportExample/>
-# you can find examples of previous reports. How to write reports will
-# also be discussed during the various lab sessions.
+# give you an experience in writing scientific reports.
 # 
 # **A small recommendation when developing the codes here**. Instead of
 # jumping on to the two-dimensional function described below, we
@@ -148,6 +147,8 @@ fig.colorbar(surf, shrink=0.5, aspect=5)
 plt.show()
 
 
+# If you wish to compare your results with other on the Franke function or other popular functions tested with linear regression, see the list in Figure 1 of the article by Cook et al at <https://arxiv.org/abs/2401.11694>.
+
 # ### Part a) : Ordinary Least Square (OLS) on the Franke function
 # 
 # We will generate our own dataset for a function
@@ -201,6 +202,8 @@ plt.show()
 # 
 # You can easily reuse the solutions to your exercises from week 35 and week 36.
 # See also the lecture slides from week 35 and week 36.
+# 
+# On scaling, we recommend reading the following section from the scikit-learn software description, see <https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html#plot-all-scaling-standard-scaler-section>.
 
 # ### Part b): Adding Ridge regression for  the Franke function
 # 
@@ -352,18 +355,16 @@ plt.show()
 
 # ### Part f):  Cross-validation as resampling techniques, adding more complexity
 # 
-# The aim here is to write your own code for another widely popular
+# The aim here is to implement another widely popular
 # resampling technique, the so-called cross-validation method.  
 # 
 # Implement the $k$-fold cross-validation algorithm (write your own
-# code) and evaluate again the MSE function resulting
-# from the test folds. You can compare your own code with that from
-# **Scikit-Learn** if needed. 
+# code or use the functionality of **Scikit-Learn**) and evaluate again the MSE function resulting
+# from the test folds. 
 # 
 # Compare the MSE you get from your cross-validation code with the one
 # you got from your **bootstrap** code. Comment your results. Try $5-10$
-# folds.  You can also compare your own cross-validation code with the
-# one provided by **Scikit-Learn**.
+# folds.  
 # 
 # In addition to using the ordinary least squares method, you should include both Ridge and Lasso regression.
 
