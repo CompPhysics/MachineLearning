@@ -16,14 +16,15 @@
 # 
 # **Material for the lecture on Monday September 9.**
 # 
-# <!-- * [Video of Lecture](https://youtu.be/YOBBr_toYxc) -->
-# <!-- * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep14.pdf) -->
+#    * [Video of Lecture](https://youtu.be/omLmp_kkie0)
+# 
+#    * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember9.pdf)
+# 
 #   * Statistical interpretation of Ridge and Lasso regression, see also slides from last week
 # 
 #   * Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff (this may partly be discussed during the exercise sessions as well.
 # 
 #   * Readings and Videos:
-# 
 #     * Raschka et al, pages 175-192
 # 
 #     * Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). See <https://link.springer.com/book/10.1007/978-0-387-84858-7>.
