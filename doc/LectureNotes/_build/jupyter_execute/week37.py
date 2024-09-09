@@ -6,215 +6,49 @@
 # <!-- dom:TITLE: Week 37: Statistical interpretations and Resampling Methods -->
 
 # # Week 37: Statistical interpretations and Resampling Methods
-# **Morten Hjorth-Jensen**, Department of Physics, University of Oslo and Department of Physics and Astronomy and Facility for Rare Isotope Beams, Michigan State University
+# **Morten Hjorth-Jensen**, Department of Physics, University of Oslo, Norway
 # 
 # Date: **September 9, 2024**
 # 
 # <!-- todo add link to videos and add link to Van Wieringens notes -->
 
-# ## Plans for week 37
+# ## Plans for week 37, lecture Monday
 # 
 # **Material for the lecture on Monday September 9.**
 # 
 # <!-- * [Video of Lecture](https://youtu.be/YOBBr_toYxc) -->
 # <!-- * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep14.pdf) -->
-#   * Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff
+#   * Statistical interpretation of Ridge and Lasso regression, see also slides from last week
 # 
-#   * Statistical interpretation of Ridge and Lasso regression
+#   * Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff (this may partly be discussed during the exercise sessions as well.
 # 
 #   * Readings and Videos:
 # 
-#     * Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). 
+#     * Raschka et al, pages 175-192
+# 
+#     * Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). See <https://link.springer.com/book/10.1007/978-0-387-84858-7>.
 # 
 #     * [Video on cross validation](https://www.youtube.com/watch?v=fSytzGwwBVw)
 # 
 #     * [Video on Bootstrapping](https://www.youtube.com/watch?v=Xz0x-8-cgaQ)
 # 
 #     * [Video on bias-variance tradeoff](https://www.youtube.com/watch?v=EuBBz3bI-aA)
+
+# ## Plans for week 37, lab sessions
 # 
-# **Material for the active learning sessions on Tuesday and Wednesday.**
+# **Material for the lab  sessions on Tuesday and Wednesday.**
 # 
 #   * Calculations of expectation values
+# 
+#   * Discussion of resampling techniques
 # 
 #   * Exercise set for week 37
 # 
 #   * Work on project 1
 # 
-#   * See also additional note on scaling (jupyter-notebook) sent separately. This will be discussed during the first hour of each session. This note is added at the end of these slides.
-# 
 #   * For more discussions of Ridge regression and calculation of averages, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
 
-# ## Material from last week and relevant for the weekly exercises
-
-# ## Linking the regression analysis with a statistical interpretation
-# 
-# We will now couple the discussions of ordinary least squares, Ridge
-# and Lasso regression with a statistical interpretation, that is we
-# move from a linear algebra analysis to a statistical analysis. In
-# particular, we will focus on what the regularization terms can result
-# in.  We will amongst other things show that the regularization
-# parameter can reduce considerably the variance of the parameters
-# $\beta$.
-# 
-# The
-# advantage of doing linear regression is that we actually end up with
-# analytical expressions for several statistical quantities.  
-# Standard least squares and Ridge regression  allow us to
-# derive quantities like the variance and other expectation values in a
-# rather straightforward way.
-# 
-# It is assumed that $\varepsilon_i
-# \sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
-# independent, i.e.:
-
-# $$
-# \begin{align*} 
-# \mbox{Cov}(\varepsilon_{i_1},
-# \varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
-# & i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
-# \end{align*}
-# $$
-
-# The randomness of $\varepsilon_i$ implies that
-# $\mathbf{y}_i$ is also a random variable. In particular,
-# $\mathbf{y}_i$ is normally distributed, because $\varepsilon_i \sim
-# \mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \boldsymbol{\beta}$ is a
-# non-random scalar. To specify the parameters of the distribution of
-# $\mathbf{y}_i$ we need to calculate its first two moments. 
-# 
-# Recall that $\boldsymbol{X}$ is a matrix of dimensionality $n\times p$. The
-# notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
-# row number $i$ and perform a sum over all values $p$.
-
-# ## Assumptions made
-# 
-# The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
-# that there exists a function $f(\boldsymbol{x})$ and  a normal distributed error $\boldsymbol{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
-# which describe our data
-
-# $$
-# \boldsymbol{y} = f(\boldsymbol{x})+\boldsymbol{\varepsilon}
-# $$
-
-# We approximate this function with our model from the solution of the linear regression equations, that is our
-# function $f$ is approximated by $\boldsymbol{\tilde{y}}$ where we want to minimize $(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2$, our MSE, with
-
-# $$
-# \boldsymbol{\tilde{y}} = \boldsymbol{X}\boldsymbol{\beta}.
-# $$
-
-# ## Expectation value and variance
-# 
-# We can calculate the expectation value of $\boldsymbol{y}$ for a given element $i$
-
-# $$
-# \begin{align*} 
-# \mathbb{E}(y_i) & =
-# \mathbb{E}(\mathbf{X}_{i, \ast} \, \boldsymbol{\beta}) + \mathbb{E}(\varepsilon_i)
-# \, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
-# \end{align*}
-# $$
-
-# while
-# its variance is
-
-# $$
-# \begin{align*} \mbox{Var}(y_i) & = \mathbb{E} \{ [y_i
-# - \mathbb{E}(y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( y_i^2 ) -
-# [\mathbb{E}(y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
-# \beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 \\ &
-# = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 + 2 \varepsilon_i
-# \mathbf{X}_{i, \ast} \, \boldsymbol{\beta} + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
-# \ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 + 2
-# \mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \boldsymbol{\beta} +
-# \mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 
-# \\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
-# \mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
-# \end{align*}
-# $$
-
-# Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta}, \sigma^2)$, that is $\boldsymbol{y}$ follows a normal distribution with 
-# mean value $\boldsymbol{X}\boldsymbol{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD).
-
-# ## Expectation value and variance for $\boldsymbol{\beta}$
-# 
-# With the OLS expressions for the optimal parameters $\boldsymbol{\hat{\beta}}$ we can evaluate the expectation value
-
-# $$
-# \mathbb{E}(\boldsymbol{\hat{\beta}}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\boldsymbol{\beta}=\boldsymbol{\beta}.
-# $$
-
-# This means that the estimator of the regression parameters is unbiased.
-# 
-# We can also calculate the variance
-# 
-# The variance of the optimal value $\boldsymbol{\hat{\beta}}$ is
-
-# $$
-# \begin{eqnarray*}
-# \mbox{Var}(\boldsymbol{\hat{\beta}}) & = & \mathbb{E} \{ [\boldsymbol{\beta} - \mathbb{E}(\boldsymbol{\beta})] [\boldsymbol{\beta} - \mathbb{E}(\boldsymbol{\beta})]^{T} \}
-# \\
-# & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \boldsymbol{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \boldsymbol{\beta}]^{T} \}
-# \\
-# % & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}]^{T} \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
-# % \\
-# % & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} \, \mathbf{y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
-# % \\
-# & = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{y} \, \mathbf{y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
-# \\
-# & = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
-# % \\
-# % & = & (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T \, \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^T \,  \mathbf{X}^T \, \mathbf{X} \, (\mathbf{X}^T % \mathbf{X})^{-1}
-# % \\
-# % & & + \, \, \sigma^2 \, (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T  \, \mathbf{X} \, (\mathbf{X}^T \mathbf{X})^{-1} - \boldsymbol{\beta} \boldsymbol{\beta}^T
-# \\
-# & = & \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}  + \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
-# \, \, \, = \, \, \, \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1},
-# \end{eqnarray*}
-# $$
-
-# where we have used  that $\mathbb{E} (\mathbf{y} \mathbf{y}^{T}) =
-# \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^{T} \, \mathbf{X}^{T} +
-# \sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\boldsymbol{\beta}) = \sigma^2
-# \, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
-# variance of the estimate of the $j$-th regression coefficient:
-# $\boldsymbol{\sigma}^2 (\boldsymbol{\beta}_j ) = \boldsymbol{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
-# construct a confidence interval for the estimates.
-# 
-# In a similar way, we can obtain analytical expressions for say the
-# expectation values of the parameters $\boldsymbol{\beta}$ and their variance
-# when we employ Ridge regression, allowing us again to define a confidence interval. 
-# 
-# It is rather straightforward to show that
-
-# $$
-# \mathbb{E} \big[ \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\boldsymbol{\beta}.
-# $$
-
-# We see clearly that 
-# $\mathbb{E} \big[ \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}} \big] \not= \hat{\boldsymbol{\beta}}^{\mathrm{OLS}}$ for any $\lambda > 0$.
-# 
-# We can also compute the variance as
-
-# $$
-# \mbox{Var}[\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
-# $$
-
-# and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\boldsymbol{\beta}$ goes to zero. 
-# 
-# With this, we can compute the difference
-
-# $$
-# \mbox{Var}[\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}]-\mbox{Var}(\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
-# $$
-
-# The difference is non-negative definite since each component of the
-# matrix product is non-negative definite. 
-# This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\boldsymbol{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
-# 
-# For more discussions of Ridge regression and calculation of averages, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
-
-# ## Material for lecture Thursday September 14
+# ## Material for lecture Monday September 9
 
 # ## Deriving OLS from a probability distribution
 # 
@@ -459,7 +293,7 @@
 # p(\boldsymbol{\beta}\vert\boldsymbol{D})\propto p(\boldsymbol{D}\vert\boldsymbol{\beta})p(\boldsymbol{\beta}).
 # $$
 
-# We have a model for $p(\boldsymbol{D}\vert\boldsymbol{\beta})$ but need one for the **prior** $p(\boldsymbol{\beta}$!
+# We have a model for $p(\boldsymbol{D}\vert\boldsymbol{\beta})$ but need one for the **prior** $p(\boldsymbol{\beta})$!
 
 # ## Ridge and Bayes
 # 
@@ -769,10 +603,10 @@
 # With the OLS expressions for the parameters $\boldsymbol{\beta}$ we found 
 # $\mathbb{E}(\boldsymbol{\beta}) = \boldsymbol{\beta}$, which means that the estimator of the regression parameters is unbiased.
 # 
-# We found also that the variance of the estimate of the $j$-th regression coefficient is
+# In the exercises this week we show that the variance of the estimate of the $j$-th regression coefficient is
 # $\boldsymbol{\sigma}^2 (\boldsymbol{\beta}_j ) = \boldsymbol{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $.
 # 
-# This quantity will be used to
+# This quantity can be used to
 # construct a confidence interval for the estimates.
 
 # ## Standard Approach based on the Normal Distribution
@@ -1515,336 +1349,172 @@ plt.legend()
 plt.show()
 
 
-# ## Notes on scaling with examples
+# ## Material for the lab sessions
+
+# ## Linking the regression analysis with a statistical interpretation
 # 
-# The programs here use both ordinrary least squares (OLS) and Ridge
-# regression with one value only for the hyperparameter $\lambda$. The
-# first example has no scaling and includes the intercept as well and we
-# are trying to fit a second-order polynomial. The second code takes out
-# the intercept and subtracts the mean values of each column of the
-# design matrix and the mean value of the outputs.
+# We will now couple the discussions of ordinary least squares, Ridge
+# and Lasso regression with a statistical interpretation, that is we
+# move from a linear algebra analysis to a statistical analysis. In
+# particular, we will focus on what the regularization terms can result
+# in.  We will amongst other things show that the regularization
+# parameter can reduce considerably the variance of the parameters
+# $\beta$.
 # 
-# The third and final code uses **Scikit-Learn** as library in order to
-# calculate the optimal parameters for OLS and Ridge regression. Note
-# that it is highly recommended to not include the intercept in Ridge
-# and Lasso regression, in order to avoid penalizing the optimization by
-# the intercept. The second and third codes do thus not include the
-# intercept. In the second code we do the scaling ourselves while the
-# last code uses the standard scaler option included in **Scikit-Learn**, known as centering (where
-# we subtract the mean values).
-
-# In[9]:
-
-
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-def OLS_fit_beta(X, y):
-    return np.linalg.pinv(X.T @ X) @ X.T @ y
-
-def Ridge_fit_beta(X, y,L,d):
-    I = np.eye(d,d)
-    return np.linalg.pinv(X.T @ X + L*I) @ X.T @ y
-
-# Same random numbers for each test.
-np.random.seed(2018)
-n = 100
-d = 3
-# hyperparameter lambda
-Lambda = 0.01
-
-# Make data set, simple second-order polynomial
-x = np.linspace(-3, 3, n)
-y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
-
-# The design matrix X includes the intercept and no scaling is made
-X = np.zeros((len(x), d))
-for p in range(d):     
-    X[:, p] = x ** (p) 
-
-
-#Split data, no scaling is used and we include the intercept
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-
-#Calculate beta, own code
-beta_OLS = OLS_fit_beta(X_train, y_train)
-beta_Ridge = Ridge_fit_beta(X_train, y_train,Lambda,d)
-print(beta_OLS)
-print(beta_Ridge)
-#predict value
-ytilde_test_OLS = X_test @ beta_OLS
-ytilde_test_Ridge = X_test @ beta_Ridge
-
-#Calculate MSE
-print("  ")
-print("test MSE of OLS:")
-print(MSE(y_test,ytilde_test_OLS))
-print("  ")
-print("test MSE of Ridge")
-print(MSE(y_test,ytilde_test_Ridge))
-
-plt.scatter(x,y,label='Data')
-plt.plot(x, X @ beta_OLS,'*', label="OLS_Fit")
-plt.plot(x, X @ beta_Ridge, label="Ridge_Fit")
-plt.grid()
-plt.legend()
-plt.show()
-
-
-# In this example we do not include the intercept and we scale the data by subtracting the mean values. This follows the discussion in the [lecture material](https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter3.html#more-on-rescaling-data).
-# see also the weekly slides [for week 36](https://compphysics.github.io/MachineLearning/doc/pub/week36/html/._week36-bs029.html).
-# It is recommended whrn we use Ridge and Lasso regression to not include the intercept in the optimization process.
+# The
+# advantage of doing linear regression is that we actually end up with
+# analytical expressions for several statistical quantities.  
+# Standard least squares and Ridge regression  allow us to
+# derive quantities like the variance and other expectation values in a
+# rather straightforward way.
 # 
-# Before we discuss the code, we repeat some of the basic math from the slides of week 36.
+# It is assumed that $\varepsilon_i
+# \sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
+# independent, i.e.:
+
+# $$
+# \begin{align*} 
+# \mbox{Cov}(\varepsilon_{i_1},
+# \varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
+# & i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
+# \end{align*}
+# $$
+
+# The randomness of $\varepsilon_i$ implies that
+# $\mathbf{y}_i$ is also a random variable. In particular,
+# $\mathbf{y}_i$ is normally distributed, because $\varepsilon_i \sim
+# \mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \boldsymbol{\beta}$ is a
+# non-random scalar. To specify the parameters of the distribution of
+# $\mathbf{y}_i$ we need to calculate its first two moments. 
 # 
-# Let us try to understand what this may imply mathematically when we
-# subtract the mean values, also known as *zero centering* or simply *centering*. For
-# simplicity, we will focus on  ordinary regression, as done in the above example.
+# Recall that $\boldsymbol{X}$ is a matrix of dimensionality $n\times p$. The
+# notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
+# row number $i$ and perform a sum over all values $p$.
+
+# ## Assumptions made
 # 
-# The cost/loss function  for regression is
+# The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
+# that there exists a function $f(\boldsymbol{x})$ and  a normal distributed error $\boldsymbol{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
+# which describe our data
 
 # $$
-# C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
+# \boldsymbol{y} = f(\boldsymbol{x})+\boldsymbol{\varepsilon}
 # $$
 
-# Recall also that we use the squared value. This expression can lead to an
-# increased penalty for higher differences between predicted and
-# output/target values.
+# We approximate this function with our model from the solution of the linear regression equations, that is our
+# function $f$ is approximated by $\boldsymbol{\tilde{y}}$ where we want to minimize $(\boldsymbol{y}-\boldsymbol{\tilde{y}})^2$, our MSE, with
+
+# $$
+# \boldsymbol{\tilde{y}} = \boldsymbol{X}\boldsymbol{\beta}.
+# $$
+
+# ## Expectation value and variance
 # 
-# What we have done is to single out the $\beta_0$ term in the
-# definition of the mean squared error (MSE).  The design matrix $X$
-# does in this case not contain any intercept column.  When we take the
-# derivative with respect to $\beta_0$, we want the derivative to obey
+# We can calculate the expectation value of $\boldsymbol{y}$ for a given element $i$
 
 # $$
-# \frac{\partial C}{\partial \beta_j} = 0,
+# \begin{align*} 
+# \mathbb{E}(y_i) & =
+# \mathbb{E}(\mathbf{X}_{i, \ast} \, \boldsymbol{\beta}) + \mathbb{E}(\varepsilon_i)
+# \, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
+# \end{align*}
 # $$
 
-# for all $j$. For $\beta_0$ we have
+# while
+# its variance is
 
 # $$
-# \frac{\partial C}{\partial \beta_0} = -\frac{2}{n}\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right).
+# \begin{align*} \mbox{Var}(y_i) & = \mathbb{E} \{ [y_i
+# - \mathbb{E}(y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( y_i^2 ) -
+# [\mathbb{E}(y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
+# \beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 \\ &
+# = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 + 2 \varepsilon_i
+# \mathbf{X}_{i, \ast} \, \boldsymbol{\beta} + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
+# \ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 + 2
+# \mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \boldsymbol{\beta} +
+# \mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta})^2 
+# \\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
+# \mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
+# \end{align*}
 # $$
 
-# Multiplying away the constant $2/n$, we obtain
+# Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \boldsymbol{\beta}, \sigma^2)$, that is $\boldsymbol{y}$ follows a normal distribution with 
+# mean value $\boldsymbol{X}\boldsymbol{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD).
 
-# $$
-# \sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
-# $$
-
-# Let us specialize first to the case where we have only two parameters $\beta_0$ and $\beta_1$.
-# Our result for $\beta_0$ simplifies then to
-
-# $$
-# n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
-# $$
-
-# We obtain then
-
-# $$
-# \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
-# $$
-
-# If we define
-
-# $$
-# \mu_{\boldsymbol{x}_1}=\frac{1}{n}\sum_{i=0}^{n-1} X_{i1},
-# $$
-
-# and the mean value of the outputs as
-
-# $$
-# \mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
-# $$
-
-# we have
-
-# $$
-# \beta_0 = \mu_y - \beta_1\mu_{\boldsymbol{x}_1}.
-# $$
-
-# In the general case with more parameters than $\beta_0$ and $\beta_1$, we have
-
-# $$
-# \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
-# $$
-
-# We can rewrite the latter equation as
-
-# $$
-# \beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \sum_{j=1}^{p-1} \mu_{\boldsymbol{x}_j}\beta_j,
-# $$
-
-# where we have defined
-
-# $$
-# \mu_{\boldsymbol{x}_j}=\frac{1}{n}\sum_{i=0}^{n-1} X_{ij},
-# $$
-
-# the mean value for all elements of the column vector $\boldsymbol{x}_j$.
+# ## Expectation value and variance for $\boldsymbol{\beta}$
 # 
-# Replacing $y_i$ with $y_i - y_i - \overline{\boldsymbol{y}}$ and centering also our design matrix results in a cost function (in vector-matrix disguise)
+# With the OLS expressions for the optimal parameters $\boldsymbol{\hat{\beta}}$ we can evaluate the expectation value
 
 # $$
-# C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}).
+# \mathbb{E}(\boldsymbol{\hat{\beta}}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\boldsymbol{\beta}=\boldsymbol{\beta}.
 # $$
 
-# If we minimize with respect to $\boldsymbol{\beta}$ we have then
-
-# $$
-# \hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{\tilde{y}},
-# $$
-
-# where $\boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\boldsymbol{y}}$
-# and $\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=0}^{n-1}X_{kj}$.
+# This means that the estimator of the regression parameters is unbiased.
 # 
-# For Ridge regression we need to add $\lambda \boldsymbol{\beta}^T\boldsymbol{\beta}$ to the cost function and get then
+# We can also calculate the variance
+# 
+# The variance of the optimal value $\boldsymbol{\hat{\beta}}$ is
 
 # $$
-# \hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}.
+# \begin{eqnarray*}
+# \mbox{Var}(\boldsymbol{\hat{\beta}}) & = & \mathbb{E} \{ [\boldsymbol{\beta} - \mathbb{E}(\boldsymbol{\beta})] [\boldsymbol{\beta} - \mathbb{E}(\boldsymbol{\beta})]^{T} \}
+# \\
+# & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \boldsymbol{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \boldsymbol{\beta}]^{T} \}
+# \\
+# % & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}]^{T} \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# % \\
+# % & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} \, \mathbf{y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# % \\
+# & = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{y} \, \mathbf{y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# \\
+# & = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# % \\
+# % & = & (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T \, \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^T \,  \mathbf{X}^T \, \mathbf{X} \, (\mathbf{X}^T % \mathbf{X})^{-1}
+# % \\
+# % & & + \, \, \sigma^2 \, (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T  \, \mathbf{X} \, (\mathbf{X}^T \mathbf{X})^{-1} - \boldsymbol{\beta} \boldsymbol{\beta}^T
+# \\
+# & = & \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}  + \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \boldsymbol{\beta} \, \boldsymbol{\beta}^{T}
+# \, \, \, = \, \, \, \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1},
+# \end{eqnarray*}
 # $$
 
-# Now we try to implement this.
+# where we have used  that $\mathbb{E} (\mathbf{y} \mathbf{y}^{T}) =
+# \mathbf{X} \, \boldsymbol{\beta} \, \boldsymbol{\beta}^{T} \, \mathbf{X}^{T} +
+# \sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\boldsymbol{\beta}) = \sigma^2
+# \, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
+# variance of the estimate of the $j$-th regression coefficient:
+# $\boldsymbol{\sigma}^2 (\boldsymbol{\beta}_j ) = \boldsymbol{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
+# construct a confidence interval for the estimates.
+# 
+# In a similar way, we can obtain analytical expressions for say the
+# expectation values of the parameters $\boldsymbol{\beta}$ and their variance
+# when we employ Ridge regression, allowing us again to define a confidence interval. 
+# 
+# It is rather straightforward to show that
 
-# In[10]:
+# $$
+# \mathbb{E} \big[ \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\boldsymbol{\beta}.
+# $$
 
+# We see clearly that 
+# $\mathbb{E} \big[ \hat{\boldsymbol{\beta}}^{\mathrm{Ridge}} \big] \not= \hat{\boldsymbol{\beta}}^{\mathrm{OLS}}$ for any $\lambda > 0$.
+# 
+# We can also compute the variance as
 
-np.random.seed(2018)
-n = 100
-# we do not include the intercept
-d = 2
-Lambda = 0.01
+# $$
+# \mbox{Var}[\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
+# $$
 
-# Make data set.
-x = np.linspace(-3, 3, n)
-y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
+# and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\boldsymbol{\beta}$ goes to zero. 
+# 
+# With this, we can compute the difference
 
-#Design matrix X does not include the intercept. 
-X = np.zeros((len(x), d))
-for p in range(d):     
-    X[:, p] = x ** (p+1)
+# $$
+# \mbox{Var}[\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}]-\mbox{Var}(\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
+# $$
 
-
-#Split data in train and test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-# Scale data by subtracting mean value,own implementation
-#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable
-X_train_mean = np.mean(X_train,axis=0)
-#Center by removing mean from each feature
-X_train_scaled = X_train - X_train_mean
-X_test_scaled = X_test - X_train_mean
-#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered, note)
-y_scaler = np.mean(y_train)
-y_train_scaled = y_train - y_scaler
-
-
-#Calculate beta
-beta_OLS = OLS_fit_beta(X_train_scaled, y_train_scaled)
-beta_Ridge = Ridge_fit_beta(X_train_scaled, y_train_scaled,Lambda,d)
-print(beta_OLS)
-print(beta_Ridge)
-# calculate intercepts and print them
-interceptOLS = y_scaler - X_train_mean @ beta_OLS
-interceptRidge = y_scaler - X_train_mean @ beta_Ridge
-print(interceptOLS)
-print(interceptRidge)
-
-#predict value with intercept
-ytilde_test_OLS = X_test_scaled @ beta_OLS+y_scaler
-ytilde_test_Ridge = X_test_scaled @ beta_Ridge+y_scaler
-
-
-#Calculate MSE
-
-print("  ")
-print("test MSE of OLS:")
-print(MSE(y_test,ytilde_test_OLS))
-print("  ")
-print("test MSE of Ridge")
-print(MSE(y_test,ytilde_test_Ridge))
-
-plt.scatter(x,y,label='Data')
-plt.plot(x, X @ beta_OLS+interceptOLS,'*', label="OLS_Fit")
-plt.plot(x, X @ beta_Ridge+interceptRidge, label="Ridge_Fit")
-plt.grid()
-plt.legend()
-plt.show()
-
-
-# Finally, instead of using our own function we repeat the same example
-# using the **standardscaler** functionality of the library
-# **Scikit-Learn**.  Here we limit ourselves to Ridge regression only.
-
-# In[11]:
-
-
-from sklearn import linear_model
-np.random.seed(2018)
-n = 10
-d = 2
-Lambda = 0.01
-
-# Make data set.
-x = np.linspace(-3, 3, n)
-y = 2.0 + 0.5*x + 5.0*(x**2)+ np.random.randn(n)
-
-# Design matrix X does not include the intercept. 
-X = np.zeros((n, d))
-for p in range(d):     
-    X[:, p] = x ** (p+1)
-
-#Split data in train and test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-# Scale data by subtracting mean value of the input using scikit-learn
-scaler = StandardScaler(with_std=False)
-scaler.fit(X_train)
-X_train_mean = np.mean(X_train,axis=0)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-# We scale also the output, here by our own code
-y_scaler = np.mean(y_train)
-y_train_scaled = y_train - y_scaler
-y_test_scaled = y_test- y_scaler
-
-#Calculate beta
-OLS = LinearRegression()
-betaOLS=OLS.fit(X_train_scaled,y_train_scaled)
-ypredictOLS = OLS.predict(X_test_scaled)
-linear_model.Ridge(Lambda)
-RegRidge.fit(X_train_scaled,y_train_scaled)
-ypredictRidge = RegRidge.predict(X_test_scaled)
-betaOLS = OLS.coef_
-betaRidge = RegRidge.coef_
-print(betaOLS)
-print(betaRidge)
-interceptOLS = np.mean(y_train) - X_train_mean @ betaOLS
-interceptRidge = y_scaler - X_train_mean @ betaRidge
-print(interceptOLS)
-print(interceptRidge)
-#predict value 
-ytilde_test_Ridge = X_test_scaled @ betaRidge+y_scaler
-ytilde_test_OLS = X_test_scaled @ betaOLS+y_scaler
-
-#Calculate MSE
-print("  ")
-print("test MSE of OLS")
-print(MSE(y_test,ytilde_test_OLS))
-print("  ")
-print("test MSE of Ridge")
-print(MSE(y_test,ytilde_test_Ridge))
-plt.scatter(x,y,label='Data')
-plt.plot(x, X @ RegRidge.coef_ + RegRidge.intercept_ , label="Ridge_Fit")
-plt.grid()
-plt.legend()
-plt.show()
-
+# The difference is non-negative definite since each component of the
+# matrix product is non-negative definite. 
+# This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\boldsymbol{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
+# 
+# For more discussions of Ridge regression and calculation of averages, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
