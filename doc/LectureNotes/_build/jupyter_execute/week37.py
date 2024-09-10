@@ -47,6 +47,8 @@
 # 
 #   * Work on project 1
 # 
+#   * [Video of exercise sessions week 37](https://youtu.be/bK4AEcTu-oM)
+# 
 #   * For more discussions of Ridge regression and calculation of averages, [Wessel van Wieringen's](https://arxiv.org/abs/1509.09169) article is highly recommended.
 
 # ## Material for lecture Monday September 9
