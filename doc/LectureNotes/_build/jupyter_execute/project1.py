@@ -114,8 +114,7 @@ import numpy as np
 from random import random, seed
 
 fig = plt.figure()
-ax = fig.gca(projection='3d')
-
+ax = fig.add_subplot(projection = '3d')
 # Make data.
 x = np.arange(0, 1, 0.05)
 y = np.arange(0, 1, 0.05)
