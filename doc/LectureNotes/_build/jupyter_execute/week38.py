@@ -48,6 +48,8 @@
 #   * Exercise for week 38 on the bias-variance tradeoff, see also the video from the lab session from week 37 at <https://youtu.be/omLmp_kkie0>
 # 
 #   * Work on project 1, in particular resampling methods like cross-validation and bootstrap.
+# 
+#   * [Video on cross-validation from exercise session](https://youtu.be/T9jjWsmsd1o)
 
 # ## Material for lecture Monday September 16
 
