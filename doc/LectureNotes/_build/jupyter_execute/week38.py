@@ -49,7 +49,7 @@
 # 
 #   * Work on project 1, in particular resampling methods like cross-validation and bootstrap.
 
-# ## Material for lecture Thursday September 21
+# ## Material for lecture Monday September 16
 
 # ## Logistic Regression
 # 
@@ -511,8 +511,6 @@ plt.show()
 # descent method.  Newton's method and gradient descent methods are
 # discussed in the material on [optimization
 # methods](https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html).
-
-# ## Friday September 23
 
 # ## Searching for Optimal Regularization Parameters $\lambda$
 # 
