@@ -2098,7 +2098,7 @@ a /=b
 # for linear regression and logistic regression using **autograd**. The
 # first example shows results with ordinary leats squares.
 
-# In[28]:
+# In[ ]:
 
 
 # Using Autograd to calculate gradients for OLS
@@ -2154,7 +2154,7 @@ plt.show()
 
 # ## Same code but now with momentum gradient descent
 
-# In[29]:
+# In[ ]:
 
 
 # Using Autograd to calculate gradients for OLS
@@ -2214,7 +2214,7 @@ print(theta)
 
 # ## But none of these can compete with Newton's method
 
-# In[30]:
+# In[ ]:
 
 
 # Using Newton's method
@@ -2260,7 +2260,7 @@ print(beta)
 # ## Including Stochastic Gradient Descent with Autograd
 # In this code we include the stochastic gradient descent approach discussed above. Note here that we specify which argument we are taking the derivative with respect to when using **autograd**.
 
-# In[31]:
+# In[ ]:
 
 
 # Using Autograd to calculate gradients using SGD
@@ -2340,7 +2340,7 @@ print(theta)
 
 # ## Same code but now with momentum gradient descent
 
-# In[32]:
+# In[ ]:
 
 
 # Using Autograd to calculate gradients using SGD
@@ -2414,7 +2414,7 @@ print(theta)
 
 # ## Similar (second order function now) problem but now with AdaGrad
 
-# In[33]:
+# In[ ]:
 
 
 # Using Autograd to calculate gradients using AdaGrad and Stochastic Gradient descent
@@ -2471,7 +2471,7 @@ print(theta)
 
 # ## RMSprop for adaptive learning rate with Stochastic Gradient Descent
 
-# In[34]:
+# In[ ]:
 
 
 # Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
@@ -2532,7 +2532,7 @@ print(theta)
 
 # ## And finally [ADAM](https://arxiv.org/pdf/1412.6980.pdf)
 
-# In[35]:
+# In[ ]:
 
 
 # Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
@@ -2598,7 +2598,7 @@ print(theta)
 
 # ## And Logistic Regression
 
-# In[36]:
+# In[ ]:
 
 
 import autograd.numpy as np
@@ -2646,7 +2646,7 @@ print("Trained loss:", training_loss(weights))
 # 
 # Here's a simple example on how you can use **JAX** to compute the derivate of the logistic function.
 
-# In[37]:
+# In[ ]:
 
 
 import jax.numpy as jnp
