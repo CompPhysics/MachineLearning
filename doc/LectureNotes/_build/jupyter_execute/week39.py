@@ -532,7 +532,7 @@ def df(x):
     return np.array([2*x[0], 6*x[1]])
 
 fig = pt.figure()
-ax = fig.gca(projection="3d")
+ax = fig.add_subplot(projection = '3d')
 
 xmesh, ymesh = np.mgrid[-3:3:50j,-3:3:50j]
 fmesh = f(np.array([xmesh, ymesh]))
@@ -755,6 +755,7 @@ pt.plot(it_array.T[0], it_array.T[1], "x-")
 # In[6]:
 
 
+m = 100
 x = 2*np.random.rand(m,1)
 y = 4+3*x+np.random.randn(m,1)
 
@@ -2029,14 +2030,14 @@ def f8(x): # Assume x is an array
     x[2] = 3
     return x*2
 
-f8_grad = grad(f8)
+#f8_grad = grad(f8)
 
-x = 8.4
+#x = 8.4
 
-print("The derivative of f8 is:",f8_grad(x))
+#print("The derivative of f8 is:",f8_grad(x))
 
 
-# Here, Autograd tells us that an 'ArrayBox' does not support item assignment. The item assignment is done when the program tries to assign x[2] to the value 3. However, Autograd has implemented the computation of the derivative such that this assignment is not possible.
+# Here, running this code, Autograd tells us that an 'ArrayBox' does not support item assignment. The item assignment is done when the program tries to assign x[2] to the value 3. However, Autograd has implemented the computation of the derivative such that this assignment is not possible.
 
 # ## The syntax a.dot(b) when finding the dot product
 
@@ -2049,11 +2050,11 @@ def f9(a): # Assume a is an array with 2 elements
     b = np.array([1.0,2.0])
     return a.dot(b)
 
-f9_grad = grad(f9)
+#f9_grad = grad(f9)
 
-x = np.array([1.0,0.0])
+#x = np.array([1.0,0.0])
 
-print("The derivative of f9 is:",f9_grad(x))
+#print("The derivative of f9 is:",f9_grad(x))
 
 
 # Here we are told that the 'dot' function does not belong to Autograd's
@@ -2211,7 +2212,7 @@ print("theta from own gd wth momentum")
 print(theta)
 
 
-# ## But noen of these can compete with Newton's method
+# ## But none of these can compete with Newton's method
 
 # In[30]:
 
@@ -2657,4 +2658,10 @@ def sum_logistic(x):
 x_small = jnp.arange(3.)
 derivative_fn = grad(sum_logistic)
 print(derivative_fn(x_small))
+
+
+# In[ ]:
+
+
+
 
