@@ -19,8 +19,10 @@
 #   * Repetition of Logistic regression equations and classification problems and discussion of Gradient methods. Examples on how to implement Logistic Regression and discussion of gradient methods
 # 
 #   * Stochastic Gradient descent with examples and automatic differentiation (theme also for next week).
-# <!-- * [Video of lecture](https://youtu.be/bFRVuIJroHs) -->
-# <!-- * Whiteboard notes TBA at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesSep28.pdf> -->
+# 
+#   * [Video of lecture](https://youtu.be/ISGpTC28Vmk)
+# 
+#   * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember23.pdf)
 # 
 #   * Readings and Videos:
 # 
@@ -46,12 +48,7 @@
 # 
 #   * [Video on how to write scientific reports recorded during one of the lab sessions](https://youtu.be/tVW1ZDmZnwM)
 # 
-# These sections summarize neatly what we have done till now and point to what is coming with respect to deep learning. 
 #   * A general guideline can be found at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/EvaluationGrading/EvaluationForm.md>.
-# 
-#   
-# 
-# <!-- rett opp tyrleif -->
 
 # ## Lecture Monday September 23, Optimization, the central part of any Machine Learning algortithm
 # 
@@ -2080,25 +2077,13 @@ print("The gradient of f9 is:",f9_alternative_grad(x))
 # w.r.t x is (b_1, b_2).
 
 
-# ## Recommended to avoid
-# The documentation recommends to avoid inplace operations such as
-
-# In[27]:
-
-
-a += b
-a -= b
-a*= b
-a /=b
-
-
 # ## Using Autograd with OLS
 # 
 # We conclude the part on optmization by showing how we can make codes
 # for linear regression and logistic regression using **autograd**. The
 # first example shows results with ordinary leats squares.
 
-# In[ ]:
+# In[27]:
 
 
 # Using Autograd to calculate gradients for OLS
@@ -2154,7 +2139,7 @@ plt.show()
 
 # ## Same code but now with momentum gradient descent
 
-# In[ ]:
+# In[28]:
 
 
 # Using Autograd to calculate gradients for OLS
@@ -2214,7 +2199,7 @@ print(theta)
 
 # ## But none of these can compete with Newton's method
 
-# In[ ]:
+# In[29]:
 
 
 # Using Newton's method
@@ -2260,7 +2245,7 @@ print(beta)
 # ## Including Stochastic Gradient Descent with Autograd
 # In this code we include the stochastic gradient descent approach discussed above. Note here that we specify which argument we are taking the derivative with respect to when using **autograd**.
 
-# In[ ]:
+# In[30]:
 
 
 # Using Autograd to calculate gradients using SGD
@@ -2340,7 +2325,7 @@ print(theta)
 
 # ## Same code but now with momentum gradient descent
 
-# In[ ]:
+# In[31]:
 
 
 # Using Autograd to calculate gradients using SGD
@@ -2414,7 +2399,7 @@ print(theta)
 
 # ## Similar (second order function now) problem but now with AdaGrad
 
-# In[ ]:
+# In[32]:
 
 
 # Using Autograd to calculate gradients using AdaGrad and Stochastic Gradient descent
@@ -2471,7 +2456,7 @@ print(theta)
 
 # ## RMSprop for adaptive learning rate with Stochastic Gradient Descent
 
-# In[ ]:
+# In[33]:
 
 
 # Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
@@ -2532,7 +2517,7 @@ print(theta)
 
 # ## And finally [ADAM](https://arxiv.org/pdf/1412.6980.pdf)
 
-# In[ ]:
+# In[34]:
 
 
 # Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
@@ -2598,7 +2583,7 @@ print(theta)
 
 # ## And Logistic Regression
 
-# In[ ]:
+# In[35]:
 
 
 import autograd.numpy as np
@@ -2646,7 +2631,7 @@ print("Trained loss:", training_loss(weights))
 # 
 # Here's a simple example on how you can use **JAX** to compute the derivate of the logistic function.
 
-# In[ ]:
+# In[36]:
 
 
 import jax.numpy as jnp
@@ -2658,10 +2643,4 @@ def sum_logistic(x):
 x_small = jnp.arange(3.)
 derivative_fn = grad(sum_logistic)
 print(derivative_fn(x_small))
-
-
-# In[ ]:
-
-
-
 
