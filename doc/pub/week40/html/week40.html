@@ -158,6 +158,18 @@ div.toc p,a {
                2,
                None,
                'summary-from-last-week-using-gradient-descent-methods-limitations'),
+              ('Simple implementation of GD for OLS, Ridge and Lasso',
+               2,
+               None,
+               'simple-implementation-of-gd-for-ols-ridge-and-lasso'),
+              ("But none of these can compete with Newton's method",
+               2,
+               None,
+               'but-none-of-these-can-compete-with-newton-s-method'),
+              ('Gradient descent and Logistic regression',
+               2,
+               None,
+               'gradient-descent-and-logistic-regression'),
               ('Overview video on Stochastic Gradient Descent',
                2,
                None,
@@ -238,10 +250,6 @@ div.toc p,a {
                2,
                None,
                'same-code-but-now-with-momentum-gradient-descent'),
-              ("But noen of these can compete with Newton's method",
-               2,
-               None,
-               'but-noen-of-these-can-compete-with-newton-s-method'),
               ('Including Stochastic Gradient Descent with Autograd',
                2,
                None,
@@ -424,10 +432,210 @@ MathJax.Hub.Config({
 <li> GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.</li>
 </ul>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="simple-implementation-of-gd-for-ols-ridge-and-lasso">Simple implementation of GD for OLS, Ridge and Lasso </h2>
+
+<p>Last week we studied both several gradient methods. With and without an update of the learning.
+We summarize some of these here for the methods we hvae studied in project one, without the inclusion of momentum.
+</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+
+<span style="color: #408080; font-style: italic"># the number of datapoints with a 2nd-order polynomial</span>
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+5*</span>x<span style="color: #666666">*</span>x
+<span style="color: #408080; font-style: italic"># Design matrix including the intercept</span>
+<span style="color: #408080; font-style: italic"># No scaling of data of and all data used for training </span>
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x, x<span style="color: #666666">*</span>x]
+<span style="color: #408080; font-style: italic"># Learning rate and number of iterations</span>
+eta <span style="color: #666666">=</span> <span style="color: #666666">0.05</span>
+Niterations <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+
+<span style="color: #408080; font-style: italic"># OLS part</span>
+beta_OLS <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">3</span>,<span style="color: #666666">1</span>)
+gradient <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(<span style="color: #666666">3</span>)
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    gradient <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span>X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> (X <span style="color: #666666">@</span> beta_OLS<span style="color: #666666">-</span>y)
+    beta_OLS <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradient
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Parameters for OLS using gradient descent&#39;</span>)    
+<span style="color: #008000">print</span>(beta_OLS)
+
+<span style="color: #408080; font-style: italic">#Ridge and Lasso parameter Lambda</span>
+Lambda  <span style="color: #666666">=</span> <span style="color: #666666">0.01</span>
+Id <span style="color: #666666">=</span> n<span style="color: #666666">*</span>Lambda<span style="color: #666666">*</span> np<span style="color: #666666">.</span>eye((X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X)<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>])
+<span style="color: #408080; font-style: italic"># Gradient descent with  Ridge</span>
+beta_Ridge <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">3</span>,<span style="color: #666666">1</span>)
+gradient <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(<span style="color: #666666">3</span>)
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    gradients <span style="color: #666666">=</span> <span style="color: #666666">2.0/</span>n<span style="color: #666666">*</span>X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> (X <span style="color: #666666">@</span> beta_Ridge<span style="color: #666666">-</span>y)<span style="color: #666666">+2*</span>Lambda<span style="color: #666666">*</span>beta_Ridge
+    beta_Ridge <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Parameters for Ridge using gradient descent&#39;</span>)    
+<span style="color: #008000">print</span>(beta_Ridge)
+
+<span style="color: #408080; font-style: italic"># Gradient descent with Lasso</span>
+beta_Lasso <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">3</span>,<span style="color: #666666">1</span>)
+gradient <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(<span style="color: #666666">3</span>)
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    gradients <span style="color: #666666">=</span> <span style="color: #666666">2.0/</span>n<span style="color: #666666">*</span>X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> (X <span style="color: #666666">@</span> beta_Lasso<span style="color: #666666">-</span>y)<span style="color: #666666">+</span>Lambda<span style="color: #666666">*</span>np<span style="color: #666666">.</span>sign(beta_Lasso)
+    beta_Lasso <span style="color: #666666">-=</span> eta<span style="color: #666666">*</span>gradients
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&#39;Parameters for Lasso using gradient descent&#39;</span>)    
+<span style="color: #008000">print</span>(beta_Lasso)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="but-none-of-these-can-compete-with-newton-s-method">But none of these can compete with Newton's method </h2>
+
+<p>Note that we here have introduced automatic differentiation</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Using Newton&#39;s method</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">autograd.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">autograd</span> <span style="color: #008000; font-weight: bold">import</span> grad
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">CostOLS</span>(beta):
+    <span style="color: #008000; font-weight: bold">return</span> (<span style="color: #666666">1.0/</span>n)<span style="color: #666666">*</span>np<span style="color: #666666">.</span>sum((y<span style="color: #666666">-</span>X <span style="color: #666666">@</span> beta)<span style="color: #666666">**2</span>)
+
+n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
+x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
+y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+5*</span>x<span style="color: #666666">*</span>x
+
+X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x, x<span style="color: #666666">*</span>x]
+XT_X <span style="color: #666666">=</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X
+beta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(XT_X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
+<span style="color: #008000">print</span>(beta_linreg)
+<span style="color: #408080; font-style: italic"># Hessian matrix</span>
+H <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span> XT_X
+<span style="color: #408080; font-style: italic"># Note that here the Hessian does not depend on the parameters beta</span>
+invH <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(H)
+beta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">3</span>,<span style="color: #666666">1</span>)
+Niterations <span style="color: #666666">=</span> <span style="color: #666666">5</span>
+<span style="color: #408080; font-style: italic"># define the gradient</span>
+training_gradient <span style="color: #666666">=</span> grad(CostOLS)
+
+<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
+    gradients <span style="color: #666666">=</span> training_gradient(beta)
+    beta <span style="color: #666666">-=</span> invH <span style="color: #666666">@</span> gradients
+    <span style="color: #008000">print</span>(<span style="color: #008000">iter</span>,gradients[<span style="color: #666666">0</span>],gradients[<span style="color: #666666">1</span>])
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;beta from own Newton code&quot;</span>)
+<span style="color: #008000">print</span>(beta)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="gradient-descent-and-logistic-regression">Gradient descent and Logistic regression </h2>
+
+<p>Finally, we complete these examples by adding a simple code for
+Logistic regression. Note the more general approach with a class for
+the method. Here we use a so-called <b>AND</b> gate for our data set.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">LogisticRegression</span>:
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(<span style="color: #008000">self</span>, learning_rate<span style="color: #666666">=0.01</span>, num_iterations<span style="color: #666666">=1000</span>):
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>learning_rate <span style="color: #666666">=</span> learning_rate
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>num_iterations <span style="color: #666666">=</span> num_iterations
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>beta_logreg <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">None</span>
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">sigmoid</span>(<span style="color: #008000">self</span>, z):
+        <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">1</span> <span style="color: #666666">/</span> (<span style="color: #666666">1</span> <span style="color: #666666">+</span> np<span style="color: #666666">.</span>exp(<span style="color: #666666">-</span>z))
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">GDfit</span>(<span style="color: #008000">self</span>, X, y):
+        n_data, num_features <span style="color: #666666">=</span> X<span style="color: #666666">.</span>shape
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>beta_logreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(num_features)
+        <span style="color: #008000; font-weight: bold">for</span> _ <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">self</span><span style="color: #666666">.</span>num_iterations):
+            linear_model <span style="color: #666666">=</span> X <span style="color: #666666">@</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>beta_logreg
+            y_predicted <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>sigmoid(linear_model)
+            <span style="color: #408080; font-style: italic"># Gradient calculation</span>
+            gradient <span style="color: #666666">=</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> (y_predicted <span style="color: #666666">-</span> y))<span style="color: #666666">/</span>n_data
+            <span style="color: #408080; font-style: italic"># Update beta_logreg</span>
+            <span style="color: #008000">self</span><span style="color: #666666">.</span>beta_logreg <span style="color: #666666">-=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>learning_rate<span style="color: #666666">*</span>gradient
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">predict</span>(<span style="color: #008000">self</span>, X):
+        linear_model <span style="color: #666666">=</span> X <span style="color: #666666">@</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>beta_logreg
+        y_predicted <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>sigmoid(linear_model)
+        <span style="color: #008000; font-weight: bold">return</span> [<span style="color: #666666">1</span> <span style="color: #008000; font-weight: bold">if</span> i <span style="color: #666666">&gt;=</span> <span style="color: #666666">0.5</span> <span style="color: #008000; font-weight: bold">else</span> <span style="color: #666666">0</span> <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> y_predicted]
+<span style="color: #408080; font-style: italic"># Example usage</span>
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #19177C">__name__</span> <span style="color: #666666">==</span> <span style="color: #BA2121">&quot;__main__&quot;</span>:
+    <span style="color: #408080; font-style: italic"># Sample data</span>
+    X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([[<span style="color: #666666">0</span>, <span style="color: #666666">0</span>], [<span style="color: #666666">1</span>, <span style="color: #666666">0</span>], [<span style="color: #666666">0</span>, <span style="color: #666666">1</span>], [<span style="color: #666666">1</span>, <span style="color: #666666">1</span>]])
+    y <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array([<span style="color: #666666">0</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>, <span style="color: #666666">1</span>])  <span style="color: #408080; font-style: italic"># This is an AND gate</span>
+    model <span style="color: #666666">=</span> LogisticRegression(learning_rate<span style="color: #666666">=0.01</span>, num_iterations<span style="color: #666666">=1000</span>)
+    model<span style="color: #666666">.</span>GDfit(X, y)
+    predictions <span style="color: #666666">=</span> model<span style="color: #666666">.</span>predict(X)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Predictions:&quot;</span>, predictions)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="overview-video-on-stochastic-gradient-descent">Overview video on Stochastic Gradient Descent </h2>
 
 <a href="https://www.youtube.com/watch?v=vMh0zPT0tLI&ab_channel=StatQuestwithJoshStarmer" target="_blank">What is Stochastic Gradient Descent</a>
+<p>There are several reasons for using stochastic gradient descent. Some of these are:</p>
 
+<ol>
+<li> Efficiency: Updates weights more frequently using a single or a small batch of samples, which speeds up convergence.</li>
+<li> Hopefully avoid Local Minima</li>
+<li> Memory Usage: Requires less memory compared to computing gradients for the entire dataset.</li>
+</ol>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="batches-and-mini-batches">Batches and mini-batches </h2>
 
@@ -1798,70 +2006,6 @@ delta_momentum <span style="color: #666666">=</span> <span style="color: #666666
     <span style="color: #008000">print</span>(<span style="color: #008000">iter</span>,gradients[<span style="color: #666666">0</span>],gradients[<span style="color: #666666">1</span>])
 <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;theta from own gd wth momentum&quot;</span>)
 <span style="color: #008000">print</span>(theta)
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- !split --><br><br><br><br><br><br><br><br><br><br>
-<h2 id="but-noen-of-these-can-compete-with-newton-s-method">But noen of these can compete with Newton's method </h2>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "default" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #f8f8f8">
-  <pre style="line-height: 125%;"><span style="color: #408080; font-style: italic"># Using Newton&#39;s method</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">random</span> <span style="color: #008000; font-weight: bold">import</span> random, seed
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">autograd.numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
-<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">autograd</span> <span style="color: #008000; font-weight: bold">import</span> grad
-
-<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">CostOLS</span>(beta):
-    <span style="color: #008000; font-weight: bold">return</span> (<span style="color: #666666">1.0/</span>n)<span style="color: #666666">*</span>np<span style="color: #666666">.</span>sum((y<span style="color: #666666">-</span>X <span style="color: #666666">@</span> beta)<span style="color: #666666">**2</span>)
-
-n <span style="color: #666666">=</span> <span style="color: #666666">100</span>
-x <span style="color: #666666">=</span> <span style="color: #666666">2*</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>rand(n,<span style="color: #666666">1</span>)
-y <span style="color: #666666">=</span> <span style="color: #666666">4+3*</span>x<span style="color: #666666">+</span>np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(n,<span style="color: #666666">1</span>)
-
-X <span style="color: #666666">=</span> np<span style="color: #666666">.</span>c_[np<span style="color: #666666">.</span>ones((n,<span style="color: #666666">1</span>)), x]
-XT_X <span style="color: #666666">=</span> X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> X
-beta_linreg <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(XT_X) <span style="color: #666666">@</span> (X<span style="color: #666666">.</span>T <span style="color: #666666">@</span> y)
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Own inversion&quot;</span>)
-<span style="color: #008000">print</span>(beta_linreg)
-<span style="color: #408080; font-style: italic"># Hessian matrix</span>
-H <span style="color: #666666">=</span> (<span style="color: #666666">2.0/</span>n)<span style="color: #666666">*</span> XT_X
-<span style="color: #408080; font-style: italic"># Note that here the Hessian does not depend on the parameters beta</span>
-invH <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>pinv(H)
-EigValues, EigVectors <span style="color: #666666">=</span> np<span style="color: #666666">.</span>linalg<span style="color: #666666">.</span>eig(H)
-<span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Eigenvalues of Hessian Matrix:</span><span style="color: #BB6688; font-weight: bold">{</span>EigValues<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
-
-beta <span style="color: #666666">=</span> np<span style="color: #666666">.</span>random<span style="color: #666666">.</span>randn(<span style="color: #666666">2</span>,<span style="color: #666666">1</span>)
-Niterations <span style="color: #666666">=</span> <span style="color: #666666">5</span>
-
-<span style="color: #408080; font-style: italic"># define the gradient</span>
-training_gradient <span style="color: #666666">=</span> grad(CostOLS)
-
-<span style="color: #008000; font-weight: bold">for</span> <span style="color: #008000">iter</span> <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(Niterations):
-    gradients <span style="color: #666666">=</span> training_gradient(beta)
-    beta <span style="color: #666666">-=</span> invH <span style="color: #666666">@</span> gradients
-    <span style="color: #008000">print</span>(<span style="color: #008000">iter</span>,gradients[<span style="color: #666666">0</span>],gradients[<span style="color: #666666">1</span>])
-<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;beta from own Newton code&quot;</span>)
-<span style="color: #008000">print</span>(beta)
 </pre>
 </div>
       </div>
