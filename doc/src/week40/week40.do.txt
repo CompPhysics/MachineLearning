@@ -718,6 +718,25 @@ The algorithms we have implemented are well described in the text by "Goodfellow
 The codes which implement these algorithms are discussed after our presentation of automatic differentiation.
 
 
+===== AdaGrad algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/adagrad.png, width=600 frac=0.8]
+
+
+===== RMSProp algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/rmsprop.png, width=600 frac=0.8]
+
+
+
+===== ADAM algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/adam.png, width=600 frac=0.8]
+
+
+
+
+
 !split
 ===== Practical tips =====
 
@@ -1605,7 +1624,8 @@ print("Trained loss:", training_loss(weights))
 !ec
 
 
-!split
+
+
 ===== Introducing "JAX":"https://jax.readthedocs.io/en/latest/" =====
 
 Presently, instead of using _autograd_, we recommend using "JAX":"https://jax.readthedocs.io/en/latest/"
@@ -1614,20 +1634,81 @@ _JAX_ is Autograd and "XLA (Accelerated Linear Algebra))":"https://www.tensorflo
 brought together for high-performance numerical computing and machine learning research.
 It provides composable transformations of Python+NumPy programs: differentiate, vectorize, parallelize, Just-In-Time compile to GPU/TPU, and more.
 
-Here's a simple example on how you can use _JAX_ to compute the derivate of the logistic function.
+=== Getting started with Jax, note the way we import numpy ===
+!bc pycod
+import jax
+import jax.numpy as jnp
+import numpy as np
+import matplotlib.pyplot as plt
+
+from jax import grad as jax_grad
+!ec
+
+
+=== A warm-up example ===
 
 !bc pycod
-import jax.numpy as jnp
-from jax import grad, jit, vmap
+def function(x):
+    return x**2
 
-def sum_logistic(x):
-  return jnp.sum(1.0 / (1.0 + jnp.exp(-x)))
+def analytical_gradient(x):
+    return 2*x
 
-x_small = jnp.arange(3.)
-derivative_fn = grad(sum_logistic)
-print(derivative_fn(x_small))
+def gradient_descent(starting_point, learning_rate, num_iterations, solver="analytical"):
+    x = starting_point
+    trajectory_x = [x]
+    trajectory_y = [function(x)]
 
+    if solver == "analytical":
+        grad = analytical_gradient    
+    elif solver == "jax":
+        grad = jax_grad(function)
+        x = jnp.float64(x)
+        learning_rate = jnp.float64(learning_rate)
+
+    for _ in range(num_iterations):
+        
+        x = x - learning_rate * grad(x)
+        trajectory_x.append(x)
+        trajectory_y.append(function(x))
+
+    return trajectory_x, trajectory_y
+
+x = np.linspace(-5, 5, 100)
+plt.plot(x, function(x), label="f(x)")
+
+descent_x, descent_y = gradient_descent(5, 0.1, 10, solver="analytical")
+jax_descend_x, jax_descend_y = gradient_descent(5, 0.1, 10, solver="jax")
+
+plt.plot(descent_x, descent_y, label="Gradient descent", marker="o")
+plt.plot(jax_descend_x, jax_descend_y, label="JAX", marker="x")
 !ec
+
+=== A more advanced example ===
+
+!bc pycod
+backend = np
+
+def function(x):
+    return x*backend.sin(x**2 + 1)
+
+def analytical_gradient(x):
+    return backend.sin(x**2 + 1) + 2*x**2*backend.cos(x**2 + 1)
+
+
+x = np.linspace(-5, 5, 100)
+plt.plot(x, function(x), label="f(x)")
+
+descent_x, descent_y = gradient_descent(1, 0.01, 300, solver="analytical")
+
+# Change the backend to JAX
+backend = jnp
+jax_descend_x, jax_descend_y = gradient_descent(1, 0.01, 300, solver="jax")
+
+plt.scatter(descent_x, descent_y, label="Gradient descent", marker="v", s=10, color="red") 
+plt.scatter(jax_descend_x, jax_descend_y, label="JAX", marker="x", s=5, color="black")
+!ec
+
 
 
 
