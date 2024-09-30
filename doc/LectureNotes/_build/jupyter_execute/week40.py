@@ -16,8 +16,10 @@
 # 1. Stochastic Gradient descent with examples and automatic differentiation
 # 
 # 2. If we get time, we start with the basics of Neural Networks, setting up the basic steps, from the simple perceptron model to the multi-layer perceptron model
-# <!-- * [Video of lecture](https://youtu.be/75pr3hKY20U) -->
-# <!-- * "Whiteboard notes at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesOct5.pdf> -->
+# 
+# 3. [Video of lecture](https://youtu.be/jdJoOrCIdII)
+# 
+# 4. Whiteboard notes at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember30.pdf>
 
 # ## Suggested readings and videos
 # **Readings and Videos:**
