@@ -15,7 +15,7 @@
 # The aim of the exercises this week is to get started with implementing
 # gradient methods of relevance for project 2. This exercise will also
 # be continued next week with the addition of automatic differentation.
-# Everything you develop here will be used in project 2. 
+# Everything you develop here will be used in project 2.
 # 
 # In order to get started, we will now replace in our standard ordinary
 # least squares (OLS) and Ridge regression codes (from project 1) the
