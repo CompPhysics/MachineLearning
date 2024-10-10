@@ -1,187 +1,81 @@
-import re
-import math
-from collections import deque
-
-# x is examples in training set
-# y is set of attributes
-# label is target attributes
-# Node is a class which has properties values, childs, and next
-# root is top node in the decision tree
-
-class Node(object):
-	def __init__(self):
-		self.value = None
-		self.next = None
-		self.childs = None
-
-# Simple class of Decision Tree
-# Aimed for who want to learn Decision Tree, so it is not optimized
-class DecisionTree(object):
-	def __init__(self, sample, attributes, labels):
-		self.sample = sample
-		self.attributes = attributes
-		self.labels = labels
-		self.labelCodes = None
-		self.labelCodesCount = None
-		self.initLabelCodes()
-		# print(self.labelCodes)
-		self.root = None
-		self.entropy = self.getEntropy([x for x in range(len(self.labels))])
-
-	def initLabelCodes(self):
-		self.labelCodes = []
-		self.labelCodesCount = []
-		for l in self.labels:
-			if l not in self.labelCodes:
-				self.labelCodes.append(l)
-				self.labelCodesCount.append(0)
-			self.labelCodesCount[self.labelCodes.index(l)] += 1
-
-	def getLabelCodeId(self, sampleId):
-		return self.labelCodes.index(self.labels[sampleId])
-
-	def getAttributeValues(self, sampleIds, attributeId):
-		vals = []
-		for sid in sampleIds:
-			val = self.sample[sid][attributeId]
-			if val not in vals:
-				vals.append(val)
-		# print(vals)
-		return vals
-
-	def getEntropy(self, sampleIds):
-		entropy = 0
-		labelCount = [0] * len(self.labelCodes)
-		for sid in sampleIds:
-			labelCount[self.getLabelCodeId(sid)] += 1
-		# print("-ge", labelCount)
-		for lv in labelCount:
-			# print(lv)
-			if lv != 0:
-				entropy += -lv/len(sampleIds) * math.log(lv/len(sampleIds), 2)
-			else:
-				entropy += 0
-		return entropy
-
-	def getDominantLabel(self, sampleIds):
-		labelCodesCount = [0] * len(self.labelCodes)
-		for sid in sampleIds:
-			labelCodesCount[self.labelCodes.index(self.labels[sid])] += 1
-		return self.labelCodes[labelCodesCount.index(max(labelCodesCount))]
-
-	def getInformationGain(self, sampleIds, attributeId):
-		gain = self.getEntropy(sampleIds)
-		attributeVals = []
-		attributeValsCount = []
-		attributeValsIds = []
-		for sid in sampleIds:
-			val = self.sample[sid][attributeId]
-			if val not in attributeVals:
-				attributeVals.append(val)
-				attributeValsCount.append(0)
-				attributeValsIds.append([])
-			vid = attributeVals.index(val)
-			attributeValsCount[vid] += 1
-			attributeValsIds[vid].append(sid)
-		# print("-gig", self.attributes[attributeId])
-		for vc, vids in zip(attributeValsCount, attributeValsIds):
-			# print("-gig", vids)
-			gain -= vc/len(sampleIds) * self.getEntropy(vids)
-		return gain
-
-	def getAttributeMaxInformationGain(self, sampleIds, attributeIds):
-		attributesEntropy = [0] * len(attributeIds)
-		for i, attId in zip(range(len(attributeIds)), attributeIds):
-			attributesEntropy[i] = self.getInformationGain(sampleIds, attId)
-		maxId = attributeIds[attributesEntropy.index(max(attributesEntropy))]
-		return self.attributes[maxId], maxId
-
-	def isSingleLabeled(self, sampleIds):
-		label = self.labels[sampleIds[0]]
-		for sid in sampleIds:
-			if self.labels[sid] != label:
-				return False
-		return True
-
-	def getLabel(self, sampleId):
-		return self.labels[sampleId]
-
-	def id3(self):
-		sampleIds = [x for x in range(len(self.sample))]
-		attributeIds = [x for x in range(len(self.attributes))]
-		self.root = self.id3Recv(sampleIds, attributeIds, self.root)
-
-	def id3Recv(self, sampleIds, attributeIds, root):
-		root = Node() # Initialize current root
-		if self.isSingleLabeled(sampleIds):
-			root.value = self.labels[sampleIds[0]]
-			return root
-		# print(attributeIds)
-		if len(attributeIds) == 0:
-			root.value = self.getDominantLabel(sampleIds)
-			return root
-		bestAttrName, bestAttrId = self.getAttributeMaxInformationGain(
-			sampleIds, attributeIds)
-		# print(bestAttrName)
-		root.value = bestAttrName
-		root.childs = []  # Create list of children
-		for value in self.getAttributeValues(sampleIds, bestAttrId):
-			# print(value)
-			child = Node()
-			child.value = value
-			root.childs.append(child)  # Append new child node to current
-									   # root
-			childSampleIds = []
-			for sid in sampleIds:
-				if self.sample[sid][bestAttrId] == value:
-					childSampleIds.append(sid)
-			if len(childSampleIds) == 0:
-				child.next = self.getDominantLabel(sampleIds)
-			else:
-				# print(bestAttrName, bestAttrId)
-				# print(attributeIds)
-				if len(attributeIds) > 0 and bestAttrId in attributeIds:
-					toRemove = attributeIds.index(bestAttrId)
-					attributeIds.pop(toRemove)
-				child.next = self.id3Recv(
-					childSampleIds, attributeIds, child.next)
-		return root
-
-	def printTree(self):
-		if self.root:
-			roots = deque()
-			roots.append(self.root)
-			while len(roots) > 0:
-				root = roots.popleft()
-				print(root.value)
-				if root.childs:
-					for child in root.childs:
-						print('({})'.format(child.value))
-						roots.append(child.next)
-				elif root.next:
-					print(root.next)
-
-
-def test():
-	f = open('DataFiles/rideclass.csv')
-	attributes = f.readline().split(',')
-	attributes = attributes[1:len(attributes)-1]
-	print(attributes)
-	sample = f.readlines()
-	f.close()
-	for i in range(len(sample)):
-		sample[i] = re.sub('\d+,', '', sample[i])
-		sample[i] = sample[i].strip().split(',')
-	labels = []
-	for s in sample:
-		labels.append(s.pop())
-	# print(sample)
-	# print(labels)
-	decisionTree = DecisionTree(sample, attributes, labels)
-	print("System entropy {}".format(decisionTree.entropy))
-	decisionTree.id3()
-	decisionTree.printTree()
-
-
-if __name__ == '__main__':
-	test()
+import numpy as np
+class DecisionTreeNode:
+    def __init__(self, feature_index=None, threshold=None, left=None, right=None, output=None):
+        self.feature_index = feature_index
+        self.threshold = threshold
+        self.left = left
+        self.right = right
+        self.output = output
+class DecisionTree:
+    def __init__(self, min_samples_split=2, max_depth=5):
+        self.root = None
+        self.min_samples_split = min_samples_split
+        self.max_depth = max_depth
+    def fit(self, X, y):
+        self.root = self._grow_tree(X, y)
+    def _grow_tree(self, X, y, depth=0):
+        num_samples, num_features = X.shape
+        unique_classes = np.unique(y)
+        # Check for stopping conditions
+        if (num_samples < self.min_samples_split) or (depth == self.max_depth) or (len(unique_classes) == 1):
+            output = self._most_common_label(y)
+            return DecisionTreeNode(output=output)
+        # Find the best split
+        best_feature, best_threshold = self._best_split(X, y, num_features)
+        left_indices = X[:, best_feature] < best_threshold
+        right_indices = X[:, best_feature] >= best_threshold
+        left_child = self._grow_tree(X[left_indices], y[left_indices], depth + 1)
+        right_child = self._grow_tree(X[right_indices], y[right_indices], depth + 1)
+        return DecisionTreeNode(feature_index=best_feature, threshold=best_threshold, left=left_child, right=right_child)
+    def _best_split(self, X, y, num_features):
+        best_gain = -1
+        best_feature, best_threshold = None, None
+        for feature in range(num_features):
+            thresholds, classes = zip(*sorted(zip(X[:, feature], y)))
+            num_left = [0] * len(np.unique(y))
+            num_right = [np.sum(classes == c) for c in np.unique(y)]
+            for i in range(1, len(y)):  # At least one in each side
+                c = classes[i - 1]
+                num_left[c] += 1
+                num_right[c] -= 1
+                gain = self._information_gain(num_left, num_right, len(classes), len(y))
+                if thresholds[i] == thresholds[i - 1]:  # Skip duplicate values
+                    continue
+                if gain > best_gain:
+                    best_gain = gain
+                    best_feature = feature
+                    best_threshold = (thresholds[i] + thresholds[i - 1]) / 2  # Average threshold
+        return best_feature, best_threshold
+    def _information_gain(self, num_left, num_right, num_total, num_classes):
+        p_left = float(len(num_left)) / num_total
+        p_right = float(len(num_right)) / num_total
+        entropy_before = self._entropy(num_left, num_total)
+        entropy_left = self._entropy(num_left, sum(num_left))
+        entropy_right = self._entropy(num_right, sum(num_right))
+        entropy_after = p_left * entropy_left + p_right * entropy_right
+        
+        return entropy_before - entropy_after
+    def _entropy(self, counts, total):
+        if total == 0:
+            return 0
+        return -sum((count / total) * np.log2(count / total) for count in counts if count > 0)
+    def _most_common_label(self, y):
+        return np.bincount(y).argmax()
+    def predict(self, X):
+        return np.array([self._predict_sample(sample, self.root) for sample in X])
+    def _predict_sample(self, sample, node):
+        if node.output is not None:
+            return node.output
+        if sample[node.feature_index] < node.threshold:
+            return self._predict_sample(sample, node.left)
+        else:
+            return self._predict_sample(sample, node.right)
+# Example usage
+if __name__ == "__main__":
+    # Sample data (AND gate)
+    X = np.array([[0, 0], [1, 0], [0, 1], [1, 1]])
+    y = np.array([0, 0, 0, 1])
+    model = DecisionTree(min_samples_split=1, max_depth=3)
+    model.fit(X, y)
+    predictions = model.predict(X)
+    print("Predictions:", predictions)

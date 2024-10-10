@@ -1,0 +1,285 @@
+
+===== Algorithms and codes for Adagrad, RMSprop and Adam =====
+
+The algorithms we have implemented are well described in the text by "Goodfellow, Bengio and Courville, chapter 8":"https://www.deeplearningbook.org/contents/optimization.html".
+
+The codes which implement these algorithms are discussed after our presentation of automatic differentiation.
+
+
+
+
+===== AdaGrad algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/adagrad.png, width=600 frac=0.8]
+
+===== Similar (second order function now) problem but now with AdaGrad =====
+!bc pycod
+# Using Autograd to calculate gradients using AdaGrad and Stochastic Gradient descent
+# OLS example
+from random import random, seed
+import numpy as np
+import autograd.numpy as np
+import matplotlib.pyplot as plt
+from autograd import grad
+
+# Note change from previous example
+def CostOLS(y,X,theta):
+    return np.sum((y-X @ theta)**2)
+
+n = 1000
+x = np.random.rand(n,1)
+y = 2.0+3*x +4*x*x
+
+X = np.c_[np.ones((n,1)), x, x*x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+print("Own inversion")
+print(theta_linreg)
+
+
+# Note that we request the derivative wrt third argument (theta, 2 here)
+training_gradient = grad(CostOLS,2)
+# Define parameters for Stochastic Gradient Descent
+n_epochs = 50
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
+# Guess for unknown parameters theta
+theta = np.random.randn(3,1)
+
+# Value for learning rate
+eta = 0.01
+# Including AdaGrad parameter to avoid possible division by zero
+delta  = 1e-8
+for epoch in range(n_epochs):
+    Giter = 0.0
+    for i in range(m):
+        random_index = M*np.random.randint(m)
+        xi = X[random_index:random_index+M]
+        yi = y[random_index:random_index+M]
+        gradients = (1.0/M)*training_gradient(yi, xi, theta)
+        Giter += gradients*gradients
+        update = gradients*eta/(delta+np.sqrt(Giter))
+        theta -= update
+print("theta from own AdaGrad")
+print(theta)
+
+
+!ec
+
+Running this code we note an almost perfect agreement with the results from matrix inversion.
+
+===== RMSProp algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/rmsprop.png, width=600 frac=0.8]
+
+
+=====  RMSprop for adaptive learning rate with Stochastic Gradient Descent =====
+!bc pycod
+# Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
+# OLS example
+from random import random, seed
+import numpy as np
+import autograd.numpy as np
+import matplotlib.pyplot as plt
+from autograd import grad
+
+# Note change from previous example
+def CostOLS(y,X,theta):
+    return np.sum((y-X @ theta)**2)
+
+n = 1000
+x = np.random.rand(n,1)
+y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x, x*x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+print("Own inversion")
+print(theta_linreg)
+
+
+# Note that we request the derivative wrt third argument (theta, 2 here)
+training_gradient = grad(CostOLS,2)
+# Define parameters for Stochastic Gradient Descent
+n_epochs = 50
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
+# Guess for unknown parameters theta
+theta = np.random.randn(3,1)
+
+# Value for learning rate
+eta = 0.01
+# Value for parameter rho
+rho = 0.99
+# Including AdaGrad parameter to avoid possible division by zero
+delta  = 1e-8
+for epoch in range(n_epochs):
+    Giter = 0.0
+    for i in range(m):
+        random_index = M*np.random.randint(m)
+        xi = X[random_index:random_index+M]
+        yi = y[random_index:random_index+M]
+        gradients = (1.0/M)*training_gradient(yi, xi, theta)
+	# Accumulated gradient
+	# Scaling with rho the new and the previous results
+        Giter = (rho*Giter+(1-rho)*gradients*gradients)
+	# Taking the diagonal only and inverting
+        update = gradients*eta/(delta+np.sqrt(Giter))
+	# Hadamard product
+        theta -= update
+print("theta from own RMSprop")
+print(theta)
+!ec
+
+===== ADAM algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/adam.png, width=600 frac=0.8]
+
+
+===== And finally "ADAM":"https://arxiv.org/pdf/1412.6980.pdf" =====
+
+!bc pycod
+# Using Autograd to calculate gradients using RMSprop  and Stochastic Gradient descent
+# OLS example
+from random import random, seed
+import numpy as np
+import autograd.numpy as np
+import matplotlib.pyplot as plt
+from autograd import grad
+
+# Note change from previous example
+def CostOLS(y,X,theta):
+    return np.sum((y-X @ theta)**2)
+
+n = 1000
+x = np.random.rand(n,1)
+y = 2.0+3*x +4*x*x# +np.random.randn(n,1)
+
+X = np.c_[np.ones((n,1)), x, x*x]
+XT_X = X.T @ X
+theta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+print("Own inversion")
+print(theta_linreg)
+
+
+# Note that we request the derivative wrt third argument (theta, 2 here)
+training_gradient = grad(CostOLS,2)
+# Define parameters for Stochastic Gradient Descent
+n_epochs = 50
+M = 5   #size of each minibatch
+m = int(n/M) #number of minibatches
+# Guess for unknown parameters theta
+theta = np.random.randn(3,1)
+
+# Value for learning rate
+eta = 0.01
+# Value for parameters beta1 and beta2, see https://arxiv.org/abs/1412.6980
+beta1 = 0.9
+beta2 = 0.999
+# Including AdaGrad parameter to avoid possible division by zero
+delta  = 1e-7
+iter = 0
+for epoch in range(n_epochs):
+    first_moment = 0.0
+    second_moment = 0.0
+    iter += 1
+    for i in range(m):
+        random_index = M*np.random.randint(m)
+        xi = X[random_index:random_index+M]
+        yi = y[random_index:random_index+M]
+        gradients = (1.0/M)*training_gradient(yi, xi, theta)
+        # Computing moments first
+        first_moment = beta1*first_moment + (1-beta1)*gradients
+        second_moment = beta2*second_moment+(1-beta2)*gradients*gradients
+        first_term = first_moment/(1.0-beta1**iter)
+        second_term = second_moment/(1.0-beta2**iter)
+	# Scaling with rho the new and the previous results
+        update = eta*first_term/(np.sqrt(second_term)+delta)
+        theta -= update
+print("theta from own ADAM")
+print(theta)
+!ec
+
+===== Introducing "JAX":"https://jax.readthedocs.io/en/latest/" =====
+
+Presently, instead of using _autograd_, we recommend using "JAX":"https://jax.readthedocs.io/en/latest/"
+
+_JAX_ is Autograd and "XLA (Accelerated Linear Algebra))":"https://www.tensorflow.org/xla",
+brought together for high-performance numerical computing and machine learning research.
+It provides composable transformations of Python+NumPy programs: differentiate, vectorize, parallelize, Just-In-Time compile to GPU/TPU, and more.
+
+=== Getting started with Jax, note the way we import numpy ===
+!bc pycod
+import jax
+import jax.numpy as jnp
+import numpy as np
+import matplotlib.pyplot as plt
+
+from jax import grad as jax_grad
+!ec
+
+
+=== A warm-up example ===
+
+!bc pycod
+def function(x):
+    return x**2
+
+def analytical_gradient(x):
+    return 2*x
+
+def gradient_descent(starting_point, learning_rate, num_iterations, solver="analytical"):
+    x = starting_point
+    trajectory_x = [x]
+    trajectory_y = [function(x)]
+
+    if solver == "analytical":
+        grad = analytical_gradient    
+    elif solver == "jax":
+        grad = jax_grad(function)
+        x = jnp.float64(x)
+        learning_rate = jnp.float64(learning_rate)
+
+    for _ in range(num_iterations):
+        
+        x = x - learning_rate * grad(x)
+        trajectory_x.append(x)
+        trajectory_y.append(function(x))
+
+    return trajectory_x, trajectory_y
+
+x = np.linspace(-5, 5, 100)
+plt.plot(x, function(x), label="f(x)")
+
+descent_x, descent_y = gradient_descent(5, 0.1, 10, solver="analytical")
+jax_descend_x, jax_descend_y = gradient_descent(5, 0.1, 10, solver="jax")
+
+plt.plot(descent_x, descent_y, label="Gradient descent", marker="o")
+plt.plot(jax_descend_x, jax_descend_y, label="JAX", marker="x")
+!ec
+
+=== A more advanced example ===
+
+!bc pycod
+backend = np
+
+def function(x):
+    return x*backend.sin(x**2 + 1)
+
+def analytical_gradient(x):
+    return backend.sin(x**2 + 1) + 2*x**2*backend.cos(x**2 + 1)
+
+
+x = np.linspace(-5, 5, 100)
+plt.plot(x, function(x), label="f(x)")
+
+descent_x, descent_y = gradient_descent(1, 0.01, 300, solver="analytical")
+
+# Change the backend to JAX
+backend = jnp
+jax_descend_x, jax_descend_y = gradient_descent(1, 0.01, 300, solver="jax")
+
+plt.scatter(descent_x, descent_y, label="Gradient descent", marker="v", s=10, color="red") 
+plt.scatter(jax_descend_x, jax_descend_y, label="JAX", marker="x", s=5, color="black")
+!ec
+

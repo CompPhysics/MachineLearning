@@ -1,6 +1,6 @@
 TITLE: Week 40: Gradient descent methods (continued) and start Neural networks
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo, Norway & Department of Physics and Astronomy and Facility for Rare Ion Beams, Michigan State University, USA
-DATE: October 2-6, 2023
+DATE: September 30-October 4, 2024
 
 
 
@@ -8,30 +8,35 @@ DATE: October 2-6, 2023
 ===== Plans for week 40 =====
 
 
+!split
+===== Lecture Monday September 30, 2024 =====
+!bblock 
+  o Stochastic Gradient descent with examples and automatic differentiation
+  o If we get time, we start with the basics of Neural Networks, setting up the basic steps, from the simple perceptron model to the multi-layer perceptron model
+  o "Video of lecture":"https://youtu.be/jdJoOrCIdII"
+  o Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember30.pdf"  
+!eblock
+
+!split
+===== Suggested readings and videos =====
+!bblock Readings and Videos:
+   o The lecture notes for week 40 (these notes)
+   o For a good discussion on gradient methods, we would like to recommend Goodfellow et al section 4.3-4.5 and sections 8.3-8.6. We will come back to the latter chapter in our discussion of Neural networks as well.
+   o For neural networks we recommend Goodfellow et al chapter 6 and Raschka et al chapter 2 (contains also material about gradient descent) and chapter 11 (we will use this next week)
+   o Video on gradient descent at URL:"https://www.youtube.com/watch?v=sDv4f4s2SB8"
+   o Video on stochastic gradient descent at URL:"https://www.youtube.com/watch?v=vMh0zPT0tLI"
+   o Neural Networks demystified at URL:"https://www.youtube.com/watch?v=bxe2T-V8XRs&list=PLiaHhY2iBX9hdHaRr6b7XevZtgZRa1PoU&ab_channel=WelchLabs"
+   o Building Neural Networks from scratch at URL:https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3&ab_channel=sentdex"
+!eblock
+
+!split
+===== Lab sessions Tuesday and Wednesday =====
 !bblock  Material for the active learning sessions on Tuesday and Wednesday
   * Work on project 1 and discussions on how to structure your report
   * No weekly exercises for week 40, project work only
-  * "Video on how to write scientific reports recorded during one of the lab sessions":"https://youtu.be/tVW1ZDmZnwM"
+  * Video on how to write scientific reports recorded during one of the lab sessions at URL:"https://youtu.be/tVW1ZDmZnwM"
   * A general guideline can be found at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Projects/EvaluationGrading/EvaluationForm.md".
 !eblock  
-
-
-!bblock Material for the lecture on Thursday October 5, 2023
-  * Stochastic Gradient descent with examples and automatic differentiation
-  * Neural Networks, setting up the basic steps, from the simple perceptron model to the multi-layer perceptron model.
-  * "Video of lecture":"https://youtu.be/75pr3hKY20U"
-  * "Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesOct5.pdf"  
-  * Readings and Videos:
-    * These lecture notes
-    * For a good discussion on gradient methods, we would like to recommend Goodfellow et al section 4.3-4.5 and sections 8.3-8.6. We will come back to the latter chapter in our discussion of Neural networks as well.
-    * "Aurelien Geron's chapter 4 on stochastic gradient descent":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/Textbooks/TensorflowML.pdf"
-    * For neural networks we recommend Goodfellow et al chapter 6.
-    * "Video on gradient descent":"https://www.youtube.com/watch?v=sDv4f4s2SB8"
-    * "Video on stochastic gradient descent":"https://www.youtube.com/watch?v=vMh0zPT0tLI"
-    * "Neural Networks demystified":"https://www.youtube.com/watch?v=bxe2T-V8XRs&list=PLiaHhY2iBX9hdHaRr6b7XevZtgZRa1PoU&ab_channel=WelchLabs"
-    * "Building Neural Networks from scratch":"https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3&ab_channel=sentdex"
-!eblock
-
 
 
 !split
@@ -49,12 +54,150 @@ DATE: October 2-6, 2023
 	
 * GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.
 
+!split
+===== Simple implementation of GD for OLS, Ridge and Lasso =====
+
+Last week we studied both several gradient methods. With and without an update of the learning.
+We summarize some of these here for the methods we hvae studied in project one, without the inclusion of momentum.
+!bc pycod
+from random import random, seed
+import numpy as np
+
+# the number of datapoints with a 2nd-order polynomial
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+5*x*x
+# Design matrix including the intercept
+# No scaling of data of and all data used for training 
+X = np.c_[np.ones((n,1)), x, x*x]
+# Learning rate and number of iterations
+eta = 0.05
+Niterations = 100
+
+# OLS part
+beta_OLS = np.random.randn(3,1)
+gradient = np.zeros(3)
+for iter in range(Niterations):
+    gradient = (2.0/n)*X.T @ (X @ beta_OLS-y)
+    beta_OLS -= eta*gradient
+print('Parameters for OLS using gradient descent')    
+print(beta_OLS)
+
+#Ridge and Lasso parameter Lambda
+Lambda  = 0.01
+Id = n*Lambda* np.eye((X.T @ X).shape[0])
+# Gradient descent with  Ridge
+beta_Ridge = np.random.randn(3,1)
+gradient = np.zeros(3)
+for iter in range(Niterations):
+    gradients = 2.0/n*X.T @ (X @ beta_Ridge-y)+2*Lambda*beta_Ridge
+    beta_Ridge -= eta*gradients
+print('Parameters for Ridge using gradient descent')    
+print(beta_Ridge)
+
+# Gradient descent with Lasso
+beta_Lasso = np.random.randn(3,1)
+gradient = np.zeros(3)
+for iter in range(Niterations):
+    gradients = 2.0/n*X.T @ (X @ beta_Lasso-y)+Lambda*np.sign(beta_Lasso)
+    beta_Lasso -= eta*gradients
+print('Parameters for Lasso using gradient descent')    
+print(beta_Lasso)
+
+!ec
+
+
+!split
+===== But none of these can compete with Newton's method =====
+
+Note that we here have introduced automatic differentiation
+!bc pycod
+# Using Newton's method
+from random import random, seed
+import numpy as np
+import autograd.numpy as np
+from autograd import grad
+
+def CostOLS(beta):
+    return (1.0/n)*np.sum((y-X @ beta)**2)
+
+n = 100
+x = 2*np.random.rand(n,1)
+y = 4+3*x+5*x*x
+
+X = np.c_[np.ones((n,1)), x, x*x]
+XT_X = X.T @ X
+beta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
+print("Own inversion")
+print(beta_linreg)
+# Hessian matrix
+H = (2.0/n)* XT_X
+# Note that here the Hessian does not depend on the parameters beta
+invH = np.linalg.pinv(H)
+beta = np.random.randn(3,1)
+Niterations = 5
+# define the gradient
+training_gradient = grad(CostOLS)
+
+for iter in range(Niterations):
+    gradients = training_gradient(beta)
+    beta -= invH @ gradients
+    print(iter,gradients[0],gradients[1])
+print("beta from own Newton code")
+print(beta)
+
+!ec
+
+!split
+===== Gradient descent and Logistic regression =====
+
+Finally, we complete these examples by adding a simple code for
+Logistic regression. Note the more general approach with a class for
+the method. Here we use a so-called _AND_ gate for our data set.
+
+!bc pycod
+import numpy as np
+class LogisticRegression:
+    def __init__(self, learning_rate=0.01, num_iterations=1000):
+        self.learning_rate = learning_rate
+        self.num_iterations = num_iterations
+        self.beta_logreg = None
+    def sigmoid(self, z):
+        return 1 / (1 + np.exp(-z))
+    def GDfit(self, X, y):
+        n_data, num_features = X.shape
+        self.beta_logreg = np.zeros(num_features)
+        for _ in range(self.num_iterations):
+            linear_model = X @ self.beta_logreg
+            y_predicted = self.sigmoid(linear_model)
+            # Gradient calculation
+            gradient = (X.T @ (y_predicted - y))/n_data
+            # Update beta_logreg
+            self.beta_logreg -= self.learning_rate*gradient
+    def predict(self, X):
+        linear_model = X @ self.beta_logreg
+        y_predicted = self.sigmoid(linear_model)
+        return [1 if i >= 0.5 else 0 for i in y_predicted]
+# Example usage
+if __name__ == "__main__":
+    # Sample data
+    X = np.array([[0, 0], [1, 0], [0, 1], [1, 1]])
+    y = np.array([0, 0, 0, 1])  # This is an AND gate
+    model = LogisticRegression(learning_rate=0.01, num_iterations=1000)
+    model.GDfit(X, y)
+    predictions = model.predict(X)
+    print("Predictions:", predictions)
+!ec
 
 !split
 ===== Overview video on Stochastic Gradient Descent =====
 
 "What is Stochastic Gradient Descent":"https://www.youtube.com/watch?v=vMh0zPT0tLI&ab_channel=StatQuestwithJoshStarmer"
+There are several reasons for using stochastic gradient descent. Some of these are:
 
+o Efficiency: Updates weights more frequently using a single or a small batch of samples, which speeds up convergence.
+o Hopefully avoid Local Minima
+o Memory Usage: Requires less memory compared to computing gradients for the entire dataset.
 
 !split
 =====  Batches and mini-batches =====
@@ -264,10 +407,6 @@ for epoch in range(1,n_epochs+1):
 
 print("gamma_j after %d epochs: %g" % (n_epochs,gamma_j))
 !ec
-
-
-
-
 
 
 !split
@@ -489,7 +628,7 @@ adaptively change the step size to match the landscape without paying
 the steep computational price of calculating or approximating
 Hessians.
 
-Recently, a number of methods have been introduced that accomplish
+During the last decade a number of methods have been introduced that accomplish
 this by tracking not only the gradient, but also the second moment of
 the gradient. These methods include AdaGrad, AdaDelta, Root Mean Squared Propagation (RMS-Prop), and
 "ADAM":"https://arxiv.org/abs/1412.6980".
@@ -577,6 +716,25 @@ update rule for this parameter is given by
 The algorithms we have implemented are well described in the text by "Goodfellow, Bengio and Courville, chapter 8":"https://www.deeplearningbook.org/contents/optimization.html".
 
 The codes which implement these algorithms are discussed after our presentation of automatic differentiation.
+
+
+===== AdaGrad algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/adagrad.png, width=600 frac=0.8]
+
+
+===== RMSProp algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/rmsprop.png, width=600 frac=0.8]
+
+
+
+===== ADAM algorithm, taken from "Goodfellow et al":"https://www.deeplearningbook.org/contents/optimization.html" =====
+
+FIGURE: [figures/adam.png, width=600 frac=0.8]
+
+
+
 
 
 !split
@@ -901,73 +1059,6 @@ print("The analytical derivative of f7 at n = %d is: %g"%(n,f7_grad_analytical))
 !ec
 Note that if n is equal to zero or one, Autograd will give an error message. This message appears when the output is independent on input.
 
-!split
-===== Unsupported functions =====
-Autograd supports many features. However, there are some functions that is not supported (yet) by Autograd.
-
-Assigning a value to the variable being differentiated with respect to
-!bc pycod
-import autograd.numpy as np
-from autograd import grad
-def f8(x): # Assume x is an array
-    x[2] = 3
-    return x*2
-
-f8_grad = grad(f8)
-
-x = 8.4
-
-print("The derivative of f8 is:",f8_grad(x))
-!ec
-Here, Autograd tells us that an 'ArrayBox' does not support item assignment. The item assignment is done when the program tries to assign x[2] to the value 3. However, Autograd has implemented the computation of the derivative such that this assignment is not possible.
-
-!split
-===== The syntax a.dot(b) when finding the dot product =====
-!bc pycod
-import autograd.numpy as np
-from autograd import grad
-def f9(a): # Assume a is an array with 2 elements
-    b = np.array([1.0,2.0])
-    return a.dot(b)
-
-f9_grad = grad(f9)
-
-x = np.array([1.0,0.0])
-
-print("The derivative of f9 is:",f9_grad(x))
-!ec
-
-Here we are told that the 'dot' function does not belong to Autograd's
-version of a Numpy array.  To overcome this, an alternative syntax
-which also computed the dot product can be used:
-
-!bc pycod
-import autograd.numpy as np
-from autograd import grad
-def f9_alternative(x): # Assume a is an array with 2 elements
-    b = np.array([1.0,2.0])
-    return np.dot(x,b) # The same as x_1*b_1 + x_2*b_2
-
-f9_alternative_grad = grad(f9_alternative)
-
-x = np.array([3.0,0.0])
-
-print("The gradient of f9 is:",f9_alternative_grad(x))
-
-# The analytical gradient of the dot product of vectors x and b with two elements (x_1,x_2) and (b_1, b_2) respectively
-# w.r.t x is (b_1, b_2).
-!ec
-
-!split
-===== Recommended to avoid =====
-The documentation recommends to avoid inplace operations such as
-!bc pycod
-a += b
-a -= b
-a*= b
-a /=b
-!ec
-
 
 !split
 =====  Using Autograd with OLS =====
@@ -1088,51 +1179,6 @@ print("theta from own gd wth momentum")
 print(theta)
 
 !ec
-
-!split
-===== But noen of these can compete with Newton's method =====
-
-!bc pycod
-# Using Newton's method
-from random import random, seed
-import numpy as np
-import autograd.numpy as np
-import matplotlib.pyplot as plt
-from autograd import grad
-
-def CostOLS(beta):
-    return (1.0/n)*np.sum((y-X @ beta)**2)
-
-n = 100
-x = 2*np.random.rand(n,1)
-y = 4+3*x+np.random.randn(n,1)
-
-X = np.c_[np.ones((n,1)), x]
-XT_X = X.T @ X
-beta_linreg = np.linalg.pinv(XT_X) @ (X.T @ y)
-print("Own inversion")
-print(beta_linreg)
-# Hessian matrix
-H = (2.0/n)* XT_X
-# Note that here the Hessian does not depend on the parameters beta
-invH = np.linalg.pinv(H)
-EigValues, EigVectors = np.linalg.eig(H)
-print(f"Eigenvalues of Hessian Matrix:{EigValues}")
-
-beta = np.random.randn(2,1)
-Niterations = 5
-
-# define the gradient
-training_gradient = grad(CostOLS)
-
-for iter in range(Niterations):
-    gradients = training_gradient(beta)
-    beta -= invH @ gradients
-    print(iter,gradients[0],gradients[1])
-print("beta from own Newton code")
-print(beta)
-!ec
-
 
 !split
 ===== Including Stochastic Gradient Descent with Autograd =====
@@ -1511,7 +1557,8 @@ print("Trained loss:", training_loss(weights))
 !ec
 
 
-!split
+
+
 ===== Introducing "JAX":"https://jax.readthedocs.io/en/latest/" =====
 
 Presently, instead of using _autograd_, we recommend using "JAX":"https://jax.readthedocs.io/en/latest/"
@@ -1520,20 +1567,81 @@ _JAX_ is Autograd and "XLA (Accelerated Linear Algebra))":"https://www.tensorflo
 brought together for high-performance numerical computing and machine learning research.
 It provides composable transformations of Python+NumPy programs: differentiate, vectorize, parallelize, Just-In-Time compile to GPU/TPU, and more.
 
-Here's a simple example on how you can use _JAX_ to compute the derivate of the logistic function.
+=== Getting started with Jax, note the way we import numpy ===
+!bc pycod
+import jax
+import jax.numpy as jnp
+import numpy as np
+import matplotlib.pyplot as plt
+
+from jax import grad as jax_grad
+!ec
+
+
+=== A warm-up example ===
 
 !bc pycod
-import jax.numpy as jnp
-from jax import grad, jit, vmap
+def function(x):
+    return x**2
 
-def sum_logistic(x):
-  return jnp.sum(1.0 / (1.0 + jnp.exp(-x)))
+def analytical_gradient(x):
+    return 2*x
 
-x_small = jnp.arange(3.)
-derivative_fn = grad(sum_logistic)
-print(derivative_fn(x_small))
+def gradient_descent(starting_point, learning_rate, num_iterations, solver="analytical"):
+    x = starting_point
+    trajectory_x = [x]
+    trajectory_y = [function(x)]
 
+    if solver == "analytical":
+        grad = analytical_gradient    
+    elif solver == "jax":
+        grad = jax_grad(function)
+        x = jnp.float64(x)
+        learning_rate = jnp.float64(learning_rate)
+
+    for _ in range(num_iterations):
+        
+        x = x - learning_rate * grad(x)
+        trajectory_x.append(x)
+        trajectory_y.append(function(x))
+
+    return trajectory_x, trajectory_y
+
+x = np.linspace(-5, 5, 100)
+plt.plot(x, function(x), label="f(x)")
+
+descent_x, descent_y = gradient_descent(5, 0.1, 10, solver="analytical")
+jax_descend_x, jax_descend_y = gradient_descent(5, 0.1, 10, solver="jax")
+
+plt.plot(descent_x, descent_y, label="Gradient descent", marker="o")
+plt.plot(jax_descend_x, jax_descend_y, label="JAX", marker="x")
 !ec
+
+=== A more advanced example ===
+
+!bc pycod
+backend = np
+
+def function(x):
+    return x*backend.sin(x**2 + 1)
+
+def analytical_gradient(x):
+    return backend.sin(x**2 + 1) + 2*x**2*backend.cos(x**2 + 1)
+
+
+x = np.linspace(-5, 5, 100)
+plt.plot(x, function(x), label="f(x)")
+
+descent_x, descent_y = gradient_descent(1, 0.01, 300, solver="analytical")
+
+# Change the backend to JAX
+backend = jnp
+jax_descend_x, jax_descend_y = gradient_descent(1, 0.01, 300, solver="jax")
+
+plt.scatter(descent_x, descent_y, label="Gradient descent", marker="v", s=10, color="red") 
+plt.scatter(jax_descend_x, jax_descend_y, label="JAX", marker="x", s=5, color="black")
+!ec
+
 
 
 
