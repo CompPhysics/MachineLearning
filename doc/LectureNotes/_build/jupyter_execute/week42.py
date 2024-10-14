@@ -294,19 +294,19 @@ for i in range(50):
 # layer with two hidden nodes and one output layer with one output node/neuron only (see graph)..
 # 
 # We need to define the following parameters and variables with the input layer (layer $(0)$) 
-# where we label the  nodes $x_0$ and $x_1$
+# where we label the  nodes $x_1$ and $x_2$
 
 # $$
-# x_0 = a_0^{(0)} \wedge x_1 = a_1^{(0)}.
+# x_1 = a_1^{(0)} \wedge x_2 = a_2^{(0)}.
 # $$
 
-# The  hidden layer (layer $(1)$) has  nodes which yield the outputs $a_0^{(1)}$ and $a_1^{(1)}$) with  weight $\boldsymbol{w}$ and bias $\boldsymbol{b}$ parameters
+# The  hidden layer (layer $(1)$) has  nodes which yield the outputs $a_1^{(1)}$ and $a_2^{(1)}$) with  weight $\boldsymbol{w}$ and bias $\boldsymbol{b}$ parameters
 
 # $$
-# w_{ij}^{(1)}=\left\{w_{00}^{(1)},w_{01}^{(1)},w_{10}^{(1)},w_{11}^{(1)}\right\} \wedge b^{(1)}=\left\{b_0^{(1)},b_1^{(1)}\right\}.
+# w_{ij}^{(1)}=\left\{w_{11}^{(1)},w_{12}^{(1)},w_{21}^{(1)},w_{22}^{(1)}\right\} \wedge b^{(1)}=\left\{b_1^{(1)},b_2^{(1)}\right\}.
 # $$
 
-# ## Layout of a simple neural network with two input nodes, one  hidden layer and one output node
+# ## Layout of a simple neural network with two input nodes, one  hidden layer with two hidden noeds and one output node
 # 
 # <!-- dom:FIGURE: [figures/simplenn3.png, width=900 frac=1.0] -->
 # <!-- begin figure -->
@@ -316,17 +316,17 @@ for i in range(50):
 
 # ## The ouput layer
 # 
-# Finally, we have the ouput layer given by layer label $(2)$ with output $a^{(2)}$ and weights and biases to be determined given by the variables
+# We have the ouput layer given by layer label $(2)$ with output $a^{(2)}$ and weights and biases to be determined given by the variables
 
 # $$
-# w_{i}^{(2)}=\left\{w_{0}^{(2)},w_{1}^{(2)}\right\} \wedge b^{(2)}.
+# w_{i}^{(2)}=\left\{w_{1}^{(2)},w_{2}^{(2)}\right\} \wedge b^{(2)}.
 # $$
 
 # Our output is $\tilde{y}=a^{(2)}$ and we define a generic cost function $C(a^{(2)},y;\boldsymbol{\Theta})$ where $y$ is the target value (a scalar here).
 # The parameters we need to optimize are given by
 
 # $$
-# \boldsymbol{\Theta}=\left\{w_{00}^{(1)},w_{01}^{(1)},w_{10}^{(1)},w_{11}^{(1)},w_{0}^{(2)},w_{1}^{(2)},b_0^{(1)},b_1^{(1)},b^{(2)}\right\}.
+# \boldsymbol{\Theta}=\left\{w_{11}^{(1)},w_{12}^{(1)},w_{21}^{(1)},w_{22}^{(1)},w_{1}^{(2)},w_{2}^{(2)},b_1^{(1)},b_2^{(1)},b^{(2)}\right\}.
 # $$
 
 # ## Compact expressions
@@ -335,13 +335,13 @@ for i in range(50):
 # The inputs to the first hidden layer are
 
 # $$
-# \begin{bmatrix}z_0^{(1)} \\ z_1^{(1)} \end{bmatrix}=\left(\begin{bmatrix}w_{00}^{(1)} & w_{01}^{(1)}\\ w_{10}^{(1)} &w_{11}^{(1)} \end{bmatrix}\right)^{T}\begin{bmatrix}a_0^{(0)} \\ a_1^{(0)} \end{bmatrix}+\begin{bmatrix}b_0^{(1)} \\ b_1^{(1)} \end{bmatrix},
+# \begin{bmatrix}z_1^{(1)} \\ z_2^{(1)} \end{bmatrix}=\left(\begin{bmatrix}w_{11}^{(1)} & w_{12}^{(1)}\\ w_{21}^{(1)} &w_{22}^{(1)} \end{bmatrix}\right)^{T}\begin{bmatrix}a_1^{(0)} \\ a_2^{(0)} \end{bmatrix}+\begin{bmatrix}b_1^{(1)} \\ b_2^{(1)} \end{bmatrix},
 # $$
 
 # with outputs
 
 # $$
-# \begin{bmatrix}a_0^{(1)} \\ a_1^{(1)} \end{bmatrix}=\begin{bmatrix}\sigma^{(1)}(z_0^{(1)}) \\ \sigma^{(1)}(z_1^{(1)}) \end{bmatrix}.
+# \begin{bmatrix}a_1^{(1)} \\ a_2^{(1)} \end{bmatrix}=\begin{bmatrix}\sigma^{(1)}(z_1^{(1)}) \\ \sigma^{(1)}(z_2^{(1)}) \end{bmatrix}.
 # $$
 
 # ## Output layer
@@ -349,7 +349,7 @@ for i in range(50):
 # For the final output layer we have the inputs to the final activation function
 
 # $$
-# z^{(2)} = w_{0}^{(2)}a_0^{(1)} +w_{1}^{(2)}a_1^{(1)}+b^{(2)},
+# z^{(2)} = w_{1}^{(2)}a_1^{(1)} +w_{2}^{(2)}a_2^{(1)}+b^{(2)},
 # $$
 
 # resulting in the  output
@@ -387,39 +387,39 @@ for i in range(50):
 # Using the chain rule we have the following expressions for say one of the weight parameters (it is easy to generalize to the other weight parameters)
 
 # $$
-# \frac{\partial C}{\partial w_{00}^{(1)}}=\frac{\partial C}{\partial a^{(2)}}\frac{\partial a^{(2)}}{\partial z^{(2)}}
-# \frac{\partial z^{(2)}}{\partial z_0^{(1)}}\frac{\partial z_0^{(1)}}{\partial w_{00}^{(1)}}=    \delta^{(2)}\frac{\partial z^{(2)}}{\partial z_0^{(1)}}\frac{\partial z_0^{(1)}}{\partial w_{00}^{(1)}},
+# \frac{\partial C}{\partial w_{11}^{(1)}}=\frac{\partial C}{\partial a^{(2)}}\frac{\partial a^{(2)}}{\partial z^{(2)}}
+# \frac{\partial z^{(2)}}{\partial z_1^{(1)}}\frac{\partial z_1^{(1)}}{\partial w_{11}^{(1)}}=    \delta^{(2)}\frac{\partial z^{(2)}}{\partial z_1^{(1)}}\frac{\partial z_1^{(1)}}{\partial w_{11}^{(1)}},
 # $$
 
 # which, noting that
 
 # $$
-# z^{(2)} =w_0^{(2)}a_0^{(1)}+w_1^{(2)}a_1^{(1)}+b^{(2)},
+# z^{(2)} =w_1^{(2)}a_1^{(1)}+w_2^{(2)}a_2^{(1)}+b^{(2)},
 # $$
 
 # allows us to rewrite
 
 # $$
-# \frac{\partial z^{(2)}}{\partial z_0^{(1)}}\frac{\partial z_0^{(1)}}{\partial w_{00}^{(1)}}=w_0^{(2)}\frac{\partial a_0^{(1)}}{\partial z_0^{(1)}}a_0^{(1)}.
+# \frac{\partial z^{(2)}}{\partial z_1^{(1)}}\frac{\partial z_1^{(1)}}{\partial w_{11}^{(1)}}=w_1^{(2)}\frac{\partial a_1^{(1)}}{\partial z_1^{(1)}}a_1^{(1)}.
 # $$
 
 # ## Final expression
 # Defining
 
 # $$
-# \delta_0^{(1)}=w_0^{(2)}\frac{\partial a_0^{(1)}}{\partial z_0^{(1)}}\delta^{(2)},
+# \delta_1^{(1)}=w_1^{(2)}\frac{\partial a_1^{(1)}}{\partial z_1^{(1)}}\delta^{(2)},
 # $$
 
 # we have
 
 # $$
-# \frac{\partial C}{\partial w_{00}^{(1)}}=\delta_0^{(1)}a_0^{(1)}.
+# \frac{\partial C}{\partial w_{11}^{(1)}}=\delta_1^{(1)}a_1^{(1)}.
 # $$
 
 # Similarly, we obtain
 
 # $$
-# \frac{\partial C}{\partial w_{01}^{(1)}}=\delta_0^{(1)}a_1^{(1)}.
+# \frac{\partial C}{\partial w_{12}^{(1)}}=\delta_1^{(1)}a_2^{(1)}.
 # $$
 
 # ## Completing the list
@@ -427,19 +427,19 @@ for i in range(50):
 # Similarly, we find
 
 # $$
-# \frac{\partial C}{\partial w_{10}^{(1)}}=\delta_1^{(1)}a_0^{(1)},
+# \frac{\partial C}{\partial w_{21}^{(1)}}=\delta_2^{(1)}a_1^{(1)},
 # $$
 
 # and
 
 # $$
-# \frac{\partial C}{\partial w_{11}^{(1)}}=\delta_1^{(1)}a_1^{(1)},
+# \frac{\partial C}{\partial w_{22}^{(1)}}=\delta_2^{(1)}a_2^{(1)},
 # $$
 
 # where we have defined
 
 # $$
-# \delta_1^{(1)}=w_1^{(2)}\frac{\partial a_1^{(1)}}{\partial z_1^{(1)}}\delta^{(2)}.
+# \delta_2^{(1)}=w_2^{(2)}\frac{\partial a_2^{(1)}}{\partial z_2^{(1)}}\delta^{(2)}.
 # $$
 
 # ## Final expressions for the biases of the hidden layer
@@ -447,13 +447,13 @@ for i in range(50):
 # For the sake of completeness, we list the derivatives of the biases, which are
 
 # $$
-# \frac{\partial C}{\partial b_{0}^{(1)}}=\delta_0^{(1)},
+# \frac{\partial C}{\partial b_{1}^{(1)}}=\delta_1^{(1)},
 # $$
 
 # and
 
 # $$
-# \frac{\partial C}{\partial b_{1}^{(1)}}=\delta_1^{(1)}.
+# \frac{\partial C}{\partial b_{2}^{(1)}}=\delta_2^{(1)}.
 # $$
 
 # As we will see below, these expressions can be generalized in a more compact form.
@@ -734,9 +734,27 @@ for i in range(50):
 # 
 # We are now ready to set up the algorithm for back propagation and learning the weights and biases.
 
-# ## Setting up the back propagation algorithm
+# ## Setting up the back propagation algorithm and algorithm for a feed forward NN, initalizations
 # 
-# The four equations  provide us with a way of computing the gradient of the cost function. Let us write this out in the form of an algorithm.
+# **The architecture (our model).**
+# 
+# 1. Set up your inputs and outputs (scalars, vectors, matrices or higher-order arrays)
+# 
+# 2. Define the number of hidden layers and hidden nodes
+# 
+# 3. Define activation functions for hidden layers and output layers
+# 
+# 4. Define optimizer (plan learning rate, momentum, ADAgrad, RMSprop, ADAM etc) and array of initial learning rates
+# 
+# 5. Define cost function and possible regularization terms with hyperparameters
+# 
+# 6. Initialize weights and biases
+# 
+# 7. Fix number of iterations for the feed forward part and back propagation part
+
+# ## Setting up the back propagation algorithm, part 1
+# 
+# The four equations  provide us with a way of computing the gradients of the cost function. Let us write this out in the form of an algorithm.
 # 
 # **First**, we set up the input data $\boldsymbol{x}$ and the activations
 # $\boldsymbol{z}_1$ of the input layer and compute the activation function and
@@ -797,12 +815,12 @@ for i in range(50):
 # b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta \delta_j^l,
 # $$
 
-# ### Activation functions
+# ## Activation functions
 # 
 # A property that characterizes a neural network, other than its
-# connectivity, is the choice of activation function(s).  As described
-# in, the following restrictions are imposed on an activation function
-# for a FFNN to fulfill the universal approximation theorem
+# connectivity, is the choice of activation function(s).  The following
+# restrictions are imposed on an activation function for an FFNN to
+# fulfill the universal approximation theorem
 # 
 #   * Non-constant
 # 
@@ -833,7 +851,7 @@ for i in range(50):
 # \sigma(x) = \tanh(x)
 # $$
 
-# ### Relevance
+# ## Relevance
 # 
 # The *sigmoid* function are more biologically plausible because the
 # output of inactive neurons are zero. Such activation function are
@@ -918,45 +936,6 @@ ax.set_title('Rectified linear unit')
 
 plt.show()
 
-
-# ## Fine-tuning neural network hyperparameters
-# 
-# The flexibility of neural networks is also one of their main
-# drawbacks: there are many hyperparameters to tweak. Not only can you
-# use any imaginable network topology (how neurons/nodes are
-# interconnected), but even in a simple FFNN you can change the number
-# of layers, the number of neurons per layer, the type of activation
-# function to use in each layer, the weight initialization logic, the
-# stochastic gradient optmized and much more. How do you know what
-# combination of hyperparameters is the best for your task?
-# 
-# * You can use grid search with cross-validation to find the right hyperparameters.
-# 
-# However,since there are many hyperparameters to tune, and since
-# training a neural network on a large dataset takes a lot of time, you
-# will only be able to explore a tiny part of the hyperparameter space.
-# 
-# * You can use randomized search.
-# 
-# * Or use tools like [Oscar](http://oscar.calldesk.ai/), which implements more complex algorithms to help you find a good set of hyperparameters quickly.
-
-# ## Hidden layers
-# 
-# For many problems you can start with just one or two hidden layers and
-# it will work just fine.  For the MNIST data set you ca easily get a
-# high accuracy using just one hidden layer with a few hundred neurons.
-# You can reach for this data set above 98% accuracy using two hidden
-# layers with the same total amount of neurons, in roughly the same
-# amount of training time.
-# 
-# For more complex problems, you can gradually ramp up the number of
-# hidden layers, until you start overfitting the training set. Very
-# complex tasks, such as large image classification or speech
-# recognition, typically require networks with dozens of layers and they
-# need a huge amount of training data. However, you will rarely have to
-# train such networks from scratch: it is much more common to reuse
-# parts of a pretrained state-of-the-art network that performs a similar
-# task.
 
 # ## Vanishing gradients
 # 
@@ -1091,6 +1070,45 @@ plt.show()
 # 
 # * For regression tasks, you can simply use no activation function at all.
 
+# ## Fine-tuning neural network hyperparameters
+# 
+# The flexibility of neural networks is also one of their main
+# drawbacks: there are many hyperparameters to tweak. Not only can you
+# use any imaginable network topology (how neurons/nodes are
+# interconnected), but even in a simple FFNN you can change the number
+# of layers, the number of neurons per layer, the type of activation
+# function to use in each layer, the weight initialization logic, the
+# stochastic gradient optmized and much more. How do you know what
+# combination of hyperparameters is the best for your task?
+# 
+# * You can use grid search with cross-validation to find the right hyperparameters.
+# 
+# However,since there are many hyperparameters to tune, and since
+# training a neural network on a large dataset takes a lot of time, you
+# will only be able to explore a tiny part of the hyperparameter space.
+# 
+# * You can use randomized search.
+# 
+# * Or use tools like [Oscar](http://oscar.calldesk.ai/), which implements more complex algorithms to help you find a good set of hyperparameters quickly.
+
+# ## Hidden layers
+# 
+# For many problems you can start with just one or two hidden layers and
+# it will work just fine.  For the MNIST data set discussed below you can easily get a
+# high accuracy using just one hidden layer with a few hundred neurons.
+# You can reach for this data set above 98% accuracy using two hidden
+# layers with the same total amount of neurons, in roughly the same
+# amount of training time.
+# 
+# For more complex problems, you can gradually ramp up the number of
+# hidden layers, until you start overfitting the training set. Very
+# complex tasks, such as large image classification or speech
+# recognition, typically require networks with dozens of layers and they
+# need a huge amount of training data. However, you will rarely have to
+# train such networks from scratch: it is much more common to reuse
+# parts of a pretrained state-of-the-art network that performs a similar
+# task.
+
 # ## Batch Normalization
 # 
 # Batch Normalization aims to address the vanishing/exploding gradients
@@ -1199,44 +1217,6 @@ plt.show()
 # * **Many problems are not about prediction.** In natural science we are often interested in learning something about the underlying distribution that generates the data. In this case, it is often difficult to cast these ideas in a supervised learning setting. While the problems are related, it is possible to make good predictions with a *wrong* model. The model might or might not be useful for understanding the underlying science.
 # 
 # Some of these remarks are particular to DNNs, others are shared by all supervised learning methods. This motivates the use of unsupervised methods which in part circumvent these problems.
-
-# ## Setting up the back-propagation algorithm
-# 
-# Let us write this out in the form of an algorithm.
-# 
-# First, we set up the input data $\boldsymbol{x}$ and the activations
-# $\boldsymbol{z}_1$ of the input layer and compute the activation function and
-# the pertinent outputs $\boldsymbol{a}^1$.
-# 
-# Secondly, we perform then the feed forward till we reach the output
-# layer and compute all $\boldsymbol{z}_l$ of the input layer and compute the
-# activation function and the pertinent outputs $\boldsymbol{a}^l$ for
-# $l=2,3,\dots,L$.
-# 
-# Thereafter we compute the ouput error $\boldsymbol{\delta}^L$ by computing all
-
-# $$
-# \delta_j^L = f'(z_j^L)\frac{\partial {\cal C}}{\partial (a_j^L)}.
-# $$
-
-# Then we compute the back propagate error for each $l=L-1,L-2,\dots,2$ as
-
-# $$
-# \delta_j^l = \sum_k \delta_k^{l+1}w_{kj}^{l+1}\sigma'(z_j^l).
-# $$
-
-# Finally, we update the weights and the biases using gradient descent for each $l=L-1,L-2,\dots,2$ and update the weights and biases according to the rules
-
-# $$
-# w_{ij}^l\leftarrow  = w_{ij}^l- \eta \delta_j^la_i^{l-1},
-# $$
-
-# $$
-# b_j^l \leftarrow b_j^l-\eta \frac{\partial {\cal C}}{\partial b_j^l}=b_j^l-\eta \delta_j^l,
-# $$
-
-# The parameter $\eta$ is the learning parameter discussed in connection with the gradient descent methods.
-# Here it is convenient to use stochastic gradient descent (see the examples below) with mini-batches with an outer loop that steps through multiple epochs of training.
 
 # ## Setting up a Multi-layer perceptron model for classification
 # 
