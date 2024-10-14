@@ -92,7 +92,7 @@ theta = np.random.randn(2,1)
 eta = 1.0/np.max(EigValues)
 Niterations = 1000
 
-
+#while (iter <= Ni... or test)
 for iter in range(Niterations):
     gradients = 2.0/n*X.T @ ((X @ theta)-y)
     theta -= eta*gradients
