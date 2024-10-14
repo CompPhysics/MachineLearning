@@ -16,18 +16,20 @@
 # **Readings and videos.**
 # 
 # 1. These lecture notes
-# <!-- * [Video of lecture](https://youtu.be/0q5-PhovchQ) -->
-# <!-- * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/NotesOct19.pdf) -->
 # 
-# 2. For a more in depth discussion on  neural networks we recommend Goodfellow et al chapters 6 and 7.     
+# 2. [Video of lecture](https://youtu.be/7B2F35gNj2Y)
 # 
-# 3. Neural Networks demystified at <https://www.youtube.com/watch?v=bxe2T-V8XRs&list=PLiaHhY2iBX9hdHaRr6b7XevZtgZRa1PoU&ab_channel=WelchLabs>
+# 3. [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesOct14.pdf)
 # 
-# 4. Building Neural Networks from scratch at <https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3&ab_channel=sentdex>
+# 4. For a more in depth discussion on  neural networks we recommend Goodfellow et al chapters 6 and 7.     
 # 
-# 5. Video on Neural Networks at <https://www.youtube.com/watch?v=CqOfi41LfDw>
+# 5. Neural Networks demystified at <https://www.youtube.com/watch?v=bxe2T-V8XRs&list=PLiaHhY2iBX9hdHaRr6b7XevZtgZRa1PoU&ab_channel=WelchLabs>
 # 
-# 6. Video on the back propagation algorithm at <https://www.youtube.com/watch?v=Ilg3gGewQ5U>
+# 6. Building Neural Networks from scratch at <https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3&ab_channel=sentdex>
+# 
+# 7. Video on Neural Networks at <https://www.youtube.com/watch?v=CqOfi41LfDw>
+# 
+# 8. Video on the back propagation algorithm at <https://www.youtube.com/watch?v=Ilg3gGewQ5U>
 # 
 # I also  recommend Michael Nielsen's intuitive approach to the neural networks and the universal approximation theorem, see the slides at <http://neuralnetworksanddeeplearning.com/chap4.html>.
 
