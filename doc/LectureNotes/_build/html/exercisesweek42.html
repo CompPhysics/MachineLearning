@@ -445,13 +445,23 @@ const thebe_selector_output = ".output, .cell_output"
   </a>
  </li>
  <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#exercise-4">
-   Exercise 4
+  <a class="reference internal nav-link" href="#exercise-4-custom-activation-for-each-layer">
+   Exercise 4 - Custom activation for each layer
   </a>
  </li>
  <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#exercise-5-very-optional-and-very-hard">
-   Exercise 5 (Very optional and very hard :)
+  <a class="reference internal nav-link" href="#exercise-5-processing-multiple-inputs-at-once">
+   Exercise 5 - Processing multiple inputs at once
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#exercise-6-predicting-on-real-data">
+   Exercise 6 - Predicting on real data
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#exercise-6-training-on-real-data">
+   Exercise 6 - Training on real data
   </a>
  </li>
 </ul>
@@ -500,13 +510,23 @@ const thebe_selector_output = ".output, .cell_output"
   </a>
  </li>
  <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#exercise-4">
-   Exercise 4
+  <a class="reference internal nav-link" href="#exercise-4-custom-activation-for-each-layer">
+   Exercise 4 - Custom activation for each layer
   </a>
  </li>
  <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#exercise-5-very-optional-and-very-hard">
-   Exercise 5 (Very optional and very hard :)
+  <a class="reference internal nav-link" href="#exercise-5-processing-multiple-inputs-at-once">
+   Exercise 5 - Processing multiple inputs at once
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#exercise-6-predicting-on-real-data">
+   Exercise 6 - Predicting on real data
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#exercise-6-training-on-real-data">
+   Exercise 6 - Training on real data
   </a>
  </li>
 </ul>
@@ -523,17 +543,43 @@ doconce format html exercisesweek41.do.txt  -->
 <!-- dom:TITLE: Exercises week 41 -->
 <div class="tex2jax_ignore mathjax_ignore section" id="exercises-week-42">
 <h1>Exercises week 42<a class="headerlink" href="#exercises-week-42" title="Permalink to this headline">¶</a></h1>
-<p><strong>October 14-18, 2024</strong></p>
+<p><strong>October 11-18, 2024</strong></p>
 <p>Date: <strong>Deadline is Friday October 18 at midnight</strong></p>
 </div>
 <div class="tex2jax_ignore mathjax_ignore section" id="overarching-aims-of-the-exercises-this-week">
 <h1>Overarching aims of the exercises this week<a class="headerlink" href="#overarching-aims-of-the-exercises-this-week" title="Permalink to this headline">¶</a></h1>
 <p>The aim of the exercises this week is to get started with implementing a neural network. There are a lot of technical and finicky parts of implementing a neutal network, so take your time.</p>
-<p>This week, you will implement only the feed-forward pass. Next week, you will implement backpropagation. We recommend that you do the exercises this week by editing and running this notebook file, as it includes several checks along the way that you have implemented the pieces of the feed-forward pass correctly. If you have trouble running a notebook, or importing pytorch, you can run this notebook in google colab instead: (LINK TO COLAB), though we recommend that you set up VSCode and your python environment to run code like this locally.</p>
+<p>This week, you will implement only the feed-forward pass and updating the network parameters with simple gradient descent, the gradient will be computed using autograd using code we provide. Next week, you will implement backpropagation. We recommend that you do the exercises this week by editing and running this notebook file, as it includes some checks along the way that you have implemented the pieces of the feed-forward pass correctly, and running small parts of the code at a time will be important for understanding the methods.</p>
+<p>If you have trouble running a notebook, you can run this notebook in google colab instead (<a class="reference external" href="https://colab.research.google.com/drive/1OCQm1tlTWB6hZSf9I7gGUgW9M8SbVeQu#offline=true&amp;sandboxMode=true">https://colab.research.google.com/drive/1OCQm1tlTWB6hZSf9I7gGUgW9M8SbVeQu#offline=true&amp;sandboxMode=true</a>), an updated link will be provided on the course discord (you can also send an email to <a class="reference external" href="mailto:k&#46;h&#46;fredly&#37;&#52;&#48;fys&#46;uio&#46;no">k<span>&#46;</span>h<span>&#46;</span>fredly<span>&#64;</span>fys<span>&#46;</span>uio<span>&#46;</span>no</a> if you encounter any trouble), though we recommend that you set up VSCode and your python environment to run code like this locally.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">autograd</span> <span class="kn">import</span> <span class="n">grad</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># We need to use this numpy wrapper to make automatic differentiation work later</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span>
+
+
+<span class="c1"># Defining some activation functions</span>
+<span class="k">def</span> <span class="nf">ReLU</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">sigmoid</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">softmax</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute softmax values for each set of scores in the rows of the matrix z.</span>
+<span class="sd">    Used with batched input data.&quot;&quot;&quot;</span>
+    <span class="n">e_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">e_z</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">e_z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">softmax_vec</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute softmax values for each set of scores in the vector z.</span>
+<span class="sd">    Use this function when you use the activation function on one vector at a time&quot;&quot;&quot;</span>
+    <span class="n">e_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">e_z</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">e_z</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -541,47 +587,43 @@ doconce format html exercisesweek41.do.txt  -->
 </div>
 <div class="tex2jax_ignore mathjax_ignore section" id="exercise-1">
 <h1>Exercise 1<a class="headerlink" href="#exercise-1" title="Permalink to this headline">¶</a></h1>
-<p>Complete the following parts to compute the activation of the first layer.</p>
+<p>In this exercise you will compute the activation of the first layer. You only need to change the code in the cells right below an exercise, the rest works out of the box. Feel free to make changes and see how stuff works though!</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2024</span><span class="p">)</span>
 
-
-<span class="k">def</span> <span class="nf">ReLU</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># network input</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># network input. This is a single input with two features</span>
 <span class="n">W1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># first layer weights</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p><strong>a)</strong> Define the bias of the first layer, <code class="docutils literal notranslate"><span class="pre">b1</span></code>with the correct shape</p>
+<p><strong>a)</strong> Given the shape of the first layer weight matrix, what is the input shape of the neural network? What is the output shape of the first layer?</p>
+<p><strong>b)</strong> Define the bias of the first layer, <code class="docutils literal notranslate"><span class="pre">b1</span></code>with the correct shape. (Run the next cell right after the previous to get the random generated values to line up with the test solution below)</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">b1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">b1</span> <span class="o">=</span> <span class="o">...</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p><strong>b)</strong> Compute the intermediary <code class="docutils literal notranslate"><span class="pre">z1</span></code> for the first layer</p>
+<p><strong>c)</strong> Compute the intermediary <code class="docutils literal notranslate"><span class="pre">z1</span></code> for the first layer</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z1</span> <span class="o">=</span> <span class="n">W1</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b1</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z1</span> <span class="o">=</span> <span class="o">...</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p><strong>c)</strong> Compute the activation <code class="docutils literal notranslate"><span class="pre">a1</span></code> for the first layer using the ReLU activation function defined earlier.</p>
+<p><strong>d)</strong> Compute the activation <code class="docutils literal notranslate"><span class="pre">a1</span></code> for the first layer using the ReLU activation function defined earlier.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a1</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">(</span><span class="n">z1</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a1</span> <span class="o">=</span> <span class="o">...</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p>Confirm that you got the correct activation with the test below.</p>
+<p>Confirm that you got the correct activation with the test below. Make sure that you define <code class="docutils literal notranslate"><span class="pre">b1</span></code> with the randn function right after you define <code class="docutils literal notranslate"><span class="pre">W1</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.60610368</span><span class="p">,</span> <span class="mf">4.0076268</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.56469864</span><span class="p">])</span>
@@ -591,7 +633,41 @@ doconce format html exercisesweek41.do.txt  -->
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>True
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">TypeError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">line</span> <span class="mi">3</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="n">sol1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.60610368</span><span class="p">,</span> <span class="mf">4.0076268</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.56469864</span><span class="p">])</span>
+<span class="ne">----&gt; </span><span class="mi">3</span> <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">sol1</span><span class="p">))</span>
+
+<span class="nn">File ~/miniforge3/envs/myenv/lib/python3.9/site-packages/autograd/tracer.py:48,</span> in <span class="ni">primitive.&lt;locals&gt;.f_wrapped</span><span class="nt">(*args, **kwargs)</span>
+<span class="g g-Whitespace">     </span><span class="mi">46</span>     <span class="k">return</span> <span class="n">new_box</span><span class="p">(</span><span class="n">ans</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">47</span> <span class="k">else</span><span class="p">:</span>
+<span class="ne">---&gt; </span><span class="mi">48</span>     <span class="k">return</span> <span class="n">f_raw</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="nn">File &lt;__array_function__ internals&gt;:180,</span> in <span class="ni">allclose</span><span class="nt">(*args, **kwargs)</span>
+
+<span class="nn">File ~/miniforge3/envs/myenv/lib/python3.9/site-packages/numpy/core/numeric.py:2251,</span> in <span class="ni">allclose</span><span class="nt">(a, b, rtol, atol, equal_nan)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2180</span> <span class="nd">@array_function_dispatch</span><span class="p">(</span><span class="n">_allclose_dispatcher</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2181</span> <span class="k">def</span> <span class="nf">allclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1.e-8</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="g g-Whitespace">   </span><span class="mi">2182</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">   </span><span class="mi">2183</span><span class="sd">     Returns True if two arrays are element-wise equal within a tolerance.</span>
+<span class="g g-Whitespace">   </span><span class="mi">2184</span><span class="sd"> </span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2249</span><span class="sd"> </span>
+<span class="g g-Whitespace">   </span><span class="mi">2250</span><span class="sd">     &quot;&quot;&quot;</span>
+<span class="ne">-&gt; </span><span class="mi">2251</span>     <span class="n">res</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">isclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="n">equal_nan</span><span class="p">))</span>
+<span class="g g-Whitespace">   </span><span class="mi">2252</span>     <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+<span class="nn">File &lt;__array_function__ internals&gt;:180,</span> in <span class="ni">isclose</span><span class="nt">(*args, **kwargs)</span>
+
+<span class="nn">File ~/miniforge3/envs/myenv/lib/python3.9/site-packages/numpy/core/numeric.py:2358,</span> in <span class="ni">isclose</span><span class="nt">(a, b, rtol, atol, equal_nan)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2355</span>     <span class="n">dt</span> <span class="o">=</span> <span class="n">multiarray</span><span class="o">.</span><span class="n">result_type</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2356</span>     <span class="n">y</span> <span class="o">=</span> <span class="n">asanyarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+<span class="ne">-&gt; </span><span class="mi">2358</span> <span class="n">xfin</span> <span class="o">=</span> <span class="n">isfinite</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2359</span> <span class="n">yfin</span> <span class="o">=</span> <span class="n">isfinite</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2360</span> <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">xfin</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">yfin</span><span class="p">):</span>
+
+<span class="ne">TypeError</span>: ufunc &#39;isfinite&#39; not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule &#39;&#39;safe&#39;&#39;
 </pre></div>
 </div>
 </div>
@@ -599,21 +675,22 @@ doconce format html exercisesweek41.do.txt  -->
 </div>
 <div class="tex2jax_ignore mathjax_ignore section" id="exercise-2">
 <h1>Exercise 2<a class="headerlink" href="#exercise-2" title="Permalink to this headline">¶</a></h1>
-<p>Compute the activation of the second layer with an output of length 8 and ReLU activation.</p>
-<p><strong>a)</strong> Define the weight and bias of the second layer with the right shapes.</p>
+<p>Now we will add a layer to the network with an output of length 8 and ReLU activation.</p>
+<p><strong>a)</strong> What is the input of the second layer? What is its shape?</p>
+<p><strong>b)</strong> Define the weight and bias of the second layer with the right shapes.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">W2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="n">b2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">W2</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">b2</span> <span class="o">=</span> <span class="o">...</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p><strong>b)</strong> Compute intermediary <code class="docutils literal notranslate"><span class="pre">z2</span></code> and activation <code class="docutils literal notranslate"><span class="pre">a2</span></code> for the second layer.</p>
+<p><strong>c)</strong> Compute the intermediary <code class="docutils literal notranslate"><span class="pre">z2</span></code> and activation <code class="docutils literal notranslate"><span class="pre">a2</span></code> for the second layer.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z2</span> <span class="o">=</span> <span class="n">W2</span> <span class="o">@</span> <span class="n">a1</span>
-<span class="n">a2</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">(</span><span class="n">z2</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z2</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="o">...</span>
 </pre></div>
 </div>
 </div>
@@ -621,12 +698,9 @@ doconce format html exercisesweek41.do.txt  -->
 <p>Confirm that you got the correct activation shape with the test below.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">a2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">8</span><span class="p">,))</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>True
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a2</span><span class="p">)),</span> <span class="mf">2980.9579870417283</span><span class="p">)</span>
+<span class="p">)</span>  <span class="c1"># This should evaluate to True if a2 has the correct shape :)</span>
 </pre></div>
 </div>
 </div>
@@ -638,65 +712,115 @@ doconce format html exercisesweek41.do.txt  -->
 <p><strong>a)</strong> Complete the function below so that it returns a list <code class="docutils literal notranslate"><span class="pre">layers</span></code> of weight and bias tuples <code class="docutils literal notranslate"><span class="pre">(W,</span> <span class="pre">b)</span></code> for each layer, in order, with the correct shapes that we can use later as our network parameters.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_layers</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">,</span> <span class="n">output_sizes</span><span class="p">):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_layers</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">,</span> <span class="n">layer_output_sizes</span><span class="p">):</span>
     <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">i_size</span> <span class="o">=</span> <span class="n">network_input_size</span>
-    <span class="k">for</span> <span class="n">output_size</span> <span class="ow">in</span> <span class="n">output_sizes</span><span class="p">:</span>
-        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">output_size</span><span class="p">,</span> <span class="n">i_size</span><span class="p">)</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">output_size</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">layer_output_size</span> <span class="ow">in</span> <span class="n">layer_output_sizes</span><span class="p">:</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="o">...</span>
         <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
 
-        <span class="n">i_size</span> <span class="o">=</span> <span class="n">output_size</span>
+        <span class="n">i_size</span> <span class="o">=</span> <span class="n">layer_output_size</span>
     <span class="k">return</span> <span class="n">layers</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p><strong>b)</strong> Comple the function below so that it evaluates the intermediate <code class="docutils literal notranslate"><span class="pre">z</span></code> and activation <code class="docutils literal notranslate"><span class="pre">a</span></code> for each layer, and returns the final activation <code class="docutils literal notranslate"><span class="pre">a</span></code>. This is the complete feed-forward pass, a full neural network!</p>
+<p><strong>b)</strong> Comple the function below so that it evaluates the intermediary <code class="docutils literal notranslate"><span class="pre">z</span></code> and activation <code class="docutils literal notranslate"><span class="pre">a</span></code> for each layer, with ReLU actication, and returns the final activation <code class="docutils literal notranslate"><span class="pre">a</span></code>. This is the complete feed-forward pass, a full neural network!</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">feed_forward</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">feed_forward_all_relu</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
     <span class="n">a</span> <span class="o">=</span> <span class="nb">input</span>
     <span class="k">for</span> <span class="n">W</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">W</span> <span class="o">@</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">return</span> <span class="n">a</span>
 </pre></div>
 </div>
 </div>
 </div>
 <p><strong>c)</strong> Create a network with input size 8 and layers with output sizes 10, 16, 6, 2. Evaluate it and make sure that you get the correct size vectors along the way.</p>
-</div>
-<div class="tex2jax_ignore mathjax_ignore section" id="exercise-4">
-<h1>Exercise 4<a class="headerlink" href="#exercise-4" title="Permalink to this headline">¶</a></h1>
-<p>So far, every layer has used the same activation, ReLU. We often want to use other types of activation however, so we need to update our code to support multiple types of activation. Make sure that you have completed every previous exercise before trying this one.</p>
-<p><strong>a)</strong> Make the <code class="docutils literal notranslate"><span class="pre">create_layers</span></code> function also accept a list of activation functions, which is used to add activation functions to each of the tuples in <code class="docutils literal notranslate"><span class="pre">layers</span></code>. Make new functions to not mess with the old ones.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_layers_4</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">,</span> <span class="n">output_sizes</span><span class="p">,</span> <span class="n">activation_funcs</span><span class="p">):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">input_size</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">layer_output_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">input_size</span><span class="p">)</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">predict</span> <span class="o">=</span> <span class="o">...</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">predict</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>d)</strong> Why is a neural network with no activation functions always mathematically equivelent to a neural network with only one layer?</p>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="exercise-4-custom-activation-for-each-layer">
+<h1>Exercise 4 - Custom activation for each layer<a class="headerlink" href="#exercise-4-custom-activation-for-each-layer" title="Permalink to this headline">¶</a></h1>
+<p>So far, every layer has used the same activation, ReLU. We often want to use other types of activation however, so we need to update our code to support multiple types of activation functions. Make sure that you have completed every previous exercise before trying this one.</p>
+<p><strong>a)</strong> Complete the <code class="docutils literal notranslate"><span class="pre">feed_forward</span></code> function which accepts a list of activation functions as an argument, and which evaluates these activation functions at each layer.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">feed_forward</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="nb">input</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">activation</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">):</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="o">...</span>
+    <span class="k">return</span> <span class="n">a</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>b)</strong> Make a list with three activation functions(don’t call them yet! you can make a list with function names as elements, and then call these elements of the list later), two ReLU and one sigmoid. (If you add other functions than the ones defined at the start of the notebook, make sure everything is defined using autograd’s numpy wrapper, like above, since we want to use automatic differentiation on all of these functions later.)</p>
+<p>Then evaluate a network with three layers and these activation functions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">network_input_size</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">layer_output_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+<span class="n">activations</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="o">...</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">)</span>
+<span class="n">feed_forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="exercise-5-processing-multiple-inputs-at-once">
+<h1>Exercise 5 - Processing multiple inputs at once<a class="headerlink" href="#exercise-5-processing-multiple-inputs-at-once" title="Permalink to this headline">¶</a></h1>
+<p>So far, the feed forward function has taken one input vector as an input. This vector then undergoes a linear transformation and then an element-wise non-linear operation for each layer. This approach of sending one vector in at a time is great for interpreting how the network transforms data with its linear and non-linear operations, but not the best for numerical efficiency. Now, we want to be able to send many inputs through the network at once. This will make the code a bit harder to understand, but it will make it faster, and more compact. It will be worth the trouble.</p>
+<p>To process multiple inputs at once, while still performing the same operations, you will only need to flip a couple things around.</p>
+<p><strong>a)</strong> Complete the function <code class="docutils literal notranslate"><span class="pre">create_layers_batch</span></code> so that the weight matrix is the transpose of what it was when you only sent in one input at a time.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_layers_batch</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">,</span> <span class="n">layer_output_sizes</span><span class="p">):</span>
     <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">i_size</span> <span class="o">=</span> <span class="n">network_input_size</span>
-    <span class="k">for</span> <span class="n">output_size</span><span class="p">,</span> <span class="n">activation</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">output_sizes</span><span class="p">,</span> <span class="n">activation_funcs</span><span class="p">):</span>
-        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">output_size</span><span class="p">,</span> <span class="n">i_size</span><span class="p">)</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">output_size</span><span class="p">)</span>
-        <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">activation</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">layer_output_size</span> <span class="ow">in</span> <span class="n">layer_output_sizes</span><span class="p">:</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
 
-        <span class="n">i_size</span> <span class="o">=</span> <span class="n">output_size</span>
+        <span class="n">i_size</span> <span class="o">=</span> <span class="n">layer_output_size</span>
     <span class="k">return</span> <span class="n">layers</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p><strong>b)</strong> Update the <code class="docutils literal notranslate"><span class="pre">feed_forward</span></code> function to support this change.</p>
+<p><strong>b)</strong> Make a matrix of inputs with the shape (number of features, number of inputs), you choose the number of inputs and features per input. Then complete the function <code class="docutils literal notranslate"><span class="pre">feed_forward_batch</span></code> so that you can process this matrix of inputs with only one matrix multiplication and one broadcasted vector addition per layer. (Hint: You will only need to swap two variable around from your previous implementation, but remember to test that you get the same results for equivelent inputs!)</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">feed_forward_4</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="nb">input</span>
-    <span class="k">for</span> <span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">activation</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">W</span> <span class="o">@</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">activation</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inputs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">feed_forward_batch</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">inputs</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">activation</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">):</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">return</span> <span class="n">a</span>
 </pre></div>
 </div>
@@ -705,28 +829,26 @@ doconce format html exercisesweek41.do.txt  -->
 <p><strong>c)</strong> Create and evaluate a neural network with 4 inputs and layers with output sizes 12, 10, 3 and activations ReLU, ReLU, softmax.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">softmax</span>
-
-<span class="n">network_input_size</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">output_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-<span class="n">activation_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ReLU</span><span class="p">,</span> <span class="n">ReLU</span><span class="p">,</span> <span class="n">softmax</span><span class="p">]</span>
-<span class="n">layers</span> <span class="o">=</span> <span class="n">create_layers_4</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">,</span> <span class="n">output_sizes</span><span class="p">,</span> <span class="n">activation_funcs</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">network_input_size</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">layer_output_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+<span class="n">activations</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="n">create_layers_batch</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">,</span> <span class="n">layer_output_sizes</span><span class="p">)</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">network_input_size</span><span class="p">)</span>
-<span class="n">predict</span> <span class="o">=</span> <span class="n">feed_forward_4</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">feed_forward_batch</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p>The final exercise will hopefully be very simple if everything has worked so far. You will evaluate your neural network on the iris data set (<a class="reference external" href="https://scikit-learn.org/1.5/auto_examples/datasets/plot_iris_dataset.html">https://scikit-learn.org/1.5/auto_examples/datasets/plot_iris_dataset.html</a>).</p>
-<p>This dataset contains data on 150 flowers of 3 different types which can be separated pretty well using the four features given for each flower, which includes the width and length of their leaves. You are not expected to do any training of the network or actual classification, unless you feel like it, in that case you can do exercise 5.</p>
+<p>You should use this batched approach moving forward, as it will lead to much more compact code. However, remember that each input is still treated separately, and that you will need to keep in mind the transposed weight matrix and other details when implementing backpropagation.</p>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="exercise-6-predicting-on-real-data">
+<h1>Exercise 6 - Predicting on real data<a class="headerlink" href="#exercise-6-predicting-on-real-data" title="Permalink to this headline">¶</a></h1>
+<p>You will now evaluate your neural network on the iris data set (<a class="reference external" href="https://scikit-learn.org/1.5/auto_examples/datasets/plot_iris_dataset.html">https://scikit-learn.org/1.5/auto_examples/datasets/plot_iris_dataset.html</a>).</p>
+<p>This dataset contains data on 150 flowers of 3 different types which can be separated pretty well using the four features given for each flower, which includes the width and length of their leaves. You are will later train your network to actually make good predictions.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Loading and plotting iris dataset</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-
-<span class="n">iris</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">load_iris</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">iris</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">load_iris</span><span class="p">()</span>
 
 <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 <span class="n">scatter</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">iris</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">iris</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
@@ -737,29 +859,114 @@ doconce format html exercisesweek41.do.txt  -->
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<img alt="_images/exercisesweek42_34_0.png" src="_images/exercisesweek42_34_0.png" />
 </div>
-</div>
-<p><strong>c)</strong> Loop over the iris dataset(<code class="docutils literal notranslate"><span class="pre">iris.data</span></code>) and evaluate the network for each data point.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># No need to change this cell! Just make sure it works!</span>
-<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">iris</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-    <span class="n">prediction</span> <span class="o">=</span> <span class="n">feed_forward_4</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inputs</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">data</span>
+
+<span class="c1"># Since each prediction is a vector with a score for each of the three types of flowers,</span>
+<span class="c1"># we need to make each target a vector with a 1 for the correct flower and a 0 for the others.</span>
+<span class="n">targets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">target</span><span class="p">):</span>
+    <span class="n">targets</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">accuracy</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+    <span class="n">one_hot_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">predictions</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predictions</span><span class="p">):</span>
+        <span class="n">one_hot_predictions</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">prediction</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">one_hot_predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>a)</strong> What should the input size for the network be with this dataset? What should the output shape of the last layer be?</p>
+<p><strong>b)</strong> Create a network with two hidden layers, the first with sigmoid activation and the last with softmax, the first layer should have 8 “nodes”, the second has the number of nodes you found in exercise a). Softmax returns a “probability distribution”, in the sense that the numbers in the output are positive and add up to 1 and, their magnitude are in some sense relative to their magnitude before going through the softmax function. Remember to use the batched version of the create_layers and feed forward functions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>c)</strong> Evaluate your model on the entire iris dataset! For later purposes, we will split the data into train and test sets, and compute gradients on smaller batches of the training data. But for now, evaluate the network on the whole thing at once.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">predictions</span> <span class="o">=</span> <span class="n">feed_forward_batch</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>d)</strong> Compute the accuracy of your model using the accuracy function defined above. Recreate your model a couple times and see how the accuracy changes.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">accuracy</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-<div class="tex2jax_ignore mathjax_ignore section" id="exercise-5-very-optional-and-very-hard">
-<h1>Exercise 5 (Very optional and very hard :)<a class="headerlink" href="#exercise-5-very-optional-and-very-hard" title="Permalink to this headline">¶</a></h1>
-<p><strong>a)</strong> Make the iris target values into one-hot vectors.</p>
-<p><strong>b)</strong> Define the cross-entropy loss function to evaluate the performance of your network on the data set.</p>
-<p><strong>c)</strong> Use the autograd package to take the gradient of the cross entropy wrt. the weights and biases of the network.</p>
-<p><strong>d)</strong> Use gradient descent of some sort to optimize the parameters.</p>
-<p><strong>e)</strong> Evaluate the accuracy of the network.</p>
-<p><strong>e)</strong> Show off how you did in a group session!</p>
+<div class="tex2jax_ignore mathjax_ignore section" id="exercise-6-training-on-real-data">
+<h1>Exercise 6 - Training on real data<a class="headerlink" href="#exercise-6-training-on-real-data" title="Permalink to this headline">¶</a></h1>
+<p>To be able to actually do anything useful with your neural network, you need to train it. For this, we need a cost function and a way to take the gradient of the cost function wrt. the network parameters. The following exercises guide you through taking the gradient using autograd, and updating the network parameters using the gradient. Feel free to implement gradient methods like ADAM if you finish everything.</p>
+<p>The cross-entropy loss function can evaluate performance on classification tasks. It sees if your prediction is “most certain” on the correct target.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autograd</span> <span class="kn">import</span> <span class="n">grad</span>
+
+
+<span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="n">predict</span> <span class="o">=</span> <span class="n">feed_forward_batch</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cross_entropy</span><span class="p">(</span><span class="n">predict</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">cross_entropy</span><span class="p">(</span><span class="n">predict</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">target</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">predict</span><span class="p">))</span>
+
+
+<span class="n">gradient_func</span> <span class="o">=</span> <span class="n">grad</span><span class="p">(</span>
+    <span class="n">cross_entropy</span><span class="p">,</span> <span class="mi">1</span>
+<span class="p">)</span>  <span class="c1"># Taking the gradient wrt. the second input to the cost function</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>a)</strong> What shape should the gradient of the cost function wrt. weights and biases be?</p>
+<p><strong>b)</strong> Use the <code class="docutils literal notranslate"><span class="pre">gradient_func</span></code> function to take the gradient of the cross entropy wrt. the weights and biases of the network. Check the shapes of what’s inside. What does the <code class="docutils literal notranslate"><span class="pre">grad</span></code> func from autograd actually do?</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">layers_grad</span> <span class="o">=</span> <span class="n">gradient_func</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>  <span class="c1"># Don&#39;t change this</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>c)</strong> Finish the <code class="docutils literal notranslate"><span class="pre">train_network</span></code> function.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">train_network</span><span class="p">(</span>
+    <span class="n">inputs</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+        <span class="n">layers_grad</span> <span class="o">=</span> <span class="n">gradient_func</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activations</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="p">(</span><span class="n">W_g</span><span class="p">,</span> <span class="n">b_g</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">layers_grad</span><span class="p">):</span>
+            <span class="n">W</span> <span class="o">-=</span> <span class="o">...</span>
+            <span class="n">b</span> <span class="o">-=</span> <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>e)</strong> What do we call the gradient method used above?</p>
+<p><strong>d)</strong> Train your network and see how the accuracy changes! Make a plot if you want.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>e)</strong> How high of an accuracy is it possible to acheive with a neural network on this dataset, if we use the whole thing as training data?</p>
 </div>
 
     <script type="text/x-thebe-config">

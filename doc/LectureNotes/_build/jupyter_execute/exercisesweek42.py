@@ -8,7 +8,7 @@
 
 # # Exercises week 42
 # 
-# **October 14-18, 2024**
+# **October 11-18, 2024**
 # 
 # Date: **Deadline is Friday October 18 at midnight**
 # 
@@ -17,19 +17,46 @@
 # 
 # The aim of the exercises this week is to get started with implementing a neural network. There are a lot of technical and finicky parts of implementing a neutal network, so take your time.
 # 
-# This week, you will implement only the feed-forward pass. Next week, you will implement backpropagation. We recommend that you do the exercises this week by editing and running this notebook file, as it includes several checks along the way that you have implemented the pieces of the feed-forward pass correctly. If you have trouble running a notebook, or importing pytorch, you can run this notebook in google colab instead: (LINK TO COLAB), though we recommend that you set up VSCode and your python environment to run code like this locally.
+# This week, you will implement only the feed-forward pass and updating the network parameters with simple gradient descent, the gradient will be computed using autograd using code we provide. Next week, you will implement backpropagation. We recommend that you do the exercises this week by editing and running this notebook file, as it includes some checks along the way that you have implemented the pieces of the feed-forward pass correctly, and running small parts of the code at a time will be important for understanding the methods.
+# 
+# If you have trouble running a notebook, you can run this notebook in google colab instead (https://colab.research.google.com/drive/1OCQm1tlTWB6hZSf9I7gGUgW9M8SbVeQu#offline=true&sandboxMode=true), an updated link will be provided on the course discord (you can also send an email to k.h.fredly@fys.uio.no if you encounter any trouble), though we recommend that you set up VSCode and your python environment to run code like this locally.
 # 
 
 # In[1]:
 
 
-import autograd.numpy as np
-from autograd import grad
+import autograd.numpy as np  # We need to use this numpy wrapper to make automatic differentiation work later
+from sklearn import datasets
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
+
+
+# Defining some activation functions
+def ReLU(z):
+    return np.where(z > 0, z, 0)
+
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+def softmax(z):
+    """Compute softmax values for each set of scores in the rows of the matrix z.
+    Used with batched input data."""
+    e_z = np.exp(z - np.max(z, axis=0))
+    return e_z / np.sum(e_z, axis=1)[:, np.newaxis]
+
+
+def softmax_vec(z):
+    """Compute softmax values for each set of scores in the vector z.
+    Use this function when you use the activation function on one vector at a time"""
+    e_z = np.exp(z - np.max(z))
+    return e_z / np.sum(e_z)
 
 
 # # Exercise 1
 # 
-# Complete the following parts to compute the activation of the first layer.
+# In this exercise you will compute the activation of the first layer. You only need to change the code in the cells right below an exercise, the rest works out of the box. Feel free to make changes and see how stuff works though!
 # 
 
 # In[2]:
@@ -37,43 +64,41 @@ from autograd import grad
 
 np.random.seed(2024)
 
-
-def ReLU(z):
-    return np.where(z > 0, z, 0)
-
-
-x = np.random.randn(2)  # network input
+x = np.random.randn(2)  # network input. This is a single input with two features
 W1 = np.random.randn(4, 2)  # first layer weights
 
 
-# **a)** Define the bias of the first layer, `b1`with the correct shape
+# **a)** Given the shape of the first layer weight matrix, what is the input shape of the neural network? What is the output shape of the first layer?
+# 
+
+# **b)** Define the bias of the first layer, `b1`with the correct shape. (Run the next cell right after the previous to get the random generated values to line up with the test solution below)
 # 
 
 # In[3]:
 
 
-b1 = np.random.randn(4)
+b1 = ...
 
 
-# **b)** Compute the intermediary `z1` for the first layer
+# **c)** Compute the intermediary `z1` for the first layer
 # 
 
 # In[4]:
 
 
-z1 = W1 @ x + b1
+z1 = ...
 
 
-# **c)** Compute the activation `a1` for the first layer using the ReLU activation function defined earlier.
+# **d)** Compute the activation `a1` for the first layer using the ReLU activation function defined earlier.
 # 
 
 # In[5]:
 
 
-a1 = ReLU(z1)
+a1 = ...
 
 
-# Confirm that you got the correct activation with the test below.
+# Confirm that you got the correct activation with the test below. Make sure that you define `b1` with the randn function right after you define `W1`.
 # 
 
 # In[6]:
@@ -86,35 +111,39 @@ print(np.allclose(a1, sol1))
 
 # # Exercise 2
 # 
-# Compute the activation of the second layer with an output of length 8 and ReLU activation.
+# Now we will add a layer to the network with an output of length 8 and ReLU activation.
 # 
-# **a)** Define the weight and bias of the second layer with the right shapes.
+# **a)** What is the input of the second layer? What is its shape?
 # 
-
-# In[7]:
-
-
-W2 = np.random.randn(8, 4)
-b2 = np.random.randn(8)
-
-
-# **b)** Compute intermediary `z2` and activation `a2` for the second layer.
+# **b)** Define the weight and bias of the second layer with the right shapes.
 # 
 
-# In[8]:
+# In[ ]:
 
 
-z2 = W2 @ a1
-a2 = ReLU(z2)
+W2 = ...
+b2 = ...
+
+
+# **c)** Compute the intermediary `z2` and activation `a2` for the second layer.
+# 
+
+# In[ ]:
+
+
+z2 = ...
+a2 = ...
 
 
 # Confirm that you got the correct activation shape with the test below.
 # 
 
-# In[9]:
+# In[ ]:
 
 
-print(a2.shape == (8,))
+print(
+    np.allclose(np.exp(len(a2)), 2980.9579870417283)
+)  # This should evaluate to True if a2 has the correct shape :)
 
 
 # # Exercise 3
@@ -124,33 +153,33 @@ print(a2.shape == (8,))
 # **a)** Complete the function below so that it returns a list `layers` of weight and bias tuples `(W, b)` for each layer, in order, with the correct shapes that we can use later as our network parameters.
 # 
 
-# In[10]:
+# In[ ]:
 
 
-def create_layers(network_input_size, output_sizes):
+def create_layers(network_input_size, layer_output_sizes):
     layers = []
 
     i_size = network_input_size
-    for output_size in output_sizes:
-        W = np.random.rand(output_size, i_size)
-        b = np.random.rand(output_size)
+    for layer_output_size in layer_output_sizes:
+        W = ...
+        b = ...
         layers.append((W, b))
 
-        i_size = output_size
+        i_size = layer_output_size
     return layers
 
 
-# **b)** Comple the function below so that it evaluates the intermediate `z` and activation `a` for each layer, and returns the final activation `a`. This is the complete feed-forward pass, a full neural network!
+# **b)** Comple the function below so that it evaluates the intermediary `z` and activation `a` for each layer, with ReLU actication, and returns the final activation `a`. This is the complete feed-forward pass, a full neural network!
 # 
 
-# In[11]:
+# In[ ]:
 
 
-def feed_forward(layers, input):
+def feed_forward_all_relu(layers, input):
     a = input
     for W, b in layers:
-        z = W @ a + b
-        a = ReLU(z)
+        z = ...
+        a = ...
     return a
 
 
@@ -160,75 +189,127 @@ def feed_forward(layers, input):
 # In[ ]:
 
 
+input_size = ...
+layer_output_sizes = [...]
+
+x = np.random.rand(input_size)
+layers = ...
+predict = ...
+print(predict)
 
 
-
-# # Exercise 4
+# **d)** Why is a neural network with no activation functions always mathematically equivelent to a neural network with only one layer?
 # 
 
-# So far, every layer has used the same activation, ReLU. We often want to use other types of activation however, so we need to update our code to support multiple types of activation. Make sure that you have completed every previous exercise before trying this one.
-# 
-# **a)** Make the `create_layers` function also accept a list of activation functions, which is used to add activation functions to each of the tuples in `layers`. Make new functions to not mess with the old ones.
+# # Exercise 4 - Custom activation for each layer
 # 
 
-# In[12]:
+# So far, every layer has used the same activation, ReLU. We often want to use other types of activation however, so we need to update our code to support multiple types of activation functions. Make sure that you have completed every previous exercise before trying this one.
+# 
+
+# **a)** Complete the `feed_forward` function which accepts a list of activation functions as an argument, and which evaluates these activation functions at each layer.
+# 
+
+# In[ ]:
 
 
-def create_layers_4(network_input_size, output_sizes, activation_funcs):
+def feed_forward(input, layers, activations):
+    a = input
+    for (W, b), activation in zip(layers, activations):
+        z = ...
+        a = ...
+    return a
+
+
+# **b)** Make a list with three activation functions(don't call them yet! you can make a list with function names as elements, and then call these elements of the list later), two ReLU and one sigmoid. (If you add other functions than the ones defined at the start of the notebook, make sure everything is defined using autograd's numpy wrapper, like above, since we want to use automatic differentiation on all of these functions later.)
+# 
+# Then evaluate a network with three layers and these activation functions.
+# 
+
+# In[ ]:
+
+
+network_input_size = ...
+layer_output_sizes = [...]
+activations = [...]
+layers = ...
+
+x = np.random.randn(network_input_size)
+feed_forward(x, layers, activations)
+
+
+# # Exercise 5 - Processing multiple inputs at once
+# 
+
+# So far, the feed forward function has taken one input vector as an input. This vector then undergoes a linear transformation and then an element-wise non-linear operation for each layer. This approach of sending one vector in at a time is great for interpreting how the network transforms data with its linear and non-linear operations, but not the best for numerical efficiency. Now, we want to be able to send many inputs through the network at once. This will make the code a bit harder to understand, but it will make it faster, and more compact. It will be worth the trouble.
+# 
+# To process multiple inputs at once, while still performing the same operations, you will only need to flip a couple things around.
+# 
+
+# **a)** Complete the function `create_layers_batch` so that the weight matrix is the transpose of what it was when you only sent in one input at a time.
+# 
+
+# In[ ]:
+
+
+def create_layers_batch(network_input_size, layer_output_sizes):
     layers = []
 
     i_size = network_input_size
-    for output_size, activation in zip(output_sizes, activation_funcs):
-        W = np.random.rand(output_size, i_size)
-        b = np.random.rand(output_size)
-        layers.append((W, b, activation))
+    for layer_output_size in layer_output_sizes:
+        W = ...
+        b = ...
+        layers.append((W, b))
 
-        i_size = output_size
+        i_size = layer_output_size
     return layers
 
 
-# **b)** Update the `feed_forward` function to support this change.
+# **b)** Make a matrix of inputs with the shape (number of features, number of inputs), you choose the number of inputs and features per input. Then complete the function `feed_forward_batch` so that you can process this matrix of inputs with only one matrix multiplication and one broadcasted vector addition per layer. (Hint: You will only need to swap two variable around from your previous implementation, but remember to test that you get the same results for equivelent inputs!)
 # 
 
-# In[13]:
+# In[ ]:
 
 
-def feed_forward_4(layers, input):
-    a = input
-    for W, b, activation in layers:
-        z = W @ a + b
-        a = activation(z)
+inputs = np.random.rand(1000, 4)
+
+
+def feed_forward_batch(inputs, layers, activations):
+    a = inputs
+    for (W, b), activation in zip(layers, activations):
+        z = ...
+        a = ...
     return a
 
 
 # **c)** Create and evaluate a neural network with 4 inputs and layers with output sizes 12, 10, 3 and activations ReLU, ReLU, softmax.
 # 
 
-# In[14]:
+# In[ ]:
 
 
-from scipy.special import softmax
-
-network_input_size = 4
-output_sizes = [12, 10, 3]
-activation_funcs = [ReLU, ReLU, softmax]
-layers = create_layers_4(network_input_size, output_sizes, activation_funcs)
+network_input_size = ...
+layer_output_sizes = [...]
+activations = [...]
+layers = create_layers_batch(network_input_size, layer_output_sizes)
 
 x = np.random.randn(network_input_size)
-predict = feed_forward_4(layers, x)
+feed_forward_batch(inputs, layers, activations)
 
 
-# The final exercise will hopefully be very simple if everything has worked so far. You will evaluate your neural network on the iris data set (https://scikit-learn.org/1.5/auto_examples/datasets/plot_iris_dataset.html).
-# 
-# This dataset contains data on 150 flowers of 3 different types which can be separated pretty well using the four features given for each flower, which includes the width and length of their leaves. You are not expected to do any training of the network or actual classification, unless you feel like it, in that case you can do exercise 5.
+# You should use this batched approach moving forward, as it will lead to much more compact code. However, remember that each input is still treated separately, and that you will need to keep in mind the transposed weight matrix and other details when implementing backpropagation.
 # 
 
-# In[15]:
+# # Exercise 6 - Predicting on real data
+# 
 
+# You will now evaluate your neural network on the iris data set (https://scikit-learn.org/1.5/auto_examples/datasets/plot_iris_dataset.html).
+# 
+# This dataset contains data on 150 flowers of 3 different types which can be separated pretty well using the four features given for each flower, which includes the width and length of their leaves. You are will later train your network to actually make good predictions.
+# 
 
-# Loading and plotting iris dataset
-from sklearn import datasets
-import matplotlib.pyplot as plt
+# In[ ]:
+
 
 iris = datasets.load_iris()
 
@@ -240,29 +321,123 @@ _ = ax.legend(
 )
 
 
-# **c)** Loop over the iris dataset(`iris.data`) and evaluate the network for each data point.
-# 
-
-# In[16]:
+# In[ ]:
 
 
-# No need to change this cell! Just make sure it works!
-for x in iris.data:
-    prediction = feed_forward_4(layers, x)
+inputs = iris.data
+
+# Since each prediction is a vector with a score for each of the three types of flowers,
+# we need to make each target a vector with a 1 for the correct flower and a 0 for the others.
+targets = np.zeros((len(iris.data), 3))
+for i, t in enumerate(iris.target):
+    targets[i, t] = 1
 
 
-# # Exercise 5 (Very optional and very hard :)
+def accuracy(predictions, targets):
+    one_hot_predictions = np.zeros(predictions.shape)
+
+    for i, prediction in enumerate(predictions):
+        one_hot_predictions[i, np.argmax(prediction)] = 1
+    return accuracy_score(one_hot_predictions, targets)
+
+
+# **a)** What should the input size for the network be with this dataset? What should the output shape of the last layer be?
 # 
 
-# **a)** Make the iris target values into one-hot vectors.
+# **b)** Create a network with two hidden layers, the first with sigmoid activation and the last with softmax, the first layer should have 8 "nodes", the second has the number of nodes you found in exercise a). Softmax returns a "probability distribution", in the sense that the numbers in the output are positive and add up to 1 and, their magnitude are in some sense relative to their magnitude before going through the softmax function. Remember to use the batched version of the create_layers and feed forward functions.
 # 
-# **b)** Define the cross-entropy loss function to evaluate the performance of your network on the data set.
+
+# In[ ]:
+
+
+...
+layers = ...
+
+
+# **c)** Evaluate your model on the entire iris dataset! For later purposes, we will split the data into train and test sets, and compute gradients on smaller batches of the training data. But for now, evaluate the network on the whole thing at once.
 # 
-# **c)** Use the autograd package to take the gradient of the cross entropy wrt. the weights and biases of the network.
+
+# In[ ]:
+
+
+predictions = feed_forward_batch(inputs, layers, activations)
+
+
+# **d)** Compute the accuracy of your model using the accuracy function defined above. Recreate your model a couple times and see how the accuracy changes.
 # 
-# **d)** Use gradient descent of some sort to optimize the parameters.
+
+# In[ ]:
+
+
+print(accuracy(predictions, targets))
+
+
+# # Exercise 6 - Training on real data
 # 
-# **e)** Evaluate the accuracy of the network.
+# To be able to actually do anything useful with your neural network, you need to train it. For this, we need a cost function and a way to take the gradient of the cost function wrt. the network parameters. The following exercises guide you through taking the gradient using autograd, and updating the network parameters using the gradient. Feel free to implement gradient methods like ADAM if you finish everything.
 # 
-# **e)** Show off how you did in a group session!
+
+# The cross-entropy loss function can evaluate performance on classification tasks. It sees if your prediction is "most certain" on the correct target.
+# 
+
+# In[ ]:
+
+
+from autograd import grad
+
+
+def cost(input, layers, activations, target):
+    predict = feed_forward_batch(input, layers, activations)
+    return cross_entropy(predict, target)
+
+
+def cross_entropy(predict, target):
+    return np.sum(-target * np.log(predict))
+
+
+gradient_func = grad(
+    cross_entropy, 1
+)  # Taking the gradient wrt. the second input to the cost function
+
+
+# **a)** What shape should the gradient of the cost function wrt. weights and biases be?
+# 
+# **b)** Use the `gradient_func` function to take the gradient of the cross entropy wrt. the weights and biases of the network. Check the shapes of what's inside. What does the `grad` func from autograd actually do?
+# 
+
+# In[ ]:
+
+
+layers_grad = gradient_func(inputs, layers, activations, targets)  # Don't change this
+
+
+# **c)** Finish the `train_network` function.
+# 
+
+# In[ ]:
+
+
+def train_network(
+    inputs, layers, activations, targets, learning_rate=0.001, epochs=100
+):
+    for i in range(epochs):
+        layers_grad = gradient_func(inputs, layers, activations, targets)
+        for (W, b), (W_g, b_g) in zip(layers, layers_grad):
+            W -= ...
+            b -= ...
+
+
+# **e)** What do we call the gradient method used above?
+# 
+
+# **d)** Train your network and see how the accuracy changes! Make a plot if you want.
+# 
+
+# In[ ]:
+
+
+...
+
+
+# **e)** How high of an accuracy is it possible to acheive with a neural network on this dataset, if we use the whole thing as training data?
 # 
