@@ -8,18 +8,20 @@
 
 # # Exercises week 42
 # 
-# **October 11-18, 2024**
+# **October 14-18, 2024**
 # 
 # Date: **Deadline is Friday October 18 at midnight**
 # 
 
 # # Overarching aims of the exercises this week
 # 
-# The aim of the exercises this week is to get started with implementing a neural network. There are a lot of technical and finicky parts of implementing a neutal network, so take your time.
+# This week, you will implement the entire feed-forward pass of a neural network! Next week you will compute the gradient of the network by implementing back-propagation manually, and by using autograd which does back-propagation for you (much easier!). Next week, you will also use the gradient to optimize the network with a gradient method! However, there is an optional exercise this week to get started on training the network and getting good results!
 # 
-# This week, you will implement only the feed-forward pass and updating the network parameters with simple gradient descent, the gradient will be computed using autograd using code we provide. Next week, you will implement backpropagation. We recommend that you do the exercises this week by editing and running this notebook file, as it includes some checks along the way that you have implemented the pieces of the feed-forward pass correctly, and running small parts of the code at a time will be important for understanding the methods.
+# We recommend that you do the exercises this week by editing and running this notebook file, as it includes some checks along the way that you have implemented the pieces of the feed-forward pass correctly, and running small parts of the code at a time will be important for understanding the methods.
 # 
-# If you have trouble running a notebook, you can run this notebook in google colab instead (https://colab.research.google.com/drive/1OCQm1tlTWB6hZSf9I7gGUgW9M8SbVeQu#offline=true&sandboxMode=true), an updated link will be provided on the course discord (you can also send an email to k.h.fredly@fys.uio.no if you encounter any trouble), though we recommend that you set up VSCode and your python environment to run code like this locally.
+# If you have trouble running a notebook, you can run this notebook in google colab instead (https://colab.research.google.com/drive/1zKibVQf-iAYaAn2-GlKfgRjHtLnPlBX4#offline=true&sandboxMode=true), an updated link will be provided on the course discord (you can also send an email to k.h.fredly@fys.uio.no if you encounter any trouble), though we recommend that you set up VSCode and your python environment to run code like this locally.
+# 
+# First, here are some functions you are going to need, don't change this cell. If you are unable to import autograd, just swap in normal numpy until you want to do the final optional exercise.
 # 
 
 # In[1]:
@@ -213,17 +215,17 @@ print(predict)
 # In[ ]:
 
 
-def feed_forward(input, layers, activations):
+def feed_forward(input, layers, activation_funcs):
     a = input
-    for (W, b), activation in zip(layers, activations):
+    for (W, b), activation_func in zip(layers, activation_funcs):
         z = ...
         a = ...
     return a
 
 
-# **b)** Make a list with three activation functions(don't call them yet! you can make a list with function names as elements, and then call these elements of the list later), two ReLU and one sigmoid. (If you add other functions than the ones defined at the start of the notebook, make sure everything is defined using autograd's numpy wrapper, like above, since we want to use automatic differentiation on all of these functions later.)
+# **b)** You are now given a list with three activation functions, two ReLU and one sigmoid. (Don't call them yet! you can make a list with function names as elements, and then call these elements of the list later. If you add other functions than the ones defined at the start of the notebook, make sure everything is defined using autograd's numpy wrapper, like above, since we want to use automatic differentiation on all of these functions later.)
 # 
-# Then evaluate a network with three layers and these activation functions.
+# Evaluate a network with three layers and these activation functions.
 # 
 
 # In[ ]:
@@ -231,12 +233,15 @@ def feed_forward(input, layers, activations):
 
 network_input_size = ...
 layer_output_sizes = [...]
-activations = [...]
+activation_funcs = [ReLU, ReLU, sigmoid]
 layers = ...
 
 x = np.random.randn(network_input_size)
-feed_forward(x, layers, activations)
+feed_forward(x, layers, activation_funcs)
 
+
+# **c)** How does the output of the network change if you use sigmoid in the hidden layers and ReLU in the output layer?
+# 
 
 # # Exercise 5 - Processing multiple inputs at once
 # 
@@ -274,9 +279,9 @@ def create_layers_batch(network_input_size, layer_output_sizes):
 inputs = np.random.rand(1000, 4)
 
 
-def feed_forward_batch(inputs, layers, activations):
+def feed_forward_batch(inputs, layers, activation_funcs):
     a = inputs
-    for (W, b), activation in zip(layers, activations):
+    for (W, b), activation_func in zip(layers, activation_funcs):
         z = ...
         a = ...
     return a
@@ -290,11 +295,11 @@ def feed_forward_batch(inputs, layers, activations):
 
 network_input_size = ...
 layer_output_sizes = [...]
-activations = [...]
+activation_funcs = [...]
 layers = create_layers_batch(network_input_size, layer_output_sizes)
 
 x = np.random.randn(network_input_size)
-feed_forward_batch(inputs, layers, activations)
+feed_forward_batch(inputs, layers, activation_funcs)
 
 
 # You should use this batched approach moving forward, as it will lead to much more compact code. However, remember that each input is still treated separately, and that you will need to keep in mind the transposed weight matrix and other details when implementing backpropagation.
@@ -341,7 +346,7 @@ def accuracy(predictions, targets):
     return accuracy_score(one_hot_predictions, targets)
 
 
-# **a)** What should the input size for the network be with this dataset? What should the output shape of the last layer be?
+# **a)** What should the input size for the network be with this dataset? What should the output size of the last layer be?
 # 
 
 # **b)** Create a network with two hidden layers, the first with sigmoid activation and the last with softmax, the first layer should have 8 "nodes", the second has the number of nodes you found in exercise a). Softmax returns a "probability distribution", in the sense that the numbers in the output are positive and add up to 1 and, their magnitude are in some sense relative to their magnitude before going through the softmax function. Remember to use the batched version of the create_layers and feed forward functions.
@@ -360,7 +365,7 @@ layers = ...
 # In[ ]:
 
 
-predictions = feed_forward_batch(inputs, layers, activations)
+predictions = feed_forward_batch(inputs, layers, activation_funcs)
 
 
 # **d)** Compute the accuracy of your model using the accuracy function defined above. Recreate your model a couple times and see how the accuracy changes.
@@ -372,12 +377,34 @@ predictions = feed_forward_batch(inputs, layers, activations)
 print(accuracy(predictions, targets))
 
 
-# # Exercise 6 - Training on real data
+# # Exercise 7 - Training on real data (Optional)
 # 
 # To be able to actually do anything useful with your neural network, you need to train it. For this, we need a cost function and a way to take the gradient of the cost function wrt. the network parameters. The following exercises guide you through taking the gradient using autograd, and updating the network parameters using the gradient. Feel free to implement gradient methods like ADAM if you finish everything.
 # 
 
-# The cross-entropy loss function can evaluate performance on classification tasks. It sees if your prediction is "most certain" on the correct target.
+# Since we are doing a classification task with multiple output classes, we use the cross-entropy loss function, which can evaluate performance on classification tasks. It sees if your prediction is "most certain" on the correct target.
+# 
+
+# In[ ]:
+
+
+def cross_entropy(predict, target):
+    return np.sum(-target * np.log(predict))
+
+
+def cost(input, layers, activation_funcs, target):
+    predict = feed_forward_batch(input, layers, activation_funcs)
+    return cross_entropy(predict, target)
+
+
+# To improve our network on whatever prediction task we have given it, we need to use a sensible cost function, take the gradient of that cost function with respect to our network parameters, the weights and biases, and then update the weights and biases using these gradients. To clarify, we need to find and use these
+# 
+# $$
+# \frac{\partial C}{\partial W}, \frac{\partial C}{\partial b}
+# $$
+# 
+
+# Now we need to compute these gradients. This is pretty hard to do for a neural network, we will use most of next week to do this, but we can also use autograd to just do it for us, which is what we always do in practice. With the code cell below, we create a function which takes all of these gradients for us.
 # 
 
 # In[ ]:
@@ -386,18 +413,9 @@ print(accuracy(predictions, targets))
 from autograd import grad
 
 
-def cost(input, layers, activations, target):
-    predict = feed_forward_batch(input, layers, activations)
-    return cross_entropy(predict, target)
-
-
-def cross_entropy(predict, target):
-    return np.sum(-target * np.log(predict))
-
-
 gradient_func = grad(
-    cross_entropy, 1
-)  # Taking the gradient wrt. the second input to the cost function
+    cost, 1
+)  # Taking the gradient wrt. the second input to the cost function, i.e. the layers
 
 
 # **a)** What shape should the gradient of the cost function wrt. weights and biases be?
@@ -408,7 +426,9 @@ gradient_func = grad(
 # In[ ]:
 
 
-layers_grad = gradient_func(inputs, layers, activations, targets)  # Don't change this
+layers_grad = gradient_func(
+    inputs, layers, activation_funcs, targets
+)  # Don't change this
 
 
 # **c)** Finish the `train_network` function.
@@ -418,10 +438,10 @@ layers_grad = gradient_func(inputs, layers, activations, targets)  # Don't chang
 
 
 def train_network(
-    inputs, layers, activations, targets, learning_rate=0.001, epochs=100
+    inputs, layers, activation_funcs, targets, learning_rate=0.001, epochs=100
 ):
     for i in range(epochs):
-        layers_grad = gradient_func(inputs, layers, activations, targets)
+        layers_grad = gradient_func(inputs, layers, activation_funcs, targets)
         for (W, b), (W_g, b_g) in zip(layers, layers_grad):
             W -= ...
             b -= ...
