@@ -17,7 +17,8 @@
 #   * Building our own Feed-forward Neural Network with intro to Tensorflow
 # 
 #   * Solving differential equations with Neural Networks
-# <!-- * [Video of lecture to be posted asap](https://youtu.be/) -->
+# 
+#   * "Video of lecture at <https://youtu.be/vkBNTn-MLqs>
 # <!-- * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesOct21.pdf) -->
 
 # ## Exercises and lab session week 43
