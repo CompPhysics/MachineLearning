@@ -1366,7 +1366,7 @@ def create_neural_network_keras(n_neurons_layer1, n_neurons_layer2, n_categories
     model.add(Dense(n_neurons_layer2, activation='sigmoid', kernel_regularizer=regularizers.l2(lmbd)))
     model.add(Dense(n_categories, activation='softmax'))
     
-    sgd = optimizers.SGD(lr=eta)
+    sgd = optimizers.SGD(learning_rate=eta)
     model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
     
     return model
@@ -1542,7 +1542,7 @@ def NN_model(inputsize,n_layers,n_neuron,eta,lamda):
         else:                       #Subsequent layers are capable of automatic shape inferencing
             model.add(Dense(n_neuron,activation='relu',kernel_regularizer=regularizers.l2(lamda)))
     model.add(Dense(2,activation='softmax'))  #2 outputs - ordered and disordered (softmax for prob)
-    sgd=optimizers.SGD(lr=eta)
+    sgd=optimizers.SGD(learning_rate=eta)
     model.compile(loss='categorical_crossentropy',optimizer=sgd,metrics=['accuracy'])
     return model
 
@@ -2623,7 +2623,7 @@ scores = logistic_regression.fit(X, yXOR, scheduler, epochs=1000)
 
 # Not bad, but the results depend strongly on the learning reate. Try different learning rates.
 
-# ## Solving ODEs with Deep Learning
+# ## Solving differential equations  with Deep Learning
 # 
 # The Universal Approximation Theorem states that a neural network can
 # approximate any function at a single hidden layer along with one input
@@ -2642,7 +2642,7 @@ scores = logistic_regression.fit(X, yXOR, scheduler, epochs=1000)
 # The lectures on differential equations were developed by Kristine Baluka Hein, now PhD student at IFI.
 # A great thanks to Kristine.
 
-# ## Ordinary Differential Equations
+# ## Ordinary Differential Equations first
 # 
 # An ordinary differential equation (ODE) is an equation involving functions having one variable.
 # 
@@ -3206,8 +3206,8 @@ def sigmoid(z):
 # but with number of hidden layers specified by the user.
 def deep_neural_network(deep_params, x):
     # N_hidden is the number of hidden layers
-
-    N_hidden = np.size(deep_params) - 1 # -1 since params consists of
+    # deep_params is a list, len() should be used
+    N_hidden = len(deep_params) - 1 # -1 since params consists of
                                         # parameters to all the hidden
                                         # layers AND the output layer.
 
@@ -3436,9 +3436,12 @@ def get_parameters():
     g0 = 1.2
     return alpha, A, g0
 
-def deep_neural_network(P, x):
+def deep_neural_network(deep_params, x):
     # N_hidden is the number of hidden layers
-    N_hidden = np.size(P) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
+    # deep_params is a list, len() should be used
+    N_hidden = len(deep_params) - 1 # -1 since params consists of
+                                        # parameters to all the hidden
+                                        # layers AND the output layer.
 
     # Assumes input x being an one-dimensional array
     num_values = np.size(x)
@@ -3455,7 +3458,7 @@ def deep_neural_network(P, x):
 
     for l in range(N_hidden):
         # From the list of parameters P; find the correct weigths and bias for this layer
-        w_hidden = P[l]
+        w_hidden = deep_params[l]
 
         # Add a row of ones to include bias
         x_prev = np.concatenate((np.ones((1,num_values)), x_prev ), axis = 0)
@@ -3469,7 +3472,7 @@ def deep_neural_network(P, x):
     ## Output layer:
 
     # Get the weights and bias for this layer
-    w_output = P[-1]
+    w_output = deep_params[-1]
 
     # Include bias:
     x_prev = np.concatenate((np.ones((1,num_values)), x_prev), axis = 0)
@@ -3478,6 +3481,8 @@ def deep_neural_network(P, x):
     x_output = z_output
 
     return x_output
+
+
 
 
 def cost_function_deep(P, x):
@@ -3785,7 +3790,10 @@ def sigmoid(z):
 
 def deep_neural_network(deep_params, x):
     # N_hidden is the number of hidden layers
-    N_hidden = np.size(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
+    # deep_params is a list, len() should be used
+    N_hidden = len(deep_params) - 1 # -1 since params consists of
+                                        # parameters to all the hidden
+                                        # layers AND the output layer.
 
     # Assumes input x being an one-dimensional array
     num_values = np.size(x)
@@ -3825,6 +3833,7 @@ def deep_neural_network(deep_params, x):
     x_output = z_output
 
     return x_output
+
 
 def solve_ode_deep_neural_network(x, num_neurons, num_iter, lmb):
     # num_hidden_neurons is now a list of number of neurons within each hidden layer
@@ -4035,7 +4044,10 @@ def sigmoid(z):
 
 def deep_neural_network(deep_params, x):
     # N_hidden is the number of hidden layers
-    N_hidden = np.size(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
+    # deep_params is a list, len() should be used
+    N_hidden = len(deep_params) - 1 # -1 since params consists of
+                                        # parameters to all the hidden
+                                        # layers AND the output layer.
 
     # Assumes input x being an one-dimensional array
     num_values = np.size(x)
@@ -4075,6 +4087,7 @@ def deep_neural_network(deep_params, x):
     x_output = z_output
 
     return x_output
+
 
 def solve_ode_deep_neural_network(x, num_neurons, num_iter, lmb):
     # num_hidden_neurons is now a list of number of neurons within each hidden layer
@@ -4358,7 +4371,7 @@ def deep_neural_network(deep_params, x):
     num_points = np.size(x,1)
 
     # N_hidden is the number of hidden layers
-    N_hidden = np.size(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
+    N_hidden = len(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
 
     # Assume that the input layer does nothing to the input x
     x_input = x
@@ -4516,7 +4529,7 @@ def deep_neural_network(deep_params, x):
     num_points = np.size(x,1)
 
     # N_hidden is the number of hidden layers
-    N_hidden = np.size(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
+    N_hidden = len(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
 
     # Assume that the input layer does nothing to the input x
     x_input = x
@@ -4659,7 +4672,7 @@ if __name__ == '__main__':
     T,X = np.meshgrid(t,x)
 
     fig = plt.figure(figsize=(10,10))
-    ax = fig.gca(projection='3d')
+    ax = fig.add_suplot(projection='3d')
     ax.set_title('Solution from the deep neural network w/ %d layer'%len(num_hidden_neurons))
     s = ax.plot_surface(T,X,g_dnn_ag,linewidth=0,antialiased=False,cmap=cm.viridis)
     ax.set_xlabel('Time $t$')
@@ -4667,14 +4680,14 @@ if __name__ == '__main__':
 
 
     fig = plt.figure(figsize=(10,10))
-    ax = fig.gca(projection='3d')
+    ax = fig.add_suplot(projection='3d')
     ax.set_title('Analytical solution')
     s = ax.plot_surface(T,X,G_analytical,linewidth=0,antialiased=False,cmap=cm.viridis)
     ax.set_xlabel('Time $t$')
     ax.set_ylabel('Position $x$');
 
     fig = plt.figure(figsize=(10,10))
-    ax = fig.gca(projection='3d')
+    ax = fig.add_suplot(projection='3d')
     ax.set_title('Difference')
     s = ax.plot_surface(T,X,diff_ag,linewidth=0,antialiased=False,cmap=cm.viridis)
     ax.set_xlabel('Time $t$')
@@ -4859,7 +4872,7 @@ def deep_neural_network(deep_params, x):
     num_points = np.size(x,1)
 
     # N_hidden is the number of hidden layers
-    N_hidden = np.size(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
+    N_hidden = len(deep_params) - 1 # -1 since params consist of parameters to all the hidden layers AND the output layer
 
     # Assume that the input layer does nothing to the input x
     x_input = x
@@ -4964,7 +4977,7 @@ if __name__ == '__main__':
     T,X = np.meshgrid(t,x)
 
     fig = plt.figure(figsize=(10,10))
-    ax = fig.gca(projection='3d')
+    ax = fig.add_suplot(projection='3d')
     ax.set_title('Solution from the deep neural network w/ %d layer'%len(num_hidden_neurons))
     s = ax.plot_surface(T,X,res,linewidth=0,antialiased=False,cmap=cm.viridis)
     ax.set_xlabel('Time $t$')
@@ -4972,7 +4985,7 @@ if __name__ == '__main__':
 
 
     fig = plt.figure(figsize=(10,10))
-    ax = fig.gca(projection='3d')
+    ax = fig.add_suplot(projection='3d')
     ax.set_title('Analytical solution')
     s = ax.plot_surface(T,X,res_analytical,linewidth=0,antialiased=False,cmap=cm.viridis)
     ax.set_xlabel('Time $t$')
@@ -4980,7 +4993,7 @@ if __name__ == '__main__':
 
 
     fig = plt.figure(figsize=(10,10))
-    ax = fig.gca(projection='3d')
+    ax = fig.add_suplot(projection='3d')
     ax.set_title('Difference')
     s = ax.plot_surface(T,X,diff,linewidth=0,antialiased=False,cmap=cm.viridis)
     ax.set_xlabel('Time $t$')
