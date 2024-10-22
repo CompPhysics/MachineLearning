@@ -2634,9 +2634,9 @@ scores = logistic_regression.fit(X, yXOR, scheduler, epochs=1000)
 # 
 # [An Introduction to Neural Network Methods for Differential Equations](https://www.springer.com/gp/book/9789401798150), by Yadav and Kumar.
 # 
-# **Master thesis on applying deep learning to problems in mechanics.**
+# **Physics informed neural networks.**
 # 
-# [Using Deep Reinforcement Learning for Active Flow Control](https://www.duo.uio.no/handle/10852/79212), by Marius Holm
+# [Scientific Machine Learning Through Physics–Informed Neural Networks: Where we are and What’s Next](https://link.springer.com/article/10.1007/s10915-022-01939-z), by Cuomo et al
 # 
 # **Thanks to Kristine Baluka Hein.**
 # 
