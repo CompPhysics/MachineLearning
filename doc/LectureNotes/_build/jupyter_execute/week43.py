@@ -18,8 +18,11 @@
 # 
 #   * Solving differential equations with Neural Networks
 # 
-#   * "Video of lecture at <https://youtu.be/vkBNTn-MLqs>
-# <!-- * [Whiteboard notes](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesOct21.pdf) -->
+#   * Video of lecture at <https://youtu.be/vkBNTn-MLqs>
+# 
+#   * Video os second part, solving differential equations with neural networks at <https://youtu.be/2N8To65I2wQ>
+# 
+#   * Whiteboard notes on solving differential equations at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesOct21.pdf>
 
 # ## Exercises and lab session week 43
 # **Lab sessions on Tuesday and Wednesday.**
