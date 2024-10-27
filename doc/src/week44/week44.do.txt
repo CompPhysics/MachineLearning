@@ -262,6 +262,130 @@ We say we perform a filtering (convolution is the mathematical operation).
 
 
 
+!split
+===== How to do image compression before the era of deep learning =====
+
+The singular-value decomposition (SVD) algorithm has been for decades one of the standard ways of compressing images.
+The "lectures on the SVD":"https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/chapter2.html#the-singular-value-decomposition" give many of the essential details concerning the SVD.
+
+The orthogonal vectors which are obtained from the SVD, can be used to
+project down the dimensionality of a given image. In the example here
+we gray-scale an image and downsize it.
+
+This recipe relies on us being able to actually perform the SVD. For
+large images, and in particular with many images to reconstruct, using the SVD 
+may quickly become an overwhelming task. With the advent of efficient deep
+learning methods like CNNs and later generative methods, these methods
+have become in the last years the premier way of performing image
+analysis. In particular for classification problems with labelled images.
+
+!split
+===== The SVD example =====
+
+!bc pycod
+from matplotlib.image import imread
+import matplotlib.pyplot as plt
+import scipy.linalg as ln
+import numpy as np
+import os
+from PIL import Image
+from math import log10, sqrt 
+plt.rcParams['figure.figsize'] = [16, 8]
+# Import image
+A = imread(os.path.join("figslides/photo1.jpg"))
+X = A.dot([0.299, 0.5870, 0.114]) # Convert RGB to grayscale
+img = plt.imshow(X)
+# convert to gray
+img.set_cmap('gray')
+plt.axis('off')
+plt.show()
+# Call image size
+print(': %s'%str(X.shape))
+
+
+# split the matrix into U, S, VT
+U, S, VT = np.linalg.svd(X,full_matrices=False)
+S = np.diag(S)
+m = 800 # Image's width
+n = 1200 # Image's height
+j = 0
+# Try compression with different k vectors (these represent projections):
+for k in (5,10, 20, 100,200,400,500):
+    # Original size of the image
+    originalSize = m * n 
+    # Size after compressed
+    compressedSize = k * (1 + m + n) 
+    # The projection of the original image
+    Xapprox = U[:,:k] @ S[0:k,:k] @ VT[:k,:]
+    plt.figure(j+1)
+    j += 1
+    img = plt.imshow(Xapprox)
+    img.set_cmap('gray')
+    
+    plt.axis('off')
+    plt.title('k = ' + str(k))
+    plt.show() 
+    print('Original size of image:')
+    print(originalSize)
+    print('Compression rate as Compressed image / Original size:')
+    ratio = compressedSize * 1.0 / originalSize
+    print(ratio)
+    print('Compression rate is ' + str( round(ratio * 100 ,2)) + '%' )  
+    # Estimate MQA
+    x= X.astype("float")
+    y=Xapprox.astype("float")
+    err = np.sum((x - y) ** 2)
+    err /= float(X.shape[0] * Xapprox.shape[1])
+    print('The mean-square deviation '+ str(round( err)))
+    max_pixel = 255.0
+    # Estimate Signal Noise Ratio
+    srv = 20 * (log10(max_pixel / sqrt(err)))
+    print('Signa to noise ratio '+ str(round(srv)) +'dB')
+
+!ec
+
+
+
+
+!split
+===== Mathematics of CNNs =====
+
+The mathematics of CNNs is based on the mathematical operation of
+_convolution_.  In mathematics (in particular in functional analysis),
+convolution is represented by mathematical operations (integration,
+summation etc) on two functions in order to produce a third function
+that expresses how the shape of one gets modified by the other.
+Convolution has a plethora of applications in a variety of
+disciplines, spanning from statistics to signal processing, computer
+vision, solutions of differential equations,linear algebra,
+engineering, and yes, machine learning.
+
+Mathematically, convolution is defined as follows (one-dimensional example):
+Let us define a continuous function $y(t)$ given by
+!bt
+\[
+y(t) = \int x(a) w(t-a) da,
+\]
+!et
+where $x(a)$ represents a so-called input and $w(t-a)$ is normally called the weight function or kernel.
+
+The above integral is written in  a more compact form as
+!bt
+\[
+y(t) = \left(x * w\right)(t).
+\]
+!et
+
+The discretized version reads
+!bt
+\[
+y(t) = \sum_{a=-\infty}^{a=\infty}x(a)w(t-a).
+\]
+!et
+Computing the inverse of the above convolution operations is known as deconvolution and the process is commutative.
+
+How can we use this? And what does it mean? Let us study some familiar examples first.
+
 
 
 
@@ -378,7 +502,8 @@ Although we may have redundant operations with some few zeros for $\beta_i$, we 
 \delta_i = \sum_{k=0}^{k=m-1}\alpha_k\beta_{i-k},
 \]
 !et
-where $m=3$ in our case, the maximum length of the vector $\alpha$. Note that the vector $\bm{\beta}$ has length $n=4$.
+where $m=3$ in our case, the maximum length of
+the vector $\alpha$. Note that the vector $\bm{\beta}$ has length $n=4$. Below we will find an even more efficient representation.
 
 !split
 ===== A more efficient way of coding the above Convolution =====
@@ -398,6 +523,9 @@ as a matrix-vector multiplication
 			    \end{bmatrix}\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3\end{bmatrix}.
 \]
 !et
+
+!split
+===== Commutative process =====
 
 The process is commutative and we can easily see that we can rewrite the multiplication in terms of  a matrix holding $\beta$ and a vector holding $\alpha$.
 In this case we have
@@ -421,7 +549,8 @@ require.
 
 
 
-
+!split
+===== Toeplitz matrices =====
 
 The above matrices are examples of so-called "Toeplitz
 matrices":"https://link.springer.com/book/10.1007/978-93-86279-04-0". A
@@ -460,20 +589,131 @@ o "Fourier Transform Layer":"https://www.sciencedirect.com/science/article/pii/S
 !split
 ===== Generalizing the above one-dimensional case =====
 
-In order to align the above simple case with the more general convolution cases, we rename $\bm{\alpha}$, whose length is $m=3$, with $\bm{w}$.
-We will interpret $\bm{w}$ as a weight/filter function with which we want to perform the convolution with an input varibale $\bm{x}$.
-We replace thus $\bm{\beta}$ with $\bm{x}$ and $\bm{\delta}$ with $\bm{s}$ and have
+In order to align the above simple case with the more general
+convolution cases, we rename $\bm{\alpha}$, whose length is $m=3$,
+with $\bm{w}$.  We will interpret $\bm{w}$ as a weight/filter function
+with which we want to perform the convolution with an input variable
+$\bm{x}$ of length $n$.  We will assume always that the filter
+$\bm{w}$ has dimensionality $m \le n$.
+
+We replace thus $\bm{\beta}$ with $\bm{x}$ and $\bm{\delta}$ with $\bm{y}$ and have
 !bt
 \[
-s(i) \left(x*w\right)(i)= \sum_{k=0}^{k=m-1}w(k)x(i-k),
+y(i)= \left(x*w\right)(i)= \sum_{k=0}^{k=m-1}w(k)x(i-k),
 \]
 !et
 where $m=3$ in our case, the maximum length of the vector $\bm{w}$.
 Here the symbol $*$ represents the mathematical operation of convolution.
 
 
+!split
+===== Memory considerations =====
 
-=====  Two-dimensional Objects =====
+This expression leaves us however with some terms with negative
+indices, for example $x(-1)$ and $x(-2)$ which may not be defined. Our
+vector $\bm{x}$ has components $x(0)$, $x(1)$, $x(2)$ and $x(3)$.
+
+The index $j$ for $\bm{x}$ runs from $j=0$ to $j=3$ since $\bm{x}$ is meant to
+represent a third-order polynomial.
+
+Furthermore, the index $i$ runs from $i=0$ to $i=5$ since $\bm{y}$
+contains the coefficients of a fifth-order polynomial.  When $i=5$ we
+may also have values of $x(4)$ and $x(5)$ which are not defined.
+
+
+!split
+===== Padding =====
+
+The solution to this is what is called _padding_!  We simply define a
+new vector $x$ with two added elements set to zero before $x(0)$ and
+two new elements after $x(3)$ set to zero. That is, we augment the
+length of $\bm{x}$ from $n=4$ to $n+2P=8$, where $P=2$ is the padding
+constant (a new hyperparameter), see discussions below as well.
+
+!split
+===== New vector =====
+
+We have a new vector defined as $x(0)=0$, $x(1)=0$,
+$x(2)=\beta_0$, $x(3)=\beta_1$, $x(4)=\beta_2$, $x(5)=\beta_3$,
+$x(6)=0$, and $x(7)=0$.
+
+
+We have added four new elements, which
+are all zero. The benefit is that we can rewrite the equation for
+$\bm{y}$, with $i=0,1,\dots,5$,
+!bt
+\[
+y(i) = \sum_{k=0}^{k=m-1}w(k)x(i+(m-1)-k).
+\]
+!et
+
+As an example, we have
+!bt
+\[
+y(4)=x(6)w(0)+x(5)w(1)+x(4)w(2)=0\times \alpha_0+\beta_3\alpha_1+\beta_2\alpha_2,
+\]
+!et
+as before except that we have an additional term $x(6)w(0)$, which is zero.
+
+Similarly, for the fifth-order term we have
+!bt
+\[
+y(5)=x(7)w(0)+x(6)w(1)+x(5)w(2)=0\times \alpha_0+0\times\alpha_1+\beta_3\alpha_2.
+\]
+!et
+
+The zeroth-order term is
+!bt
+\[
+y(0)=x(2)w(0)+x(1)w(1)+x(0)w(2)=\beta_0 \alpha_0+0\times\alpha_1+0\times\alpha_2=\alpha_0\beta_0.
+\]
+!et
+
+!split
+===== Rewriting as dot products =====
+
+If we now flip the filter/weight vector, with the following term as a typical example
+!bt
+\[
+y(0)=x(2)w(0)+x(1)w(1)+x(0)w(2)=x(2)\tilde{w}(2)+x(1)\tilde{w}(1)+x(0)\tilde{w}(0),
+\]
+!et
+with $\tilde{w}(0)=w(2)$, $\tilde{w}(1)=w(1)$, and $\tilde{w}(2)=w(0)$, we can then rewrite the above sum as a dot product of
+$x(i:i+(m-1))\tilde{w}$ for element $y(i)$, where $x(i:i+(m-1))$ is simply a patch of $\bm{x}$ of size $m-1$.
+
+The padding $P$ we have introduced for the convolution stage is just
+another hyperparameter which is introduced as part of the
+architecture. Similarly, below we will also introduce another
+hyperparameter called _Stride_ $S$. 
+
+
+!split
+===== Cross correlation =====
+
+In essentially all applications one uses what is called cross correlation instead of the standard convolution described above.
+This means that multiplication is performed in the same direction and instead of the general expression we have discussed above (with infinite sums)
+!bt
+\[
+y(i) = \sum_{k=-\infty}^{k=\infty}w(k)x(i-k),
+\]
+!et
+we have now
+!bt
+\[
+y(i) = \sum_{k=-\infty}^{k=\infty}w(k)x(i+k).
+\]
+!et
+
+Both TensorFlow and PyTorch (as well as our own code example below),
+implement the last equation, although it is normally referred to as
+convolution.  The same padding rules and stride rules discussed below
+apply to this expression as well.
+
+We leave it as an exercise for you to convince yourself that the example we have discussed till now, gives the same final expression using the last expression.
+
+
+
+=====  Two-dimensional objects =====
 
 We are now ready to start studying the discrete convolutions relevant for convolutional neural networks.
 We often use convolutions over more than one dimension at a time. If
@@ -493,10 +733,14 @@ Y(i,j)=(X * W)(i,j) = \sum_m\sum_n X(i-m,j-n)W(m,n).
 \]
 !et
 
-Normally the latter is more straightforward to implement in  a machine larning library since there is less variation in the range of values of $m$ and $n$.
+Normally the latter is more straightforward to implement in a machine
+larning library since there is less variation in the range of values
+of $m$ and $n$.
 
 
-Many deep learning libraries implement cross-correlation instead of convolution (although it is referred to s convolution)
+As mentioned above, most deep learning libraries implement
+cross-correlation instead of convolution (although it is referred to as
+convolution)
 !bt
 Y(i,j)=(X * W)(i,j) = \sum_m\sum_n X(i+m,j+n)W(m,n).
 \]
@@ -505,7 +749,7 @@ Y(i,j)=(X * W)(i,j) = \sum_m\sum_n X(i+m,j+n)W(m,n).
 
 
 !split
-===== CNNs in more detail =====
+===== CNNs in more detail, simple example  =====
 
 
 Let assume we have an input matrix $X$ of dimensionality $3\times 3$
@@ -574,43 +818,93 @@ is now given by $\bm{W}'\bm{X}'$ which is a vector of length $4$ instead of the 
 
 
 !split
-===== Performing a discrete convolution with padding ("From Raschka et al":"https://github.com/rasbt/machine-learning-book") =====
+===== The convolution stage =====
 
-FIGURE: [figslides/discreteconv.png, width=500 frac=0.67]  A deep CNN
-
-
-!split
-===== Performing a general discrete convolution ("From Raschka et al":"https://github.com/rasbt/machine-learning-book") =====
-
-FIGURE: [figslides/discreteconv1.png, width=500 frac=0.67]  A deep CNN
+The convolution stage, where we apply different filters $\bm{W}$ in
+order to reduce the dimensionality of an image, adds, in addition to
+the weights and biases (to be trained by the back propagation
+algorithm) that define the filters, two new hyperparameters, the so-called
+_padding_ $P$ and the stride $S$.
 
 
 !split
-===== Set of filters =====
+===== Finding the number of parameters =====
 
-The collection of kernels/filters $W$ defining a discrete convolution has a shape
-corresponding to some permutation of $(n, m, k_1, \ldots, k_N)$, where
+In the above example we have an input matrix of dimension $3\times
+3$. In general we call the input for an input volume and it is defined
+by its width $H_1$, height $H_1$ and depth $D_1$. If we have the
+standard three color channels $D_1=3$.
 
+The above example has $W_1=H_1=3$ and $D_1=1$.
+
+When we introduce the filter we have the following additional hyperparameters
+o $K$ the number of filters. It is common to perform the convolution of the input several times since by experience shrinking the input too fast does not work well
+o $F$ as the filter's spatial extent
+o $S$ as the stride parameter
+o $P$ as the padding parameter
+
+These parameters are defined by the architecture of the network and are not included in the training.
+
+!split
+===== New image (or volume) =====
+
+Acting with the filter on the input volume produces an output volume
+which is defined by its width $W_2$, its height $H_2$ and its depth
+$D_2$.
+
+These are defined by the following relations
 !bt
-\begin{equation*}
-\begin{split}
-    n &\equiv \text{number of output feature maps},\\
-    m &\equiv \text{number of input feature maps},\\
-    k_j &\equiv \text{kernel size along axis $j$}.
-\end{split}
-\end{equation*}
+\[
+W_2 = \frac{(W_1-F+2P)}{S}+1,
+\]
 !et
+!bt
+\[
+H_2 = \frac{(H_1-F+2P)}{S}+1,
+\]
+!et
+and $D_2=K$.
 
-The following properties affect the output size $o_j$ of a convolutional layer
-along axis $j$:
+!split
+===== Parameters to train, common settings =====
 
-o $i_j$: input size along axis $j$,
-o $k_j$: kernel/filter size along axis $j$,
-o stride (distance between two consecutive positions of the kernel/filter) along axis $j$,
-o zero padding (number of zeros concatenated at the beginning and at the end of an axis) along axis $j$.
+With parameter sharing, the convolution involves thus  for each filter  $F\times F\times D_1$ weights plus one bias parameter.
 
-For instance, the above examples shows a  $2\times 2$ kernel/filter $\bm{W}$  applied to a $3 \times 3$ input padded with a $0 \times 0$
-border of zeros using $1 \times 1$ strides.
+In total we have
+!bt
+\[
+\left(F\times F\times D_1)\right) \times K+(K\mathrm{--biases}),
+\]
+!et
+parameters to train by back propagation.
+
+It is common to let $K$ come in powers of $2$, that is $32$, $64$, $128$ etc.
+
+!bblock Common settings
+o $\begin{array}{c} F=3 & S=1 & P=1 \end{array}$
+o $\begin{array}{c} F=5 & S=1 & P=2 \end{array}$
+o $\begin{array}{c} F=5 & S=2 & P=\mathrm{open} \end{array}$
+o $\begin{array}{c} F=1 & S=1 & P=0 \end{array}$
+!eblock
+
+!split
+===== Examples of CNN setups =====
+
+Let us assume we have an input volume $V$ given by an image of dimensionality
+$32\times 32 \times 3$, that is three color channels and $32\times 32$ pixels.
+
+We apply a filter of dimension $5\times 5$ ten times with stride $S=1$ and padding $P=0$.
+
+The output volume is given by $(32-5)/1+1=28$, resulting in ten images
+of dimensionality $28\times 28\times 3$.
+
+The total number of parameters to train for each filter is then
+$5\times 5\times 3+1$, where the last parameter is the bias. This
+gives us $76$ parameters for each filter, leading to a total of $760$
+parameters for the ten filters.
+
+How many parameters will a filter of dimensionality $3\times 3$
+(adding color channels) result in if we produce $32$ new images? Use $S=1$ and $P=0$.
 
 Note that strides constitute a form of _subsampling_. As an alternative to
 being interpreted as a measure of how much the kernel/filter is translated, strides
@@ -618,117 +912,29 @@ can also be viewed as how much of the output is retained. For instance, moving
 the kernel by hops of two is equivalent to moving the kernel by hops of one but
 retaining only odd output elements.
 
+
+
+!split
+===== Summarizing: Performing a general discrete convolution ("From Raschka et al":"https://github.com/rasbt/machine-learning-book") =====
+
+FIGURE: [figslides/discreteconv1.png, width=500 frac=0.67]  A deep CNN
+
+
+
 !split
 ===== Pooling =====
 
-In addition to discrete convolutions themselves, {\em pooling\/} operations
+In addition to discrete convolutions themselves, _pooling_ operations
 make up another important building block in CNNs. Pooling operations reduce
 the size of feature maps by using some function to summarize subregions, such
 as taking the average or the maximum value.
 
 Pooling works by sliding a window across the input and feeding the content of
-the window to a {\em pooling function}. In some sense, pooling works very much
+the window to a _pooling function_. In some sense, pooling works very much
 like a discrete convolution, but replaces the linear combination described by
-the kernel with some other function. Poolin
-provides an example for average pooling, and 
-does the same for max pooling.
-
-The following properties affect the output size $o_j$ of a pooling layer
-along axis $j$:
+the kernel with some other function.
 
 
-o $i_j$: input size along axis $j$,
-o $k_j$: pooling window size along axis $j$,
-o $s_j$: stride (distance between two consecutive positions of the pooling window) along axis $j$.
-
-
-
-The analysis of the relationship between convolutional layer properties is eased
-by the fact that they don't interact across axes, i.e., the choice of kernel
-size, stride and zero padding along axis $j$ only affects the output size of
-axis $j$. Because of that, we will focus on the following simplified
-setting:
-
-
-o 2-D discrete convolutions ($N = 2$),
-o square inputs ($i_1 = i_2 = i$),
-o square kernel size ($k_1 = k_2 = k$),
-o same strides along both axes ($s_1 = s_2 = s$),
-o same zero padding along both axes ($p_1 = p_2 = p$).
-
-This facilitates the analysis and the visualization, but keep in mind that the
-results outlined here also generalize to the N-D and non-square cases.
-
-!split
-===== No zero padding, unit strides =====
-
-The simplest case to analyze is when the kernel just slides across every
-position of the input (i.e., $s = 1$ and $p = 0$).
-
-
-
-For any $i$ and $k$, and for $s = 1$ and $p = 0$,
-!bt
-\begin{equation*}
-    o = (i - k) + 1.
-\end{equation*}
-!et
-
-!split
-===== Zero padding, unit strides =====
-
-To factor in zero padding (i.e., only restricting to $s = 1$), let's consider
-its effect on the effective input size: padding with $p$ zeros changes the
-effective input size from $i$ to $i + 2p$. In the general case, we can infer the following
-relationship
-
-For any $i$, $k$ and $p$, and for $s = 1$,
-!bt
-\begin{equation*}
-    o = (i - k) + 2p + 1.
-\end{equation*}
-!et
-
-!split
-===== Half (same) padding =====
-
-Having the output size be the same as the input size (i.e., $o = i$) can be a
-desirable property:
-
-For any $i$ and for $k$ odd ($k = 2n + 1, \quad n \in \mathbb{N}$), $s = 1$ and
-$p = \lfloor k / 2 \rfloor = n$,
-!bt
-\begin{equation*}
-\begin{split}
-    o &= i + 2 \lfloor k / 2 \rfloor - (k - 1) \\
-      &= i + 2n - 2n \\
-      &= i.
-\end{split}
-\end{equation*}
-!et
-
-
-!split
-===== Full padding =====
-
-While convolving a kernel generally decreases the output size with
-respect to the input size, sometimes the opposite is required. This can be
-achieved with proper zero padding:
-
-
-For any $i$ and $k$, and for $p = k - 1$ and $s = 1$,
-!bt
-\begin{equation*}
-\begin{split}
-    o &= i + 2(k - 1) - (k - 1) \\
-      &= i + (k - 1).
-\end{split}
-\end{equation*}
-!et
-
-This is sometimes referred to as full padding, because in this
-setting every possible partial or complete superimposition of the kernel on the
-input feature map is taken into account. 
 
 !split
 ===== Pooling arithmetic =====
@@ -740,21 +946,392 @@ outputting the maximum value of each patch. Other kinds of pooling exist, e.g.,
 mean or average pooling, which all share the same idea of aggregating the input
 locally by applying a non-linearity to the content of some patches.
 
-Since pooling does not involve
-zero padding, the relationship describing the general case is as follows:
-
-
-For any $i$, $k$ and $s$,
-!bt
-\begin{equation*}
-    o = \left\lfloor \frac{i - k}{s} \right\rfloor + 1.
-\end{equation*}
-!et
 
 !split
 ===== Pooling types ("From Raschka et al":"https://github.com/rasbt/machine-learning-book") =====
 
 FIGURE: [figslides/maxpooling.png, width=500 frac=0.67]  A deep CNN
+
+
+
+!split
+===== Building convolutional neural networks in Tensorflow and Keras =====
+
+  
+As discussed above, CNNs are neural networks built from the assumption that the inputs
+to the network are 2D images. This is important because the number of features or pixels in images
+grows very fast with the image size, and an enormous number of weights and biases are needed in order to build an accurate network.  
+  
+As before, we still have our input, a hidden layer and an output. What's novel about convolutional networks
+are the _convolutional_ and _pooling_ layers stacked in pairs between the input and the hidden layer.
+In addition, the data is no longer represented as a 2D feature matrix, instead each input is a number of 2D
+matrices, typically 1 for each color dimension (Red, Green, Blue). 
+
+
+!split
+===== Setting it up =====
+
+It means that to represent the entire
+dataset of images, we require a 4D matrix or _tensor_. This tensor has the dimensions:  
+!bt
+\[  
+(n_{inputs},\, n_{pixels, width},\, n_{pixels, height},\, depth) .
+\]
+!et
+  
+!split
+=====  The MNIST dataset again =====
+
+The MNIST dataset consists of grayscale images with a pixel size of
+$28\times 28$, meaning we require $28 \times 28 = 724$ weights to each
+neuron in the first hidden layer.
+
+If we were to analyze images of size $128\times 128$ we would require
+$128 \times 128 = 16384$ weights to each neuron. Even worse if we were
+dealing with color images, as most images are, we have an image matrix
+of size $128\times 128$ for each color dimension (Red, Green, Blue),
+meaning 3 times the number of weights $= 49152$ are required for every
+single neuron in the first hidden layer.
+  
+
+!split
+===== Strong correlations =====
+
+Images typically have strong local correlations, meaning that a small
+part of the image varies little from its neighboring regions. If for
+example we have an image of a blue car, we can roughly assume that a
+small blue part of the image is surrounded by other blue regions.
+
+Therefore, instead of connecting every single pixel to a neuron in the
+first hidden layer, as we have previously done with deep neural
+networks, we can instead connect each neuron to a small part of the
+image (in all 3 RGB depth dimensions).  The size of each small area is
+fixed, and known as a "receptive":"https://en.wikipedia.org/wiki/Receptive_field".
+  
+
+!split 
+===== Layers of a CNN =====
+
+The layers of a convolutional neural network arrange neurons in 3D: width, height and depth.  
+The input image is typically a square matrix of depth 3. 
+
+A _convolution_ is performed on the image which outputs
+a 3D volume of neurons. The weights to the input are arranged in a number of 2D matrices, known as _filters_.
+
+
+Each filter slides along the input image, taking the dot product
+between each small part of the image and the filter, in all depth
+dimensions. This is then passed through a non-linear function,
+typically the _Rectified Linear (ReLu)_ function, which serves as the
+activation of the neurons in the first convolutional layer. This is
+further passed through a _pooling layer_, which reduces the size of the
+convolutional layer, e.g. by taking the maximum or average across some
+small regions, and this serves as input to the next convolutional
+layer.
+
+
+!split
+===== Systematic reduction =====  
+
+By systematically reducing the size of the input volume, through
+convolution and pooling, the network should create representations of
+small parts of the input, and then from them assemble representations
+of larger areas.  The final pooling layer is flattened to serve as
+input to a hidden layer, such that each neuron in the final pooling
+layer is connected to every single neuron in the hidden layer. This
+then serves as input to the output layer, e.g. a softmax output for
+classification.
+  
+
+!split
+===== Prerequisites: Collect and pre-process data =====
+!bc pycod
+# import necessary packages
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+
+
+# ensure the same random numbers appear every time
+np.random.seed(0)
+
+# display images in notebook
+%matplotlib inline
+plt.rcParams['figure.figsize'] = (12,12)
+
+
+# download MNIST dataset
+digits = datasets.load_digits()
+
+# define inputs and labels
+inputs = digits.images
+labels = digits.target
+
+# RGB images have a depth of 3
+# our images are grayscale so they should have a depth of 1
+inputs = inputs[:,:,:,np.newaxis]
+
+print("inputs = (n_inputs, pixel_width, pixel_height, depth) = " + str(inputs.shape))
+print("labels = (n_inputs) = " + str(labels.shape))
+
+
+# choose some random images to display
+n_inputs = len(inputs)
+indices = np.arange(n_inputs)
+random_indices = np.random.choice(indices, size=5)
+
+for i, image in enumerate(digits.images[random_indices]):
+    plt.subplot(1, 5, i+1)
+    plt.axis('off')
+    plt.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
+    plt.title("Label: %d" % digits.target[random_indices[i]])
+plt.show()
+!ec
+
+
+!split
+===== Importing Keras and Tensorflow =====
+!bc pycod
+from tensorflow.keras import datasets, layers, models
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Sequential      #This allows appending layers to existing models
+from tensorflow.keras.layers import Dense           #This allows defining the characteristics of a particular layer
+from tensorflow.keras import optimizers             #This allows using whichever optimiser we want (sgd,adam,RMSprop)
+from tensorflow.keras import regularizers           #This allows using whichever regularizer we want (l1,l2,l1_l2)
+from tensorflow.keras.utils import to_categorical   #This allows using categorical cross entropy as the cost function
+#from tensorflow.keras import Conv2D
+#from tensorflow.keras import MaxPooling2D
+#from tensorflow.keras import Flatten
+
+from sklearn.model_selection import train_test_split
+
+# representation of labels
+labels = to_categorical(labels)
+
+# split into train and test data
+# one-liner from scikit-learn library
+train_size = 0.8
+test_size = 1 - train_size
+X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
+                                                    test_size=test_size)
+!ec
+
+!split 
+===== Running with Keras =====
+
+!bc pycod
+def create_convolutional_neural_network_keras(input_shape, receptive_field,
+                                              n_filters, n_neurons_connected, n_categories,
+                                              eta, lmbd):
+    model = Sequential()
+    model.add(layers.Conv2D(n_filters, (receptive_field, receptive_field), input_shape=input_shape, padding='same',
+              activation='relu', kernel_regularizer=regularizers.l2(lmbd)))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(n_neurons_connected, activation='relu', kernel_regularizer=regularizers.l2(lmbd)))
+    model.add(layers.Dense(n_categories, activation='softmax', kernel_regularizer=regularizers.l2(lmbd)))
+    
+    sgd = optimizers.SGD(lr=eta)
+    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    
+    return model
+
+epochs = 100
+batch_size = 100
+input_shape = X_train.shape[1:4]
+receptive_field = 3
+n_filters = 10
+n_neurons_connected = 50
+n_categories = 10
+
+eta_vals = np.logspace(-5, 1, 7)
+lmbd_vals = np.logspace(-5, 1, 7)
+!ec
+
+!split
+===== Final part =====
+
+!bc pycod
+CNN_keras = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
+        
+for i, eta in enumerate(eta_vals):
+    for j, lmbd in enumerate(lmbd_vals):
+        CNN = create_convolutional_neural_network_keras(input_shape, receptive_field,
+                                              n_filters, n_neurons_connected, n_categories,
+                                              eta, lmbd)
+        CNN.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, verbose=0)
+        scores = CNN.evaluate(X_test, Y_test)
+        
+        CNN_keras[i][j] = CNN
+        
+        print("Learning rate = ", eta)
+        print("Lambda = ", lmbd)
+        print("Test accuracy: %.3f" % scores[1])
+        print()
+!ec     
+
+!split
+===== Final visualization =====
+
+!bc pycod
+# visual representation of grid search
+# uses seaborn heatmap, could probably do this in matplotlib
+import seaborn as sns
+
+sns.set()
+
+train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
+test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
+
+for i in range(len(eta_vals)):
+    for j in range(len(lmbd_vals)):
+        CNN = CNN_keras[i][j]
+
+        train_accuracy[i][j] = CNN.evaluate(X_train, Y_train)[1]
+        test_accuracy[i][j] = CNN.evaluate(X_test, Y_test)[1]
+
+        
+fig, ax = plt.subplots(figsize = (10, 10))
+sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
+ax.set_title("Training Accuracy")
+ax.set_ylabel("$\eta$")
+ax.set_xlabel("$\lambda$")
+plt.show()
+
+fig, ax = plt.subplots(figsize = (10, 10))
+sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
+ax.set_title("Test Accuracy")
+ax.set_ylabel("$\eta$")
+ax.set_xlabel("$\lambda$")
+plt.show()
+!ec
+
+
+
+
+!split
+===== The CIFAR01 data set =====
+
+The CIFAR10 dataset contains 60,000 color images in 10 classes, with
+6,000 images in each class. The dataset is divided into 50,000
+training images and 10,000 testing images. The classes are mutually
+exclusive and there is no overlap between them.
+
+!bc pycod
+import tensorflow as tf
+
+from tensorflow.keras import datasets, layers, models
+import matplotlib.pyplot as plt
+
+# We import the data set
+(train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data()
+
+# Normalize pixel values to be between 0 and 1 by dividing by 255. 
+train_images, test_images = train_images / 255.0, test_images / 255.0
+
+!ec
+
+
+
+!split
+===== Verifying the data set =====
+
+To verify that the dataset looks correct, let's plot the first 25 images from the training set and display the class name below each image.
+
+!bc pycod
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+               'dog', 'frog', 'horse', 'ship', 'truck']
+plt.figure(figsize=(10,10))
+for i in range(25):
+    plt.subplot(5,5,i+1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(False)
+    plt.imshow(train_images[i], cmap=plt.cm.binary)
+    # The CIFAR labels happen to be arrays, 
+    # which is why you need the extra index
+    plt.xlabel(class_names[train_labels[i][0]])
+plt.show()
+!ec
+
+!split
+===== Set up  the model =====
+
+The 6 lines of code below define the convolutional base using a common pattern: a stack of Conv2D and MaxPooling2D layers.
+
+As input, a CNN takes tensors of shape (image_height, image_width, color_channels), ignoring the batch size. If you are new to these dimensions, color_channels refers to (R,G,B). In this example, you will configure our CNN to process inputs of shape (32, 32, 3), which is the format of CIFAR images. You can do this by passing the argument input_shape to our first layer.
+
+!bc pycod
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+
+# Let's display the architecture of our model so far.
+
+model.summary()
+!ec
+
+You can see that the output of every Conv2D and MaxPooling2D layer is a 3D tensor of shape (height, width, channels). The width and height dimensions tend to shrink as you go deeper in the network. The number of output channels for each Conv2D layer is controlled by the first argument (e.g., 32 or 64). Typically, as the width and height shrink, you can afford (computationally) to add more output channels in each Conv2D layer.
+
+
+
+
+!split
+===== Add Dense layers on top =====
+
+To complete our model, you will feed the last output tensor from the
+convolutional base (of shape (4, 4, 64)) into one or more Dense layers
+to perform classification. Dense layers take vectors as input (which
+are 1D), while the current output is a 3D tensor. First, you will
+flatten (or unroll) the 3D output to 1D, then add one or more Dense
+layers on top. CIFAR has 10 output classes, so you use a final Dense
+layer with 10 outputs and a softmax activation.
+
+!bc pycod
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(10))
+Here's the complete architecture of our model.
+
+model.summary()
+!ec
+As you can see, our (4, 4, 64) outputs were flattened into vectors of shape (1024) before going through two Dense layers.
+
+!split
+===== Compile and train the model =====
+
+!bc pycod
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+history = model.fit(train_images, train_labels, epochs=10, 
+                    validation_data=(test_images, test_labels))
+
+!ec
+
+
+!split
+===== Finally, evaluate the model =====
+
+!bc pycod
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+
+test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
+
+print(test_acc)
+
+!ec
+
+
 
 
 
@@ -766,6 +1343,8 @@ Here we present a flexible and readable python code for a CNN
 implemented with NumPy. We will present the code, showcase how to use
 the codebase and fit a CNN that yields a 99% accuracy on the 28x28
 MNIST dataset within reasonable time.
+
+_The codes here were developed by Eric Reber and Gregor Kajda during spring 2023._
 
 The CNN is compatible with all schedulers, cost functions and
 activation functions discussed in constructing our neural network
@@ -1130,29 +1709,29 @@ functions, which is typically expressed as:
 \]
 !et
 
-Here, f and g are the two functions on which we want to perform an
+Here, $f$ and $g$ are the two functions on which we want to perform an
 operation. The outcome of the convolution operation is represented by
-$(f \ast g)$, and it is derived by sliding the function g over f and
+$(f \ast g)$, and it is derived by sliding the function $g$ over $f$ and
 computing the integral of their product at each position. If both
 functions are continuous, convolution takes the form shown
-above. However, if we discretize both f and g, the convolution
-operation will take the form of a sum between the elements of f and g:
+above. However, if we discretize both $f$ and $g$, the convolution
+operation will take the form of a sum between the elements of $f$ and $g$:
 !bt
 \[
-(f \ast g)[n]=\sum_{m=0}^{n-1} f[m] g[n-m].
+(f \ast g)[n]=\sum_{m=0}^{n-1} f(m) g(n-m).
 \]
 !et
 
 The key idea we utilize to extract the information contained in an
-image is to slide an $m \times n$ matrix *g* over an $m \times n$
-matrix *f*. In our case, *f* represents the image, while *g*
+image is to slide an $m \times n$ matrix $g$ over an $m \times n$
+matrix $f$. In our case, $f$ represents the image, while $g$
 represents the kernel, oftentimes called a filter. However, since our
 convolution will be a two-dimensional variant, we need to extend our
 mathematical formula with an additional summation:
 
 !bt
 \[
-(f \ast g)[i, j]\sum_{m=0}^{M-1}\sum_{n=0}^{N-1} f[m,n] g[i-m, j-n].
+(f \ast g)(i, j)\sum_{m=0}^{M-1}\sum_{n=0}^{N-1} f(m,n) g(i-m, j-n).
 \]
 !et
 
@@ -1164,7 +1743,7 @@ in a convolutional neural network, allowing the network to learn
 appropriate kernels for specific tasks.
 
 To give you an example of how 2D convolution works in practice,
-suppose we have an image *f* of dimension $6 \times 6$
+suppose we have an image $f$ of dimension $6 \times 6$
 
 !bt
 \[
@@ -1179,7 +1758,7 @@ f = \begin{bmatrix}
 \]
 !et
 
-and a $3 \times 3$ kernel *g* called a low-pass filter. Note that the
+and a $3 \times 3$ kernel $g$ called a low-pass filter. Note that the
 kernel is usually rotated by 180 degrees during convolution, however
 this has no effect on this kernel.
 
@@ -1195,9 +1774,9 @@ g = \frac{1}{9}
 !et
 
 In order to filter the image, we have to extract a $3 \times 3$
-element from the upper left corner of *f*, and perform element-wise
+element from the upper left corner of $f$, and perform element-wise
 multiplication of the extracted image pixels with the elements of the
-kernel *g*:
+kernel $g$:
 
 !bt
 \[
@@ -1218,24 +1797,23 @@ kernel *g*:
 \frac{9}{9} & \frac{5}{9} & \frac{9}{9} \\
 \frac{1}{9} & \frac{5}{9} & \frac{9}{9} \\
 \end {bmatrix}
-= \textbf{A}
+= \bm{A}
 \]
 !et
 
-Then, following the multiplication, we summarize all the elements of the resulting matrix A:
+Then, following the multiplication, we summarize all the elements of the resulting matrix $\bm{A}$:
 
 !bt
 \[
-(f \ast g)[0, 0]= \sum_{i=0}^{2} \sum_{j=0}^{2} a_{i,j} = 5
+(f \ast g)(0, 0)= \sum_{i=0}^{2} \sum_{j=0}^{2} a_{i,j} = 5,
 \]
 !et
+which corresponds to the first element of the filtered image $(f \ast g)$.
 
-Which corresponds to the first element of the filtered image $(f \ast g)$.
-
-Here we use a stride of 1, a parameter denoted *s* which describes how
-many indexes we move the kernel *g* to the right before repeating the
+Here we use a stride of $S=1$, a parameter denoted $S$ which describes how
+many indexes we move the kernel $g$ to the right before repeating the
 calculations above for the next $3 \times 3$ element of the image
-*f*. It is usually presumed that *s*=1, however, larger values for *s*
+$f$. It is usually presumed that $S=1$, however, larger values for $S$
 can be used to reduce the dimentionality of the filtered image such
 that the convolution operation is more computationally efficient. In
 the context of a convolutional neural network, this will become very
@@ -1254,19 +1832,25 @@ The full result of the convolution is:
 \end{bmatrix}
 \]
 !et
-The result is markedly smaller in shape than the original image. This occurs when using convolution without first padding the image with additional columns and rows, allowing us to keep the original image shape after sliding the kernel over the image.
-How many rows and columns we wish to pad the image with depends strictly on the shape of the kernel, as we wish to pad the image with *r* additional rows and *c* additional columns.
+
+The result is markedly smaller in shape than the original image. This
+occurs when using convolution without first padding the image with
+additional columns and rows, allowing us to keep the original image
+shape after sliding the kernel over the image.  How many rows and
+columns we wish to pad the image with depends strictly on the shape of
+the kernel, as we wish to pad the image with $r$ additional rows and
+$c$ additional columns.
 
 !bt
 \[
-r =\lfloor \frac{kernel\ height}{2} \rfloor \cdot 2 \\
-c =\lfloor \frac{kernel\ width}{2} \rfloor \cdot 2
+r =\lfloor \frac{\mathrm{kernel height}}{2} \rfloor \cdot 2 \\
+c =\lfloor \frac{\mathrm{kernel width}}{2} \rfloor \cdot 2
 \]
 !et
 
-Note the notation $\lfloor \frac{kernel width}{2} \rfloor$ means that
+Note the notation $\lfloor \frac{\mathrm{kernel width}}{2} \rfloor$ means that
 we floor the result of the division, meaning we round down to a whole
-number in case $\frac{kernel width}{2}$ results in a floating point
+number in case $\frac{\mathrm{kernel width}}{2}$ results in a floating point
 number.
 
 Using those simple equations, we find out by how much we have to
@@ -1291,10 +1875,13 @@ zero-padded rows and columns:
 0 & 8 & 1 & 6 & 4 & 2 & 2 & 0 \\
 0 & 1 & 0 & 5 & 7 & 8 & 2 & 0 \\
 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+\end{bmatrix}.
 \]
-\end{bmatrix}
 !et
-Below we have provided code that demonstrates padding and convolution. As you will see when we run the code, the size of the image will remain unchanged when using padding.~
+
+Below we have provided code that demonstrates padding and
+convolution. As you will see when we run the code, the size of the
+image will remain unchanged when using padding.~
 
 !bc pycod
 import numpy as np
@@ -1370,9 +1957,10 @@ def convolve(image, kernel, stride=1):
     return conv_image
 !ec
 
-Fun fact: When filtering images, you will see that convolution involves rotating the kernel by 180 degrees. 
-However, this is not the case when applying convolution in a CNN, where the same operation not rotated by 180 degrees is called 
-cross-correlation.
+Fun fact: When filtering images, you will see that convolution
+involves rotating the kernel by 180 degrees.  However, this is not the
+case when applying convolution in a CNN, where the same operation that is not
+rotated by 180 degrees is called cross-correlation, which is normally implemented in most libraries.
 
 !bc pycod
 
@@ -1406,7 +1994,7 @@ CNN is able to use kernels to make better predictions than a regular
 feed forward neural network.
 
 !bc pycod
-# Now an example using a real image and first a gaussian low-pass filter and then a sobel filter
+# Now an example using a real image and first a gaussian low-pass filter and then a Sobel filter
 import numpy as np
 import imageio.v3 as imageio
 import matplotlib.pyplot as plt
@@ -3235,7 +3823,7 @@ o Another hidden layer but with 20 nodes
 o The output layer, with softmax as its activation function and 10 nodes. We use 10 nodes because we will be using a dataset with 10 classes.
 
 Now, before we can train the model, we need to load in our data. We
-will use the MNIST dataset and use 10000 $28 \times  28 images$.
+will use the MNIST dataset and use 10000 $28 \times  28$ images.
 
 !bc pycod
 from sklearn.datasets import fetch_openml
@@ -3530,257 +4118,6 @@ optimization technique.
 
 
 
-!split
-===== Building convolutional neural networks in Tensorflow and Keras =====
-
-  
-As discussed above, CNNs are neural networks built from the assumption that the inputs
-to the network are 2D images. This is important because the number of features or pixels in images
-grows very fast with the image size, and an enormous number of weights and biases are needed in order to build an accurate network.  
-  
-As before, we still have our input, a hidden layer and an output. What's novel about convolutional networks
-are the _convolutional_ and _pooling_ layers stacked in pairs between the input and the hidden layer.
-In addition, the data is no longer represented as a 2D feature matrix, instead each input is a number of 2D
-matrices, typically 1 for each color dimension (Red, Green, Blue). 
-
-
-!split
-===== Setting it up =====
-
-It means that to represent the entire
-dataset of images, we require a 4D matrix or _tensor_. This tensor has the dimensions:  
-!bt
-\[  
-(n_{inputs},\, n_{pixels, width},\, n_{pixels, height},\, depth) .
-\]
-!et
-  
-!split
-=====  The MNIST dataset again =====
-
-The MNIST dataset consists of grayscale images with a pixel size of
-$28\times 28$, meaning we require $28 \times 28 = 724$ weights to each
-neuron in the first hidden layer.
-
-If we were to analyze images of size $128\times 128$ we would require
-$128 \times 128 = 16384$ weights to each neuron. Even worse if we were
-dealing with color images, as most images are, we have an image matrix
-of size $128\times 128$ for each color dimension (Red, Green, Blue),
-meaning 3 times the number of weights $= 49152$ are required for every
-single neuron in the first hidden layer.
-  
-
-!split
-===== Strong correlations =====
-
-Images typically have strong local correlations, meaning that a small
-part of the image varies little from its neighboring regions. If for
-example we have an image of a blue car, we can roughly assume that a
-small blue part of the image is surrounded by other blue regions.
-
-Therefore, instead of connecting every single pixel to a neuron in the
-first hidden layer, as we have previously done with deep neural
-networks, we can instead connect each neuron to a small part of the
-image (in all 3 RGB depth dimensions).  The size of each small area is
-fixed, and known as a "receptive":"https://en.wikipedia.org/wiki/Receptive_field".
-  
-
-!split 
-===== Layers of a CNN =====
-
-The layers of a convolutional neural network arrange neurons in 3D: width, height and depth.  
-The input image is typically a square matrix of depth 3. 
-
-A _convolution_ is performed on the image which outputs
-a 3D volume of neurons. The weights to the input are arranged in a number of 2D matrices, known as _filters_.
-
-
-Each filter slides along the input image, taking the dot product
-between each small part of the image and the filter, in all depth
-dimensions. This is then passed through a non-linear function,
-typically the _Rectified Linear (ReLu)_ function, which serves as the
-activation of the neurons in the first convolutional layer. This is
-further passed through a _pooling layer_, which reduces the size of the
-convolutional layer, e.g. by taking the maximum or average across some
-small regions, and this serves as input to the next convolutional
-layer.
-
-
-!split
-===== Systematic reduction =====  
-
-By systematically reducing the size of the input volume, through
-convolution and pooling, the network should create representations of
-small parts of the input, and then from them assemble representations
-of larger areas.  The final pooling layer is flattened to serve as
-input to a hidden layer, such that each neuron in the final pooling
-layer is connected to every single neuron in the hidden layer. This
-then serves as input to the output layer, e.g. a softmax output for
-classification.
-  
-
-!split
-===== Prerequisites: Collect and pre-process data =====
-!bc pycod
-# import necessary packages
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import datasets
-
-
-# ensure the same random numbers appear every time
-np.random.seed(0)
-
-# display images in notebook
-%matplotlib inline
-plt.rcParams['figure.figsize'] = (12,12)
-
-
-# download MNIST dataset
-digits = datasets.load_digits()
-
-# define inputs and labels
-inputs = digits.images
-labels = digits.target
-
-# RGB images have a depth of 3
-# our images are grayscale so they should have a depth of 1
-inputs = inputs[:,:,:,np.newaxis]
-
-print("inputs = (n_inputs, pixel_width, pixel_height, depth) = " + str(inputs.shape))
-print("labels = (n_inputs) = " + str(labels.shape))
-
-
-# choose some random images to display
-n_inputs = len(inputs)
-indices = np.arange(n_inputs)
-random_indices = np.random.choice(indices, size=5)
-
-for i, image in enumerate(digits.images[random_indices]):
-    plt.subplot(1, 5, i+1)
-    plt.axis('off')
-    plt.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
-    plt.title("Label: %d" % digits.target[random_indices[i]])
-plt.show()
-!ec
-
-
-!split
-===== Importing Keras and Tensorflow =====
-!bc pycod
-from tensorflow.keras import datasets, layers, models
-from tensorflow.keras.layers import Input
-from tensorflow.keras.models import Sequential      #This allows appending layers to existing models
-from tensorflow.keras.layers import Dense           #This allows defining the characteristics of a particular layer
-from tensorflow.keras import optimizers             #This allows using whichever optimiser we want (sgd,adam,RMSprop)
-from tensorflow.keras import regularizers           #This allows using whichever regularizer we want (l1,l2,l1_l2)
-from tensorflow.keras.utils import to_categorical   #This allows using categorical cross entropy as the cost function
-#from tensorflow.keras import Conv2D
-#from tensorflow.keras import MaxPooling2D
-#from tensorflow.keras import Flatten
-
-from sklearn.model_selection import train_test_split
-
-# representation of labels
-labels = to_categorical(labels)
-
-# split into train and test data
-# one-liner from scikit-learn library
-train_size = 0.8
-test_size = 1 - train_size
-X_train, X_test, Y_train, Y_test = train_test_split(inputs, labels, train_size=train_size,
-                                                    test_size=test_size)
-!ec
-
-!split 
-===== Running with Keras =====
-
-!bc pycod
-def create_convolutional_neural_network_keras(input_shape, receptive_field,
-                                              n_filters, n_neurons_connected, n_categories,
-                                              eta, lmbd):
-    model = Sequential()
-    model.add(layers.Conv2D(n_filters, (receptive_field, receptive_field), input_shape=input_shape, padding='same',
-              activation='relu', kernel_regularizer=regularizers.l2(lmbd)))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(n_neurons_connected, activation='relu', kernel_regularizer=regularizers.l2(lmbd)))
-    model.add(layers.Dense(n_categories, activation='softmax', kernel_regularizer=regularizers.l2(lmbd)))
-    
-    sgd = optimizers.SGD(learning_rate=eta)
-    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-    
-    return model
-
-epochs = 100
-batch_size = 100
-input_shape = X_train.shape[1:4]
-receptive_field = 3
-n_filters = 10
-n_neurons_connected = 50
-n_categories = 10
-
-eta_vals = np.logspace(-5, 1, 7)
-lmbd_vals = np.logspace(-5, 1, 7)
-!ec
-
-!split
-===== Final part =====
-
-!bc pycod
-CNN_keras = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-        
-for i, eta in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals):
-        CNN = create_convolutional_neural_network_keras(input_shape, receptive_field,
-                                              n_filters, n_neurons_connected, n_categories,
-                                              eta, lmbd)
-        CNN.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, verbose=0)
-        scores = CNN.evaluate(X_test, Y_test)
-        
-        CNN_keras[i][j] = CNN
-        
-        print("Learning rate = ", eta)
-        print("Lambda = ", lmbd)
-        print("Test accuracy: %.3f" % scores[1])
-        print()
-!ec     
-
-!split
-===== Final visualization =====
-
-!bc pycod
-# visual representation of grid search
-# uses seaborn heatmap, could probably do this in matplotlib
-import seaborn as sns
-
-sns.set()
-
-train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
-
-for i in range(len(eta_vals)):
-    for j in range(len(lmbd_vals)):
-        CNN = CNN_keras[i][j]
-
-        train_accuracy[i][j] = CNN.evaluate(X_train, Y_train)[1]
-        test_accuracy[i][j] = CNN.evaluate(X_test, Y_test)[1]
-
-        
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Training Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-
-fig, ax = plt.subplots(figsize = (10, 10))
-sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis")
-ax.set_title("Test Accuracy")
-ax.set_ylabel("$\eta$")
-ax.set_xlabel("$\lambda$")
-plt.show()
-!ec
 
 
 
