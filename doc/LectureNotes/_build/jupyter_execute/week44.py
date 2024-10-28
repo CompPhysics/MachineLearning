@@ -8,7 +8,7 @@
 # # Week 44,  Convolutional Neural Networks (CNN)
 # **Morten Hjorth-Jensen**, Department of Physics, University of Oslo, Norway
 # 
-# Date: **October 28-November 1 **
+# Date: **October 28**
 
 # ## Plan for week 44
 # 
@@ -22,21 +22,23 @@
 # 
 #   * For a more in depth discussion on  neural networks we recommend Goodfellow et al chapter 9. See also chapter 11 and 12 on practicalities and applications
 # 
-#   * Reading suggestions for implementation of CNNs see <Rashcka et al.'s chapter 14>:"https://github.com/rasbt/machine-learning-book/tree/main/ch14".     
+#   * Reading suggestions for implementation of CNNs see Rashcka et al.'s chapter 14 at <https://github.com/rasbt/machine-learning-book/tree/main/ch14>.     
 # 
 #   * Video on Deep Learning at <https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi>
 # 
 #   * Video  on Convolutional Neural Networks from MIT at <https://www.youtube.com/watch?v=iaSUYvmCekI&ab_channel=AlexanderAmini>
 # 
 #   * Video on CNNs from Stanford at <https://www.youtube.com/watch?v=bNb2fEVKeEo&list=PLC1qU-LWwrF64f4QKQT-Vg5Wr4qEE1Zxk&index=6&ab_channel=StanfordUniversitySchoolofEngineering>
+# 
+#   * Video of lecture October 28 at <https://youtu.be/rfrSfikAz94>
+# 
+#   * Whiteboard notes at <https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesOctober28>
 
 # ## Lab  sessions on Tuesday and Wednesday
 # 
 # * Main focus is discussion of and work on project 2
 # 
 # * If you did not get time to finish the exercises from week 43, you can also keep working on them and hand in this coming Friday
-# <!-- * [Video of lab session from week 44](https://youtu.be/EajWMW__k0I) -->
-# <!-- * [See also whiteboard notes from lab session week 44](https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2023/Exercisesweek44.pdf) -->
 
 # ## Material for Lecture Monday October 28
 
@@ -336,43 +338,6 @@ for k in (5,10, 20, 100,200,400,500):
     srv = 20 * (log10(max_pixel / sqrt(err)))
     print('Signa to noise ratio '+ str(round(srv)) +'dB')
 
-
-# ## Mathematics of CNNs
-# 
-# The mathematics of CNNs is based on the mathematical operation of
-# **convolution**.  In mathematics (in particular in functional analysis),
-# convolution is represented by mathematical operations (integration,
-# summation etc) on two functions in order to produce a third function
-# that expresses how the shape of one gets modified by the other.
-# Convolution has a plethora of applications in a variety of
-# disciplines, spanning from statistics to signal processing, computer
-# vision, solutions of differential equations,linear algebra,
-# engineering, and yes, machine learning.
-# 
-# Mathematically, convolution is defined as follows (one-dimensional example):
-# Let us define a continuous function $y(t)$ given by
-
-# $$
-# y(t) = \int x(a) w(t-a) da,
-# $$
-
-# where $x(a)$ represents a so-called input and $w(t-a)$ is normally called the weight function or kernel.
-# 
-# The above integral is written in  a more compact form as
-
-# $$
-# y(t) = \left(x * w\right)(t).
-# $$
-
-# The discretized version reads
-
-# $$
-# y(t) = \sum_{a=-\infty}^{a=\infty}x(a)w(t-a).
-# $$
-
-# Computing the inverse of the above convolution operations is known as deconvolution and the process is commutative.
-# 
-# How can we use this? And what does it mean? Let us study some familiar examples first.
 
 # ## Mathematics of CNNs
 # 
