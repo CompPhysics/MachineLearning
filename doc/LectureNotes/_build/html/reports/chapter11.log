@@ -1,0 +1,245 @@
+Traceback (most recent call last):
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 1204, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+    return future.result()
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 663, in async_execute
+    await self.async_execute_cell(
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 965, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/mhjensen/miniforge3/envs/myenv/lib/python3.9/site-packages/nbclient/client.py", line 862, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import autograd.numpy as np
+from autograd import grad, elementwise_grad
+import autograd.numpy.random as npr
+from matplotlib import pyplot as plt
+
+def sigmoid(z):
+    return 1/(1 + np.exp(-z))
+
+# The neural network with one input layer and one output layer,
+# but with number of hidden layers specified by the user.
+def deep_neural_network(deep_params, x):
+    # N_hidden is the number of hidden layers
+
+    N_hidden = np.size(deep_params) - 1 # -1 since params consists of
+                                        # parameters to all the hidden
+                                        # layers AND the output layer.
+
+    # Assumes input x being an one-dimensional array
+    num_values = np.size(x)
+    x = x.reshape(-1, num_values)
+
+    # Assume that the input layer does nothing to the input x
+    x_input = x
+
+    # Due to multiple hidden layers, define a variable referencing to the
+    # output of the previous layer:
+    x_prev = x_input
+
+    ## Hidden layers:
+
+    for l in range(N_hidden):
+        # From the list of parameters P; find the correct weigths and bias for this layer
+        w_hidden = deep_params[l]
+
+        # Add a row of ones to include bias
+        x_prev = np.concatenate((np.ones((1,num_values)), x_prev ), axis = 0)
+
+        z_hidden = np.matmul(w_hidden, x_prev)
+        x_hidden = sigmoid(z_hidden)
+
+        # Update x_prev such that next layer can use the output from this layer
+        x_prev = x_hidden
+
+    ## Output layer:
+
+    # Get the weights and bias for this layer
+    w_output = deep_params[-1]
+
+    # Include bias:
+    x_prev = np.concatenate((np.ones((1,num_values)), x_prev), axis = 0)
+
+    z_output = np.matmul(w_output, x_prev)
+    x_output = z_output
+
+    return x_output
+
+# The trial solution using the deep neural network:
+def g_trial_deep(x,params, g0 = 10):
+    return g0 + x*deep_neural_network(params, x)
+
+# The right side of the ODE:
+def g(x, g_trial, gamma = 2):
+    return -gamma*g_trial
+
+# The same cost function as before, but calls deep_neural_network instead.
+def cost_function_deep(P, x):
+
+    # Evaluate the trial function with the current parameters P
+    g_t = g_trial_deep(x,P)
+
+    # Find the derivative w.r.t x of the neural network
+    d_net_out = elementwise_grad(deep_neural_network,1)(P,x)
+
+    # Find the derivative w.r.t x of the trial function
+    d_g_t = elementwise_grad(g_trial_deep,0)(x,P)
+
+    # The right side of the ODE
+    func = g(x, g_t)
+
+    err_sqr = (d_g_t - func)**2
+    cost_sum = np.sum(err_sqr)
+
+    return cost_sum / np.size(err_sqr)
+
+# Solve the exponential decay ODE using neural network with one input and one output layer,
+# but with specified number of hidden layers from the user.
+def solve_ode_deep_neural_network(x, num_neurons, num_iter, lmb):
+    # num_hidden_neurons is now a list of number of neurons within each hidden layer
+
+    # The number of elements in the list num_hidden_neurons thus represents
+    # the number of hidden layers.
+
+    # Find the number of hidden layers:
+    N_hidden = np.size(num_neurons)
+
+    ## Set up initial weights and biases
+
+    # Initialize the list of parameters:
+    P = [None]*(N_hidden + 1) # + 1 to include the output layer
+
+    P[0] = npr.randn(num_neurons[0], 2 )
+    for l in range(1,N_hidden):
+        P[l] = npr.randn(num_neurons[l], num_neurons[l-1] + 1) # +1 to include bias
+
+    # For the output layer
+    P[-1] = npr.randn(1, num_neurons[-1] + 1 ) # +1 since bias is included
+
+    print('Initial cost: %g'%cost_function_deep(P, x))
+
+    ## Start finding the optimal weights using gradient descent
+
+    # Find the Python function that represents the gradient of the cost function
+    # w.r.t the 0-th input argument -- that is the weights and biases in the hidden and output layer
+    cost_function_deep_grad = grad(cost_function_deep,0)
+
+    # Let the update be done num_iter times
+    for i in range(num_iter):
+        # Evaluate the gradient at the current weights and biases in P.
+        # The cost_grad consist now of N_hidden + 1 arrays; the gradient w.r.t the weights and biases
+        # in the hidden layers and output layers evaluated at x.
+        cost_deep_grad =  cost_function_deep_grad(P, x)
+
+        for l in range(N_hidden+1):
+            P[l] = P[l] - lmb * cost_deep_grad[l]
+
+    print('Final cost: %g'%cost_function_deep(P, x))
+
+    return P
+
+def g_analytic(x, gamma = 2, g0 = 10):
+    return g0*np.exp(-gamma*x)
+
+# Solve the given problem
+if __name__ == '__main__':
+    npr.seed(15)
+
+    ## Decide the vales of arguments to the function to solve
+    N = 10
+    x = np.linspace(0, 1, N)
+
+    ## Set up the initial parameters
+    num_hidden_neurons = np.array([10,10])
+    num_iter = 10000
+    lmb = 0.001
+
+    P = solve_ode_deep_neural_network(x, num_hidden_neurons, num_iter, lmb)
+
+    res = g_trial_deep(x,P)
+    res_analytical = g_analytic(x)
+
+    plt.figure(figsize=(10,10))
+
+    plt.title('Performance of a deep neural network solving an ODE compared to the analytical solution')
+    plt.plot(x, res_analytical)
+    plt.plot(x, res[0,:])
+    plt.legend(['analytical','dnn'])
+    plt.ylabel('g(x)')
+    plt.show()
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mAttributeError[0m                            Traceback (most recent call last)
+File [0;32m~/miniforge3/envs/myenv/lib/python3.9/site-packages/numpy/core/fromnumeric.py:3255[0m, in [0;36msize[0;34m(a, axis)[0m
+[1;32m   3254[0m [38;5;28;01mtry[39;00m:
+[0;32m-> 3255[0m     [38;5;28;01mreturn[39;00m [43ma[49m[38;5;241;43m.[39;49m[43msize[49m
+[1;32m   3256[0m [38;5;28;01mexcept[39;00m [38;5;167;01mAttributeError[39;00m:
+
+[0;31mAttributeError[0m: 'list' object has no attribute 'size'
+
+During handling of the above exception, another exception occurred:
+
+[0;31mValueError[0m                                Traceback (most recent call last)
+Cell [0;32mIn[2], line 146[0m
+[1;32m    143[0m num_iter [38;5;241m=[39m [38;5;241m10000[39m
+[1;32m    144[0m lmb [38;5;241m=[39m [38;5;241m0.001[39m
+[0;32m--> 146[0m P [38;5;241m=[39m [43msolve_ode_deep_neural_network[49m[43m([49m[43mx[49m[43m,[49m[43m [49m[43mnum_hidden_neurons[49m[43m,[49m[43m [49m[43mnum_iter[49m[43m,[49m[43m [49m[43mlmb[49m[43m)[49m
+[1;32m    148[0m res [38;5;241m=[39m g_trial_deep(x,P)
+[1;32m    149[0m res_analytical [38;5;241m=[39m g_analytic(x)
+
+Cell [0;32mIn[2], line 108[0m, in [0;36msolve_ode_deep_neural_network[0;34m(x, num_neurons, num_iter, lmb)[0m
+[1;32m    105[0m [38;5;66;03m# For the output layer[39;00m
+[1;32m    106[0m P[[38;5;241m-[39m[38;5;241m1[39m] [38;5;241m=[39m npr[38;5;241m.[39mrandn([38;5;241m1[39m, num_neurons[[38;5;241m-[39m[38;5;241m1[39m] [38;5;241m+[39m [38;5;241m1[39m ) [38;5;66;03m# +1 since bias is included[39;00m
+[0;32m--> 108[0m [38;5;28mprint[39m([38;5;124m'[39m[38;5;124mInitial cost: [39m[38;5;132;01m%g[39;00m[38;5;124m'[39m[38;5;241m%[39m[43mcost_function_deep[49m[43m([49m[43mP[49m[43m,[49m[43m [49m[43mx[49m[43m)[49m)
+[1;32m    110[0m [38;5;66;03m## Start finding the optimal weights using gradient descent[39;00m
+[1;32m    111[0m 
+[1;32m    112[0m [38;5;66;03m# Find the Python function that represents the gradient of the cost function[39;00m
+[1;32m    113[0m [38;5;66;03m# w.r.t the 0-th input argument -- that is the weights and biases in the hidden and output layer[39;00m
+[1;32m    114[0m cost_function_deep_grad [38;5;241m=[39m grad(cost_function_deep,[38;5;241m0[39m)
+
+Cell [0;32mIn[2], line 69[0m, in [0;36mcost_function_deep[0;34m(P, x)[0m
+[1;32m     66[0m [38;5;28;01mdef[39;00m [38;5;21mcost_function_deep[39m(P, x):
+[1;32m     67[0m 
+[1;32m     68[0m     [38;5;66;03m# Evaluate the trial function with the current parameters P[39;00m
+[0;32m---> 69[0m     g_t [38;5;241m=[39m [43mg_trial_deep[49m[43m([49m[43mx[49m[43m,[49m[43mP[49m[43m)[49m
+[1;32m     71[0m     [38;5;66;03m# Find the derivative w.r.t x of the neural network[39;00m
+[1;32m     72[0m     d_net_out [38;5;241m=[39m elementwise_grad(deep_neural_network,[38;5;241m1[39m)(P,x)
+
+Cell [0;32mIn[2], line 59[0m, in [0;36mg_trial_deep[0;34m(x, params, g0)[0m
+[1;32m     58[0m [38;5;28;01mdef[39;00m [38;5;21mg_trial_deep[39m(x,params, g0 [38;5;241m=[39m [38;5;241m10[39m):
+[0;32m---> 59[0m     [38;5;28;01mreturn[39;00m g0 [38;5;241m+[39m x[38;5;241m*[39m[43mdeep_neural_network[49m[43m([49m[43mparams[49m[43m,[49m[43m [49m[43mx[49m[43m)[49m
+
+Cell [0;32mIn[2], line 14[0m, in [0;36mdeep_neural_network[0;34m(deep_params, x)[0m
+[1;32m     11[0m [38;5;28;01mdef[39;00m [38;5;21mdeep_neural_network[39m(deep_params, x):
+[1;32m     12[0m     [38;5;66;03m# N_hidden is the number of hidden layers[39;00m
+[0;32m---> 14[0m     N_hidden [38;5;241m=[39m [43mnp[49m[38;5;241;43m.[39;49m[43msize[49m[43m([49m[43mdeep_params[49m[43m)[49m [38;5;241m-[39m [38;5;241m1[39m [38;5;66;03m# -1 since params consists of[39;00m
+[1;32m     15[0m                                         [38;5;66;03m# parameters to all the hidden[39;00m
+[1;32m     16[0m                                         [38;5;66;03m# layers AND the output layer.[39;00m
+[1;32m     17[0m 
+[1;32m     18[0m     [38;5;66;03m# Assumes input x being an one-dimensional array[39;00m
+[1;32m     19[0m     num_values [38;5;241m=[39m np[38;5;241m.[39msize(x)
+
+File [0;32m~/miniforge3/envs/myenv/lib/python3.9/site-packages/autograd/tracer.py:48[0m, in [0;36mprimitive.<locals>.f_wrapped[0;34m(*args, **kwargs)[0m
+[1;32m     46[0m     [38;5;28;01mreturn[39;00m new_box(ans, trace, node)
+[1;32m     47[0m [38;5;28;01melse[39;00m:
+[0;32m---> 48[0m     [38;5;28;01mreturn[39;00m [43mf_raw[49m[43m([49m[38;5;241;43m*[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+
+File [0;32m~/miniforge3/envs/myenv/lib/python3.9/site-packages/numpy/core/fromnumeric.py:3257[0m, in [0;36msize[0;34m(a, axis)[0m
+[1;32m   3255[0m         [38;5;28;01mreturn[39;00m a[38;5;241m.[39msize
+[1;32m   3256[0m     [38;5;28;01mexcept[39;00m [38;5;167;01mAttributeError[39;00m:
+[0;32m-> 3257[0m         [38;5;28;01mreturn[39;00m [43masarray[49m[43m([49m[43ma[49m[43m)[49m[38;5;241m.[39msize
+[1;32m   3258[0m [38;5;28;01melse[39;00m:
+[1;32m   3259[0m     [38;5;28;01mtry[39;00m:
+
+[0;31mValueError[0m: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (3,) + inhomogeneous part.
+ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (3,) + inhomogeneous part.
+
