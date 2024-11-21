@@ -1,829 +1,636 @@
 TITLE: Week 48: Support Vector Machines and Summary of course
-AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo, Norway
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
 DATE: today
 
 !split
 ===== Overview of week 48 =====
 
-!split
-===== Plan for week 47 =====
+* _Thursday_: Support Vector Machines: Kernels, Classification and Regression. "Video of Lecture":"https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureNovember26.mp4?vrtx=view-as-webpage".
+* _Friday_: Summary of course with perspectives for future studies. "Video of Lecture":"https://www.uio.no/studier/emner/matnat/fys/FYS-STK4155/h20/forelesningsvideoer/LectureNovember27.mp4?vrtx=view-as-webpage".
 
-!bblock  Lab sessions on Tuesday and Wednesday
-  * Work and Discussion of project 3
-  * Last weekly exercise, 
-!eblock  
-
-!bblock Plans for the lecture Monday 25 November, with video suggestions etc
-o Bossting and gradient boosting and ensemble models
-o Summary of course
-o Readings and Videos:
-  o These lecture notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week48.ipynb"
-  o See also lecture notes from week 47 at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week47.ipynb". The lecture on Monday starts with a repetition on AdaBoost before we move over to gradient boosting with examples
-#  o Video of lecture at URL:"https://youtu.be/RIHzmLv05DA"
-#  o Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesNovember25.pdf"
-  o Video on Decision trees URL:"https://www.youtube.com/watch?v=RmajweUFKvM&ab_channel=Simplilearn"
-  o Video on boosting methods URL:"https://www.youtube.com/watch?v=wPqtzj5VZus&ab_channel=H2O.ai"
-  o Video on AdaBoost URL:"https://www.youtube.com/watch?v=LsK-xG1cLYA"
-  o Video on Gradient boost, part 1, parts 2-4 follow thereafter URL:"https://www.youtube.com/watch?v=3CC4N4z3GJc"
-  o Decision Trees: Rashcka et al chapter 3 pages 86-98, and chapter 7 on Ensemble methods, Voting and Bagging and Gradient Boosting. See also lecture from STK-IN4300, lecture 7 at URL:"https://www.uio.no/studier/emner/matnat/math/STK-IN4300/h20/slides/lecture_7.pdf". 
-!eblock
-
-
+See also Geron's chapter 5. Chapter 12 (sections 12.1-12.3 are the most relevant ones)  of Hastie et al contains also a good discussion.
 
 
 !split
-===== Boosting, a Bird's Eye View =====
+=====  Thursday =====
 
-The basic idea is to combine weak classifiers in order to create a good
-classifier. With a weak classifier we often intend a classifier which
-produces results which are only slightly better than we would get by
-random guesses.
-
-This is done by applying in an iterative way a weak (or a standard
-classifier like decision trees) to modify the data. In each iteration
-we emphasize those observations which are misclassified by weighting
-them with a factor.
-
+We finalize our discussion on Support Vector Machines with an emphasis on kernel transformations and applications to regression. The following "video attempts at giving an overview on this part":"https://www.youtube.com/watch?v=Toet3EiSFcM&ab_channel=StatQuestwithJoshStarmer". See also the "follow-up video":"https://www.youtube.com/watch?v=Qc5IyLW_hns&ab_channel=StatQuestwithJoshStarmer".
 
 !split
-===== What is boosting? Additive Modelling/Iterative Fitting =====
+===== Friday =====
 
-Boosting is a way of fitting an additive expansion in a set of
-elementary basis functions like for example some simple polynomials.
-Assume for example that we have a function
-!bt
-\[
-f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
-\]
-!et
-
-where $\beta_m$ are the expansion parameters to be determined in a
-minimization process and $b(x;\gamma_m)$ are some simple functions of
-the multivariable parameter $x$ which is characterized by the
-parameters $\gamma_m$.
-
-As an example, consider the Sigmoid function we used in logistic
-regression. In that case, we can translate the function
-$b(x;\gamma_m)$ into the Sigmoid function
-
-
-!bt
-\[
-\sigma(t) = \frac{1}{1+\exp{(-t)}},
-\]
-!et
-
-where $t=\gamma_0+\gamma_1 x$ and the parameters $\gamma_0$ and
-$\gamma_1$ were determined by the Logistic Regression fitting
-algorithm.
-
-As another example, consider the cost function we defined for linear regression
-!bt
-\[
-C(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
-\]
-!et
-
-In this case the function $f(x)$ was replaced by the design matrix
-$\bm{X}$ and the unknown linear regression parameters $\bm{\beta}$,
-that is $\bm{f}=\bm{X}\bm{\beta}$. In linear regression we can 
-simply invert a matrix and obtain the parameters $\beta$ by
-
-!bt
-\[
-\bm{\beta}=\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}.
-\]
-!et
-
-In iterative fitting or additive modeling, we minimize the cost function with respect to the parameters $\beta_m$ and $\gamma_m$.
-
+Friday's lecture is split in two parts. It starts with a summary of
+what we have done this semester and continues with perspectives for future studies and
+modern research projects in machine learning.
 
 !split
-===== Iterative Fitting, Regression and Squared-error Cost Function =====
+===== Support Vector Machines, overarching aims  =====
 
-The way we proceed is as follows (here we specialize to the squared-error cost function)
+As discussed last week, 
+a Support Vector Machine (SVM) is a very powerful and versatile
+Machine Learning method, capable of performing linear or nonlinear
+classification, regression, and even outlier detection. It is one of
+the most popular models in Machine Learning, and anyone interested in
+Machine Learning should have it in their toolbox. SVMs are
+particularly well suited for classification of complex but small-sized or
+medium-sized datasets.  
 
-o Establish a cost function, here ${\cal C}(\bm{y},\bm{f}) = \frac{1}{n} \sum_{i=0}^{n-1}(y_i-f_M(x_i))^2$ with $f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m)$.
-o Initialize with a guess $f_0(x)$. It could be one or even zero or some random numbers.
-o For $m=1:M$
-  o minimize $\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2$ wrt $\gamma$ and $\beta$
-  o This gives the optimal values $\beta_m$ and $\gamma_m$
-  o Determine then the new values $f_m(x)=f_{m-1}(x) +\beta_m b(x;\gamma_m)$
+The case with two well-separated classes only can be understood in an
+intuitive way in terms of lines in a two-dimensional space separating
+the two classes.
 
-We could use any of the algorithms we have discussed till now. If we
-use trees, $\gamma$ parameterizes the split variables and split points
-at the internal nodes, and the predictions at the terminal nodes.
-
-
-!split
-===== Squared-Error Example and Iterative Fitting =====
-
-To better understand what happens, let us develop the steps for the iterative fitting using the above squared error function.
-
-For simplicity we assume also that our functions $b(x;\gamma)=1+\gamma x$. 
-
-This means that for every iteration $m$, we need to optimize
-
-!bt
-\[
-(\beta_m,\gamma_m) = \mathrm{argmin}_{\beta,\lambda}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta b(x;\gamma))^2=\sum_{i=0}^{n-1}(y_i-f_{m-1}(x_i)-\beta(1+\gamma x_i))^2.
-\]
-!et
-
-We start our iteration by simply setting $f_0(x)=0$. 
-Taking the derivatives  with respect to $\beta$ and $\gamma$ we obtain
-!bt
-\[
-\frac{\partial {\cal C}}{\partial \beta} = -2\sum_{i}(1+\gamma x_i)(y_i-\beta(1+\gamma x_i))=0,
-\]
-!et
-and
-!bt
-\[
-\frac{\partial {\cal C}}{\partial \gamma} =-2\sum_{i}\beta x_i(y_i-\beta(1+\gamma x_i))=0.
-\]
-!et
-We can then rewrite these equations as (defining $\bm{w}=\bm{e}+\gamma \bm{x})$ with $\bm{e}$ being the unit vector)
-!bt
-\[
-\gamma \bm{w}^T(\bm{y}-\beta\gamma \bm{w})=0,
-\]
-!et
-which gives us $\beta = \bm{w}^T\bm{y}/(\bm{w}^T\bm{w})$. Similarly we have 
-!bt
-\[
-\beta\gamma \bm{x}^T(\bm{y}-\beta(1+\gamma \bm{x}))=0,
-\]
-!et
-
-which leads to $\gamma =(\bm{x}^T\bm{y}-\beta\bm{x}^T\bm{e})/(\beta\bm{x}^T\bm{x})$.  Inserting
-for $\beta$ gives us an equation for $\gamma$. This is a non-linear equation in the unknown $\gamma$ and has to be solved numerically. 
-
-The solution to these two equations gives us in turn $\beta_1$ and $\gamma_1$ leading to the new expression for $f_1(x)$ as
-$f_1(x) = \beta_1(1+\gamma_1x)$. Doing this $M$ times results in our final estimate for the function $f$. 
-
-
+The basic mathematics behind the SVM is however less familiar to most of us. 
+It relies on the definition of hyperplanes and the
+definition of a _margin_ which separates classes (in case of
+classification problems) of variables. It is also used for regression
+problems.  I recommend you take a look at the lectures from last week on the binary classification problem.
 
 !split
-===== Iterative Fitting, Classification and AdaBoost =====
+===== Kernels and non-linearity =====
 
-Let us consider a binary classification problem with two outcomes $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
-observations. We define a classification function $G(x)$ which produces a prediction taking one or the other of the two values 
-$\{-1,1\}$.
+The cases we studied last week  were all characterized by two classes
+with a close to linear separability. The classifiers we have described
+so far find linear boundaries in our input feature space. It is
+possible to make our procedure more flexible by exploring the feature
+space using other basis expansions such as higher-order polynomials,
+wavelets, splines etc.
 
-The error rate of the training sample is then
+If our feature space is not easy to separate, as shown in the figure
+generated by the code below, we can achieve a better separation by introducing a more complex
+basis functions. The ideal would be, as shown by the code example below, to,
+via a specific transformation to obtain a separation between the
+classes that is almost linear. See also Figures 12.2 and 12.3 of "Hastie et al.":"https://www.springer.com/gp/book/9780387848570".
 
-!bt
-\[
-\mathrm{\overline{err}}=\frac{1}{n} \sum_{i=0}^{n-1} I(y_i\ne G(x_i)). 
-\]
-!et
+We can achieve a better separation by introducing more complex
+basis functions. The ideal would be (see Figures 12.2 and 12.3) to, via a specific transformation to 
+obtain a separation between the classes which is almost linear. 
 
-The iterative procedure starts with defining a weak classifier whose
-error rate is barely better than random guessing.  The iterative
-procedure in boosting is to sequentially apply a  weak
-classification algorithm to repeatedly modified versions of the data
-producing a sequence of weak classifiers $G_m(x)$.
-
-Here we will express our  function $f(x)$ in terms of $G(x)$. That is
-!bt
-\[
-f_M(x) = \sum_{i=1}^M \beta_m b(x;\gamma_m),
-\]
-!et
-will be a function of 
-!bt
-\[
-G_M(x) = \mathrm{sign} \sum_{i=1}^M \alpha_m G_m(x).
-\]
-!et
-
-
-
-!split
-===== Adaptive Boosting, AdaBoost =====
-
-In our iterative procedure we define thus
-!bt
-\[
-f_m(x) = f_{m-1}(x)+\beta_mG_m(x).
-\]
-!et
-
-The simplest possible cost function which leads (also simple from a computational point of view) to the AdaBoost algorithm is the
-exponential cost/loss function defined as
-!bt
-\[
-C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}\exp{(-y_i(f_{m-1}(x_i)+\beta G(x_i))}.
-\]
-!et
-
-We optimize $\beta$ and $G$ for each value of $m=1:M$ as we did in the regression case.
-This is normally done in two steps. Let us however first rewrite the cost function as 
-
-!bt
-\[
-C(\bm{y},\bm{f}) = \sum_{i=0}^{n-1}w_i^{m}\exp{(-y_i\beta G(x_i))},
-\]
-!et
-where we have defined $w_i^m= \exp{(-y_if_{m-1}(x_i))}$.
-
-!split
-===== Building up AdaBoost =====
-
-First, for any $\beta > 0$, we optimize $G$ by setting
-!bt
-\[
-G_m(x) = \mathrm{sign} \sum_{i=0}^{n-1} w_i^m I(y_i \ne G_(x_i)),
-\]
-!et
-which is the classifier that minimizes the weighted error rate in predicting $y$.
-
-We can do this by rewriting
-!bt
-\[
-\exp{-(\beta)}\sum_{y_i=G(x_i)}w_i^m+\exp{(\beta)}\sum_{y_i\ne G(x_i)}w_i^m,
-\]
-!et
-which can be rewritten as
-!bt
-\[
-(\exp{(\beta)}-\exp{-(\beta)})\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i))+\exp{(-\beta)}\sum_{i=0}^{n-1}w_i^m=0,
-\]
-!et
-which leads to
-!bt
-\[
-\beta_m = \frac{1}{2}\log{\frac{1-\mathrm{\overline{err}}}{\mathrm{\overline{err}}}},
-\]
-!et
-where we have redefined the error as 
-!bt
-\[
-\mathrm{\overline{err}}_m=\frac{1}{n}\frac{\sum_{i=0}^{n-1}w_i^mI(y_i\ne G(x_i)}{\sum_{i=0}^{n-1}w_i^m},
-\]
-!et
-which leads to an update of
-!bt
-\[
-f_m(x) = f_{m-1}(x) +\beta_m G_m(x).
-\]
-!et
-This leads to the new weights
-!bt
-\[
-w_i^{m+1} = w_i^m \exp{(-y_i\beta_m G_m(x_i))}
-\]
-!et
-
-
-!split
-===== Adaptive boosting: AdaBoost, Basic Algorithm =====
-
-The algorithm here is rather straightforward. Assume that our weak
-classifier is a decision tree and we consider a binary set of outputs
-with $y_i \in \{-1,1\}$ and $i=0,1,2,\dots,n-1$ as our set of
-observations. Our design matrix is given in terms of the
-feature/predictor vectors
-$\bm{X}=[\bm{x}_0\bm{x}_1\dots\bm{x}_{p-1}]$. Finally, we define also a
-classifier determined by our data via a function $G(x)$. This function tells us how well we are able to classify our outputs/targets $\bm{y}$. 
-
-We have already defined the misclassification error $\mathrm{err}$ as
-!bt
-\[
-\mathrm{err}=\frac{1}{n}\sum_{i=0}^{n-1}I(y_i\ne G(x_i)),
-\]
-!et
-where the function $I()$ is one if we misclassify and zero if we classify correctly. 
-
-!split
-===== Basic Steps of AdaBoost =====
-
-With the above definitions we are now ready to set up the algorithm for AdaBoost.
-The basic idea is to set up weights which will be used to scale the correctly classified and the misclassified cases.
-o We start by initializing all weights to $w_i = 1/n$, with $i=0,1,2,\dots n-1$. It is easy to see that we must have $\sum_{i=0}^{n-1}w_i = 1$.
-o We rewrite the misclassification error as 
-!bt
-\[
-\mathrm{\overline{err}}_m=\frac{\sum_{i=0}^{n-1}w_i^m I(y_i\ne G(x_i))}{\sum_{i=0}^{n-1}w_i},
-\]
-!et
-o Then we start looping over all attempts at classifying, namely we start an iterative process for $m=1:M$, where $M$ is the final number of classifications. Our given classifier could for example be a plain decision tree.
-  o Fit then a given classifier to the training set using the weights $w_i$.
-  o Compute then $\mathrm{err}$ and figure out which events are classified properly and which are classified wrongly.
-  o Define a quantity $\alpha_{m} = \log{(1-\mathrm{\overline{err}}_m)/\mathrm{\overline{err}}_m}$
-  o Set the new weights to $w_i = w_i\times \exp{(\alpha_m I(y_i\ne G(x_i)}$.
-o Compute the new classifier $G(x)= \sum_{i=0}^{n-1}\alpha_m I(y_i\ne G(x_i)$.
-
-For the iterations with $m \le 2$ the weights are modified
-individually at each steps. The observations which were misclassified
-at iteration $m-1$ have a weight which is larger than those which were
-classified properly. As this proceeds, the observations which were
-difficult to classifiy correctly are given a larger influence. Each
-new classification step $m$ is then forced to concentrate on those
-observations that are missed in the previous iterations.
-
-
-
-!split
-===== AdaBoost Examples =====
-
-Using _Scikit-Learn_ it is easy to apply the adaptive boosting algorithm, as done here.
-
-!bc pycod
-from sklearn.ensemble import AdaBoostClassifier
-
-ada_clf = AdaBoostClassifier(
-    DecisionTreeClassifier(max_depth=2), n_estimators=200,
-    algorithm="SAMME.R", learning_rate=0.01, random_state=42)
-ada_clf.fit(X_train, y_train)
-y_pred = ada_clf.predict(X_test)
-skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
-plt.show()
-y_probas = ada_clf.predict_proba(X_test)
-skplt.metrics.plot_roc(y_test, y_probas)
-plt.show()
-skplt.metrics.plot_cumulative_gain(y_test, y_probas)
-plt.show()
-!ec
-
-!split
-===== Making an  ADAboost code yourself =====
+The change of basis, from $x\rightarrow z=\phi(x)$ leads to the same
+type of equations to be solved, except that we need to introduce, for
+example, a polynomial transformation to a two-dimensional training
+set.
 
 !bc pycod
 import numpy as np
+import os
 
-class DecisionStump:
-    def fit(self, X, y, weights):
-        m, n = X.shape
-        self.alpha = 0
-        self.threshold = None
-        self.polarity = 1
+np.random.seed(42)
 
-        min_error = float('inf')
-
-        for feature in range(n):
-            feature_values = np.unique(X[:, feature])
-
-            for threshold in feature_values:
-                for polarity in [1, -1]:
-                    predictions = np.ones(m)
-                    predictions[X[:, feature] < threshold] = -1
-                    predictions *= polarity
-
-                    error = sum(weights[predictions != y])
-
-                    if error < min_error:
-                        min_error = error
-                        self.alpha = 0.5 * np.log((1 - error) / (error + 1e-10))
-                        self.threshold = threshold
-                        self.feature_index = feature
-                        self.polarity = polarity
-
-    def predict(self, X):
-        m = X.shape[0]
-        predictions = np.ones(m)
-        if self.polarity == 1:
-            predictions[X[:, self.feature_index] < self.threshold] = -1
-        else:
-            predictions[X[:, self.feature_index] >= self.threshold] = -1
-        return predictions
-
-class AdaBoost:
-    def fit(self, X, y, n_estimators):
-        m = X.shape[0]
-        self.alphas = []
-        self.models = []
-
-        weights = np.ones(m) / m
-
-        for _ in range(n_estimators):
-            stump = DecisionStump()
-            stump.fit(X, y, weights)
-            predictions = stump.predict(X)
-
-            error = sum(weights[predictions != y])
-            if error == 0:
-                break
-
-            self.models.append(stump)
-            self.alphas.append(stump.alpha)
-
-            weights *= np.exp(-stump.alpha * y * predictions)
-            weights /= np.sum(weights)
-
-    def predict(self, X):
-        final_predictions = np.zeros(X.shape[0])
-        for alpha, model in zip(self.alphas, self.models):
-            final_predictions += alpha * model.predict(X)
-        return np.sign(final_predictions)
-
-# Example dataset (X, y)
-X = np.array([[1], [2], [3], [4], [5], [6], [7], [8], [9], [10]])
-y = np.array([-1, -1, -1, -1, 1, 1, 1, 1, 1, 1])  # Labels must be -1 or 1
-
-# Train AdaBoost
-ada = AdaBoost()
-ada.fit(X, y, n_estimators=10)
-
-# Predictions
-predictions = ada.predict(X)
-print("Predictions:", predictions)
-
-!ec
-
-!split
-===== Gradient boosting: Basics with Steepest Descent/Functional Gradient Descent =====
-
-Gradient boosting is again a similar technique to Adaptive boosting,
-it combines so-called weak classifiers or regressors into a strong
-method via a series of iterations.
-
-In order to understand the method, let us illustrate its basics by
-bringing back the essential steps in linear regression, where our cost
-function was the least squares function.
-
-!split
-===== The Squared-Error again! Steepest Descent =====
-
-We start again with our cost function ${\cal C}(\bm{y}m\bm{f})=\sum_{i=0}^{n-1}{\cal L}(y_i, f(x_i))$ where we want to minimize
-This means that for every iteration, we need to optimize
-
-!bt
-\[
-(\hat{\bm{f}}) = \mathrm{argmin}_{\bm{f}}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i-f(x_i))^2.
-\]
-!et
-
-We define a real function $h_m(x)$ that defines our final function $f_M(x)$ as
-!bt
-\[
-f_M(x) = \sum_{m=0}^M h_m(x).
-\]
-!et
-
-In the steepest decent approach we approximate $h_m(x) = -\rho_m g_m(x)$, where $\rho_m$ is a scalar and $g_m(x)$ the gradient defined as
-!bt
-\[
-g_m(x_i) = \left[ \frac{\partial {\cal L}(y_i, f(x_i))}{\partial f(x_i)}\right]_{f(x_i)=f_{m-1}(x_i)}.
-\]
-!et
-
-With the new gradient we can update $f_m(x) = f_{m-1}(x) -\rho_m g_m(x)$. Using the above squared-error function we see that
-the gradient is $g_m(x_i) = -2(y_i-f(x_i))$.
-
-Choosing $f_0(x)=0$ we obtain $g_m(x) = -2y_i$ and inserting this into the minimization problem for the cost function we have
-!bt
-\[
-(\rho_1) = \mathrm{argmin}_{\rho}\hspace{0.1cm} \sum_{i=0}^{n-1}(y_i+2\rho y_i)^2.
-\]
-!et
-
-!split
-===== Steepest Descent Example =====
-
-Optimizing with respect to $\rho$ we obtain (taking the derivative) that $\rho_1 = -1/2$. We have then that
-!bt
-\[
-f_1(x) = f_{0}(x) -\rho_1 g_1(x)=-y_i.
-\]
-!et
-We can then proceed and compute
-!bt
-\[
-g_2(x_i) = \left[ \frac{\partial {\cal L}(y_i, f(x_i))}{\partial f(x_i)}\right]_{f(x_i)=f_{1}(x_i)=y_i}=-4y_i,
-\]
-!et
-and find a new value for $\rho_2=-1/2$ and continue till we have reached $m=M$. We can modify the steepest descent method, or steepest boosting, by introducing what is called _gradient boosting_. 
-
-!split
-===== Gradient Boosting, algorithm =====
-
-Steepest descent is however not much used, since it only optimizes $f$ at a fixed set of $n$ points,
-so we do not learn a function that can generalize. However, we can modify the algorithm by
-fitting a weak learner to approximate the negative gradient signal. 
-
-Suppose we have a cost function $C(f)=\sum_{i=0}^{n-1}L(y_i, f(x_i))$ where $y_i$ is our target and $f(x_i)$ the function which is meant to model $y_i$. The above cost function could be our standard  squared-error  function
-!bt
-\[
-C(\bm{y},\bm{f})=\sum_{i=0}^{n-1}(y_i-f(x_i))^2.
-\]
-!et
-
-The way we proceed in an iterative fashion is to
-o Initialize our estimate $f_0(x)$.
-o For $m=1:M$, we
-  o compute the negative gradient vector $\bm{u}_m = -\partial C(\bm{y},\bm{f})/\partial \bm{f}(x)$ at $f(x) = f_{m-1}(x)$;
-  o fit the so-called base-learner to the negative gradient $h_m(u_m,x)$;
-  o update the estimate $f_m(x) = f_{m-1}(x)+h_m(u_m,x)$;
-o The final estimate is then $f_M(x) = \sum_{m=1}^M h_m(u_m,x)$.
-
-
-
-!split
-===== Gradient Boosting, Examples of Regression =====
-!bc pycod
+# To plot pretty figures
+import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingRegressor
-import scikitplot as skplt
-from sklearn.metrics import mean_squared_error
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
 
-n = 100
-maxdegree = 6
 
-# Make data set.
-x = np.linspace(-3, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+from sklearn.svm import SVC
+from sklearn import datasets
 
-error = np.zeros(maxdegree)
-bias = np.zeros(maxdegree)
-variance = np.zeros(maxdegree)
-polydegree = np.zeros(maxdegree)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 
-for degree in range(1,maxdegree):
-    model = GradientBoostingRegressor(max_depth=degree, n_estimators=100, learning_rate=1.0)  
-    model.fit(X_train,y_train)
-    y_pred = model.predict(X_test)
-    polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**2) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred))**2 )
-    variance[degree] = np.mean( np.var(y_pred) )
-    print('Max depth:', degree)
-    print('Error:', error[degree])
-    print('Bias^2:', bias[degree])
-    print('Var:', variance[degree])
-    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
 
-plt.xlim(1,maxdegree-1)
-plt.plot(polydegree, error, label='Error')
-plt.plot(polydegree, bias, label='bias')
-plt.plot(polydegree, variance, label='Variance')
-plt.legend()
-save_fig("gdregression")
+X1D = np.linspace(-4, 4, 9).reshape(-1, 1)
+X2D = np.c_[X1D, X1D**2]
+y = np.array([0, 0, 1, 1, 1, 1, 1, 0, 0])
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.plot(X1D[:, 0][y==0], np.zeros(4), "bs")
+plt.plot(X1D[:, 0][y==1], np.zeros(5), "g^")
+plt.gca().get_yaxis().set_ticks([])
+plt.xlabel(r"$x_1$", fontsize=20)
+plt.axis([-4.5, 4.5, -0.2, 0.2])
+
+plt.subplot(122)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.axvline(x=0, color='k')
+plt.plot(X2D[:, 0][y==0], X2D[:, 1][y==0], "bs")
+plt.plot(X2D[:, 0][y==1], X2D[:, 1][y==1], "g^")
+plt.xlabel(r"$x_1$", fontsize=20)
+plt.ylabel(r"$x_2$", fontsize=20, rotation=0)
+plt.gca().get_yaxis().set_ticks([0, 4, 8, 12, 16])
+plt.plot([-4.5, 4.5], [6.5, 6.5], "r--", linewidth=3)
+plt.axis([-4.5, 4.5, -1, 17])
+plt.subplots_adjust(right=1)
 plt.show()
+
 !ec
 
 
+
 !split
-===== Gradient Boosting, Classification Example =====
+===== The equations =====
+
+Suppose we define a polynomial transformation of degree two only. We define a vector $\bm{x}_i=[x_i,y_i]$ and have
+!bt
+\[
+\bm{z}_i^T = \phi(\bm{x}_i)^T =\left[1, \sqrt{2}x_i, \sqrt{2}y_i, x_i^2, y_i^2, \sqrt{2}x_iy_i\right].
+\]
+!et
+
+With our new basis, the equations we solved earlier are basically the same, that is we have now (without the slack option for simplicity)
+!bt
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{z}_i^T\bm{z}_j,
+\]
+!et
+subject to the constraints $\lambda_i\geq 0$, $\sum_i\lambda_iy_i=0$, and for the support vectors
+!bt
+\[
+y_i(\bm{z}_i^T\bm{w}+b)= 1 \hspace{0.1cm}\forall i,
+\]
+!et
+from which we also find $b$.
+To compute $\bm{z}_i^T\bm{z}_j$ we define the kernel $K(\bm{x}_i,\bm{x}_j)$ as
+!bt
+\[
+K(\bm{x}_i,\bm{x}_j)=\bm{z}_i^T\bm{z}_j= \phi(\bm{x}_i)^T\phi(\bm{x}_j).
+\]
+!et
+For the above example, the kernel reads
+!bt
+\[
+K(\bm{x}_i,\bm{x}_j)=[1, \sqrt{2}x_i, \sqrt{2}y_i, x_i^2, y_i^2, \sqrt{2}x_iy_i]\begin{bmatrix} 1\\ \sqrt{2}x_j \\ \sqrt{2}y_j \\ x_j^2\\ y_i^2\\ \sqrt{2}x_jy_j \end{bmatrix}=1+2x_ix_j+2y_iy_j+(x_ix_j)^2+(y_iy_j)^2+2x_ix_jy_iy_j.
+\]
+!et
+
+We note that this dot product can be rewritten as
+!bt
+\[
+K(\bm{x}_i,\bm{x}_j)=[1+\bm{x}_i^T\bm{x}_j]^d,
+\]
+!et
+where $d=2$ in our case and $\bm{x}_i=[x_i,y_i]$ and $\bm{x}_j=[x_j,y_j]$.
+To compute the last equation is however inefficient from a computational stand.
+Instead of computing the last equation for the kernel, we simply compute
+the dot product $(\bm{x}_i^T\bm{x}_j)^2$.
+This leads to the so-called
+kernel trick.
+
+!split
+===== The problem to solve =====
+
+Using our definition of the kernel, we can rewrite again the Lagrangian
+!bt
+\[
+{\cal L}=\sum_i\lambda_i-\frac{1}{2}\sum_{ij}^n\lambda_i\lambda_jy_iy_j\bm{z}_i^T\bm{z}_j,
+\]
+!et
+subject to the constraints $\lambda_i\geq 0$, $\sum_i\lambda_iy_i=0$ in terms of a convex optimization problem
+!bt
+\[
+\frac{1}{2} \bm{\lambda}^T\begin{bmatrix} y_1y_1K(\bm{x}_1,\bm{x}_1) & y_1y_2K(\bm{x}_1,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_1,\bm{x}_n) \\
+y_2y_1K(\bm{x}_2,\bm{x}_1) & y_2y_2(\bm{x}_2,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_2,\bm{x}_n) \\
+\dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots \\
+y_ny_1K(\bm{x}_n,\bm{x}_1) & y_ny_2K(\bm{x}_n\bm{x}_2) & \dots & \dots & y_ny_nK(\bm{x}_n,\bm{x}_n) \\
+\end{bmatrix}\bm{\lambda}-\mathbb{1}\bm{\lambda}, 
+\]
+!et
+subject to $\bm{y}^T\bm{\lambda}=0$. Here we defined the vectors $\bm{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
+$\bm{y}=[y_1,y_2,\dots,y_n]$. 
+If we add the slack constants this leads to the additional constraint $0\leq \lambda_i \leq C$.
+
+!split
+===== Tailoring the equations to the usage of CVXOPT =====
+
+We can rewrite this (see the solutions below) in terms of a convex optimization problem of the type
+!bt
+\begin{align*}
+    &\mathrm{min}_{\lambda}\hspace{0.2cm} \frac{1}{2}\bm{\lambda}^T\bm{P}\bm{\lambda}+\bm{q}^T\bm{\lambda},\\ \nonumber
+    &\mathrm{s.t} \hspace{0.2cm} \bm{G}\bm{\lambda} \preceq \bm{h} \hspace{0.2cm} \wedge \bm{A}\bm{\lambda}=f.
+\end{align*}
+!et
+Below we discuss how to solve these equations. Here we note that the matrix $\bm{P}$ has matrix elements $p_{ij}=y_iy_jK(\bm{x}_i,\bm{x}_j)$.
+Given a kernel $K$ and the targets $y_i$ this matrix is easy to set up. The constraint $\bm{y}^T\bm{\lambda}=0$ leads to $f=0$ and $\bm{A}=\bm{y}$. How to set up the matrix $\bm{G}$ is discussed later. Here note that the inequalities $0\leq \lambda_i \leq C$ can be split up into
+$0\leq \lambda_i$ and $\lambda_i \leq C$. These two inequalities define then the matrix $\bm{G}$ and the vector $\bm{h}$.
+
+
+!split
+===== Different kernels and Mercer's theorem =====
+
+There are several popular kernels being used. These are
+o Linear: $K(\bm{x},\bm{y})=\bm{x}^T\bm{y}$,
+o Polynomial: $K(\bm{x},\bm{y})=(\bm{x}^T\bm{y}+\gamma)^d$,
+o Gaussian Radial Basis Function: $K(\bm{x},\bm{y})=\exp{\left(-\gamma\vert\vert\bm{x}-\bm{y}\vert\vert^2\right)}$,
+o Tanh: $K(\bm{x},\bm{y})=\tanh{(\bm{x}^T\bm{y}+\gamma)}$,
+and many other ones.
+
+An important theorem for us is "Mercer's
+theorem":"https://en.wikipedia.org/wiki/Mercer%27s_theorem".  The
+theorem states that if a kernel function $K$ is symmetric, continuous
+and leads to a positive semi-definite matrix $\bm{P}$ then there
+exists a function $\phi$ that maps $\bm{x}_i$ and $\bm{x}_j$ into
+another space (possibly with much higher dimensions) such that
+
+!bt
+\[
+K(\bm{x}_i,\bm{x}_j)=\phi(\bm{x}_i)^T\phi(\bm{x}_j).
+\]
+!et
+
+So you can use $K$ as a kernel since you know $\phi$ exists, even if
+you don’t know what $\phi$ is. 
+
+Note that some frequently used kernels (such as the Sigmoid kernel)
+don’t respect all of Mercer’s conditions, yet they generally work well
+in practice.
+
+
+!split
+===== The moons example ("Adapted from Geron, chapter 5":"https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/") =====
 !bc pycod
-import matplotlib.pyplot as plt
+from __future__ import division, print_function, unicode_literals
+
 import numpy as np
-from sklearn.model_selection import  train_test_split 
-from sklearn.datasets import load_breast_cancer
-import scikitplot as skplt
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.model_selection import cross_validate
+np.random.seed(42)
 
-# Load the data
-cancer = load_breast_cancer()
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
 
-X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-print(X_train.shape)
-print(X_test.shape)
-#now scale the data
+
+from sklearn.svm import SVC
+from sklearn import datasets
+
+
+
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+from sklearn.svm import LinearSVC
 
-gd_clf = GradientBoostingClassifier(max_depth=3, n_estimators=100, learning_rate=1.0)  
-gd_clf.fit(X_train_scaled, y_train)
-#Cross validation
-accuracy = cross_validate(gd_clf,X_test_scaled,y_test,cv=10)['test_score']
-print(accuracy)
-print("Test set accuracy with Gradient boosting and scaled data: {:.2f}".format(gd_clf.score(X_test_scaled,y_test)))
 
-import scikitplot as skplt
-y_pred = gd_clf.predict(X_test_scaled)
-skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
-save_fig("gdclassiffierconfusion")
+from sklearn.datasets import make_moons
+X, y = make_moons(n_samples=100, noise=0.15, random_state=42)
+
+def plot_dataset(X, y, axes):
+    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "bs")
+    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "g^")
+    plt.axis(axes)
+    plt.grid(True, which='both')
+    plt.xlabel(r"$x_1$", fontsize=20)
+    plt.ylabel(r"$x_2$", fontsize=20, rotation=0)
+
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
 plt.show()
-y_probas = gd_clf.predict_proba(X_test_scaled)
-skplt.metrics.plot_roc(y_test, y_probas)
-save_fig("gdclassiffierroc")
+
+from sklearn.datasets import make_moons
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures
+
+polynomial_svm_clf = Pipeline([
+        ("poly_features", PolynomialFeatures(degree=3)),
+        ("scaler", StandardScaler()),
+        ("svm_clf", LinearSVC(C=10, loss="hinge", random_state=42))
+    ])
+
+polynomial_svm_clf.fit(X, y)
+
+def plot_predictions(clf, axes):
+    x0s = np.linspace(axes[0], axes[1], 100)
+    x1s = np.linspace(axes[2], axes[3], 100)
+    x0, x1 = np.meshgrid(x0s, x1s)
+    X = np.c_[x0.ravel(), x1.ravel()]
+    y_pred = clf.predict(X).reshape(x0.shape)
+    y_decision = clf.decision_function(X).reshape(x0.shape)
+    plt.contourf(x0, x1, y_pred, cmap=plt.cm.brg, alpha=0.2)
+    plt.contourf(x0, x1, y_decision, cmap=plt.cm.brg, alpha=0.1)
+
+plot_predictions(polynomial_svm_clf, [-1.5, 2.5, -1, 1.5])
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+
 plt.show()
-skplt.metrics.plot_cumulative_gain(y_test, y_probas)
-save_fig("gdclassiffiercgain")
+
+
+from sklearn.svm import SVC
+
+poly_kernel_svm_clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm_clf", SVC(kernel="poly", degree=3, coef0=1, C=5))
+    ])
+poly_kernel_svm_clf.fit(X, y)
+
+poly100_kernel_svm_clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm_clf", SVC(kernel="poly", degree=10, coef0=100, C=5))
+    ])
+poly100_kernel_svm_clf.fit(X, y)
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plot_predictions(poly_kernel_svm_clf, [-1.5, 2.5, -1, 1.5])
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+plt.title(r"$d=3, r=1, C=5$", fontsize=18)
+
+plt.subplot(122)
+plot_predictions(poly100_kernel_svm_clf, [-1.5, 2.5, -1, 1.5])
+plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+plt.title(r"$d=10, r=100, C=5$", fontsize=18)
+
 plt.show()
+
+def gaussian_rbf(x, landmark, gamma):
+    return np.exp(-gamma * np.linalg.norm(x - landmark, axis=1)**2)
+
+gamma = 0.3
+
+x1s = np.linspace(-4.5, 4.5, 200).reshape(-1, 1)
+x2s = gaussian_rbf(x1s, -2, gamma)
+x3s = gaussian_rbf(x1s, 1, gamma)
+
+XK = np.c_[gaussian_rbf(X1D, -2, gamma), gaussian_rbf(X1D, 1, gamma)]
+yk = np.array([0, 0, 1, 1, 1, 1, 1, 0, 0])
+
+plt.figure(figsize=(11, 4))
+
+plt.subplot(121)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.scatter(x=[-2, 1], y=[0, 0], s=150, alpha=0.5, c="red")
+plt.plot(X1D[:, 0][yk==0], np.zeros(4), "bs")
+plt.plot(X1D[:, 0][yk==1], np.zeros(5), "g^")
+plt.plot(x1s, x2s, "g--")
+plt.plot(x1s, x3s, "b:")
+plt.gca().get_yaxis().set_ticks([0, 0.25, 0.5, 0.75, 1])
+plt.xlabel(r"$x_1$", fontsize=20)
+plt.ylabel(r"Similarity", fontsize=14)
+plt.annotate(r'$\mathbf{x}$',
+             xy=(X1D[3, 0], 0),
+             xytext=(-0.5, 0.20),
+             ha="center",
+             arrowprops=dict(facecolor='black', shrink=0.1),
+             fontsize=18,
+            )
+plt.text(-2, 0.9, "$x_2$", ha="center", fontsize=20)
+plt.text(1, 0.9, "$x_3$", ha="center", fontsize=20)
+plt.axis([-4.5, 4.5, -0.1, 1.1])
+
+plt.subplot(122)
+plt.grid(True, which='both')
+plt.axhline(y=0, color='k')
+plt.axvline(x=0, color='k')
+plt.plot(XK[:, 0][yk==0], XK[:, 1][yk==0], "bs")
+plt.plot(XK[:, 0][yk==1], XK[:, 1][yk==1], "g^")
+plt.xlabel(r"$x_2$", fontsize=20)
+plt.ylabel(r"$x_3$  ", fontsize=20, rotation=0)
+plt.annotate(r'$\phi\left(\mathbf{x}\right)$',
+             xy=(XK[3, 0], XK[3, 1]),
+             xytext=(0.65, 0.50),
+             ha="center",
+             arrowprops=dict(facecolor='black', shrink=0.1),
+             fontsize=18,
+            )
+plt.plot([-0.1, 1.1], [0.57, -0.1], "r--", linewidth=3)
+plt.axis([-0.1, 1.1, -0.1, 1.1])
+    
+plt.subplots_adjust(right=1)
+
+plt.show()
+
+
+x1_example = X1D[3, 0]
+for landmark in (-2, 1):
+    k = gaussian_rbf(np.array([[x1_example]]), np.array([[landmark]]), gamma)
+    print("Phi({}, {}) = {}".format(x1_example, landmark, k))
+
+rbf_kernel_svm_clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm_clf", SVC(kernel="rbf", gamma=5, C=0.001))
+    ])
+rbf_kernel_svm_clf.fit(X, y)
+
+
+from sklearn.svm import SVC
+
+gamma1, gamma2 = 0.1, 5
+C1, C2 = 0.001, 1000
+hyperparams = (gamma1, C1), (gamma1, C2), (gamma2, C1), (gamma2, C2)
+
+svm_clfs = []
+for gamma, C in hyperparams:
+    rbf_kernel_svm_clf = Pipeline([
+            ("scaler", StandardScaler()),
+            ("svm_clf", SVC(kernel="rbf", gamma=gamma, C=C))
+        ])
+    rbf_kernel_svm_clf.fit(X, y)
+    svm_clfs.append(rbf_kernel_svm_clf)
+
+plt.figure(figsize=(11, 7))
+
+for i, svm_clf in enumerate(svm_clfs):
+    plt.subplot(221 + i)
+    plot_predictions(svm_clf, [-1.5, 2.5, -1, 1.5])
+    plot_dataset(X, y, [-1.5, 2.5, -1, 1.5])
+    gamma, C = hyperparams[i]
+    plt.title(r"$\gamma = {}, C = {}$".format(gamma, C), fontsize=16)
+
+plt.show()
+
 !ec
 
 
-!split
-===== XGBoost: Extreme Gradient Boosting =====
-
-
-"XGBoost":"https://github.com/dmlc/xgboost" or Extreme Gradient
-Boosting, is an optimized distributed gradient boosting library
-designed to be highly efficient, flexible and portable. It implements
-machine learning algorithms under the Gradient Boosting
-framework. XGBoost provides a parallel tree boosting that solve many
-data science problems in a fast and accurate way. See the "article by Chen and Guestrin":"https://arxiv.org/abs/1603.02754".
-
-The authors design and build a highly scalable end-to-end tree
-boosting system. It has  a theoretically justified weighted quantile
-sketch for efficient proposal calculation. It introduces a novel sparsity-aware algorithm for parallel tree learning and an effective cache-aware block structure for out-of-core tree learning.
-
-It is now the algorithm which wins essentially all ML competitions!!!
 
 !split
-===== Regression Case =====
+=====  Mathematical optimization of convex functions =====
+
+A mathematical (quadratic) optimization problem, or just optimization problem, has the form
+!bt
+\begin{align*}
+    &\mathrm{min}_{\lambda}\hspace{0.2cm} \frac{1}{2}\bm{\lambda}^T\bm{P}\bm{\lambda}+\bm{q}^T\bm{\lambda},\\ \nonumber
+    &\mathrm{subject\hspace{0.1cm}to} \hspace{0.2cm} \bm{G}\bm{\lambda} \preceq \bm{h} \wedge  \bm{A}\bm{\lambda}=f.
+\end{align*}
+!et
+subject to some constraints for say a selected set $i=1,2,\dots, n$.
+In our case we are optimizing with respect to the Lagrangian multipliers $\lambda_i$, and the
+vector $\bm{\lambda}=[\lambda_1, \lambda_2,\dots, \lambda_n]$ is the optimization variable we are dealing with.
+
+In our case we are particularly interested in a class of optimization problems called convex optmization problems. 
+In our discussion on gradient descent methods we discussed at length the definition of a convex function. 
+
+Convex optimization problems play a central role in applied mathematics and we recommend strongly "Boyd and Vandenberghe's text on the topics":"http://web.stanford.edu/~boyd/cvxbook/".
+
+
+
+!split
+===== How do we solve these problems? =====
+
+If we use Python as programming language and wish to venture beyond
+_scikit-learn_, _tensorflow_ and similar software which makes our
+lives so much easier, we need to dive into the wonderful world of
+quadratic programming. We can, if we wish, solve the minimization
+problem using standard gradient methods or conjugate gradient
+methods. However, these methods tend to exhibit a rather slow
+converge. So, welcome to the promised land of quadratic programming.
+
+The functions we need are contained in the quadratic programming package _CVXOPT_ and we need to import it together with _numpy_ as
 
 !bc pycod
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-import xgboost as xgb
-import scikitplot as skplt
-from sklearn.metrics import mean_squared_error
-
-n = 100
-maxdegree = 6
-
-# Make data set.
-x = np.linspace(-3, 3, n).reshape(-1, 1)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
-
-error = np.zeros(maxdegree)
-bias = np.zeros(maxdegree)
-variance = np.zeros(maxdegree)
-polydegree = np.zeros(maxdegree)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-
-for degree in range(maxdegree):
-    model =  xgb.XGBRegressor(objective ='reg:squarederror', colsaobjective ='reg:squarederror', colsample_bytree = 0.3, learning_rate = 0.1,max_depth = degree, alpha = 10, n_estimators = 200)
-
-    model.fit(X_train,y_train)
-    y_pred = model.predict(X_test)
-    polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**2) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred))**2 )
-    variance[degree] = np.mean( np.var(y_pred) )
-    print('Max depth:', degree)
-    print('Error:', error[degree])
-    print('Bias^2:', bias[degree])
-    print('Var:', variance[degree])
-    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
-
-plt.xlim(1,maxdegree-1)
-plt.plot(polydegree, error, label='Error')
-plt.plot(polydegree, bias, label='bias')
-plt.plot(polydegree, variance, label='Variance')
-plt.legend()
-plt.show()
-
+import numpy
+import cvxopt
 !ec
 
-!split
-===== Xgboost on the Cancer Data =====
-
-As you will see from the confusion matrix below, XGBoots does an excellent job on the Wisconsin cancer data and outperforms essentially all agorithms we have discussed till now. 
-!bc pycod
-
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import  train_test_split 
-from sklearn.datasets import load_breast_cancer
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import cross_validate
-import scikitplot as skplt
-import xgboost as xgb
-# Load the data
-cancer = load_breast_cancer()
-
-X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-print(X_train.shape)
-print(X_test.shape)
-#now scale the data
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-xg_clf = xgb.XGBClassifier()
-xg_clf.fit(X_train_scaled,y_train)
-
-y_test = xg_clf.predict(X_test_scaled)
-
-print("Test set accuracy with Gradient Boosting and scaled data: {:.2f}".format(xg_clf.score(X_test_scaled,y_test)))
-
-import scikitplot as skplt
-y_pred = xg_clf.predict(X_test_scaled)
-skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
-save_fig("xdclassiffierconfusion")
-plt.show()
-y_probas = xg_clf.predict_proba(X_test_scaled)
-skplt.metrics.plot_roc(y_test, y_probas)
-save_fig("xdclassiffierroc")
-plt.show()
-skplt.metrics.plot_cumulative_gain(y_test, y_probas)
-save_fig("gdclassiffiercgain")
-plt.show()
-
-
-xgb.plot_tree(xg_clf,num_trees=0)
-plt.rcParams['figure.figsize'] = [50, 10]
-save_fig("xgtree")
-plt.show()
-
-xgb.plot_importance(xg_clf)
-plt.rcParams['figure.figsize'] = [5, 5]
-save_fig("xgparams")
-plt.show()
-
-!ec
-
+This will make our life much easier. You don't need to write your own optimizer.
 
 
 !split
-===== Gradient boosting, making our own code for a regression case =====
+===== A simple example =====
 
+We remind ourselves about the general problem we want to solve
+!bt
+\begin{align*}
+    &\mathrm{min}_{x}\hspace{0.2cm} \frac{1}{2}\bm{x}^T\bm{P}\bm{x}+\bm{q}^T\bm{x},\\ \nonumber
+    &\mathrm{s.t.} \hspace{0.2cm} \bm{G}\bm{x} \preceq \bm{h} \wedge  \bm{A}\bm{x}=f.
+\end{align*}
+!et
+_Note_: we use _s.t._ for subject to. 
+
+Let us show how to perform the optmization using a simple case. Assume we want to optimize the following problem
+!bt
+\begin{align*}
+    &\mathrm{min}_{x}\hspace{0.2cm} \frac{1}{2}x^2+5x+3y \\ \nonumber
+    &\mathrm{s.t.} \\ \nonumber
+    &x, y \geq 0 \\ \nonumber
+    &x+3y  \geq 15 \\ \nonumber
+    &2x+5y  \leq  100 \\ \nonumber
+    &3x+4y  \leq  80.  \\ \nonumber
+\end{align*}
+!et
+The minimization problem can be rewritten in terms of vectors and matrices as (with $x$ and $y$ being the unknowns)
+!bt
+\[
+\frac{1}{2}\begin{bmatrix} x\\ y \end{bmatrix}^T   \begin{bmatrix} 1 & 0\\ 0 & 0  \end{bmatrix}  \begin{bmatrix} x \\ y \end{bmatrix}  + \begin{bmatrix}5\\ 3  \end{bmatrix}^T \begin{bmatrix}x \\ y  \end{bmatrix}.  
+\]
+!et
+Similarly, we can now set up the inequalities (we need to change $\geq$ to $\leq$ by multiplying with $-1$ on bot sides) as the following matrix-vector equation
+!bt
+\[
+\begin{bmatrix} -1 & 0 \\ 0 & -1 \\ -1 & -3 \\ 2 & 5 \\ 3 & 4\end{bmatrix}\begin{bmatrix} x \\ y\end{bmatrix} \preceq \begin{bmatrix}0 \\ 0\\ -15 \\ 100 \\ 80\end{bmatrix}.
+\]
+!et
+We have collapsed all the inequalities into a single matrix $\bm{G}$. We see also that our matrix 
+!bt
+\[
+\bm{P} =\begin{bmatrix} 1 & 0\\ 0 & 0  \end{bmatrix}
+\]
+!et
+is clearly positive semi-definite (all eigenvalues larger or equal zero). 
+Finally, the vector $\bm{h}$ is defined as 
+!bt
+\[
+\bm{h} = \begin{bmatrix}0 \\ 0\\ -15 \\ 100 \\ 80\end{bmatrix}.
+\]
+!et
+
+
+Since we don't have any equalities the matrix $\bm{A}$ is set to zero
+The following code solves the equations for us
 !bc pycod
-import numpy as np
-class DecisionTreeRegressor:
-    def __init__(self, max_depth=3):
-        self.max_depth = max_depth
-        self.tree = None
-    def fit(self, X, y):
-        self.tree = self._grow_tree(X, y)
-    def _grow_tree(self, X, y, depth=0):
-        n_samples, n_features = X.shape
-        if depth < self.max_depth:
-            best_feature, best_threshold = self._best_split(X, y)
-            if best_feature is not None:
-                left_indices = X[:, best_feature] < best_threshold
-                right_indices = X[:, best_feature] >= best_threshold
-                left_child = self._grow_tree(X[left_indices], y[left_indices], depth + 1)
-                right_child = self._grow_tree(X[right_indices], y[right_indices], depth + 1)
-                return (best_feature, best_threshold, left_child, right_child)
-        return np.mean(y)
-    def _best_split(self, X, y):
-        best_mse = float('inf')
-        best_feature, best_threshold = None, None
-        n_samples, n_features = X.shape
-        
-        for feature in range(n_features):
-            thresholds = np.unique(X[:, feature])
-            for threshold in thresholds:
-                left_indices = X[:, feature] < threshold
-                right_indices = X[:, feature] >= threshold
-                if len(y[left_indices]) > 0 and len(y[right_indices]) > 0:
-                    left_mse = np.mean((y[left_indices] - np.mean(y[left_indices])) ** 2)
-                    right_mse = np.mean((y[right_indices] - np.mean(y[right_indices])) ** 2)
-                    mse = (len(y[left_indices]) * left_mse + len(y[right_indices]) * right_mse) / n_samples
-                    
-                    if mse < best_mse:
-                        best_mse = mse
-                        best_feature = feature
-                        best_threshold = threshold
-        return best_feature, best_threshold
-    def predict(self, X):
-        return np.array([self._predict_sample(sample, self.tree) for sample in X])
-    def _predict_sample(self, sample, node):
-        if isinstance(node, tuple):
-            feature, threshold, left_child, right_child = node
-            if sample[feature] < threshold:
-                return self._predict_sample(sample, left_child)
-            else:
-                return self._predict_sample(sample, right_child)
-        return node
-class GradientBoostingRegressor:
-    def __init__(self, n_estimators=100, learning_rate=0.1, max_depth=3):
-        self.n_estimators = n_estimators
-        self.learning_rate = learning_rate
-        self.max_depth = max_depth
-        self.models = []
-    def fit(self, X, y):
-        y_pred = np.zeros(y.shape)
-        for _ in range(self.n_estimators):
-            residuals = y - y_pred
-            model = DecisionTreeRegressor(max_depth=self.max_depth)
-            model.fit(X, residuals)
-            y_pred += self.learning_rate * model.predict(X)
-            self.models.append(model)
-    def predict(self, X):
-        y_pred = np.zeros(X.shape[0])
-        for model in self.models:
-            y_pred += self.learning_rate * model.predict(X)
-        return y_pred
-# Example usage
-if __name__ == "__main__":
-    # Sample data
-    X = np.array([[1], [2], [3], [4], [5]])
-    y = np.array([1.5, 1.7, 3.5, 3.7, 5.0])
-    model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=2)
-    model.fit(X, y)
-    predictions = model.predict(X)
-    print("Predictions:", predictions)
-
+# Import the necessary packages
+import numpy
+from cvxopt import matrix
+from cvxopt import solvers
+P = matrix(numpy.diag([1,0]), tc='d')
+q = matrix(numpy.array([3,4]), tc='d')
+G = matrix(numpy.array([[-1,0],[0,-1],[-1,-3],[2,5],[3,4]]), tc='d')
+h = matrix(numpy.array([0,0,-15,100,80]), tc='d')
+# Construct the QP, invoke solver
+sol = solvers.qp(P,q,G,h)
+# Extract optimal value and solution
+sol['x'] 
+sol['primal objective']
 !ec
 
+!split
+===== Back to the more realistic cases =====
 
+We are now ready to return to our setup of the optmization problem for a more realistic case. Introducing the _slack_ parameter $C$ we have
+!bt
+\[
+\frac{1}{2} \bm{\lambda}^T\begin{bmatrix} y_1y_1K(\bm{x}_1,\bm{x}_1) & y_1y_2K(\bm{x}_1,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_1,\bm{x}_n) \\
+y_2y_1K(\bm{x}_2,\bm{x}_1) & y_2y_2K(\bm{x}_2,\bm{x}_2) & \dots & \dots & y_1y_nK(\bm{x}_2,\bm{x}_n) \\
+\dots & \dots & \dots & \dots & \dots \\
+\dots & \dots & \dots & \dots & \dots \\
+y_ny_1K(\bm{x}_n,\bm{x}_1) & y_ny_2K(\bm{x}_n\bm{x}_2) & \dots & \dots & y_ny_nK(\bm{x}_n,\bm{x}_n) \\
+\end{bmatrix}\bm{\lambda}-\mathbb{I}\bm{\lambda}, 
+\]
+!et
+subject to $\bm{y}^T\bm{\lambda}=0$. Here we defined the vectors $\bm{\lambda} =[\lambda_1,\lambda_2,\dots,\lambda_n]$ and 
+$\bm{y}=[y_1,y_2,\dots,y_n]$. 
+With  the slack constants this leads to the additional constraint $0\leq \lambda_i \leq C$.
+
+
+!split
+===== Setting up the matrices and the problem =====
+
+We have the general problem 
+!bt
+\begin{align*}
+    &\mathrm{min}_{\lambda}\hspace{0.2cm} \frac{1}{2}\bm{\lambda}^T\bm{P}\bm{\lambda}+\bm{q}^T\bm{\lambda},\\ \nonumber
+    &\mathrm{s.t.} \hspace{0.2cm} \bm{G}\bm{\lambda} \preceq \bm{h} \wedge  \bm{A}\bm{\lambda}=f.
+\end{align*}
+!et
+
+
+
+
+o With a given kernel we can thus define the matrix $\bm{P}$.
+o The matrix $\bm{P}$ has matrix elements $p_{ij}=y_iy_jK(\bm{x}_i,\bm{x}_j)$. Given a kernel $K$ and the targets $y_i$ this matrix is easy to set up.
+o The vector $\bm{q}$ has all elements equal to $-1$.
+o The constraint $\bm{y}^T\bm{\lambda}=0$ leads to $f=0$ and $\bm{A}=\bm{y}$.
+o To set up the matrix $\bm{G}$ we note that the inequalities $0\leq \lambda_i \leq C$ can be split up into $0\leq \lambda_i$ and $\lambda_i \leq C$. These two inequalities define then the matrix $\bm{G}$ and the vector $\bm{h}$.
+
+!split
+=====  Setting up $\bm{G}\bm{\lambda} \preceq \bm{h}$ =====
+
+We have two constraints, $0\le \lambda_i$ and $\lambda_i \le C$. To do this we multiply the ones with the constraint
+$\ge$ with $-1$ in order to get $\le$. It means that the problem $\bm{G}\bm{\lambda} \preceq \bm{h}$
+can be written as
+!bt
+\[
+\begin{bmatrix} -1& 0 & 0 & \dots & 0 \\
+0& -1 & 0 & \dots & 0 \\
+0& 0 & -1 & \dots & 0 \\
+\dots& \dots & \dots  & \dots & \dots \\
+0& 0 & 0 & \dots & -1 \\
+1 & 0 & 0 & \dots & 0 \\
+0& 1 & 0 & \dots & 0 \\
+0& 0 & 1 & \dots & 0 \\
+\dots& \dots & \dots  & \dots & \dots \\
+0& 0 & 0 & \dots & 1 \\
+\end{bmatrix}
+\begin{bmatrix} \lambda_1 \\
+\lambda_2 \\
+\lambda_3 \\
+\dots \\
+\lambda_n \\
+\end{bmatrix} \preceq 
+\begin{bmatrix} 0 \\
+0 \\
+0 \\
+\dots \\
+0 \\
+C \\
+C \\
+C \\
+\dots \\
+C \\
+\end{bmatrix}.
+\]
+!et
+
+And then we are ready to go.
+
+!split
+===== SVMs and Regression and multiclass classification =====
+
+More text will be added here. See also "Hastie et al.":"https://www.springer.com/gp/book/9780387848570" section 12.3.
 
 !split
 =====  Summary of course =====
