@@ -12,15 +12,15 @@ DATE: today
   * Work and Discussion of project 3
   * Last weekly exercise
   * Lab sessions at usual times.
-  * For the week of December 2-6, lab sessions atart at 10am and end 4pm, room FØ434, Tuesday and Wednesday
+  * For the week of December 2-6, lab sessions start at 10am and end at 4pm, room FØ434, Tuesday and Wednesday
 !eblock  
 
 !bblock Plans for the lecture Monday 25 November, with video suggestions etc
 o Boosting and gradient boosting and ensemble models
 o Summary of course
 o Readings and Videos:
-  o These lecture notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week48.ipynb"
-  o See also lecture notes from week 47 at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week47.ipynb". The lecture on Monday starts with a repetition on AdaBoost before we move over to gradient boosting with examples
+  o These lecture notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week48/ipynb/week48.ipynb"
+  o See also lecture notes from week 47 at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week47.ipynb". The lecture on Monday starts with a repetition on AdaBoost before we move over to gradient boosting with examples
 #  o Video of lecture at URL:"https://youtu.be/RIHzmLv05DA"
 #  o Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesNovember25.pdf"
   o Video on Decision trees URL:"https://www.youtube.com/watch?v=RmajweUFKvM&ab_channel=Simplilearn"
@@ -29,6 +29,128 @@ o Readings and Videos:
   o Video on Gradient boost, part 1, parts 2-4 follow thereafter URL:"https://www.youtube.com/watch?v=3CC4N4z3GJc"
   o Decision Trees: Rashcka et al chapter 3 pages 86-98, and chapter 7 on Ensemble methods, Voting and Bagging and Gradient Boosting. See also lecture from STK-IN4300, lecture 7 at URL:"https://www.uio.no/studier/emner/matnat/math/STK-IN4300/h20/slides/lecture_7.pdf". 
 !eblock
+
+
+!split
+===== Random Forest Algorithm, reminder from last week =====
+
+
+The algorithm described here can be applied to both classification and regression problems.
+
+We will grow of forest of say $B$ trees.
+o For $b=1:B$
+  o Draw a bootstrap sample from the training data organized in our $\bm{X}$ matrix.
+  o We grow then a random forest tree $T_b$ based on the bootstrapped data by repeating the steps outlined till we reach the maximum node size is reached
+    o we select $m \le p$ variables at random from the $p$ predictors/features
+    o pick the best split point among the $m$ features using for example the CART algorithm and create a new node
+    o split the node into daughter nodes
+o Output then the ensemble of trees $\{T_b\}_1^{B}$ and make predictions for either a regression type of problem or a classification type of problem. 
+
+
+
+!split
+===== Random Forests Compared with other Methods on the Cancer Data =====
+
+
+!bc pycod 
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import BaggingClassifier
+
+# Load the data
+cancer = load_breast_cancer()
+
+X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
+print(X_train.shape)
+print(X_test.shape)
+#define methods
+# Logistic Regression
+logreg = LogisticRegression(solver='lbfgs')
+# Support vector machine
+svm = SVC(gamma='auto', C=100)
+# Decision Trees
+deep_tree_clf = DecisionTreeClassifier(max_depth=None)
+#Scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# Logistic Regression
+logreg.fit(X_train_scaled, y_train)
+print("Test set accuracy Logistic Regression with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Support Vector Machine
+svm.fit(X_train_scaled, y_train)
+print("Test set accuracy SVM with scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+# Decision Trees
+deep_tree_clf.fit(X_train_scaled, y_train)
+print("Test set accuracy with Decision Trees and scaled data: {:.2f}".format(deep_tree_clf.score(X_test_scaled,y_test)))
+
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_validate
+# Data set not specificied
+#Instantiate the model with 500 trees and entropy as splitting criteria
+Random_Forest_model = RandomForestClassifier(n_estimators=500,criterion="entropy")
+Random_Forest_model.fit(X_train_scaled, y_train)
+#Cross validation
+accuracy = cross_validate(Random_Forest_model,X_test_scaled,y_test,cv=10)['test_score']
+print(accuracy)
+print("Test set accuracy with Random Forests and scaled data: {:.2f}".format(Random_Forest_model.score(X_test_scaled,y_test)))
+
+
+import scikitplot as skplt
+y_pred = Random_Forest_model.predict(X_test_scaled)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
+plt.show()
+y_probas = Random_Forest_model.predict_proba(X_test_scaled)
+skplt.metrics.plot_roc(y_test, y_probas)
+plt.show()
+skplt.metrics.plot_cumulative_gain(y_test, y_probas)
+plt.show()
+
+!ec
+
+
+Recall that the cumulative gains curve shows the percentage of the
+overall number of cases in a given category *gained* by targeting a
+percentage of the total number of cases.
+
+Similarly, the receiver operating characteristic curve, or ROC curve,
+displays the diagnostic ability of a binary classifier system as its
+discrimination threshold is varied. It plots the true positive rate against the false positive rate.
+
+
+!split
+===== Compare  Bagging on Trees with Random Forests  =====
+!bc pycod
+bag_clf = BaggingClassifier(
+    DecisionTreeClassifier(splitter="random", max_leaf_nodes=16, random_state=42),
+    n_estimators=500, max_samples=1.0, bootstrap=True, n_jobs=-1, random_state=42)
+!ec
+
+
+
+!bc pycod
+bag_clf.fit(X_train, y_train)
+y_pred = bag_clf.predict(X_test)
+from sklearn.ensemble import RandomForestClassifier
+rnd_clf = RandomForestClassifier(n_estimators=500, max_leaf_nodes=16, n_jobs=-1, random_state=42)
+rnd_clf.fit(X_train, y_train)
+y_pred_rf = rnd_clf.predict(X_test)
+np.sum(y_pred == y_pred_rf) / len(y_pred) 
+!ec
+
+
+
+
+
 
 
 
@@ -1533,6 +1655,7 @@ topics. Together, we will not just predict the future, but create it.
 =====  Best wishes to you all and thanks so much for your heroic efforts this semester =====
 
 FIGURE: [figures/Nebbdyr2.png, width=500 frac=0.6]
+
 
 
 
