@@ -1046,7 +1046,6 @@ plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;Error&#39;</
 plt.plot(polydegree, bias, label=<span style="color: #CD5555">&#39;bias&#39;</span>)
 plt.plot(polydegree, variance, label=<span style="color: #CD5555">&#39;Variance&#39;</span>)
 plt.legend()
-save_fig(<span style="color: #CD5555">&quot;gdregression&quot;</span>)
 plt.show()
 </pre>
 </div>
@@ -1104,14 +1103,11 @@ accuracy = cross_validate(gd_clf,X_test_scaled,y_test,cv=<span style="color: #B4
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
 y_pred = gd_clf.predict(X_test_scaled)
 skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=<span style="color: #8B008B; font-weight: bold">True</span>)
-save_fig(<span style="color: #CD5555">&quot;gdclassiffierconfusion&quot;</span>)
 plt.show()
 y_probas = gd_clf.predict_proba(X_test_scaled)
 skplt.metrics.plot_roc(y_test, y_probas)
-save_fig(<span style="color: #CD5555">&quot;gdclassiffierroc&quot;</span>)
 plt.show()
 skplt.metrics.plot_cumulative_gain(y_test, y_probas)
-save_fig(<span style="color: #CD5555">&quot;gdclassiffiercgain&quot;</span>)
 plt.show()
 </pre>
 </div>
@@ -1146,73 +1142,6 @@ sketch for efficient proposal calculation. It introduces a novel sparsity-aware 
 </p>
 
 <p>It is now the algorithm which wins essentially all ML competitions!!!</p>
-</section>
-
-<section>
-<h2 id="regression-case">Regression Case </h2>
-
-
-<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
-<div class="cell border-box-sizing code_cell rendered">
-  <div class="input">
-    <div class="inner_cell">
-      <div class="input_area">
-        <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.model_selection</span> <span style="color: #8B008B; font-weight: bold">import</span> train_test_split
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">xgboost</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">xgb</span>
-<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
-<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.metrics</span> <span style="color: #8B008B; font-weight: bold">import</span> mean_squared_error
-
-n = <span style="color: #B452CD">100</span>
-maxdegree = <span style="color: #B452CD">6</span>
-
-<span style="color: #228B22"># Make data set.</span>
-x = np.linspace(-<span style="color: #B452CD">3</span>, <span style="color: #B452CD">3</span>, n).reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)
-y = np.exp(-x**<span style="color: #B452CD">2</span>) + <span style="color: #B452CD">1.5</span> * np.exp(-(x-<span style="color: #B452CD">2</span>)**<span style="color: #B452CD">2</span>)+ np.random.normal(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">0.1</span>, x.shape)
-
-error = np.zeros(maxdegree)
-bias = np.zeros(maxdegree)
-variance = np.zeros(maxdegree)
-polydegree = np.zeros(maxdegree)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=<span style="color: #B452CD">0.2</span>)
-
-<span style="color: #8B008B; font-weight: bold">for</span> degree <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(maxdegree):
-    model =  xgb.XGBRegressor(objective =<span style="color: #CD5555">&#39;reg:squarederror&#39;</span>, colsaobjective =<span style="color: #CD5555">&#39;reg:squarederror&#39;</span>, colsample_bytree = <span style="color: #B452CD">0.3</span>, learning_rate = <span style="color: #B452CD">0.1</span>,max_depth = degree, alpha = <span style="color: #B452CD">10</span>, n_estimators = <span style="color: #B452CD">200</span>)
-
-    model.fit(X_train,y_train)
-    y_pred = model.predict(X_test)
-    polydegree[degree] = degree
-    error[degree] = np.mean( np.mean((y_test - y_pred)**<span style="color: #B452CD">2</span>) )
-    bias[degree] = np.mean( (y_test - np.mean(y_pred))**<span style="color: #B452CD">2</span> )
-    variance[degree] = np.mean( np.var(y_pred) )
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Max depth:&#39;</span>, degree)
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Error:&#39;</span>, error[degree])
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Bias^2:&#39;</span>, bias[degree])
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;Var:&#39;</span>, variance[degree])
-    <span style="color: #658b00">print</span>(<span style="color: #CD5555">&#39;{} &gt;= {} + {} = {}&#39;</span>.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
-
-plt.xlim(<span style="color: #B452CD">1</span>,maxdegree-<span style="color: #B452CD">1</span>)
-plt.plot(polydegree, error, label=<span style="color: #CD5555">&#39;Error&#39;</span>)
-plt.plot(polydegree, bias, label=<span style="color: #CD5555">&#39;bias&#39;</span>)
-plt.plot(polydegree, variance, label=<span style="color: #CD5555">&#39;Variance&#39;</span>)
-plt.legend()
-plt.show()
-</pre>
-</div>
-      </div>
-    </div>
-  </div>
-  <div class="output_wrapper">
-    <div class="output">
-      <div class="output_area">
-        <div class="output_subarea output_stream output_stdout output_text">          
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 </section>
 
 <section>
@@ -1257,25 +1186,20 @@ y_test = xg_clf.predict(X_test_scaled)
 <span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">scikitplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">skplt</span>
 y_pred = xg_clf.predict(X_test_scaled)
 skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=<span style="color: #8B008B; font-weight: bold">True</span>)
-save_fig(<span style="color: #CD5555">&quot;xdclassiffierconfusion&quot;</span>)
 plt.show()
 y_probas = xg_clf.predict_proba(X_test_scaled)
 skplt.metrics.plot_roc(y_test, y_probas)
-save_fig(<span style="color: #CD5555">&quot;xdclassiffierroc&quot;</span>)
 plt.show()
 skplt.metrics.plot_cumulative_gain(y_test, y_probas)
-save_fig(<span style="color: #CD5555">&quot;gdclassiffiercgain&quot;</span>)
 plt.show()
 
 
 xgb.plot_tree(xg_clf,num_trees=<span style="color: #B452CD">0</span>)
 plt.rcParams[<span style="color: #CD5555">&#39;figure.figsize&#39;</span>] = [<span style="color: #B452CD">50</span>, <span style="color: #B452CD">10</span>]
-save_fig(<span style="color: #CD5555">&quot;xgtree&quot;</span>)
 plt.show()
 
 xgb.plot_importance(xg_clf)
 plt.rcParams[<span style="color: #CD5555">&#39;figure.figsize&#39;</span>] = [<span style="color: #B452CD">5</span>, <span style="color: #B452CD">5</span>]
-save_fig(<span style="color: #CD5555">&quot;xgparams&quot;</span>)
 plt.show()
 </pre>
 </div>
