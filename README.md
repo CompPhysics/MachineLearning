@@ -103,8 +103,6 @@ possible.
   * _Phone_: +47-48257387
   * _Office_: Department of Physics, room FØ470 
   * _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning.
-* Sigurd k. Huse, s.k.huse@fys.uio.no 
-* Odin Johansen, odin.johansen@fys.uio.no
 * Fahimeh Najafi, fahimeh.najafi@fys.uio.no
 * Mia-Katrin Ose Kvalsund, m.k.o.kvalsund@fys.uio.no
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
@@ -145,9 +143,9 @@ The final number of points is based on the average of all projects (including ev
 
 | Activity | Fraction of total grade |
 |------|-----|
-| First project, _due October 7_ | 1/3 |
-| Second  project, _due November 4_ | 1/3 |
-| Third project, _due December 9_ |  1/3  |
+| First project, _due October 6_ | 1/3 |
+| Second  project, _due November 3_ | 1/3 |
+| Third project, _due December 8_ |  1/3  |
 | Extra Credit (not mandatory),  weekly exercise assignments, 10 in total (due Fridays)| 10% |
 
 
@@ -244,7 +242,7 @@ the weekly reading assignments refer to these two texts.
 - Ian Goodfellow, Yoshua Bengio, and Aaron Courville. The different chapters are available for free at https://www.deeplearningbook.org/. Chapters 2-14 are highly recommended. The lectures follow to a good extent this text.
 - Sebastian Raschka, Yuxi Lie, and Vahid Mirjalili,  Machine Learning with PyTorch and Scikit-Learn at https://www.packtpub.com/product/machine-learning-with-pytorch-and-scikit-learn/9781801819312, see also https://sebastianraschka.com/blog/2022/ml-pytorch-book.html
 
-The text by Raschka et al. is well-adapted to this text and contains many coding examples. 
+The text by Raschka et al. is well-adapted to this course and contains many coding examples. 
 The weekly plans will include reading suggestions from these two textbooks. In addition, you may find the following textbooks interesting.
 
 _Additional textbooks_:
