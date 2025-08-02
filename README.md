@@ -97,7 +97,7 @@ possible.
 ## Instructor information
 
 
-##  Teaching team Fall 2023
+##  Teaching team Fall 2025
 * Karl Henrik Fredly, k.h.fredly@fys.uio.no
 * Morten Hjorth-Jensen, mhjensen@uio.no
   * _Phone_: +47-48257387
