@@ -102,11 +102,11 @@ possible.
   * _Office_: Department of Physics, room FØ470 
   * _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning.
 * Ida Torkjellsdatter Storehaug, i.t.storehaug@fys.uio.no
-* Eivind Støland, eivinsto@@fys.uio.no
+* Eivind Støland, eivinsto@fys.uio.no
 * Mia-Katrin Ose Kvalsund, m.k.o.kvalsund@fys.uio.no
 * Karl Henrik Fredly, k.h.fredly@fys.uio.no
 * Eir Eline Hørlyk, e.e.horlyk@fys.uio.no
-* Brit S. Haanen, b.s.m.haanen@fys.uio.no
+* Britt S. Haanen, b.s.m.haanen@fys.uio.no
 
 
 ## Practicalities
