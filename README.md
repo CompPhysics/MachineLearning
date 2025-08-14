@@ -133,7 +133,7 @@ The final number of points is based on the average of all projects (including ev
  * 40-45 points: E
  * 0-39 points: F-failed
 
-## Tentaive deadllines for projects
+## Tentative deadllines for projects
 
 * First project, due October 6, counts 1/3 of final grade
 * Second  project, due November 3, counts 1/3 of final grade
