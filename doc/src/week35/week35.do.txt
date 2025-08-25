@@ -9,17 +9,17 @@ DATE: August 25-29, 2025
 The main topics are:
 
 o Brief repetition from last week
-o Discussions  of the equations for ordinary least squares
+o Discussions  of the equations for ordinary least squares (_OLS_)
 o Discussion on how to prepare data and examples of applications of linear regression
-o Material for the lecture on Monday: Mathematical interpretations of linear regression
-o Monday: Ridge and Lasso regression and Singular Value Decomposition
+o Mathematical interpretations of OLS
+o Introduction of Ridge and Lasso regression
 
 === Reading recommendations: ===
 
 o These lecture notes
 #  o "Video of lecture":"https://youtu.be/VKakN-e4aUA"
 #  o "Video for exercises week 35":"https://youtu.be/yiY0OltU1s8"
-o Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra and sections 3.1-3.10 on elements of statistics (background)
+o Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra
 o Raschka et al on preprocessing of data, relevant for exercise 3 this week, see chapter 4.
 o For exercise 1 of week 35, the book by A. Aldo Faisal, Cheng Soon Ong, and Marc Peter Deisenroth on the Mathematics of Machine Learning, may be very relevant. In particular chapter 5 at URL"https://mml-book.github.io/" (section 5.5 on derivatives) is very useful for exercise 1 this coming week.
 
@@ -145,12 +145,12 @@ y_{i}=\langle y_i \rangle = \theta_0x_{i,0}+\theta_1x_{i,1}+\theta_2x_{i,2}+\dot
 
 where $\langle y_i \rangle$ is the mean value. Keep in mind also that
 till now we have treated $y_i$ as the exact value. Normally, the
-response (dependent or outcome) variable $y_i$ is the outcome of a
+output (response, target, dependent or outcome) variable $y_i$ is the outcome of a
 numerical experiment or another type of experiment and could thus be treated itself as an
 approximation to the true value. It is then always accompanied by an
 error estimate, often limited to a statistical error estimate given by
 the standard deviation discussed earlier. In the discussion here we
-will treat $y_i$ as our exact value for the response variable.
+will treat $y_i$ as our exact value for the output variable.
 
 In order to find the parameters $\theta_i$ we will then minimize the spread of $C(\bm{\theta})$, that is we are going to solve the problem
 !bt
@@ -531,7 +531,7 @@ $\hat{\bm{\theta}}$. Furthermore, we will see later this week that it is
 important role in optmization algorithms and Principal Component
 Analysis as a way to reduce the dimensionality of a machine learning/data analysis
 problem.
-v
+
 _Linear algebra question:_  Can we use the Hessian matrix to say something about properties of the cost function (our optmization  problem)? (hint: think about convex or concave problems and how to relate these to a matrix!). 
 
 !split
@@ -582,7 +582,7 @@ $n\times p$ matrix $\bm{X}$.
 
 It is rather straightforward to implement the matrix inversion and obtain the parameters $\bm{\theta}$. After having defined the matrix $\bm{X}$ and the outputs $\bm{y}$ we have 
 !bc pycod 
-# matrix inversion to find beta
+# matrix inversion to find theta
 # First we set up the data
 import numpy as np
 x = np.random.rand(100)
@@ -595,9 +595,9 @@ X[:,1] = x
 X[:,2] = x**2
 X[:,3] = x**3
 X[:,4] = x**4
-beta = (np.linalg.inv(X.T @ X) @ X.T ) @ y
+theta = (np.linalg.inv(X.T @ X) @ X.T ) @ y
 # and then make the prediction
-ytilde = X @ beta
+ytilde = X @ theta
 !ec
 Alternatively, you can use the least squares functionality in _Numpy_ as
 !bc pycod 
@@ -685,16 +685,16 @@ X[:,3] = x**3
 X[:,4] = x**4
 # We split the data in test and training data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-# matrix inversion to find beta
-beta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
-print(beta)
+# matrix inversion to find theta
+theta = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ y_train
+print(theta)
 # and then make the prediction
-ytilde = X_train @ beta
+ytilde = X_train @ theta
 print("Training R2")
 print(R2(y_train,ytilde))
 print("Training MSE")
 print(MSE(y_train,ytilde))
-ypredict = X_test @ beta
+ypredict = X_test @ theta
 print("Test R2")
 print(R2(y_test,ypredict))
 print("Test MSE")
@@ -1044,7 +1044,7 @@ decomposition.
 As we will also see in the first project, 
 this may
 however not the be case in general and a standard matrix inversion
-algorithm based on say LU, QR or Cholesky decomposition may lead to singularities. We will see examples of this below.
+algorithm based on say LU, QR or Cholesky decomposition may lead to singularities. We will see examples of this below and in other examples.
 
 There is however a way to circumvent this problem and also
 gain some insights about the ordinary least squares approach, and
@@ -1063,9 +1063,6 @@ to the covariance matrix (and thereby the correlation matrix) and in
 turn the variance of a given quantity. It plays also an important role
 in the principal component analysis where high-dimensional data can be
 reduced to the statistically relevant features.
-
-
-
 
 
 !eblock
@@ -1143,11 +1140,212 @@ where $\bm{I}$ is the identity matrix.  When we discuss _Ridge_ regression this 
 
 
 
+
+!split
+===== Ridge and LASSO Regression =====
+
+Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
+our optimization problem is
+!bt
+\[
+{\displaystyle \min_{\bm{\theta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\bm{y}-\bm{X}\bm{\theta}\right)^T\left(\bm{y}-\bm{X}\bm{\theta}\right)\right\}.
+\]
+!et
+or we can state it as
+!bt
+\[
+{\displaystyle \min_{\bm{\theta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\theta}\vert\vert_2^2,
+\]
+!et
+where we have used the definition of  a norm-2 vector, that is
+!bt
+\[
+\vert\vert \bm{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}. 
+\]
+!et
+
+By minimizing the above equation with respect to the parameters
+$\bm{\theta}$ we could then obtain an analytical expression for the
+parameters $\bm{\theta}$.  We can add a regularization parameter $\lambda$ by
+defining a new cost function to be optimized, that is
+
+!bt
+\[
+{\displaystyle \min_{\bm{\theta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\theta}\vert\vert_2^2+\lambda\vert\vert \bm{\theta}\vert\vert_2^2
+\]
+!et
+
+which leads to the Ridge regression minimization problem where we
+require that $\vert\vert \bm{\theta}\vert\vert_2^2\le t$, where $t$ is
+a finite number larger than zero. By defining
+
+!bt
+\[
+C(\bm{X},\bm{\theta})=\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\theta}\vert\vert_2^2+\lambda\vert\vert \bm{\theta}\vert\vert_1,
+\]
+!et
+
+we have a new optimization equation
+!bt
+\[
+{\displaystyle \min_{\bm{\theta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \bm{y}-\bm{X}\bm{\theta}\vert\vert_2^2+\lambda\vert\vert \bm{\theta}\vert\vert_1
+\]
+!et
+which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. 
+
+Here we have defined the norm-1 as 
+!bt
+\[
+\vert\vert \bm{x}\vert\vert_1 = \sum_i \vert x_i\vert. 
+\]
+!et
+
+
+!split
+===== Deriving the  Ridge Regression Equations =====
+
+Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
+
+!bt
+\[
+C(\bm{X},\bm{\theta})=\left\{(\bm{y}-\bm{X}\bm{\theta})^T(\bm{y}-\bm{X}\bm{\theta})\right\}+\lambda\bm{\theta}^T\bm{\theta},
+\]
+!et
+and 
+taking the derivatives with respect to $\bm{\theta}$ we obtain then
+a slightly modified matrix inversion problem which for finite values
+of $\lambda$ does not suffer from singularity problems. We obtain
+the optimal parameters
+!bt
+\[
+\hat{\bm{\theta}}_{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y},
+\]
+!et
+
+with $\bm{I}$ being a $p\times p$ identity matrix with the constraint that
+
+!bt
+\[
+\sum_{i=0}^{p-1} \theta_i^2 \leq t,
+\]
+!et
+
+with $t$ a finite positive number. 
+
+If we keep the $1/n$ factor, the equation for the optimal $\theta$ changes to
+!bt
+\[
+\hat{\bm{\theta}}_{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+n\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y}.
+\]
+!et
+
+In many textbooks the $1/n$ term is often omitted. Note that a library like _Scikit-Learn_ does not include the $1/n$ factor in the setup of the cost function.
+
+When we compare this with the ordinary least squares result we have
+!bt
+\[
+\hat{\bm{\theta}}_{\mathrm{OLS}} = \left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y},
+\]
+!et
+which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\bm{X}^T\bm{X}$.
+
+
+We see that Ridge regression is nothing but the standard OLS with a
+modified diagonal term added to $\bm{X}^T\bm{X}$. The consequences, in
+particular for our discussion of the bias-variance tradeoff are rather
+interesting. We will see that for specific values of $\lambda$, we may
+even reduce the variance of the optimal parameters $\bm{\theta}$. These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+
+When we have discussed the singular value decomposition of the design
+matrix $\bm{X}$, we will in turn perform a more rigorous mathematical
+discussion of Ridge regression.
+
+
+The code here is a simple demonstration of how to implement Ridge regression with our own code and compare this with scikit-learn.
+
+!bc pycod
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
+
+Maxpolydegree = 20
+X = np.zeros((n,Maxpolydegree))
+#We include explicitely the intercept column
+for degree in range(Maxpolydegree):
+    X[:,degree] = x**degree
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+p = Maxpolydegree
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 6
+MSEOwnRidgePredict = np.zeros(nlambdas)
+MSERidgePredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 2, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    OwnRidgeTheta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    # Note: we include the intercept column and no scaling
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
+    RegRidge.fit(X_train,y_train)
+    # and then make the prediction
+    ytildeOwnRidge = X_train @ OwnRidgeTheta
+    ypredictOwnRidge = X_test @ OwnRidgeTheta
+    ytildeRidge = RegRidge.predict(X_train)
+    ypredictRidge = RegRidge.predict(X_test)
+    MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+    print("Theta values for own Ridge implementation")
+    print(OwnRidgeTheta)
+    print("Theta values for Scikit-Learn Ridge implementation")
+    print(RegRidge.coef_)
+    print("MSE values for own Ridge implementation")
+    print(MSEOwnRidgePredict[i])
+    print("MSE values for Scikit-Learn Ridge implementation")
+    print(MSERidgePredict[i])
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSEOwnRidgePredict, 'r', label = 'MSE own Ridge Test')
+plt.plot(np.log10(lambdas), MSERidgePredict, 'g', label = 'MSE Ridge Test')
+
+plt.xlabel('log10(lambda)')
+plt.ylabel('MSE')
+plt.legend()
+plt.show()
+
+!ec
+
+The results here agree when we force _Scikit-Learn_'s Ridge function to include the first column in our design matrix.
+We see that the results agree very well. Here we have thus explicitely included the intercept column in the design matrix.
+What happens if we do not include the intercept in our fit? We will discuss this in more detail next week.
+
+
+
 !split
 ===== Basic math of the SVD =====
 
 
-From standard linear algebra we know that a square matrix $\bm{X}$ can be diagonalized if and only it is 
+From standard linear algebra we know that a square matrix $\bm{X}$ can be diagonalized if and only if it is 
 a so-called "normal matrix":"https://en.wikipedia.org/wiki/Normal_matrix", that is if $\bm{X}\in {\mathbb{R}}^{n\times n}$
 we have $\bm{X}\bm{X}^T=\bm{X}^T\bm{X}$ or if $\bm{X}\in {\mathbb{C}}^{n\times n}$ we have $\bm{X}\bm{X}^{\dagger}=\bm{X}^{\dagger}\bm{X}$.
 The matrix has then a set of eigenpairs 
@@ -1799,66 +1997,6 @@ print(correlation_matrix)
 !ec
 
 
-We expand this model to the Franke function discussed above.
-
-!split
-===== Correlation Matrix with Pandas and the Franke function =====
-
-!bc pycod
-# Common imports
-import numpy as np
-import pandas as pd
-
-
-def FrankeFunction(x,y):
-	term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-	term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-	term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-	term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
-	return term1 + term2 + term3 + term4
-
-
-def create_X(x, y, n ):
-	if len(x.shape) > 1:
-		x = np.ravel(x)
-		y = np.ravel(y)
-
-	N = len(x)
-	l = int((n+1)*(n+2)/2)		# Number of elements in beta
-	X = np.ones((N,l))
-
-	for i in range(1,n+1):
-		q = int((i)*(i+1)/2)
-		for k in range(i+1):
-			X[:,q+k] = (x**(i-k))*(y**k)
-
-	return X
-
-
-# Making meshgrid of datapoints and compute Franke's function
-n = 4
-N = 100
-x = np.sort(np.random.uniform(0, 1, N))
-y = np.sort(np.random.uniform(0, 1, N))
-z = FrankeFunction(x, y)
-X = create_X(x, y, n=n)    
-
-Xpd = pd.DataFrame(X)
-# subtract the mean values and set up the covariance matrix
-Xpd = Xpd - Xpd.mean()
-covariance_matrix = Xpd.cov()
-print(covariance_matrix)
-!ec
-
-We note here that the covariance is zero for the first rows and
-columns since all matrix elements in the design matrix were set to one
-(we are fitting the function in terms of a polynomial of degree $n$).
-
-This means that the variance for these elements will be zero and will
-cause problems when we set up the correlation matrix.  We can simply
-drop these elements and construct a correlation
-matrix without these elements. 
-
 
 !split
 ===== Rewriting the Covariance and/or Correlation Matrix =====
@@ -2027,7 +2165,7 @@ values and the column vectors of $\bm{V}$.
 
 
 !split
-===== Ridge and LASSO Regression =====
+===== Back to Ridge and LASSO Regression =====
 
 Let us remind ourselves about the expression for the standard Mean Squared Error (MSE) which we used to define our cost function and the equations for the ordinary least squares (OLS) method, that is 
 our optimization problem is
@@ -2089,56 +2227,7 @@ Here we have defined the norm-1 as
 !et
 
 
-!split
-===== Deriving the  Ridge Regression Equations =====
-
-Using the matrix-vector expression for Ridge regression and dropping the parameter $1/n$ in front of the standard means squared error equation, we have
-
-!bt
-\[
-C(\bm{X},\bm{\theta})=\left\{(\bm{y}-\bm{X}\bm{\theta})^T(\bm{y}-\bm{X}\bm{\theta})\right\}+\lambda\bm{\theta}^T\bm{\theta},
-\]
-!et
-and 
-taking the derivatives with respect to $\bm{\theta}$ we obtain then
-a slightly modified matrix inversion problem which for finite values
-of $\lambda$ does not suffer from singularity problems. We obtain
-the optimal parameters
-!bt
-\[
-\hat{\bm{\theta}}_{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y},
-\]
-!et
-
-with $\bm{I}$ being a $p\times p$ identity matrix with the constraint that
-
-!bt
-\[
-\sum_{i=0}^{p-1} \theta_i^2 \leq t,
-\]
-!et
-
-with $t$ a finite positive number. 
-
-If we keep the $1/n$ factor, the equation for the optimal $\theta$ changes to
-!bt
-\[
-\hat{\bm{\theta}}_{\mathrm{Ridge}} = \left(\bm{X}^T\bm{X}+n\lambda\bm{I}\right)^{-1}\bm{X}^T\bm{y}.
-\]
-!et
-
-In many textbooks the $1/n$ term is often omitted. Note that a library like _Scikit-Learn_ does not include the $1/n$ factor in the setup of the cost function.
-
-When we compare this with the ordinary least squares result we have
-!bt
-\[
-\hat{\bm{\theta}}_{\mathrm{OLS}} = \left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y},
-\]
-!et
-which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix $\bm{X}^T\bm{X}$.
-
-
-We see that Ridge regression is nothing but the standard OLS with a
+Ridge regression, as discussed above,  is nothing but the standard OLS with a
 modified diagonal term added to $\bm{X}^T\bm{X}$. The consequences, in
 particular for our discussion of the bias-variance tradeoff are rather
 interesting. We will see that for specific values of $\lambda$, we may
@@ -2256,8 +2345,6 @@ We can redefine $\lambda$ to absorb the constant $n/2$ and we rewrite the last e
 !et
 
 
-This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package "CVXOPT":"https://cvxopt.org/". We will discuss this later. 
-
-
+This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package "CVXOPT":"https://cvxopt.org/". We will discuss how to code LASSO regression next week, when we have introduced gradient methods.
 
 
