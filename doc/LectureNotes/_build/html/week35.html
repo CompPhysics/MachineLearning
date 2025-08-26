@@ -440,6 +440,8 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpreting-the-ridge-results">Interpreting the Ridge results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#more-interpretations">More interpretations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-lasso-regression-equations">Deriving the  Lasso Regression Equations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#material-for-exercises-week-35">Material for exercises week 35</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#important-technicalities-more-on-rescaling-data">Important technicalities: More on Rescaling data</a></li>
 </ul>
             </nav>
         </div>
@@ -471,10 +473,8 @@ doconce format html week35.do.txt --no_mako -->
 <h3>Reading recommendations:<a class="headerlink" href="#reading-recommendations" title="Link to this heading">#</a></h3>
 <ol class="arabic simple">
 <li><p>These lecture notes</p></li>
-</ol>
-<!-- o [Video of lecture](https://youtu.be/VKakN-e4aUA) -->
-<!-- o [Video for exercises week 35](https://youtu.be/yiY0OltU1s8) -->
-<ol class="arabic simple" start="2">
+<li><p>Video of lecture at <a class="reference external" href="https://youtu.be/2mvizAQFST8">https://youtu.be/2mvizAQFST8</a></p></li>
+<li><p>Whiteboard notes  at <a class="github reference external" href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2025/FYSSTKweek35.pdf">CompPhysics/MachineLearning</a></p></li>
 <li><p>Goodfellow, Bengio and Courville, Deep Learning, chapter 2 on linear algebra</p></li>
 <li><p>Raschka et al on preprocessing of data, relevant for exercise 3 this week, see chapter 4.</p></li>
 <li><p>For exercise 1 of week 35, the book by A. Aldo Faisal, Cheng Soon Ong, and Marc Peter Deisenroth on the Mathematics of Machine Learning, may be very relevant. In particular chapter 5 at URL”<a class="reference external" href="https://mml-book.github.io/">https://mml-book.github.io/</a>” (section 5.5 on derivatives) is very useful for exercise 1 this coming week.</p></li>
@@ -2354,6 +2354,452 @@ C(\boldsymbol{X},\boldsymbol{\theta})=\frac{1}{n}\left\{(\boldsymbol{y}-\boldsym
 \]</div>
 <p>This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms using for example the Python package <a class="reference external" href="https://cvxopt.org/">CVXOPT</a>. We will discuss how to code LASSO regression next week, when we have introduced gradient methods.</p>
 </section>
+<section id="material-for-exercises-week-35">
+<h2>Material for exercises week 35<a class="headerlink" href="#material-for-exercises-week-35" title="Link to this heading">#</a></h2>
+</section>
+<section id="important-technicalities-more-on-rescaling-data">
+<h2>Important technicalities: More on Rescaling data<a class="headerlink" href="#important-technicalities-more-on-rescaling-data" title="Link to this heading">#</a></h2>
+<p>When you are comparing your own code with for example <strong>Scikit-Learn</strong>’s
+library, there are some technicalities to keep in mind.  The examples
+here demonstrate some of these aspects with potential pitfalls.</p>
+<p>The discussion here focuses on the role of the intercept, how we can
+set up the design matrix, what scaling we should use and other topics
+which tend  confuse us.</p>
+<p>The intercept can be interpreted as the expected value of our
+target/output variables when all other predictors are set to zero.
+Thus, if we cannot assume that the expected outputs/targets are zero
+when all predictors are zero (the columns in the design matrix), it
+may be a bad idea to implement a model which penalizes the intercept.
+Furthermore, in for example Ridge and Lasso regression, the default solutions
+from the library <strong>Scikit-Learn</strong> (when not shrinking <span class="math notranslate nohighlight">\(\beta_0\)</span>) for the unknown parameters
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>, are derived under the assumption that both <span class="math notranslate nohighlight">\(\boldsymbol{y}\)</span> and
+<span class="math notranslate nohighlight">\(\boldsymbol{X}\)</span> are zero centered, that is we subtract the mean values.</p>
+<p>If our predictors represent different scales, then it is important to
+standardize the design matrix <span class="math notranslate nohighlight">\(\boldsymbol{X}\)</span> by subtracting the mean of each
+column from the corresponding column and dividing the column with its
+standard deviation. Most machine learning libraries do this as a default. This means that if you compare your code with the results from a given library,
+the results may differ.</p>
+<p>The
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html">Standardscaler</a>
+function in <strong>Scikit-Learn</strong> does this for us.  For the data sets we
+have been studying in our various examples, the data are in many cases
+already scaled and there is no need to scale them. You as a user of different machine learning algorithms, should always perform  a
+survey of your data, with a critical assessment of them in case you need to scale the data.</p>
+<p>If you need to scale the data, not doing so will give an <em>unfair</em>
+penalization of the parameters since their magnitude depends on the
+scale of their corresponding predictor.</p>
+<p>The <strong>Scikit-Learn</strong> site <a class="reference external" href="https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html#plot-all-scaling-standard-scaler-section">https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html#plot-all-scaling-standard-scaler-section</a> has a good discussion of different ways of preprocessing data.</p>
+<p>Suppose as an example that you
+you have an input variable given by the heights of different persons.
+Human height might be measured in inches or meters or
+kilometers. If measured in kilometers, a standard linear regression
+model with this predictor would probably give a much bigger
+coefficient term, than if measured in millimeters.
+This can clearly lead to problems in evaluating the cost/loss functions.</p>
+<p>Keep in mind that when you transform your data set before training a model, the same transformation needs to be done
+on your eventual new data set  before making a prediction. If we translate this into a Python code, it would could be implemented as</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&quot;&quot;&quot;
+#Model training, we compute the mean value of y and X
+y_train_mean = np.mean(y_train)
+X_train_mean = np.mean(X_train,axis=0)
+X_train = X_train - X_train_mean
+y_train = y_train - y_train_mean
+
+# The we fit our model with the training data
+trained_model = some_model.fit(X_train,y_train)
+
+
+#Model prediction, we need also to transform our data set used for the prediction.
+X_test = X_test - X_train_mean #Use mean from training data
+y_pred = trained_model(X_test)
+y_pred = y_pred + y_train_mean
+&quot;&quot;&quot;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Let us try to understand what this may imply mathematically when we
+subtract the mean values, also known as <em>zero centering</em>. For
+simplicity, we will focus on  ordinary regression, as done in the above example.</p>
+<p>The cost/loss function  for regression is</p>
+<div class="math notranslate nohighlight">
+\[
+C(\beta_0, \beta_1, ... , \beta_{p-1}) = \frac{1}{n}\sum_{i=0}^{n} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij}\beta_j\right)^2,.
+\]</div>
+<p>Recall also that we use the squared value. This expression can lead to an
+increased penalty for higher differences between predicted and
+output/target values.</p>
+<p>What we have done is to single out the <span class="math notranslate nohighlight">\(\beta_0\)</span> term in the
+definition of the mean squared error (MSE).  The design matrix <span class="math notranslate nohighlight">\(X\)</span>
+does in this case not contain any intercept column.  When we take the
+derivative with respect to <span class="math notranslate nohighlight">\(\beta_0\)</span>, we want the derivative to obey</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial C}{\partial \beta_j} = 0,
+\]</div>
+<p>for all <span class="math notranslate nohighlight">\(j\)</span>. For <span class="math notranslate nohighlight">\(\beta_0\)</span> we have</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial C}{\partial \beta_0} = -\frac{2}{n}\sum_{i=0}^{n-1} \left(y_i - \beta_0 - \sum_{j=1}^{p-1} X_{ij} \beta_j\right).
+\]</div>
+<p>Multiplying away the constant <span class="math notranslate nohighlight">\(2/n\)</span>, we obtain</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{i=0}^{n-1} \beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} \sum_{j=1}^{p-1} X_{ij} \beta_j.
+\]</div>
+<p>Let us specialize first to the case where we have only two parameters <span class="math notranslate nohighlight">\(\beta_0\)</span> and <span class="math notranslate nohighlight">\(\beta_1\)</span>.
+Our result for <span class="math notranslate nohighlight">\(\beta_0\)</span> simplifies then to</p>
+<div class="math notranslate nohighlight">
+\[
+n\beta_0 = \sum_{i=0}^{n-1}y_i - \sum_{i=0}^{n-1} X_{i1} \beta_1.
+\]</div>
+<p>We obtain then</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \beta_1\frac{1}{n}\sum_{i=0}^{n-1} X_{i1}.
+\]</div>
+<p>If we define</p>
+<div class="math notranslate nohighlight">
+\[
+\mu_{\boldsymbol{x}_1}=\frac{1}{n}\sum_{i=0}^{n-1} X_{i1},
+\]</div>
+<p>and the mean value of the outputs as</p>
+<div class="math notranslate nohighlight">
+\[
+\mu_y=\frac{1}{n}\sum_{i=0}^{n-1}y_i,
+\]</div>
+<p>we have</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \mu_y - \beta_1\mu_{\boldsymbol{x}_1}.
+\]</div>
+<p>In the general case with more parameters than <span class="math notranslate nohighlight">\(\beta_0\)</span> and <span class="math notranslate nohighlight">\(\beta_1\)</span>, we have</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \frac{1}{n}\sum_{i=0}^{n-1}\sum_{j=1}^{p-1} X_{ij}\beta_j.
+\]</div>
+<p>We can rewrite the latter equation as</p>
+<div class="math notranslate nohighlight">
+\[
+\beta_0 = \frac{1}{n}\sum_{i=0}^{n-1}y_i - \sum_{j=1}^{p-1} \mu_{\boldsymbol{x}_j}\beta_j,
+\]</div>
+<p>where we have defined</p>
+<div class="math notranslate nohighlight">
+\[
+\mu_{\boldsymbol{x}_j}=\frac{1}{n}\sum_{i=0}^{n-1} X_{ij},
+\]</div>
+<p>the mean value for all elements of the column vector <span class="math notranslate nohighlight">\(\boldsymbol{x}_j\)</span>.</p>
+<p>Replacing <span class="math notranslate nohighlight">\(y_i\)</span> with <span class="math notranslate nohighlight">\(y_i - y_i - \overline{\boldsymbol{y}}\)</span> and centering also our design matrix results in a cost function (in vector-matrix disguise)</p>
+<div class="math notranslate nohighlight">
+\[
+C(\boldsymbol{\beta}) = (\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta})^T(\boldsymbol{\tilde{y}} - \tilde{X}\boldsymbol{\beta}).
+\]</div>
+<p>If we minimize with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> we have then</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{\tilde{y}},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\tilde{y}} = \boldsymbol{y} - \overline{\boldsymbol{y}}\)</span>
+and <span class="math notranslate nohighlight">\(\tilde{X}_{ij} = X_{ij} - \frac{1}{n}\sum_{k=0}^{n-1}X_{kj}\)</span>.</p>
+<p>For Ridge regression we need to add <span class="math notranslate nohighlight">\(\lambda \boldsymbol{\beta}^T\boldsymbol{\beta}\)</span> to the cost function and get then</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{\boldsymbol{\beta}} = (\tilde{X}^T\tilde{X} + \lambda I)^{-1}\tilde{X}^T\boldsymbol{\tilde{y}}.
+\]</div>
+<p>What does this mean? And why do we insist on all this? Let us look at some examples.</p>
+<p>This code shows a simple first-order fit to a data set using the above transformed data, where we consider the role of the intercept first, by either excluding it or including it (<em>code example thanks to  Øyvind Sigmundson Schøyen</em>). Here our scaling of the data is done by subtracting the mean values only.
+Note also that we do not split the data into training and test.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import LinearRegression
+
+
+np.random.seed(2021)
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+def fit_beta(X, y):
+    return np.linalg.pinv(X.T @ X) @ X.T @ y
+
+
+true_beta = [2, 0.5, 3.7]
+
+x = np.linspace(0, 1, 11)
+y = np.sum(
+    np.asarray([x ** p * b for p, b in enumerate(true_beta)]), axis=0
+) + 0.1 * np.random.normal(size=len(x))
+
+degree = 3
+X = np.zeros((len(x), degree))
+
+# Include the intercept in the design matrix
+for p in range(degree):
+    X[:, p] = x ** p
+
+beta = fit_beta(X, y)
+
+# Intercept is included in the design matrix
+skl = LinearRegression(fit_intercept=False).fit(X, y)
+
+print(f&quot;True beta: {true_beta}&quot;)
+print(f&quot;Fitted beta: {beta}&quot;)
+print(f&quot;Sklearn fitted beta: {skl.coef_}&quot;)
+ypredictOwn = X @ beta
+ypredictSKL = skl.predict(X)
+print(f&quot;MSE with intercept column&quot;)
+print(MSE(y,ypredictOwn))
+print(f&quot;MSE with intercept column from SKL&quot;)
+print(MSE(y,ypredictSKL))
+
+
+plt.figure()
+plt.scatter(x, y, label=&quot;Data&quot;)
+plt.plot(x, X @ beta, label=&quot;Fit&quot;)
+plt.plot(x, skl.predict(X), label=&quot;Sklearn (fit_intercept=False)&quot;)
+
+
+# Do not include the intercept in the design matrix
+X = np.zeros((len(x), degree - 1))
+
+for p in range(degree - 1):
+    X[:, p] = x ** (p + 1)
+
+# Intercept is not included in the design matrix
+skl = LinearRegression(fit_intercept=True).fit(X, y)
+
+# Use centered values for X and y when computing coefficients
+y_offset = np.average(y, axis=0)
+X_offset = np.average(X, axis=0)
+
+beta = fit_beta(X - X_offset, y - y_offset)
+intercept = np.mean(y_offset - X_offset @ beta)
+
+print(f&quot;Manual intercept: {intercept}&quot;)
+print(f&quot;Fitted beta (without intercept): {beta}&quot;)
+print(f&quot;Sklearn intercept: {skl.intercept_}&quot;)
+print(f&quot;Sklearn fitted beta (without intercept): {skl.coef_}&quot;)
+ypredictOwn = X @ beta
+ypredictSKL = skl.predict(X)
+print(f&quot;MSE with Manual intercept&quot;)
+print(MSE(y,ypredictOwn+intercept))
+print(f&quot;MSE with Sklearn intercept&quot;)
+print(MSE(y,ypredictSKL))
+
+plt.plot(x, X @ beta + intercept, &quot;--&quot;, label=&quot;Fit (manual intercept)&quot;)
+plt.plot(x, skl.predict(X), &quot;--&quot;, label=&quot;Sklearn (fit_intercept=True)&quot;)
+plt.grid()
+plt.legend()
+
+plt.show()
+</pre></div>
+</div>
+</div>
+</div>
+<p>The intercept is the value of our output/target variable
+when all our features are zero and our function crosses the <span class="math notranslate nohighlight">\(y\)</span>-axis (for a one-dimensional case).</p>
+<p>Printing the MSE, we see first that both methods give the same MSE, as
+they should.  However, when we move to for example Ridge regression,
+the way we treat the intercept may give a larger or smaller MSE,
+meaning that the MSE can be penalized by the value of the
+intercept. Not including the intercept in the fit, means that the
+regularization term does not include <span class="math notranslate nohighlight">\(\beta_0\)</span>. For different values
+of <span class="math notranslate nohighlight">\(\lambda\)</span>, this may lead to different MSE values.</p>
+<p>To remind the reader, the regularization term, with the intercept in Ridge regression, is given by</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=0}^{p-1}\beta_j^2,
+\]</div>
+<p>but when we take out the intercept, this equation becomes</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_2^2 = \lambda \sum_{j=1}^{p-1}\beta_j^2.
+\]</div>
+<p>For Lasso regression we have</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda \vert\vert \boldsymbol{\beta} \vert\vert_1 = \lambda \sum_{j=1}^{p-1}\vert\beta_j\vert.
+\]</div>
+<p>It means that, when scaling the design matrix and the outputs/targets,
+by subtracting the mean values, we have an optimization problem which
+is not penalized by the intercept. The MSE value can then be smaller
+since it focuses only on the remaining quantities. If we however bring
+back the intercept, we will get a MSE which then contains the
+intercept.</p>
+<p>Armed with this wisdom, we attempt first to simply set the intercept equal to <strong>False</strong> in our implementation of Ridge regression for our well-known  vanilla data set.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
+
+Maxpolydegree = 20
+X = np.zeros((n,Maxpolydegree))
+#We include explicitely the intercept column
+for degree in range(Maxpolydegree):
+    X[:,degree] = x**degree
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+p = Maxpolydegree
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 6
+MSEOwnRidgePredict = np.zeros(nlambdas)
+MSERidgePredict = np.zeros(nlambdas)
+lambdas = np.logspace(-4, 2, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    OwnRidgeBeta = np.linalg.pinv(X_train.T @ X_train+lmb*I) @ X_train.T @ y_train
+    # Note: we include the intercept column and no scaling
+    RegRidge = linear_model.Ridge(lmb,fit_intercept=False)
+    RegRidge.fit(X_train,y_train)
+    # and then make the prediction
+    ytildeOwnRidge = X_train @ OwnRidgeBeta
+    ypredictOwnRidge = X_test @ OwnRidgeBeta
+    ytildeRidge = RegRidge.predict(X_train)
+    ypredictRidge = RegRidge.predict(X_test)
+    MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+    print(&quot;Beta values for own Ridge implementation&quot;)
+    print(OwnRidgeBeta)
+    print(&quot;Beta values for Scikit-Learn Ridge implementation&quot;)
+    print(RegRidge.coef_)
+    print(&quot;MSE values for own Ridge implementation&quot;)
+    print(MSEOwnRidgePredict[i])
+    print(&quot;MSE values for Scikit-Learn Ridge implementation&quot;)
+    print(MSERidgePredict[i])
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSEOwnRidgePredict, &#39;r&#39;, label = &#39;MSE own Ridge Test&#39;)
+plt.plot(np.log10(lambdas), MSERidgePredict, &#39;g&#39;, label = &#39;MSE Ridge Test&#39;)
+
+plt.xlabel(&#39;log10(lambda)&#39;)
+plt.ylabel(&#39;MSE&#39;)
+plt.legend()
+plt.show()
+</pre></div>
+</div>
+</div>
+</div>
+<p>The results here agree when we force <strong>Scikit-Learn</strong>’s Ridge function to include the first column in our design matrix.
+We see that the results agree very well. Here we have thus explicitely included the intercept column in the design matrix.
+What happens if we do not include the intercept in our fit?
+Let us see how we can change this code by zero centering.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+from sklearn.preprocessing import StandardScaler
+
+def MSE(y_data,y_model):
+    n = np.size(y_model)
+    return np.sum((y_data-y_model)**2)/n
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(315)
+
+n = 100
+x = np.random.rand(n)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)
+
+Maxpolydegree = 20
+X = np.zeros((n,Maxpolydegree-1))
+
+for degree in range(1,Maxpolydegree): #No intercept column
+    X[:,degree-1] = x**(degree)
+
+# We split the data in test and training data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+#For our own implementation, we will need to deal with the intercept by centering the design matrix and the target variable
+X_train_mean = np.mean(X_train,axis=0)
+#Center by removing mean from each feature
+X_train_scaled = X_train - X_train_mean 
+X_test_scaled = X_test - X_train_mean
+#The model intercept (called y_scaler) is given by the mean of the target variable (IF X is centered)
+#Remove the intercept from the training data.
+y_scaler = np.mean(y_train)           
+y_train_scaled = y_train - y_scaler   
+
+p = Maxpolydegree-1
+I = np.eye(p,p)
+# Decide which values of lambda to use
+nlambdas = 6
+MSEOwnRidgePredict = np.zeros(nlambdas)
+MSERidgePredict = np.zeros(nlambdas)
+
+lambdas = np.logspace(-4, 2, nlambdas)
+for i in range(nlambdas):
+    lmb = lambdas[i]
+    OwnRidgeBeta = np.linalg.pinv(X_train_scaled.T @ X_train_scaled+lmb*I) @ X_train_scaled.T @ (y_train_scaled)
+    intercept_ = y_scaler - X_train_mean@OwnRidgeBeta #The intercept can be shifted so the model can predict on uncentered data
+    #Add intercept to prediction
+    ypredictOwnRidge = X_test_scaled @ OwnRidgeBeta + y_scaler 
+    RegRidge = linear_model.Ridge(lmb)
+    RegRidge.fit(X_train,y_train)
+    ypredictRidge = RegRidge.predict(X_test)
+    MSEOwnRidgePredict[i] = MSE(y_test,ypredictOwnRidge)
+    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
+    print(&quot;Beta values for own Ridge implementation&quot;)
+    print(OwnRidgeBeta) #Intercept is given by mean of target variable
+    print(&quot;Beta values for Scikit-Learn Ridge implementation&quot;)
+    print(RegRidge.coef_)
+    print(&#39;Intercept from own implementation:&#39;)
+    print(intercept_)
+    print(&#39;Intercept from Scikit-Learn Ridge implementation&#39;)
+    print(RegRidge.intercept_)
+    print(&quot;MSE values for own Ridge implementation&quot;)
+    print(MSEOwnRidgePredict[i])
+    print(&quot;MSE values for Scikit-Learn Ridge implementation&quot;)
+    print(MSERidgePredict[i])
+
+
+# Now plot the results
+plt.figure()
+plt.plot(np.log10(lambdas), MSEOwnRidgePredict, &#39;b--&#39;, label = &#39;MSE own Ridge Test&#39;)
+plt.plot(np.log10(lambdas), MSERidgePredict, &#39;g--&#39;, label = &#39;MSE SL Ridge Test&#39;)
+plt.xlabel(&#39;log10(lambda)&#39;)
+plt.ylabel(&#39;MSE&#39;)
+plt.legend()
+plt.show()
+</pre></div>
+</div>
+</div>
+</div>
+<p>We see here, when compared to the code which includes explicitely the
+intercept column, that our MSE value is actually smaller. This is
+because the regularization term does not include the intercept value
+<span class="math notranslate nohighlight">\(\beta_0\)</span> in the fitting.  This applies to Lasso regularization as
+well.  It means that our optimization is now done only with the
+centered matrix and/or vector that enter the fitting procedure.</p>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -2484,6 +2930,8 @@ C(\boldsymbol{X},\boldsymbol{\theta})=\frac{1}{n}\left\{(\boldsymbol{y}-\boldsym
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpreting-the-ridge-results">Interpreting the Ridge results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#more-interpretations">More interpretations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-lasso-regression-equations">Deriving the  Lasso Regression Equations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#material-for-exercises-week-35">Material for exercises week 35</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#important-technicalities-more-on-rescaling-data">Important technicalities: More on Rescaling data</a></li>
 </ul>
   </nav></div>
 
