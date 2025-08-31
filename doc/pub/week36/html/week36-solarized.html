@@ -128,6 +128,71 @@ div.toc p,a {
                2,
                None,
                'deriving-the-lasso-regression-equations'),
+              ('Optimization and gradient descent, the central part of any '
+               'Machine Learning algortithm',
+               2,
+               None,
+               'optimization-and-gradient-descent-the-central-part-of-any-machine-learning-algortithm'),
+              ("Reminder on Newton-Raphson's method",
+               2,
+               None,
+               'reminder-on-newton-raphson-s-method'),
+              ('The equations', 2, None, 'the-equations'),
+              ('Simple geometric interpretation',
+               2,
+               None,
+               'simple-geometric-interpretation'),
+              ('Extending to more than one variable',
+               2,
+               None,
+               'extending-to-more-than-one-variable'),
+              ('Steepest descent', 2, None, 'steepest-descent'),
+              ('More on Steepest descent', 2, None, 'more-on-steepest-descent'),
+              ('The ideal', 2, None, 'the-ideal'),
+              ('The sensitiveness of the gradient descent',
+               2,
+               None,
+               'the-sensitiveness-of-the-gradient-descent'),
+              ('Convex functions', 2, None, 'convex-functions'),
+              ('Convex function', 2, None, 'convex-function'),
+              ('Conditions on convex functions',
+               2,
+               None,
+               'conditions-on-convex-functions'),
+              ('More on convex functions', 2, None, 'more-on-convex-functions'),
+              ('Some simple problems', 2, None, 'some-simple-problems'),
+              ('Revisiting Ordinary Least Squares',
+               2,
+               None,
+               'revisiting-ordinary-least-squares'),
+              ('Gradient descent example', 2, None, 'gradient-descent-example'),
+              ('The derivative of the cost/loss function',
+               2,
+               None,
+               'the-derivative-of-the-cost-loss-function'),
+              ('The Hessian matrix', 2, None, 'the-hessian-matrix'),
+              ('Simple program', 2, None, 'simple-program'),
+              ('Gradient Descent Example', 2, None, 'gradient-descent-example'),
+              ('And a corresponding example using _scikit-learn_',
+               2,
+               None,
+               'and-a-corresponding-example-using-scikit-learn'),
+              ('Gradient descent and Ridge',
+               2,
+               None,
+               'gradient-descent-and-ridge'),
+              ('The Hessian matrix for Ridge Regression',
+               2,
+               None,
+               'the-hessian-matrix-for-ridge-regression'),
+              ('Program example for gradient descent with Ridge Regression',
+               2,
+               None,
+               'program-example-for-gradient-descent-with-ridge-regression'),
+              ('Using gradient descent methods, limitations',
+               2,
+               None,
+               'using-gradient-descent-methods-limitations'),
               ('Material for lab sessions  sessions Tuesday and Wednesday',
                2,
                None,
@@ -244,6 +309,7 @@ MathJax.Hub.Config({
 <ol>
 <li> Goodfellow et al, Deep Learning, introduction to gradient descent, see chapter 4.3 at <a href="https://www.deeplearningbook.org/contents/numerical.html" target="_blank"><tt>https://www.deeplearningbook.org/contents/numerical.html</tt></a></li>
 <li> Rashcka et al, pages 37-44 and pages 278-283 with focus on linear regression.</li>
+<li> Video on gradient descent at <a href="https://www.youtube.com/watch?v=sDv4f4s2SB8" target="_blank"><tt>https://www.youtube.com/watch?v=sDv4f4s2SB8</tt></a></li>
 </ol>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="material-for-lecture-monday-september-2">Material for lecture Monday September 2 </h2>
@@ -1165,8 +1231,679 @@ $$
 \boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\theta}+\lambda sgn(\boldsymbol{\theta})=2\boldsymbol{X}^T\boldsymbol{y}.
 $$
 
-<p>This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms.We will discuss how to code the above methods using gardient descent methods.</p>
+<p>This equation does not lead to a nice analytical equation as in either Ridge regression or ordinary least squares. This equation can however be solved by using standard convex optimization algorithms.We will discuss how to code the above methods using gradient descent methods.</p>
 
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="optimization-and-gradient-descent-the-central-part-of-any-machine-learning-algortithm">Optimization and gradient descent, the central part of any Machine Learning algortithm </h2>
+
+<p>Almost every problem in machine learning and data science starts with
+a dataset \( X \), a model \( g(\theta) \), which is a function of the
+parameters \( \theta \) and a cost function \( C(X, g(\theta)) \) that allows
+us to judge how well the model \( g(\theta) \) explains the observations
+\( X \). The model is fit by finding the values of \( \theta \) that minimize
+the cost function. Ideally we would be able to solve for \( \theta \)
+analytically, however this is not possible in general and we must use
+some approximative/numerical method to compute the minimum.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="reminder-on-newton-raphson-s-method">Reminder on Newton-Raphson's method </h2>
+
+<p>Let us quickly remind ourselves how we derive the above method.</p>
+
+<p>Perhaps the most celebrated of all one-dimensional root-finding
+routines is Newton's method, also called the Newton-Raphson
+method. This method  requires the evaluation of both the
+function \( f \) and its derivative \( f' \) at arbitrary points. 
+If you can only calculate the derivative
+numerically and/or your function is not of the smooth type, we
+normally discourage the use of this method.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-equations">The equations </h2>
+
+<p>The Newton-Raphson formula consists geometrically of extending the
+tangent line at a current point until it crosses zero, then setting
+the next guess to the abscissa of that zero-crossing.  The mathematics
+behind this method is rather simple. Employing a Taylor expansion for
+\( x \) sufficiently close to the solution \( s \), we have
+</p>
+
+$$
+    f(s)=0=f(x)+(s-x)f'(x)+\frac{(s-x)^2}{2}f''(x) +\dots.
+    \label{eq:taylornr}
+$$
+
+<p>For small enough values of the function and for well-behaved
+functions, the terms beyond linear are unimportant, hence we obtain
+</p>
+
+$$
+   f(x)+(s-x)f'(x)\approx 0,
+$$
+
+<p>yielding</p>
+$$
+   s\approx x-\frac{f(x)}{f'(x)}.
+$$
+
+<p>Having in mind an iterative procedure, it is natural to start iterating with</p>
+$$
+   x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}.
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="simple-geometric-interpretation">Simple geometric interpretation </h2>
+
+<p>The above is Newton-Raphson's method. It has a simple geometric
+interpretation, namely \( x_{n+1} \) is the point where the tangent from
+\( (x_n,f(x_n)) \) crosses the \( x \)-axis.  Close to the solution,
+Newton-Raphson converges fast to the desired result. However, if we
+are far from a root, where the higher-order terms in the series are
+important, the Newton-Raphson formula can give grossly inaccurate
+results. For instance, the initial guess for the root might be so far
+from the true root as to let the search interval include a local
+maximum or minimum of the function.  If an iteration places a trial
+guess near such a local extremum, so that the first derivative nearly
+vanishes, then Newton-Raphson may fail totally
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="extending-to-more-than-one-variable">Extending to more than one variable </h2>
+
+<p>Newton's method can be generalized to systems of several non-linear equations
+and variables. Consider the case with two equations
+</p>
+$$
+   \begin{array}{cc} f_1(x_1,x_2) &=0\\
+                     f_2(x_1,x_2) &=0,\end{array}
+$$
+
+<p>which we Taylor expand to obtain</p>
+
+$$
+   \begin{array}{cc} 0=f_1(x_1+h_1,x_2+h_2)=&f_1(x_1,x_2)+h_1
+                     \partial f_1/\partial x_1+h_2
+                     \partial f_1/\partial x_2+\dots\\
+                     0=f_2(x_1+h_1,x_2+h_2)=&f_2(x_1,x_2)+h_1
+                     \partial f_2/\partial x_1+h_2
+                     \partial f_2/\partial x_2+\dots
+                       \end{array}.
+$$
+
+<p>Defining the Jacobian matrix \( {\bf \boldsymbol{J}} \) we have</p>
+$$
+ {\bf \boldsymbol{J}}=\left( \begin{array}{cc}
+                         \partial f_1/\partial x_1  & \partial f_1/\partial x_2 \\
+                          \partial f_2/\partial x_1     &\partial f_2/\partial x_2
+             \end{array} \right),
+$$
+
+<p>we can rephrase Newton's method as</p>
+$$
+\left(\begin{array}{c} x_1^{n+1} \\ x_2^{n+1} \end{array} \right)=
+\left(\begin{array}{c} x_1^{n} \\ x_2^{n} \end{array} \right)+
+\left(\begin{array}{c} h_1^{n} \\ h_2^{n} \end{array} \right),
+$$
+
+<p>where we have defined</p>
+$$
+   \left(\begin{array}{c} h_1^{n} \\ h_2^{n} \end{array} \right)=
+   -{\bf \boldsymbol{J}}^{-1}
+   \left(\begin{array}{c} f_1(x_1^{n},x_2^{n}) \\ f_2(x_1^{n},x_2^{n}) \end{array} \right).
+$$
+
+<p>We need thus to compute the inverse of the Jacobian matrix and it
+is to understand that difficulties  may
+arise in case \( {\bf \boldsymbol{J}} \) is nearly singular.
+</p>
+
+<p>It is rather straightforward to extend the above scheme to systems of
+more than two non-linear equations. In our case, the Jacobian matrix is given by the Hessian that represents the second derivative of cost function. 
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="steepest-descent">Steepest descent </h2>
+
+<p>The basic idea of gradient descent is
+that a function \( F(\mathbf{x}) \), 
+\( \mathbf{x} \equiv (x_1,\cdots,x_n) \), decreases fastest if one goes from \( \bf {x} \) in the
+direction of the negative gradient \( -\nabla F(\mathbf{x}) \).
+</p>
+
+<p>It can be shown that if </p>
+$$
+\mathbf{x}_{k+1} = \mathbf{x}_k - \gamma_k \nabla F(\mathbf{x}_k),
+$$
+
+<p>with \( \gamma_k > 0 \).</p>
+
+<p>For \( \gamma_k \) small enough, then \( F(\mathbf{x}_{k+1}) \leq
+F(\mathbf{x}_k) \). This means that for a sufficiently small \( \gamma_k \)
+we are always moving towards smaller function values, i.e a minimum.
+</p>
+
+<!-- !split  -->
+<h2 id="more-on-steepest-descent">More on Steepest descent </h2>
+
+<p>The previous observation is the basis of the method of steepest
+descent, which is also referred to as just gradient descent (GD). One
+starts with an initial guess \( \mathbf{x}_0 \) for a minimum of \( F \) and
+computes new approximations according to
+</p>
+
+$$
+\mathbf{x}_{k+1} = \mathbf{x}_k - \gamma_k \nabla F(\mathbf{x}_k), \ \ k \geq 0.
+$$
+
+<p>The parameter \( \gamma_k \) is often referred to as the step length or
+the learning rate within the context of Machine Learning.
+</p>
+
+<!-- !split  -->
+<h2 id="the-ideal">The ideal </h2>
+
+<p>Ideally the sequence \( \{\mathbf{x}_k \}_{k=0} \) converges to a global
+minimum of the function \( F \). In general we do not know if we are in a
+global or local minimum. In the special case when \( F \) is a convex
+function, all local minima are also global minima, so in this case
+gradient descent can converge to the global solution. The advantage of
+this scheme is that it is conceptually simple and straightforward to
+implement. However the method in this form has some severe
+limitations:
+</p>
+
+<p>In machine learing we are often faced with non-convex high dimensional
+cost functions with many local minima. Since GD is deterministic we
+will get stuck in a local minimum, if the method converges, unless we
+have a very good intial guess. This also implies that the scheme is
+sensitive to the chosen initial condition.
+</p>
+
+<p>Note that the gradient is a function of \( \mathbf{x} =
+(x_1,\cdots,x_n) \) which makes it expensive to compute numerically.
+</p>
+
+<!-- !split  -->
+<h2 id="the-sensitiveness-of-the-gradient-descent">The sensitiveness of the gradient descent </h2>
+
+<p>The gradient descent method 
+is sensitive to the choice of learning rate \( \gamma_k \). This is due
+to the fact that we are only guaranteed that \( F(\mathbf{x}_{k+1}) \leq
+F(\mathbf{x}_k) \) for sufficiently small \( \gamma_k \). The problem is to
+determine an optimal learning rate. If the learning rate is chosen too
+small the method will take a long time to converge and if it is too
+large we can experience erratic behavior.
+</p>
+
+<p>Many of these shortcomings can be alleviated by introducing
+randomness. One such method is that of Stochastic Gradient Descent
+(SGD), to be discussed next week.
+</p>
+
+<!-- !split  -->
+<h2 id="convex-functions">Convex functions </h2>
+
+<p>Ideally we want our cost/loss function to be convex(concave).</p>
+
+<p>First we give the definition of a convex set: A set \( C \) in
+\( \mathbb{R}^n \) is said to be convex if, for all \( x \) and \( y \) in \( C \) and
+all \( t \in (0,1) \) , the point \( (1 &#8722; t)x + ty \) also belongs to
+C. Geometrically this means that every point on the line segment
+connecting \( x \) and \( y \) is in \( C \) as discussed below.
+</p>
+
+<p>The convex subsets of \( \mathbb{R} \) are the intervals of
+\( \mathbb{R} \). Examples of convex sets of \( \mathbb{R}^2 \) are the
+regular polygons (triangles, rectangles, pentagons, etc...).
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="convex-function">Convex function </h2>
+
+<p><b>Convex function</b>: Let \( X \subset \mathbb{R}^n \) be a convex set. Assume that the function \( f: X \rightarrow \mathbb{R} \) is continuous, then \( f \) is said to be convex if $$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$ for all \( x_1, x_2 \in X \) and for all \( t \in [0,1] \). If \( \leq \) is replaced with a strict inequaltiy in the definition, we demand \( x_1 \neq x_2 \) and \( t\in(0,1) \) then \( f \) is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting \( f(x_1) \) and \( f(x_2) \), the value of the function on the interval \( [x_1,x_2] \) is always below the line as illustrated below.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="conditions-on-convex-functions">Conditions on convex functions </h2>
+
+<p>In the following we state first and second-order conditions which
+ensures convexity of a function \( f \). We write \( D_f \) to denote the
+domain of \( f \), i.e the subset of \( R^n \) where \( f \) is defined. For more
+details and proofs we refer to: <a href="http://stanford.edu/boyd/cvxbook/, 2004" target="_blank">S. Boyd and L. Vandenberghe. Convex Optimization. Cambridge University Press</a>.
+</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>First order condition</b>
+<p>
+<p>Suppose \( f \) is differentiable (i.e \( \nabla f(x) \) is well defined for
+all \( x \) in the domain of \( f \)). Then \( f \) is convex if and only if \( D_f \)
+is a convex set and $$f(y) \geq f(x) + \nabla f(x)^T (y-x) $$ holds
+for all \( x,y \in D_f \). This condition means that for a convex function
+the first order Taylor expansion (right hand side above) at any point
+a global under estimator of the function. To convince yourself you can
+make a drawing of \( f(x) = x^2+1 \) and draw the tangent line to \( f(x) \) and
+note that it is always below the graph.  
+</p>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Second order condition</b>
+<p>
+<p>Assume that \( f \) is twice
+differentiable, i.e the Hessian matrix exists at each point in
+\( D_f \). Then \( f \) is convex if and only if \( D_f \) is a convex set and its
+Hessian is positive semi-definite for all \( x\in D_f \). For a
+single-variable function this reduces to \( f''(x) \geq 0 \). Geometrically this means that \( f \) has nonnegative curvature
+everywhere.
+</p>
+</div>
+
+
+<p>This condition is particularly useful since it gives us an procedure for determining if the function under consideration is convex, apart from using the definition.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="more-on-convex-functions">More on convex functions </h2>
+
+<p>The next result is of great importance to us and the reason why we are
+going on about convex functions. In machine learning we frequently
+have to minimize a loss/cost function in order to find the best
+parameters for the model we are considering. 
+</p>
+
+<p>Ideally we want the
+global minimum (for high-dimensional models it is hard to know
+if we have local or global minimum). However, if the cost/loss function
+is convex the following result provides invaluable information:
+</p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Any minimum is global for convex functions</b>
+<p>
+<p>Consider the problem of finding \( x \in \mathbb{R}^n \) such that \( f(x) \)
+is minimal, where \( f \) is convex and differentiable. Then, any point
+\( x^* \) that satisfies \( \nabla f(x^*) = 0 \) is a global minimum.
+</p>
+</div>
+
+
+<p>This result means that if we know that the cost/loss function is convex and we are able to find a minimum, we are guaranteed that it is a global minimum.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="some-simple-problems">Some simple problems </h2>
+
+<ol>
+<li> Show that \( f(x)=x^2 \) is convex for \( x \in \mathbb{R} \) using the definition of convexity. Hint: If you re-write the definition, \( f \) is convex if the following holds for all \( x,y \in D_f \) and any \( \lambda \in [0,1] \) $\lambda f(x)+(1-\lambda)f(y)-f(\lambda x + (1-\lambda) y ) \geq 0$.</li>
+<li> Using the second order condition show that the following functions are convex on the specified domain.</li>
+<ul>
+ <li> \( f(x) = e^x \) is convex for \( x \in \mathbb{R} \).</li>
+ <li> \( g(x) = -\ln(x) \) is convex for \( x \in (0,\infty) \).</li>
+</ul>
+<li> Let \( f(x) = x^2 \) and \( g(x) = e^x \). Show that \( f(g(x)) \) and \( g(f(x)) \) is convex for \( x \in \mathbb{R} \). Also show that if \( f(x) \) is any convex function than \( h(x) = e^{f(x)} \) is convex.</li>
+<li> A norm is any function that satisfy the following properties</li>
+<ul>
+ <li> \( f(\alpha x) = |\alpha| f(x) \) for all \( \alpha \in \mathbb{R} \).</li>
+ <li> \( f(x+y) \leq f(x) + f(y) \)</li>
+ <li> \( f(x) \leq 0 \) for all \( x \in \mathbb{R}^n \) with equality if and only if \( x = 0 \)</li>
+</ul>
+</ol>
+<p>Using the definition of convexity, try to show that a function satisfying the properties above is convex (the third condition is not needed to show this).</p>
+
+<!-- !split  -->
+<h2 id="revisiting-ordinary-least-squares">Revisiting Ordinary Least Squares </h2>
+
+<p>We will use linear regression as a case study for the gradient descent
+methods. Linear regression is a great test case for the gradient
+descent methods discussed in the lectures since it has several
+desirable properties such as:
+</p>
+
+<ol>
+<li> An analytical solution (recall homework sets for week 35).</li>
+<li> The gradient can be computed analytically.</li>
+<li> The cost function is convex which guarantees that gradient descent converges for small enough learning rates</li>
+</ol>
+<p>We revisit an example similar to what we had in the first homework set. We had a function  of the type</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;">x = <span style="color: #B452CD">2</span>*np.random.rand(m,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(m,<span style="color: #B452CD">1</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>with \( x_i \in [0,1]  \) is chosen randomly using a uniform distribution. Additionally we have a stochastic noise chosen according to a normal distribution \( \cal {N}(0,1) \). 
+The linear regression model is given by 
+</p>
+$$
+h_\theta(x) = \boldsymbol{y} = \theta_0 + \theta_1 x,
+$$
+
+<p>such that </p>
+$$
+\boldsymbol{y}_i = \theta_0 + \theta_1 x_i.
+$$
+
+
+<!-- !split  -->
+<h2 id="gradient-descent-example">Gradient descent example </h2>
+
+<p>Let \( \mathbf{y} = (y_1,\cdots,y_n)^T \), \( \mathbf{\boldsymbol{y}} = (\boldsymbol{y}_1,\cdots,\boldsymbol{y}_n)^T \) and \( \theta = (\theta_0, \theta_1)^T \)</p>
+
+<p>It is convenient to write \( \mathbf{\boldsymbol{y}} = X\theta \) where \( X \in \mathbb{R}^{100 \times 2}  \) is the design matrix given by (we keep the intercept here)</p>
+$$
+X \equiv \begin{bmatrix}
+1 & x_1  \\
+\vdots & \vdots  \\
+1 & x_{100} &  \\
+\end{bmatrix}.
+$$
+
+<p>The cost/loss/risk function is given by (</p>
+$$
+C(\theta) = \frac{1}{n}||X\theta-\mathbf{y}||_{2}^{2} = \frac{1}{n}\sum_{i=1}^{100}\left[ (\theta_0 + \theta_1 x_i)^2 - 2 y_i (\theta_0 + \theta_1 x_i) + y_i^2\right] 
+$$
+
+<p>and we want to find \( \theta \) such that \( C(\theta) \) is minimized.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-derivative-of-the-cost-loss-function">The derivative of the cost/loss function </h2>
+
+<p>Computing \( \partial C(\theta) / \partial \theta_0 \) and \( \partial C(\theta) / \partial \theta_1 \) we can show  that the gradient can be written as</p>
+$$
+\nabla_{\theta} C(\theta) = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\theta_0+\theta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\theta_0+\theta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} = \frac{2}{n}X^T(X\theta - \mathbf{y}), 
+$$
+
+<p>where \( X \) is the design matrix defined above.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-hessian-matrix">The Hessian matrix </h2>
+<p>The Hessian matrix of \( C(\theta) \) is given by </p>
+$$
+\boldsymbol{H} \equiv \begin{bmatrix}
+\frac{\partial^2 C(\theta)}{\partial \theta_0^2} & \frac{\partial^2 C(\theta)}{\partial \theta_0 \partial \theta_1}  \\
+\frac{\partial^2 C(\theta)}{\partial \theta_0 \partial \theta_1} & \frac{\partial^2 C(\theta)}{\partial \theta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X.
+$$
+
+<p>This result implies that \( C(\theta) \) is a convex function since the matrix \( X^T X \) always is positive semi-definite.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="simple-program">Simple program </h2>
+
+<p>We can now write a program that minimizes \( C(\theta) \) using the gradient descent method with a constant learning rate \( \gamma \) according to </p>
+$$
+\theta_{k+1} = \theta_k - \gamma \nabla_\theta C(\theta_k), \ k=0,1,\cdots 
+$$
+
+<p>We can use the expression we computed for the gradient and let use a
+\( \theta_0 \) be chosen randomly and let \( \gamma = 0.001 \). Stop iterating
+when \( ||\nabla_\theta C(\theta_k) || \leq \epsilon = 10^{-8} \). <b>Note that the code below does not include the latter stop criterion</b>.
+</p>
+
+<p>And finally we can compare our solution for \( \theta \) with the analytic result given by 
+\( \theta= (X^TX)^{-1} X^T \mathbf{y} \).
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="gradient-descent-example">Gradient Descent Example </h2>
+
+<p>Here our simple example</p>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># Importing various packages</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">mpl_toolkits.mplot3d</span> <span style="color: #8B008B; font-weight: bold">import</span> Axes3D
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> cm
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib.ticker</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearLocator, FormatStrFormatter
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sys</span>
+
+<span style="color: #228B22"># the number of datapoints</span>
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+<span style="color: #228B22"># Hessian matrix</span>
+H = (<span style="color: #B452CD">2.0</span>/n)* X.T @ X
+<span style="color: #228B22"># Get the eigenvalues</span>
+EigValues, EigVectors = np.linalg.eig(H)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Eigenvalues of Hessian Matrix:{</span>EigValues<span style="color: #CD5555">}&quot;</span>)
+
+theta_linreg = np.linalg.inv(X.T @ X) @ X.T @ y
+<span style="color: #658b00">print</span>(theta_linreg)
+theta = np.random.randn(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)
+
+eta = <span style="color: #B452CD">1.0</span>/np.max(EigValues)
+Niterations = <span style="color: #B452CD">1000</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> <span style="color: #658b00">iter</span> <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Niterations):
+    gradient = (<span style="color: #B452CD">2.0</span>/n)*X.T @ (X @ theta-y)
+    theta -= eta*gradient
+
+<span style="color: #658b00">print</span>(theta)
+xnew = np.array([[<span style="color: #B452CD">0</span>],[<span style="color: #B452CD">2</span>]])
+xbnew = np.c_[np.ones((<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)), xnew]
+ypredict = xbnew.dot(theta)
+ypredict2 = xbnew.dot(theta_linreg)
+plt.plot(xnew, ypredict, <span style="color: #CD5555">&quot;r-&quot;</span>)
+plt.plot(xnew, ypredict2, <span style="color: #CD5555">&quot;b-&quot;</span>)
+plt.plot(x, y ,<span style="color: #CD5555">&#39;ro&#39;</span>)
+plt.axis([<span style="color: #B452CD">0</span>,<span style="color: #B452CD">2.0</span>,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">15.0</span>])
+plt.xlabel(<span style="color: #CD5555">r&#39;$x$&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">r&#39;$y$&#39;</span>)
+plt.title(<span style="color: #CD5555">r&#39;Gradient descent example&#39;</span>)
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="and-a-corresponding-example-using-scikit-learn">And a corresponding example using <b>scikit-learn</b> </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># Importing various packages</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">sklearn.linear_model</span> <span style="color: #8B008B; font-weight: bold">import</span> SGDRegressor
+
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+theta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
+<span style="color: #658b00">print</span>(theta_linreg)
+sgdreg = SGDRegressor(max_iter = <span style="color: #B452CD">50</span>, penalty=<span style="color: #8B008B; font-weight: bold">None</span>, eta0=<span style="color: #B452CD">0.1</span>)
+sgdreg.fit(x,y.ravel())
+<span style="color: #658b00">print</span>(sgdreg.intercept_, sgdreg.coef_)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split  -->
+<h2 id="gradient-descent-and-ridge">Gradient descent and Ridge </h2>
+
+<p>We have also discussed Ridge regression where the loss function contains a regularized term given by the \( L_2 \) norm of \( \theta \), </p>
+$$
+C_{\text{ridge}}(\theta) = \frac{1}{n}||X\theta -\mathbf{y}||^2 + \lambda ||\theta||^2, \ \lambda \geq 0.
+$$
+
+<p>In order to minimize \( C_{\text{ridge}}(\theta) \) using GD we adjust the gradient as follows </p>
+$$
+\nabla_\theta C_{\text{ridge}}(\theta)  = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\theta_0+\theta_1x_i-y_i\right) \\
+\sum_{i=1}^{100}\left( x_i (\theta_0+\theta_1x_i)-y_ix_i\right) \\
+\end{bmatrix} + 2\lambda\begin{bmatrix} \theta_0 \\ \theta_1\end{bmatrix} = 2 (\frac{1}{n}X^T(X\theta - \mathbf{y})+\lambda \theta).
+$$
+
+<p>We can easily extend our program to minimize \( C_{\text{ridge}}(\theta) \) using gradient descent and compare with the analytical solution given by </p>
+$$
+\theta_{\text{ridge}} = \left(X^T X + n\lambda I_{2 \times 2} \right)^{-1} X^T \mathbf{y}.
+$$
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-hessian-matrix-for-ridge-regression">The Hessian matrix for Ridge Regression </h2>
+<p>The Hessian matrix of Ridge Regression for our simple example  is given by </p>
+$$
+\boldsymbol{H} \equiv \begin{bmatrix}
+\frac{\partial^2 C(\theta)}{\partial \theta_0^2} & \frac{\partial^2 C(\theta)}{\partial \theta_0 \partial \theta_1}  \\
+\frac{\partial^2 C(\theta)}{\partial \theta_0 \partial \theta_1} & \frac{\partial^2 C(\theta)}{\partial \theta_1^2} &  \\
+\end{bmatrix} = \frac{2}{n}X^T X+2\lambda\boldsymbol{I}.
+$$
+
+<p>This implies that the Hessian matrix  is positive definite, hence the stationary point is a
+minimum.
+Note that the Ridge cost function is convex being  a sum of two convex
+functions. Therefore, the stationary point is a global
+minimum of this function.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="program-example-for-gradient-descent-with-ridge-regression">Program example for gradient descent with Ridge Regression </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">random</span> <span style="color: #8B008B; font-weight: bold">import</span> random, seed
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">plt</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">mpl_toolkits.mplot3d</span> <span style="color: #8B008B; font-weight: bold">import</span> Axes3D
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib</span> <span style="color: #8B008B; font-weight: bold">import</span> cm
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">matplotlib.ticker</span> <span style="color: #8B008B; font-weight: bold">import</span> LinearLocator, FormatStrFormatter
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">sys</span>
+
+<span style="color: #228B22"># the number of datapoints</span>
+n = <span style="color: #B452CD">100</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(n,<span style="color: #B452CD">1</span>)
+y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(n,<span style="color: #B452CD">1</span>)
+
+X = np.c_[np.ones((n,<span style="color: #B452CD">1</span>)), x]
+XT_X = X.T @ X
+
+<span style="color: #228B22">#Ridge parameter lambda</span>
+lmbda  = <span style="color: #B452CD">0.001</span>
+Id = n*lmbda* np.eye(XT_X.shape[<span style="color: #B452CD">0</span>])
+
+<span style="color: #228B22"># Hessian matrix</span>
+H = (<span style="color: #B452CD">2.0</span>/n)* XT_X+<span style="color: #B452CD">2</span>*lmbda* np.eye(XT_X.shape[<span style="color: #B452CD">0</span>])
+<span style="color: #228B22"># Get the eigenvalues</span>
+EigValues, EigVectors = np.linalg.eig(H)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Eigenvalues of Hessian Matrix:{</span>EigValues<span style="color: #CD5555">}&quot;</span>)
+
+
+theta_linreg = np.linalg.inv(XT_X+Id) @ X.T @ y
+<span style="color: #658b00">print</span>(theta_linreg)
+<span style="color: #228B22"># Start plain gradient descent</span>
+theta = np.random.randn(<span style="color: #B452CD">2</span>,<span style="color: #B452CD">1</span>)
+
+eta = <span style="color: #B452CD">1.0</span>/np.max(EigValues)
+Niterations = <span style="color: #B452CD">100</span>
+
+<span style="color: #8B008B; font-weight: bold">for</span> <span style="color: #658b00">iter</span> <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(Niterations):
+    gradients = <span style="color: #B452CD">2.0</span>/n*X.T @ (X @ (theta)-y)+<span style="color: #B452CD">2</span>*lmbda*theta
+    theta -= eta*gradients
+
+<span style="color: #658b00">print</span>(theta)
+ypredict = X @ theta
+ypredict2 = X @ theta_linreg
+plt.plot(x, ypredict, <span style="color: #CD5555">&quot;r-&quot;</span>)
+plt.plot(x, ypredict2, <span style="color: #CD5555">&quot;b-&quot;</span>)
+plt.plot(x, y ,<span style="color: #CD5555">&#39;ro&#39;</span>)
+plt.axis([<span style="color: #B452CD">0</span>,<span style="color: #B452CD">2.0</span>,<span style="color: #B452CD">0</span>, <span style="color: #B452CD">15.0</span>])
+plt.xlabel(<span style="color: #CD5555">r&#39;$x$&#39;</span>)
+plt.ylabel(<span style="color: #CD5555">r&#39;$y$&#39;</span>)
+plt.title(<span style="color: #CD5555">r&#39;Gradient descent example for Ridge&#39;</span>)
+plt.show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="using-gradient-descent-methods-limitations">Using gradient descent methods, limitations </h2>
+
+<ul>
+<li> <b>Gradient descent (GD) finds local minima of our function</b>. Since the GD algorithm is deterministic, if it converges, it will converge to a local minimum of our cost/loss/risk function. Because in ML we are often dealing with extremely rugged landscapes with many local minima, this can lead to poor performance.</li>
+<li> <b>GD is sensitive to initial conditions</b>. One consequence of the local nature of GD is that initial conditions matter. Depending on where one starts, one will end up at a different local minima. Therefore, it is very important to think about how one initializes the training process. This is true for GD as well as more complicated variants of GD.</li>
+<li> <b>Gradients are computationally expensive to calculate for large datasets</b>. In many cases in statistics and ML, the cost/loss/risk function is a sum of terms, with one term for each data point. For example, in linear regression, \( E \propto \sum_{i=1}^n (y_i - \mathbf{w}^T\cdot\mathbf{x}_i)^2 \); for logistic regression, the square error is replaced by the cross entropy. To calculate the gradient we have to sum over <em>all</em> \( n \) data points. Doing this at every GD step becomes extremely computationally expensive. An ingenious solution to this, is to calculate the gradients using small subsets of the data called &quot;mini batches&quot;. This has the added benefit of introducing stochasticity into our algorithm.</li>
+<li> <b>GD is very sensitive to choices of learning rates</b>. GD is extremely sensitive to the choice of learning rates. If the learning rate is very small, the training process take an extremely long time. For larger learning rates, GD can diverge and give poor results. Furthermore, depending on what the local landscape looks like, we have to modify the learning rates to ensure convergence. Ideally, we would <em>adaptively</em> choose the learning rates to match the landscape.</li>
+<li> <b>GD treats all directions in parameter space uniformly.</b> Another major drawback of GD is that unlike Newton's method, the learning rate for GD is the same in all directions in parameter space. For this reason, the maximum learning rate is set by the behavior of the steepest direction and this can significantly slow down training. Ideally, we would like to take large steps in flat directions and small steps in steep directions. Since we are exploring rugged landscapes where curvatures change, this requires us to keep track of not only the gradient but second derivatives. The ideal scenario would be to calculate the Hessian but this proves to be too computationally expensive.</li> 
+<li> GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.</li>
+</ul>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="material-for-lab-sessions-sessions-tuesday-and-wednesday">Material for lab sessions  sessions Tuesday and Wednesday </h2>
 
@@ -1239,13 +1976,13 @@ Hessian matrix.
 our optimization problem is
 </p>
 $$
-{\displaystyle \min_{\boldsymbol{\beta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\right)\right\}.
+{\displaystyle \min_{\boldsymbol{\theta}\in {\mathbb{R}}^{p}}}\frac{1}{n}\left\{\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta}\right)^T\left(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta}\right)\right\}.
 $$
 
 <p>or we can state it as</p>
 $$
-{\displaystyle \min_{\boldsymbol{\beta}\in
-{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2,
+{\displaystyle \min_{\boldsymbol{\theta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(y_i-\tilde{y}_i\right)^2=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta}\vert\vert_2^2,
 $$
 
 <p>where we have used the definition of  a norm-2 vector, that is</p>
@@ -1258,31 +1995,31 @@ $$
 <h2 id="from-ols-to-ridge-and-lasso">From OLS to Ridge and Lasso </h2>
 
 <p>By minimizing the above equation with respect to the parameters
-\( \boldsymbol{\beta} \) we could then obtain an analytical expression for the
-parameters \( \boldsymbol{\beta} \).  We can add a regularization parameter \( \lambda \) by
+\( \boldsymbol{\theta} \) we could then obtain an analytical expression for the
+parameters \( \boldsymbol{\theta} \).  We can add a regularization parameter \( \lambda \) by
 defining a new cost function to be optimized, that is
 </p>
 
 $$
-{\displaystyle \min_{\boldsymbol{\beta}\in
-{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+{\displaystyle \min_{\boldsymbol{\theta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\theta}\vert\vert_2^2
 $$
 
 <p>which leads to the Ridge regression minimization problem where we
-require that \( \vert\vert \boldsymbol{\beta}\vert\vert_2^2\le t \), where \( t \) is
+require that \( \vert\vert \boldsymbol{\theta}\vert\vert_2^2\le t \), where \( t \) is
 a finite number larger than zero. We do not include such a constraints in the discussions here.
 </p>
 
 <p>By defining</p>
 
 $$
-C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1,
+C(\boldsymbol{X},\boldsymbol{\theta})=\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\theta}\vert\vert_1,
 $$
 
 <p>we have a new optimization equation</p>
 $$
-{\displaystyle \min_{\boldsymbol{\beta}\in
-{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_1
+{\displaystyle \min_{\boldsymbol{\theta}\in
+{\mathbb{R}}^{p}}}\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\theta}\vert\vert_1
 $$
 
 <p>which leads to Lasso regression. Lasso stands for least absolute shrinkage and selection operator. </p>
@@ -1299,23 +2036,23 @@ $$
 <p>Using the matrix-vector expression for Ridge regression and dropping the parameter \( 1/n \) in front of the standard means squared error equation, we have</p>
 
 $$
-C(\boldsymbol{X},\boldsymbol{\beta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\boldsymbol{\beta}^T\boldsymbol{\beta},
+C(\boldsymbol{X},\boldsymbol{\theta})=\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta})\right\}+\lambda\boldsymbol{\theta}^T\boldsymbol{\theta},
 $$
 
 <p>and 
-taking the derivatives with respect to \( \boldsymbol{\beta} \) we obtain then
+taking the derivatives with respect to \( \boldsymbol{\theta} \) we obtain then
 a slightly modified matrix inversion problem which for finite values
 of \( \lambda \) does not suffer from singularity problems. We obtain
 the optimal parameters
 </p>
 $$
-\hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+\hat{\boldsymbol{\theta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
 $$
 
 <p>with \( \boldsymbol{I} \) being a \( p\times p \) identity matrix with the constraint that</p>
 
 $$
-\sum_{i=0}^{p-1} \beta_i^2 \leq t,
+\sum_{i=0}^{p-1} \theta_i^2 \leq t,
 $$
 
 <p>with \( t \) a finite positive number. </p>
@@ -1323,10 +2060,10 @@ $$
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="note-on-scikit-learn">Note on Scikit-Learn </h2>
 
-<p>Note well that a library like <b>Scikit-Learn</b> does not include the \( 1/n \) factor in the expression for the mean-squared error. If you include it, the optimal parameter \( \beta \) becomes</p>
+<p>Note well that a library like <b>Scikit-Learn</b> does not include the \( 1/n \) factor in the expression for the mean-squared error. If you include it, the optimal parameter \( \theta \) becomes</p>
 
 $$
-\hat{\boldsymbol{\beta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+n\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+\hat{\boldsymbol{\theta}}_{\mathrm{Ridge}} = \left(\boldsymbol{X}^T\boldsymbol{X}+n\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
 $$
 
 <p>In our codes where we compare our own codes with <b>Scikit-Learn</b>, we do thus not include the \( 1/n \) factor in the cost function.</p>
@@ -1335,7 +2072,7 @@ $$
 <h2 id="comparison-with-ols">Comparison with OLS </h2>
 <p>When we compare this with the ordinary least squares result we have</p>
 $$
-\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
+\hat{\boldsymbol{\theta}}_{\mathrm{OLS}} = \left(\boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y},
 $$
 
 <p>which can lead to singular matrices. However, with the SVD, we can always compute the inverse of the matrix \( \boldsymbol{X}^T\boldsymbol{X} \).</p>
@@ -1344,7 +2081,7 @@ $$
 modified diagonal term added to \( \boldsymbol{X}^T\boldsymbol{X} \). The consequences, in
 particular for our discussion of the bias-variance tradeoff are rather
 interesting. We will see that for specific values of \( \lambda \), we may
-even reduce the variance of the optimal parameters \( \boldsymbol{\beta} \). These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
+even reduce the variance of the optimal parameters \( \boldsymbol{\theta} \). These topics and other related ones, will be discussed after the more linear algebra oriented analysis here.
 </p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
@@ -1354,13 +2091,13 @@ even reduce the variance of the optimal parameters \( \boldsymbol{\beta} \). The
 We have already analyzed the OLS solutions in terms of the eigenvectors (the columns) of the right singular value matrix \( \boldsymbol{U} \) as
 </p>
 $$
-\tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\beta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
+\tilde{\boldsymbol{y}}_{\mathrm{OLS}}=\boldsymbol{X}\boldsymbol{\theta}  =\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}.
 $$
 
 <p>For Ridge regression this becomes</p>
 
 $$
-\tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\beta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
+\tilde{\boldsymbol{y}}_{\mathrm{Ridge}}=\boldsymbol{X}\boldsymbol{\theta}_{\mathrm{Ridge}} = \boldsymbol{U\Sigma V^T}\left(\boldsymbol{V}\boldsymbol{\Sigma}^2\boldsymbol{V}^T+\lambda\boldsymbol{I} \right)^{-1}(\boldsymbol{U\Sigma V^T})^T\boldsymbol{y}=\sum_{j=0}^{p-1}\boldsymbol{u}_j\boldsymbol{u}_j^T\frac{\sigma_j^2}{\sigma_j^2+\lambda}\boldsymbol{y},
 $$
 
 <p>with the vectors \( \boldsymbol{u}_j \) being the columns of \( \boldsymbol{U} \) from the SVD of the matrix \( \boldsymbol{X} \). </p>
@@ -1394,13 +2131,13 @@ $$
 
 <p>In this case the standard OLS results in </p>
 $$
-\boldsymbol{\beta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{n-1}\boldsymbol{u}_i\boldsymbol{u}_i^T\boldsymbol{y},
+\boldsymbol{\theta}^{\mathrm{OLS}} = \boldsymbol{X}^T\boldsymbol{y}=\sum_{i=0}^{n-1}\boldsymbol{u}_i\boldsymbol{u}_i^T\boldsymbol{y},
 $$
 
 <p>and</p>
 
 $$
-\boldsymbol{\beta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\beta}^{\mathrm{OLS}},
+\boldsymbol{\theta}^{\mathrm{Ridge}} = \left(\boldsymbol{I}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}=\left(1+\lambda\right)^{-1}\boldsymbol{\theta}^{\mathrm{OLS}},
 $$
 
 <p>that is the Ridge estimator scales the OLS estimator by the inverse of a factor \( 1+\lambda \), and
@@ -1420,23 +2157,23 @@ Similarly, <a href="https://arxiv.org/abs/1803.08823" target="_blank">Mehta et a
 <p>Using the matrix-vector expression for Lasso regression, we have the following <b>cost</b> function</p>
 
 $$
-C(\boldsymbol{X},\boldsymbol{\beta})=\frac{1}{n}\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})\right\}+\lambda\vert\vert\boldsymbol{\beta}\vert\vert_1,
+C(\boldsymbol{X},\boldsymbol{\theta})=\frac{1}{n}\left\{(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta})^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta})\right\}+\lambda\vert\vert\boldsymbol{\theta}\vert\vert_1,
 $$
 
-<p>Taking the derivative with respect to \( \boldsymbol{\beta} \) and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicity)</p>
+<p>Taking the derivative with respect to \( \boldsymbol{\theta} \) and recalling that the derivative of the absolute value is (we drop the boldfaced vector symbol for simplicity)</p>
 $$
-\frac{d \vert \beta\vert}{d \beta}=\mathrm{sgn}(\beta)=\left\{\begin{array}{cc} 1 & \beta > 0 \\-1 & \beta < 0, \end{array}\right.
+\frac{d \vert \theta\vert}{d \theta}=\mathrm{sgn}(\theta)=\left\{\begin{array}{cc} 1 & \theta > 0 \\-1 & \theta < 0, \end{array}\right.
 $$
 
 <p>we have that the derivative of the cost function is</p>
 
 $$
-\frac{\partial C(\boldsymbol{X},\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}=-\frac{2}{n}\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta})+\lambda sgn(\boldsymbol{\beta})=0,
+\frac{\partial C(\boldsymbol{X},\boldsymbol{\theta})}{\partial \boldsymbol{\theta}}=-\frac{2}{n}\boldsymbol{X}^T(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{\theta})+\lambda sgn(\boldsymbol{\theta})=0,
 $$
 
 <p>and reordering we have</p>
 $$
-\boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\beta}+\lambda sgn(\boldsymbol{\beta})=\boldsymbol{X}^T\boldsymbol{y}.
+\boldsymbol{X}^T\boldsymbol{X}\boldsymbol{\theta}+\lambda sgn(\boldsymbol{\theta})=\boldsymbol{X}^T\boldsymbol{y}.
 $$
 
 <p>This equation does not lead to a nice analytical equation as in Ridge regression or ordinary least squares. We have absorbed the factor \( 2/n \) in a redefinition of the parameter \( \lambda \). We will solve this type of problems using libraries like <b>scikit-learn</b> and using our own gradient descent code in project 1.</p>
@@ -1448,14 +2185,14 @@ $$
 diagonal. In this case we have an equal number of rows and columns \( n=p \).
 </p>
 
-<p>Our model approximation is just \( \tilde{\boldsymbol{y}}=\boldsymbol{\beta} \) and the mean squared error and thereby the cost function for ordinary least sqquares (OLS) is then (we drop the term \( 1/n \)) </p>
+<p>Our model approximation is just \( \tilde{\boldsymbol{y}}=\boldsymbol{\theta} \) and the mean squared error and thereby the cost function for ordinary least sqquares (OLS) is then (we drop the term \( 1/n \)) </p>
 $$
-C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2,
+C(\boldsymbol{\theta})=\sum_{i=0}^{p-1}(y_i-\theta_i)^2,
 $$
 
 <p>and minimizing we have that</p>
 $$
-\hat{\beta}_i^{\mathrm{OLS}} = y_i.
+\hat{\theta}_i^{\mathrm{OLS}} = y_i.
 $$
 
 
@@ -1464,12 +2201,12 @@ $$
 
 <p>For Ridge regression our cost function is</p>
 $$
-C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\beta_i^2,
+C(\boldsymbol{\theta})=\sum_{i=0}^{p-1}(y_i-\theta_i)^2+\lambda\sum_{i=0}^{p-1}\theta_i^2,
 $$
 
 <p>and minimizing we have that</p>
 $$
-\hat{\beta}_i^{\mathrm{Ridge}} = \frac{y_i}{1+\lambda}.
+\hat{\theta}_i^{\mathrm{Ridge}} = \frac{y_i}{1+\lambda}.
 $$
 
 
@@ -1478,22 +2215,22 @@ $$
 
 <p>For Lasso regression our cost function is</p>
 $$
-C(\boldsymbol{\beta})=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\vert\beta_i\vert=\sum_{i=0}^{p-1}(y_i-\beta_i)^2+\lambda\sum_{i=0}^{p-1}\sqrt{\beta_i^2},
+C(\boldsymbol{\theta})=\sum_{i=0}^{p-1}(y_i-\theta_i)^2+\lambda\sum_{i=0}^{p-1}\vert\theta_i\vert=\sum_{i=0}^{p-1}(y_i-\theta_i)^2+\lambda\sum_{i=0}^{p-1}\sqrt{\theta_i^2},
 $$
 
 <p>and minimizing we have that</p>
 $$
--2\sum_{i=0}^{p-1}(y_i-\beta_i)+\lambda \sum_{i=0}^{p-1}\frac{(\beta_i)}{\vert\beta_i\vert}=0,
+-2\sum_{i=0}^{p-1}(y_i-\theta_i)+\lambda \sum_{i=0}^{p-1}\frac{(\theta_i)}{\vert\theta_i\vert}=0,
 $$
 
 <p>which leads to </p>
 $$
-\hat{\boldsymbol{\beta}}_i^{\mathrm{Lasso}} = \left\{\begin{array}{ccc}y_i-\frac{\lambda}{2} &\mathrm{if} & y_i> \frac{\lambda}{2}\\
+\hat{\boldsymbol{\theta}}_i^{\mathrm{Lasso}} = \left\{\begin{array}{ccc}y_i-\frac{\lambda}{2} &\mathrm{if} & y_i> \frac{\lambda}{2}\\
                                                           y_i+\frac{\lambda}{2} &\mathrm{if} & y_i < -\frac{\lambda}{2}\\
 							  0 &\mathrm{if} & \vert y_i\vert\le  \frac{\lambda}{2}\end{array}\right.\\.
 $$
 
-<p>Plotting these results shows clearly that Lasso regression suppresses (sets to zero) values of \( \beta_i \) for specific values of \( \lambda \). Ridge regression reduces on the other hand the values of \( \beta_i \) as function of \( \lambda \).</p>
+<p>Plotting these results shows clearly that Lasso regression suppresses (sets to zero) values of \( \theta_i \) for specific values of \( \lambda \). Ridge regression reduces on the other hand the values of \( \theta_i \) as function of \( \lambda \).</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="yet-another-example">Yet another Example </h2>
@@ -1509,7 +2246,7 @@ $$
 \boldsymbol{X}=\begin{bmatrix}2 & 0\\ 0 & 1 \\ 0 & 0\end{bmatrix},
 $$
 
-<p>meaning that we have two features and two unknown parameters \( \beta_0 \) and \( \beta_1 \) to be determined either by ordinary least squares, Ridge or Lasso regression.</p>
+<p>meaning that we have two features and two unknown parameters \( \theta_0 \) and \( \theta_1 \) to be determined either by ordinary least squares, Ridge or Lasso regression.</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="the-ols-case">The OLS case </h2>
@@ -1517,13 +2254,13 @@ $$
 <p>For ordinary least squares (OLS) we know that the optimal solution is</p>
 
 $$
-\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\left( \boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+\hat{\boldsymbol{\theta}}^{\mathrm{OLS}}=\left( \boldsymbol{X}^T\boldsymbol{X}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
 $$
 
 <p>Inserting the above values we obtain that </p>
 
 $$
-\hat{\boldsymbol{\beta}}^{\mathrm{OLS}}=\begin{bmatrix}2 \\ 2\end{bmatrix},
+\hat{\boldsymbol{\theta}}^{\mathrm{OLS}}=\begin{bmatrix}2 \\ 2\end{bmatrix},
 $$
 
 <p>The code which implements this simpler case is presented after the discussion of Ridge and Lasso.</p>
@@ -1534,17 +2271,17 @@ $$
 <p>For Ridge regression we have</p>
 
 $$
-\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\left( \boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
+\hat{\boldsymbol{\theta}}^{\mathrm{Ridge}}=\left( \boldsymbol{X}^T\boldsymbol{X}+\lambda\boldsymbol{I}\right)^{-1}\boldsymbol{X}^T\boldsymbol{y}.
 $$
 
 <p>Inserting the above values we obtain that </p>
 
 $$
-\hat{\boldsymbol{\beta}}^{\mathrm{Ridge}}=\begin{bmatrix}\frac{8}{4+\lambda} \\ \frac{2}{1+\lambda}\end{bmatrix},
+\hat{\boldsymbol{\theta}}^{\mathrm{Ridge}}=\begin{bmatrix}\frac{8}{4+\lambda} \\ \frac{2}{1+\lambda}\end{bmatrix},
 $$
 
-<p>There is normally a constraint on the value of \( \vert\vert \boldsymbol{\beta}\vert\vert_2 \) via the parameter \( \lambda \).
-Let us for simplicity assume that \( \beta_0^2+\beta_1^2=1 \) as constraint. This will allow us to find an expression for the optimal values of \( \beta \) and \( \lambda \).
+<p>There is normally a constraint on the value of \( \vert\vert \boldsymbol{\theta}\vert\vert_2 \) via the parameter \( \lambda \).
+Let us for simplicity assume that \( \theta_0^2+\theta_1^2=1 \) as constraint. This will allow us to find an expression for the optimal values of \( \theta \) and \( \lambda \).
 </p>
 
 <p>To see this, let us write the cost function for Ridge regression.  </p>
@@ -1554,83 +2291,83 @@ Let us for simplicity assume that \( \beta_0^2+\beta_1^2=1 \) as constraint. Thi
 
 <p>We define the MSE without the \( 1/n \) factor and have then, using that</p>
 $$
-\boldsymbol{X}\boldsymbol{\beta}=\begin{bmatrix} 2\beta_0 \\ \beta_1 \\0 \end{bmatrix},
+\boldsymbol{X}\boldsymbol{\theta}=\begin{bmatrix} 2\theta_0 \\ \theta_1 \\0 \end{bmatrix},
 $$
 
 
 $$
-C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\beta_0^2+\beta_1^2),
+C(\boldsymbol{\theta})=(4-2\theta_0)^2+(2-\theta_1)^2+\lambda(\theta_0^2+\theta_1^2),
 $$
 
-<p>and taking the derivative with respect to \( \beta_0 \) we get</p>
+<p>and taking the derivative with respect to \( \theta_0 \) we get</p>
 $$
-\beta_0=\frac{8}{4+\lambda},
-$$
-
-<p>and for \( \beta_1 \) we obtain</p>
-$$
-\beta_1=\frac{2}{1+\lambda},
+\theta_0=\frac{8}{4+\lambda},
 $$
 
-<p>Using the constraint for \( \beta_0^2+\beta_1^2=1 \) we can constrain \( \lambda \) by solving</p>
+<p>and for \( \theta_1 \) we obtain</p>
+$$
+\theta_1=\frac{2}{1+\lambda},
+$$
+
+<p>Using the constraint for \( \theta_0^2+\theta_1^2=1 \) we can constrain \( \lambda \) by solving</p>
 $$
 \left(\frac{8}{4+\lambda}\right)^2+\left(\frac{2}{1+\lambda}\right)^2=1,
 $$
 
-<p>which gives \( \lambda=4.571 \) and \( \beta_0=0.933 \) and \( \beta_1=0.359 \).</p>
+<p>which gives \( \lambda=4.571 \) and \( \theta_0=0.933 \) and \( \theta_1=0.359 \).</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="lasso-case">Lasso case </h2>
 
-<p>For Lasso we need now, keeping a  constraint on \( \vert\beta_0\vert+\vert\beta_1\vert=1 \),  to take the derivative of the absolute values of \( \beta_0 \)
-and \( \beta_1 \). This gives us the following derivatives of the cost function
+<p>For Lasso we need now, keeping a  constraint on \( \vert\theta_0\vert+\vert\theta_1\vert=1 \),  to take the derivative of the absolute values of \( \theta_0 \)
+and \( \theta_1 \). This gives us the following derivatives of the cost function
 </p>
 $$
-C(\boldsymbol{\beta})=(4-2\beta_0)^2+(2-\beta_1)^2+\lambda(\vert\beta_0\vert+\vert\beta_1\vert),
+C(\boldsymbol{\theta})=(4-2\theta_0)^2+(2-\theta_1)^2+\lambda(\vert\theta_0\vert+\vert\theta_1\vert),
 $$
 
 
 $$
-\frac{\partial C(\boldsymbol{\beta})}{\partial \beta_0}=-4(4-2\beta_0)+\lambda\mathrm{sgn}(\beta_0)=0,
+\frac{\partial C(\boldsymbol{\theta})}{\partial \theta_0}=-4(4-2\theta_0)+\lambda\mathrm{sgn}(\theta_0)=0,
 $$
 
 <p>and</p>
 $$
-\frac{\partial C(\boldsymbol{\beta})}{\partial \beta_1}=-2(2-\beta_1)+\lambda\mathrm{sgn}(\beta_1)=0.
+\frac{\partial C(\boldsymbol{\theta})}{\partial \theta_1}=-2(2-\theta_1)+\lambda\mathrm{sgn}(\theta_1)=0.
 $$
 
-<p>We have now four cases to solve besides the trivial cases \( \beta_0 \) and/or \( \beta_1 \) are zero, namely</p>
+<p>We have now four cases to solve besides the trivial cases \( \theta_0 \) and/or \( \theta_1 \) are zero, namely</p>
 <ol>
-<li> \( \beta_0 > 0 \) and \( \beta_1 > 0 \),</li>
-<li> \( \beta_0 > 0 \) and \( \beta_1 < 0 \),</li>
-<li> \( \beta_0 < 0 \) and \( \beta_1 > 0 \),</li>
-<li> \( \beta_0 < 0 \) and \( \beta_1 < 0 \).</li>
+<li> \( \theta_0 > 0 \) and \( \theta_1 > 0 \),</li>
+<li> \( \theta_0 > 0 \) and \( \theta_1 < 0 \),</li>
+<li> \( \theta_0 < 0 \) and \( \theta_1 > 0 \),</li>
+<li> \( \theta_0 < 0 \) and \( \theta_1 < 0 \).</li>
 </ol>
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="the-first-case">The first Case </h2>
 
 <p>If we consider the first case, we have then</p>
 $$
--4(4-2\beta_0)+\lambda=0,
+-4(4-2\theta_0)+\lambda=0,
 $$
 
 <p>and</p>
 $$
--2(2-\beta_1)+\lambda=0.
+-2(2-\theta_1)+\lambda=0.
 $$
 
 <p>which yields</p>
 
 $$
-\beta_0=\frac{16+\lambda}{8},
+\theta_0=\frac{16+\lambda}{8},
 $$
 
 <p>and</p>
 $$
-\beta_1=\frac{4+\lambda}{2}.
+\theta_1=\frac{4+\lambda}{2}.
 $$
 
-<p>Using the constraint on \( \beta_0 \) and \( \beta_1 \) we can then find the optimal value of \( \lambda \) for the different cases. We leave this as an exercise to you.</p>
+<p>Using the constraint on \( \theta_0 \) and \( \theta_1 \) we can then find the optimal value of \( \lambda \) for the different cases. We leave this as an exercise to you.</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="simple-code-for-solving-the-above-problem">Simple code for solving the above problem </h2>
