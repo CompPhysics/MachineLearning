@@ -1,4 +1,4 @@
-TITLE: Exercises week 36
+TITLE: Exercises week 37
 AUTHOR: Implementing gradient descent for Ridge and ordinary Least Squares Regression 
 DATE: September 8-12, 2025
 
@@ -11,7 +11,149 @@ o Be able to compare the analytical expressions for OLS and Rudge regression wit
 o Explore the role of the learning rate in the gradient descent approach and the hyperparameter $\lambda$ in Ridge regression
 o Scale the data properly
 
-===== Ridge regression and a new Synthetic Dataset =====
+
+===== Simple one-dimensional second-order polynomial =====
+
+We start with a very simple function
+!bt
+\[
+\f(x)= 2-x+5x^2,
+\]
+!et
+
+defined for $x\in [-2,2]$. You can add noise if you wish. 
+
+We are going to fit this function with a polynomial ansatz. The easiest thing is to set up a second-order polynomial and see if you can fit the above function.
+Feel free to play around with higher-order polynomials.
+
+===== Exercise 1, scale your data =====
+
+Before fitting a regression model, it is good practice to normalize or
+standardize the features. This ensures all features are on a
+comparable scale, which is especially important when using
+regularization. Here we will perform standardization, scaling each
+feature to have mean 0 and standard deviation 1.
+
+=== 1a) ===
+
+Compute the mean and standard deviation of each column (feature) in your design/feature matrix $\bm{X}$.
+Subtract the mean and divide by the standard deviation for each feature.
+
+
+We will also center the target $\bm{y}$ to mean $0$. Centering $\bm{y}$
+(and each feature) means the model does not require a separate intercept
+term, the data is shifted such that the intercept is effectively 0
+. (In practice, one could include an intercept in the model and not
+penalize it, but here we simplify by centering.)
+Choose $n=100$ data points and set up $\bm{x}, $\bm{y} and the design matrix $\bm{X}$.
+
+!bc pycod
+# Standardize features (zero mean, unit variance for each feature)
+X_mean = X.mean(axis=0)
+X_std = X.std(axis=0)
+X_std[X_std == 0] = 1  # safeguard to avoid division by zero for constant features
+X_norm = (X - X_mean) / X_std
+
+# Center the target to zero mean (optional, to simplify intercept handling)
+y_mean = ?
+y_centered = ?
+!ec
+
+Fill in the necessary details.
+
+After this preprocessing, each column of $\bm{X}_{\mathrm{norm}}$ has mean zero and standard deviation $1$
+and $\bm{y}_{\mathrm{centered}}$ has mean 0. This makes the optimization landscape
+nicer and ensures the regularization penalty $\lambda \sum_j
+\theta_j^2$ in Ridge regression treats each coefficient fairly (since features are on the
+same scale).
+
+===== Exercise 2, calculate the gradients =====
+
+Find the gradients for OLS and Ridge regression using the mean-squared error as cost/loss function. 
+
+
+===== Exercise 3, use the analytical formulae for OLS and Ridge regression to find the optimal paramters $\bm{\theta}$ =====
+
+!bc pycod
+# Set regularization parameter, either a single value or a vector of values
+lambda = ?
+
+# Analytical form for OLS and Ridge solution: theta_Ridge = (X^T X + lambda * I)^{-1} X^T y and theta_OLS = (X^T X)^{-1} X^T y
+I = np.eye(n_features)
+theta_closed_formRidge = ?
+theta_closed_formOLS = ?
+
+print("Closed-form Ridge coefficients:", theta_closed_form)
+print("Closed-form OLS coefficients:", theta_closed_form)
+!ec
+
+This computes the Ridge and OLS regression coefficients directly. The identity
+matrix $I$ has the same size as $X^T X$. It adds $\lambda$ to the diagonal of $X^T X for Ridge regression. We
+then invert this matrix and multiply by $X^T y$. The result
+for $\bm{\theta}$  is a NumPy array of shape (n$\_$features,) containing the
+fitted parameters $\bm{\theta}$..
+
+=== 3a) ===
+Finalize, in the above code, the OLS and Ridge regression determination of the optimal parameters $\bm{\theta}$. 
+
+=== 3b) ===
+Explore the results as function of different values of the hyperparameter $\lambda$. See for example exercise 4 from week 36.
+
+===== Exercise 4, Implementing the simplest form for gradient descent =====
+
+Alternatively, we can fit the ridge regression model using gradient
+descent. This is useful to visualize the iterative convergence and is
+necessary if $n$ and $p$ are so large that the closed-form might be
+too slow or memory-intensive. We derive the gradients from the cost
+functions defined above. Use the gradients of the Ridge and OLS cost functions with respect to
+the parameters  $\bm{\theta}$ and set up (using the template below) your own gradient descent code for OLS and Ridge regression.
+
+
+
+Below is a template code for gradient descent implementation of ridge:
+!bc pycod
+# Gradient descent parameters, learning rate eta first
+eta = 0.1
+# Then number of iterations
+num_iters = 1000
+
+# Initialize weights for gradient descent
+theta = np.zeros(n_features)
+
+# Arrays to store history for plotting
+cost_history = np.zeros(num_iters)
+
+# Gradient descent loop
+m = n_samples  # number of examples
+for t in range(num_iters):
+    # Compute prediction error
+    error = X_norm.dot(theta) - y_centered 
+    # Compute cost for OLS and Ridge (MSE + regularization for Ridge) for monitoring
+    cost_OLS = ?
+    cost_Ridge = ?
+    cost_history[t] = ?
+    # Compute gradients for OSL and Ridge
+    grad_OLS = ?
+    grad_Ridge = ?
+    # Update parameters theta
+    theta_gdOLS = ?
+    theta_gdRidge = ? 
+
+# After the loop, theta contains the fitted coefficients
+theta_gdOLS = ?
+theta_gdRidge = ?
+print("Gradient Descent OLS coefficients:", theta_gdOLS)
+print("Gradient Descent Ridge coefficients:", theta_gdRidge)
+!ec
+
+=== 4a) ===
+Discuss the results as function of the learning rate parameters and the number of iterations.
+
+=== 4b) ===
+Try to add a stopping parameter as function of the number iterations. How would you define a stopping criterion? 
+
+
+===== Exercise 5, Ridge regression and a new Synthetic Dataset =====
 
 
 We create a synthetic linear regression dataset with a sparse
@@ -62,128 +204,8 @@ y \approx 5 \times x_0 \;-\; 3 \times x_1 \;+\; 2 \times x_6 \;+\; \text{noise}.
 !et
 
 You can remove the noise if you wish to. 
-===== Exercise 1, scale your data =====
 
-Before fitting a regression model, it is good practice to normalize or
-standardize the features. This ensures all features are on a
-comparable scale, which is especially important when using
-regularization. Here we will perform standardization, scaling each
-feature to have mean 0 and standard deviation 1.
-
-=== 1a) ===
-
-Compute the mean and standard deviation of each column (feature) in $\bm{X}$.
-Subtract the mean and divide by the standard deviation for each feature.
-
-
-We will also center the target $\bm{y}$ to mean $0$. Centering $\bm{y}$
-(and each feature) means the model does not require a separate intercept
-term, the data is shifted such that the intercept is effectively 0
-. (In practice, one could include an intercept in the model and not
-penalize it, but here we simplify by centering.)
-
-!bc pycod
-# Standardize features (zero mean, unit variance for each feature)
-X_mean = X.mean(axis=0)
-X_std = X.std(axis=0)
-X_std[X_std == 0] = 1  # safeguard to avoid division by zero for constant features
-X_norm = (X - X_mean) / X_std
-
-# Center the target to zero mean (optional, to simplify intercept handling)
-y_mean = ?
-y_centered = ?
-!ec
-
-Fill in the necessary details.
-
-After this preprocessing, each column of $\bm{X}_{\mathrm{norm}}$ has mean zero and standard deviation $1$
-and $\bm{y}_{\mathrm{centered}}$ has mean 0. This makes the optimization landscape
-nicer and ensures the regularization penalty $\lambda \sum_j
-\theta_j^2$ in Ridge regression treats each coefficient fairly (since features are on the
-same scale).
-
-
-===== Exercise 2, use the analytical formulae for OLS and Ridge regression to find the optimal paramters $\bm{\theta}$ =====
-
-!bc pycod
-# Set regularization parameter, either a single value or a vector of values
-lambda = ?
-
-# Analytical form for OLS and Ridge solution: theta_Ridge = (X^T X + lambda * I)^{-1} X^T y and theta_OLS = (X^T X)^{-1} X^T y
-I = np.eye(n_features)
-theta_closed_formRidge = ?
-theta_closed_formOLS = ?
-
-print("Closed-form Ridge coefficients:", theta_closed_form)
-print("Closed-form OLS coefficients:", theta_closed_form)
-!ec
-
-This computes the Ridge and OLS regression coefficients directly. The identity
-matrix $I$ has the same size as $X^T X$. It adds $\lambda$ to the diagonal of $X^T X for Ridge regression. We
-then invert this matrix and multiply by $X^T y$. The result
-for $\bm{\theta}$  is a NumPy array of shape (n$\_$features,) containing the
-fitted parameters $\bm{\theta}$..
-
-=== 2a) ===
-Finalize, in the above code, the OLS and Ridge regression determination of the optimal parameters $\bm{\theta}$. 
-
-=== 2b) ===
-Explore the results as function of different values of the hyperparameter $\lambda$. See for example exercise 4 from week 36.
-
-===== Exercise 3, Implementing the simplest form for gradient descent =====
-
-Alternatively, we can fit the ridge regression model using gradient
-descent. This is useful to visualize the iterative convergence and is
-necessary if $n$ and $p$ are so large that the closed-form might be
-too slow or memory-intensive. We derive the gradients from the cost
-functions defined above. Use the gradients of the Ridge and OLS cost functions with respect to
-the parameters  $\bm{\theta}$ and set up (using the template below) your own gradient descent code for OLS and Ridge regression.
-
-
-
-Below is a template code for gradient descent implementation of ridge:
-!bc pycod
-# Gradient descent parameters, learning rate eta first
-eta = 0.1
-# Then number of iterations
-num_iters = 1000
-
-# Initialize weights for gradient descent
-theta = np.zeros(n_features)
-
-# Arrays to store history for plotting
-cost_history = np.zeros(num_iters)
-
-# Gradient descent loop
-m = n_samples  # number of examples
-for t in range(num_iters):
-    # Compute prediction error
-    error = X_norm.dot(theta) - y_centered 
-    # Compute cost for OLS and Ridge (MSE + regularization for Ridge) for monitoring
-    cost_OLS = ?
-    cost_Ridge = ?
-    cost_history[t] = ?
-    # Compute gradients for OSL and Ridge
-    grad_OLS = ?
-    grad_Ridge = ?
-    # Update parameters theta
-    theta_gdOLS = ?
-    theta_gdRidge = ? 
-
-# After the loop, theta contains the fitted coefficients
-theta_gdOLS = ?
-theta_gdRidge = ?
-print("Gradient Descent OLS coefficients:", theta_gdOLS)
-print("Gradient Descent Ridge coefficients:", theta_gdRidge)
-!ec
-
-=== 3a) ===
-Discuss the results as function of the learning rate parameters and the number of iterations.
-
-=== 3b) ===
-Try to add a stopping parameter as function of the number iterations. How would you define a stopping criterion? 
-
-
+Try to fit the above data set using OLS and Ridge regression with the analytical expressions and your own gradient descent codes.
 
 If everything worked correctly, the learned coefficients should be
 close to the true values [5.0, -3.0, 0.0, …, 2.0, …] that we used to
