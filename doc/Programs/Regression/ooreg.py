@@ -30,8 +30,8 @@ class LinearRegression:
         return X_bias @ self.weights
 
 class RidgeRegression:
-    def __init__(self, alpha=1.0):
-        self.alpha = alpha
+    def __init__(self, theta=1.0):
+        self.theta = theta
         self.weights = None
 
     def fit(self, X, y):
@@ -39,15 +39,15 @@ class RidgeRegression:
         n = X_bias.shape[1]
         I = np.eye(n)
         I[0, 0] = 0
-        self.weights = np.linalg.inv(X_bias.T @ X_bias + self.alpha * I) @ X_bias.T @ y
+        self.weights = np.linalg.pinv(X_bias.T @ X_bias + self.theta * I) @ X_bias.T @ y
 
     def predict(self, X):
         X_bias = np.c_[np.ones((X.shape[0], 1)), X]
         return X_bias @ self.weights
 
 class LassoRegression:
-    def __init__(self, alpha=1.0, max_iter=1000, tol=1e-4):
-        self.alpha = alpha
+    def __init__(self, theta=1.0, max_iter=1000, tol=1e-4):
+        self.theta = theta
         self.max_iter = max_iter
         self.tol = tol
         self.weights = None
@@ -65,10 +65,10 @@ class LassoRegression:
                 if j == 0:
                     self.weights[j] = rho / np.sum(X_bias[:, j] ** 2)
                 else:
-                    if rho < -self.alpha / 2:
-                        self.weights[j] = (rho + self.alpha / 2) / np.sum(X_bias[:, j] ** 2)
-                    elif rho > self.alpha / 2:
-                        self.weights[j] = (rho - self.alpha / 2) / np.sum(X_bias[:, j] ** 2)
+                    if rho < -self.theta / 2:
+                        self.weights[j] = (rho + self.theta / 2) / np.sum(X_bias[:, j] ** 2)
+                    elif rho > self.theta / 2:
+                        self.weights[j] = (rho - self.theta / 2) / np.sum(X_bias[:, j] ** 2)
                     else:
                         self.weights[j] = 0
             if np.linalg.norm(self.weights - weights_old, ord=1) < self.tol:
@@ -79,11 +79,11 @@ class LassoRegression:
         return X_bias @ self.weights
 
 class KernelRidgeRegression:
-    def __init__(self, alpha=1.0, gamma=0.1):
-        self.alpha = alpha
+    def __init__(self, theta=1.0, gamma=0.1):
+        self.theta = theta
         self.gamma = gamma
         self.X_train = None
-        self.alpha_vec = None
+        self.theta_vec = None
 
     def _rbf_kernel(self, X1, X2):
         dists = np.sum((X1[:, np.newaxis] - X2[np.newaxis, :]) ** 2, axis=2)
@@ -93,11 +93,11 @@ class KernelRidgeRegression:
         self.X_train = X
         K = self._rbf_kernel(X, X)
         n = K.shape[0]
-        self.alpha_vec = np.linalg.inv(K + self.alpha * np.eye(n)) @ y
+        self.theta_vec = np.linalg.pinv(K + self.theta * np.eye(n)) @ y
 
     def predict(self, X):
         K = self._rbf_kernel(X, self.X_train)
-        return K @ self.alpha_vec
+        return K @ self.theta_vec
 
 if __name__ == "__main__":
     np.random.seed(42)
@@ -106,9 +106,9 @@ if __name__ == "__main__":
 
     models = {
         "linear": LinearRegression(),
-        "ridge": RidgeRegression(alpha=1.0),
-        "lasso": LassoRegression(alpha=0.1),
-        "kernel_ridge": KernelRidgeRegression(alpha=1.0, gamma=5.0)
+        "ridge": RidgeRegression(theta=1.0),
+        "lasso": LassoRegression(theta=0.1),
+        "kernel_ridge": KernelRidgeRegression(theta=1.0, gamma=5.0)
     }
 
     for name, model in models.items():
