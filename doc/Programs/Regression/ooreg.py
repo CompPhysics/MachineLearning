@@ -19,71 +19,71 @@ def save_csv(filename, X, y_true, y_pred):
 
 class LinearRegression:
     def __init__(self):
-        self.weights = None
+        self.theta = None
 
     def fit(self, X, y):
         X_bias = np.c_[np.ones((X.shape[0], 1)), X]
-        self.weights = np.linalg.pinv(X_bias.T @ X_bias) @ X_bias.T @ y
+        self.theta = np.linalg.pinv(X_bias.T @ X_bias) @ X_bias.T @ y
 
     def predict(self, X):
         X_bias = np.c_[np.ones((X.shape[0], 1)), X]
-        return X_bias @ self.weights
+        return X_bias @ self.theta
 
 class RidgeRegression:
-    def __init__(self, theta=1.0):
-        self.theta = theta
-        self.weights = None
+    def __init__(self, lam=1.0):
+        self.lam = lam
+        self.theta = None
 
     def fit(self, X, y):
         X_bias = np.c_[np.ones((X.shape[0], 1)), X]
         n = X_bias.shape[1]
         I = np.eye(n)
         I[0, 0] = 0
-        self.weights = np.linalg.pinv(X_bias.T @ X_bias + self.theta * I) @ X_bias.T @ y
+        self.theta = np.linalg.pinv(X_bias.T @ X_bias + self.lam * I) @ X_bias.T @ y
 
     def predict(self, X):
         X_bias = np.c_[np.ones((X.shape[0], 1)), X]
-        return X_bias @ self.weights
+        return X_bias @ self.theta
 
 class LassoRegression:
-    def __init__(self, theta=1.0, max_iter=1000, tol=1e-4):
-        self.theta = theta
+    def __init__(self, lam=1.0, max_iter=1000, tol=1e-4):
+        self.lam = lam
         self.max_iter = max_iter
         self.tol = tol
-        self.weights = None
+        self.theta = None
 
     def fit(self, X, y):
         X_bias = np.c_[np.ones((X.shape[0], 1)), X]
         n_samples, n_features = X_bias.shape
-        self.weights = np.zeros(n_features)
+        self.theta = np.zeros(n_features)
 
         for _ in range(self.max_iter):
-            weights_old = self.weights.copy()
+            theta_old = self.theta.copy()
             for j in range(n_features):
-                tmp = X_bias @ self.weights - X_bias[:, j] * self.weights[j]
+                tmp = X_bias @ self.theta - X_bias[:, j] * self.theta[j]
                 rho = np.dot(X_bias[:, j], y - tmp)
                 if j == 0:
-                    self.weights[j] = rho / np.sum(X_bias[:, j] ** 2)
+                    self.theta[j] = rho / np.sum(X_bias[:, j] ** 2)
                 else:
-                    if rho < -self.theta / 2:
-                        self.weights[j] = (rho + self.theta / 2) / np.sum(X_bias[:, j] ** 2)
-                    elif rho > self.theta / 2:
-                        self.weights[j] = (rho - self.theta / 2) / np.sum(X_bias[:, j] ** 2)
+                    if rho < -self.lam / 2:
+                        self.theta[j] = (rho + self.lam / 2) / np.sum(X_bias[:, j] ** 2)
+                    elif rho > self.lam / 2:
+                        self.theta[j] = (rho - self.lam / 2) / np.sum(X_bias[:, j] ** 2)
                     else:
-                        self.weights[j] = 0
-            if np.linalg.norm(self.weights - weights_old, ord=1) < self.tol:
+                        self.theta[j] = 0
+            if np.linalg.norm(self.theta - theta_old, ord=1) < self.tol:
                 break
 
     def predict(self, X):
         X_bias = np.c_[np.ones((X.shape[0], 1)), X]
-        return X_bias @ self.weights
+        return X_bias @ self.theta
 
 class KernelRidgeRegression:
-    def __init__(self, theta=1.0, gamma=0.1):
-        self.theta = theta
+    def __init__(self, lam=1.0, gamma=0.1):
+        self.lam = lam
         self.gamma = gamma
         self.X_train = None
-        self.theta_vec = None
+        self.lam_vec = None
 
     def _rbf_kernel(self, X1, X2):
         dists = np.sum((X1[:, np.newaxis] - X2[np.newaxis, :]) ** 2, axis=2)
@@ -93,11 +93,11 @@ class KernelRidgeRegression:
         self.X_train = X
         K = self._rbf_kernel(X, X)
         n = K.shape[0]
-        self.theta_vec = np.linalg.pinv(K + self.theta * np.eye(n)) @ y
+        self.lam_vec = np.linalg.pinv(K + self.lam * np.eye(n)) @ y
 
     def predict(self, X):
         K = self._rbf_kernel(X, self.X_train)
-        return K @ self.theta_vec
+        return K @ self.lam_vec
 
 if __name__ == "__main__":
     np.random.seed(42)
@@ -106,9 +106,9 @@ if __name__ == "__main__":
 
     models = {
         "linear": LinearRegression(),
-        "ridge": RidgeRegression(theta=1.0),
-        "lasso": LassoRegression(theta=0.1),
-        "kernel_ridge": KernelRidgeRegression(theta=1.0, gamma=5.0)
+        "ridge": RidgeRegression(lam=1.0),
+        "lasso": LassoRegression(lam=0.1),
+        "kernel_ridge": KernelRidgeRegression(lam=1.0, gamma=5.0)
     }
 
     for name, model in models.items():
