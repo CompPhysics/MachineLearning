@@ -253,7 +253,8 @@ desirable properties such as:
     <div class="inner_cell">
       <div class="input_area">
         <div class="highlight" style="background: #eeeedd">
-  <pre style="font-size: 80%; line-height: 125%;">x = <span style="color: #B452CD">2</span>*np.random.rand(m,<span style="color: #B452CD">1</span>)
+  <pre style="font-size: 80%; line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+x = <span style="color: #B452CD">2</span>*np.random.rand(m,<span style="color: #B452CD">1</span>)
 y = <span style="color: #B452CD">4</span>+<span style="color: #B452CD">3</span>*x+np.random.randn(m,<span style="color: #B452CD">1</span>)
 </pre>
 </div>
@@ -1260,7 +1261,7 @@ For a function with steep directions and flat directions, a single global \( \et
 <p>
 <p>&nbsp;<br>
 $$
-r_t =; r_{t-1} + g_t \circ g_t,
+r_t = r_{t-1} + g_t \circ g_t,
 $$
 <p>&nbsp;<br>
 
@@ -1305,9 +1306,9 @@ $$
 
 <ol>
 <p><li> AdaGrad automatically tunes the step size for each parameter. Parameters with more <em>volatile or large gradients</em> get smaller steps, and those with <em>small or infrequent gradients</em> get relatively larger steps</li>
-<p><li> No manual schedule needed: The accumulation \( h_t \) keeps increasing (or stays the same if gradient is zero), so step sizes \( \eta/\sqrt{r_t} \) are non-increasing. This has a similar effect to a learning rate schedule, but individualized per coordinate.</li>
+<p><li> No manual schedule needed: The accumulation \( r_t \) keeps increasing (or stays the same if gradient is zero), so step sizes \( \eta/\sqrt{r_t} \) are non-increasing. This has a similar effect to a learning rate schedule, but individualized per coordinate.</li>
 <p><li> Sparse data benefit: For very sparse features, \( r_{t,j} \) grows slowly, so that feature&#8217;s parameter retains a higher learning rate for longer, allowing it to make significant updates when it does get a gradient signal</li>
-<p><li> Convergence: In convex optimization, AdaGrad can be shown to achieve a sub-linear convergence rate (e.g. \( O(1/\sqrt{T}) \) regret bound) comparable to the best fixed learning rate tuned for the problem</li>
+<p><li> Convergence: In convex optimization, AdaGrad can be shown to achieve a sub-linear convergence rate  comparable to the best fixed learning rate tuned for the problem</li>
 </ol>
 <p>
 <p>It effectively reduces the need to tune \( \eta \) by hand.</p>
@@ -1324,13 +1325,13 @@ Uses a decaying average of squared gradients (instead of a cumulative sum):
 </p>
 <p>&nbsp;<br>
 $$
-v_t = \alpha_2 v_{t-1} + (1-\alpha_2)(\nabla C(\theta_t))^2,
+v_t = \rho v_{t-1} + (1-\rho)(\nabla C(\theta_t))^2,
 $$
 <p>&nbsp;<br>
 
-<p>with \( \alpha_2 \) typically \( 0.9 \) (or \( 0.99 \)).</p>
+<p>with \( \rho \) typically \( 0.9 \) (or \( 0.99 \)).</p>
 <ol>
-<p><li> Update: \( \theta_{t+1} = \theta_t - \frac{\alpha}{\sqrt{v_t + \epsilon}} \nabla C(\theta_t) \).</li>
+<p><li> Update: \( \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{v_t + \epsilon}} \nabla C(\theta_t) \).</li>
 <p><li> Recent gradients have more weight, so \( v_t \) adapts to the current landscape.</li>
 <p><li> Avoids AdaGrad&#8217;s &#8220;infinite memory&#8221; problem &#8211; learning rate does not continuously decay to zero.</li>
 </ol>
@@ -1348,7 +1349,7 @@ $$
 <section>
 <h2 id="adam-optimizer">Adam Optimizer </h2>
 
-<p>Why Combine Momentum and RMSProp? Motivation for Adam: Adaptive Moment Estimation (Adam) was introduced by Kingma an Ba (2014) to combine the benefits of momentum and RMSProp.</p>
+<p>Why combine Momentum and RMSProp? Motivation for Adam: Adaptive Moment Estimation (Adam) was introduced by Kingma an Ba (2014) to combine the benefits of momentum and RMSProp.</p>
 
 <ol>
 <p><li> Fast convergence by smoothing gradients (accelerates in long-term gradient direction).</li>
@@ -1371,51 +1372,120 @@ problems involving lots data and/or parameters.  It is a combination of the
 gradient descent with momentum algorithm and the RMSprop algorithm
 discussed above.
 </p>
+</section>
 
-<p>In addition to keeping a running average of the first and
-second moments of the gradient
-(i.e. \( \mathbf{m}_t=\mathbb{E}[\mathbf{g}_t] \) and
-\( \mathbf{s}_t=\mathbb{E}[\mathbf{g}^2_t] \), respectively), ADAM
-performs an additional bias correction to account for the fact that we
-are estimating the first two moments of the gradient using a running
-average (denoted by the hats in the update rule below). The update
-rule for ADAM is given by (where multiplication and division are once
-again understood to be element-wise operations below)
+<section>
+<h2 id="why-combine-momentum-and-rmsprop">Why Combine Momentum and RMSProp? </h2>
+
+<ol>
+<p><li> Momentum: Fast convergence by smoothing gradients (accelerates in long-term gradient direction).</li>
+<p><li> Adaptive rates (RMSProp): Per-dimension learning rate scaling for stability (handles different feature scales, sparse gradients).</li>
+<p><li> Adam uses both: maintains moving averages of both first moment (gradients) and second moment (squared gradients)</li>
+<p><li> Additionally, includes a mechanism to correct the bias in these moving averages (crucial in early iterations)</li>
+</ol>
+<p>
+<p>Result: Adam is robust, achieves faster convergence with less tuning, and often outperforms SGD (with momentum) in practice</p>
+</section>
+
+<section>
+<h2 id="adam-exponential-moving-averages-moments">Adam: Exponential Moving Averages (Moments) </h2>
+<p>Adam maintains two moving averages at each time step \( t \) for each parameter \( w \):</p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>First moment (mean) \( m_t \)</b>
+<p>
+<p>The Momentum term</p>
+<p>&nbsp;<br>
+$$
+m_t = \beta_1m_{t-1} + (1-\beta_1)\, \nabla C(\theta_t),  
+$$
+<p>&nbsp;<br>
+</div>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Second moment (uncentered variance) \( v_t \)</b>
+<p>
+<p>The RMS term</p>
+<p>&nbsp;<br>
+$$
+v_t = \beta_2v_{t-1} + (1-\beta_2)(\nabla C(\theta_t))^2,
+$$
+<p>&nbsp;<br>
+
+<p>with typical \( \beta_1 = 0.9 \), \( \beta_2 = 0.999 \). Initialize \( m_0 = 0 \), \( v_0 = 0 \).</p>
+</div>
+
+<p>  These are <b>biased</b> estimators of the true first and second moment of the gradients, especially at the start (since \( m_0,v_0 \) are zero)</p>
+</section>
+
+<section>
+<h2 id="adam-bias-correction">Adam: Bias Correction </h2>
+<p>To counteract initialization bias in \( m_t, v_t \), Adam computes bias-corrected estimates</p>
+<p>&nbsp;<br>
+$$
+\hat{m}_t = \frac{m_t}{1 - \beta_1^t}, \qquad \hat{v}_t = \frac{v_t}{1 - \beta_2^t}. 
+$$
+<p>&nbsp;<br>
+
+<ul>
+<p><li> When \( t \) is small, \( 1-\beta_i^t \approx 0 \), so \( \hat{m}_t, \hat{v}_t \) significantly larger than raw \( m_t, v_t \), compensating for the initial zero bias.</li>
+<p><li> As \( t \) increases, \( 1-\beta_i^t \to 1 \), and \( \hat{m}_t, \hat{v}_t \) converge to \( m_t, v_t \).</li>
+<p><li> Bias correction is important for Adam&#8217;s stability in early iterations</li>
+</ul>
+</section>
+
+<section>
+<h2 id="adam-update-rule-derivation">Adam: Update Rule Derivation </h2>
+<p>Finally, Adam updates parameters using the bias-corrected moments:</p>
+<p>&nbsp;<br>
+$$
+\theta_{t+1} =\theta_t -\frac{\alpha}{\sqrt{\hat{v}_t} + \epsilon}\hat{m}_t,
+$$
+<p>&nbsp;<br>
+
+<p>where \( \epsilon \) is a small constant (e.g. \( 10^{-8} \)) to prevent division by zero.
+Breaking it down:
 </p>
+<ol>
+<p><li> Compute gradient \( \nabla C(\theta_t) \).</li>
+<p><li> Update first moment \( m_t \) and second moment \( v_t \) (exponential moving averages).</li>
+<p><li> Bias-correct: \( \hat{m}_t = m_t/(1-\beta_1^t) \), \( \; \hat{v}_t = v_t/(1-\beta_2^t) \).</li>
+<p><li> Compute step: \( \Delta \theta_t = \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \).</li>
+<p><li> Update parameters: \( \theta_{t+1} = \theta_t - \alpha\, \Delta \theta_t \).</li>
+</ol>
+<p>
+<p>This is the Adam update rule as given in the original paper.</p>
+</section>
 
-<p>&nbsp;<br>
-$$
-\begin{align}
-\mathbf{g}_t &= \nabla_\theta E(\boldsymbol{\theta}) 
-\tag{1}\\
-\mathbf{m}_t &= \theta_1 \mathbf{m}_{t-1} + (1-\theta_1) \mathbf{g}_t \nonumber \\
-\mathbf{s}_t &=\theta_2 \mathbf{s}_{t-1} +(1-\theta_2)\mathbf{g}_t^2 \nonumber \\
-\boldsymbol{\mathbf{m}}_t&={\mathbf{m}_t \over 1-\theta_1^t} \nonumber \\
-\boldsymbol{\mathbf{s}}_t &={\mathbf{s}_t \over1-\theta_2^t} \nonumber \\
-\boldsymbol{\theta}_{t+1}&=\boldsymbol{\theta}_t - \eta_t { \boldsymbol{\mathbf{m}}_t \over \sqrt{\boldsymbol{\mathbf{s}}_t} +\epsilon}, \nonumber \\
-\tag{2}
-\end{align}
-$$
-<p>&nbsp;<br>
+<section>
+<h2 id="adam-vs-adagrad-and-rmsprop">Adam vs. AdaGrad and RMSProp </h2>
 
-<p>where \( \theta_1 \) and \( \theta_2 \) set the memory lifetime of the first and
-second moment and are typically taken to be \( 0.9 \) and \( 0.99 \)
-respectively, and \( \eta \) and \( \epsilon \) are identical to RMSprop.
-</p>
+<ol>
+<p><li> AdaGrad: Uses per-coordinate scaling like Adam, but no momentum. Tends to slow down too much due to cumulative history (no forgetting)</li>
+<p><li> RMSProp: Uses moving average of squared gradients (like Adam&#8217;s \( v_t \)) to maintain adaptive learning rates, but does not include momentum or bias-correction.</li>
+<p><li> Adam: Effectively RMSProp + Momentum + Bias-correction</li>
+<ul>
 
-<p>Like in RMSprop, the effective step size of a parameter depends on the
-magnitude of its gradient squared.  To understand this better, let us
-rewrite this expression in terms of the variance
-\( \boldsymbol{\sigma}_t^2 = \boldsymbol{\mathbf{s}}_t -
-(\boldsymbol{\mathbf{m}}_t)^2 \). Consider a single parameter \( \theta_t \). The
-update rule for this parameter is given by
-</p>
+<p><li> Momentum (\( m_t \)) provides acceleration and smoother convergence.</li>
 
-<p>&nbsp;<br>
-$$
-\Delta \theta_{t+1}= -\eta_t { \boldsymbol{m}_t \over \sqrt{\sigma_t^2 +  m_t^2 }+\epsilon}.
-$$
-<p>&nbsp;<br>
+<p><li> Adaptive \( v_t \) scaling moderates the step size per dimension.</li>
+
+<p><li> Bias correction (absent in AdaGrad/RMSProp) ensures robust estimates early on.</li>
+</ul>
+<p>
+</ol>
+<p>
+<p>In practice, Adam often yields faster convergence and better tuning stability than RMSProp or AdaGrad alone</p>
+</section>
+
+<section>
+<h2 id="adaptivity-across-dimensions">Adaptivity Across Dimensions </h2>
+
+<ol>
+<p><li> Adam adapts the step size \emph{per coordinate}: parameters with larger gradient variance get smaller effective steps, those with smaller or sparse gradients get larger steps.</li>
+<p><li> This per-dimension adaptivity is inherited from AdaGrad/RMSProp and helps handle ill-conditioned or sparse problems.</li>
+<p><li> Meanwhile, momentum (first moment) allows Adam to continue making progress even if gradients become small or noisy, by leveraging accumulated direction.</li>
+</ol>
+<p>
 <h2 id="adam-algorithm-taken-from-goodfellow-et-al-https-www-deeplearningbook-org-contents-optimization-html">ADAM algorithm, taken from <a href="https://www.deeplearningbook.org/contents/optimization.html" target="_blank">Goodfellow et al</a> </h2>
 
 <br/><br/>
