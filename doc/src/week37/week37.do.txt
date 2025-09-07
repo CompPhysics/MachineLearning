@@ -926,6 +926,108 @@ this by tracking not only the gradient, but also the second moment of
 the gradient. These methods include AdaGrad, AdaDelta, Root Mean Squared Propagation (RMS-Prop), and
 "ADAM":"https://arxiv.org/abs/1412.6980".
 
+
+!split
+===== Challenge: Choosing a Fixed Learning Rate =====
+A fixed $\eta$ is hard to get right:
+o If $\eta$ is too large, the updates can overshoot the minimum, causing oscillations or divergence
+o If $\eta$ is too small, convergence is very slow (many iterations to make progress)
+
+In practice, one often uses trial-and-error or schedules (decaying $\eta$ over time) to find a workable balance.
+For a function with steep directions and flat directions, a single global $\eta$ may be inappropriate:
+o Steep coordinates require a smaller step size to avoid oscillation.
+o Flat/shallow coordinates could use a larger step to speed up progress.
+o This issue is pronounced in high-dimensional problems with **sparse or varying-scale features** – we need a method to adjust step sizesper feature.
+
+!split
+===== Motivation for Adaptive Step Sizes =====
+
+o Instead of a fixed global $\eta$, use an \textbf{adaptive learning rate} for each parameter that depends on the history of gradients.
+o Parameters that have large accumulated gradient magnitude should get smaller steps (they've been changing a lot), whereas parameters with small or infrequent gradients can have larger relative steps.
+o This is especially useful for sparse features: Rarely active features accumulate little gradient, so their learning rate remains comparatively high, ensuring they are not neglected
+o Conversely, frequently active features accumulate large gradient sums, and their learning rate automatically decreases, preventing too-large updates
+o Several algorithms implement this idea (AdaGrad, RMSProp, AdaDelta, Adam, etc.). We will derive **AdaGrad**, one of the first adaptive methods.
+
+!split
+===== Derivation of the AdaGrad Algorithm =====
+
+!bblock Accumulating Gradient History
+o AdaGrad maintains a running sum of squared gradients for each parameter (coordinate)
+o Let $g_t = \nabla \ell_{i_t}(x_t)$ be the gradient at step $t$ (or a subgradient for nondifferentiable cases).
+o Initialize $h_0 = 0$ (an all-zero vector in $\mathbb{R}^d$).
+o At each iteration $t$, update the accumulation:
+!bt
+\[
+h_t \;=\; h_{t-1} + g_t \circ g_t,
+\]
+!et
+o Here  $g_t \circ g_t$ denotes element-wise square of the gradient vector. $h_t^{(j)} = h_{t-1}^{(j)} + (g_{t,j})^2$ for each parameter $j$.
+o We can view $H_t = \mathrm{diag}(h_t)$ as a diagonal matrix of past squared gradients. Initially $H_0 = 0$.
+!eblock
+
+!split
+===== AdaGrad Update Rule Derivation =====
+
+We scale the gradient by the inverse square root of the accumulated matrix $H_t$. The AdaGrad update at step $t$ is:
+!bt
+\[
+x_{t+1} \;=\; x_t \;-\; \eta\, H_t^{-1/2}\, g_t,
+\]
+!et
+where $H_t^{-1/2}$ is the diagonal matrix with entries $(h_{t}^{(1)})^{-1/2}, \dots, (h_{t}^{(d)})^{-1/2}$
+In coordinates, this means each parameter $j$ has an individual step size:
+!bt
+\[
+ x_{t+1,j} =x_{t,j} -\frac{\eta}{\sqrt{h_{t,j}}}g_{t,j}.
+\]
+!et
+In practice we add a small constant $\epsilon$ in the denominator for numerical stability to avoid division by zero:
+!bt
+\[
+x_{t+1,j}= x_{t,j}-\frac{\eta}{\sqrt{\epsilon + h_{t,j}}}g_{t,j}.
+\]
+!et
+Equivalently, the effective learning rate for parameter $j$ at time $t$ is $\displaystyle \alpha_{t,j} = \frac{\eta}{\sqrt{\epsilon + h_{t,j}}}$. This decreases over time as $h_{t,j}$ grows.
+
+!split
+===== AdaGrad Properties =====
+o AdaGrad automatically tunes the step size for each parameter. Parameters with more **volatile or large gradients** get smaller steps, and those with **small or infrequent gradients** get relatively larger steps
+o No manual schedule needed: The accumulation $h_t$ keeps increasing (or stays the same if gradient is zero), so step sizes $\eta/\sqrt{h_t}$ are non-increasing. This has a similar effect to a learning rate schedule, but individualized per coordinate.
+o Sparse data benefit: For very sparse features, $h_{t,j}$ grows slowly, so that feature’s parameter retains a higher learning rate for longer, allowing it to make significant updates when it does get a gradient signal
+o Convergence: In convex optimization, AdaGrad can be shown to achieve a sub-linear convergence rate (e.g. $O(1/\sqrt{T})$ regret bound) comparable to the best fixed learning rate tuned for the problem
+
+It effectively reduces the need to tune $\eta$ by hand.
+o Limitations: Because $h_t$ accumulates without bound, AdaGrad’s learning rates can become extremely small over long training, potentially slowing progress. (Later variants like RMSProp, AdaDelta, Adam address this by modifying the accumulation rule.)
+
+!split
+===== RMSProp: Adaptive Learning Rates =====
+Addresses AdaGrad’s diminishing learning rate issue.
+Uses a decaying average of squared gradients (instead of a cumulative sum):
+!bt
+\[
+v_t = \beta_2\, v_{t-1} + (1-\beta_2)\, (\nabla L(w_t))^2,
+\]
+!et
+with $\beta_2$ typically $0.9$ (or $0.99$).
+o Update: $w_{t+1} = w_t - \frac{\alpha}{\sqrt{v_t + \epsilon}} \nabla L(w_t)$.
+o Recent gradients have more weight, so $v_t$ adapts to the current landscape.
+o Avoids AdaGrad’s “infinite memory” problem – learning rate does not continuously decay to zero.
+RMSProp was first proposed in lecture notes by Geoff Hinton, 2012 -- unpublished.)
+
+
+!split
+===== Adam Optimizer =====
+
+Why Combine Momentum and RMSProp? Motivation for Adam: Adaptive Moment Estimation (Adam) was introduced by Kingma an Ba (2014) to combine the benefits of momentum and RMSProp.
+
+o Fast convergence by smoothing gradients (accelerates in long-term gradient direction).
+o Adaptive rates (RMSProp): Per-dimension learning rate scaling for stability (handles different feature scales, sparse gradients).
+o Adam uses both: maintains moving averages of both first moment (gradients) and second moment (squared gradients)
+o Additionally, includes a mechanism to correct the bias in these moving averages (crucial in early iterations)
+
+_Result_: Adam is robust, achieves faster convergence with less tuning, and often outperforms SGD (with momentum) in practice.
+
+
 !split
 ===== RMS prop =====
 
@@ -2102,10 +2204,6 @@ because the regularization term does not include the intercept value
 $\theta_0$ in the fitting.  This applies to Lasso regularization as
 well.  It means that our optimization is now done only with the
 centered matrix and/or vector that enter the fitting procedure.
-
-
-
-
 
 
 
