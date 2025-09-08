@@ -1,0 +1,246 @@
+!split
+===== SGD vs Full-Batch GD: Convergence Speed and Memory Comparison =====
+
+
+
+=== Theoretical Convergence Speed and convex optimization ===
+
+
+Consider minimizing an empirical cost function
+!bt
+\[
+C(\theta) =\frac{1}{N}\sum_{i=1}^N l_i(\theta),
+\]
+!et
+
+where each $l_i(\theta)$ is a
+differentiable loss term. Gradient Descent (GD) updates parameters
+using the full gradient $\nabla C(\theta)$, while Stochastic Gradient
+Descent (SGD) uses a single sample (or mini-batch) gradient $\nabla
+l_i(\theta)$ selected at random. In equation form, one GD step is:
+
+!bt
+\[
+\theta_{t+1} = \theta_t-\eta \nabla C(\theta_t) =\theta_t -\eta \frac{1}{N}\sum_{i=1}^N \nabla l_i(\theta_t),
+\]
+!et
+whereas one SGD step is:
+
+!bt
+\[
+\theta_{t+1} ;=; \theta_t -\eta \nabla l_{i_t}(\theta_t),
+\]
+!et
+
+with $i_t$ randomly chosen. On smooth convex problems, GD and SGD both
+converge to the global minimum, but their rates differ. GD can take
+larger, more stable steps since it uses the exact gradient, achieving
+an error that decreases on the order of $O(1/t)$ per iteration for
+convex objectives (and even exponentially fast for strongly convex
+cases). In contrast, plain SGD has more variance in each step, leading
+to sublinear convergence in expectation – typically $O(1/\sqrt{t})$
+for general convex objectives (\thetaith appropriate diminishing step
+sizes) . Intuitively, GD’s trajectory is smoother and more
+predictable, while SGD’s path oscillates due to noise but costs far
+less per iteration, enabling many more updates in the same time.
+
+
+=== Strongly Convex Case ===
+
+
+If $C(\theta)$ is strongly convex and $L$-smooth (so GD enjoys linear
+convergence), the gap $C(\theta_t)-C(\theta^*)$ for GD shrinks as
+!bt
+\[
+C(\theta_t) - C(\theta^* ) ;\le; \Big(1 - \frac{\mu}{L}\Big)^t [C(\theta_0)-C(\theta^*)],
+\]
+!et
+
+a geometric (linear) convergence per iteration . Achieving an
+$\epsilon$-accurate solution thus takes on the order of
+$\log(1/\epsilon)$ iterations for GD. However, each GD iteration costs
+$O(N)$ gradient evaluations. SGD cannot exploit strong convexity to
+obtain a linear rate – instead, with a properly decaying step size
+(e.g. $\eta_t = \frac{1}{\mu t}$) or iterate averaging, SGD attains an
+$O(1/t)$ convergence rate in expectation . For example, one result
+of Moulines and  Bach 2011, see URL:"https://papers.nips.cc/paper_files/paper/2011/hash/40008b9a5380fcacce3976bf7c08af5b-Abstract.html" shows that with $\eta_t = \Theta(1/t)$,
+!bt
+\[
+\mathbb{E}[C(\theta_t) - C(\theta^*)] = O(1/t),
+\]
+!et
+
+for strongly convex, smooth $F$ . This $1/t$ rate is slower per
+iteration than GD’s exponential decay, but each SGD iteration is $N$
+times cheaper. In fact, to reach error $\epsilon$, plain SGD needs on
+the order of $T=O(1/\epsilon)$ iterations (sub-linear convergence),
+while GD needs $O(\log(1/\epsilon))$ iterations. When accounting for
+cost-per-iteration, GD requires $O(N \log(1/\epsilon))$ total gradient
+computations versus SGD’s $O(1/\epsilon)$ single-sample
+computations. In large-scale regimes (huge $N$), SGD can be
+faster in wall-clock time because $N \log(1/\epsilon)$ may far exceed
+$1/\epsilon$ for reasonable accuracy levels. In other words,
+with millions of data points, one epoch of GD (one full gradient) is
+extremely costly, whereas SGD can make $N$ cheap updates in the time
+GD makes one – often yielding a good solution faster in practice, even
+though SGD’s asymptotic error decays more slowly. As one lecture
+succinctly puts it: “SGD can be super effective in terms of iteration
+cost and memory, but SGD is slow to converge and can’t adapt to strong
+convexity” . Thus, the break-even point depends on $N$ and the desired
+accuracy: for moderate accuracy on very large $N$, SGD’s cheaper
+updates win; for extremely high precision (very small $\epsilon$) on a
+modest $N$, GD’s fast convergence per step can be advantageous.
+
+=== Non-Convex Problems ===
+
+In non-convex optimization (e.g. deep neural networks), neither GD nor
+SGD guarantees global minima, but SGD often displays faster progress
+in finding useful minima. Theoretical results here are weaker, usually
+showing convergence to a stationary point (\thetahere $|\nabla F|$ is
+small) in expectation. For example, GD might require $O(1/\epsilon^2)$
+iterations to ensure $|\nabla C(\theta)| < \epsilon$, and SGD typically has
+similar polynomial complexity (often worse due to gradient
+noise). However, a noteworthy difference is that SGD’s stochasticity
+can help escape saddle points or poor local minima. Random gradient
+fluctuations act like implicit noise, helping the iterate “jump” out
+of flat saddle regions where full-batch GD could stagnate . In fact,
+research has shown that adding noise to GD can guarantee escaping
+saddle points in polynomial time, and the inherent noise in SGD often
+serves this role. Empirically, this means SGD can sometimes find a
+lower loss basin faster, whereas full-batch GD might get “stuck” near
+saddle points or need a very small learning rate to navigate complex
+error surfaces . Overall, in modern high-dimensional machine learning,
+SGD (or mini-batch SGD) is the workhorse for large non-convex problems
+because it converges to good solutions much faster in practice,
+despite the lack of a linear convergence guarantee. Full-batch GD is
+rarely used on large neural networks, as it would require tiny steps
+to avoid divergence and is extremely slow per iteration .
+
+!split
+===== Memory Usage and Scalability =====
+
+
+A major advantage of SGD is its memory efficiency in handling large
+datasets. Full-batch GD requires access to the entire training set for
+each iteration, which often means the whole dataset (or a large
+subset) must reside in memory to compute $\nabla C(\theta)$ . This results
+in memory usage that scales linearly with the dataset size $N$. For
+instance, if each training sample is large (e.g. high-dimensional
+features), computing a full gradient may require storing a substantial
+portion of the data or all intermediate gradients until they are
+aggregated. In contrast, SGD needs only a single (or a small
+mini-batch of) training example(s) in memory at any time . The
+algorithm processes one sample (or mini-batch) at a time and
+immediately updates the model, discarding that sample before moving to
+the next. This streaming approach means that memory footprint is
+essentially independent of $N$ (apart from storing the model
+parameters themselves). As one source notes, gradient descent
+“requires more memory than SGD” because it “must store the entire
+dataset for each iteration,” whereas SGD “only needs to store the
+current training example” . In practical terms, if you have a dataset
+of size, say, 1 million examples, full-batch GD would need memory for
+all million every step, while SGD could be implemented to load just
+one example at a time – a crucial benefit if data are too large to fit
+in RAM or GPU memory. This scalability makes SGD suitable for
+large-scale learning: as long as you can stream data from disk, SGD
+can handle arbitrarily large datasets with fixed memory. In fact, SGD
+“does not need to remember which examples were visited” in the past,
+allowing it to run in an online fashion on infinite data streams
+. Full-batch GD, on the other hand, would require multiple passes
+through a giant dataset per update (or a complex distributed memory
+system), which is often infeasible.
+
+There is also a secondary memory effect: computing a full-batch
+gradient in deep learning requires storing all intermediate
+activations for backpropagation across the entire batch. A very large
+batch (approaching the full dataset) might exhaust GPU memory due to
+the need to hold activation gradients for thousands or millions of
+examples simultaneously. SGD/minibatches mitigate this by splitting
+the workload – e.g. with a mini-batch of size 32 or 256, memory use
+stays bounded, whereas a full-batch (size = $N$) forward/backward pass
+could not even be executed if $N$ is huge. Techniques like gradient
+accumulation exist to simulate large-batch GD by summing many
+small-batch gradients – but these still process data in manageable
+chunks to avoid memory overflow. In summary, memory complexity for GD
+grows with $N$, while for SGD it remains $O(1)$ w.r.t. dataset size
+(only the model and perhaps a mini-batch reside in memory) . This is a
+key reason why batch GD “does not scale” to very large data and why
+virtually all large-scale machine learning algorithms rely on
+stochastic or mini-batch methods.
+
+
+!split
+===== Empirical Evidence: Convergence Time and Memory in Practice =====
+
+
+Empirical studies strongly support the theoretical trade-offs
+above. In large-scale machine learning tasks, SGD often converges to a
+good solution much faster in wall-clock time than full-batch GD, and
+it uses far less memory. For example, Bottou & Bousquet (2008)
+analyzed learning time under a fixed computational budget and
+concluded that when data is abundant, it’s better to use a faster
+(even if less precise) optimization method to process more examples in
+the same time . This analysis showed that for large-scale problems,
+processing more data with SGD yields lower error than spending the
+time to do exact (batch) optimization on fewer data . In other words,
+if you have a time budget, it’s often optimal to accept slightly
+slower convergence per step (as with SGD) in exchange for being able
+to use many more training samples in that time. This phenomenon is
+borne out by experiments:
+
+
+
+=== Deep Neural Networks ===
+
+In modern deep learning, full-batch GD is so slow that it is rarely
+attempted; instead, mini-batch SGD is standard. A recent study
+demonstrated that it is possible to train a ResNet-50 on ImageNet
+using full-batch gradient descent, but it required careful tuning
+(e.g. gradient clipping, tiny learning rates) and vast computational
+resources – and even then, each full-batch update was extremely
+expensive.
+
+Using a huge batch
+(closer to full GD) tends to slow down convergence if the learning
+rate is not scaled up, and often encounters optimization difficulties
+(plateaus) that small batches avoid.
+Empirically, small or medium
+batch SGD finds minima in fewer clock hours because it can rapidly
+loop over the data with gradient noise aiding exploration.
+
+=== Memory constraints ===
+
+From a memory standpoint, practitioners note that batch GD becomes
+infeasible on large data. For example, if one tried to do full-batch
+training on a dataset that doesn’t fit in RAM or GPU memory, the
+program would resort to heavy disk I/O or simply crash. SGD
+circumvents this by processing mini-batches. Even in cases where data
+does fit in memory, using a full batch can spike memory usage due to
+storing all gradients. One empirical observation is that mini-batch
+training has a “lower, fluctuating usage pattern” of memory, whereas
+full-batch loading “quickly consumes memory (often exceeding limits)”
+. This is especially relevant for graph neural networks or other
+models where a “batch” may include a huge chunk of a graph: full-batch
+gradient computation can exhaust GPU memory, whereas mini-batch
+methods keep memory usage manageable .
+
+
+In summary, SGD converges faster than full-batch GD in terms of actual
+training time for large-scale problems, provided we measure
+convergence as reaching a good-enough solution. Theoretical bounds
+show SGD needs more iterations, but because it performs many more
+updates per unit time (and requires far less memory), it often
+achieves lower loss in a given time frame than GD. Full-batch GD might
+take slightly fewer iterations in theory, but each iteration is so
+costly that it is “slower… especially for large datasets” . Meanwhile,
+memory scaling strongly favors SGD: GD’s memory cost grows with
+dataset size, making it impractical beyond a point, whereas SGD’s
+memory use is modest and mostly constant w.r.t. $N$ . These
+differences have made SGD (and mini-batch variants) the de facto
+choice for training large machine learning models, from logistic
+regression on millions of examples to deep neural networks with
+billions of parameters. The consensus in both research and practice is
+that for large-scale or high-dimensional tasks, SGD-type methods
+converge quicker per unit of computation and handle memory constraints
+better than standard full-batch gradient descent .
+
