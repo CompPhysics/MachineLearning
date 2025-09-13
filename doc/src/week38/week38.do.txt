@@ -1,4 +1,4 @@
-TITLE: Week 38: Bias-Variance tradeoff and resampling methods
+TITLE: Week 38: Statistical analysis, bias-variance tradeoff and resampling methods
 AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics and Center for Computing in Science Education, University of Oslo, Norway
 DATE: September 15-19, 2025
 
@@ -7,28 +7,195 @@ DATE: September 15-19, 2025
 !split
 ===== Plans for week 38, lecture Monday September 15 =====
 
-
-!bblock Material for the lecture on Monday September 8
+!bblock Material for the lecture on Monday September 15
+o Statistical interpretation of Ridge and Lasso regression
+o Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff (this may partly be discussed during the exercise sessions as well.
+o See video on ADAgrad, RMSprop and ADAM (material from last week not covered during lecture) at URL:"https://youtu.be/"
 #   * "Video of Lecture":"https://youtu.be/omLmp_kkie0"
 #   * "Whiteboard notes":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember9.pdf"
-o Statistical interpretation of Ridge and Lasso regression, see also slides from last week
-o Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff (this may partly be discussed during the exercise sessions as well.
-
-
-Readings and Videos:
-    * Raschka et al, pages 175-192
-    * Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). See URL:"https://link.springer.com/book/10.1007/978-0-387-84858-7".
-    * "Video on cross validation":"https://www.youtube.com/watch?v=fSytzGwwBVw"
-    * "Video on Bootstrapping":"https://www.youtube.com/watch?v=Xz0x-8-cgaQ"
-    * "Video on bias-variance tradeoff":"https://www.youtube.com/watch?v=EuBBz3bI-aA"
 !eblock
 
+
 !split
-===== Material for lecture Monday September 15 =====
+===== Readings and Videos =====
+!bblock
+o Raschka et al, pages 175-192
+o Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). See URL:"https://link.springer.com/book/10.1007/978-0-387-84858-7".
+o "Video on bias-variance tradeoff":"https://www.youtube.com/watch?v=EuBBz3bI-aA"
+o "Video on Bootstrapping":"https://www.youtube.com/watch?v=Xz0x-8-cgaQ"
+o "Video on cross validation":"https://www.youtube.com/watch?v=fSytzGwwBVw"
+!eblock
 
 
+!split 
+===== Linking the regression analysis with a statistical interpretation =====
+
+We will now couple the discussions of ordinary least squares, Ridge
+and Lasso regression with a statistical interpretation, that is we
+move from a linear algebra analysis to a statistical analysis. In
+particular, we will focus on what the regularization terms can result
+in.  We will amongst other things show that the regularization
+parameter can reduce considerably the variance of the parameters
+$\beta$.
 
 
+On of the advantages of doing linear regression is that we actually end up with
+analytical expressions for several statistical quantities.  
+Standard least squares and Ridge regression  allow us to
+derive quantities like the variance and other expectation values in a
+rather straightforward way.
+
+
+It is assumed that $\varepsilon_i
+\sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
+independent, i.e.: 
+!bt
+\begin{align*} 
+\mbox{Cov}(\varepsilon_{i_1},
+\varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
+& i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
+\end{align*} 
+!et
+The randomness of $\varepsilon_i$ implies that
+$\mathbf{y}_i$ is also a random variable. In particular,
+$\mathbf{y}_i$ is normally distributed, because $\varepsilon_i \sim
+\mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \bm{\beta}$ is a
+non-random scalar. To specify the parameters of the distribution of
+$\mathbf{y}_i$ we need to calculate its first two moments. 
+
+Recall that $\bm{X}$ is a matrix of dimensionality $n\times p$. The
+notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
+row number $i$ and perform a sum over all values $p$.
+
+
+!split
+===== Assumptions made =====
+
+The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
+that there exists a function $f(\bm{x})$ and  a normal distributed error $\bm{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
+which describe our data
+!bt
+\[
+\bm{y} = f(\bm{x})+\bm{\varepsilon}
+\]
+!et
+
+We approximate this function with our model from the solution of the linear regression equations, that is our
+function $f$ is approximated by $\bm{\tilde{y}}$ where we want to minimize $(\bm{y}-\bm{\tilde{y}})^2$, our MSE, with
+!bt
+\[
+\bm{\tilde{y}} = \bm{X}\bm{\beta}.
+\]
+!et
+
+!split
+===== Expectation value and variance =====
+
+We can calculate the expectation value of $\bm{y}$ for a given element $i$ 
+!bt
+\begin{align*} 
+\mathbb{E}(y_i) & =
+\mathbb{E}(\mathbf{X}_{i, \ast} \, \bm{\beta}) + \mathbb{E}(\varepsilon_i)
+\, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
+\end{align*} 
+!et
+while
+its variance is 
+!bt
+\begin{align*} \mbox{Var}(y_i) & = \mathbb{E} \{ [y_i
+- \mathbb{E}(y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( y_i^2 ) -
+[\mathbb{E}(y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
+\beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 \\ &
+= \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2 \varepsilon_i
+\mathbf{X}_{i, \ast} \, \bm{\beta} + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
+\ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2
+\mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \bm{\beta} +
+\mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 
+\\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
+\mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
+\end{align*}
+!et
+Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \bm{\beta}, \sigma^2)$, that is $\bm{y}$ follows a normal distribution with 
+mean value $\bm{X}\bm{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD). 
+
+!split
+===== Expectation value and variance for $\bm{\beta}$ =====
+
+With the OLS expressions for the optimal parameters $\bm{\hat{\beta}}$ we can evaluate the expectation value
+!bt
+\[
+\mathbb{E}(\bm{\hat{\beta}}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\bm{\beta}=\bm{\beta}.
+\]
+!et
+This means that the estimator of the regression parameters is unbiased.
+
+We can also calculate the variance
+
+The variance of the optimal value $\bm{\hat{\beta}}$ is
+!bt
+\begin{eqnarray*}
+\mbox{Var}(\bm{\hat{\beta}}) & = & \mathbb{E} \{ [\bm{\beta} - \mathbb{E}(\bm{\beta})] [\bm{\beta} - \mathbb{E}(\bm{\beta})]^{T} \}
+\\
+& = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \bm{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} - \bm{\beta}]^{T} \}
+\\
+% & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y}]^{T} \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{Y} \, \mathbf{Y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{Y} \, \mathbf{Y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T \, \mathbf{X} \, \bm{\beta} \, \bm{\beta}^T \,  \mathbf{X}^T \, \mathbf{X} \, (\mathbf{X}^T % \mathbf{X})^{-1}
+% \\
+% & & + \, \, \sigma^2 \, (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T  \, \mathbf{X} \, (\mathbf{X}^T \mathbf{X})^{-1} - \bm{\beta} \bm{\beta}^T
+\\
+& = & \bm{\beta} \, \bm{\beta}^{T}  + \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\, \, \, = \, \, \, \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1},
+\end{eqnarray*}
+!et
+
+where we have used  that $\mathbb{E} (\mathbf{Y} \mathbf{Y}^{T}) =
+\mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \, \mathbf{X}^{T} +
+\sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\bm{\beta}) = \sigma^2
+\, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
+variance of the estimate of the $j$-th regression coefficient:
+$\bm{\sigma}^2 (\bm{\beta}_j ) = \bm{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
+construct a confidence interval for the estimates.
+
+
+In a similar way, we can obtain analytical expressions for say the
+expectation values of the parameters $\bm{\beta}$ and their variance
+when we employ Ridge regression, allowing us again to define a confidence interval. 
+
+It is rather straightforward to show that
+!bt
+\[
+\mathbb{E} \big[ \bm{\beta}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\bm{\beta}^{\mathrm{OLS}}.
+\]
+!et
+We see clearly that 
+$\mathbb{E} \big[ \bm{\beta}^{\mathrm{Ridge}} \big] \not= \bm{\beta}^{\mathrm{OLS}}$ for any $\lambda > 0$. We say then that the ridge estimator is biased.
+
+We can also compute the variance as 
+
+!bt
+\[
+\mbox{Var}[\bm{\beta}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
+\]
+!et
+and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\bm{\beta}$ goes to zero. 
+
+With this, we can compute the difference 
+
+!bt
+\[
+\mbox{Var}[\bm{\beta}^{\mathrm{OLS}}]-\mbox{Var}(\bm{\beta}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
+\]
+!et
+The difference is non-negative definite since each component of the
+matrix product is non-negative definite. 
+This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\bm{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
 
 
 !split
@@ -54,7 +221,7 @@ y_i\sim \mathcal{N}(\bm{X}_{i,*}\bm{\beta}, \sigma^2)=\frac{1}{\sqrt{2\pi\sigma^
 !et
 
 !split
-===== Independent and Identically Distrubuted (iid) =====
+===== Independent and Identically Distributed (iid) =====
 
 We assume now that the various $y_i$ values are stochastically distributed according to the above Gaussian distribution. 
 We define this distribution as
@@ -150,265 +317,7 @@ which leads to the well-known OLS equation for the optimal paramters $\beta$
 !et
 
 
-Before we make a similar analysis for Ridge and Lasso regression, we need a short reminder on statistics. 
-
-!split
-===== More basic Statistics and Bayes' theorem =====
-
-A central theorem in statistics is Bayes' theorem. This theorem plays a similar role as the good old Pythagoras' theorem in geometry.
-Bayes' theorem is extremely simple to derive. But to do so we need some basic axioms from statistics.
-
-Assume we have two domains of events $X=[x_0,x_1,\dots,x_{n-1}]$ and $Y=[y_0,y_1,\dots,y_{n-1}]$.
-
-We define also the likelihood for $X$ and $Y$ as $p(X)$ and $p(Y)$ respectively.
-The likelihood of a specific event $x_i$ (or $y_i$) is then written as $p(X=x_i)$ or just $p(x_i)=p_i$. 
-
-!bblock Union of events is given by
-!bt
-\[
-p(X \cup Y)= p(X)+p(Y)-p(X \cap Y).
-\]
-!et
-!eblock
-
-
-!bblock The product rule (aka joint probability) is given by
-!bt
-\[
-p(X \cup Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(X),
-\]
-!et
-where we read $p(X\vert Y)$ as the likelihood of obtaining $X$ given $Y$.
-!eblock
-
-If we have independent events then $p(X,Y)=p(X)p(Y)$.
-
-
-!split
-===== Marginal Probability =====
-
-The marginal probability is defined in terms of only one of the set of variables $X,Y$. For a discrete probability we have
-!bblock 
-!bt
-\[
-p(X)=\sum_{i=0}^{n-1}p(X,Y=y_i)=\sum_{i=0}^{n-1}p(X\vert Y=y_i)p(Y=y_i)=\sum_{i=0}^{n-1}p(X\vert y_i)p(y_i).
-\]
-!et
-!eblock
-
-
-!split
-===== Conditional  Probability =====
-
-The conditional  probability, if $p(Y) > 0$, is 
-!bblock 
-!bt
-\[
-p(X\vert Y)= \frac{p(X,Y)}{p(Y)}=\frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}.
-\]
-!et
-!eblock
-
-
-!split
-===== Bayes' Theorem =====
-
-If we combine the conditional probability with the marginal probability and the standard product rule, we have
-!bt
-\[
-p(X\vert Y)= \frac{p(X,Y)}{p(Y)},
-\]
-!et
-which we can rewrite as
-
-!bt
-\[
-p(X\vert Y)= \frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}=\frac{p(Y\vert X)p(X)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)},
-\]
-!et
-which is Bayes' theorem. It allows us to evaluate the uncertainty in in $X$ after we have observed $Y$. We can easily interchange $X$ with $Y$.  
-
-!split
-===== Interpretations of Bayes' Theorem =====
-
-The quantity $p(Y\vert X)$ on the right-hand side of the theorem is
-evaluated for the observed data $Y$ and can be viewed as a function of
-the parameter space represented by $X$. This function is not
-necesseraly normalized and is normally called the likelihood function.
-
-The function $p(X)$ on the right hand side is called the prior while the function on the left hand side is the called the posterior probability. The denominator on the right hand side serves as a normalization factor for the posterior distribution.
-
-Let us try to illustrate Bayes' theorem through an example.
-
-!split
-=====  Example of Usage of Bayes' theorem =====
-
-Let us suppose that you are undergoing a series of mammography scans in
-order to rule out possible breast cancer cases.  We define the
-sensitivity for a positive event by the variable $X$. It takes binary
-values with $X=1$ representing a positive event and $X=0$ being a
-negative event. We reserve $Y$ as a classification parameter for
-either a negative or a positive breast cancer confirmation. (Short note on wordings: positive here means having breast cancer, although none of us would consider this being a  positive thing).
-
-We let $Y=1$ represent the the case of having breast cancer and $Y=0$ as not.
-
-Let us assume that if you have breast cancer, the test will be positive with a probability of $0.8$, that is we have
-
-!bt
-\[
-p(X=1\vert Y=1) =0.8.
-\]
-!et
-
-This obviously sounds  scary since many would conclude that if the test is positive, there is a likelihood of $80\%$ for having cancer.
-It is however not correct, as the following Bayesian analysis shows.
-
-!split
-===== Doing it correctly =====
-
-If we look at various national surveys on breast cancer, the general likelihood of developing breast cancer is a very small number.
-Let us assume that the prior probability in the population as a whole is
-
-!bt
-\[
-p(Y=1) =0.004.
-\]
-!et
-
-We need also to account for the fact that the test may produce a false positive result (false alarm). Let us here assume that we have
-!bt
-\[
-p(X=1\vert Y=0) =0.1.
-\]
-!et
-
-Using Bayes' theorem we can then find the posterior probability that the person has breast cancer in case of a positive test, that is we can compute
-
-!bt
-\[
-p(Y=1\vert X=1)=\frac{p(X=1\vert Y=1)p(Y=1)}{p(X=1\vert Y=1)p(Y=1)+p(X=1\vert Y=0)p(Y=0)}=\frac{0.8\times 0.004}{0.8\times 0.004+0.1\times 0.996}=0.031.
-\]
-!et
-That is, in case of a positive test, there is only a $3\%$ chance of having breast cancer!
-
-
-!split
-===== Bayes' Theorem and Ridge and Lasso Regression =====
-
-Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 
-
-For ordinary least squares we postulated that the maximum likelihood for the doamin of events $\bm{D}$ (one-dimensional case)
-!bt
-\[
-\bm{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})],
-\]
-!et
-is given by
-!bt
-\[
-p(\bm{D}\vert\bm{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}.
-\]
-!et
-
-In Bayes' theorem this function plays the role of the so-called likelihood. We could now ask the question what is the posterior probability of a parameter set $\bm{\beta}$ given a domain of events $\bm{D}$?  That is, how can we define the posterior probability 
-
-!bt
-\[
-p(\bm{\beta}\vert\bm{D}).
-\]
-!et
-
-Bayes' theorem comes to our rescue here since (omitting the normalization constant)
-!bt
-\[
-p(\bm{\beta}\vert\bm{D})\propto p(\bm{D}\vert\bm{\beta})p(\bm{\beta}).
-\]
-!et
-
-We have a model for $p(\bm{D}\vert\bm{\beta})$ but need one for the _prior_ $p(\bm{\beta})$!   
-
-
-!split
-===== Ridge and Bayes =====
-
-With the posterior probability defined by a likelihood which we have
-already modeled and an unknown prior, we are now ready to make
-additional models for the prior.
-
-We can, based on our discussions of the variance of $\bm{\beta}$ and the mean value, assume that the prior for the values $\bm{\beta}$ is given by a Gaussian with mean value zero and variance $\tau^2$, that is
-
-!bt
-\[
-p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
-\]
-!et
-
-Our posterior probability becomes then (omitting the normalization factor which is just a constant)
-!bt
-\[
-p(\bm{\beta\vert\bm{D})}=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
-\]
-!et
-
-
-We can now optimize this quantity with respect to $\bm{\beta}$. As we
-did for OLS, this is most conveniently done by taking the negative
-logarithm of the posterior probability. Doing so and leaving out the
-constants terms that do not depend on $\beta$, we have
-
-
-!bt
-\[
-C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{2\tau^2}\vert\vert\bm{\beta}\vert\vert_2^2,
-\]
-!et
-and replacing $1/2\tau^2$ with $\lambda$ we have
-
-!bt
-\[
-C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_2^2,
-\]
-!et
-which is our Ridge cost function!  Nice, isn't it?
-
-!split
-===== Lasso and Bayes =====
-
-To derive the Lasso cost function, we simply replace the Gaussian prior with an exponential distribution ("Laplace in this case":"https://en.wikipedia.org/wiki/Laplace_distribution") with zero mean value,  that is
-
-!bt
-\[
-p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
-\]
-!et
-
-Our posterior probability becomes then (omitting the normalization factor which is just a constant)
-!bt
-\[
-p(\bm{\beta}\vert\bm{D})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
-\]
-!et
-
-
-Taking the negative
-logarithm of the posterior probability and leaving out the
-constants terms that do not depend on $\beta$, we have
-
-
-!bt
-\[
-C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{\tau}\vert\vert\bm{\beta}\vert\vert_1,
-\]
-!et
-and replacing $1/\tau$ with $\lambda$ we have
-
-!bt
-\[
-C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_1,
-\]
-!et
-which is our Lasso cost function!  
-
+Next week we will make  a similar analysis for Ridge and Lasso regression
 
 
 
@@ -1466,183 +1375,6 @@ plt.show()
 ===== Material for the lab sessions =====
 
 
-!split 
-===== Linking the regression analysis with a statistical interpretation =====
-
-We will now couple the discussions of ordinary least squares, Ridge
-and Lasso regression with a statistical interpretation, that is we
-move from a linear algebra analysis to a statistical analysis. In
-particular, we will focus on what the regularization terms can result
-in.  We will amongst other things show that the regularization
-parameter can reduce considerably the variance of the parameters
-$\beta$.
-
-
-The
-advantage of doing linear regression is that we actually end up with
-analytical expressions for several statistical quantities.  
-Standard least squares and Ridge regression  allow us to
-derive quantities like the variance and other expectation values in a
-rather straightforward way.
-
-
-It is assumed that $\varepsilon_i
-\sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
-independent, i.e.: 
-!bt
-\begin{align*} 
-\mbox{Cov}(\varepsilon_{i_1},
-\varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
-& i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
-\end{align*} 
-!et
-The randomness of $\varepsilon_i$ implies that
-$\mathbf{y}_i$ is also a random variable. In particular,
-$\mathbf{y}_i$ is normally distributed, because $\varepsilon_i \sim
-\mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \bm{\beta}$ is a
-non-random scalar. To specify the parameters of the distribution of
-$\mathbf{y}_i$ we need to calculate its first two moments. 
-
-Recall that $\bm{X}$ is a matrix of dimensionality $n\times p$. The
-notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
-row number $i$ and perform a sum over all values $p$.
-
-
-!split
-===== Assumptions made =====
-
-The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
-that there exists a function $f(\bm{x})$ and  a normal distributed error $\bm{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
-which describe our data
-!bt
-\[
-\bm{y} = f(\bm{x})+\bm{\varepsilon}
-\]
-!et
-
-We approximate this function with our model from the solution of the linear regression equations, that is our
-function $f$ is approximated by $\bm{\tilde{y}}$ where we want to minimize $(\bm{y}-\bm{\tilde{y}})^2$, our MSE, with
-!bt
-\[
-\bm{\tilde{y}} = \bm{X}\bm{\beta}.
-\]
-!et
-
-!split
-===== Expectation value and variance =====
-
-We can calculate the expectation value of $\bm{y}$ for a given element $i$ 
-!bt
-\begin{align*} 
-\mathbb{E}(y_i) & =
-\mathbb{E}(\mathbf{X}_{i, \ast} \, \bm{\beta}) + \mathbb{E}(\varepsilon_i)
-\, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
-\end{align*} 
-!et
-while
-its variance is 
-!bt
-\begin{align*} \mbox{Var}(y_i) & = \mathbb{E} \{ [y_i
-- \mathbb{E}(y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( y_i^2 ) -
-[\mathbb{E}(y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
-\beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 \\ &
-= \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2 \varepsilon_i
-\mathbf{X}_{i, \ast} \, \bm{\beta} + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
-\ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2
-\mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \bm{\beta} +
-\mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 
-\\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
-\mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
-\end{align*}
-!et
-Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \bm{\beta}, \sigma^2)$, that is $\bm{y}$ follows a normal distribution with 
-mean value $\bm{X}\bm{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD). 
-
-!split
-===== Expectation value and variance for $\bm{\beta}$ =====
-
-With the OLS expressions for the optimal parameters $\bm{\hat{\beta}}$ we can evaluate the expectation value
-!bt
-\[
-\mathbb{E}(\bm{\hat{\beta}}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\bm{\beta}=\bm{\beta}.
-\]
-!et
-This means that the estimator of the regression parameters is unbiased.
-
-We can also calculate the variance
-
-The variance of the optimal value $\bm{\hat{\beta}}$ is
-!bt
-\begin{eqnarray*}
-\mbox{Var}(\bm{\hat{\beta}}) & = & \mathbb{E} \{ [\bm{\beta} - \mathbb{E}(\bm{\beta})] [\bm{\beta} - \mathbb{E}(\bm{\beta})]^{T} \}
-\\
-& = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \bm{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \bm{\beta}]^{T} \}
-\\
-% & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}]^{T} \} - \bm{\beta} \, \bm{\beta}^{T}
-% \\
-% & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} \, \mathbf{y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \bm{\beta} \, \bm{\beta}^{T}
-% \\
-& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{y} \, \mathbf{y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
-\\
-& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
-% \\
-% & = & (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T \, \mathbf{X} \, \bm{\beta} \, \bm{\beta}^T \,  \mathbf{X}^T \, \mathbf{X} \, (\mathbf{X}^T % \mathbf{X})^{-1}
-% \\
-% & & + \, \, \sigma^2 \, (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T  \, \mathbf{X} \, (\mathbf{X}^T \mathbf{X})^{-1} - \bm{\beta} \bm{\beta}^T
-\\
-& = & \bm{\beta} \, \bm{\beta}^{T}  + \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
-\, \, \, = \, \, \, \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1},
-\end{eqnarray*}
-!et
-
-where we have used  that $\mathbb{E} (\mathbf{y} \mathbf{y}^{T}) =
-\mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \, \mathbf{X}^{T} +
-\sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\bm{\beta}) = \sigma^2
-\, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
-variance of the estimate of the $j$-th regression coefficient:
-$\bm{\sigma}^2 (\bm{\beta}_j ) = \bm{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
-construct a confidence interval for the estimates.
-
-
-In a similar way, we can obtain analytical expressions for say the
-expectation values of the parameters $\bm{\beta}$ and their variance
-when we employ Ridge regression, allowing us again to define a confidence interval. 
-
-It is rather straightforward to show that
-!bt
-\[
-\mathbb{E} \big[ \hat{\bm{\beta}}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\bm{\beta}.
-\]
-!et
-We see clearly that 
-$\mathbb{E} \big[ \hat{\bm{\beta}}^{\mathrm{Ridge}} \big] \not= \hat{\bm{\beta}}^{\mathrm{OLS}}$ for any $\lambda > 0$.
-
-We can also compute the variance as 
-
-!bt
-\[
-\mbox{Var}[\hat{\bm{\beta}}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
-\]
-!et
-and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\bm{\beta}$ goes to zero. 
-
-With this, we can compute the difference 
-
-!bt
-\[
-\mbox{Var}[\hat{\bm{\beta}}^{\mathrm{OLS}}]-\mbox{Var}(\hat{\bm{\beta}}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
-\]
-!et
-The difference is non-negative definite since each component of the
-matrix product is non-negative definite. 
-This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\bm{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
-
-For more discussions of Ridge regression and calculation of averages, "Wessel van Wieringen's":"https://arxiv.org/abs/1509.09169" article is highly recommended.
-
-
-
-
-
 
 
 !split
@@ -1815,6 +1547,8 @@ plt.legend()
 plt.show()
 
 !ec
+
+
 
 
 
