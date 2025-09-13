@@ -1,5 +1,5 @@
-TITLE: Week 38: Logistic Regression and Optimization
-AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics and Center for Computing in Science Education, University of Oslo
+TITLE: Week 38: Bias-Variance tradeoff and resampling methods
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics and Center for Computing in Science Education, University of Oslo, Norway
 DATE: September 15-19, 2025
 
 
@@ -8,166 +8,1296 @@ DATE: September 15-19, 2025
 ===== Plans for week 38, lecture Monday September 15 =====
 
 
-!bblock Material for the lecture on Monday September 15
-  * Logistic regression as our first encounter of classification methods. From binary cases to several categories.
-  * Start gradient and optimization methods
-#  * "Video of lecture":"https://youtu.be/c9DIfNHy2ks"
-#  * Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember16.pdf"
+!bblock Material for the lecture on Monday September 8
+#   * "Video of Lecture":"https://youtu.be/omLmp_kkie0"
+#   * "Whiteboard notes":"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesSeptember9.pdf"
+o Statistical interpretation of Ridge and Lasso regression, see also slides from last week
+o Resampling techniques, Bootstrap and cross validation and bias-variance tradeoff (this may partly be discussed during the exercise sessions as well.
+
+
+Readings and Videos:
+    * Raschka et al, pages 175-192
+    * Hastie et al Chapter 7, here we recommend 7.1-7.5 and 7.10 (cross-validation) and 7.11 (bootstrap). See URL:"https://link.springer.com/book/10.1007/978-0-387-84858-7".
+    * "Video on cross validation":"https://www.youtube.com/watch?v=fSytzGwwBVw"
+    * "Video on Bootstrapping":"https://www.youtube.com/watch?v=Xz0x-8-cgaQ"
+    * "Video on bias-variance tradeoff":"https://www.youtube.com/watch?v=EuBBz3bI-aA"
 !eblock
 
 !split
-===== Suggested reading and videos =====
-!bblock 
-  * Readings and Videos:
-    * Hastie et al 4.1, 4.2 and 4.3 on logistic regression
-    * Raschka et al, pages 53-76 on Logistic regression and pages 37-52 on gradient optimization
-    * For a good discussion on gradient methods, see Goodfellow et al section 4.3-4.5 and chapter 8. We will come back to the latter chapter in our discussion of Neural networks as well.
-    * "Video on Logistic regression":"https://www.youtube.com/watch?v=C5268D9t9Ak"
-    * "Yet another video on logistic regression":"https://www.youtube.com/watch?v=yIYKR4sgzI8"
-    * "Video on gradient descent":"https://www.youtube.com/watch?v=sDv4f4s2SB8"
-!eblock
+===== Material for lecture Monday September 15 =====
+
+
+
 
 
 
 !split
-===== Plans for the lab sessions =====
+===== Deriving OLS from a probability distribution =====
 
-!bblock  Material for the active learning sessions on Tuesday and Wednesday
-  * Repetition  from last week on the bias-variance tradeoff
-  * Resampling techniques, cross-validation examples included here, see also the lectures from last week on the bootstrap method
-  * Exercise for week 38 on the bias-variance tradeoff, see also the video from the lab session from week 37 at URL:"https://youtu.be/omLmp_kkie0"
-  * Work on project 1, in particular resampling methods like cross-validation and bootstrap.
-  * "Video on cross-validation from exercise session":"https://youtu.be/T9jjWsmsd1o"
-!eblock  
+Our basic assumption when we derived the OLS equations was to assume
+that our output is determined by a given continuous function
+$f(\bm{x})$ and a random noise $\bm{\epsilon}$ given by the normal
+distribution with zero mean value and an undetermined variance
+$\sigma^2$.
 
-
-
-!split
-===== Material for lecture Monday September 16 =====
-
-
-!split 
-===== Logistic Regression =====
-
-In linear regression our main interest was centered on learning the
-coefficients of a functional fit (say a polynomial) in order to be
-able to predict the response of a continuous variable on some unseen
-data. The fit to the continuous variable $y_i$ is based on some
-independent variables $\bm{x}_i$. Linear regression resulted in
-analytical expressions for standard ordinary Least Squares or Ridge
-regression (in terms of matrices to invert) for several quantities,
-ranging from the variance and thereby the confidence intervals of the
-parameters $\bm{\beta}$ to the mean squared error. If we can invert
-the product of the design matrices, linear regression gives then a
-simple recipe for fitting our data.
-
-!split 
-===== Classification problems =====
-
-
-Classification problems, however, are concerned with outcomes taking
-the form of discrete variables (i.e. categories). We may for example,
-on the basis of DNA sequencing for a number of patients, like to find
-out which mutations are important for a certain disease; or based on
-scans of various patients' brains, figure out if there is a tumor or
-not; or given a specific physical system, we'd like to identify its
-state, say whether it is an ordered or disordered system (typical
-situation in solid state physics); or classify the status of a
-patient, whether she/he has a stroke or not and many other similar
-situations.
-
-The most common situation we encounter when we apply logistic
-regression is that of two possible outcomes, normally denoted as a
-binary outcome, true or false, positive or negative, success or
-failure etc.
-
-!split
-===== Optimization and Deep learning =====
-
-Logistic regression will also serve as our stepping stone towards
-neural network algorithms and supervised deep learning. For logistic
-learning, the minimization of the cost function leads to a non-linear
-equation in the parameters $\bm{\beta}$. The optimization of the
-problem calls therefore for minimization algorithms. This forms the
-bottle neck of all machine learning algorithms, namely how to find
-reliable minima of a multi-variable function. This leads us to the
-family of gradient descent methods. The latter are the working horses
-of basically all modern machine learning algorithms.
-
-We note also that many of the topics discussed here on logistic 
-regression are also commonly used in modern supervised Deep Learning
-models, as we will see later.
-
-
-!split 
-===== Basics =====
-
-We consider the case where the dependent variables, also called the
-responses or the outcomes, $y_i$ are discrete and only take values
-from $k=0,\dots,K-1$ (i.e. $K$ classes).
-
-The goal is to predict the
-output classes from the design matrix $\bm{X}\in\mathbb{R}^{n\times p}$
-made of $n$ samples, each of which carries $p$ features or predictors. The
-primary goal is to identify the classes to which new unseen samples
-belong.
- 
-Let us specialize to the case of two classes only, with outputs
-$y_i=0$ and $y_i=1$. Our outcomes could represent the status of a
-credit card user that could default or not on her/his credit card
-debt. That is
-
+We found above that the outputs $\bm{y}$ have a mean value given by
+$\bm{X}\hat{\bm{\beta}}$ and variance $\sigma^2$. Since the entries to
+the design matrix are not stochastic variables, we can assume that the
+probability distribution of our targets is also a normal distribution
+but now with mean value $\bm{X}\hat{\bm{\beta}}$. This means that a
+single output $y_i$ is given by the Gaussian distribution
 
 !bt
 \[
-y_i = \begin{bmatrix} 0 & \mathrm{no}\\  1 & \mathrm{yes} \end{bmatrix}.
+y_i\sim \mathcal{N}(\bm{X}_{i,*}\bm{\beta}, \sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}.
+\]
+!et
+
+!split
+===== Independent and Identically Distrubuted (iid) =====
+
+We assume now that the various $y_i$ values are stochastically distributed according to the above Gaussian distribution. 
+We define this distribution as
+!bt
+\[
+p(y_i, \bm{X}\vert\bm{\beta})=\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]},
+\]
+!et
+which reads as finding the likelihood of an event $y_i$ with the input variables $\bm{X}$ given the parameters (to be determined) $\bm{\beta}$.
+
+Since these events are assumed to be independent and identicall distributed we can build the probability distribution function (PDF) for all possible event $\bm{y}$ as the product of the single events, that is we have
+
+!bt
+\[
+p(\bm{y},\bm{X}\vert\bm{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}=\prod_{i=0}^{n-1}p(y_i,\bm{X}\vert\bm{\beta}).
+\]
+!et
+
+We will write this in a more compact form reserving $\bm{D}$ for the domain of events, including the ouputs (targets) and the inputs. That is
+in case we have a simple one-dimensional input and output case
+!bt
+\[
+\bm{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})].
+\]
+!et
+In the more general case the various inputs should be replaced by the possible features represented by the input data set $\bm{X}$. 
+We can now rewrite the above probability as 
+!bt
+\[
+p(\bm{D}\vert\bm{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}.
+\]
+!et
+
+It is a conditional probability (see below) and reads as the likelihood of a domain of events $\bm{D}$ given a set of parameters $\bm{\beta}$.
+
+!split
+===== Maximum Likelihood Estimation (MLE) =====
+
+In statistics, maximum likelihood estimation (MLE) is a method of
+estimating the parameters of an assumed probability distribution,
+given some observed data. This is achieved by maximizing a likelihood
+function so that, under the assumed statistical model, the observed
+data is the most probable. 
+
+
+We will assume here that our events are given by the above Gaussian
+distribution and we will determine the optimal parameters $\beta$ by
+maximizing the above PDF. However, computing the derivatives of a
+product function is cumbersome and can easily lead to overflow and/or
+underflowproblems, with potentials for loss of numerical precision.
+
+
+In practice, it is more convenient to maximize the logarithm of the
+PDF because it is a monotonically increasing function of the argument.
+Alternatively, and this will be our option, we will minimize the
+negative of the logarithm since this is a monotonically decreasing
+function.
+
+Note also that maximization/minimization of the logarithm of the PDF
+is equivalent to the maximization/minimization of the function itself.
+
+
+
+!split
+===== A new Cost Function =====
+
+We could now define a new cost function to minimize, namely the negative logarithm of the above PDF
+
+!bt
+\[
+C(\bm{\beta}=-\log{\prod_{i=0}^{n-1}p(y_i,\bm{X}\vert\bm{\beta})}=-\sum_{i=0}^{n-1}\log{p(y_i,\bm{X}\vert\bm{\beta})},
+\]
+!et
+which becomes
+!bt
+\[
+C(\bm{\beta}=\frac{n}{2}\log{2\pi\sigma^2}+\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}.
+\]
+!et
+
+Taking the derivative of the *new* cost function with respect to the parameters $\beta$ we recognize our familiar OLS equation, namely
+
+!bt
+\[
+\bm{X}^T\left(\bm{y}-\bm{X}\bm{\beta}\right) =0,
+\]
+!et
+which leads to the well-known OLS equation for the optimal paramters $\beta$
+!bt
+\[
+\hat{\bm{\beta}}^{\mathrm{OLS}}=\left(\bm{X}^T\bm{X}\right)^{-1}\bm{X}^T\bm{y}!
 \]
 !et
 
 
+Before we make a similar analysis for Ridge and Lasso regression, we need a short reminder on statistics. 
 
 !split
-===== Linear classifier =====
+===== More basic Statistics and Bayes' theorem =====
 
-Before moving to the logistic model, let us try to use our linear
-regression model to classify these two outcomes. We could for example
-fit a linear model to the default case if $y_i > 0.5$ and the no
-default case $y_i \leq 0.5$.
+A central theorem in statistics is Bayes' theorem. This theorem plays a similar role as the good old Pythagoras' theorem in geometry.
+Bayes' theorem is extremely simple to derive. But to do so we need some basic axioms from statistics.
 
-We would then have our 
-weighted linear combination, namely 
+Assume we have two domains of events $X=[x_0,x_1,\dots,x_{n-1}]$ and $Y=[y_0,y_1,\dots,y_{n-1}]$.
+
+We define also the likelihood for $X$ and $Y$ as $p(X)$ and $p(Y)$ respectively.
+The likelihood of a specific event $x_i$ (or $y_i$) is then written as $p(X=x_i)$ or just $p(x_i)=p_i$. 
+
+!bblock Union of events is given by
 !bt
-\begin{equation}
-\bm{y} = \bm{X}^T\bm{\beta} +  \bm{\epsilon},
-\end{equation}
+\[
+p(X \cup Y)= p(X)+p(Y)-p(X \cap Y).
+\]
 !et
-where $\bm{y}$ is a vector representing the possible outcomes, $\bm{X}$ is our
-$n\times p$ design matrix and $\bm{\beta}$ represents our estimators/predictors.
+!eblock
+
+
+!bblock The product rule (aka joint probability) is given by
+!bt
+\[
+p(X \cup Y)= p(X,Y)= p(X\vert Y)p(Y)=p(Y\vert X)p(X),
+\]
+!et
+where we read $p(X\vert Y)$ as the likelihood of obtaining $X$ given $Y$.
+!eblock
+
+If we have independent events then $p(X,Y)=p(X)p(Y)$.
+
 
 !split
-===== Some selected properties =====
+===== Marginal Probability =====
 
-The main problem with our function is that it takes values on the
-entire real axis. In the case of logistic regression, however, the
-labels $y_i$ are discrete variables. A typical example is the credit
-card data discussed below here, where we can set the state of
-defaulting the debt to $y_i=1$ and not to $y_i=0$ for one the persons
-in the data set (see the full example below).
+The marginal probability is defined in terms of only one of the set of variables $X,Y$. For a discrete probability we have
+!bblock 
+!bt
+\[
+p(X)=\sum_{i=0}^{n-1}p(X,Y=y_i)=\sum_{i=0}^{n-1}p(X\vert Y=y_i)p(Y=y_i)=\sum_{i=0}^{n-1}p(X\vert y_i)p(y_i).
+\]
+!et
+!eblock
 
-One simple way to get a discrete output is to have sign
-functions that map the output of a linear regressor to values $\{0,1\}$,
-$f(s_i)=sign(s_i)=1$ if $s_i\ge 0$ and 0 if otherwise. 
-We will encounter this model in our first demonstration of neural networks.
-
-Historically it is called the _perceptron_ model in the machine learning
-literature. This model is extremely simple. However, in many cases it is more
-favorable to use a ``soft" classifier that outputs
-the probability of a given category. This leads us to the logistic function.
 
 !split
-===== Simple example =====
+===== Conditional  Probability =====
 
-The following example on data for coronary heart disease (CHD) as function of age may serve as an illustration. In the code here we read and plot whether a person has had CHD (output = 1) or not (output = 0). This ouput  is plotted the person's against age. Clearly, the figure shows that attempting to make a standard linear regression fit may not be very meaningful.
+The conditional  probability, if $p(Y) > 0$, is 
+!bblock 
+!bt
+\[
+p(X\vert Y)= \frac{p(X,Y)}{p(Y)}=\frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}.
+\]
+!et
+!eblock
+
+
+!split
+===== Bayes' Theorem =====
+
+If we combine the conditional probability with the marginal probability and the standard product rule, we have
+!bt
+\[
+p(X\vert Y)= \frac{p(X,Y)}{p(Y)},
+\]
+!et
+which we can rewrite as
+
+!bt
+\[
+p(X\vert Y)= \frac{p(X,Y)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)}=\frac{p(Y\vert X)p(X)}{\sum_{i=0}^{n-1}p(Y\vert X=x_i)p(x_i)},
+\]
+!et
+which is Bayes' theorem. It allows us to evaluate the uncertainty in in $X$ after we have observed $Y$. We can easily interchange $X$ with $Y$.  
+
+!split
+===== Interpretations of Bayes' Theorem =====
+
+The quantity $p(Y\vert X)$ on the right-hand side of the theorem is
+evaluated for the observed data $Y$ and can be viewed as a function of
+the parameter space represented by $X$. This function is not
+necesseraly normalized and is normally called the likelihood function.
+
+The function $p(X)$ on the right hand side is called the prior while the function on the left hand side is the called the posterior probability. The denominator on the right hand side serves as a normalization factor for the posterior distribution.
+
+Let us try to illustrate Bayes' theorem through an example.
+
+!split
+=====  Example of Usage of Bayes' theorem =====
+
+Let us suppose that you are undergoing a series of mammography scans in
+order to rule out possible breast cancer cases.  We define the
+sensitivity for a positive event by the variable $X$. It takes binary
+values with $X=1$ representing a positive event and $X=0$ being a
+negative event. We reserve $Y$ as a classification parameter for
+either a negative or a positive breast cancer confirmation. (Short note on wordings: positive here means having breast cancer, although none of us would consider this being a  positive thing).
+
+We let $Y=1$ represent the the case of having breast cancer and $Y=0$ as not.
+
+Let us assume that if you have breast cancer, the test will be positive with a probability of $0.8$, that is we have
+
+!bt
+\[
+p(X=1\vert Y=1) =0.8.
+\]
+!et
+
+This obviously sounds  scary since many would conclude that if the test is positive, there is a likelihood of $80\%$ for having cancer.
+It is however not correct, as the following Bayesian analysis shows.
+
+!split
+===== Doing it correctly =====
+
+If we look at various national surveys on breast cancer, the general likelihood of developing breast cancer is a very small number.
+Let us assume that the prior probability in the population as a whole is
+
+!bt
+\[
+p(Y=1) =0.004.
+\]
+!et
+
+We need also to account for the fact that the test may produce a false positive result (false alarm). Let us here assume that we have
+!bt
+\[
+p(X=1\vert Y=0) =0.1.
+\]
+!et
+
+Using Bayes' theorem we can then find the posterior probability that the person has breast cancer in case of a positive test, that is we can compute
+
+!bt
+\[
+p(Y=1\vert X=1)=\frac{p(X=1\vert Y=1)p(Y=1)}{p(X=1\vert Y=1)p(Y=1)+p(X=1\vert Y=0)p(Y=0)}=\frac{0.8\times 0.004}{0.8\times 0.004+0.1\times 0.996}=0.031.
+\]
+!et
+That is, in case of a positive test, there is only a $3\%$ chance of having breast cancer!
+
+
+!split
+===== Bayes' Theorem and Ridge and Lasso Regression =====
+
+Using Bayes' theorem we can gain a better intuition about Ridge and Lasso regression. 
+
+For ordinary least squares we postulated that the maximum likelihood for the doamin of events $\bm{D}$ (one-dimensional case)
+!bt
+\[
+\bm{D}=[(x_0,y_0), (x_1,y_1),\dots, (x_{n-1},y_{n-1})],
+\]
+!et
+is given by
+!bt
+\[
+p(\bm{D}\vert\bm{\beta})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}.
+\]
+!et
+
+In Bayes' theorem this function plays the role of the so-called likelihood. We could now ask the question what is the posterior probability of a parameter set $\bm{\beta}$ given a domain of events $\bm{D}$?  That is, how can we define the posterior probability 
+
+!bt
+\[
+p(\bm{\beta}\vert\bm{D}).
+\]
+!et
+
+Bayes' theorem comes to our rescue here since (omitting the normalization constant)
+!bt
+\[
+p(\bm{\beta}\vert\bm{D})\propto p(\bm{D}\vert\bm{\beta})p(\bm{\beta}).
+\]
+!et
+
+We have a model for $p(\bm{D}\vert\bm{\beta})$ but need one for the _prior_ $p(\bm{\beta})$!   
+
+
+!split
+===== Ridge and Bayes =====
+
+With the posterior probability defined by a likelihood which we have
+already modeled and an unknown prior, we are now ready to make
+additional models for the prior.
+
+We can, based on our discussions of the variance of $\bm{\beta}$ and the mean value, assume that the prior for the values $\bm{\beta}$ is given by a Gaussian with mean value zero and variance $\tau^2$, that is
+
+!bt
+\[
+p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
+\]
+!et
+
+Our posterior probability becomes then (omitting the normalization factor which is just a constant)
+!bt
+\[
+p(\bm{\beta\vert\bm{D})}=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\beta_j^2}{2\tau^2}\right)}.
+\]
+!et
+
+
+We can now optimize this quantity with respect to $\bm{\beta}$. As we
+did for OLS, this is most conveniently done by taking the negative
+logarithm of the posterior probability. Doing so and leaving out the
+constants terms that do not depend on $\beta$, we have
+
+
+!bt
+\[
+C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{2\tau^2}\vert\vert\bm{\beta}\vert\vert_2^2,
+\]
+!et
+and replacing $1/2\tau^2$ with $\lambda$ we have
+
+!bt
+\[
+C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_2^2,
+\]
+!et
+which is our Ridge cost function!  Nice, isn't it?
+
+!split
+===== Lasso and Bayes =====
+
+To derive the Lasso cost function, we simply replace the Gaussian prior with an exponential distribution ("Laplace in this case":"https://en.wikipedia.org/wiki/Laplace_distribution") with zero mean value,  that is
+
+!bt
+\[
+p(\bm{\beta})=\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
+\]
+!et
+
+Our posterior probability becomes then (omitting the normalization factor which is just a constant)
+!bt
+\[
+p(\bm{\beta}\vert\bm{D})=\prod_{i=0}^{n-1}\frac{1}{\sqrt{2\pi\sigma^2}}\exp{\left[-\frac{(y_i-\bm{X}_{i,*}\bm{\beta})^2}{2\sigma^2}\right]}\prod_{j=0}^{p-1}\exp{\left(-\frac{\vert\beta_j\vert}{\tau}\right)}.
+\]
+!et
+
+
+Taking the negative
+logarithm of the posterior probability and leaving out the
+constants terms that do not depend on $\beta$, we have
+
+
+!bt
+\[
+C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\frac{1}{\tau}\vert\vert\bm{\beta}\vert\vert_1,
+\]
+!et
+and replacing $1/\tau$ with $\lambda$ we have
+
+!bt
+\[
+C(\bm{\beta})=\frac{\vert\vert (\bm{y}-\bm{X}\bm{\beta})\vert\vert_2^2}{2\sigma^2}+\lambda\vert\vert\bm{\beta}\vert\vert_1,
+\]
+!et
+which is our Lasso cost function!  
+
+
+
+
+
+
+!split
+===== Why resampling methods =====
+
+Before we proceed, we need to rethink what we have been doing. In our
+eager to fit the data, we have omitted several important elements in
+our regression analysis. In what follows we will
+o look at statistical properties, including a discussion of mean values, variance and the so-called bias-variance tradeoff
+o introduce resampling techniques like cross-validation, bootstrapping and jackknife and more
+
+and discuss how to select a given model (one of the difficult parts in machine learning).
+
+
+
+
+
+!split
+===== Resampling methods =====
+!bblock
+Resampling methods are an indispensable tool in modern
+statistics. They involve repeatedly drawing samples from a training
+set and refitting a model of interest on each sample in order to
+obtain additional information about the fitted model. For example, in
+order to estimate the variability of a linear regression fit, we can
+repeatedly draw different samples from the training data, fit a linear
+regression to each new sample, and then examine the extent to which
+the resulting fits differ. Such an approach may allow us to obtain
+information that would not be available from fitting the model only
+once using the original training sample.
+
+Two resampling methods are often used in Machine Learning analyses,
+o The _bootstrap method_
+o and _Cross-Validation_
+
+In addition there are several other methods such as the Jackknife and the Blocking methods. We will discuss in particular
+cross-validation and the bootstrap method. 
+
+
+!eblock
+
+
+!split
+===== Resampling approaches can be computationally expensive =====
+!bblock
+
+Resampling approaches can be computationally expensive, because they
+involve fitting the same statistical method multiple times using
+different subsets of the training data. However, due to recent
+advances in computing power, the computational requirements of
+resampling methods generally are not prohibitive. In this chapter, we
+discuss two of the most commonly used resampling methods,
+cross-validation and the bootstrap. Both methods are important tools
+in the practical application of many statistical learning
+procedures. For example, cross-validation can be used to estimate the
+test error associated with a given statistical learning method in
+order to evaluate its performance, or to select the appropriate level
+of flexibility. The process of evaluating a model’s performance is
+known as model assessment, whereas the process of selecting the proper
+level of flexibility for a model is known as model selection. The
+bootstrap is widely used.
+
+!eblock
+
+!split
+===== Why resampling methods ? ===== 
+!bblock Statistical analysis
+    
+* Our simulations can be treated as *computer experiments*. This is particularly the case for Monte Carlo methods which are widely used in statistical analyses.
+* The results can be analysed with the same statistical tools as we would use when analysing experimental data.
+* As in all experiments, we are looking for expectation values and an estimate of how accurate they are, i.e., possible sources for errors.
+
+
+!eblock    
+
+!split
+=====  Statistical analysis ===== 
+!bblock 
+
+* As in other experiments, many numerical  experiments have two classes of errors:
+  * Statistical errors
+  * Systematical errors
+* Statistical errors can be estimated using standard tools from statistics
+* Systematical errors are method specific and must be treated differently from case to case. 
+!eblock    
+
+
+
+
+
+!split
+===== Resampling methods =====
+
+With all these analytical equations for both the OLS and Ridge
+regression, we will now outline how to assess a given model. This will
+lead to a discussion of the so-called bias-variance tradeoff (see
+below) and so-called resampling methods.
+
+One of the quantities we have discussed as a way to measure errors is
+the mean-squared error (MSE), mainly used for fitting of continuous
+functions. Another choice is the absolute error.
+
+In the discussions below we will focus on the MSE and in particular since we will split the data into test and training data,
+we discuss the
+o prediction error or simply the _test error_ $\mathrm{Err_{Test}}$, where we have a fixed training set and the test error is the MSE arising from the data reserved for testing. We discuss also the 
+o training error $\mathrm{Err_{Train}}$, which is the average loss over the training data.
+
+As our model becomes more and more complex, more of the training data tends to  used. The training may thence adapt to more complicated structures in the data. This may lead to a decrease in the bias (see below for code example) and a slight increase of the variance for the test error.
+For a certain level of complexity the test error will reach minimum, before starting to increase again. The
+training error reaches a saturation.
+
+
+!split
+===== Resampling methods: Bootstrap =====
+!bblock
+Bootstrapping is a "non-parametric approach":"https://en.wikipedia.org/wiki/Nonparametric_statistics" to statistical inference
+that substitutes computation for more traditional distributional
+assumptions and asymptotic results. Bootstrapping offers a number of
+advantages: 
+o The bootstrap is quite general, although there are some cases in which it fails.  
+o Because it does not require distributional assumptions (such as normally distributed errors), the bootstrap can provide more accurate inferences when the data are not well behaved or when the sample size is small.  
+o It is possible to apply the bootstrap to statistics with sampling distributions that are difficult to derive, even asymptotically. 
+o It is relatively simple to apply the bootstrap to complex data-collection plans (such as stratified and clustered samples).
+!eblock
+
+The textbook by "Davison on the Bootstrap Methods and their Applications":"https://www.cambridge.org/core/books/bootstrap-methods-and-their-application/ED2FD043579F27952363566DC09CBD6A" provides many more insights and proofs. In this course we will take a more practical approach and use the results and theorems provided in the literature. For those interested in reading more about the bootstrap methods, we recommend the above text and the one by "Efron and Tibshirani":"https://www.routledge.com/An-Introduction-to-the-Bootstrap/Efron-Tibshirani/p/book/9780412042317".
+
+
+Before we proceed however, we need to remind ourselves about a central theorem in statistics, namely the so-called _central limit theorem_.
+
+!split
+===== The Central Limit Theorem =====
+
+
+Suppose we have a PDF $p(x)$ from which we generate  a series $N$
+of averages $\mathbb{E}[x_i]$. Each mean value $\mathbb{E}[x_i]$
+is viewed as the average of a specific measurement, e.g., throwing 
+dice 100 times and then taking the average value, or producing a certain
+amount of random numbers. 
+For notational ease, we set $\mathbb{E}[x_i]=x_i$ in the discussion
+which follows. We do the same for $\mathbb{E}[z]=z$.
+
+If we compute the mean $z$ of $m$ such mean values $x_i$   
+!bt
+\[
+   z=\frac{x_1+x_2+\dots+x_m}{m},
+\]
+!et
+the question we pose is which is the PDF of the new variable $z$.
+
+!split
+===== Finding the Limit =====
+
+The probability of obtaining an average value $z$ is the product of the 
+probabilities of obtaining arbitrary individual mean values $x_i$,
+but with the constraint that the average is $z$. We can express this through
+the following expression
+!bt
+\[
+    \tilde{p}(z)=\int dx_1p(x_1)\int dx_2p(x_2)\dots\int dx_mp(x_m)
+    \delta(z-\frac{x_1+x_2+\dots+x_m}{m}),
+\]
+!et
+where the $\delta$-function enbodies the constraint that the mean is $z$.
+All measurements that lead to each individual $x_i$ are expected to
+be independent, which in turn means that we can express $\tilde{p}$ as the 
+product of individual $p(x_i)$.  The independence assumption is important in the derivation of the central limit theorem.
+
+
+!split
+===== Rewriting the $\delta$-function =====
+
+If we use the integral expression for the $\delta$-function
+
+!bt
+\[
+   \delta(z-\frac{x_1+x_2+\dots+x_m}{m})=\frac{1}{2\pi}\int_{-\infty}^{\infty}
+   dq\exp{\left(iq(z-\frac{x_1+x_2+\dots+x_m}{m})\right)},
+\]
+!et
+and inserting $e^{i\mu q-i\mu q}$ where $\mu$ is the mean value
+we arrive at
+!bt
+\[
+   \tilde{p}(z)=\frac{1}{2\pi}\int_{-\infty}^{\infty}
+   dq\exp{\left(iq(z-\mu)\right)}\left[\int_{-\infty}^{\infty}
+   dxp(x)\exp{\left(iq(\mu-x)/m\right)}\right]^m,
+\]
+!et
+with the integral over $x$ resulting in
+
+!bt
+\[
+  \int_{-\infty}^{\infty}dxp(x)\exp{\left(iq(\mu-x)/m\right)}=
+  \int_{-\infty}^{\infty}dxp(x)
+   \left[1+\frac{iq(\mu-x)}{m}-\frac{q^2(\mu-x)^2}{2m^2}+\dots\right].
+\]
+!et
+
+!split
+===== Identifying Terms =====
+
+The second term on the rhs disappears since this is just the mean and 
+employing the definition of $\sigma^2$ we have 
+!bt
+\[
+  \int_{-\infty}^{\infty}dxp(x)e^{\left(iq(\mu-x)/m\right)}=
+  1-\frac{q^2\sigma^2}{2m^2}+\dots,
+\]
+!et
+resulting in 
+
+!bt
+\[
+  \left[\int_{-\infty}^{\infty}dxp(x)\exp{\left(iq(\mu-x)/m\right)}\right]^m\approx
+  \left[1-\frac{q^2\sigma^2}{2m^2}+\dots \right]^m,
+\]
+!et
+and in the limit $m\rightarrow \infty$ we obtain 
+
+!bt
+\[
+   \tilde{p}(z)=\frac{1}{\sqrt{2\pi}(\sigma/\sqrt{m})}
+    \exp{\left(-\frac{(z-\mu)^2}{2(\sigma/\sqrt{m})^2}\right)},
+\]
+!et
+which is the normal distribution with variance
+$\sigma^2_m=\sigma^2/m$, where $\sigma$ is the variance of the PDF $p(x)$
+and $\mu$ is also the mean of the PDF $p(x)$. 
+
+!split
+===== Wrapping it up =====
+
+Thus, the central limit theorem states that the PDF $\tilde{p}(z)$ of
+the average of $m$ random values corresponding to a PDF $p(x)$ 
+is a normal distribution whose mean is the 
+mean value of the PDF $p(x)$ and whose variance is the variance
+of the PDF $p(x)$ divided by $m$, the number of values used to compute $z$.
+
+The central limit theorem leads to the well-known expression for the
+standard deviation, given by 
+
+!bt
+\[
+    \sigma_m=
+\frac{\sigma}{\sqrt{m}}.
+\]
+!et
+
+The latter is true only if the average value is known exactly. This is obtained in the limit
+$m\rightarrow \infty$  only. Because the mean and the variance are measured quantities we obtain 
+the familiar expression in statistics (the so-called Bessel correction)
+!bt
+\[
+    \sigma_m\approx 
+\frac{\sigma}{\sqrt{m-1}}.
+\]
+!et
+
+In many cases however the above estimate for the standard deviation,
+in particular if correlations are strong, may be too simplistic. Keep
+in mind that we have assumed that the variables $x$ are independent
+and identically distributed. This is obviously not always the
+case. For example, the random numbers (or better pseudorandom numbers)
+we generate in various calculations do always exhibit some
+correlations.
+
+
+
+The theorem is satisfied by a large class of PDFs. Note however that for a
+finite $m$, it is not always possible to find a closed form /analytic expression for
+$\tilde{p}(x)$.
+
+
+!split
+===== Confidence Intervals =====
+
+Confidence intervals are used in statistics and represent a type of estimate
+computed from the observed data. This gives a range of values for an
+unknown parameter such as the parameters $\bm{\beta}$ from linear regression.
+
+With the OLS expressions for the parameters $\bm{\beta}$ we found 
+$\mathbb{E}(\bm{\beta}) = \bm{\beta}$, which means that the estimator of the regression parameters is unbiased.
+
+In the exercises this week we show that the variance of the estimate of the $j$-th regression coefficient is
+$\bm{\sigma}^2 (\bm{\beta}_j ) = \bm{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $.
+
+This quantity can be used to
+construct a confidence interval for the estimates.
+
+
+!split
+===== Standard Approach based on the Normal Distribution =====
+
+We will assume that the parameters $\beta$ follow a normal
+distribution.  We can then define the confidence interval.  Here we will be using as
+shorthands $\mu_{\beta}$ for the above mean value and $\sigma_{\beta}$
+for the standard deviation. We have then a confidence interval
+
+!bt
+\[
+\left(\mu_{\beta}\pm \frac{z\sigma_{\beta}}{\sqrt{n}}\right),
+\]
+!et
+
+where $z$ defines the level of certainty (or confidence). For a normal
+distribution typical parameters are $z=2.576$ which corresponds to a
+confidence of $99\%$ while $z=1.96$ corresponds to a confidence of
+$95\%$.  A confidence level of $95\%$ is commonly used and it is
+normally referred to as a *two-sigmas* confidence level, that is we
+approximate $z\approx 2$.
+
+For more discussions of confidence intervals (and in particular linked with a discussion of the bootstrap method), see chapter 5 of the textbook by "Davison on the Bootstrap Methods and their Applications":"https://www.cambridge.org/core/books/bootstrap-methods-and-their-application/ED2FD043579F27952363566DC09CBD6A"
+
+In this text you will also find an in-depth discussion of the
+Bootstrap method, why it works and various theorems related to it. 
+
+!split
+===== Resampling methods: Bootstrap background =====
+
+Since $\widehat{\beta} = \widehat{\beta}(\bm{X})$ is a function of random variables,
+$\widehat{\beta}$ itself must be a random variable. Thus it has
+a pdf, call this function $p(\bm{t})$. The aim of the bootstrap is to
+estimate $p(\bm{t})$ by the relative frequency of
+$\widehat{\beta}$. You can think of this as using a histogram
+in the place of $p(\bm{t})$. If the relative frequency closely
+resembles $p(\vec{t})$, then using numerics, it is straight forward to
+estimate all the interesting parameters of $p(\bm{t})$ using point
+estimators.  
+
+
+!split
+===== Resampling methods: More Bootstrap background =====
+
+In the case that $\widehat{\beta}$ has
+more than one component, and the components are independent, we use the
+same estimator on each component separately.  If the probability
+density function of $X_i$, $p(x)$, had been known, then it would have
+been straightforward to do this by: 
+o Drawing lots of numbers from $p(x)$, suppose we call one such set of numbers $(X_1^*, X_2^*, \cdots, X_n^*)$. 
+o Then using these numbers, we could compute a replica of $\widehat{\beta}$ called $\widehat{\beta}^*$. 
+
+By repeated use of the above two points, many
+estimates of $\widehat{\beta}$ can  be obtained. The
+idea is to use the relative frequency of $\widehat{\beta}^*$
+(think of a histogram) as an estimate of $p(\bm{t})$.
+
+!split
+===== Resampling methods: Bootstrap approach =====
+
+But
+unless there is enough information available about the process that
+generated $X_1,X_2,\cdots,X_n$, $p(x)$ is in general
+unknown. Therefore, "Efron in 1979":"https://projecteuclid.org/euclid.aos/1176344552"  asked the
+question: What if we replace $p(x)$ by the relative frequency
+of the observation $X_i$?
+
+If we draw observations in accordance with
+the relative frequency of the observations, will we obtain the same
+result in some asymptotic sense? The answer is yes.
+
+
+
+!split
+===== Resampling methods: Bootstrap steps =====
+
+The independent bootstrap works like this: 
+
+o Draw with replacement $n$ numbers for the observed variables $\bm{x} = (x_1,x_2,\cdots,x_n)$. 
+o Define a vector $\bm{x}^*$ containing the values which were drawn from $\bm{x}$. 
+o Using the vector $\bm{x}^*$ compute $\widehat{\beta}^*$ by evaluating $\widehat \beta$ under the observations $\bm{x}^*$. 
+o Repeat this process $k$ times. 
+
+When you are done, you can draw a histogram of the relative frequency
+of $\widehat \beta^*$. This is your estimate of the probability
+distribution $p(t)$. Using this probability distribution you can
+estimate any statistics thereof. In principle you never draw the
+histogram of the relative frequency of $\widehat{\beta}^*$. Instead
+you use the estimators corresponding to the statistic of interest. For
+example, if you are interested in estimating the variance of $\widehat
+\beta$, apply the etsimator $\widehat \sigma^2$ to the values
+$\widehat \beta^*$.
+
+
+!split
+===== Code example for the Bootstrap method =====
+
+The following code starts with a Gaussian distribution with mean value
+$\mu =100$ and variance $\sigma=15$. We use this to generate the data
+used in the bootstrap analysis. The bootstrap analysis returns a data
+set after a given number of bootstrap operations (as many as we have
+data points). This data set consists of estimated mean values for each
+bootstrap operation. The histogram generated by the bootstrap method
+shows that the distribution for these mean values is also a Gaussian,
+centered around the mean value $\mu=100$ but with standard deviation
+$\sigma/\sqrt{n}$, where $n$ is the number of bootstrap samples (in
+this case the same as the number of original data points). The value
+of the standard deviation is what we expect from the central limit
+theorem.
+
+
+!bc pycod
+import numpy as np
+from time import time
+from scipy.stats import norm
+import matplotlib.pyplot as plt
+
+# Returns mean of bootstrap samples 
+# Bootstrap algorithm
+def bootstrap(data, datapoints):
+    t = np.zeros(datapoints)
+    n = len(data)
+    # non-parametric bootstrap         
+    for i in range(datapoints):
+        t[i] = np.mean(data[np.random.randint(0,n,n)])
+    # analysis    
+    print("Bootstrap Statistics :")
+    print("original           bias      std. error")
+    print("%8g %8g %14g %15g" % (np.mean(data), np.std(data),np.mean(t),np.std(t)))
+    return t
+
+# We set the mean value to 100 and the standard deviation to 15
+mu, sigma = 100, 15
+datapoints = 10000
+# We generate random numbers according to the normal distribution
+x = mu + sigma*np.random.randn(datapoints)
+# bootstrap returns the data sample                                    
+t = bootstrap(x, datapoints)
+!ec
+We see that our new variance and from that the standard deviation, agrees with the central limit theorem.
+
+!split
+===== Plotting the Histogram =====
+!bc pycod 
+# the histogram of the bootstrapped data (normalized data if density = True)
+n, binsboot, patches = plt.hist(t, 50, density=True, facecolor='red', alpha=0.75)
+# add a 'best fit' line  
+y = norm.pdf(binsboot, np.mean(t), np.std(t))
+lt = plt.plot(binsboot, y, 'b', linewidth=1)
+plt.xlabel('x')
+plt.ylabel('Probability')
+plt.grid(True)
+plt.show()
+!ec
+
+
+
+!split
+===== The bias-variance tradeoff =====
+
+
+We will discuss the bias-variance tradeoff in the context of
+continuous predictions such as regression. However, many of the
+intuitions and ideas discussed here also carry over to classification
+tasks. Consider a dataset $\mathcal{D}$ consisting of the data
+$\mathbf{X}_\mathcal{D}=\{(y_j, \boldsymbol{x}_j), j=0\ldots n-1\}$. 
+
+Let us assume that the true data is generated from a noisy model
+
+!bt
+\[
+\bm{y}=f(\boldsymbol{x}) + \bm{\epsilon}
+\]
+!et
+
+where $\epsilon$ is normally distributed with mean zero and standard deviation $\sigma^2$.
+
+In our derivation of the ordinary least squares method we defined then
+an approximation to the function $f$ in terms of the parameters
+$\bm{\beta}$ and the design matrix $\bm{X}$ which embody our model,
+that is $\bm{\tilde{y}}=\bm{X}\bm{\beta}$. 
+
+Thereafter we found the parameters $\bm{\beta}$ by optimizing the means squared error via the so-called cost function
+!bt
+\[
+C(\bm{X},\bm{\beta}) =\frac{1}{n}\sum_{i=0}^{n-1}(y_i-\tilde{y}_i)^2=\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right].
+\]
+!et
+
+We can rewrite this as 
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\frac{1}{n}\sum_i(f_i-\mathbb{E}\left[\bm{\tilde{y}}\right])^2+\frac{1}{n}\sum_i(\tilde{y}_i-\mathbb{E}\left[\bm{\tilde{y}}\right])^2+\sigma^2.
+\]
+!et
+
+The three terms represent the square of the bias of the learning
+method, which can be thought of as the error caused by the simplifying
+assumptions built into the method. The second term represents the
+variance of the chosen model and finally the last terms is variance of
+the error $\bm{\epsilon}$.
+
+To derive this equation, we need to recall that the variance of $\bm{y}$ and $\bm{\epsilon}$ are both equal to $\sigma^2$. The mean value of $\bm{\epsilon}$ is by definition equal to zero. Furthermore, the function $f$ is not a stochastics variable, idem for $\bm{\tilde{y}}$.
+We use a more compact notation in terms of the expectation value 
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\mathbb{E}\left[(\bm{f}+\bm{\epsilon}-\bm{\tilde{y}})^2\right],
+\]
+!et
+and adding and subtracting $\mathbb{E}\left[\bm{\tilde{y}}\right]$ we get
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\mathbb{E}\left[(\bm{f}+\bm{\epsilon}-\bm{\tilde{y}}+\mathbb{E}\left[\bm{\tilde{y}}\right]-\mathbb{E}\left[\bm{\tilde{y}}\right])^2\right],
+\]
+!et
+which, using the abovementioned expectation values can be rewritten as 
+!bt
+\[
+\mathbb{E}\left[(\bm{y}-\bm{\tilde{y}})^2\right]=\mathbb{E}\left[(\bm{y}-\mathbb{E}\left[\bm{\tilde{y}}\right])^2\right]+\mathrm{Var}\left[\bm{\tilde{y}}\right]+\sigma^2,
+\]
+!et
+that is the rewriting in terms of the so-called bias, the variance of the model $\bm{\tilde{y}}$ and the variance of $\bm{\epsilon}$.
+
+
+!split
+===== A way to Read the Bias-Variance Tradeoff =====
+
+FIGURE: [figures/BiasVariance.png, width=600 frac=0.9]
+
+
+!split
+===== Example code for Bias-Variance tradeoff =====
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.utils import resample
+
+np.random.seed(2018)
+
+n = 500
+n_boostraps = 100
+degree = 18  # A quite high value, just to show.
+noise = 0.1
+
+# Make data set.
+x = np.linspace(-1, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2) + np.random.normal(0, 0.1, x.shape)
+
+# Hold out some test data that is never used in training.
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+# Combine x transformation and model into one operation.
+# Not neccesary, but convenient.
+model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
+
+# The following (m x n_bootstraps) matrix holds the column vectors y_pred
+# for each bootstrap iteration.
+y_pred = np.empty((y_test.shape[0], n_boostraps))
+for i in range(n_boostraps):
+    x_, y_ = resample(x_train, y_train)
+
+    # Evaluate the new model on the same test data each time.
+    y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
+
+# Note: Expectations and variances taken w.r.t. different training
+# data sets, hence the axis=1. Subsequent means are taken across the test data
+# set in order to obtain a total value, but before this we have error/bias/variance
+# calculated per data point in the test set.
+# Note 2: The use of keepdims=True is important in the calculation of bias as this 
+# maintains the column vector form. Dropping this yields very unexpected results.
+error = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
+bias = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
+variance = np.mean( np.var(y_pred, axis=1, keepdims=True) )
+print('Error:', error)
+print('Bias^2:', bias)
+print('Var:', variance)
+print('{} >= {} + {} = {}'.format(error, bias, variance, bias+variance))
+
+plt.plot(x[::5, :], y[::5, :], label='f(x)')
+plt.scatter(x_test, y_test, label='Data points')
+plt.scatter(x_test, np.mean(y_pred, axis=1), label='Pred')
+plt.legend()
+plt.show()
+
+!ec
+
+
+!split
+===== Understanding what happens =====
+!bc pycod
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.utils import resample
+
+np.random.seed(2018)
+
+n = 40
+n_boostraps = 100
+maxdegree = 14
+
+
+# Make data set.
+x = np.linspace(-3, 3, n).reshape(-1, 1)
+y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.normal(0, 0.1, x.shape)
+error = np.zeros(maxdegree)
+bias = np.zeros(maxdegree)
+variance = np.zeros(maxdegree)
+polydegree = np.zeros(maxdegree)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+for degree in range(maxdegree):
+    model = make_pipeline(PolynomialFeatures(degree=degree), LinearRegression(fit_intercept=False))
+    y_pred = np.empty((y_test.shape[0], n_boostraps))
+    for i in range(n_boostraps):
+        x_, y_ = resample(x_train, y_train)
+        y_pred[:, i] = model.fit(x_, y_).predict(x_test).ravel()
+
+    polydegree[degree] = degree
+    error[degree] = np.mean( np.mean((y_test - y_pred)**2, axis=1, keepdims=True) )
+    bias[degree] = np.mean( (y_test - np.mean(y_pred, axis=1, keepdims=True))**2 )
+    variance[degree] = np.mean( np.var(y_pred, axis=1, keepdims=True) )
+    print('Polynomial degree:', degree)
+    print('Error:', error[degree])
+    print('Bias^2:', bias[degree])
+    print('Var:', variance[degree])
+    print('{} >= {} + {} = {}'.format(error[degree], bias[degree], variance[degree], bias[degree]+variance[degree]))
+
+plt.plot(polydegree, error, label='Error')
+plt.plot(polydegree, bias, label='bias')
+plt.plot(polydegree, variance, label='Variance')
+plt.legend()
+plt.show()
+
+
+
+
+!ec
+
+!split 
+===== Summing up ===== 
+
+
+
+
+The bias-variance tradeoff summarizes the fundamental tension in
+machine learning, particularly supervised learning, between the
+complexity of a model and the amount of training data needed to train
+it.  Since data is often limited, in practice it is often useful to
+use a less-complex model with higher bias, that is  a model whose asymptotic
+performance is worse than another model because it is easier to
+train and less sensitive to sampling noise arising from having a
+finite-sized training dataset (smaller variance). 
+
+
+
+The above equations tell us that in
+order to minimize the expected test error, we need to select a
+statistical learning method that simultaneously achieves low variance
+and low bias. Note that variance is inherently a nonnegative quantity,
+and squared bias is also nonnegative. Hence, we see that the expected
+test MSE can never lie below $Var(\epsilon)$, the irreducible error.
+
+
+What do we mean by the variance and bias of a statistical learning
+method? The variance refers to the amount by which our model would change if we
+estimated it using a different training data set. Since the training
+data are used to fit the statistical learning method, different
+training data sets  will result in a different estimate. But ideally the
+estimate for our model should not vary too much between training
+sets. However, if a method has high variance  then small changes in
+the training data can result in large changes in the model. In general, more
+flexible statistical methods have higher variance.
+
+
+You may also find this recent "article":"https://www.pnas.org/content/116/32/15849" of interest.
+
+!split
+===== Another Example from Scikit-Learn's Repository =====
+
+This example demonstrates the problems of underfitting and overfitting and
+how we can use linear regression with polynomial features to approximate
+nonlinear functions. The plot shows the function that we want to approximate,
+which is a part of the cosine function. In addition, the samples from the
+real function and the approximations of different models are displayed. The
+models have polynomial features of different degrees. We can see that a
+linear function (polynomial with degree 1) is not sufficient to fit the
+training samples. This is called _underfitting_. A polynomial of degree 4
+approximates the true function almost perfectly. However, for higher degrees
+the model will _overfit_ the training data, i.e. it learns the noise of the
+training data.
+We evaluate quantitatively overfitting and underfitting by using
+cross-validation. We calculate the mean squared error (MSE) on the validation
+set, the higher, the less likely the model generalizes correctly from the
+training data.
+
+!bc pycod
+
+
+#print(__doc__)
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score
+
+
+def true_fun(X):
+    return np.cos(1.5 * np.pi * X)
+
+np.random.seed(0)
+
+n_samples = 30
+degrees = [1, 4, 15]
+
+X = np.sort(np.random.rand(n_samples))
+y = true_fun(X) + np.random.randn(n_samples) * 0.1
+
+plt.figure(figsize=(14, 5))
+for i in range(len(degrees)):
+    ax = plt.subplot(1, len(degrees), i + 1)
+    plt.setp(ax, xticks=(), yticks=())
+
+    polynomial_features = PolynomialFeatures(degree=degrees[i],
+                                             include_bias=False)
+    linear_regression = LinearRegression()
+    pipeline = Pipeline([("polynomial_features", polynomial_features),
+                         ("linear_regression", linear_regression)])
+    pipeline.fit(X[:, np.newaxis], y)
+
+    # Evaluate the models using crossvalidation
+    scores = cross_val_score(pipeline, X[:, np.newaxis], y,
+                             scoring="neg_mean_squared_error", cv=10)
+
+    X_test = np.linspace(0, 1, 100)
+    plt.plot(X_test, pipeline.predict(X_test[:, np.newaxis]), label="Model")
+    plt.plot(X_test, true_fun(X_test), label="True function")
+    plt.scatter(X, y, edgecolor='b', s=20, label="Samples")
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.xlim((0, 1))
+    plt.ylim((-2, 2))
+    plt.legend(loc="best")
+    plt.title("Degree {}\nMSE = {:.2e}(+/- {:.2e})".format(
+        degrees[i], -scores.mean(), scores.std()))
+plt.show()
+!ec
+
+
+
+
+!split 
+===== Various steps in cross-validation =====
+
+When the repetitive splitting of the data set is done randomly,
+samples may accidently end up in a fast majority of the splits in
+either training or test set. Such samples may have an unbalanced
+influence on either model building or prediction evaluation. To avoid
+this $k$-fold cross-validation structures the data splitting. The
+samples are divided into $k$ more or less equally sized exhaustive and
+mutually exclusive subsets. In turn (at each split) one of these
+subsets plays the role of the test set while the union of the
+remaining subsets constitutes the training set. Such a splitting
+warrants a balanced representation of each sample in both training and
+test set over the splits. Still the division into the $k$ subsets
+involves a degree of randomness. This may be fully excluded when
+choosing $k=n$. This particular case is referred to as leave-one-out
+cross-validation (LOOCV). 
+
+
+!split
+===== Cross-validation in brief =====
+
+For the various values of $k$
+
+o shuffle the dataset randomly.
+o Split the dataset into $k$ groups.
+o For each unique group:
+ o Decide which group to use as set for test data
+ o Take the remaining groups as a training data set
+ o Fit a model on the training set and evaluate it on the test set
+ o Retain the evaluation score and discard the model
+o Summarize the model using the sample of model evaluation scores
+
+
+
+!split
+===== Code Example for Cross-validation and $k$-fold Cross-validation =====
+
+The code here uses Ridge regression with cross-validation (CV)  resampling and $k$-fold CV in order to fit a specific polynomial. 
+!bc pycod
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import PolynomialFeatures
+
+# A seed just to ensure that the random numbers are the same for every run.
+# Useful for eventual debugging.
+np.random.seed(3155)
+
+# Generate the data.
+nsamples = 100
+x = np.random.randn(nsamples)
+y = 3*x**2 + np.random.randn(nsamples)
+
+## Cross-validation on Ridge regression using KFold only
+
+# Decide degree on polynomial to fit
+poly = PolynomialFeatures(degree = 6)
+
+# Decide which values of lambda to use
+nlambdas = 500
+lambdas = np.logspace(-3, 5, nlambdas)
+
+# Initialize a KFold instance
+k = 5
+kfold = KFold(n_splits = k)
+
+# Perform the cross-validation to estimate MSE
+scores_KFold = np.zeros((nlambdas, k))
+
+i = 0
+for lmb in lambdas:
+    ridge = Ridge(alpha = lmb)
+    j = 0
+    for train_inds, test_inds in kfold.split(x):
+        xtrain = x[train_inds]
+        ytrain = y[train_inds]
+
+        xtest = x[test_inds]
+        ytest = y[test_inds]
+
+        Xtrain = poly.fit_transform(xtrain[:, np.newaxis])
+        ridge.fit(Xtrain, ytrain[:, np.newaxis])
+
+        Xtest = poly.fit_transform(xtest[:, np.newaxis])
+        ypred = ridge.predict(Xtest)
+
+        scores_KFold[i,j] = np.sum((ypred - ytest[:, np.newaxis])**2)/np.size(ypred)
+
+        j += 1
+    i += 1
+
+
+estimated_mse_KFold = np.mean(scores_KFold, axis = 1)
+
+## Cross-validation using cross_val_score from sklearn along with KFold
+
+# kfold is an instance initialized above as:
+# kfold = KFold(n_splits = k)
+
+estimated_mse_sklearn = np.zeros(nlambdas)
+i = 0
+for lmb in lambdas:
+    ridge = Ridge(alpha = lmb)
+
+    X = poly.fit_transform(x[:, np.newaxis])
+    estimated_mse_folds = cross_val_score(ridge, X, y[:, np.newaxis], scoring='neg_mean_squared_error', cv=kfold)
+
+    # cross_val_score return an array containing the estimated negative mse for every fold.
+    # we have to the the mean of every array in order to get an estimate of the mse of the model
+    estimated_mse_sklearn[i] = np.mean(-estimated_mse_folds)
+
+    i += 1
+
+## Plot and compare the slightly different ways to perform cross-validation
+
+plt.figure()
+
+plt.plot(np.log10(lambdas), estimated_mse_sklearn, label = 'cross_val_score')
+plt.plot(np.log10(lambdas), estimated_mse_KFold, 'r--', label = 'KFold')
+
+plt.xlabel('log10(lambda)')
+plt.ylabel('mse')
+
+plt.legend()
+
+plt.show()
+
+!ec
+
+
+
+!split
+===== More examples on bootstrap and cross-validation and errors =====
 
 !bc pycod
 # Common imports
@@ -179,10 +1309,95 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 from sklearn.metrics import mean_squared_error
-from IPython.display import display
-from pylab import plt, mpl
-plt.style.use('seaborn')
-mpl.rcParams['font.family'] = 'serif'
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+infile = open(data_path("EoS.csv"),'r')
+
+# Read the EoS data as  csv file and organize the data into two arrays with density and energies
+EoS = pd.read_csv(infile, names=('Density', 'Energy'))
+EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
+EoS = EoS.dropna()
+Energies = EoS['Energy']
+Density = EoS['Density']
+#  The design matrix now as function of various polytrops
+
+Maxpolydegree = 30
+X = np.zeros((len(Density),Maxpolydegree))
+X[:,0] = 1.0
+testerror = np.zeros(Maxpolydegree)
+trainingerror = np.zeros(Maxpolydegree)
+polynomial = np.zeros(Maxpolydegree)
+
+trials = 100
+for polydegree in range(1, Maxpolydegree):
+    polynomial[polydegree] = polydegree
+    for degree in range(polydegree):
+        X[:,degree] = Density**(degree/3.0)
+
+# loop over trials in order to estimate the expectation value of the MSE
+    testerror[polydegree] = 0.0
+    trainingerror[polydegree] = 0.0
+    for samples in range(trials):
+        x_train, x_test, y_train, y_test = train_test_split(X, Energies, test_size=0.2)
+        model = LinearRegression(fit_intercept=False).fit(x_train, y_train)
+        ypred = model.predict(x_train)
+        ytilde = model.predict(x_test)
+        testerror[polydegree] += mean_squared_error(y_test, ytilde)
+        trainingerror[polydegree] += mean_squared_error(y_train, ypred) 
+
+    testerror[polydegree] /= trials
+    trainingerror[polydegree] /= trials
+    print("Degree of polynomial: %3d"% polynomial[polydegree])
+    print("Mean squared error on training data: %.8f" % trainingerror[polydegree])
+    print("Mean squared error on test data: %.8f" % testerror[polydegree])
+
+plt.plot(polynomial, np.log10(trainingerror), label='Training Error')
+plt.plot(polynomial, np.log10(testerror), label='Test Error')
+plt.xlabel('Polynomial degree')
+plt.ylabel('log10[MSE]')
+plt.legend()
+plt.show()
+
+!ec
+
+Note that we kept the intercept column in the fitting here. This means that we need to set the _intercept_ in the call to the _Scikit-Learn_ function as _False_. Alternatively, we could have set up the design matrix $X$ without the first column of ones.
+
+!split 
+=====  The same example but now with cross-validation =====
+
+In this example we keep the intercept column again but add cross-validation in order to estimate the best possible value of the means squared error.
+!bc pycod
+# Common imports
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+
 
 # Where to save the figures and data files
 PROJECT_ROOT_DIR = "Results"
@@ -207,1355 +1422,244 @@ def data_path(dat_id):
 def save_fig(fig_id):
     plt.savefig(image_path(fig_id) + ".png", format='png')
 
-infile = open(data_path("chddata.csv"),'r')
-
-# Read the chd data as  csv file and organize the data into arrays with age group, age, and chd
-chd = pd.read_csv(infile, names=('ID', 'Age', 'Agegroup', 'CHD'))
-chd.columns = ['ID', 'Age', 'Agegroup', 'CHD']
-output = chd['CHD']
-age = chd['Age']
-agegroup = chd['Agegroup']
-numberID  = chd['ID'] 
-display(chd)
-
-plt.scatter(age, output, marker='o')
-plt.axis([18,70.0,-0.1, 1.2])
-plt.xlabel(r'Age')
-plt.ylabel(r'CHD')
-plt.title(r'Age distribution and Coronary heart disease')
-plt.show()
-!ec
-
-!split
-===== Plotting the mean value for each group =====
-
-What we could attempt however is to plot the mean value for each group.
-
-!bc pycod
-agegroupmean = np.array([0.1, 0.133, 0.250, 0.333, 0.462, 0.625, 0.765, 0.800])
-group = np.array([1, 2, 3, 4, 5, 6, 7, 8])
-plt.plot(group, agegroupmean, "r-")
-plt.axis([0,9,0, 1.0])
-plt.xlabel(r'Age group')
-plt.ylabel(r'CHD mean values')
-plt.title(r'Mean values for each age group')
-plt.show()
-!ec
-
-We are now trying to find a function $f(y\vert x)$, that is a function which gives us an expected value for the output $y$ with a given input $x$.
-In standard linear regression with a linear dependence on $x$, we would write this in terms of our model
-!bt
-\[
-f(y_i\vert x_i)=\beta_0+\beta_1 x_i.
-\]
-!et
-
-This expression implies however that $f(y_i\vert x_i)$ could take any
-value from minus infinity to plus infinity. If we however let
-$f(y\vert y)$ be represented by the mean value, the above example
-shows us that we can constrain the function to take values between
-zero and one, that is we have $0 \le f(y_i\vert x_i) \le 1$. Looking
-at our last curve we see also that it has an S-shaped form. This leads
-us to a very popular model for the function $f$, namely the so-called
-Sigmoid function or logistic model. We will consider this function as
-representing the probability for finding a value of $y_i$ with a given
-$x_i$.
-
-!split
-===== The logistic function =====
-
-Another widely studied model, is the so-called 
-perceptron model, which is an example of a ``hard classification'' model. We
-will encounter this model when we discuss neural networks as
-well. Each datapoint is deterministically assigned to a category (i.e
-$y_i=0$ or $y_i=1$). In many cases, and the coronary heart disease data forms one of many such examples, it is favorable to have a ``soft''
-classifier that outputs the probability of a given category rather
-than a single value. For example, given $x_i$, the classifier
-outputs the probability of being in a category $k$.  Logistic regression
-is the most common example of a so-called soft classifier. In logistic
-regression, the probability that a data point $x_i$
-belongs to a category $y_i=\{0,1\}$ is given by the so-called logit function (or Sigmoid) which is meant to represent the likelihood for a given event, 
-!bt
-\[
-p(t) = \frac{1}{1+\mathrm \exp{-t}}=\frac{\exp{t}}{1+\mathrm \exp{t}}.
-\]
-!et
-Note that $1-p(t)= p(-t)$.
-
-!split
-===== Examples of likelihood functions used in logistic regression and nueral networks =====
-
-
-The following code plots the logistic function, the step function and other functions we will encounter from here and on.
-
-
-!bc pycod
-"""The sigmoid function (or the logistic curve) is a
-function that takes any real number, z, and outputs a number (0,1).
-It is useful in neural networks for assigning weights on a relative scale.
-The value z is the weighted sum of parameters involved in the learning algorithm."""
-
-import numpy
-import matplotlib.pyplot as plt
-import math as mt
-
-z = numpy.arange(-5, 5, .1)
-sigma_fn = numpy.vectorize(lambda z: 1/(1+numpy.exp(-z)))
-sigma = sigma_fn(z)
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.plot(z, sigma)
-ax.set_ylim([-0.1, 1.1])
-ax.set_xlim([-5,5])
-ax.grid(True)
-ax.set_xlabel('z')
-ax.set_title('sigmoid function')
-
-plt.show()
-
-"""Step Function"""
-z = numpy.arange(-5, 5, .02)
-step_fn = numpy.vectorize(lambda z: 1.0 if z >= 0.0 else 0.0)
-step = step_fn(z)
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.plot(z, step)
-ax.set_ylim([-0.5, 1.5])
-ax.set_xlim([-5,5])
-ax.grid(True)
-ax.set_xlabel('z')
-ax.set_title('step function')
-
-plt.show()
-
-"""tanh Function"""
-z = numpy.arange(-2*mt.pi, 2*mt.pi, 0.1)
-t = numpy.tanh(z)
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.plot(z, t)
-ax.set_ylim([-1.0, 1.0])
-ax.set_xlim([-2*mt.pi,2*mt.pi])
-ax.grid(True)
-ax.set_xlabel('z')
-ax.set_title('tanh function')
-
-plt.show()
-!ec
-
-
-
-
-
-
-
-!split
-=====  Two parameters =====
-
-We assume now that we have two classes with $y_i$ either $0$ or $1$. Furthermore we assume also that we have only two parameters $\beta$ in our fitting of the Sigmoid function, that is we define probabilities 
-!bt
-\begin{align*}
-p(y_i=1|x_i,\bm{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
-p(y_i=0|x_i,\bm{\beta}) &= 1 - p(y_i=1|x_i,\bm{\beta}),
-\end{align*}
-!et
-where $\bm{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
-
-Note that we used
-!bt
-\[
-p(y_i=0\vert x_i, \bm{\beta}) = 1-p(y_i=1\vert x_i, \bm{\beta}).
-\]
-!et
-
-!split 
-===== Maximum likelihood =====
-
-In order to define the total likelihood for all possible outcomes from a  
-dataset $\mathcal{D}=\{(y_i,x_i)\}$, with the binary labels
-$y_i\in\{0,1\}$ and where the data points are drawn independently, we use the so-called "Maximum Likelihood Estimation":"https://en.wikipedia.org/wiki/Maximum_likelihood_estimation" (MLE) principle. 
-We aim thus at maximizing 
-the probability of seeing the observed data. We can then approximate the 
-likelihood in terms of the product of the individual probabilities of a specific outcome $y_i$, that is 
-!bt
-\begin{align*}
-P(\mathcal{D}|\bm{\beta})& = \prod_{i=1}^n \left[p(y_i=1|x_i,\bm{\beta})\right]^{y_i}\left[1-p(y_i=1|x_i,\bm{\beta}))\right]^{1-y_i}\nonumber \\
-\end{align*}
-!et
-from which we obtain the log-likelihood and our _cost/loss_ function
-!bt
-\[
-\mathcal{C}(\bm{\beta}) = \sum_{i=1}^n \left( y_i\log{p(y_i=1|x_i,\bm{\beta})} + (1-y_i)\log\left[1-p(y_i=1|x_i,\bm{\beta}))\right]\right).
-\]
-!et
-
-!split
-===== The cost function rewritten =====
-
-Reordering the logarithms, we can rewrite the _cost/loss_ function as
-!bt
-\[
-\mathcal{C}(\bm{\beta}) = \sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
-\]
-!et
-
-The maximum likelihood estimator is defined as the set of parameters that maximize the log-likelihood where we maximize with respect to $\beta$.
-Since the cost (error) function is just the negative log-likelihood, for logistic regression we have that
-!bt
-\[
-\mathcal{C}(\bm{\beta})=-\sum_{i=1}^n  \left(y_i(\beta_0+\beta_1x_i) -\log{(1+\exp{(\beta_0+\beta_1x_i)})}\right).
-\]
-!et
-This equation is known in statistics as the _cross entropy_. Finally, we note that just as in linear regression, 
-in practice we often supplement the cross-entropy with additional regularization terms, usually $L_1$ and $L_2$ regularization as we did for Ridge and Lasso regression.
-
-!split
-=====  Minimizing the cross entropy =====
-
-The cross entropy is a convex function of the weights $\bm{\beta}$ and,
-therefore, any local minimizer is a global minimizer. 
-
-
-Minimizing this
-cost function with respect to the two parameters $\beta_0$ and $\beta_1$ we obtain
-
-!bt
-\[
-\frac{\partial \mathcal{C}(\bm{\beta})}{\partial \beta_0} = -\sum_{i=1}^n  \left(y_i -\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right),
-\]
-!et
-and 
-!bt
-\[
-\frac{\partial \mathcal{C}(\bm{\beta})}{\partial \beta_1} = -\sum_{i=1}^n  \left(y_ix_i -x_i\frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}}\right).
-\]
-!et
-
-!split
-=====  A more compact expression =====
-
-Let us now define a vector $\bm{y}$ with $n$ elements $y_i$, an
-$n\times p$ matrix $\bm{X}$ which contains the $x_i$ values and a
-vector $\bm{p}$ of fitted probabilities $p(y_i\vert x_i,\bm{\beta})$. We can rewrite in a more compact form the first
-derivative of cost function as
-
-!bt
-\[
-\frac{\partial \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}} = -\bm{X}^T\left(\bm{y}-\bm{p}\right). 
-\]
-!et
-
-If we in addition define a diagonal matrix $\bm{W}$ with elements 
-$p(y_i\vert x_i,\bm{\beta})(1-p(y_i\vert x_i,\bm{\beta})$, we can obtain a compact expression of the second derivative as 
-
-!bt
-\[
-\frac{\partial^2 \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}\partial \bm{\beta}^T} = \bm{X}^T\bm{W}\bm{X}. 
-\]
-!et
-
-!split
-===== Extending to more predictors =====
-
-Within a binary classification problem, we can easily expand our model to include multiple predictors. Our ratio between likelihoods is then with $p$ predictors
-!bt
-\[
-\log{ \frac{p(\bm{\beta}\bm{x})}{1-p(\bm{\beta}\bm{x})}} = \beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p.
-\]
-!et
-Here we defined $\bm{x}=[1,x_1,x_2,\dots,x_p]$ and $\bm{\beta}=[\beta_0, \beta_1, \dots, \beta_p]$ leading to
-!bt
-\[
-p(\bm{\beta}\bm{x})=\frac{ \exp{(\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p)}}{1+\exp{(\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_px_p)}}.
-\]
-!et
-
-!split
-===== Including more classes =====
-
-Till now we have mainly focused on two classes, the so-called binary
-system. Suppose we wish to extend to $K$ classes.  Let us for the sake
-of simplicity assume we have only two predictors. We have then following model
-
-!bt
-\[
-\log{\frac{p(C=1\vert x)}{p(K\vert x)}} = \beta_{10}+\beta_{11}x_1,
-\]
-!et
-and 
-!bt
-\[
-\log{\frac{p(C=2\vert x)}{p(K\vert x)}} = \beta_{20}+\beta_{21}x_1,
-\]
-!et
-and so on till the class $C=K-1$ class
-!bt
-\[
-\log{\frac{p(C=K-1\vert x)}{p(K\vert x)}} = \beta_{(K-1)0}+\beta_{(K-1)1}x_1,
-\]
-!et
-
-and the model is specified in term of $K-1$ so-called log-odds or
-_logit_ transformations.
-
-
-!split
-===== More classes =====
-
-In our discussion of neural networks we will encounter the above again
-in terms of a slightly modified function, the so-called _Softmax_ function.
-
-The softmax function is used in various multiclass classification
-methods, such as multinomial logistic regression (also known as
-softmax regression), multiclass linear discriminant analysis, naive
-Bayes classifiers, and artificial neural networks.  Specifically, in
-multinomial logistic regression and linear discriminant analysis, the
-input to the function is the result of $K$ distinct linear functions,
-and the predicted probability for the $k$-th class given a sample
-vector $\bm{x}$ and a weighting vector $\bm{\beta}$ is (with two
-predictors):
-
-!bt
-\[
-p(C=k\vert \mathbf {x} )=\frac{\exp{(\beta_{k0}+\beta_{k1}x_1)}}{1+\sum_{l=1}^{K-1}\exp{(\beta_{l0}+\beta_{l1}x_1)}}.
-\]
-!et
-It is easy to extend to more predictors. The final class is 
-!bt
-\[
-p(C=K\vert \mathbf {x} )=\frac{1}{1+\sum_{l=1}^{K-1}\exp{(\beta_{l0}+\beta_{l1}x_1)}},
-\]
-!et
-
-and they sum to one. Our earlier discussions were all specialized to
-the case with two classes only. It is easy to see from the above that
-what we derived earlier is compatible with these equations.
-
-To find the optimal parameters we would typically use a gradient
-descent method.  Newton's method and gradient descent methods are
-discussed in the material on "optimization
-methods":"https://compphysics.github.io/MachineLearning/doc/pub/Splines/html/Splines-bs.html".
-
-
-!split
-===== Searching for Optimal Regularization Parameters $\lambda$ =====
-
-In project 1, when using Ridge and Lasso regression, we end up
-searching for the optimal parameter $\lambda$ which minimizes our
-selected scores (MSE or $R2$ values for example). The brute force
-approach, as discussed in the code here for Ridge regression, consists
-in evaluating the MSE as function of different $\lambda$ values.
-Based on these calculations, one tries then to determine the value of the hyperparameter $\lambda$
-which results in optimal scores (for example the smallest MSE or an $R2=1$).
-!bc pycod
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn import linear_model
-
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-np.random.seed(2021)
-
-n = 100
-x = np.random.rand(n)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
-
-Maxpolydegree = 5
-X = np.zeros((n,Maxpolydegree-1))
-
-for degree in range(1,Maxpolydegree): #No intercept column
-    X[:,degree-1] = x**(degree)
-
-# We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-# Decide which values of lambda to use
-nlambdas = 500
-MSERidgePredict = np.zeros(nlambdas)
-lambdas = np.logspace(-4, 2, nlambdas)
-for i in range(nlambdas):
-    lmb = lambdas[i]
-    RegRidge = linear_model.Ridge(lmb)
-    RegRidge.fit(X_train,y_train)
-    ypredictRidge = RegRidge.predict(X_test)
-    MSERidgePredict[i] = MSE(y_test,ypredictRidge)
-
-# Now plot the results
-plt.figure()
-plt.plot(np.log10(lambdas), MSERidgePredict, 'g--', label = 'MSE SL Ridge Test')
-plt.xlabel('log10(lambda)')
-plt.ylabel('MSE')
+infile = open(data_path("EoS.csv"),'r')
+
+# Read the EoS data as  csv file and organize the data into two arrays with density and energies
+EoS = pd.read_csv(infile, names=('Density', 'Energy'))
+EoS['Energy'] = pd.to_numeric(EoS['Energy'], errors='coerce')
+EoS = EoS.dropna()
+Energies = EoS['Energy']
+Density = EoS['Density']
+#  The design matrix now as function of various polytrops
+
+Maxpolydegree = 30
+X = np.zeros((len(Density),Maxpolydegree))
+X[:,0] = 1.0
+estimated_mse_sklearn = np.zeros(Maxpolydegree)
+polynomial = np.zeros(Maxpolydegree)
+k =5
+kfold = KFold(n_splits = k)
+
+for polydegree in range(1, Maxpolydegree):
+    polynomial[polydegree] = polydegree
+    for degree in range(polydegree):
+        X[:,degree] = Density**(degree/3.0)
+        OLS = LinearRegression(fit_intercept=False)
+# loop over trials in order to estimate the expectation value of the MSE
+    estimated_mse_folds = cross_val_score(OLS, X, Energies, scoring='neg_mean_squared_error', cv=kfold)
+#[:, np.newaxis]
+    estimated_mse_sklearn[polydegree] = np.mean(-estimated_mse_folds)
+
+plt.plot(polynomial, np.log10(estimated_mse_sklearn), label='Test Error')
+plt.xlabel('Polynomial degree')
+plt.ylabel('log10[MSE]')
 plt.legend()
 plt.show()
 
 !ec
 
-Here we have performed a rather data greedy calculation as function of the regularization parameter $\lambda$. There is no resampling here. The latter can easily be added by employing the function _RidgeCV_ instead of just calling the _Ridge_ function. For _RidgeCV_ we need to pass the array of $\lambda$ values.
-By inspecting the figure we can in turn determine which is the optimal regularization parameter.
-This becomes however less functional in the long run. 
-
-
-!split
-===== Grid Search =====
-
-
-An alternative is to use the so-called grid search functionality
-included with the library _Scikit-Learn_, as demonstrated for the same
-example here.
-
-!bc pycod
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import GridSearchCV
-
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
-
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-np.random.seed(2021)
-
-n = 100
-x = np.random.rand(n)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
-
-Maxpolydegree = 5
-X = np.zeros((n,Maxpolydegree-1))
-
-for degree in range(1,Maxpolydegree): #No intercept column
-    X[:,degree-1] = x**(degree)
-
-# We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-# Decide which values of lambda to use
-nlambdas = 10
-lambdas = np.logspace(-4, 2, nlambdas)
-# create and fit a ridge regression model, testing each alpha
-model = Ridge()
-gridsearch = GridSearchCV(estimator=model, param_grid=dict(alpha=lambdas))
-gridsearch.fit(X_train, y_train)
-print(gridsearch)
-ypredictRidge = gridsearch.predict(X_test)
-# summarize the results of the grid search
-print(f"Best estimated lambda-value: {gridsearch.best_estimator_.alpha}")
-print(f"MSE score: {MSE(y_test,ypredictRidge)}")
-print(f"R2 score: {R2(y_test,ypredictRidge)}")
-
-!ec
-
-By default the grid search function includes cross validation with
-five folds. The "Scikit-Learn
-documentation":"https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV"
-contains more information on how to set the different parameters.
-
-If we take out the random noise, running the above codes results in $\lambda=0$ yielding the best fit. 
-
-
-!split
-===== Randomized Grid Search =====
-
-An alternative to the above manual grid set up, is to use a random
-search where the parameters are tuned from a random distribution
-(uniform below) for a fixed number of iterations. A model is
-constructed and evaluated for each combination of chosen parameters.
-We repeat the previous example but now with a random search.  Note
-that values of $\lambda$ are now limited to be within $x\in
-[0,1]$. This domain may not be the most relevant one for the specific
-case under study.
-
-
-!bc pycod
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import GridSearchCV
-from scipy.stats import uniform as randuniform
-from sklearn.model_selection import RandomizedSearchCV
-
-
-def R2(y_data, y_model):
-    return 1 - np.sum((y_data - y_model) ** 2) / np.sum((y_data - np.mean(y_data)) ** 2)
-
-def MSE(y_data,y_model):
-    n = np.size(y_model)
-    return np.sum((y_data-y_model)**2)/n
-
-# A seed just to ensure that the random numbers are the same for every run.
-# Useful for eventual debugging.
-np.random.seed(2021)
-
-n = 100
-x = np.random.rand(n)
-y = np.exp(-x**2) + 1.5 * np.exp(-(x-2)**2)+ np.random.randn(n)
-
-Maxpolydegree = 5
-X = np.zeros((n,Maxpolydegree-1))
-
-for degree in range(1,Maxpolydegree): #No intercept column
-    X[:,degree-1] = x**(degree)
-
-# We split the data in test and training data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-param_grid = {'alpha': randuniform()}
-# create and fit a ridge regression model, testing each alpha
-model = Ridge()
-gridsearch = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=100)
-gridsearch.fit(X_train, y_train)
-print(gridsearch)
-ypredictRidge = gridsearch.predict(X_test)
-# summarize the results of the grid search
-print(f"Best estimated lambda-value: {gridsearch.best_estimator_.alpha}")
-print(f"MSE score: {MSE(y_test,ypredictRidge)}")
-print(f"R2 score: {R2(y_test,ypredictRidge)}")
-
-!ec
 
 
 
 
 !split
-=====  Wisconsin Cancer Data  =====
-
-We show here how we can use a simple regression case on the breast
-cancer data using Logistic regression as our algorithm for
-classification.
+===== Material for the lab sessions =====
 
 
-!bc pycod
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import  train_test_split 
-from sklearn.datasets import load_breast_cancer
-from sklearn.linear_model import LogisticRegression
+!split 
+===== Linking the regression analysis with a statistical interpretation =====
 
-# Load the data
-cancer = load_breast_cancer()
-
-X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-print(X_train.shape)
-print(X_test.shape)
-# Logistic Regression
-logreg = LogisticRegression(solver='lbfgs')
-logreg.fit(X_train, y_train)
-print("Test set accuracy with Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
-!ec
-
-!split
-===== Using the correlation matrix =====
-
-In addition to the above scores, we could also study the covariance (and the correlation matrix).
-We use _Pandas_ to compute the correlation matrix.
-!bc pycod
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import  train_test_split 
-from sklearn.datasets import load_breast_cancer
-from sklearn.linear_model import LogisticRegression
-cancer = load_breast_cancer()
-import pandas as pd
-# Making a data frame
-cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
-
-fig, axes = plt.subplots(15,2,figsize=(10,20))
-malignant = cancer.data[cancer.target == 0]
-benign = cancer.data[cancer.target == 1]
-ax = axes.ravel()
-
-for i in range(30):
-    _, bins = np.histogram(cancer.data[:,i], bins =50)
-    ax[i].hist(malignant[:,i], bins = bins, alpha = 0.5)
-    ax[i].hist(benign[:,i], bins = bins, alpha = 0.5)
-    ax[i].set_title(cancer.feature_names[i])
-    ax[i].set_yticks(())
-ax[0].set_xlabel("Feature magnitude")
-ax[0].set_ylabel("Frequency")
-ax[0].legend(["Malignant", "Benign"], loc ="best")
-fig.tight_layout()
-plt.show()
-
-import seaborn as sns
-correlation_matrix = cancerpd.corr().round(1)
-# use the heatmap function from seaborn to plot the correlation matrix
-# annot = True to print the values inside the square
-plt.figure(figsize=(15,8))
-sns.heatmap(data=correlation_matrix, annot=True)
-plt.show()
+We will now couple the discussions of ordinary least squares, Ridge
+and Lasso regression with a statistical interpretation, that is we
+move from a linear algebra analysis to a statistical analysis. In
+particular, we will focus on what the regularization terms can result
+in.  We will amongst other things show that the regularization
+parameter can reduce considerably the variance of the parameters
+$\beta$.
 
 
-!ec
-
-!split
-===== Discussing the correlation data =====
-
-In the above example we note two things. In the first plot we display
-the overlap of benign and malignant tumors as functions of the various
-features in the Wisconsing breast cancer data set. We see that for
-some of the features we can distinguish clearly the benign and
-malignant cases while for other features we cannot. This can point to
-us which features may be of greater interest when we wish to classify
-a benign or not benign tumour.
-
-In the second figure we have computed the so-called correlation
-matrix, which in our case with thirty features becomes a $30\times 30$
-matrix.
-
-We constructed this matrix using _pandas_ via the statements
-!bc pycod
-cancerpd = pd.DataFrame(cancer.data, columns=cancer.feature_names)
-!ec
-and then
-!bc pycod
-correlation_matrix = cancerpd.corr().round(1)
-!ec
-
-Diagonalizing this matrix we can in turn say something about which
-features are of relevance and which are not. This leads  us to
-the classical Principal Component Analysis (PCA) theorem with
-applications. This will be discussed later this semester ("week 43":"https://compphysics.github.io/MachineLearning/doc/pub/week43/html/week43-bs.html").
+The
+advantage of doing linear regression is that we actually end up with
+analytical expressions for several statistical quantities.  
+Standard least squares and Ridge regression  allow us to
+derive quantities like the variance and other expectation values in a
+rather straightforward way.
 
 
-
-!split
-===== Other measures in classification studies: Cancer Data  again =====
-!bc pycod 
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import  train_test_split 
-from sklearn.datasets import load_breast_cancer
-from sklearn.linear_model import LogisticRegression
-
-# Load the data
-cancer = load_breast_cancer()
-
-X_train, X_test, y_train, y_test = train_test_split(cancer.data,cancer.target,random_state=0)
-print(X_train.shape)
-print(X_test.shape)
-# Logistic Regression
-logreg = LogisticRegression(solver='lbfgs')
-logreg.fit(X_train, y_train)
-
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import cross_validate
-#Cross validation
-accuracy = cross_validate(logreg,X_test,y_test,cv=10)['test_score']
-print(accuracy)
-print("Test set accuracy with Logistic Regression: {:.2f}".format(logreg.score(X_test,y_test)))
-
-import scikitplot as skplt
-y_pred = logreg.predict(X_test)
-skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
-plt.show()
-y_probas = logreg.predict_proba(X_test)
-skplt.metrics.plot_roc(y_test, y_probas)
-plt.show()
-skplt.metrics.plot_cumulative_gain(y_test, y_probas)
-plt.show()
-
-!ec
-
-
-
-!split
-===== Optimization, the central part of any Machine Learning algortithm =====
-
-"Overview Video, why do we care about gradient methods?":"https://www.uio.no/studier/emner/matnat/fys/FYS-STK3155/h20/forelesningsvideoer/OverarchingAimsWeek39.mp4?vrtx=view-as-webpage"
-
-
-
-Almost every problem in machine learning and data science starts with
-a dataset $X$, a model $g(\beta)$, which is a function of the
-parameters $\beta$ and a cost function $C(X, g(\beta))$ that allows
-us to judge how well the model $g(\beta)$ explains the observations
-$X$. The model is fit by finding the values of $\beta$ that minimize
-the cost function. Ideally we would be able to solve for $\beta$
-analytically, however this is not possible in general and we must use
-some approximative/numerical method to compute the minimum.
-
-
-!split
-=====  Revisiting our Logistic Regression case =====
-
-In our discussion on Logistic Regression we studied the 
-case of
-two classes, with $y_i$ either
-$0$ or $1$. Furthermore we assumed also that we have only two
-parameters $\beta$ in our fitting, that is we
-defined probabilities
-
+It is assumed that $\varepsilon_i
+\sim \mathcal{N}(0, \sigma^2)$ and the $\varepsilon_{i}$ are
+independent, i.e.: 
 !bt
-\begin{align*}
-p(y_i=1|x_i,\bm{\beta}) &= \frac{\exp{(\beta_0+\beta_1x_i)}}{1+\exp{(\beta_0+\beta_1x_i)}},\nonumber\\
-p(y_i=0|x_i,\bm{\beta}) &= 1 - p(y_i=1|x_i,\bm{\beta}),
+\begin{align*} 
+\mbox{Cov}(\varepsilon_{i_1},
+\varepsilon_{i_2}) & = \left\{ \begin{array}{lcc} \sigma^2 & \mbox{if}
+& i_1 = i_2, \\ 0 & \mbox{if} & i_1 \not= i_2.  \end{array} \right.
+\end{align*} 
+!et
+The randomness of $\varepsilon_i$ implies that
+$\mathbf{y}_i$ is also a random variable. In particular,
+$\mathbf{y}_i$ is normally distributed, because $\varepsilon_i \sim
+\mathcal{N}(0, \sigma^2)$ and $\mathbf{X}_{i,\ast} \, \bm{\beta}$ is a
+non-random scalar. To specify the parameters of the distribution of
+$\mathbf{y}_i$ we need to calculate its first two moments. 
+
+Recall that $\bm{X}$ is a matrix of dimensionality $n\times p$. The
+notation above $\mathbf{X}_{i,\ast}$ means that we are looking at the
+row number $i$ and perform a sum over all values $p$.
+
+
+!split
+===== Assumptions made =====
+
+The assumption we have made here can be summarized as (and this is going to be useful when we discuss the bias-variance trade off)
+that there exists a function $f(\bm{x})$ and  a normal distributed error $\bm{\varepsilon}\sim \mathcal{N}(0, \sigma^2)$
+which describe our data
+!bt
+\[
+\bm{y} = f(\bm{x})+\bm{\varepsilon}
+\]
+!et
+
+We approximate this function with our model from the solution of the linear regression equations, that is our
+function $f$ is approximated by $\bm{\tilde{y}}$ where we want to minimize $(\bm{y}-\bm{\tilde{y}})^2$, our MSE, with
+!bt
+\[
+\bm{\tilde{y}} = \bm{X}\bm{\beta}.
+\]
+!et
+
+!split
+===== Expectation value and variance =====
+
+We can calculate the expectation value of $\bm{y}$ for a given element $i$ 
+!bt
+\begin{align*} 
+\mathbb{E}(y_i) & =
+\mathbb{E}(\mathbf{X}_{i, \ast} \, \bm{\beta}) + \mathbb{E}(\varepsilon_i)
+\, \, \, = \, \, \, \mathbf{X}_{i, \ast} \, \beta, 
+\end{align*} 
+!et
+while
+its variance is 
+!bt
+\begin{align*} \mbox{Var}(y_i) & = \mathbb{E} \{ [y_i
+- \mathbb{E}(y_i)]^2 \} \, \, \, = \, \, \, \mathbb{E} ( y_i^2 ) -
+[\mathbb{E}(y_i)]^2  \\  & = \mathbb{E} [ ( \mathbf{X}_{i, \ast} \,
+\beta + \varepsilon_i )^2] - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 \\ &
+= \mathbb{E} [ ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2 \varepsilon_i
+\mathbf{X}_{i, \ast} \, \bm{\beta} + \varepsilon_i^2 ] - ( \mathbf{X}_{i,
+\ast} \, \beta)^2 \\  & = ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 + 2
+\mathbb{E}(\varepsilon_i) \mathbf{X}_{i, \ast} \, \bm{\beta} +
+\mathbb{E}(\varepsilon_i^2 ) - ( \mathbf{X}_{i, \ast} \, \bm{\beta})^2 
+\\ & = \mathbb{E}(\varepsilon_i^2 ) \, \, \, = \, \, \,
+\mbox{Var}(\varepsilon_i) \, \, \, = \, \, \, \sigma^2.  
 \end{align*}
 !et
-where $\bm{\beta}$ are the weights we wish to extract from data, in our case $\beta_0$ and $\beta_1$. 
+Hence, $y_i \sim \mathcal{N}( \mathbf{X}_{i, \ast} \, \bm{\beta}, \sigma^2)$, that is $\bm{y}$ follows a normal distribution with 
+mean value $\bm{X}\bm{\beta}$ and variance $\sigma^2$ (not be confused with the singular values of the SVD). 
 
 !split
-===== The equations to solve =====
+===== Expectation value and variance for $\bm{\beta}$ =====
 
-Our compact equations used a definition of a vector $\bm{y}$ with $n$
-elements $y_i$, an $n\times p$ matrix $\bm{X}$ which contains the
-$x_i$ values and a vector $\bm{p}$ of fitted probabilities
-$p(y_i\vert x_i,\bm{\beta})$. We rewrote in a more compact form
-the first derivative of the cost function as
-
+With the OLS expressions for the optimal parameters $\bm{\hat{\beta}}$ we can evaluate the expectation value
 !bt
 \[
-\frac{\partial \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}} = -\bm{X}^T\left(\bm{y}-\bm{p}\right). 
+\mathbb{E}(\bm{\hat{\beta}}) = \mathbb{E}[ (\mathbf{X}^{\top} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1}\mathbf{X}^{T} \mathbb{E}[ \mathbf{Y}]=(\mathbf{X}^{T} \mathbf{X})^{-1} \mathbf{X}^{T}\mathbf{X}\bm{\beta}=\bm{\beta}.
 \]
 !et
+This means that the estimator of the regression parameters is unbiased.
 
-If we in addition define a diagonal matrix $\bm{W}$ with elements 
-$p(y_i\vert x_i,\bm{\beta})(1-p(y_i\vert x_i,\bm{\beta})$, we can obtain a compact expression of the second derivative as 
+We can also calculate the variance
 
+The variance of the optimal value $\bm{\hat{\beta}}$ is
+!bt
+\begin{eqnarray*}
+\mbox{Var}(\bm{\hat{\beta}}) & = & \mathbb{E} \{ [\bm{\beta} - \mathbb{E}(\bm{\beta})] [\bm{\beta} - \mathbb{E}(\bm{\beta})]^{T} \}
+\\
+& = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \bm{\beta}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} - \bm{\beta}]^{T} \}
+\\
+% & = & \mathbb{E} \{ [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}] \, [(\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y}]^{T} \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & \mathbb{E} \{ (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \mathbf{y} \, \mathbf{y}^{T} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1}  \} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \mathbb{E} \{ \mathbf{y} \, \mathbf{y}^{T} \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\\
+& = & (\mathbf{X}^{T} \mathbf{X})^{-1} \, \mathbf{X}^{T} \, \{ \mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \,  \mathbf{X}^{T} + \sigma^2 \} \, \mathbf{X} \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+% \\
+% & = & (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T \, \mathbf{X} \, \bm{\beta} \, \bm{\beta}^T \,  \mathbf{X}^T \, \mathbf{X} \, (\mathbf{X}^T % \mathbf{X})^{-1}
+% \\
+% & & + \, \, \sigma^2 \, (\mathbf{X}^T \mathbf{X})^{-1} \, \mathbf{X}^T  \, \mathbf{X} \, (\mathbf{X}^T \mathbf{X})^{-1} - \bm{\beta} \bm{\beta}^T
+\\
+& = & \bm{\beta} \, \bm{\beta}^{T}  + \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1} - \bm{\beta} \, \bm{\beta}^{T}
+\, \, \, = \, \, \, \sigma^2 \, (\mathbf{X}^{T} \mathbf{X})^{-1},
+\end{eqnarray*}
+!et
+
+where we have used  that $\mathbb{E} (\mathbf{y} \mathbf{y}^{T}) =
+\mathbf{X} \, \bm{\beta} \, \bm{\beta}^{T} \, \mathbf{X}^{T} +
+\sigma^2 \, \mathbf{I}_{nn}$. From $\mbox{Var}(\bm{\beta}) = \sigma^2
+\, (\mathbf{X}^{T} \mathbf{X})^{-1}$, one obtains an estimate of the
+variance of the estimate of the $j$-th regression coefficient:
+$\bm{\sigma}^2 (\bm{\beta}_j ) = \bm{\sigma}^2 [(\mathbf{X}^{T} \mathbf{X})^{-1}]_{jj} $. This may be used to
+construct a confidence interval for the estimates.
+
+
+In a similar way, we can obtain analytical expressions for say the
+expectation values of the parameters $\bm{\beta}$ and their variance
+when we employ Ridge regression, allowing us again to define a confidence interval. 
+
+It is rather straightforward to show that
 !bt
 \[
-\frac{\partial^2 \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}\partial \bm{\beta}^T} = \bm{X}^T\bm{W}\bm{X}. 
+\mathbb{E} \big[ \hat{\bm{\beta}}^{\mathrm{Ridge}} \big]=(\mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I}_{pp})^{-1} (\mathbf{X}^{\top} \mathbf{X})\bm{\beta}.
 \]
 !et
-This defines what is called  the Hessian matrix.
+We see clearly that 
+$\mathbb{E} \big[ \hat{\bm{\beta}}^{\mathrm{Ridge}} \big] \not= \hat{\bm{\beta}}^{\mathrm{OLS}}$ for any $\lambda > 0$.
 
-!split
-===== Solving using Newton-Raphson's method =====
-
-If we can set up these equations, Newton-Raphson's iterative method is normally the method of choice. It requires however that we can compute in an efficient way the  matrices that define the first and second derivatives. 
-
-Our iterative scheme is then given by
+We can also compute the variance as 
 
 !bt
 \[
-\bm{\beta}^{\mathrm{new}} = \bm{\beta}^{\mathrm{old}}-\left(\frac{\partial^2 \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}\partial \bm{\beta}^T}\right)^{-1}_{\bm{\beta}^{\mathrm{old}}}\times \left(\frac{\partial \mathcal{C}(\bm{\beta})}{\partial \bm{\beta}}\right)_{\bm{\beta}^{\mathrm{old}}},
+\mbox{Var}[\hat{\bm{\beta}}^{\mathrm{Ridge}}]=\sigma^2[  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}  \mathbf{X}^{T} \mathbf{X} \{ [  \mathbf{X}^{\top} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T},
 \]
 !et
-or in matrix form as
+and it is easy to see that if the parameter $\lambda$ goes to infinity then the variance of Ridge parameters $\bm{\beta}$ goes to zero. 
+
+With this, we can compute the difference 
 
 !bt
 \[
-\bm{\beta}^{\mathrm{new}} = \bm{\beta}^{\mathrm{old}}-\left(\bm{X}^T\bm{W}\bm{X} \right)^{-1}\times \left(-\bm{X}^T(\bm{y}-\bm{p}) \right)_{\bm{\beta}^{\mathrm{old}}}.
+\mbox{Var}[\hat{\bm{\beta}}^{\mathrm{OLS}}]-\mbox{Var}(\hat{\bm{\beta}}^{\mathrm{Ridge}})=\sigma^2 [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}[ 2\lambda\mathbf{I} + \lambda^2 (\mathbf{X}^{T} \mathbf{X})^{-1} ] \{ [  \mathbf{X}^{T} \mathbf{X} + \lambda \mathbf{I} ]^{-1}\}^{T}.
 \]
 !et
-The right-hand side is computed with the old values of $\beta$. 
+The difference is non-negative definite since each component of the
+matrix product is non-negative definite. 
+This means the variance we obtain with the standard OLS will always for $\lambda > 0$ be larger than the variance of $\bm{\beta}$ obtained with the Ridge estimator. This has interesting consequences when we discuss the so-called bias-variance trade-off below. 
 
-If we can compute these matrices, in particular the Hessian, the above is often the easiest method to implement. 
+For more discussions of Ridge regression and calculation of averages, "Wessel van Wieringen's":"https://arxiv.org/abs/1509.09169" article is highly recommended.
 
 
-!split
-===== Brief reminder on Newton-Raphson's method =====
 
-Let us quickly remind ourselves how we derive the above method.
-
-Perhaps the most celebrated of all one-dimensional root-finding
-routines is Newton's method, also called the Newton-Raphson
-method. This method  requires the evaluation of both the
-function $f$ and its derivative $f'$ at arbitrary points. 
-If you can only calculate the derivative
-numerically and/or your function is not of the smooth type, we
-normally discourage the use of this method.
-
-!split
-===== The equations =====
-
-The Newton-Raphson formula consists geometrically of extending the
-tangent line at a current point until it crosses zero, then setting
-the next guess to the abscissa of that zero-crossing.  The mathematics
-behind this method is rather simple. Employing a Taylor expansion for
-$x$ sufficiently close to the solution $s$, we have
-
-
-!bt
-\[
-    f(s)=0=f(x)+(s-x)f'(x)+\frac{(s-x)^2}{2}f''(x) +\dots.
-    \label{eq:taylornr}
-\]
-!et
-
-For small enough values of the function and for well-behaved
-functions, the terms beyond linear are unimportant, hence we obtain
-
-
-!bt
-\[
-   f(x)+(s-x)f'(x)\approx 0,
-\]
-!et
-yielding
-!bt
-\[
-   s\approx x-\frac{f(x)}{f'(x)}.
-\]
-!et
-
-Having in mind an iterative procedure, it is natural to start iterating with
-!bt
-\[
-   x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}.
-\]
-!et
-
-!split
-===== Simple geometric interpretation =====
-
-The above is Newton-Raphson's method. It has a simple geometric
-interpretation, namely $x_{n+1}$ is the point where the tangent from
-$(x_n,f(x_n))$ crosses the $x$-axis.  Close to the solution,
-Newton-Raphson converges fast to the desired result. However, if we
-are far from a root, where the higher-order terms in the series are
-important, the Newton-Raphson formula can give grossly inaccurate
-results. For instance, the initial guess for the root might be so far
-from the true root as to let the search interval include a local
-maximum or minimum of the function.  If an iteration places a trial
-guess near such a local extremum, so that the first derivative nearly
-vanishes, then Newton-Raphson may fail totally
-
-
-!split
-===== Extending to more than one variable =====
-
-Newton's method can be generalized to systems of several non-linear equations
-and variables. Consider the case with two equations
-!bt
-\[
-   \begin{array}{cc} f_1(x_1,x_2) &=0\\
-                     f_2(x_1,x_2) &=0,\end{array}
-\]
-!et
-which we Taylor expand to obtain
-
-!bt
-\[
-   \begin{array}{cc} 0=f_1(x_1+h_1,x_2+h_2)=&f_1(x_1,x_2)+h_1
-                     \partial f_1/\partial x_1+h_2
-                     \partial f_1/\partial x_2+\dots\\
-                     0=f_2(x_1+h_1,x_2+h_2)=&f_2(x_1,x_2)+h_1
-                     \partial f_2/\partial x_1+h_2
-                     \partial f_2/\partial x_2+\dots
-                       \end{array}.
-\]
-!et
-Defining the Jacobian matrix ${\bf \bm{J}}$ we have
-!bt
-\[
- {\bf \bm{J}}=\left( \begin{array}{cc}
-                         \partial f_1/\partial x_1  & \partial f_1/\partial x_2 \\
-                          \partial f_2/\partial x_1     &\partial f_2/\partial x_2
-             \end{array} \right),
-\]
-!et
-we can rephrase Newton's method as
-!bt
-\[
-\left(\begin{array}{c} x_1^{n+1} \\ x_2^{n+1} \end{array} \right)=
-\left(\begin{array}{c} x_1^{n} \\ x_2^{n} \end{array} \right)+
-\left(\begin{array}{c} h_1^{n} \\ h_2^{n} \end{array} \right),
-\]
-!et
-where we have defined
-!bt
-\[
-   \left(\begin{array}{c} h_1^{n} \\ h_2^{n} \end{array} \right)=
-   -{\bf \bm{J}}^{-1}
-   \left(\begin{array}{c} f_1(x_1^{n},x_2^{n}) \\ f_2(x_1^{n},x_2^{n}) \end{array} \right).
-\]
-!et
-We need thus to compute the inverse of the Jacobian matrix and it
-is to understand that difficulties  may
-arise in case ${\bf \bm{J}}$ is nearly singular.
-
-It is rather straightforward to extend the above scheme to systems of
-more than two non-linear equations. In our case, the Jacobian matrix is given by the Hessian that represents the second derivative of cost function. 
-
-
-
-!split
-===== Steepest descent =====
-
-The basic idea of gradient descent is
-that a function $F(\mathbf{x})$, 
-$\mathbf{x} \equiv (x_1,\cdots,x_n)$, decreases fastest if one goes from $\bf {x}$ in the
-direction of the negative gradient $-\nabla F(\mathbf{x})$.
-
-It can be shown that if 
-!bt
-\[
-\mathbf{x}_{k+1} = \mathbf{x}_k - \gamma_k \nabla F(\mathbf{x}_k),
-\]
-!et
-with $\gamma_k > 0$.
-
-For $\gamma_k$ small enough, then $F(\mathbf{x}_{k+1}) \leq
-F(\mathbf{x}_k)$. This means that for a sufficiently small $\gamma_k$
-we are always moving towards smaller function values, i.e a minimum.
-
-!split 
-===== More on Steepest descent =====
-
-The previous observation is the basis of the method of steepest
-descent, which is also referred to as just gradient descent (GD). One
-starts with an initial guess $\mathbf{x}_0$ for a minimum of $F$ and
-computes new approximations according to
-
-!bt
-\[
-\mathbf{x}_{k+1} = \mathbf{x}_k - \gamma_k \nabla F(\mathbf{x}_k), \ \ k \geq 0.
-\]
-!et
-
-The parameter $\gamma_k$ is often referred to as the step length or
-the learning rate within the context of Machine Learning.
-
-!split 
-===== The ideal =====
-
-Ideally the sequence $\{\mathbf{x}_k \}_{k=0}$ converges to a global
-minimum of the function $F$. In general we do not know if we are in a
-global or local minimum. In the special case when $F$ is a convex
-function, all local minima are also global minima, so in this case
-gradient descent can converge to the global solution. The advantage of
-this scheme is that it is conceptually simple and straightforward to
-implement. However the method in this form has some severe
-limitations:
-
-In machine learing we are often faced with non-convex high dimensional
-cost functions with many local minima. Since GD is deterministic we
-will get stuck in a local minimum, if the method converges, unless we
-have a very good intial guess. This also implies that the scheme is
-sensitive to the chosen initial condition.
-
-Note that the gradient is a function of $\mathbf{x} =
-(x_1,\cdots,x_n)$ which makes it expensive to compute numerically.
-
-
-!split 
-===== The sensitiveness of the gradient descent ===== 
-
-The gradient descent method 
-is sensitive to the choice of learning rate $\gamma_k$. This is due
-to the fact that we are only guaranteed that $F(\mathbf{x}_{k+1}) \leq
-F(\mathbf{x}_k)$ for sufficiently small $\gamma_k$. The problem is to
-determine an optimal learning rate. If the learning rate is chosen too
-small the method will take a long time to converge and if it is too
-large we can experience erratic behavior.
-
-Many of these shortcomings can be alleviated by introducing
-randomness. One such method is that of Stochastic Gradient Descent
-(SGD), to be discussed next week.
-
-
-!split 
-===== Convex functions ===== 
-
-Ideally we want our cost/loss function to be convex(concave).
-
-First we give the definition of a convex set: A set $C$ in
-$\mathbb{R}^n$ is said to be convex if, for all $x$ and $y$ in $C$ and
-all $t \in (0,1)$ , the point $(1 − t)x + ty$ also belongs to
-C. Geometrically this means that every point on the line segment
-connecting $x$ and $y$ is in $C$ as discussed below.
-
-The convex subsets of $\mathbb{R}$ are the intervals of
-$\mathbb{R}$. Examples of convex sets of $\mathbb{R}^2$ are the
-regular polygons (triangles, rectangles, pentagons, etc...).
-
-!split
-===== Convex function =====
-
-_Convex function_: Let $X \subset \mathbb{R}^n$ be a convex set. Assume that the function $f: X \rightarrow \mathbb{R}$ is continuous, then $f$ is said to be convex if $$f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2) $$ for all $x_1, x_2 \in X$ and for all $t \in [0,1]$. If $\leq$ is replaced with a strict inequaltiy in the definition, we demand $x_1 \neq x_2$ and $t\in(0,1)$ then $f$ is said to be strictly convex. For a single variable function, convexity means that if you draw a straight line connecting $f(x_1)$ and $f(x_2)$, the value of the function on the interval $[x_1,x_2]$ is always below the line as illustrated below.
-
-!split
-===== Conditions on convex functions =====
-
-In the following we state first and second-order conditions which
-ensures convexity of a function $f$. We write $D_f$ to denote the
-domain of $f$, i.e the subset of $R^n$ where $f$ is defined. For more
-details and proofs we refer to: "S. Boyd and L. Vandenberghe. Convex Optimization. Cambridge University Press":"http://stanford.edu/boyd/cvxbook/, 2004".
-
-!bblock First order condition
-Suppose $f$ is differentiable (i.e $\nabla f(x)$ is well defined for
-all $x$ in the domain of $f$). Then $f$ is convex if and only if $D_f$
-is a convex set and $$f(y) \geq f(x) + \nabla f(x)^T (y-x) $$ holds
-for all $x,y \in D_f$. This condition means that for a convex function
-the first order Taylor expansion (right hand side above) at any point
-a global under estimator of the function. To convince yourself you can
-make a drawing of $f(x) = x^2+1$ and draw the tangent line to $f(x)$ and
-note that it is always below the graph.  
-!eblock
-
-!bblock Second order condition 
-Assume that $f$ is twice
-differentiable, i.e the Hessian matrix exists at each point in
-$D_f$. Then $f$ is convex if and only if $D_f$ is a convex set and its
-Hessian is positive semi-definite for all $x\in D_f$. For a
-single-variable function this reduces to $f''(x) \geq 0$. Geometrically this means that $f$ has nonnegative curvature
-everywhere.
-!eblock
-
-This condition is particularly useful since it gives us an procedure for determining if the function under consideration is convex, apart from using the definition.
-
-!split
-===== More on convex functions =====
-
-The next result is of great importance to us and the reason why we are
-going on about convex functions. In machine learning we frequently
-have to minimize a loss/cost function in order to find the best
-parameters for the model we are considering. 
-
-Ideally we want the
-global minimum (for high-dimensional models it is hard to know
-if we have local or global minimum). However, if the cost/loss function
-is convex the following result provides invaluable information:
-
-!bblock Any minimum is global for convex functions
-Consider the problem of finding $x \in \mathbb{R}^n$ such that $f(x)$
-is minimal, where $f$ is convex and differentiable. Then, any point
-$x^*$ that satisfies $\nabla f(x^*) = 0$ is a global minimum.
-!eblock
-
-This result means that if we know that the cost/loss function is convex and we are able to find a minimum, we are guaranteed that it is a global minimum.
-
-!split
-===== Some simple problems =====
-
-o Show that $f(x)=x^2$ is convex for $x \in \mathbb{R}$ using the definition of convexity. Hint: If you re-write the definition, $f$ is convex if the following holds for all $x,y \in D_f$ and any $\lambda \in [0,1]$ $\lambda f(x)+(1-\lambda)f(y)-f(\lambda x + (1-\lambda) y ) \geq 0$.
-
-o Using the second order condition show that the following functions are convex on the specified domain.
- * $f(x) = e^x$ is convex for $x \in \mathbb{R}$.
- * $g(x) = -\ln(x)$ is convex for $x \in (0,\infty)$.
-o Let $f(x) = x^2$ and $g(x) = e^x$. Show that $f(g(x))$ and $g(f(x))$ is convex for $x \in \mathbb{R}$. Also show that if $f(x)$ is any convex function than $h(x) = e^{f(x)}$ is convex.
-
-o A norm is any function that satisfy the following properties
- * $f(\alpha x) = |\alpha| f(x)$ for all $\alpha \in \mathbb{R}$.
- * $f(x+y) \leq f(x) + f(y)$
- * $f(x) \leq 0$ for all $x \in \mathbb{R}^n$ with equality if and only if $x = 0$
-
-Using the definition of convexity, try to show that a function satisfying the properties above is convex (the third condition is not needed to show this).
-
-
-
-
-
-
-!split 
-===== Revisiting our first homework =====
-
-We will use linear regression as a case study for the gradient descent
-methods. Linear regression is a great test case for the gradient
-descent methods discussed in the lectures since it has several
-desirable properties such as:
-
-o An analytical solution (recall homework set 1).
-o The gradient can be computed analytically.
-o The cost function is convex which guarantees that gradient descent converges for small enough learning rates
-
-We revisit an example similar to what we had in the first homework set. We had a function  of the type
-
-!bc pycod
-x = 2*np.random.rand(m,1)
-y = 4+3*x+np.random.randn(m,1)
-!ec
-with $x_i \in [0,1] $ is chosen randomly using a uniform distribution. Additionally we have a stochastic noise chosen according to a normal distribution $\cal {N}(0,1)$. 
-The linear regression model is given by 
-!bt
-\[
-h_\beta(x) = \bm{y} = \beta_0 + \beta_1 x,
-\] 
-!et
-such that 
-!bt
-\[
-\bm{y}_i = \beta_0 + \beta_1 x_i.
-\]
-!et
-
-!split 
-===== Gradient descent example =====
-
-Let $\mathbf{y} = (y_1,\cdots,y_n)^T$, $\mathbf{\bm{y}} = (\bm{y}_1,\cdots,\bm{y}_n)^T$ and $\beta = (\beta_0, \beta_1)^T$
-
-It is convenient to write $\mathbf{\bm{y}} = X\beta$ where $X \in \mathbb{R}^{100 \times 2} $ is the design matrix given by (we keep the intercept here)
-!bt
-\[
-X \equiv \begin{bmatrix}
-1 & x_1  \\
-\vdots & \vdots  \\
-1 & x_{100} &  \\
-\end{bmatrix}.
-\]
-!et
-The cost/loss/risk function is given by (
-!bt
-\[
-C(\beta) = \frac{1}{n}||X\beta-\mathbf{y}||_{2}^{2} = \frac{1}{n}\sum_{i=1}^{100}\left[ (\beta_0 + \beta_1 x_i)^2 - 2 y_i (\beta_0 + \beta_1 x_i) + y_i^2\right] 
-\]
-!et
-and we want to find $\beta$ such that $C(\beta)$ is minimized.
-
-!split
-===== The derivative of the cost/loss function =====
-
-Computing $\partial C(\beta) / \partial \beta_0$ and $\partial C(\beta) / \partial \beta_1$ we can show  that the gradient can be written as
-!bt
-\[
-\nabla_{\beta} C(\beta) = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
-\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
-\end{bmatrix} = \frac{2}{n}X^T(X\beta - \mathbf{y}), 
-\]
-!et
-where $X$ is the design matrix defined above.
-
-!split
-===== The Hessian matrix =====
-The Hessian matrix of $C(\beta)$ is given by 
-!bt
-\[
-\bm{H} \equiv \begin{bmatrix}
-\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
-\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
-\end{bmatrix} = \frac{2}{n}X^T X.
-\]
-!et
-This result implies that $C(\beta)$ is a convex function since the matrix $X^T X$ always is positive semi-definite.
 
 
 
 
 !split
-===== Simple program =====
+===== Plans for the lab sessions =====
 
-We can now write a program that minimizes $C(\beta)$ using the gradient descent method with a constant learning rate $\gamma$ according to 
-!bt
-\[
-\beta_{k+1} = \beta_k - \gamma \nabla_\beta C(\beta_k), \ k=0,1,\cdots 
-\]
-!et
+!bblock  Material for the active learning sessions on Tuesday and Wednesday
+  * bias-variance tradeoff
+  * Resampling techniques, cross-validation examples included here, see also the lectures from last week on the bootstrap method
+  * Exercise for week 38 on the bias-variance tradeoff, see also the video from the lab session from week 37 at URL:"https://youtu.be/omLmp_kkie0"
+!eblock  
 
-We can use the expression we computed for the gradient and let use a
-$\beta_0$ be chosen randomly and let $\gamma = 0.001$. Stop iterating
-when $||\nabla_\beta C(\beta_k) || \leq \epsilon = 10^{-8}$. _Note that the code below does not include the latter stop criterion_.
-
-And finally we can compare our solution for $\beta$ with the analytic result given by 
-$\beta= (X^TX)^{-1} X^T \mathbf{y}$.
-
-!split
-===== Gradient Descent Example =====
-
-Here our simple example
-!bc pycod
-
-# Importing various packages
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import sys
-
-# the number of datapoints
-n = 100
-x = 2*np.random.rand(n,1)
-y = 4+3*x+np.random.randn(n,1)
-
-X = np.c_[np.ones((n,1)), x]
-# Hessian matrix
-H = (2.0/n)* X.T @ X
-# Get the eigenvalues
-EigValues, EigVectors = np.linalg.eig(H)
-print(f"Eigenvalues of Hessian Matrix:{EigValues}")
-
-beta_linreg = np.linalg.inv(X.T @ X) @ X.T @ y
-print(beta_linreg)
-beta = np.random.randn(2,1)
-
-eta = 1.0/np.max(EigValues)
-Niterations = 1000
-
-for iter in range(Niterations):
-    gradient = (2.0/n)*X.T @ (X @ beta-y)
-    beta -= eta*gradient
-
-print(beta)
-xnew = np.array([[0],[2]])
-xbnew = np.c_[np.ones((2,1)), xnew]
-ypredict = xbnew.dot(beta)
-ypredict2 = xbnew.dot(beta_linreg)
-plt.plot(xnew, ypredict, "r-")
-plt.plot(xnew, ypredict2, "b-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Gradient descent example')
-plt.show()
-
-!ec
-
-!split
-===== And a corresponding example using _scikit-learn_ =====
-
-!bc pycod
-# Importing various packages
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import SGDRegressor
-
-n = 100
-x = 2*np.random.rand(n,1)
-y = 4+3*x+np.random.randn(n,1)
-
-X = np.c_[np.ones((n,1)), x]
-beta_linreg = np.linalg.inv(X.T @ X) @ (X.T @ y)
-print(beta_linreg)
-sgdreg = SGDRegressor(max_iter = 50, penalty=None, eta0=0.1)
-sgdreg.fit(x,y.ravel())
-print(sgdreg.intercept_, sgdreg.coef_)
-
-!ec
-
-
-
-!split 
-===== Gradient descent and Ridge =====
-
-We have also discussed Ridge regression where the loss function contains a regularized term given by the $L_2$ norm of $\beta$, 
-!bt
-\[
-C_{\text{ridge}}(\beta) = \frac{1}{n}||X\beta -\mathbf{y}||^2 + \lambda ||\beta||^2, \ \lambda \geq 0.
-\]
-!et
-
-In order to minimize $C_{\text{ridge}}(\beta)$ using GD we adjust the gradient as follows 
-!bt
-\[
-\nabla_\beta C_{\text{ridge}}(\beta)  = \frac{2}{n}\begin{bmatrix} \sum_{i=1}^{100} \left(\beta_0+\beta_1x_i-y_i\right) \\
-\sum_{i=1}^{100}\left( x_i (\beta_0+\beta_1x_i)-y_ix_i\right) \\
-\end{bmatrix} + 2\lambda\begin{bmatrix} \beta_0 \\ \beta_1\end{bmatrix} = 2 (\frac{1}{n}X^T(X\beta - \mathbf{y})+\lambda \beta).
-\]
-!et
-
-We can easily extend our program to minimize $C_{\text{ridge}}(\beta)$ using gradient descent and compare with the analytical solution given by 
-!bt
-\[
-\beta_{\text{ridge}} = \left(X^T X + n\lambda I_{2 \times 2} \right)^{-1} X^T \mathbf{y}.
-\]
-!et
-
-!split
-===== The Hessian matrix for Ridge Regression =====
-The Hessian matrix of Ridge Regression for our simple example  is given by 
-!bt
-\[
-\bm{H} \equiv \begin{bmatrix}
-\frac{\partial^2 C(\beta)}{\partial \beta_0^2} & \frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1}  \\
-\frac{\partial^2 C(\beta)}{\partial \beta_0 \partial \beta_1} & \frac{\partial^2 C(\beta)}{\partial \beta_1^2} &  \\
-\end{bmatrix} = \frac{2}{n}X^T X+2\lambda\bm{I}.
-\]
-!et
-This implies that the Hessian matrix  is positive definite, hence the stationary point is a
-minimum.
-Note that the Ridge cost function is convex being  a sum of two convex
-functions. Therefore, the stationary point is a global
-minimum of this function.
-
-
-!split
-===== Program example for gradient descent with Ridge Regression =====
-!bc pycod
-from random import random, seed
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import sys
-
-# the number of datapoints
-n = 100
-x = 2*np.random.rand(n,1)
-y = 4+3*x+np.random.randn(n,1)
-
-X = np.c_[np.ones((n,1)), x]
-XT_X = X.T @ X
-
-#Ridge parameter lambda
-lmbda  = 0.001
-Id = n*lmbda* np.eye(XT_X.shape[0])
-
-# Hessian matrix
-H = (2.0/n)* XT_X+2*lmbda* np.eye(XT_X.shape[0])
-# Get the eigenvalues
-EigValues, EigVectors = np.linalg.eig(H)
-print(f"Eigenvalues of Hessian Matrix:{EigValues}")
-
-
-beta_linreg = np.linalg.inv(XT_X+Id) @ X.T @ y
-print(beta_linreg)
-# Start plain gradient descent
-beta = np.random.randn(2,1)
-
-eta = 1.0/np.max(EigValues)
-Niterations = 100
-
-for iter in range(Niterations):
-    gradients = 2.0/n*X.T @ (X @ (beta)-y)+2*lmbda*beta
-    beta -= eta*gradients
-
-print(beta)
-ypredict = X @ beta
-ypredict2 = X @ beta_linreg
-plt.plot(x, ypredict, "r-")
-plt.plot(x, ypredict2, "b-")
-plt.plot(x, y ,'ro')
-plt.axis([0,2.0,0, 15.0])
-plt.xlabel(r'$x$')
-plt.ylabel(r'$y$')
-plt.title(r'Gradient descent example for Ridge')
-plt.show()
-
-
-!ec
-
-!split
-===== Using gradient descent methods, limitations =====
-
-* _Gradient descent (GD) finds local minima of our function_. Since the GD algorithm is deterministic, if it converges, it will converge to a local minimum of our cost/loss/risk function. Because in ML we are often dealing with extremely rugged landscapes with many local minima, this can lead to poor performance.
-
-* _GD is sensitive to initial conditions_. One consequence of the local nature of GD is that initial conditions matter. Depending on where one starts, one will end up at a different local minima. Therefore, it is very important to think about how one initializes the training process. This is true for GD as well as more complicated variants of GD.
-
-* _Gradients are computationally expensive to calculate for large datasets_. In many cases in statistics and ML, the cost/loss/risk function is a sum of terms, with one term for each data point. For example, in linear regression, $E \propto \sum_{i=1}^n (y_i - \mathbf{w}^T\cdot\mathbf{x}_i)^2$; for logistic regression, the square error is replaced by the cross entropy. To calculate the gradient we have to sum over *all* $n$ data points. Doing this at every GD step becomes extremely computationally expensive. An ingenious solution to this, is to calculate the gradients using small subsets of the data called ``mini batches''. This has the added benefit of introducing stochasticity into our algorithm.
-
-* _GD is very sensitive to choices of learning rates_. GD is extremely sensitive to the choice of learning rates. If the learning rate is very small, the training process take an extremely long time. For larger learning rates, GD can diverge and give poor results. Furthermore, depending on what the local landscape looks like, we have to modify the learning rates to ensure convergence. Ideally, we would *adaptively* choose the learning rates to match the landscape.
-
-* _GD treats all directions in parameter space uniformly._ Another major drawback of GD is that unlike Newton's method, the learning rate for GD is the same in all directions in parameter space. For this reason, the maximum learning rate is set by the behavior of the steepest direction and this can significantly slow down training. Ideally, we would like to take large steps in flat directions and small steps in steep directions. Since we are exploring rugged landscapes where curvatures change, this requires us to keep track of not only the gradient but second derivatives. The ideal scenario would be to calculate the Hessian but this proves to be too computationally expensive. 
-	
-* GD can take exponential time to escape saddle points, even with random initialization. As we mentioned, GD is extremely sensitive to initial condition since it determines the particular local minimum GD would eventually reach. However, even with a good initialization scheme, through the introduction of randomness, GD can still take exponential time to escape saddle points.
-	
-
-!split
-===== Challenge yourself the coming weekend =====
-
-Write a code which implements gradient descent for a logistic regression example.
 
 
 
 
 !split
-===== Lab session: Material from last week and relevant for the first project =====
+===== Lab session: Material relevant for the first project =====
 
 
 !split 
@@ -1711,5 +1815,7 @@ plt.legend()
 plt.show()
 
 !ec
+
+
 
 
