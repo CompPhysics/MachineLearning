@@ -1,5 +1,5 @@
-TITLE: Data Analysis and Machine Learning: Reinforcement Learning 
-AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
+TITLE: Reinforcement Learning 
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo, Norway
 DATE: today
 
 !split
@@ -10,117 +10,412 @@ DATE: today
 !split
 ===== Reinforcement Learning: Overarching view =====
 
-Reinforcement Learning (RL) is one of the most exciting fields of Machine Learning today, and also one
-of the oldest. It has been around since the 1950s, producing many interesting applications over the years.
 
+
+#Figure: A simple depiction of the reinforcement learning agent-environment interaction. The agent (left) observes the current state s and takes an action# a; the environment (right) transitions to a new state s’ and provides a scalar reward R. This trial-and-error loop of interaction and feedback is centra#l to reinforcement learning .
+
+=== What is Reinforcement Learning (RL)? ===
+
+Reinforcement learning is a learning paradigm in which an agent learns
+to make decisions by interacting with an environment, aiming to
+maximize cumulative reward . Unlike supervised learning (with labeled
+examples) or unsupervised learning, an RL agent learns from trial and
+error—it discovers which actions yield the most reward by receiving
+feedback in the form of rewards or penalties. This framework is
+well-suited for sequential decision-making tasks with delayed feedback
+(rewards may be received long after actions are taken) . Key themes
+include the exploration vs. exploitation trade-off (trying new actions
+to discover rewards versus using known rewarding actions) and delayed
+reward (actions can have long-term consequences).
+
+=== Agent and Environment: ===
+
+The agent is the decision-maker or learner, and the environment is
+everything the agent interacts with outside of itself . At each
+discrete time step t, the agent observes a state s_t from the
+environment, chooses an action $a_t$, and in return the environment
+gives the agent a reward $r_{t+1}$ and a new state $s_{t+1}$. This
+loop (state → action → reward → next state) produces a trajectory of
+experience. The agent’s goal is to learn a policy (a strategy of
+choosing actions) that maximizes the total rewards over time . The
+sequence of interactions is often modeled as a Markov Decision Process
+(MDP), which we will formalize below.
+
+
+
+
+=== States, Actions, and Rewards: ===
+
+
+The state represents the situation of the environment as observed by
+the agent (it can be fully observable or partially observable). The
+action is a choice the agent can make (which may be discrete moves or
+continuous controls depending on the problem). The reward is a
+numerical feedback signal; positive values typically indicate
+desirable outcomes and negative values indicate undesirable
+outcomes. The agent’s objective is to maximize the cumulative reward
+(often a discounted sum of rewards over time). Importantly,
+reinforcement learning credits rewards to the actions that led to
+them, even if they are delayed – this credit assignment is a core
+challenge.  Example Applications: RL has been applied to a wide range
+of domains . In games, RL agents have achieved human or superhuman
+performance (e.g. AlphaGo and AlphaGo Zero learned to play the game of
+Go via self-play RL, achieving superhuman proficiency without any
+human-provided strategies ). In robotics, RL enables robots to learn
+control policies for manipulation and locomotion tasks (e.g. teaching
+a robotic arm to grasp objects through trial and error). In operations
+research and science, RL is used for optimizing decisions in systems
+such as resource management, chemical reaction control, or treatment
+planning in healthcare. These examples underscore the power of RL in
+sequential decision-making under uncertainty .
+
+
+=== Key Components of RL: ===
+
+o Policy $\p$i: The agent’s strategy or decision-making rule, mapping states to actions. A policy can be deterministic (always picks a
+specific action for a given state) or stochastic (assigns probabilities to possible actions) .
+o Return $G_t$: The total cumulative reward from time step t onward (often with a discount factor $\gamma\in[0,1]$ applied to future rewards). The return might be
+!bt
+\[ G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots.
+\]
+!et
+The agent seeks to maximize the expected return.
+
+
+=== Value Functions: ===
+These are core
+concepts in RL that estimate how good a state or state-action pair is,
+in terms of expected return. The state-value function V^\pi(s) is the
+expected return when starting in state s and following policy \pi
+thereafter . The action-value function (or Q-value) Q^\pi(s,a) is the
+expected return when starting in state s, taking action a, and then
+following policy \pi . Value functions allow the agent to predict
+future rewards and are used in many RL algorithms. We’ll explore these
+in depth in Lecture 2.  Model (optional): In some cases, the agent
+might have a model of the environment – i.e. knowledge of state
+transition probabilities and reward function. Model-based RL uses such
+a model to plan (as in dynamic programming methods). Model-free RL, on
+the other hand, learns purely from experience without an explicit
+model.
+
+A Simple Interaction Loop (Pseudo-Code): Below is a simple Python pseudo-code illustrating how an RL agent might interact with an environment using a given policy. This loop would repeat for many episodes of experience:
+
+!bc pycod
+# Pseudo-code for agent-environment interaction loop
+for episode in range(num_episodes):
+    state = env.reset()         # initialize environment and get initial state
+    done = False
+    while not done:
+        action = policy(state)  # choose action based on current policy
+        next_state, reward, done, info = env.step(action)  # take action, observe reward and next state
+        # (In a learning algorithm, here the agent would update its policy or value estimates using the reward)
+        state = next_state
+!ec
+
+This code uses a placeholder policy(state) which could be a function
+(or neural network) defining the agent’s behavior. In a real
+algorithm, the agent would also include an update step inside the loop
+to adjust its policy or value estimates based on the reward
+feedback. In upcoming lectures, we will see concrete algorithms
+(e.g. Q-learning, policy gradient) that fill in this update logic.
+
+Concept Check: Reinforcement learning problems can be identified by
+their components – try to identify the states, actions, and rewards in
+a familiar scenario (for example, an automated cart pole balancing
+task, or a game like Pac-Man). Consider what the agent’s goal is and
+how trial-and-error experience could lead to learning a good strategy.
+
+
+=== Exercise 1: ===
+
+Conceptual: Identify the states, actions, and rewards in a real-world problem that could be formulated as an RL task (e.g. robot navigation in a maze, stock trading agent, etc.). What might a good reward function be for this task?
+Research: Read Chapter 1 of Sutton & Barto’s Reinforcement Learning: An Introduction  to familiarize yourself with the key concepts and examples of reinforcement learning. Summarize in your own words the differences between RL and other machine learning paradigms.
+Coding (thought exercise): Install OpenAI Gym (or a similar environment library) and run a simple environment like CartPole-v1. Using the pseudo-code above as a guide, modify it to print out the sequence of (state, action, reward) for a single episode when the agent takes random actions. This will help you observe the agent-environment interaction firsthand.
 
 !split
-=====  Code example =====
-!bc pycod 
-"""
-A simple example for Reinforcement Learning using table lookup Q-learning method.
-An agent "o" is on the left of a 1 dimensional world, the treasure is on the rightmost location.
-Run this program and to see how the agent will improve its strategy of finding the treasure.
-View more on my tutorial page: https://morvanzhou.github.io/tutorials/
-"""
+===== Markov Decision Processes and Dynamic Programming =====
+
+
+Theoretical Foundations: In this lecture, we delve into the formal framework underlying reinforcement learning: the Markov Decision Process (MDP). We also cover value functions and the fundamental Bellman equations, and see how planning algorithms (dynamic programming) can compute optimal policies when the model is known. Key convergence results will be discussed (e.g. why iterative methods converge to optimal value functions).
+
+Markov Decision Process (MDP): An MDP provides a mathematical formulation of a sequential decision-making problem. It is defined by the tuple (S, A, P, R, \gamma) : 
+S is the set of states (can be finite or infinite).
+A is the set of actions available to the agent. Some formulations use A(s) for the actions available from state s.
+P is the state transition probability function P(s’ \mid s, a), which gives the probability of transitioning to state s’ when action a is taken in state s . This encapsulates the environment’s dynamics (the “model”).
+R is the reward function R(s,a,s’), giving the expected immediate reward of transitioning from s to s’ via action a . (Sometimes R(s,a) or R(s) is used if reward depends only on state or state-action.)
+\gamma \in [0,1] is the discount factor, which determines how future rewards are weighted relative to immediate rewards . A \gamma close to 1 means future rewards are considered nearly as important as immediate rewards (long-term focus), whereas \gamma = 0 makes the agent short-sighted (consider only immediate reward).
+ An MDP satisfies the Markov property: the future state s’ depends on the current state and action (s,a) only, not on the history of past states . In other words, given the present state, the past is irrelevant for predicting the future. This memoryless property allows MDPs to be analyzed using dynamic programming and other mathematical techniques.
+Policy and Value Functions: A policy \pi is a mapping from states to a probability distribution over actions. At time t, given state s_t, the policy \pi(a \mid s_t) is the probability of selecting action a. We distinguish: 
+Deterministic policy: \pi(s) = a. (A fixed action for each state.)
+Stochastic policy: \pi(a \mid s). (A distribution over actions.) .
+ The quality of a policy is evaluated by value functions: 
+State-Value Function V^\pi(s): the expected return (cumulative discounted reward) when starting from state s and following policy \pi thereafter . Formally, V^\pi(s) = \mathbb{E}\pi\Big[ \sum{t=0}^{\infty} \gamma^t \,R_{t+1} \;\Big|\; S_0 = s \Big]. This expectation is taken over the randomness in the policy and environment.
+Action-Value Function Q^\pi(s,a): the expected return when starting from state s, taking action a, and thereafter following policy \pi . Formally, Q^\pi(s, a) = \mathbb{E}\pi\Big[ \sum{t=0}^{\infty} \gamma^t \,R_{t+1} \;\Big|\; S_0 = s, A_0 = a \Big]. Q^\pi(s,a) can be understood as the value of taking action a in state s and then behaving according to \pi.
+ The goal in reinforcement learning is often to find an optimal policy \pi^ that maximizes the value function for all states. The optimal state-value function V^(s) gives the maximum achievable value starting from state s, and the optimal action-value function Q^(s,a) gives the maximum achievable value of state-action pair (s,a) (under any policy)  . An optimal policy \pi^ achieves these values and satisfies V^(s) = \max_a Q^(s,a) for all s.
+Bellman Equations: Richard Bellman’s principle of optimality leads to recursive relationships for value functions. For any policy \pi, the Bellman expectation equation holds: V^\pi(s) = \sum_{a \in A} \pi(a\mid s) \sum_{s’} P(s’ \mid s,a)\Big( R(s,a,s’) + \gamma\,V^\pi(s’) \Big). This says: under policy \pi, the value of state s equals the expected immediate reward plus the discounted value of the next state, averaging over the randomness in action selection and state transitions . Similarly for the action-value: Q^\pi(s,a) = \sum_{s’} P(s’\mid s,a)\Big( R(s,a,s’) + \gamma \sum_{a’} \pi(a’ \mid s’) Q^\pi(s’,a’) \Big). Under an optimal policy \pi^, we have the Bellman optimality equations: V^(s) = \max_{a}\sum_{s’} P(s’\mid s,a)\Big( R(s,a,s’) + \gamma\,V^(s’) \Big), Q^(s,a) = \sum_{s’} P(s’\mid s,a)\Big( R(s,a,s’) + \gamma \max_{a’} Q^(s’,a’) \Big). These are fundamental nonlinear equations that the optimal value functions must satisfy  . Notably, V^ is the unique fixed point of the Bellman optimality operator (which is a contraction mapping with factor \gamma < 1), so iterative algorithms can converge to V^*.
+Dynamic Programming (DP) for Planning: If the agent has a perfect model of the MDP (known P and R), it can compute optimal value functions and policies without learning by using dynamic programming. Classic DP algorithms for solving MDPs include: 
+Policy Evaluation: Given a fixed policy \pi, compute V^\pi (or Q^\pi). This can be done iteratively: initialize V_0(s) arbitrarily, then update V_{k+1}(s) = \sum_{a}\pi(a\mid s)\sum_{s’} P(s’|s,a)\big( R(s,a,s’) + \gamma V_k(s’)\big) for all states s. This converges to V^\pi as k\to\infty , thanks to the contraction property of the Bellman operator.
+Policy Improvement: Given V^\pi, we can derive a better policy \pi’ by acting greedily with respect to V^\pi. Specifically, for each state s, choose \pi’(s) = \arg\max_a \sum_{s’} P(s’|s,a)\big( R(s,a,s’) + \gamma V^\pi(s’)\big). This greedy policy is guaranteed to be equal or better than \pi (this is proved by showing V^{\pi’}(s)\ge V^{\pi}(s) for all s ).
+Policy Iteration: Alternate policy evaluation and policy improvement. Start with an initial policy \pi_0. Evaluate V^{\pi_0}, then improve to \pi_1, then evaluate V^{\pi_1}, and so on. This process will converge in a finite number of iterations to an optimal policy \pi^ and optimal value function V^  . Policy iteration typically converges quickly (often in a handful of iterations for small MDPs).
+Value Iteration: This algorithm merges policy evaluation and improvement into a single update. Starting with an arbitrary value function V_0, we iteratively apply the Bellman optimality update to all states: V_{k+1}(s) = \max_{a}\sum_{s’} P(s’|s,a)\big( R(s,a,s’) + \gamma V_k(s’) \big). Value iteration is essentially a fixed-point iteration for V^; it converges to the optimal value function V^ as k \to \infty  . Once V^* is obtained (within some small tolerance), the optimal policy can be extracted by choosing in each state the action that achieves the max in the above equation.
+
+
+
+Figure: A Markov Decision Process with three states (green circles) and two actions (orange circles). Arrows indicate state transitions under different actions, and wavy arrows represent rewards on certain transitions. An optimal policy in such an MDP would choose actions to maximize the long-term collected rewards. (Image: waldoalvarez, CC BY-SA 4.0)
+
+Example – Gridworld: Consider an agent navigating a grid maze. States could be the grid cells, actions might be {Up, Down, Left, Right}, and rewards could be -1 per step (to encourage shortest paths) plus a +10 reward for reaching a goal cell (and 0 until then). We can model this as an MDP. Using dynamic programming, we could compute the optimal value of each cell (essentially the negative distance to the goal, accounting for the step penalty) and derive an optimal policy (pointing straight toward the goal). This is exactly what value iteration or policy iteration would yield. The DP algorithms will converge to V^ and \pi^ for this gridworld, illustrating the principles of optimality.
+Convergence and Optimality: Under certain conditions (e.g. finite state spaces and \gamma<1), policy iteration and value iteration are guaranteed to converge to the optimal value function and policy  . Value iteration iteratively approximates V^* from below or above and converges because the Bellman optimality operator is a contraction mapping (intuitively, each iteration “pulls” the value function closer to the fixed point). Policy iteration converges in at most a finite number of improvements because there are only finitely many distinct policies in a finite MDP, and each improvement yields a strictly better policy until optimal. These algorithms exemplify planning (computing a solution given a perfect model). In later lectures, we transition to learning methods for when P and R are unknown.
+Python Example – Value Iteration: Below is a simple code sketch for value iteration on a small MDP. (For illustration, assume P[s][a] gives a list of (prob, next_state, reward) outcomes for taking action a in state s, and we have a list of states and actions defined.)
+
+# Initialize value function
+V = {s: 0.0 for s in states}
+gamma = 0.95
+theta = 1e-6  # convergence threshold
+
+while True:
+    delta = 0
+    for s in states:
+        # Compute the Bellman optimality backup for state s
+        best_value = float("-inf")
+        for a in actions:
+            # Calculate expected value for taking action a in state s
+            value_a = 0
+            for (prob, s_next, reward) in P[s][a]:
+                value_a += prob * (reward + gamma * V[s_next])
+            if value_a > best_value:
+                best_value = value_a
+        new_value = best_value
+        # Track the maximum change for convergence check
+        delta = max(delta, abs(new_value - V[s]))
+        V[s] = new_value
+    if delta < theta:
+        break
+
+# Derive optimal policy from the value function
+pi = {}
+for s in states:
+    # Select action with highest expected value
+    pi[s] = max(actions, key=lambda a: sum(prob * (reward + gamma * V[s_next])
+                                           for (prob, s_next, reward) in P[s][a]))
+In this code, we repeatedly update the value of each state by looking one step ahead (using the model P and reward). After convergence, we extract the policy by choosing the best action for each state. This corresponds to value iteration computing V^ and then \pi^. In practice, more efficient and specialized implementations exist, but this pseudocode captures the essence.
+
+Exercises (Lecture 2):
+
+Written: Prove the policy improvement theorem: show that if Q_\pi(s, a^) \ge Q_\pi(s, \pi(s)) for all states s (where a^ = \arg\max_a Q_\pi(s,a) is the greedy action), then the greedy policy \pi’ with \pi’(s)=a^* is as good as or better than \pi. (Hint: Compare V^{\pi’}(s) and V^\pi(s) using the definition of Q_\pi .) This forms the core of policy iteration’s correctness.
+Coding: Implement the gridworld example described above. Define a small grid, specify terminal states and rewards, and code policy iteration to find the optimal policy. Verify that your algorithm converges (for example, print the values each iteration to see monotonic improvement) and that the resulting policy makes intuitive sense (e.g. it should move toward the goal while avoiding obstacles if any).
+Research: Read Chapter 4 (Dynamic Programming) of Sutton & Barto’s book for deeper insight  . Focus on how the authors explain policy iteration and value iteration, and note the conditions required for convergence. What do they say about the complexity of these algorithms for large state spaces?
+
+
+
+===== Model-Free Learning – Monte Carlo, Temporal-Difference, Q-Learning and SARSA =====
+
+
+Theoretical Foundations: Thus far, we assumed the MDP’s dynamics were known (so we could directly apply dynamic programming). Now we shift to model-free reinforcement learning: the agent must learn optimal behavior from experience alone, without knowing the transition probabilities or reward function in advance. We introduce two fundamental approaches: Monte Carlo (MC) methods, which learn from episodic samples by averaging returns, and Temporal-Difference (TD) learning, which learns iteratively by bootstrapping estimates. We then focus on two classic TD control algorithms: Q-Learning and SARSA. These algorithms will illustrate the challenges of exploration, the concept of on-policy vs. off-policy learning, and key convergence properties (Watkins’s theorem for Q-learning convergence under certain conditions, etc.).
+
+Monte Carlo Learning: Monte Carlo methods learn value functions and policies by averaging over complete episodes of experience. An episode is a sequence of states, actions, rewards that ends in a terminal state. In MC policy evaluation, for example, to estimate V^\pi(s), the agent can simulate many episodes using policy \pi and compute the sample returns G_t following each occurrence of state s; the MC estimate of V^\pi(s) is the average of these returns. MC methods are model-free (they don’t require P or R), but they need episodes to terminate (or a mechanism to truncate infinite-horizon returns). Monte Carlo methods use actual returns for learning (no bootstrapping from current estimates). They eventually converge to true values given enough samples, by the Law of Large Numbers. However, pure MC has high variance and can be slow, since it waits until an episode is done to update estimates.
+Temporal-Difference (TD) Learning: TD methods combine ideas from DP and MC. Like DP, they bootstrap: they update estimates based partly on other learned estimates (e.g. using V(s’) to update V(s)). Like MC, they learn from raw experience without a model. A simple TD algorithm for policy evaluation is TD(0) (one-step temporal-difference): to estimate V^\pi, initialize V(s) arbitrarily. Then for each transition s_t \to a_t \to r_{t+1} \to s_{t+1} under policy \pi, update: V(s_t) \leftarrow V(s_t) + \alpha\,\big[ r_{t+1} + \gamma V(s_{t+1}) - V(s_t) \big], where \alpha is a step-size (learning rate)  . This is an example of the general TD error \delta_t = r_{t+1} + \gamma V(s_{t+1}) - V(s_t). The TD error measures the discrepancy between the current estimate and a “bootstrapped” one-step lookahead that includes the reward plus discounted next state value. TD(0) updates the value in the direction that reduces this error. Amazingly, TD(0) will converge to V^\pi for stationary policy \pi (under appropriate conditions like sufficiently small \alpha decreasing over time) – a result by Sutton (1988). Compared to Monte Carlo, TD can update after every step (no need to wait for episode end), and it often has lower variance because it doesn’t rely on complete returns – but it introduces bias by bootstrapping. There are also more general TD(\lambda) methods that mix n-step returns (beyond scope here).
+From Prediction to Control: So far, we discussed learning value functions for a fixed policy (prediction problem). The control problem is learning an optimal policy. Model-free control algorithms typically use some form of generalized policy iteration (GPI): they iteratively evaluate and improve the policy using sample data. Two quintessential algorithms for control are Q-Learning and SARSA, both of which learn action-value estimates, Q(s,a), and gradually make the policy greedy w.r.t. those estimates.
+Q-Learning (Off-Policy TD Control): Q-Learning, proposed by Watkins (1989), is one of the most famous RL algorithms. It learns the optimal action-value function Q^(s,a) independently of the policy being followed, hence it is an off-policy method. The core update (performed at each step from state s taking action a and landing in s’ with reward r) is: Q(s,a) \leftarrow Q(s,a) + \alpha \Big[ r + \gamma \max_{a’} Q(s’,a’) \;-\; Q(s,a) \Big]. This update uses the Bellman optimality target for the next state s’: the term r + \gamma \max_{a’} Q(s’,a’) is an estimate of the optimal future value assuming the best action a’ is taken from s’. The difference between this target and the current Q(s,a) is the TD error. Q-Learning is thus bootstrapping toward the optimal Q-value. It can be shown that if every state-action is visited infinitely often and \alpha decreases appropriately, Q(s,a) will converge to Q^(s,a) with probability 1 . Q-Learning is off-policy because the update uses the greedy action \max_{a’} Q(s’,a’) for evaluating the next state, regardless of what action was actually taken in the trajectory. In practice, we often use an exploration policy (like \epsilon-greedy, described below) to generate behavior, but still update toward the greedy optimum. This off-policy nature means the learned values converge to optimal Q^* even if the agent’s behavior is somewhat exploratory.
+SARSA (On-Policy TD Control): SARSA stands for State-Action-Reward-State-Action. It is an on-policy TD control algorithm, meaning it learns the value of the policy it is actually following. In SARSA, after taking action a in state s and transitioning to s’, the agent also takes an action a’ in s’ according to its current policy. The update is: Q(s,a) \leftarrow Q(s,a) + \alpha \Big[ r + \gamma Q(s’,a’) \;-\; Q(s,a) \Big]. Notice the difference: instead of the max over a’ (as in Q-Learning), SARSA uses the Q-value of the action actually taken a’ in the next state . Thus, SARSA’s update is informed by the current policy’s behavior. As the policy improves, the updates shift accordingly. If using an \epsilon-greedy policy, SARSA’s updates account for the fact that with probability \epsilon a suboptimal action might be chosen next (since it updates using whatever action occurred). SARSA will converge to the optimal policy as well, but in the interim it tends to be more conservative (it incorporates the exploration policy in value estimation, which can sometimes be beneficial in risky environments – e.g. in the “cliff walking” example from Sutton & Barto, SARSA finds a safer path than Q-learning because Q-learning, being off-policy, evaluates as if it will always take the optimal route, which may skirt the cliff edge ).
+Exploration vs. Exploitation: To ensure convergence of these learning algorithms to optimal values, the agent must explore sufficiently. A common strategy is \epsilon-greedy: with probability 1-\epsilon, choose the action \arg\max_a Q(s,a) (greedy exploitation of current knowledge), and with probability \epsilon, choose a random action (exploration) . Annealing (decaying) \epsilon over time reduces exploration as the agent gains confidence. Other exploration methods include softmax (Boltzmann exploration) or optimistic initial values. A balance is needed: initially, more exploration to discover high-reward actions; later, more exploitation to capitalize on learned knowledge.
+On-Policy vs. Off-Policy: As mentioned, on-policy methods (like SARSA) evaluate or improve the policy that is used to make decisions, whereas off-policy methods (like Q-learning) evaluate a different policy (typically the greedy one) while following an exploratory policy. Off-policy methods allow using old data or data from other agents (via experience replay, for example) since the learning doesn’t depend on adhering to the learned policy during data collection  . However, off-policy methods can be less stable when combined with function approximation (as we’ll see in later lectures about deep RL).
+Convergence and Stability: Both SARSA and Q-learning (with exploration) will converge to optimal Q^ in the limit under certain conditions (infinite visits, decaying learning rate) – a theoretical guarantee. In practice, one must be careful with learning rate selection and exploration scheduling. One known result: Q-learning is guaranteed to converge to Q^ if the environment is Markov and if each state-action is visited infinitely often with a decreasing \alpha . SARSA has a similar guarantee for the policy it follows (which, if using \epsilon-greedy with decaying \epsilon \to 0, will track toward the greedy optimal policy). These results assume a lookup-table representation of Q. With function approximation (like neural networks), convergence is not guaranteed and training can diverge – as historically seen before Deep Q Networks introduced stabilizing techniques. We will discuss those in Lecture 6.
+Example – Cliff Walking: In the Cliff Walking gridworld (Sutton & Barto), an agent must travel from a start to a goal along a grid edge; stepping off the cliff yields a large negative reward. If we apply Q-learning vs. SARSA: Q-learning, being off-policy, computes values assuming the greedy policy (which hugs the cliff for the shortest path). It finds the optimal path (which is shortest but risky) and its optimal Q-values reflect the high cost of falling off the cliff only if you actually fall (which the greedy policy wouldn’t). SARSA, on-policy, “feels” the cost of the cliff during learning because its exploratory moves occasionally fall off, and those negative rewards feed into the Q estimates of near-cliff states. As a result, the SARSA-derived policy tends to stay away from the cliff (a safer path with a slightly longer route) under moderate exploration. This illustrates how the choice of learning algorithm and on-policy vs. off-policy nature can affect the learned behavior during learning (though both converge to the optimal policy as \epsilon \to 0).
+Algorithm Pseudocode – Q-learning: Here is a Python-like pseudocode for Q-learning with an \epsilon-greedy policy. This assumes env is an environment object (like those in OpenAI Gym) and that we can index the Q-table by state and action.
 
 import numpy as np
-import pandas as pd
-import time
+Q = np.zeros((num_states, num_actions))  # initialize Q-table
+alpha = 0.1    # learning rate
+gamma = 0.99   # discount factor
+epsilon = 0.1  # exploration probability
 
-np.random.seed(2)  # reproducible
-
-
-N_STATES = 6   # the length of the 1 dimensional world
-ACTIONS = ['left', 'right']     # available actions
-EPSILON = 0.9   # greedy police
-ALPHA = 0.1     # learning rate
-GAMMA = 0.9    # discount factor
-MAX_EPISODES = 13   # maximum episodes
-FRESH_TIME = 0.3    # fresh time for one move
-
-
-def build_q_table(n_states, actions):
-    table = pd.DataFrame(
-        np.zeros((n_states, len(actions))),     # q_table initial values
-        columns=actions,    # actions's name
-    )
-    # print(table)    # show table
-    return table
-
-
-def choose_action(state, q_table):
-    # This is how to choose an action
-    state_actions = q_table.iloc[state, :]
-    if (np.random.uniform() > EPSILON) or ((state_actions == 0).all()):  # act non-greedy or state-action have no value
-        action_name = np.random.choice(ACTIONS)
-    else:   # act greedy
-        action_name = state_actions.idxmax()    # replace argmax to idxmax as argmax means a different function in newer version of pandas
-    return action_name
-
-
-def get_env_feedback(S, A):
-    # This is how agent will interact with the environment
-    if A == 'right':    # move right
-        if S == N_STATES - 2:   # terminate
-            S_ = 'terminal'
-            R = 1
+for episode in range(num_episodes):
+    state = env.reset()
+    done = False
+    while not done:
+        # Choose action using epsilon-greedy policy
+        if np.random.rand() < epsilon:
+            action = env.action_space.sample()            # explore
         else:
-            S_ = S + 1
-            R = 0
-    else:   # move left
-        R = 0
-        if S == 0:
-            S_ = S  # reach the wall
-        else:
-            S_ = S - 1
-    return S_, R
+            action = np.argmax(Q[state])                  # exploit (greedy)
+        next_state, reward, done, info = env.step(action) # take action, observe outcome
+        # Q-learning update
+        best_next_action = np.argmax(Q[next_state])
+        td_target = reward + gamma * Q[next_state][best_next_action]
+        td_error  = td_target - Q[state][action]
+        Q[state][action] += alpha * td_error
+        state = next_state
+In this code, td_target represents r + \gamma \max_{a’} Q(s’,a’), and td_error is the difference between this target and the current Q estimate. The Q-table is updated in the direction of reducing this error. This process will gradually push Q towards Q^*. If we wanted SARSA instead, we would use the next action actually taken (perhaps by selecting it before the update) and use Q[s’][a’] in the target.
+
+Practical Considerations: Model-free learning can be slow if rewards are sparse or delayed. Strategies like reward shaping or using experience replay (storing transitions and replaying them for learning, as introduced in DQN ) can help. It’s also common to decay \epsilon over time (start with a lot of exploration, finish near-greedy). Another consideration is non-stationarity: if the environment changes, these algorithms can adapt since they continuously update values, but a too-large learning rate can cause oscillation.
 
 
-def update_env(S, episode, step_counter):
-    # This is how environment be updated
-    env_list = ['-']*(N_STATES-1) + ['T']   # '---------T' our environment
-    if S == 'terminal':
-        interaction = 'Episode %s: total_steps = %s' % (episode+1, step_counter)
-        print('\r{}'.format(interaction), end='')
-        time.sleep(2)
-        print('\r                                ', end='')
-    else:
-        env_list[S] = 'o'
-        interaction = ''.join(env_list)
-        print('\r{}'.format(interaction), end='')
-        time.sleep(FRESH_TIME)
+Exercises (Lecture 3):
+
+Derivation: Starting from the Bellman optimality equation, derive the Q-learning update. In other words, show that if Q satisfies Q(s,a) = \mathbb{E}[r + \gamma \max_{a’} Q(s’,a’)], then the incremental update with small learning rate is proportional to r + \gamma \max_{a’}Q(s’,a’) - Q(s,a). Why does this form make Q(s,a) approach the true value?
+Coding: Implement SARSA for the Windy Gridworld (from Sutton & Barto, Chapter 6) or another simple environment (like MountainCar-v0 from OpenAI Gym). Compare the learning performance and final policy of SARSA vs. Q-learning. For example, plot the cumulative reward per episode for both algorithms under the same learning rate and \epsilon schedule . Interpret any differences in their learning behaviors.
+Analysis: In the pseudocode above, we used a fixed exploration rate \epsilon. What are the pros and cons of decaying \epsilon over time? Try modifying the code to decrease \epsilon (say, start at 1.0 and linearly decrease to 0.01 over 500 episodes). Does this improve learning stability or final performance in your experiments?
+Further Reading: Skim Chapter 6 of Sutton & Barto (2nd ed.), which covers SARSA, Q-learning, and other TD control methods. Pay attention to the Cliff Walking example and the authors’ explanation of why SARSA yields a different path than Q-learning during learning (even though both converge to the optimal path in the end).
 
 
-def rl():
-    # main part of RL loop
-    q_table = build_q_table(N_STATES, ACTIONS)
-    for episode in range(MAX_EPISODES):
-        step_counter = 0
-        S = 0
-        is_terminated = False
-        update_env(S, episode, step_counter)
-        while not is_terminated:
 
-            A = choose_action(S, q_table)
-            S_, R = get_env_feedback(S, A)  # take action & get next state and reward
-            q_predict = q_table.loc[S, A]
-            if S_ != 'terminal':
-                q_target = R + GAMMA * q_table.iloc[S_, :].max()   # next state is not terminal
-            else:
-                q_target = R     # next state is terminal
-                is_terminated = True    # terminate this episode
-
-            q_table.loc[S, A] += ALPHA * (q_target - q_predict)  # update
-            S = S_  # move to next state
-
-            update_env(S, episode, step_counter+1)
-            step_counter += 1
-    return q_table
+Lecture 4: Policy Gradient Methods (Introduction to Policy Optimization)
 
 
-if __name__ == "__main__":
-    q_table = rl()
-    print('\r\nQ-table:\n')
-print(q_table)
-!ec
+Theoretical Foundations: So far our methods implicitly learned value functions (and derived policies from them). In policy gradient methods, we parameterize the policy directly and optimize those parameters to maximize expected return . Policy-based approaches are powerful, especially for problems with continuous action spaces or when a stochastic policy is desired (e.g. for exploration or multi-modal action distributions). In this lecture, we cover the basic policy gradient theorem and the REINFORCE algorithm (Monte Carlo policy gradient), including the use of baseline for variance reduction. We also discuss why policy gradient methods can have high variance and how actor-critic methods (Lecture 5) will address that.
+
+Why Policy Gradient? In some environments (especially with continuous action spaces, like controlling robot torques), learning a value function and then deriving a policy (e.g. picking the action that maximizes Q(s,a)) can be cumbersome or unstable. Policy gradient methods learn the policy directly, which can naturally handle continuous actions by, for example, modeling the policy as a normal distribution over actions with learnable mean and variance. Moreover, policy gradients can optimize stochastic policies, which are useful in partially observable settings or for ensuring exploration. Another advantage: we can shape the policy’s functional form (e.g. a neural network mapping state to action probabilities) and optimize it end-to-end for the reward signal. This approach can be more stable in some cases and is compatible with frameworks of stochastic gradient descent.
+Policy Parameterization: We assume the policy \pi_\theta(a \mid s) is differentiable w.rt. parameters \theta. For example, \theta could be the weights of a neural network that takes state s and outputs a probability distribution over actions (for discrete actions) or parameters of a distribution (for continuous actions, e.g. mean and std of a Gaussian). We define the performance objective (to maximize) as the expected return from the start state distribution: J(\theta) = \mathbb{E}{\tau \sim \pi\theta}[\,R(\tau)\,], where R(\tau) is the total reward of trajectory \tau (or we can use infinite-horizon discounted return). More commonly, if s_0 is fixed, we write J(\theta) = \mathbb{E}{\pi\theta}[\sum_{t=0}^\infty \gamma^t r_{t+1} \mid s_0]. Our goal is to find \theta^* = \arg\max_\theta J(\theta).
+Policy Gradient Theorem: The crux is to compute \nabla_\theta J(\theta), the gradient of performance with respect to the policy parameters. There is a classic result (Williams, 1992; Sutton et al., 2000) stating: \nabla_\theta J(\theta) = \mathbb{E}{\pi\theta}\!\Big[ \nabla_\theta \ln \pi_\theta(A_t \mid S_t) \, G_t \Big], where G_t = \sum_{k=0}^\infty \gamma^k r_{t+k+1} is the return from time t. Intuitively, this says: to adjust parameters, weight each parameter change by the return that follows the action. If an action led to higher than expected return, increase the probability of that action (the gradient term \nabla_\theta \ln \pi_\theta will point in the direction that increases \pi_\theta(A_t\mid S_t)). If the return was lower, the gradient update will decrease the probability of that action. This result is powerful because it provides an unbiased estimator of the gradient from sample episodes  . Derivation sketch: J(\theta) = \sum_s d^\pi(s) \sum_a \pi_\theta(a\mid s) Q^\pi(s,a), where d^\pi(s) is the discounted state visitation distribution under \pi. Differentiating under the sum and using \nabla_\theta \pi_\theta(a\mid s) = \pi_\theta(a\mid s)\,\nabla_\theta \ln \pi_\theta(a\mid s), one can arrive at the above formula. A key step is that \nabla_\theta d^\pi(s) cancels out thanks to some algebra (i.e. we don’t need to know how the state distribution changes with \theta explicitly) .
+REINFORCE Algorithm (Monte Carlo Policy Gradient): REINFORCE is the simplest policy gradient algorithm (Williams, 1992). It uses the formula above by sampling episodes. A basic version: 
+Initialize policy parameters \theta (e.g. randomly).
+Loop over episodes: 
+Generate an episode S_0, A_0, R_1, S_1, A_1, R_2, \dots, S_T by following the current policy \pi_\theta.
+For each time step t in the episode: compute the return G_t = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1}.
+For each time step t, update the policy parameters: \theta \leftarrow \theta + \alpha\, \nabla_\theta \ln \pi_\theta(A_t \mid S_t)\, (G_t - b), where \alpha is the learning rate and b is a baseline (see below).
+
+ This is a Monte Carlo method: we wait until the episode finishes to compute G_t. The term \nabla_\theta \ln \pi_\theta(A_t \mid S_t) is the score function giving the direction to change the policy to increase the probability of the chosen action A_t. Multiplying by G_t reinforces actions that led to high return. Summing over timesteps yields an unbiased sample of the gradient \nabla_\theta J(\theta).
+Baseline for Variance Reduction: The term b in the update is a baseline, typically chosen as an estimate of the value of state S_t (i.e. b \approx V^\pi(S_t)). Subtracting a baseline from G_t does not bias the gradient (as long as b does not depend on the action A_t), but it can significantly reduce variance  . Intuitively, if G_t is higher than usual for that state, the positive advantage G_t - b will strengthen the action’s probability; if G_t is lower, the negative advantage will suppress the action. Using b = V^\pi(S_t) makes G_t - b = G_t - V^\pi(S_t) the advantage estimate A^\pi(S_t, A_t). This centers the updates so that on average (under the policy) they have less variance. In practice, one often uses a learned critic (estimate of V) as a baseline – this leads to actor-critic methods (Lecture 5). If we set b=0, the algorithm is the plain REINFORCE with raw returns.
+Properties of Policy Gradient Methods: 
+They can directly optimize the expected reward, and are not limited by having to estimate value for each state-action pair (which is handy for huge or continuous action spaces where Q-tables are infeasible).
+They typically produce stochastic policies, which can be useful (e.g. in multi-agent settings or to maintain exploration).
+A downside is high variance in gradient estimates. Returns G_t can be quite noisy, so learning can be slow or unstable. Techniques to handle this include large numbers of episodes (sample averaging), baselines (as above), variance-reduction tricks like reward normalization, or using actor-critic which blends policy gradient with value function critique.
+Policy gradients are typically local optima methods – they do gradient ascent which could converge to a suboptimal local maximum of reward. In practice, with nonlinear function approximators like neural networks, this is a common concern (solutions like random restarts or advanced optimizers might be needed).
+
+Continuous Actions Example: Suppose we want an agent to output a continuous action (like steering angle). We could define \pi_\theta(a|s) as a Gaussian distribution with mean \mu_\theta(s) and variance \sigma^2. Policy gradient would adjust \mu_\theta(s) to increase/decrease the probability density on rewarded actions. For instance, if an action a yielded higher than expected return, the gradient \nabla_\theta \ln \pi_\theta(a|s) will push \mu_\theta(s) closer to a. This is something value-based methods struggle with, whereas policy gradient handles it naturally.
+REINFORCE with Example: Consider the simple case of learning a policy for the CartPole balancing task. The policy could be a neural network taking the state (cart position, velocity, pole angle, angular velocity) and outputting probabilities of “move left” or “move right.” Using REINFORCE: we run many episodes; in each, the agent eventually fails and gets a total reward equal to the time balanced. The policy gradient will increase the probability of action sequences that lead to longer balancing and decrease those that tip early. Over time, the network learns to balance the pole by gradient ascent on the expected episode reward. (This was historically one of the early successes of policy gradient methods).
+Pseudo-Code – REINFORCE:
+
+# REINFORCE algorithm (Monte Carlo Policy Gradient)
+policy = initialize_policy_parameters()    # e.g., weights of a neural network
+alpha = 1e-2  # learning rate
+
+for episode in range(num_episodes):
+    # Generate an episode
+    states = []
+    actions = []
+    rewards = []
+    state = env.reset()
+    done = False
+    while not done:
+        # sample action according to current policy
+        action = policy.sample_action(state)
+        next_state, reward, done, info = env.step(action)
+        # record state, action, reward
+        states.append(state)
+        actions.append(action)
+        rewards.append(reward)
+        state = next_state
+    # Compute returns G for each time step (backward)
+    returns = []
+    G = 0
+    for r in reversed(rewards):
+        G = r + policy.gamma * G
+        returns.insert(0, G)
+    # Update policy parameters
+    for s, a, G in zip(states, actions, returns):
+        # compute policy gradient (log-likelihood gradient times return)
+        grad_log_prob = policy.grad_log_prob(s, a)    # ∇_θ log π_θ(a|s)
+        policy.theta += alpha * grad_log_prob * (G - baseline(s))
+In this pseudocode, policy.sample_action(state) uses the current policy to pick an action (for discrete actions, e.g. sampling from a Softmax probability distribution). We accumulate rewards and then compute the return G for each timestep by backward accumulation. grad_log_prob represents the gradient of the log-probability of the taken action. Multiplying by the return (minus a baseline) and stepping in that direction performs the policy gradient update. The baseline(s) could be a function approximator for the value V(s); if not used, set it to 0. Note: In practice, one would batch episodes and use autograd tools if using neural networks, rather than manually computing gradients, but this illustrates the concept.
+
+Exercises (Lecture 4):
+
+Derivation: Derive the policy gradient formula from first principles. Specifically, start with J(\theta) = \sum_{s} d^\pi(s) \sum_a \pi_\theta(a|s) R(s,a) for a simplified finite-horizon, deterministic reward scenario, and differentiate with respect to \theta. Show how \nabla_\theta \pi_\theta(a|s) / \pi_\theta(a|s) appears and leads to \nabla_\theta \ln \pi_\theta(a|s) . (For full generality, consult the policy gradient theorem proof in textbooks.)
+Coding: Implement the REINFORCE algorithm on a simple environment, such as the CartPole-v1 (discrete action) or a continuous environment like MountainCarContinuous-v0. Use a neural network policy (you can use a simple two-layer network for CartPole). Monitor the learning curve of total reward per episode. (Hint: You may need to normalize or scale the returns for stability, and a baseline can greatly help – try using the average reward as a baseline).
+Experiment: Try adding a baseline to your REINFORCE implementation. For instance, use an estimate of V(s) by running a separate value network or even a running average of returns from each state. Does it improve the variance of updates and speed of learning? Document the difference in performance between using no baseline vs. a learned baseline.
+Math: Consider a very simple MDP: two actions (A or B) from a start state, each yielding a random reward (say Action A gives reward 1 with 50% chance, 0 otherwise; Action B gives reward 0.4 always). Suppose the policy is \pi_\theta(A) = \sigma(\theta) (a sigmoid of a parameter \theta). Work out one step of policy gradient update by hand: if the agent took action A and got reward 1, what is \nabla_\theta \ln \pi_\theta(A) and how would \theta update? If this episode repeats many times, what do you expect the optimal policy to be? (This checks understanding of how policy gradient encourages better-than-average outcomes).
+
+
+
+Lecture 5: Actor-Critic Methods (Policy Gradient with Value Function Approximation)
+
+
+Theoretical Foundations: Actor-Critic methods marry the strengths of value-based and policy-based approaches. We introduce the two components: the actor (the policy to be learned, as in Lecture 4) and the critic (a value function that criticizes the actions by providing feedback in terms of value estimates). The critic is typically learned via TD methods, providing a baseline/advantage estimate to reduce variance for the actor’s updates . We discuss how actor-critic algorithms work (one-step and multi-step variants), the distinction of on-policy vs. off-policy actor-critic (e.g. A2C/A3C vs. DDPG), and touch on convergence properties.
+
+Motivation: In pure policy gradient (REINFORCE), we saw high variance in the gradient estimates. The idea of Actor-Critic is to use a learned value function as a baseline and even as a booster to learning: rather than using actual returns G_t which are noisy, the critic provides an estimate of the value (expected return) which can be used to compute a lower-variance advantage. Essentially, the critic tells the actor how good the action was compared to average, and the actor adjusts the policy in the direction suggested by the critic  . This synergy tends to yield more efficient learning.
+Structure: An actor-critic algorithm has two sets of parameters: \theta for the actor (policy \pi_\theta(a|s)) and w for the critic (usually the parameters of a value function V_w(s) or sometimes a Q-function Q_w(s,a)). The actor selects actions and is updated by policy gradient methods. The critic is typically updated by minimizing a TD error (using techniques from Lecture 3) to fit the value function to the policy’s returns. Two main forms: 
+Critic as state-value (V) estimator: Here the critic learns V^\pi(s). The advantage estimate for an action a taken in state s is A(s,a) = r + \gamma V_w(s’) - V_w(s) (one-step TD advantage) or could use multi-step returns. This advantage A (the TD error \delta_t) serves as the signal for the actor update.
+Critic as action-value (Q) estimator: Here the critic directly estimates Q^\pi(s,a). The actor update can then use the deterministic policy gradient formula if continuous actions (as in DDPG, see below) or a variant for discrete. In many cases, though, using a state-value baseline is sufficient and simpler.
+
+On-Policy Actor-Critic (e.g. A2C/A3C): A basic actor-critic algorithm (on-policy) might go like: generate an episode (or batch of steps) using current policy \pi_\theta. At each step, compute the TD error \delta_t = r_{t+1} + \gamma V_w(s_{t+1}) - V_w(s_t). Update the critic by reducing this TD error (e.g. w \leftarrow w + \beta \delta_t \nabla_w V_w(s_t)). Update the actor by an ascent step \theta \leftarrow \theta + \alpha \,\delta_t \,\nabla_\theta \ln \pi_\theta(a_t|s_t)  . Intuitively, if \delta_t is positive (meaning the outcome was better than expected), the log-prob gradient will increase the tendency to take action a_t in s_t; if \delta_t is negative, it will decrease that tendency. This uses the critic’s estimate V_w as a baseline (expected value) and \delta_t as the advantage (actual reward minus expected). The famous Advantage Actor-Critic (A2C/A3C) algorithms operate essentially in this manner, with A3C (Asynchronous Advantage Actor-Critic) using multiple parallel environment runners to collect data and update a global network asynchronously  . A2C is a synchronized, batch version of A3C. These algorithms were demonstrated by DeepMind (Mnih et al. 2016) to learn Atari games efficiently with stable convergence by using parallelism and advantage normalization.
+Off-Policy Actor-Critic (e.g. DDPG, ACER): Off-policy actor-critic algorithms allow using experience replay and learning from off-policy data. A prime example is Deep Deterministic Policy Gradient (DDPG) which is an actor-critic method for continuous actions. In DDPG, the actor is a deterministic policy a=\mu_\theta(s), and the critic learns a Q-function Q_w(s,a) by off-policy TD (similar to Q-learning). The actor is updated using the deterministic policy gradient: \nabla_\theta J \approx \mathbb{E}[\nabla_a Q_w(s,a)\vert_{a=\mu(s)} \nabla_\theta \mu_\theta(s)] (this is essentially backpropagating through the Q-network to tweak the actor’s output in the direction of higher Q values  ). DDPG employs a replay buffer and target networks akin to DQN for stability, effectively combining DQN and policy gradient ideas . Off-policy actor-critic methods (like DDPG, ACER, SAC) tend to be more sample-efficient (reusing past experiences) but often require more careful tuning to remain stable.
+Stability and Convergence: Actor-critic methods are not guaranteed to converge in the general case, but in practice, with proper settings, they often do. The interplay of actor and critic can sometimes oscillate (e.g. a bad policy leads to a bad critic estimate, which then adversely affects the policy update). Techniques that help: having the critic updated sufficiently (multiple steps) per actor update (so the critic is near up-to-date), using small learning rates, and sometimes using entropy regularization (to keep the policy exploratory and prevent premature convergence). Additionally, using experience replay (off-policy) requires importance sampling or other corrections (like in ACER, which uses a Retrace algorithm to correct off-policy bias). We won’t dive deep into those math details here, but be aware of the complexity.
+Example – CartPole with Actor-Critic: Instead of REINFORCE, we could train a CartPole agent with an actor-critic. The actor could be a neural network outputting a probability of push-left vs push-right. The critic could be another neural network outputting the estimated value of a state. During training, after each step, we compute the TD error and update both networks. In practice, this tends to learn faster than REINFORCE because the critic’s feedback (the value estimate) provides a smoother, lower-variance signal than raw episode returns.
+Advanced Actor-Critic Algorithms: 
+Trust Region Policy Optimization (TRPO) and Proximal Policy Optimization (PPO): These are policy gradient methods that can be seen as advanced actor-critic approaches. They use a critic for advantage estimation and incorporate constraints or penalty terms to keep the policy update stable (limit how far the policy moves in one update)  . PPO in particular (Schulman et al. 2017) is widely used due to its simplicity and reliability: it uses clipped probability ratios to achieve a similar effect to TRPO’s trust region, preventing too large a policy update in one step.
+Soft Actor-Critic (SAC): An off-policy actor-critic algorithm that maximizes a combination of expected return and entropy (for exploration). It uses stochastic actors and critics, and aims to encourage exploration by adding an entropy bonus to the reward  . It’s state-of-the-art for continuous control tasks due to robustness and sample-efficiency.
+
+Actor-Critic Pseudocode (simplified on-policy):
+
+# Simplified On-policy Actor-Critic (1-step Advantage)
+actor_params = init_actor()
+critic_params = init_critic()
+alpha_theta = 1e-3  # actor learning rate
+alpha_w = 1e-3      # critic learning rate
+gamma = 0.99
+
+for episode in range(num_episodes):
+    state = env.reset()
+    done = False
+    while not done:
+        # Actor selects action
+        action = sample_action(actor_params, state)
+        next_state, reward, done, info = env.step(action)
+        # Critic evaluates: compute TD error
+        V_s = V(critic_params, state)            # value estimate for state
+        V_s_next = V(critic_params, next_state) if not done else 0
+        td_error = reward + gamma * V_s_next - V_s
+        # Critic update (e.g., gradient descent on MSE)
+        critic_params = critic_params + alpha_w * td_error * grad_w V(critic_params, state)
+        # Actor update (policy gradient with advantage = td_error)
+        actor_params = actor_params + alpha_theta * td_error * grad_theta logpi(actor_params, state, action)
+        state = next_state
+In this pseudocode, V(critic_params, state) is the critic’s estimate of state value, and grad_w V is its gradient w.rt. its parameters (for a linear function approximator or neural net). grad_theta logpi is the policy gradient (as before). Notice how the TD error drives both updates. If td_error is positive, the critic will increase V(s) (to reduce future error) and the actor will increase log-prob of the action (because that action led to better outcome than expected). If td_error is negative, the critic will decrease V(s) and the actor will decrease the probability of that action. Over time, this finds a consistent solution where td\_error \approx 0 (policy and value function are in sync with the environment’s returns).
+
+Exercises (Lecture 5):
+
+Conceptual: Explain in your own words why using a critic (value function) can reduce the variance of policy gradient updates . What is the advantage estimate and why does it have lower variance than using the full return G_t?
+Coding: Implement an actor-critic agent on a simple continuous control task (e.g. MountainCarContinuous-v0 or Pendulum-v0 from OpenAI Gym). Use a neural network for the actor (policy) and another for the critic (state-value function). Train the networks simultaneously using the one-step advantage actor-critic method. Plot the learning curve of average reward. Compare this to a baseline REINFORCE (if feasible) to see the difference in sample efficiency.
+Open-Ended: Research the A3C (Asynchronous Advantage Actor-Critic) algorithm . How does the asynchronous update scheme help stability and speed? If you have access to parallel processing, try to implement a simplified version of parallel actor-learners updating a shared global network. Observe how increasing the number of parallel actors affects training time.
+Theory: In an actor-critic method with function approximation, convergence is not guaranteed. Read about the “policy gradient convergence” in the literature (e.g., Baird’s counterexample, or conditions needed for convergence). Summarize one scenario where actor-critic can diverge, and what practical implementations do to mitigate this (hint: think of using small step sizes, off-policy corrections, or carefully tuning the critic’s training relative to the actor).
+
+
+
+Lecture 6: Advanced Topics and Real-World Applications in Reinforcement Learning
+
+
+Overview: In this final lecture, we explore several advanced topics in RL and examine how the algorithms we learned are applied in real-world scenarios. We discuss function approximation (using neural networks – leading to Deep Reinforcement Learning), techniques to stabilize training (Deep Q-Network (DQN) breakthroughs and improvements , as well as advances in policy gradient methods like PPO). We also highlight applications in various fields (robotics, games, NLP, operations research), and mention current frontiers such as safety in RL, multi-agent RL, and meta-RL.
+
+Function Approximation & Deep RL: All the preceding lectures assumed we could store value tables or parameterize policies with manageable sized parameters. In complex problems (large or continuous state spaces), we use function approximators (like neural networks) to represent V(s), Q(s,a), or the policy \pi(a|s). Deep Reinforcement Learning refers to leveraging deep neural networks as these approximators. The combination of RL objectives with high-capacity function approximators is powerful but can be unstable. Notably: 
+Deep Q-Network (DQN): In 2015, DeepMind’s DQN algorithm achieved human-level performance on Atari 2600 games  . DQN uses a neural network Q(s,a; \theta) to approximate the action-value function. Key innovations to stabilize training included: (1) Experience Replay: Store transitions (s,a,r,s’) in a replay buffer and train the network on random minibatches of past experiences . This breaks temporal correlations in the training data and improves data efficiency by reusing experiences. (2) Target Network: Maintain a separate set of weights \theta^- (a target network) that is used to compute the Q-learning target y = r + \gamma \max_{a’} Q(s’,a’; \theta^-). This target network is updated to the current network’s weights only occasionally (every fixed number of steps) . This stabilizes training by preventing oscillations (the target changes slowly). (3) Other techniques: clipping reward values to [-1,1] to normalize scale, and gradient clipping to avoid divergences. With these in place, DQN was able to learn from high-dimensional pixel input, something previously infeasible with naive Q-learning due to instability . Many enhancements followed: Double DQN (to reduce overestimation bias by decoupling action selection from evaluation), Dueling Network Architecture (splitting the network into separate streams estimating state-value and advantages, which improved learning of state values), Prioritized Replay (sampling important transitions more often) etc., each providing improvements in stability or efficiency.
+Policy Gradient Improvements: On the policy side, algorithms like TRPO and PPO introduced trust-region constraints or clipped gradients to allow larger neural networks to be trained reliably on policy objectives  . PPO (Proximal Policy Optimization) in particular is widely used: it uses a surrogate loss that penalizes too large a change in policy probability ratio from the previous policy. This acts as a soft trust region and enables multiple epochs of minibatch updates on the same batch of data without drastically degrading the policy. PPO, combined with advantage estimation (GAE – Generalized Advantage Estimator), has been very successful in continuous control (e.g., OpenAI’s robotics and locomotion tasks) and games.
+Actor-Critic for Continuous Control: DDPG and TD3 (Twin Delayed DDPG) are commonly used for continuous action environments (like robotic arms, driving). TD3 improved DDPG by addressing function approximation issues (e.g., it uses two critic networks to mitigate overestimation, delays actor updates, and adds noise to targets). SAC (Soft Actor-Critic) (mentioned earlier) adds an entropy bonus to encourage exploring a wide range of actions, yielding state-of-the-art results in many tasks with excellent stability.
+
+Multi-Agent RL: In many real-world scenarios, multiple agents learn and interact (cooperatively or competitively). Extensions of RL to multi-agent settings lead to new challenges (non-stationary environment from an agent’s perspective, since other agents are part of the environment). Techniques like MADDPG (Multi-Agent DDPG) train centralized critics for multiple agents in a cooperative or competitive scenario . Self-play (as in AlphaGo) is a form of multi-agent RL (two agents play against each other and learn). Applications include multi-robot coordination, autonomous driving (multiple cars interacting), and economics/game-theory simulations.
+Transfer Learning and Meta-RL: Advanced topics include how to make RL agents generalize knowledge from one task to another. Meta-RL aims to train agents that can learn new tasks fast by learning how to learn. This intersects with concepts like learning an internal representation or recurrent policy that can adapt to new tasks given minimal experience (e.g., RL^2, MAML for RL).
+Safety and Ethics: In high-stakes applications (like autonomous driving or medical decision making), ensuring that an RL agent operates within safe bounds is crucial. Safe RL research incorporates constraints (like never break certain rules) or optimizes risk-sensitive criteria. Approaches involve constrained MDPs (with penalty signals), shielding (overrides that prevent unsafe actions), or training with simulated adversaries to harden the policy. There are also efforts to make sure agents don’t learn undesirable behaviors to hack the reward function (“reward hacking”).
+Real-World Applications: 
+Robotics: RL is used to learn control policies for robotic arms (grasping objects, assembly tasks), legged robots (walking, running, adapting to terrain), and drones. For instance, recent work has used RL to train humanoid robots to perform backflips or bipedal robots to walk robustly. In practice, because training directly on real hardware is slow and risky, techniques like training in simulation and then transferring via domain randomization (randomizing simulator properties to learn a robust policy) are common. Notably, OpenAI demonstrated a robot hand manipulating a Rubik’s Cube using an RL policy trained mostly in simulation.
+Autonomous Vehicles: RL can optimize driving policies, or more commonly sub-problems like adaptive cruise control, lane merging, or decision-making in traffic (often in simulation environments for safety).
+Games: Beyond Atari and board games like Go, RL is now a core technique in video game AI (e.g., OpenAI Five learned to play Dota 2, and DeepMind’s AlphaStar for StarCraft II – both are extremely complex multi-agent game environments). These successes combined deep RL with many techniques: large-scale training, imitation learning to bootstrap from human replays, and novel network architectures. They demonstrate that given enough compute and well-designed reward shaping, RL can achieve superhuman performance in very complex domains.
+Operations Research and Systems: RL is applied to resource management problems (like job scheduling in computing clusters, network packet routing, or managing an electricity grid). Google famously used deep RL to optimize cooling in data centers, reducing energy consumption by learning control policies for fans and cooling units.
+Natural Language Processing: There’s a trend of using RL for dialogue systems (where the reward might be user satisfaction) and text generation tasks where the usual supervised loss is not sufficient. For example, reinforcement learning from human feedback (RLHF) is used to fine-tune language models (ChatGPT-like systems) to produce more helpful and less toxic responses, where a reward model (trained from human preferences) guides the generation  . This is essentially an actor (language model) being optimized with a learned reward function (the critic, trained from human-labeled data).
+Science and Other Fields: RL is being explored for controlling plasma in nuclear fusion reactors (a continuous control problem with complex dynamics), optimizing chemical reactions by controlling experimental conditions, or even in finance for trading strategies. Each domain has its own challenges (e.g. safety constraints, partial observability, etc.), but the core ideas remain similar.
+
+Current Challenges: Despite the successes, RL still faces challenges: sample inefficiency (many algorithms require enormous numbers of interactions – simulation helps, but real-world data can be limited), exploration in high-dimensional spaces (how to discover needle-in-haystack rewards efficiently), credit assignment (particularly long-term credit over very delayed rewards), and ensuring generalization (an agent often overfits to its training environment and may fail if conditions change even slightly). Research is ongoing in hierarchical RL (learning temporal abstractions), better exploration strategies (curiosity-driven learning, novelty search), and combining RL with other learning paradigms (like learning models of the environment for planning, or integrating with symbolic knowledge).
+Lifelong Learning: We ultimately want agents that can learn and adapt over a lifetime, not just in a single episodic training session. Techniques like continual learning (where an agent faces a sequence of tasks and must not forget earlier ones) and online adaptation (where the agent updates in real-time to new conditions) are important for real-world deployment.
+Summary: Reinforcement Learning has matured from tabular DP and simple games to a powerful framework capable of solving challenging tasks with high-dimensional inputs through deep learning. By understanding the foundational algorithms (DP, TD, Q-learning, policy gradients, actor-critic) and the improvements that address their limitations (experience replay, target networks, advantage estimation, trust regions), one can tackle new problems or innovate further. The field is active and evolving, blending ideas from machine learning, control theory, neuroscience (since RL has roots in animal learning psychology), and beyond.
+
+
+Exercises (Lecture 6):
+
+Paper Study: Read the seminal DQN paper by Mnih et al. (2015)   or the PPO paper by Schulman et al. (2017). Summarize in a short write-up: What were the key contributions? How did these methods improve stability or performance in RL?
+Implementation: Take your actor-critic implementation from Lecture 5 and extend it with experience replay and off-policy learning (this would resemble a simplified DDPG if you use a deterministic policy or an off-policy variant if stochastic). Test it on a continuous control task and see if replay allows you to use fewer episodes to achieve good performance.
+Apply RL to a Real-world Data Problem: For instance, formulate a recommendation system problem as an RL task (states = user profile, actions = recommend an item, reward = user interaction or rating). This is a bandit/ contextual bandit scenario if we consider one-step interactions. Implement a simple bandit algorithm (like \epsilon-greedy or UCB) on a dataset and evaluate its performance versus a non-RL heuristic. This will give insight into how exploration/exploitation works in a practical setting.
+Project: Consider a complex environment of your choice (it could be a game from OpenAI Gym or a custom simulation). Design an RL solution using the knowledge from all lectures: choose appropriate state representation, decide whether a value-based or policy-based method (or hybrid) fits best, and incorporate techniques like reward shaping or baseline to aid learning. Try to train the agent and document the training process and results. If things don’t work initially (which is common in RL!), perform debugging: check if rewards are being received as expected, visualize the policy behavior at different stages, tune hyperparameters like learning rate, exploration schedule, etc. Through this process, you’ll gain hands-on intuition for the subtleties of making RL work on real problems.
+
+
+Further Reading: To go beyond, we recommend Sutton & Barto (2018) (for theoretical foundations), OpenAI’s Spinning Up in Deep RL tutorial (practical implementations and intuitions), and Silver’s UCL course lectures (available online) which cover many advanced topics. Keeping up with current research via conferences like NeurIPS or ICML (RL workshops) will expose you to cutting-edge developments such as differentiable planning, model-based RL resurgence (e.g. MuZero), and integration of RL with other domains (like combining with evolutionary algorithms or supervised learning in hybrid systems). Reinforcement learning is a deep and exciting field – happy exploring!
+
+
