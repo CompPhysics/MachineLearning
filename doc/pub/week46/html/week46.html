@@ -300,7 +300,16 @@ div.toc p,a {
               ('And the corresponding one with PyTorch',
                2,
                None,
-               'and-the-corresponding-one-with-pytorch')]}
+               'and-the-corresponding-one-with-pytorch'),
+              ('Dynamical ordinary differential equation',
+               2,
+               None,
+               'dynamical-ordinary-differential-equation'),
+              ('The Runge-Kutta-4 code', 2, None, 'the-runge-kutta-4-code'),
+              ('Using the above data to train an RNN',
+               2,
+               None,
+               'using-the-above-data-to-train-an-rnn')]}
 end of tocinfo -->
 
 <body>
@@ -1637,6 +1646,414 @@ total_step <span style="color: #666666">=</span> <span style="color: #008000">le
   </div>
 </div>
 
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="dynamical-ordinary-differential-equation">Dynamical ordinary differential equation </h2>
+
+<p>Let us illustrate how we could train an RNN using data from the
+solution of a well-known differential equation, namely Newton's
+equation for oscillatory motion for an object being forced into
+harmonic oscillations by an applied external force.
+</p>
+
+<p>We will start with the basic algorithm for solving this type of
+equations using the Runge-Kutta-4 approach. The first code example is
+a standalone differential equation solver. It yields positions and
+velocities as function of time, starting with an initial time \( t_0 \)
+and ending with a final time.
+</p>
+
+<p>The data the program produces will in turn be used to train an RNN for
+a selected number of training data. With a trained RNN, we will then
+use the network to make predictions for data not included in the
+training. That is, we will train a model which should be able to
+reproduce velocities and positions not included in training data.
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="the-runge-kutta-4-code">The Runge-Kutta-4 code </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pandas</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">pd</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">math</span> <span style="color: #008000; font-weight: bold">import</span> <span style="color: #666666">*</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">os</span>
+
+<span style="color: #408080; font-style: italic"># Where to save the figures and data files</span>
+PROJECT_ROOT_DIR <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;Results&quot;</span>
+FIGURE_ID <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;Results/FigureFiles&quot;</span>
+DATA_ID <span style="color: #666666">=</span> <span style="color: #BA2121">&quot;DataFiles/&quot;</span>
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(PROJECT_ROOT_DIR):
+    os<span style="color: #666666">.</span>mkdir(PROJECT_ROOT_DIR)
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(FIGURE_ID):
+    os<span style="color: #666666">.</span>makedirs(FIGURE_ID)
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>exists(DATA_ID):
+    os<span style="color: #666666">.</span>makedirs(DATA_ID)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">image_path</span>(fig_id):
+    <span style="color: #008000; font-weight: bold">return</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>join(FIGURE_ID, fig_id)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">data_path</span>(dat_id):
+    <span style="color: #008000; font-weight: bold">return</span> os<span style="color: #666666">.</span>path<span style="color: #666666">.</span>join(DATA_ID, dat_id)
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">save_fig</span>(fig_id):
+    plt<span style="color: #666666">.</span>savefig(image_path(fig_id) <span style="color: #666666">+</span> <span style="color: #BA2121">&quot;.png&quot;</span>, <span style="color: #008000">format</span><span style="color: #666666">=</span><span style="color: #BA2121">&#39;png&#39;</span>)
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">SpringForce</span>(v,x,t):
+<span style="color: #408080; font-style: italic">#   note here that we have divided by mass and we return the acceleration</span>
+    <span style="color: #008000; font-weight: bold">return</span>  <span style="color: #666666">-2*</span>gamma<span style="color: #666666">*</span>v<span style="color: #666666">-</span>x<span style="color: #666666">+</span>Ftilde<span style="color: #666666">*</span>cos(t<span style="color: #666666">*</span>Omegatilde)
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">RK4</span>(v,x,t,n,Force):
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n<span style="color: #666666">-1</span>):
+<span style="color: #408080; font-style: italic"># Setting up k1</span>
+        k1x <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>v[i]
+        k1v <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>Force(v[i],x[i],t[i])
+<span style="color: #408080; font-style: italic"># Setting up k2</span>
+        vv <span style="color: #666666">=</span> v[i]<span style="color: #666666">+</span>k1v<span style="color: #666666">*0.5</span>
+        xx <span style="color: #666666">=</span> x[i]<span style="color: #666666">+</span>k1x<span style="color: #666666">*0.5</span>
+        k2x <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>vv
+        k2v <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>Force(vv,xx,t[i]<span style="color: #666666">+</span>DeltaT<span style="color: #666666">*0.5</span>)
+<span style="color: #408080; font-style: italic"># Setting up k3</span>
+        vv <span style="color: #666666">=</span> v[i]<span style="color: #666666">+</span>k2v<span style="color: #666666">*0.5</span>
+        xx <span style="color: #666666">=</span> x[i]<span style="color: #666666">+</span>k2x<span style="color: #666666">*0.5</span>
+        k3x <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>vv
+        k3v <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>Force(vv,xx,t[i]<span style="color: #666666">+</span>DeltaT<span style="color: #666666">*0.5</span>)
+<span style="color: #408080; font-style: italic"># Setting up k4</span>
+        vv <span style="color: #666666">=</span> v[i]<span style="color: #666666">+</span>k3v
+        xx <span style="color: #666666">=</span> x[i]<span style="color: #666666">+</span>k3x
+        k4x <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>vv
+        k4v <span style="color: #666666">=</span> DeltaT<span style="color: #666666">*</span>Force(vv,xx,t[i]<span style="color: #666666">+</span>DeltaT)
+<span style="color: #408080; font-style: italic"># Final result</span>
+        x[i<span style="color: #666666">+1</span>] <span style="color: #666666">=</span> x[i]<span style="color: #666666">+</span>(k1x<span style="color: #666666">+2*</span>k2x<span style="color: #666666">+2*</span>k3x<span style="color: #666666">+</span>k4x)<span style="color: #666666">/6.</span>
+        v[i<span style="color: #666666">+1</span>] <span style="color: #666666">=</span> v[i]<span style="color: #666666">+</span>(k1v<span style="color: #666666">+2*</span>k2v<span style="color: #666666">+2*</span>k3v<span style="color: #666666">+</span>k4v)<span style="color: #666666">/6.</span>
+        t[i<span style="color: #666666">+1</span>] <span style="color: #666666">=</span> t[i] <span style="color: #666666">+</span> DeltaT
+
+
+<span style="color: #408080; font-style: italic"># Main part begins here</span>
+
+DeltaT <span style="color: #666666">=</span> <span style="color: #666666">0.001</span>
+<span style="color: #408080; font-style: italic">#set up arrays </span>
+tfinal <span style="color: #666666">=</span> <span style="color: #666666">20</span> <span style="color: #408080; font-style: italic"># in dimensionless time</span>
+n <span style="color: #666666">=</span> ceil(tfinal<span style="color: #666666">/</span>DeltaT)
+<span style="color: #408080; font-style: italic"># set up arrays for t, v, and x</span>
+t <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n)
+v <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n)
+x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n)
+<span style="color: #408080; font-style: italic"># Initial conditions (can change to more than one dim)</span>
+x0 <span style="color: #666666">=</span>  <span style="color: #666666">1.0</span> 
+v0 <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+x[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> x0
+v[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> v0
+gamma <span style="color: #666666">=</span> <span style="color: #666666">0.2</span>
+Omegatilde <span style="color: #666666">=</span> <span style="color: #666666">0.5</span>
+Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>
+<span style="color: #408080; font-style: italic"># Start integrating using Euler&#39;s method</span>
+<span style="color: #408080; font-style: italic"># Note that we define the force function as a SpringForce</span>
+RK4(v,x,t,n,SpringForce)
+
+<span style="color: #408080; font-style: italic"># Plot position as function of time    </span>
+fig, ax <span style="color: #666666">=</span> plt<span style="color: #666666">.</span>subplots()
+ax<span style="color: #666666">.</span>set_ylabel(<span style="color: #BA2121">&#39;x[m]&#39;</span>)
+ax<span style="color: #666666">.</span>set_xlabel(<span style="color: #BA2121">&#39;t[s]&#39;</span>)
+ax<span style="color: #666666">.</span>plot(t, x)
+fig<span style="color: #666666">.</span>tight_layout()
+save_fig(<span style="color: #BA2121">&quot;ForcedBlockRK4&quot;</span>)
+plt<span style="color: #666666">.</span>show()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="using-the-above-data-to-train-an-rnn">Using the above data to train an RNN </h2>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "default" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #f8f8f8">
+  <pre style="line-height: 125%;"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">np</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">torch</span>
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">torch.nn</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">nn</span>
+<span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">torch.utils.data</span> <span style="color: #008000; font-weight: bold">import</span> Dataset, DataLoader
+<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
+
+
+<span style="color: #408080; font-style: italic"># ============================</span>
+<span style="color: #408080; font-style: italic"># 1. Physics model (from rk4.py)</span>
+<span style="color: #408080; font-style: italic"># ============================</span>
+
+<span style="color: #408080; font-style: italic"># Global parameters (same idea as in rk4.py)</span>
+gamma <span style="color: #666666">=</span> <span style="color: #666666">0.2</span>        <span style="color: #408080; font-style: italic"># damping</span>
+Omegatilde <span style="color: #666666">=</span> <span style="color: #666666">0.5</span>   <span style="color: #408080; font-style: italic"># driving frequency</span>
+Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>       <span style="color: #408080; font-style: italic"># driving amplitude</span>
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">spring_force</span>(v, x, t):
+    <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+<span style="color: #BA2121; font-style: italic">    SpringForce from rk4.py:</span>
+<span style="color: #BA2121; font-style: italic">    note: divided by mass =&gt; returns acceleration</span>
+<span style="color: #BA2121; font-style: italic">    a = -2*gamma*v - x + Ftilde*cos(Omegatilde * t)</span>
+<span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">-2.0</span> <span style="color: #666666">*</span> gamma <span style="color: #666666">*</span> v <span style="color: #666666">-</span> x <span style="color: #666666">+</span> Ftilde <span style="color: #666666">*</span> np<span style="color: #666666">.</span>cos(Omegatilde <span style="color: #666666">*</span> t)
+
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">rk4_trajectory</span>(DeltaT<span style="color: #666666">=0.001</span>, tfinal<span style="color: #666666">=20.0</span>, x0<span style="color: #666666">=1.0</span>, v0<span style="color: #666666">=0.0</span>):
+    <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+<span style="color: #BA2121; font-style: italic">    Reimplementation of RK4 integrator from rk4.py.</span>
+<span style="color: #BA2121; font-style: italic">    Returns t, x, v arrays.</span>
+<span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
+    n <span style="color: #666666">=</span> <span style="color: #008000">int</span>(np<span style="color: #666666">.</span>ceil(tfinal <span style="color: #666666">/</span> DeltaT))
+
+    t <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n, dtype<span style="color: #666666">=</span>np<span style="color: #666666">.</span>float32)
+    x <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n, dtype<span style="color: #666666">=</span>np<span style="color: #666666">.</span>float32)
+    v <span style="color: #666666">=</span> np<span style="color: #666666">.</span>zeros(n, dtype<span style="color: #666666">=</span>np<span style="color: #666666">.</span>float32)
+
+    x[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> x0
+    v[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> v0
+
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(n <span style="color: #666666">-</span> <span style="color: #666666">1</span>):
+        <span style="color: #408080; font-style: italic"># k1</span>
+        k1x <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> v[i]
+        k1v <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> spring_force(v[i], x[i], t[i])
+
+        <span style="color: #408080; font-style: italic"># k2</span>
+        vv <span style="color: #666666">=</span> v[i] <span style="color: #666666">+</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> k1v
+        xx <span style="color: #666666">=</span> x[i] <span style="color: #666666">+</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> k1x
+        k2x <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> vv
+        k2v <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> spring_force(vv, xx, t[i] <span style="color: #666666">+</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> DeltaT)
+
+        <span style="color: #408080; font-style: italic"># k3</span>
+        vv <span style="color: #666666">=</span> v[i] <span style="color: #666666">+</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> k2v
+        xx <span style="color: #666666">=</span> x[i] <span style="color: #666666">+</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> k2x
+        k3x <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> vv
+        k3v <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> spring_force(vv, xx, t[i] <span style="color: #666666">+</span> <span style="color: #666666">0.5</span> <span style="color: #666666">*</span> DeltaT)
+
+        <span style="color: #408080; font-style: italic"># k4</span>
+        vv <span style="color: #666666">=</span> v[i] <span style="color: #666666">+</span> k3v
+        xx <span style="color: #666666">=</span> x[i] <span style="color: #666666">+</span> k3x
+        k4x <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> vv
+        k4v <span style="color: #666666">=</span> DeltaT <span style="color: #666666">*</span> spring_force(vv, xx, t[i] <span style="color: #666666">+</span> DeltaT)
+
+        <span style="color: #408080; font-style: italic"># Update</span>
+        x[i <span style="color: #666666">+</span> <span style="color: #666666">1</span>] <span style="color: #666666">=</span> x[i] <span style="color: #666666">+</span> (k1x <span style="color: #666666">+</span> <span style="color: #666666">2.0</span> <span style="color: #666666">*</span> k2x <span style="color: #666666">+</span> <span style="color: #666666">2.0</span> <span style="color: #666666">*</span> k3x <span style="color: #666666">+</span> k4x) <span style="color: #666666">/</span> <span style="color: #666666">6.0</span>
+        v[i <span style="color: #666666">+</span> <span style="color: #666666">1</span>] <span style="color: #666666">=</span> v[i] <span style="color: #666666">+</span> (k1v <span style="color: #666666">+</span> <span style="color: #666666">2.0</span> <span style="color: #666666">*</span> k2v <span style="color: #666666">+</span> <span style="color: #666666">2.0</span> <span style="color: #666666">*</span> k3v <span style="color: #666666">+</span> k4v) <span style="color: #666666">/</span> <span style="color: #666666">6.0</span>
+        t[i <span style="color: #666666">+</span> <span style="color: #666666">1</span>] <span style="color: #666666">=</span> t[i] <span style="color: #666666">+</span> DeltaT
+
+    <span style="color: #008000; font-weight: bold">return</span> t, x, v
+
+
+<span style="color: #408080; font-style: italic"># =====================================</span>
+<span style="color: #408080; font-style: italic"># 2. Sequence generation for RNN training</span>
+<span style="color: #408080; font-style: italic"># =====================================</span>
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_sequences</span>(x, seq_len):
+    <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
+<span style="color: #BA2121; font-style: italic">    Given a 1D array x (e.g., position as a function of time),</span>
+<span style="color: #BA2121; font-style: italic">    create input/target sequences for next-step prediction.</span>
+
+<span style="color: #BA2121; font-style: italic">    Inputs:  [x_i, x_{i+1}, ..., x_{i+seq_len-1}]</span>
+<span style="color: #BA2121; font-style: italic">    Targets: [x_{i+1}, ..., x_{i+seq_len}]</span>
+<span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
+    xs <span style="color: #666666">=</span> []
+    ys <span style="color: #666666">=</span> []
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #008000">len</span>(x) <span style="color: #666666">-</span> seq_len):
+        seq_x <span style="color: #666666">=</span> x[i : i <span style="color: #666666">+</span> seq_len]
+        seq_y <span style="color: #666666">=</span> x[i <span style="color: #666666">+</span> <span style="color: #666666">1</span> : i <span style="color: #666666">+</span> seq_len <span style="color: #666666">+</span> <span style="color: #666666">1</span>]  <span style="color: #408080; font-style: italic"># shifted by one step</span>
+        xs<span style="color: #666666">.</span>append(seq_x)
+        ys<span style="color: #666666">.</span>append(seq_y)
+
+    xs <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array(xs, dtype<span style="color: #666666">=</span>np<span style="color: #666666">.</span>float32)      <span style="color: #408080; font-style: italic"># shape: (num_samples, seq_len)</span>
+    ys <span style="color: #666666">=</span> np<span style="color: #666666">.</span>array(ys, dtype<span style="color: #666666">=</span>np<span style="color: #666666">.</span>float32)      <span style="color: #408080; font-style: italic"># shape: (num_samples, seq_len)</span>
+    <span style="color: #408080; font-style: italic"># Add feature dimension (1 feature: the position x)</span>
+    xs <span style="color: #666666">=</span> np<span style="color: #666666">.</span>expand_dims(xs, axis<span style="color: #666666">=-1</span>)         <span style="color: #408080; font-style: italic"># (num_samples, seq_len, 1)</span>
+    ys <span style="color: #666666">=</span> np<span style="color: #666666">.</span>expand_dims(ys, axis<span style="color: #666666">=-1</span>)         <span style="color: #408080; font-style: italic"># (num_samples, seq_len, 1)</span>
+    <span style="color: #008000; font-weight: bold">return</span> xs, ys
+
+
+<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">OscillatorDataset</span>(Dataset):
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(<span style="color: #008000">self</span>, seq_len<span style="color: #666666">=50</span>, DeltaT<span style="color: #666666">=0.001</span>, tfinal<span style="color: #666666">=20.0</span>, x0<span style="color: #666666">=1.0</span>, v0<span style="color: #666666">=0.0</span>):
+        t, x, v <span style="color: #666666">=</span> rk4_trajectory(DeltaT<span style="color: #666666">=</span>DeltaT, tfinal<span style="color: #666666">=</span>tfinal, x0<span style="color: #666666">=</span>x0, v0<span style="color: #666666">=</span>v0)
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>t <span style="color: #666666">=</span> t
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>x <span style="color: #666666">=</span> x
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>v <span style="color: #666666">=</span> v
+        xs, ys <span style="color: #666666">=</span> create_sequences(x, seq_len<span style="color: #666666">=</span>seq_len)
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>inputs <span style="color: #666666">=</span> torch<span style="color: #666666">.</span>from_numpy(xs)  <span style="color: #408080; font-style: italic"># (N, seq_len, 1)</span>
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>targets <span style="color: #666666">=</span> torch<span style="color: #666666">.</span>from_numpy(ys) <span style="color: #408080; font-style: italic"># (N, seq_len, 1)</span>
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__len__</span>(<span style="color: #008000">self</span>):
+        <span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>inputs<span style="color: #666666">.</span>shape[<span style="color: #666666">0</span>]
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__getitem__</span>(<span style="color: #008000">self</span>, idx):
+        <span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>inputs[idx], <span style="color: #008000">self</span><span style="color: #666666">.</span>targets[idx]
+
+
+<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># 3. RNN model (LSTM-based)</span>
+<span style="color: #408080; font-style: italic"># ==============================</span>
+
+<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">RNNPredictor</span>(nn<span style="color: #666666">.</span>Module):
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(<span style="color: #008000">self</span>, input_size<span style="color: #666666">=1</span>, hidden_size<span style="color: #666666">=32</span>, num_layers<span style="color: #666666">=1</span>, output_size<span style="color: #666666">=1</span>):
+        <span style="color: #008000">super</span>()<span style="color: #666666">.</span><span style="color: #0000FF">__init__</span>()
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>lstm <span style="color: #666666">=</span> nn<span style="color: #666666">.</span>LSTM(input_size<span style="color: #666666">=</span>input_size,
+                            hidden_size<span style="color: #666666">=</span>hidden_size,
+                            num_layers<span style="color: #666666">=</span>num_layers,
+                            batch_first<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>)
+        <span style="color: #008000">self</span><span style="color: #666666">.</span>fc <span style="color: #666666">=</span> nn<span style="color: #666666">.</span>Linear(hidden_size, output_size)
+
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">forward</span>(<span style="color: #008000">self</span>, x):
+        <span style="color: #408080; font-style: italic"># x: (batch, seq_len, input_size)</span>
+        out, _ <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>lstm(x)   <span style="color: #408080; font-style: italic"># out: (batch, seq_len, hidden_size)</span>
+        out <span style="color: #666666">=</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>fc(out)      <span style="color: #408080; font-style: italic"># (batch, seq_len, output_size)</span>
+        <span style="color: #008000; font-weight: bold">return</span> out
+
+
+<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># 4. Training loop</span>
+<span style="color: #408080; font-style: italic"># ==============================</span>
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">train_model</span>(
+    seq_len<span style="color: #666666">=50</span>,
+    DeltaT<span style="color: #666666">=0.001</span>,
+    tfinal<span style="color: #666666">=20.0</span>,
+    batch_size<span style="color: #666666">=64</span>,
+    num_epochs<span style="color: #666666">=10</span>,
+    hidden_size<span style="color: #666666">=64</span>,
+    lr<span style="color: #666666">=1e-3</span>,
+    device<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">None</span>,
+):
+    <span style="color: #008000; font-weight: bold">if</span> device <span style="color: #AA22FF; font-weight: bold">is</span> <span style="color: #008000; font-weight: bold">None</span>:
+        device <span style="color: #666666">=</span> torch<span style="color: #666666">.</span>device(<span style="color: #BA2121">&quot;cuda&quot;</span> <span style="color: #008000; font-weight: bold">if</span> torch<span style="color: #666666">.</span>cuda<span style="color: #666666">.</span>is_available() <span style="color: #008000; font-weight: bold">else</span> <span style="color: #BA2121">&quot;cpu&quot;</span>)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Using device: </span><span style="color: #BB6688; font-weight: bold">{</span>device<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+
+    <span style="color: #408080; font-style: italic"># Dataset &amp; DataLoader</span>
+    dataset <span style="color: #666666">=</span> OscillatorDataset(seq_len<span style="color: #666666">=</span>seq_len, DeltaT<span style="color: #666666">=</span>DeltaT, tfinal<span style="color: #666666">=</span>tfinal)
+    train_loader <span style="color: #666666">=</span> DataLoader(dataset, batch_size<span style="color: #666666">=</span>batch_size, shuffle<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">True</span>)
+
+    <span style="color: #408080; font-style: italic"># Model, loss, optimizer</span>
+    model <span style="color: #666666">=</span> RNNPredictor(input_size<span style="color: #666666">=1</span>, hidden_size<span style="color: #666666">=</span>hidden_size, output_size<span style="color: #666666">=1</span>)
+    model<span style="color: #666666">.</span>to(device)
+
+    criterion <span style="color: #666666">=</span> nn<span style="color: #666666">.</span>MSELoss()
+    optimizer <span style="color: #666666">=</span> torch<span style="color: #666666">.</span>optim<span style="color: #666666">.</span>Adam(model<span style="color: #666666">.</span>parameters(), lr<span style="color: #666666">=</span>lr)
+
+    <span style="color: #408080; font-style: italic"># Training loop</span>
+    model<span style="color: #666666">.</span>train()
+    <span style="color: #008000; font-weight: bold">for</span> epoch <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(num_epochs):
+        epoch_loss <span style="color: #666666">=</span> <span style="color: #666666">0.0</span>
+        <span style="color: #008000; font-weight: bold">for</span> batch_x, batch_y <span style="color: #AA22FF; font-weight: bold">in</span> train_loader:
+            batch_x <span style="color: #666666">=</span> batch_x<span style="color: #666666">.</span>to(device)
+            batch_y <span style="color: #666666">=</span> batch_y<span style="color: #666666">.</span>to(device)
+
+            optimizer<span style="color: #666666">.</span>zero_grad()
+            outputs <span style="color: #666666">=</span> model(batch_x)
+            loss <span style="color: #666666">=</span> criterion(outputs, batch_y)
+            loss<span style="color: #666666">.</span>backward()
+            optimizer<span style="color: #666666">.</span>step()
+
+            epoch_loss <span style="color: #666666">+=</span> loss<span style="color: #666666">.</span>item() <span style="color: #666666">*</span> batch_x<span style="color: #666666">.</span>size(<span style="color: #666666">0</span>)
+
+        epoch_loss <span style="color: #666666">/=</span> <span style="color: #008000">len</span>(train_loader<span style="color: #666666">.</span>dataset)
+        <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Epoch </span><span style="color: #BB6688; font-weight: bold">{</span>epoch<span style="color: #666666">+1</span><span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">/</span><span style="color: #BB6688; font-weight: bold">{</span>num_epochs<span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">, Loss: </span><span style="color: #BB6688; font-weight: bold">{</span>epoch_loss<span style="color: #BB6688; font-weight: bold">:</span><span style="color: #BA2121">.6f</span><span style="color: #BB6688; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+
+    <span style="color: #008000; font-weight: bold">return</span> model, dataset
+
+
+<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># 5. Evaluation / visualization</span>
+<span style="color: #408080; font-style: italic"># ==============================</span>
+
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">evaluate_and_plot</span>(model, dataset, seq_len<span style="color: #666666">=50</span>, device<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">None</span>):
+    <span style="color: #008000; font-weight: bold">if</span> device <span style="color: #AA22FF; font-weight: bold">is</span> <span style="color: #008000; font-weight: bold">None</span>:
+        device <span style="color: #666666">=</span> <span style="color: #008000">next</span>(model<span style="color: #666666">.</span>parameters())<span style="color: #666666">.</span>device
+
+    model<span style="color: #666666">.</span>eval()
+    <span style="color: #008000; font-weight: bold">with</span> torch<span style="color: #666666">.</span>no_grad():
+        <span style="color: #408080; font-style: italic"># Take a single sequence from the dataset</span>
+        x_seq, y_seq <span style="color: #666666">=</span> dataset[<span style="color: #666666">0</span>]  <span style="color: #408080; font-style: italic"># shapes: (seq_len, 1), (seq_len, 1)</span>
+        x_input <span style="color: #666666">=</span> x_seq<span style="color: #666666">.</span>unsqueeze(<span style="color: #666666">0</span>)<span style="color: #666666">.</span>to(device)  <span style="color: #408080; font-style: italic"># (1, seq_len, 1)</span>
+
+        <span style="color: #408080; font-style: italic"># Model prediction (next-step for whole sequence)</span>
+        y_pred <span style="color: #666666">=</span> model(x_input)<span style="color: #666666">.</span>cpu()<span style="color: #666666">.</span>numpy()<span style="color: #666666">.</span>squeeze(<span style="color: #666666">-1</span>)<span style="color: #666666">.</span>squeeze(<span style="color: #666666">0</span>)  <span style="color: #408080; font-style: italic"># (seq_len,)</span>
+
+        <span style="color: #408080; font-style: italic"># True target</span>
+        y_true <span style="color: #666666">=</span> y_seq<span style="color: #666666">.</span>numpy()<span style="color: #666666">.</span>squeeze(<span style="color: #666666">-1</span>)  <span style="color: #408080; font-style: italic"># (seq_len,)</span>
+
+        <span style="color: #408080; font-style: italic"># Plot comparison</span>
+        plt<span style="color: #666666">.</span>figure()
+        plt<span style="color: #666666">.</span>plot(y_true, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;True x(t+Δt)&quot;</span>, linestyle<span style="color: #666666">=</span><span style="color: #BA2121">&quot;-&quot;</span>)
+        plt<span style="color: #666666">.</span>plot(y_pred, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;Predicted x(t+Δt)&quot;</span>, linestyle<span style="color: #666666">=</span><span style="color: #BA2121">&quot;--&quot;</span>)
+        plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&quot;Time step in sequence&quot;</span>)
+        plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&quot;Position&quot;</span>)
+        plt<span style="color: #666666">.</span>legend()
+        plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&quot;RNN next-step prediction on oscillator trajectory&quot;</span>)
+        plt<span style="color: #666666">.</span>tight_layout()
+        plt<span style="color: #666666">.</span>show()
+
+
+<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># 6. Main</span>
+<span style="color: #408080; font-style: italic"># ==============================</span>
+
+<span style="color: #008000; font-weight: bold">if</span> <span style="color: #19177C">__name__</span> <span style="color: #666666">==</span> <span style="color: #BA2121">&quot;__main__&quot;</span>:
+    <span style="color: #408080; font-style: italic"># Hyperparameters can be tweaked as you like</span>
+    seq_len <span style="color: #666666">=</span> <span style="color: #666666">50</span>
+    DeltaT <span style="color: #666666">=</span> <span style="color: #666666">0.001</span>
+    tfinal <span style="color: #666666">=</span> <span style="color: #666666">20.0</span>
+    num_epochs <span style="color: #666666">=</span> <span style="color: #666666">10</span>
+    batch_size <span style="color: #666666">=</span> <span style="color: #666666">64</span>
+    hidden_size <span style="color: #666666">=</span> <span style="color: #666666">64</span>
+    lr <span style="color: #666666">=</span> <span style="color: #666666">1e-3</span>
+
+    model, dataset <span style="color: #666666">=</span> train_model(
+        seq_len<span style="color: #666666">=</span>seq_len,
+        DeltaT<span style="color: #666666">=</span>DeltaT,
+        tfinal<span style="color: #666666">=</span>tfinal,
+        batch_size<span style="color: #666666">=</span>batch_size,
+        num_epochs<span style="color: #666666">=</span>num_epochs,
+        hidden_size<span style="color: #666666">=</span>hidden_size,
+        lr<span style="color: #666666">=</span>lr,
+    )
+
+    evaluate_and_plot(model, dataset, seq_len<span style="color: #666666">=</span>seq_len)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ------------------- end of main content --------------- -->
 <center style="font-size:80%">
