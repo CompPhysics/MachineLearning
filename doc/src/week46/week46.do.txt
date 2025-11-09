@@ -707,20 +707,21 @@ o Good initialization with momentum Initialize like in Echo State Networks, but 
 
 See notebook at URL:"https://github.com/CompPhysics/AdvancedMachineLearning/blob/main/doc/pub/week7/ipynb/rnnmath.ipynb"
 
-!split
-===== Four effective ways to learn an RNN and preparing for next week =====
-o Long Short Term Memory Make the RNN out of little modules that are designed to remember values for a long time.
-o Hessian Free Optimization: Deal with the vanishing gradients problem by using a fancy optimizer that can detect directions with a tiny gradient but even smaller curvature.
-o Echo State Networks (ESN): Initialize the input a hidden and hidden-hidden and output-hidden connections very carefully so that the hidden state has a huge reservoir of weakly coupled oscillators which can be selectively driven by the input. ESNs only need to learn the hidden-output connections.
-o Good initialization with momentum Initialize like in Echo State Networks, but then learn all of the connections using momentum
-
-
-
 
 !split
-===== Long Short Term Memory (LSTM) =====
+===== Gating mechanism: Long Short Term Memory (LSTM) =====
 
-LSTM uses a memory cell for   modeling long-range dependencies and avoid vanishing gradient  problems.
+Besides a simple recurrent neural network layer, as discussed above, there are two other
+commonly used types of recurrent neural network layers: Long Short
+Term Memory (LSTM) and Gated Recurrent Unit (GRU).  For a short
+introduction to these layers see URL:"https://medium.com/mindboard/lstm-vs-gru-experimental-comparison-955820c21e8b"
+and URL:"https://medium.com/mindboard/lstm-vs-gru-experimental-comparison-955820c21e8b".
+
+
+LSTM uses a memory cell for  modeling long-range dependencies and avoid vanishing gradient  problems.
+Capable of modeling longer term dependencies by having
+memory cells and gates that controls the information flow along
+with the memory cells.
 
 o Introduced by Hochreiter and Schmidhuber (1997) who solved the problem of getting an RNN to remember things for a long time (like hundreds of time steps).
 o They designed a memory cell using logistic and linear units with multiplicative interactions.
@@ -728,15 +729,409 @@ o Information gets into the cell whenever its “write” gate is on.
 o The information stays in the cell so long as its _keep_ gate is on.
 o Information can be read from the cell by turning on its _read_ gate. 
 
+The LSTM were first introduced to overcome the vanishing gradient problem.
+
+!split
+===== Implementing a memory cell in a neural network =====
+
+To preserve information for a long time in
+the activities of an RNN, we use a circuit
+that implements an analog memory cell.
+
+o A linear unit that has a self-link with a weight of 1 will maintain its state.
+o Information is stored in the cell by activating its write gate.
+o Information is retrieved by activating the read gate.
+o We can backpropagate through this circuit because logistics are have nice derivatives. 
+
+
+!split
+===== LSTM details =====
+
+The LSTM is a unit cell that is made of three gates:
+o the input gate,
+o the forget gate,
+o and the output gate.
+
+It also introduces a cell state $c$, which can be thought of as the
+long-term memory, and a hidden state $h$ which can be thought of as
+the short-term memory.
+
+
+!split
+===== Basic layout (All figures from Raschka *et al.,*) =====
+
+FIGURE: [figslides/LSTM1.png, width=700 frac=1.0]
+
+
+!split
+===== LSTM details =====
+
+The first stage is called the forget gate, where we combine the input
+at (say, time $t$), and the hidden cell state input at $t-1$, passing
+it through the Sigmoid activation function and then performing an
+element-wise multiplication, denoted by $\odot$.
+
+Mathematically we have (see also figure below)
+!bt
+\[
+\mathbf{f}^{(t)} = \sigma(W_{fx}\mathbf{x}^{(t)} + W_{fh}\mathbf{h}^{(t-1)} + \mathbf{b}_f)
+\]
+!et
+where the $W$s are the weights to be trained.
+
+
+
+!split
+===== Comparing with a standard  RNN  =====
+
+FIGURE: [figslides/LSTM2.png, width=700 frac=1.0]
+
+
+
+!split
+===== LSTM details I =====
+
+FIGURE: [figslides/LSTM3.png, width=700 frac=1.0]
 
 
 
 
 
+!split
+===== LSTM details II  =====
+
+FIGURE: [figslides/LSTM4.png, width=700 frac=1.0]
+
+
+!split
+===== LSTM details III  =====
+
+FIGURE: [figslides/LSTM5.png, width=700 frac=1.0]
+
+
+!split
+===== Forget gate  =====
+
+FIGURE: [figslides/LSTM6.png, width=700 frac=1.0]
+
+!split
+===== The forget gate =====
+
+The naming forget gate stems from the fact that  the Sigmoid activation function's
+outputs are very close to $0$ if the argument for the function is very
+negative, and $1$ if the argument is very positive. Hence we can
+control the amount of information we want to take from the long-term
+memory.
+!bt
+\[
+\mathbf{f}^{(t)} = \sigma(W_{fx}\mathbf{x}^{(t)} + W_{fh}\mathbf{h}^{(t-1)} + \mathbf{b}_f)
+\]
+!et
+where the $W$s are the weights to be trained.
+
+
+!split
+===== Basic layout =====
+
+FIGURE: [figslides/LSTM7.png, width=700 frac=1.0]
+
+!split
+===== Input gate =====
+
+The next stage is the input gate, which consists of both a Sigmoid
+function ($\sigma_i$), which decide what percentage of the input will
+be stored in the long-term memory, and the $\tanh_i$ function, which
+decide what is the full memory that can be stored in the long term
+memory. When these results are calculated and multiplied together, it
+is added to the cell state or stored in the long-term memory, denoted
+as $\oplus$. 
+
+We have
+!bt
+\[
+\mathbf{i}^{(t)} = \sigma_g(W_{ix}\mathbf{x}^{(t)} + W_{ih}\mathbf{h}^{(t-1)} + \mathbf{b}_i),
+\]
+!et
+and
+!bt
+\[
+\mathbf{g}^{(t)} = \tanh(W_{gx}\mathbf{x}^{(t)} + W_{gh}\mathbf{h}^{(t-1)} + \mathbf{b}_g),
+\]
+!et
+again the $W$s are the weights to train.
 
 
 
 
+!split
+===== Short summary  =====
+
+FIGURE: [figslides/LSTM8.png, width=700 frac=1.0]
+
+
+!split
+===== Forget and input =====
+
+The forget gate and the input gate together also update the cell state with the following equation, 
+!bt
+\[
+\mathbf{c}^{(t)} = \mathbf{f}^{(t)} \otimes \mathbf{c}^{(t-1)} + \mathbf{i}^{(t)} \otimes \mathbf{g}^{(t)},
+\]
+!et
+where $f^{(t)}$ and $i^{(t)}$ are the outputs of the forget gate and the input gate, respectively.
+
+
+!split
+===== Basic layout =====
+
+FIGURE: [figslides/LSTM9.png, width=700 frac=1.0]
+
+
+
+
+!split
+===== Output gate =====
+
+The final stage of the LSTM is the output gate, and its purpose is to
+update the short-term memory.  To achieve this, we take the newly
+generated long-term memory and process it through a hyperbolic tangent
+($\tanh$) function creating a potential new short-term memory. We then
+multiply this potential memory by the output of the Sigmoid function
+($\sigma_o$). This multiplication generates the final output as well
+as the input for the next hidden cell ($h^{\langle t \rangle}$) within
+the LSTM cell.
+
+We have 
+!bt
+\[
+\begin{aligned}
+\mathbf{o}^{(t)} &= \sigma_g(W_o\mathbf{x}^{(t)} + U_o\mathbf{h}^{(t-1)} + \mathbf{b}_o), \\
+\mathbf{h}^{(t)} &= \mathbf{o}^{(t)} \otimes \sigma_h(\mathbf{c}^{(t)}). \\
+\end{aligned}
+\]
+!et
+where $\mathbf{W_o,U_o}$ are the weights of the output gate and $\mathbf{b_o}$ is the bias of the output gate.
+
+
+!split
+===== Summary of LSTM =====
+
+LSTMs provide a basic approach for modeling long-range dependencies in sequences.
+If you wish to read more, see _An Empirical Exploration of Recurrent Network Architectures_, authored
+by Rafal Jozefowicz *et al.,*  Proceedings of ICML, 2342-2350, 2015).
+
+An important recent development are so-called noting is a more recent
+method named _gated recurrent unit (GRU)_, se for example the article
+by Junyoung Chung *et al.,*, at URL:"https://arxiv.org/abs/1412.3555.
+This article is an excellent read if you are interested in learning
+more about these modern RNN architectures
+
+The GRUs have a simpler
+architecture than LSTMs. This leads to computationally more efficient methods, while their
+performance in some tasks, such as polyphonic music modeling, is comparable to LSTMs.
+
+And recently Beck *et al.,* see URL:"https://arxiv.org/abs/2405.04517", have demonstrated that exponential gating and modified memory structures boost xLSTM capabilities to perform favorably when compared to state-of-the-art Transformers and State Space Models, both in performance and scaling.
+
+!split
+===== LSTM implementation using TensorFlow =====
+
+!bc pycod
+"""
+Key points:
+1. The input images (28x28 pixels) are treated as sequences of 28 timesteps with 28 features each
+2. The LSTM layer processes this sequential data
+3. A final dense layer with softmax activation handles the classification
+4. Typical accuracy ranges between 95-98% (lower than CNNs but reasonable for demonstration)
+
+Note: LSTMs are not typically used for image classification (CNNs are more efficient), but this demonstrates how to adapt them for such tasks. Training might take longer compared to CNN architectures.
+
+To improve performance, you could:
+1. Add more LSTM layers
+2. Use Bidirectional LSTMs
+3. Increase the number of units
+4. Add dropout for regularization
+5. Use learning rate scheduling
+"""
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.utils import to_categorical
+
+# Load and preprocess data
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+
+# Normalize pixel values to [0, 1]
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+# Reshape data for LSTM (samples, timesteps, features)
+# MNIST images are 28x28, so we treat each image as 28 timesteps of 28 features
+x_train = x_train.reshape((-1, 28, 28))
+x_test = x_test.reshape((-1, 28, 28))
+
+# Convert labels to one-hot encoding
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+
+# Build LSTM model
+model = Sequential()
+model.add(LSTM(128, input_shape=(28, 28)))  # 128 LSTM units
+model.add(Dense(10, activation='softmax'))
+
+# Compile the model
+model.compile(loss='categorical_crossentropy',
+             optimizer='adam',
+             metrics=['accuracy'])
+
+# Display model summary
+model.summary()
+
+# Train the model
+history = model.fit(x_train, y_train,
+                   batch_size=64,
+                   epochs=10,
+                   validation_split=0.2)
+
+# Evaluate on test data
+test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
+print(f'\nTest accuracy: {test_acc:.4f}')
+!ec
+
+!split
+===== And the corresponding one with PyTorch =====
+
+!bc pycod
+"""
+Key components:
+1. **Data Handling**: Uses PyTorch DataLoader with MNIST dataset
+2. **LSTM Architecture**:
+  - Input sequence of 28 timesteps (image rows)
+  - 128 hidden units in LSTM layer
+  - Fully connected layer for classification
+3. **Training**:
+  - Cross-entropy loss
+  - Adam optimizer
+  - Automatic GPU utilization if available
+
+This implementation typically achieves **97-98% accuracy** after 10 epochs. The main differences from the TensorFlow/Keras version:
+- Explicit device management (CPU/GPU)
+- Manual training loop
+- Different data loading pipeline
+- More explicit tensor reshaping
+
+To improve performance, you could:
+1. Add dropout regularization
+2. Use bidirectional LSTM
+3. Implement learning rate scheduling
+4. Add batch normalization
+5. Increase model capacity (more layers/units)
+"""
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+# Hyperparameters
+input_size = 28     # Number of features (pixels per row)
+hidden_size = 128   # LSTM hidden state size
+num_classes = 10    # Digits 0-9
+num_epochs = 10     # Training iterations
+batch_size = 64     # Batch size
+learning_rate = 0.001
+
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# MNIST dataset
+transform = transforms.Compose([
+   transforms.ToTensor(),
+   transforms.Normalize((0.1307,), (0.3081,))  # MNIST mean and std
+])
+
+train_dataset = datasets.MNIST(root='./data',
+                              train=True,
+                              transform=transform,
+                              download=True)
+
+test_dataset = datasets.MNIST(root='./data',
+                             train=False,
+                             transform=transform)
+
+train_loader = DataLoader(dataset=train_dataset,
+                         batch_size=batch_size,
+                         shuffle=True)
+
+test_loader = DataLoader(dataset=test_dataset,
+                        batch_size=batch_size,
+                        shuffle=False)
+
+# LSTM model
+class LSTMModel(nn.Module):
+   def __init__(self, input_size, hidden_size, num_classes):
+       super(LSTMModel, self).__init__()
+       self.hidden_size = hidden_size
+       self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
+       self.fc = nn.Linear(hidden_size, num_classes)
+
+   def forward(self, x):
+       # Reshape input to (batch_size, sequence_length, input_size)
+       x = x.reshape(-1, 28, 28)
+
+       # Forward propagate LSTM
+       out, _ = self.lstm(x)  # out: (batch_size, seq_length, hidden_size)
+
+       # Decode the hidden state of the last time step
+       out = out[:, -1, :]
+       out = self.fc(out)
+       return out
+
+# Initialize model
+model = LSTMModel(input_size, hidden_size, num_classes).to(device)
+
+# Loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+# Training loop
+total_step = len(train_loader)
+for epoch in range(num_epochs):
+   model.train()
+   for i, (images, labels) in enumerate(train_loader):
+       images = images.to(device)
+       labels = labels.to(device)
+
+       # Forward pass
+       outputs = model(images)
+       loss = criterion(outputs, labels)
+
+       # Backward and optimize
+       optimizer.zero_grad()
+       loss.backward()
+       optimizer.step()
+
+       if (i+1) % 100 == 0:
+           print(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_step}], Loss: {loss.item():.4f}')
+
+   # Test the model
+   model.eval()
+   with torch.no_grad():
+       correct = 0
+       total = 0
+       for images, labels in test_loader:
+           images = images.to(device)
+           labels = labels.to(device)
+           outputs = model(images)
+           _, predicted = torch.max(outputs.data, 1)
+           total += labels.size(0)
+           correct += (predicted == labels).sum().item()
+
+       print(f'Test Accuracy: {100 * correct / total:.2f}%')
+
+print('Training finished.')
+!ec
 
 
 
