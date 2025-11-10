@@ -5,18 +5,16 @@ from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 
 
-# ============================
-# 1. Physics model (from rk4.py)
-# ============================
+# Newton's equation for harmonic oscillations with external force
 
-# Global parameters (same idea as in rk4.py)
+# Global parameters
 gamma = 0.2        # damping
 Omegatilde = 0.5   # driving frequency
 Ftilde = 1.0       # driving amplitude
 
 def spring_force(v, x, t):
     """
-    SpringForce from rk4.py:
+    SpringForce:
     note: divided by mass => returns acceleration
     a = -2*gamma*v - x + Ftilde*cos(Omegatilde * t)
     """
@@ -25,7 +23,6 @@ def spring_force(v, x, t):
 
 def rk4_trajectory(DeltaT=0.001, tfinal=20.0, x0=1.0, v0=0.0):
     """
-    Reimplementation of RK4 integrator from rk4.py.
     Returns t, x, v arrays.
     """
     n = int(np.ceil(tfinal / DeltaT))
@@ -68,9 +65,7 @@ def rk4_trajectory(DeltaT=0.001, tfinal=20.0, x0=1.0, v0=0.0):
     return t, x, v
 
 
-# =====================================
-# 2. Sequence generation for RNN training
-# =====================================
+# Sequence generation for RNN training
 
 def create_sequences(x, seq_len):
     """
@@ -113,9 +108,7 @@ class OscillatorDataset(Dataset):
         return self.inputs[idx], self.targets[idx]
 
 
-# ==============================
-# 3. RNN model (LSTM-based)
-# ==============================
+# RNN model (LSTM-based in this example)
 
 class RNNPredictor(nn.Module):
     def __init__(self, input_size=1, hidden_size=32, num_layers=1, output_size=1):
@@ -133,9 +126,7 @@ class RNNPredictor(nn.Module):
         return out
 
 
-# ==============================
-# 4. Training loop
-# ==============================
+# Training part
 
 def train_model(
     seq_len=50,
@@ -184,9 +175,7 @@ def train_model(
     return model, dataset
 
 
-# ==============================
-# 5. Evaluation / visualization
-# ==============================
+# Evaluation / visualization
 
 def evaluate_and_plot(model, dataset, seq_len=50, device=None):
     if device is None:
@@ -197,13 +186,10 @@ def evaluate_and_plot(model, dataset, seq_len=50, device=None):
         # Take a single sequence from the dataset
         x_seq, y_seq = dataset[0]  # shapes: (seq_len, 1), (seq_len, 1)
         x_input = x_seq.unsqueeze(0).to(device)  # (1, seq_len, 1)
-
         # Model prediction (next-step for whole sequence)
         y_pred = model(x_input).cpu().numpy().squeeze(-1).squeeze(0)  # (seq_len,)
-
         # True target
         y_true = y_seq.numpy().squeeze(-1)  # (seq_len,)
-
         # Plot comparison
         plt.figure()
         plt.plot(y_true, label="True x(t+Δt)", linestyle="-")
@@ -215,10 +201,7 @@ def evaluate_and_plot(model, dataset, seq_len=50, device=None):
         plt.tight_layout()
         plt.show()
 
-
-# ==============================
-# 6. Main
-# ==============================
+# This is the main part of the code where we define the network
 
 if __name__ == "__main__":
     # Hyperparameters can be tweaked as you like
