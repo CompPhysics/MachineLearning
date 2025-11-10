@@ -355,15 +355,6 @@ MathJax.Hub.Config({
 <h2 id="plan-for-week-46">Plan for week 46 </h2>
 
 <div class="alert alert-block alert-block alert-text-normal">
-<b>Lab sessions on Tuesday and Wednesday</b>
-<p>
-<ol>
- <li> Work on and discussions of project 3</li>
-</ol>
-</div>
-
-
-<div class="alert alert-block alert-block alert-text-normal">
 <b>Material for the lecture on Monday November 10, 2025</b>
 <p>
 <ol>
@@ -371,6 +362,15 @@ MathJax.Hub.Config({
 <li> Lecture notes at <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb" target="_blank"><tt>https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb</tt></a>
 <!-- o Video of lecture at <a href="https://youtu.be/TfRKUfdJwB4" target="_blank"><tt>https://youtu.be/TfRKUfdJwB4</tt></a> -->
 <!-- o Whiteboard notes at <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesNovember11.pdf" target="_blank"><tt>https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesNovember11.pdf</tt></a> --></li>
+</ol>
+</div>
+
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Lab sessions on Tuesday and Wednesday</b>
+<p>
+<ol>
+<li> Work on and discussions of project 3, project available from November 10,(evening), deadline December 15 at midnight.</li>
 </ol>
 </div>
 
@@ -738,15 +738,6 @@ current_sequence <span style="color: #666666">=</span> initial_sequence<span sty
        <span style="color: #408080; font-style: italic"># Update sequence by removing first element and adding new prediction</span>
        current_sequence <span style="color: #666666">=</span> torch<span style="color: #666666">.</span>cat([current_sequence[:, <span style="color: #666666">1</span>:, :], pred<span style="color: #666666">.</span>unsqueeze(<span style="color: #666666">1</span>)], dim<span style="color: #666666">=1</span>)
 
-<span style="color: #408080; font-style: italic"># Plot results</span>
-plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">12</span>, <span style="color: #666666">6</span>))
-plt<span style="color: #666666">.</span>plot(t[<span style="color: #666666">800</span>:]<span style="color: #666666">.</span>numpy(), val_data<span style="color: #666666">.</span>numpy(), label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;True values&#39;</span>)
-plt<span style="color: #666666">.</span>plot(t[<span style="color: #666666">800</span>:]<span style="color: #666666">.</span>numpy(), predictions, label<span style="color: #666666">=</span><span style="color: #BA2121">&#39;Predictions&#39;</span>)
-plt<span style="color: #666666">.</span>title(<span style="color: #BA2121">&#39;Sine Wave Prediction&#39;</span>)
-plt<span style="color: #666666">.</span>xlabel(<span style="color: #BA2121">&#39;Time&#39;</span>)
-plt<span style="color: #666666">.</span>ylabel(<span style="color: #BA2121">&#39;Value&#39;</span>)
-plt<span style="color: #666666">.</span>legend()
-plt<span style="color: #666666">.</span>show()
 
 <span style="color: #408080; font-style: italic"># Plot training and validation loss</span>
 plt<span style="color: #666666">.</span>figure(figsize<span style="color: #666666">=</span>(<span style="color: #666666">10</span>, <span style="color: #666666">5</span>))
@@ -1790,6 +1781,7 @@ plt<span style="color: #666666">.</span>show()
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="using-the-above-data-to-train-an-rnn">Using the above data to train an RNN </h2>
 
+<p>In the code here we have reworked the previous example in order to generate data that can be handled by recurrent neural networks in order to train our model.</p>
 
 <!-- code=python (!bc pycod) typeset with pygments style "default" -->
 <div class="cell border-box-sizing code_cell rendered">
@@ -1804,18 +1796,16 @@ plt<span style="color: #666666">.</span>show()
 <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008000; font-weight: bold">as</span> <span style="color: #0000FF; font-weight: bold">plt</span>
 
 
-<span style="color: #408080; font-style: italic"># ============================</span>
-<span style="color: #408080; font-style: italic"># 1. Physics model (from rk4.py)</span>
-<span style="color: #408080; font-style: italic"># ============================</span>
+<span style="color: #408080; font-style: italic"># Newton&#39;s equation for harmonic oscillations with external force</span>
 
-<span style="color: #408080; font-style: italic"># Global parameters (same idea as in rk4.py)</span>
+<span style="color: #408080; font-style: italic"># Global parameters</span>
 gamma <span style="color: #666666">=</span> <span style="color: #666666">0.2</span>        <span style="color: #408080; font-style: italic"># damping</span>
 Omegatilde <span style="color: #666666">=</span> <span style="color: #666666">0.5</span>   <span style="color: #408080; font-style: italic"># driving frequency</span>
 Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>       <span style="color: #408080; font-style: italic"># driving amplitude</span>
 
 <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">spring_force</span>(v, x, t):
     <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-<span style="color: #BA2121; font-style: italic">    SpringForce from rk4.py:</span>
+<span style="color: #BA2121; font-style: italic">    SpringForce:</span>
 <span style="color: #BA2121; font-style: italic">    note: divided by mass =&gt; returns acceleration</span>
 <span style="color: #BA2121; font-style: italic">    a = -2*gamma*v - x + Ftilde*cos(Omegatilde * t)</span>
 <span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
@@ -1824,7 +1814,6 @@ Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</s
 
 <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">rk4_trajectory</span>(DeltaT<span style="color: #666666">=0.001</span>, tfinal<span style="color: #666666">=20.0</span>, x0<span style="color: #666666">=1.0</span>, v0<span style="color: #666666">=0.0</span>):
     <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
-<span style="color: #BA2121; font-style: italic">    Reimplementation of RK4 integrator from rk4.py.</span>
 <span style="color: #BA2121; font-style: italic">    Returns t, x, v arrays.</span>
 <span style="color: #BA2121; font-style: italic">    &quot;&quot;&quot;</span>
     n <span style="color: #666666">=</span> <span style="color: #008000">int</span>(np<span style="color: #666666">.</span>ceil(tfinal <span style="color: #666666">/</span> DeltaT))
@@ -1867,9 +1856,7 @@ Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</s
     <span style="color: #008000; font-weight: bold">return</span> t, x, v
 
 
-<span style="color: #408080; font-style: italic"># =====================================</span>
-<span style="color: #408080; font-style: italic"># 2. Sequence generation for RNN training</span>
-<span style="color: #408080; font-style: italic"># =====================================</span>
+<span style="color: #408080; font-style: italic"># Sequence generation for RNN training</span>
 
 <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">create_sequences</span>(x, seq_len):
     <span style="color: #BA2121; font-style: italic">&quot;&quot;&quot;</span>
@@ -1912,9 +1899,7 @@ Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</s
         <span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span><span style="color: #666666">.</span>inputs[idx], <span style="color: #008000">self</span><span style="color: #666666">.</span>targets[idx]
 
 
-<span style="color: #408080; font-style: italic"># ==============================</span>
-<span style="color: #408080; font-style: italic"># 3. RNN model (LSTM-based)</span>
-<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># RNN model (LSTM-based in this example)</span>
 
 <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">RNNPredictor</span>(nn<span style="color: #666666">.</span>Module):
     <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(<span style="color: #008000">self</span>, input_size<span style="color: #666666">=1</span>, hidden_size<span style="color: #666666">=32</span>, num_layers<span style="color: #666666">=1</span>, output_size<span style="color: #666666">=1</span>):
@@ -1932,9 +1917,7 @@ Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</s
         <span style="color: #008000; font-weight: bold">return</span> out
 
 
-<span style="color: #408080; font-style: italic"># ==============================</span>
-<span style="color: #408080; font-style: italic"># 4. Training loop</span>
-<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># Training part</span>
 
 <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">train_model</span>(
     seq_len<span style="color: #666666">=50</span>,
@@ -1983,9 +1966,7 @@ Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</s
     <span style="color: #008000; font-weight: bold">return</span> model, dataset
 
 
-<span style="color: #408080; font-style: italic"># ==============================</span>
-<span style="color: #408080; font-style: italic"># 5. Evaluation / visualization</span>
-<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># Evaluation / visualization</span>
 
 <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">evaluate_and_plot</span>(model, dataset, seq_len<span style="color: #666666">=50</span>, device<span style="color: #666666">=</span><span style="color: #008000; font-weight: bold">None</span>):
     <span style="color: #008000; font-weight: bold">if</span> device <span style="color: #AA22FF; font-weight: bold">is</span> <span style="color: #008000; font-weight: bold">None</span>:
@@ -1996,13 +1977,10 @@ Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</s
         <span style="color: #408080; font-style: italic"># Take a single sequence from the dataset</span>
         x_seq, y_seq <span style="color: #666666">=</span> dataset[<span style="color: #666666">0</span>]  <span style="color: #408080; font-style: italic"># shapes: (seq_len, 1), (seq_len, 1)</span>
         x_input <span style="color: #666666">=</span> x_seq<span style="color: #666666">.</span>unsqueeze(<span style="color: #666666">0</span>)<span style="color: #666666">.</span>to(device)  <span style="color: #408080; font-style: italic"># (1, seq_len, 1)</span>
-
         <span style="color: #408080; font-style: italic"># Model prediction (next-step for whole sequence)</span>
         y_pred <span style="color: #666666">=</span> model(x_input)<span style="color: #666666">.</span>cpu()<span style="color: #666666">.</span>numpy()<span style="color: #666666">.</span>squeeze(<span style="color: #666666">-1</span>)<span style="color: #666666">.</span>squeeze(<span style="color: #666666">0</span>)  <span style="color: #408080; font-style: italic"># (seq_len,)</span>
-
         <span style="color: #408080; font-style: italic"># True target</span>
         y_true <span style="color: #666666">=</span> y_seq<span style="color: #666666">.</span>numpy()<span style="color: #666666">.</span>squeeze(<span style="color: #666666">-1</span>)  <span style="color: #408080; font-style: italic"># (seq_len,)</span>
-
         <span style="color: #408080; font-style: italic"># Plot comparison</span>
         plt<span style="color: #666666">.</span>figure()
         plt<span style="color: #666666">.</span>plot(y_true, label<span style="color: #666666">=</span><span style="color: #BA2121">&quot;True x(t+Δt)&quot;</span>, linestyle<span style="color: #666666">=</span><span style="color: #BA2121">&quot;-&quot;</span>)
@@ -2014,10 +1992,7 @@ Ftilde <span style="color: #666666">=</span> <span style="color: #666666">1.0</s
         plt<span style="color: #666666">.</span>tight_layout()
         plt<span style="color: #666666">.</span>show()
 
-
-<span style="color: #408080; font-style: italic"># ==============================</span>
-<span style="color: #408080; font-style: italic"># 6. Main</span>
-<span style="color: #408080; font-style: italic"># ==============================</span>
+<span style="color: #408080; font-style: italic"># This is the main part of the code where we define the network</span>
 
 <span style="color: #008000; font-weight: bold">if</span> <span style="color: #19177C">__name__</span> <span style="color: #666666">==</span> <span style="color: #BA2121">&quot;__main__&quot;</span>:
     <span style="color: #408080; font-style: italic"># Hyperparameters can be tweaked as you like</span>
