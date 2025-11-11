@@ -1,0 +1,1483 @@
+TITLE: Week 46: Decision Trees, Ensemble methods  and Random Forests
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo & Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
+DATE: Week 46, November 10-14
+
+
+!split
+===== Plan for week 46 =====
+
+
+!bblock Material for the lecture on Monday November 10, 2025
+o Intro to and mathematics of  Recurrent Neural Networks (RNNs)
+o Lecture notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb"
+o Video of lecture at URL:"https://youtu.be/WNWKaBbqOpg"
+o Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2025/FYSSTKweek46.pdf"    
+!eblock
+
+!bblock Lab sessions on Tuesday and Wednesday
+o Work on and discussions of project 3, deadline December 15 at midnight. Project 3 can be found at URL:"https://github.com/CompPhysics/MachineLearning/tree/master/doc/Projects/2025/Project3". _Note that possible minor revisions may be done before the lab sessions start on November 11_.
+!eblock
+
+
+
+!split
+===== Reading recommendations =====
+
+!bblock
+o For RNNs, see Goodfellow et al chapter 10, see URL:"https://www.deeplearningbook.org/contents/rnn.html".
+o Reading suggestions for implementation of RNNs in PyTorch: see Rashcka et al.'s chapter 15 and GitHub site at URL:"https://github.com/rasbt/machine-learning-book/tree/main/ch15".
+
+!split
+===== TensorFlow examples ===== 
+For TensorFlow (using Keras) implementations, we recommend
+o David Foster, Generative Deep Learning with TensorFlow, see chapter 5 at URL:"https://www.oreilly.com/library/view/generative-deep-learning/9781098134174/ch05.html"
+o Joseph Babcock and Raghav Bali Generative AI with Python and their GitHub link, chapters 2 and  3 at URL:"https://github.com/PacktPublishing/Hands-On-Generative-AI-with-Python-and-TensorFlow-2"  
+!eblock
+
+
+
+!split
+===== From NNs and CNNs to recurrent neural networks (RNNs) =====
+
+There are limitation of NNs, one of which being that FFNNs are not
+designed to handle sequential data (data for which the order matters)
+effectively because they lack the capabilities of storing information
+about previous inputs; each input is being treated indepen-
+dently. This is a limitation when dealing with sequential data where
+past information can be vital to correctly process current and future
+inputs. 
+
+
+!split
+===== What is a recurrent NN? =====
+
+A recurrent neural network (RNN), as opposed to a regular fully
+connected neural network (FCNN) or just neural network (NN), has
+layers that are connected to themselves.
+    
+
+In an FCNN there are no connections between nodes in a single
+layer. For instance, $(h_1^1$ is not connected to $(h_2^1$. In
+addition, the input and output are always of a fixed length.
+
+In an RNN, however, this is no longer the case. Nodes in the hidden
+layers are connected to themselves.
+
+    
+!split
+===== Why RNNs? =====
+
+Recurrent neural networks work very well when working with
+sequential data, that is data where the order matters. In a regular
+fully connected network, the order of input doesn't really matter.
+
+Another property of  RNNs is that they can handle variable input
+and output. Consider again the simplified breast cancer dataset. If you
+have trained a regular FCNN on the dataset with the two features, it
+makes no sense to suddenly add a third feature. The network would not
+know what to do with it, and would reject such inputs with three
+features (or any other number of features that isn't two, for that
+matter).
+
+
+
+!split
+===== Feedback connections =====
+
+
+In contrast to NNs, recurrent networks introduce feedback
+connections, meaning the information is allowed to be carried to
+subsequent nodes across different time steps. These cyclic or feedback
+connections have the objective of providing the network with some kind
+of memory, making RNNs particularly suited for time- series data,
+natural language processing, speech recognition, and several other
+problems for which the order of the data is crucial.  The RNN
+architectures vary greatly in how they manage information flow and
+memory in the network.
+
+
+!split
+===== Vanishing gradients =====
+
+Different architectures often aim at improving
+some sub-optimal characteristics of the network. The simplest form of
+recurrent network, commonly called simple or vanilla RNN, for example,
+is known to suffer from the problem of vanishing gradients. This
+problem arises due to the nature of backpropagation in time. Gradients
+of the cost/loss function may get exponentially small (or large) if
+there are many layers in the network, which is the case of RNN when
+the sequence gets long.
+
+
+
+
+!split
+===== Recurrent neural networks (RNNs): Overarching view =====
+
+Till now our focus has been, including convolutional neural networks
+as well, on feedforward neural networks. The output or the activations
+flow only in one direction, from the input layer to the output layer.
+
+A recurrent neural network (RNN) looks very much like a feedforward
+neural network, except that it also has connections pointing
+backward. 
+
+RNNs are used to analyze time series data such as stock prices, and
+tell you when to buy or sell. In autonomous driving systems, they can
+anticipate car trajectories and help avoid accidents. More generally,
+they can work on sequences of arbitrary lengths, rather than on
+fixed-sized inputs like all the nets we have discussed so far. For
+example, they can take sentences, documents, or audio samples as
+input, making them extremely useful for natural language processing
+systems such as automatic translation and speech-to-text.
+
+!split
+===== Sequential data only? =====
+
+An important issue is that in many deep learning methods we assume
+that the input and output data can be treated as independent and
+identically distributed, normally abbreviated to _iid_.
+This means that the data we use can be seen as mutually independent.
+
+This is however not the case for most data sets used in RNNs since we
+are dealing with sequences of data with strong inter-dependencies.
+This applies in particular to time series, which are sequential by
+contruction.
+
+!split
+===== Differential equations =====
+
+As an example, the solutions of ordinary differential equations can be
+represented as a time series, similarly, how stock prices evolve as
+function of time is another example of a typical time series, or voice
+records and many other examples.
+
+
+Not all sequential data may however have a time stamp, texts being a
+typical example thereof, or DNA sequences.
+
+The main focus here is on data that can be structured either as time
+series or as ordered series of data.  We will not focus on for example
+natural language processing or similar data sets.
+
+
+
+!split
+===== A simple regression example using TensorFlow with Keras =====
+
+!bc pycod
+# Start importing packages
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras import datasets, layers, models
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model, Sequential 
+from tensorflow.keras.layers import Dense, SimpleRNN, LSTM, GRU
+from tensorflow.keras import optimizers     
+from tensorflow.keras import regularizers           
+from tensorflow.keras.utils import to_categorical 
+
+# convert into dataset matrix
+def convertToMatrix(data, step):
+ X, Y =[], []
+ for i in range(len(data)-step):
+  d=i+step  
+  X.append(data[i:d,])
+  Y.append(data[d,])
+ return np.array(X), np.array(Y)
+
+step = 4
+N = 1000    
+Tp = 800    
+
+t=np.arange(0,N)
+x=np.sin(0.02*t)+2*np.random.rand(N)
+df = pd.DataFrame(x)
+df.head()
+# Setting up training data
+values=df.values
+train,test = values[0:Tp,:], values[Tp:N,:]
+# add step elements into train and test
+test = np.append(test,np.repeat(test[-1,],step))
+train = np.append(train,np.repeat(train[-1,],step))
+trainX,trainY =convertToMatrix(train,step)
+testX,testY =convertToMatrix(test,step)
+trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
+testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
+# Defining the model with a simple RNN
+model = Sequential()
+model.add(SimpleRNN(units=32, input_shape=(1,step), activation="relu"))
+model.add(Dense(8, activation="relu")) 
+model.add(Dense(1))
+model.compile(loss='mean_squared_error', optimizer='rmsprop')
+model.summary()
+# Training
+model.fit(trainX,trainY, epochs=100, batch_size=16, verbose=2)
+trainPredict = model.predict(trainX)
+testPredict= model.predict(testX)
+predicted=np.concatenate((trainPredict,testPredict),axis=0)
+trainScore = model.evaluate(trainX, trainY, verbose=0)
+print(trainScore)
+plt.plot(df)
+plt.plot(predicted)
+plt.show()
+!ec
+
+!split
+===== Corresponding example using PyTorch =====
+
+The structure of the code here is as follows
+o Generate a sine function  and splits it into training and validation sets
+o Create a custom data set for sequence generation
+o Define an RNN model with one RNN layer and a final plain linear layer
+o Train the model using the mean-squared error as cost function and the Adam optimizer
+o Generate predictions using recursive forecasting
+o Plot the results and training/validation loss curves
+
+The model takes sequences of 20 previous values to predict the next
+value of the sine function. The recursive prediction uses the model's own
+predictions to generate future values, showing how well it maintains
+the sine wave pattern over time.
+
+The final plots show the the predicted values vs. the actual sine wave for the validation period
+and the training and validation cost function curves to monitor for overfitting.
+
+!bc pycod
+import torch
+import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate synthetic sine wave data
+t = torch.linspace(0, 4*np.pi, 1000)
+data = torch.sin(t)
+
+# Split data into training and validation
+train_data = data[:800]
+val_data = data[800:]
+
+# Hyperparameters
+seq_len = 20
+batch_size = 32
+hidden_size = 64
+num_epochs = 100
+learning_rate = 0.001
+
+# Create dataset and dataloaders
+class SineDataset(torch.utils.data.Dataset):
+   def __init__(self, data, seq_len):
+       self.data = data
+       self.seq_len = seq_len
+
+   def __len__(self):
+       return len(self.data) - self.seq_len
+
+   def __getitem__(self, idx):
+       x = self.data[idx:idx+self.seq_len]
+       y = self.data[idx+self.seq_len]
+       return x.unsqueeze(-1), y  # Add feature dimension
+
+train_dataset = SineDataset(train_data, seq_len)
+val_dataset = SineDataset(val_data, seq_len)
+
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
+# Define RNN model
+class RNNModel(nn.Module):
+   def __init__(self, input_size, hidden_size, output_size):
+       super(RNNModel, self).__init__()
+       self.rnn = nn.RNN(input_size, hidden_size, batch_first=True)
+       self.fc = nn.Linear(hidden_size, output_size)
+
+   def forward(self, x):
+       out, _ = self.rnn(x)  # out: (batch_size, seq_len, hidden_size)
+       out = out[:, -1, :]   # Take last time step output
+       out = self.fc(out)
+       return out
+
+model = RNNModel(input_size=1, hidden_size=hidden_size, output_size=1)
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+# Training loop
+train_losses = []
+val_losses = []
+
+for epoch in range(num_epochs):
+   model.train()
+   epoch_train_loss = 0
+   for x_batch, y_batch in train_loader:
+       optimizer.zero_grad()
+       y_pred = model(x_batch)
+       loss = criterion(y_pred, y_batch.unsqueeze(-1))
+       loss.backward()
+       optimizer.step()
+       epoch_train_loss += loss.item()
+
+   # Validation
+   model.eval()
+   epoch_val_loss = 0
+   with torch.no_grad():
+       for x_val, y_val in val_loader:
+           y_pred_val = model(x_val)
+           val_loss = criterion(y_pred_val, y_val.unsqueeze(-1))
+           epoch_val_loss += val_loss.item()
+
+   # Calculate average losses
+   train_loss = epoch_train_loss / len(train_loader)
+   val_loss = epoch_val_loss / len(val_loader)
+   train_losses.append(train_loss)
+   val_losses.append(val_loss)
+
+   print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
+
+# Generate predictions
+model.eval()
+initial_sequence = train_data[-seq_len:].reshape(1, seq_len, 1)
+predictions = []
+current_sequence = initial_sequence.clone()
+
+with torch.no_grad():
+   for _ in range(len(val_data)):
+       pred = model(current_sequence)
+       predictions.append(pred.item())
+       # Update sequence by removing first element and adding new prediction
+       current_sequence = torch.cat([current_sequence[:, 1:, :], pred.unsqueeze(1)], dim=1)
+
+
+# Plot training and validation loss
+plt.figure(figsize=(10, 5))
+plt.plot(train_losses, label='Training Loss')
+plt.plot(val_losses, label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.show()
+
+!ec
+
+
+!split
+===== RNNs =====
+
+RNNs are very powerful, because they
+combine two properties:
+o Distributed hidden state that allows them to store a lot of information about the past efficiently.
+o Non-linear dynamics that allows them to update their hidden state in complicated ways.
+
+With enough neurons and time, RNNs
+can compute anything that can be
+computed by your computer.
+
+
+
+!split
+===== What kinds of behaviour can RNNs exhibit? =====
+
+o They can oscillate. 
+o They can settle to point attractors.
+o They can behave chaotically.
+o RNNs could potentially learn to implement lots of small programs that each capture a nugget of knowledge and run in parallel, interacting to produce very complicated effects.
+
+But the extensive computational needs  of RNNs makes them very hard to train.
+
+
+!split
+===== Basic layout,  "Figures from Sebastian Rashcka et al, Machine learning with Sickit-Learn and PyTorch":"https://sebastianraschka.com/blog/2022/ml-pytorch-book.html" =====
+
+FIGURE: [figslides/RNN1.png, width=700 frac=0.9]
+
+
+!split
+===== Solving differential equations with RNNs =====
+
+To gain some intuition on how we can use RNNs for time series, let us
+tailor the representation of the solution of a differential equation
+as a time series.
+
+Consider the famous differential equation (Newton's equation of motion for damped harmonic oscillations, scaled in terms of dimensionless time)
+
+!bt
+\[
+\frac{d^2x}{dt^2}+\eta\frac{dx}{dt}+x(t)=F(t),
+\]
+!et
+where $\eta$ is a constant used in scaling time into a dimensionless variable and $F(t)$ is an external force acting on the system.
+The constant $\eta$ is a so-called damping.
+
+!split
+===== Two first-order differential equations =====
+
+In solving the above second-order equation, it is common to rewrite it in terms of two coupled first-order equations
+with the velocity
+!bt
+\[
+v(t)=\frac{dx}{dt},
+\]
+!et
+and the acceleration
+!bt
+\[
+\frac{dv}{dt}=F(t)-\eta v(t)-x(t).
+\]
+!et
+
+With the initial conditions $v_0=v(t_0)$ and $x_0=x(t_0)$ defined, we can integrate these equations and find their respective solutions.
+
+!split
+===== Velocity only =====
+
+Let us focus on the velocity only. Discretizing and using the simplest
+possible approximation for the derivative, we have Euler's forward
+method for the updated velocity at a time step $i+1$ given by
+!bt
+\[
+v_{i+1}=v_i+\Delta t \frac{dv}{dt}_{\vert_{v=v_i}}=v_i+\Delta t\left(F_i-\eta v_i-x_i\right).
+\]
+!et
+Defining a function
+!bt
+\[
+h_i(x_i,v_i,F_i)=v_i+\Delta t\left(F_i-\eta v_i-x_i\right),
+\]
+!et
+we have
+!bt
+\[
+v_{i+1}=h_i(x_i,v_i,F_i).
+\]
+!et
+
+!split
+===== Linking with RNNs =====
+
+The equation
+!bt
+\[
+v_{i+1}=h_i(x_i,v_i,F_i).
+\]
+!et
+can be used to train a feed-forward neural network with inputs $v_i$ and outputs $v_{i+1}$ at a time $t_i$. But we can think of this also as a recurrent neural network
+with inputs $v_i$, $x_i$ and $F_i$ at each time step $t_i$, and producing an output $v_{i+1}$.
+
+Noting that 
+!bt
+\[
+v_{i}=v_{i-1}+\Delta t\left(F_{i-1}-\eta v_{i-1}-x_{i-1}\right)=h_{i-1}.
+\]
+!et
+we have
+!bt
+\[
+v_{i}=h_{i-1}(x_{i-1},v_{i-1},F_{i-1}),
+\]
+!et
+and we can rewrite
+!bt
+\[
+v_{i+1}=h_i(x_i,h_{i-1},F_i).
+\]
+!et
+
+!split
+===== Minor rewrite =====
+
+We can thus set up a recurring series which depends on the inputs $x_i$ and $F_i$ and the previous values $h_{i-1}$.
+We assume now that the inputs at each step (or time $t_i$) is given by $x_i$ only and we denote the outputs for $\tilde{y}_i$ instead of $v_{i_1}$, we have then the compact equation for our outputs at each step $t_i$
+!bt
+\[
+y_{i}=h_i(x_i,h_{i-1}).
+\]
+!et
+
+We can think of this as an element in a recurrent network where our
+network (our model) produces an output $y_i$ which is then compared
+with a target value through a given cost/loss function that we
+optimize. The target values at a given step $t_i$ could be the results
+of a measurement or simply the analytical results of a differential
+equation.
+
+
+
+
+!split
+===== RNNs in more detail  =====
+
+FIGURE: [figslides/RNN2.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 2  =====
+
+FIGURE: [figslides/RNN3.png, width=700 frac=0.9]
+
+
+!split
+===== RNNs in more detail, part 3  =====
+
+FIGURE: [figslides/RNN4.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 4  =====
+
+FIGURE: [figslides/RNN5.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 5  =====
+
+FIGURE: [figslides/RNN6.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 6  =====
+
+FIGURE: [figslides/RNN7.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 7  =====
+
+FIGURE: [figslides/RNN8.png, width=700 frac=0.9]
+
+
+
+
+
+!split
+===== Backpropagation through time =====
+
+!bblock
+We can think of the recurrent net as a layered, feed-forward
+net with shared weights and then train the feed-forward net
+with weight constraints.
+!eblock
+
+We can also think of this training algorithm in the time domain:
+o The forward pass builds up a stack of the activities of all the units at each time step.
+o The backward pass peels activities off the stack to compute the error derivatives at each time step.
+o After the backward pass we add together the derivatives at all the different times for each weight. 
+
+!split
+===== The backward pass is linear =====
+
+o There is a big difference between the forward and backward passes.
+o In the forward pass we use squashing functions (like the logistic) to prevent the activity vectors from exploding.
+o The backward pass, is completely linear. If you double the error derivatives at the final layer, all the error derivatives will double.
+
+The forward pass determines the slope of the linear function used for
+backpropagating through each neuron
+
+
+!split 
+===== The problem of exploding or vanishing gradients =====
+* What happens to the magnitude of the gradients as we backpropagate through many layers?
+  o If the weights are small, the gradients shrink exponentially.
+  o If the weights are big the gradients grow exponentially.
+* Typical feed-forward neural nets can cope with these exponential effects because they only have a few hidden layers.
+* In an RNN trained on long sequences (e.g. 100 time steps) the gradients can easily explode or vanish.
+  o We can avoid this by initializing the weights very carefully.
+* Even with good initial weights, its very hard to detect that the current target output depends on an input from many time-steps ago.
+
+
+RNNs have difficulty dealing with long-range dependencies. 
+
+!split
+===== Mathematical setup =====
+
+The expression for the simplest Recurrent network resembles that of a
+regular feed-forward neural network, but now with
+the concept of temporal dependencies
+
+!bt
+\begin{align*}
+    \mathbf{a}^{(t)} & = U * \mathbf{x}^{(t)} + W * \mathbf{h}^{(t-1)} + \mathbf{b}, \notag \\
+    \mathbf{h}^{(t)} &= \sigma_h(\mathbf{a}^{(t)}), \notag\\
+    \mathbf{y}^{(t)} &= V * \mathbf{h}^{(t)} + \mathbf{c}, \notag\\
+    \mathbf{\hat{y}}^{(t)} &= \sigma_y(\mathbf{y}^{(t)}).
+\end{align*}
+!et
+
+
+!split
+===== Back propagation in time through figures, part 1   =====
+
+FIGURE: [figslides/RNN9.png, width=700 frac=0.9]
+
+
+!split
+===== Back propagation in time, part 2   =====
+
+FIGURE: [figslides/RNN10.png, width=700 frac=0.9]
+
+
+!split
+===== Back propagation in time, part 3   =====
+
+FIGURE: [figslides/RNN11.png, width=700 frac=0.9]
+
+
+!split
+===== Back propagation in time, part 4   =====
+
+FIGURE: [figslides/RNN12.png, width=700 frac=0.9]
+
+
+!split
+===== Back propagation in time in equations =====
+
+To derive the expression of the gradients of $\mathcal{L}$ for
+the RNN, we need to start recursively from the nodes closer to the
+output layer in the temporal unrolling scheme - such as $\mathbf{y}$
+and $\mathbf{h}$ at final time $t = \tau$,
+
+!bt
+\begin{align*}
+    (\nabla_{ \mathbf{y}^{(t)}} \mathcal{L})_{i} &= \frac{\partial \mathcal{L}}{\partial L^{(t)}}\frac{\partial L^{(t)}}{\partial y_{i}^{(t)}}, \notag\\
+    \nabla_{\mathbf{h}^{(\tau)}} \mathcal{L} &= \mathbf{V}^\mathsf{T}\nabla_{ \mathbf{y}^{(\tau)}} \mathcal{L}.
+\end{align*}
+!et
+
+!split
+===== Chain rule again =====
+For the following hidden nodes, we have to iterate through time, so by the chain rule, 
+
+!bt
+\begin{align*}
+    \nabla_{\mathbf{h}^{(t)}} \mathcal{L} &= \left(\frac{\partial\mathbf{h}^{(t+1)}}{\partial\mathbf{h}^{(t)}}\right)^\mathsf{T}\nabla_{\mathbf{h}^{(t+1)}}\mathcal{L} + \left(\frac{\partial\mathbf{y}^{(t)}}{\partial\mathbf{h}^{(t)}}\right)^\mathsf{T}\nabla_{ \mathbf{y}^{(t)}} \mathcal{L}.
+\end{align*}
+!et
+
+!split
+===== Gradients of loss functions =====
+Similarly, the gradients of $\mathcal{L}$ with respect to the weights and biases follow,
+
+!bt
+\begin{align*}
+    \nabla_{\mathbf{c}} \mathcal{L} &=\sum_{t}\left(\frac{\partial \mathbf{y}^{(t)}}{\partial \mathbf{c}}\right)^\mathsf{T} \nabla_{\mathbf{y}^{(t)}} \mathcal{L} \notag\\
+    \nabla_{\mathbf{b}} \mathcal{L} &=\sum_{t}\left(\frac{\partial \mathbf{h}^{(t)}}{\partial \mathbf{b}}\right)^\mathsf{T}        \nabla_{\mathbf{h}^{(t)}} \mathcal{L} \notag\\
+    \nabla_{\mathbf{V}} \mathcal{L} &=\sum_{t}\sum_{i}\left(\frac{\partial \mathcal{L}}{\partial y_i^{(t)} }\right)\nabla_{\mathbf{V}^{(t)}}y_i^{(t)} \notag\\
+    \nabla_{\mathbf{W}} \mathcal{L} &=\sum_{t}\sum_{i}\left(\frac{\partial \mathcal{L}}{\partial h_i^{(t)}}\right)\nabla_{\mathbf{w}^{(t)}} h_i^{(t)} \notag\\
+    \nabla_{\mathbf{U}} \mathcal{L} &=\sum_{t}\sum_{i}\left(\frac{\partial \mathcal{L}}{\partial h_i^{(t)}}\right)\nabla_{\mathbf{U}^{(t)}}h_i^{(t)}.
+    \label{eq:rnn_gradients3}
+\end{align*}
+!et
+
+!split
+===== Summary of RNNs =====
+
+Recurrent neural networks (RNNs) have in general no probabilistic component
+in a model. With a given fixed input and target from data, the RNNs learn the intermediate
+association between various layers.
+The inputs, outputs, and internal representation (hidden states) are all
+real-valued vectors.
+
+In a  traditional NN, it is assumed that every input is
+independent of each other.  But with sequential data, the input at a given stage $t$ depends on the input from the previous stage $t-1$
+
+!split
+===== Summary of a  typical RNN =====
+
+o Weight matrices $U$, $W$ and $V$ that connect the input layer at a stage $t$ with the hidden layer $h_t$, the previous hidden layer $h_{t-1}$ with $h_t$ and the hidden layer $h_t$ connecting with the output layer at the same stage and producing an output $\tilde{y}_t$, respectively.
+o The output from the hidden layer $h_t$ is oftem modulated by a $\tanh{}$ function $h_t=\sigma_h(x_t,h_{t-1})=\tanh{(Ux_t+Wh_{t-1}+b)}$ with $b$ a bias value
+o The output from the hidden layer produces $\tilde{y}_t=\sigma_y(Vh_t+c)$ where $c$ is a new bias parameter.
+o The output from the training at a given stage is in turn compared with the observation $y_t$ thorugh a chosen cost function.
+
+The function $g$ can any of the standard activation functions, that is a Sigmoid, a Softmax, a ReLU and other.
+The parameters are trained through the so-called back-propagation through time (BPTT) algorithm.
+
+
+!split
+===== Four effective ways to learn an RNN  =====
+o Long Short Term Memory Make the RNN out of little modules that are designed to remember values for a long time.
+o Hessian Free Optimization: Deal with the vanishing gradients problem by using a fancy optimizer that can detect directions with a tiny gradient but even smaller curvature.
+o Echo State Networks (ESN): Initialize the input a hidden and hidden-hidden and output-hidden connections very carefully so that the hidden state has a huge reservoir of weakly coupled oscillators which can be selectively driven by the input. ESNs only need to learn the hidden-output connections.
+o Good initialization with momentum Initialize like in Echo State Networks, but then learn all of the connections using momentum
+
+
+
+
+!split
+===== The mathematics of RNNs, the basic architecture  =====
+
+See notebook at URL:"https://github.com/CompPhysics/AdvancedMachineLearning/blob/main/doc/pub/week7/ipynb/rnnmath.ipynb"
+
+
+!split
+===== Gating mechanism: Long Short Term Memory (LSTM) =====
+
+Besides a simple recurrent neural network layer, as discussed above, there are two other
+commonly used types of recurrent neural network layers: Long Short
+Term Memory (LSTM) and Gated Recurrent Unit (GRU).  For a short
+introduction to these layers see URL:"https://medium.com/mindboard/lstm-vs-gru-experimental-comparison-955820c21e8b"
+and URL:"https://medium.com/mindboard/lstm-vs-gru-experimental-comparison-955820c21e8b".
+
+
+LSTM uses a memory cell for  modeling long-range dependencies and avoid vanishing gradient  problems.
+Capable of modeling longer term dependencies by having
+memory cells and gates that controls the information flow along
+with the memory cells.
+
+o Introduced by Hochreiter and Schmidhuber (1997) who solved the problem of getting an RNN to remember things for a long time (like hundreds of time steps).
+o They designed a memory cell using logistic and linear units with multiplicative interactions.
+o Information gets into the cell whenever its “write” gate is on.
+o The information stays in the cell so long as its _keep_ gate is on.
+o Information can be read from the cell by turning on its _read_ gate. 
+
+The LSTM were first introduced to overcome the vanishing gradient problem.
+
+!split
+===== Implementing a memory cell in a neural network =====
+
+To preserve information for a long time in
+the activities of an RNN, we use a circuit
+that implements an analog memory cell.
+
+o A linear unit that has a self-link with a weight of 1 will maintain its state.
+o Information is stored in the cell by activating its write gate.
+o Information is retrieved by activating the read gate.
+o We can backpropagate through this circuit because logistics are have nice derivatives. 
+
+
+!split
+===== LSTM details =====
+
+The LSTM is a unit cell that is made of three gates:
+o the input gate,
+o the forget gate,
+o and the output gate.
+
+It also introduces a cell state $c$, which can be thought of as the
+long-term memory, and a hidden state $h$ which can be thought of as
+the short-term memory.
+
+
+!split
+===== Basic layout (All figures from Raschka *et al.,*) =====
+
+FIGURE: [figslides/LSTM1.png, width=700 frac=1.0]
+
+
+!split
+===== LSTM details =====
+
+The first stage is called the forget gate, where we combine the input
+at (say, time $t$), and the hidden cell state input at $t-1$, passing
+it through the Sigmoid activation function and then performing an
+element-wise multiplication, denoted by $\odot$.
+
+Mathematically we have (see also figure below)
+!bt
+\[
+\mathbf{f}^{(t)} = \sigma(W_{fx}\mathbf{x}^{(t)} + W_{fh}\mathbf{h}^{(t-1)} + \mathbf{b}_f)
+\]
+!et
+where the $W$s are the weights to be trained.
+
+
+
+!split
+===== Comparing with a standard  RNN  =====
+
+FIGURE: [figslides/LSTM2.png, width=700 frac=1.0]
+
+
+
+!split
+===== LSTM details I =====
+
+FIGURE: [figslides/LSTM3.png, width=700 frac=1.0]
+
+
+
+
+
+!split
+===== LSTM details II  =====
+
+FIGURE: [figslides/LSTM4.png, width=700 frac=1.0]
+
+
+!split
+===== LSTM details III  =====
+
+FIGURE: [figslides/LSTM5.png, width=700 frac=1.0]
+
+
+!split
+===== Forget gate  =====
+
+FIGURE: [figslides/LSTM6.png, width=700 frac=1.0]
+
+!split
+===== The forget gate =====
+
+The naming forget gate stems from the fact that  the Sigmoid activation function's
+outputs are very close to $0$ if the argument for the function is very
+negative, and $1$ if the argument is very positive. Hence we can
+control the amount of information we want to take from the long-term
+memory.
+!bt
+\[
+\mathbf{f}^{(t)} = \sigma(W_{fx}\mathbf{x}^{(t)} + W_{fh}\mathbf{h}^{(t-1)} + \mathbf{b}_f)
+\]
+!et
+where the $W$s are the weights to be trained.
+
+
+!split
+===== Basic layout =====
+
+FIGURE: [figslides/LSTM7.png, width=700 frac=1.0]
+
+!split
+===== Input gate =====
+
+The next stage is the input gate, which consists of both a Sigmoid
+function ($\sigma_i$), which decide what percentage of the input will
+be stored in the long-term memory, and the $\tanh_i$ function, which
+decide what is the full memory that can be stored in the long term
+memory. When these results are calculated and multiplied together, it
+is added to the cell state or stored in the long-term memory, denoted
+as $\oplus$. 
+
+We have
+!bt
+\[
+\mathbf{i}^{(t)} = \sigma_g(W_{ix}\mathbf{x}^{(t)} + W_{ih}\mathbf{h}^{(t-1)} + \mathbf{b}_i),
+\]
+!et
+and
+!bt
+\[
+\mathbf{g}^{(t)} = \tanh(W_{gx}\mathbf{x}^{(t)} + W_{gh}\mathbf{h}^{(t-1)} + \mathbf{b}_g),
+\]
+!et
+again the $W$s are the weights to train.
+
+
+
+
+!split
+===== Short summary  =====
+
+FIGURE: [figslides/LSTM8.png, width=700 frac=1.0]
+
+
+!split
+===== Forget and input =====
+
+The forget gate and the input gate together also update the cell state with the following equation, 
+!bt
+\[
+\mathbf{c}^{(t)} = \mathbf{f}^{(t)} \otimes \mathbf{c}^{(t-1)} + \mathbf{i}^{(t)} \otimes \mathbf{g}^{(t)},
+\]
+!et
+where $f^{(t)}$ and $i^{(t)}$ are the outputs of the forget gate and the input gate, respectively.
+
+
+!split
+===== Basic layout =====
+
+FIGURE: [figslides/LSTM9.png, width=700 frac=1.0]
+
+
+
+
+!split
+===== Output gate =====
+
+The final stage of the LSTM is the output gate, and its purpose is to
+update the short-term memory.  To achieve this, we take the newly
+generated long-term memory and process it through a hyperbolic tangent
+($\tanh$) function creating a potential new short-term memory. We then
+multiply this potential memory by the output of the Sigmoid function
+($\sigma_o$). This multiplication generates the final output as well
+as the input for the next hidden cell ($h^{\langle t \rangle}$) within
+the LSTM cell.
+
+We have 
+!bt
+\[
+\begin{aligned}
+\mathbf{o}^{(t)} &= \sigma_g(W_o\mathbf{x}^{(t)} + U_o\mathbf{h}^{(t-1)} + \mathbf{b}_o), \\
+\mathbf{h}^{(t)} &= \mathbf{o}^{(t)} \otimes \sigma_h(\mathbf{c}^{(t)}). \\
+\end{aligned}
+\]
+!et
+where $\mathbf{W_o,U_o}$ are the weights of the output gate and $\mathbf{b_o}$ is the bias of the output gate.
+
+
+!split
+===== Summary of LSTM =====
+
+LSTMs provide a basic approach for modeling long-range dependencies in sequences.
+If you wish to read more, see _An Empirical Exploration of Recurrent Network Architectures_, authored
+by Rafal Jozefowicz *et al.,*  Proceedings of ICML, 2342-2350, 2015).
+
+An important recent development are so-called noting is a more recent
+method named _gated recurrent unit (GRU)_, se for example the article
+by Junyoung Chung *et al.,*, at URL:"https://arxiv.org/abs/1412.3555.
+This article is an excellent read if you are interested in learning
+more about these modern RNN architectures
+
+The GRUs have a simpler
+architecture than LSTMs. This leads to computationally more efficient methods, while their
+performance in some tasks, such as polyphonic music modeling, is comparable to LSTMs.
+
+And recently Beck *et al.,* see URL:"https://arxiv.org/abs/2405.04517", have demonstrated that exponential gating and modified memory structures boost xLSTM capabilities to perform favorably when compared to state-of-the-art Transformers and State Space Models, both in performance and scaling.
+
+!split
+===== LSTM implementation using TensorFlow =====
+
+!bc pycod
+"""
+Key points:
+1. The input images (28x28 pixels) are treated as sequences of 28 timesteps with 28 features each
+2. The LSTM layer processes this sequential data
+3. A final dense layer with softmax activation handles the classification
+4. Typical accuracy ranges between 95-98% (lower than CNNs but reasonable for demonstration)
+
+Note: LSTMs are not typically used for image classification (CNNs are more efficient), but this demonstrates how to adapt them for such tasks. Training might take longer compared to CNN architectures.
+
+To improve performance, you could:
+1. Add more LSTM layers
+2. Use Bidirectional LSTMs
+3. Increase the number of units
+4. Add dropout for regularization
+5. Use learning rate scheduling
+"""
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.utils import to_categorical
+
+# Load and preprocess data
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+
+# Normalize pixel values to [0, 1]
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+# Reshape data for LSTM (samples, timesteps, features)
+# MNIST images are 28x28, so we treat each image as 28 timesteps of 28 features
+x_train = x_train.reshape((-1, 28, 28))
+x_test = x_test.reshape((-1, 28, 28))
+
+# Convert labels to one-hot encoding
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+
+# Build LSTM model
+model = Sequential()
+model.add(LSTM(128, input_shape=(28, 28)))  # 128 LSTM units
+model.add(Dense(10, activation='softmax'))
+
+# Compile the model
+model.compile(loss='categorical_crossentropy',
+             optimizer='adam',
+             metrics=['accuracy'])
+
+# Display model summary
+model.summary()
+
+# Train the model
+history = model.fit(x_train, y_train,
+                   batch_size=64,
+                   epochs=10,
+                   validation_split=0.2)
+
+# Evaluate on test data
+test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
+print(f'\nTest accuracy: {test_acc:.4f}')
+!ec
+
+!split
+===== And the corresponding one with PyTorch =====
+
+!bc pycod
+"""
+Key components:
+1. **Data Handling**: Uses PyTorch DataLoader with MNIST dataset
+2. **LSTM Architecture**:
+  - Input sequence of 28 timesteps (image rows)
+  - 128 hidden units in LSTM layer
+  - Fully connected layer for classification
+3. **Training**:
+  - Cross-entropy loss
+  - Adam optimizer
+  - Automatic GPU utilization if available
+
+This implementation typically achieves **97-98% accuracy** after 10 epochs. The main differences from the TensorFlow/Keras version:
+- Explicit device management (CPU/GPU)
+- Manual training loop
+- Different data loading pipeline
+- More explicit tensor reshaping
+
+To improve performance, you could:
+1. Add dropout regularization
+2. Use bidirectional LSTM
+3. Implement learning rate scheduling
+4. Add batch normalization
+5. Increase model capacity (more layers/units)
+"""
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+# Hyperparameters
+input_size = 28     # Number of features (pixels per row)
+hidden_size = 128   # LSTM hidden state size
+num_classes = 10    # Digits 0-9
+num_epochs = 10     # Training iterations
+batch_size = 64     # Batch size
+learning_rate = 0.001
+
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# MNIST dataset
+transform = transforms.Compose([
+   transforms.ToTensor(),
+   transforms.Normalize((0.1307,), (0.3081,))  # MNIST mean and std
+])
+
+train_dataset = datasets.MNIST(root='./data',
+                              train=True,
+                              transform=transform,
+                              download=True)
+
+test_dataset = datasets.MNIST(root='./data',
+                             train=False,
+                             transform=transform)
+
+train_loader = DataLoader(dataset=train_dataset,
+                         batch_size=batch_size,
+                         shuffle=True)
+
+test_loader = DataLoader(dataset=test_dataset,
+                        batch_size=batch_size,
+                        shuffle=False)
+
+# LSTM model
+class LSTMModel(nn.Module):
+   def __init__(self, input_size, hidden_size, num_classes):
+       super(LSTMModel, self).__init__()
+       self.hidden_size = hidden_size
+       self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
+       self.fc = nn.Linear(hidden_size, num_classes)
+
+   def forward(self, x):
+       # Reshape input to (batch_size, sequence_length, input_size)
+       x = x.reshape(-1, 28, 28)
+
+       # Forward propagate LSTM
+       out, _ = self.lstm(x)  # out: (batch_size, seq_length, hidden_size)
+
+       # Decode the hidden state of the last time step
+       out = out[:, -1, :]
+       out = self.fc(out)
+       return out
+
+# Initialize model
+model = LSTMModel(input_size, hidden_size, num_classes).to(device)
+
+# Loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+# Training loop
+total_step = len(train_loader)
+for epoch in range(num_epochs):
+   model.train()
+   for i, (images, labels) in enumerate(train_loader):
+       images = images.to(device)
+       labels = labels.to(device)
+
+       # Forward pass
+       outputs = model(images)
+       loss = criterion(outputs, labels)
+
+       # Backward and optimize
+       optimizer.zero_grad()
+       loss.backward()
+       optimizer.step()
+
+       if (i+1) % 100 == 0:
+           print(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_step}], Loss: {loss.item():.4f}')
+
+   # Test the model
+   model.eval()
+   with torch.no_grad():
+       correct = 0
+       total = 0
+       for images, labels in test_loader:
+           images = images.to(device)
+           labels = labels.to(device)
+           outputs = model(images)
+           _, predicted = torch.max(outputs.data, 1)
+           total += labels.size(0)
+           correct += (predicted == labels).sum().item()
+
+       print(f'Test Accuracy: {100 * correct / total:.2f}%')
+
+print('Training finished.')
+!ec
+
+
+
+!split
+===== Dynamical ordinary differential equation =====
+
+Let us illustrate how we could train an RNN using data from the
+solution of a well-known differential equation, namely Newton's
+equation for oscillatory motion for an object being forced into
+harmonic oscillations by an applied external force.
+
+We will start with the basic algorithm for solving this type of
+equations using the Runge-Kutta-4 approach. The first code example is
+a standalone differential equation solver. It yields positions and
+velocities as function of time, starting with an initial time $t_0$
+and ending with a final time.
+
+The data the program produces will in turn be used to train an RNN for
+a selected number of training data. With a trained RNN, we will then
+use the network to make predictions for data not included in the
+training. That is, we will train a model which should be able to
+reproduce velocities and positions not included in training data.
+
+!split
+===== The Runge-Kutta-4 code =====
+
+!bc pycod
+import numpy as np
+import pandas as pd
+from math import *
+import matplotlib.pyplot as plt
+import os
+
+# Where to save the figures and data files
+PROJECT_ROOT_DIR = "Results"
+FIGURE_ID = "Results/FigureFiles"
+DATA_ID = "DataFiles/"
+
+if not os.path.exists(PROJECT_ROOT_DIR):
+    os.mkdir(PROJECT_ROOT_DIR)
+
+if not os.path.exists(FIGURE_ID):
+    os.makedirs(FIGURE_ID)
+
+if not os.path.exists(DATA_ID):
+    os.makedirs(DATA_ID)
+
+def image_path(fig_id):
+    return os.path.join(FIGURE_ID, fig_id)
+
+def data_path(dat_id):
+    return os.path.join(DATA_ID, dat_id)
+
+def save_fig(fig_id):
+    plt.savefig(image_path(fig_id) + ".png", format='png')
+
+
+def SpringForce(v,x,t):
+#   note here that we have divided by mass and we return the acceleration
+    return  -2*gamma*v-x+Ftilde*cos(t*Omegatilde)
+
+
+def RK4(v,x,t,n,Force):
+    for i in range(n-1):
+# Setting up k1
+        k1x = DeltaT*v[i]
+        k1v = DeltaT*Force(v[i],x[i],t[i])
+# Setting up k2
+        vv = v[i]+k1v*0.5
+        xx = x[i]+k1x*0.5
+        k2x = DeltaT*vv
+        k2v = DeltaT*Force(vv,xx,t[i]+DeltaT*0.5)
+# Setting up k3
+        vv = v[i]+k2v*0.5
+        xx = x[i]+k2x*0.5
+        k3x = DeltaT*vv
+        k3v = DeltaT*Force(vv,xx,t[i]+DeltaT*0.5)
+# Setting up k4
+        vv = v[i]+k3v
+        xx = x[i]+k3x
+        k4x = DeltaT*vv
+        k4v = DeltaT*Force(vv,xx,t[i]+DeltaT)
+# Final result
+        x[i+1] = x[i]+(k1x+2*k2x+2*k3x+k4x)/6.
+        v[i+1] = v[i]+(k1v+2*k2v+2*k3v+k4v)/6.
+        t[i+1] = t[i] + DeltaT
+
+
+# Main part begins here
+
+DeltaT = 0.001
+#set up arrays 
+tfinal = 20 # in dimensionless time
+n = ceil(tfinal/DeltaT)
+# set up arrays for t, v, and x
+t = np.zeros(n)
+v = np.zeros(n)
+x = np.zeros(n)
+# Initial conditions (can change to more than one dim)
+x0 =  1.0 
+v0 = 0.0
+x[0] = x0
+v[0] = v0
+gamma = 0.2
+Omegatilde = 0.5
+Ftilde = 1.0
+# Start integrating using Euler's method
+# Note that we define the force function as a SpringForce
+RK4(v,x,t,n,SpringForce)
+
+# Plot position as function of time    
+fig, ax = plt.subplots()
+ax.set_ylabel('x[m]')
+ax.set_xlabel('t[s]')
+ax.plot(t, x)
+fig.tight_layout()
+save_fig("ForcedBlockRK4")
+plt.show()
+!ec
+
+!split
+===== Using the above data to train an RNN =====
+
+
+In the code here we have reworked the previous example in order to generate data that can be handled by recurrent neural networks in order to train our model.
+!bc pycod
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+import matplotlib.pyplot as plt
+
+
+# Newton's equation for harmonic oscillations with external force
+
+# Global parameters
+gamma = 0.2        # damping
+Omegatilde = 0.5   # driving frequency
+Ftilde = 1.0       # driving amplitude
+
+def spring_force(v, x, t):
+    """
+    SpringForce:
+    note: divided by mass => returns acceleration
+    a = -2*gamma*v - x + Ftilde*cos(Omegatilde * t)
+    """
+    return -2.0 * gamma * v - x + Ftilde * np.cos(Omegatilde * t)
+
+
+def rk4_trajectory(DeltaT=0.001, tfinal=20.0, x0=1.0, v0=0.0):
+    """
+    Returns t, x, v arrays.
+    """
+    n = int(np.ceil(tfinal / DeltaT))
+
+    t = np.zeros(n, dtype=np.float32)
+    x = np.zeros(n, dtype=np.float32)
+    v = np.zeros(n, dtype=np.float32)
+
+    x[0] = x0
+    v[0] = v0
+
+    for i in range(n - 1):
+        # k1
+        k1x = DeltaT * v[i]
+        k1v = DeltaT * spring_force(v[i], x[i], t[i])
+
+        # k2
+        vv = v[i] + 0.5 * k1v
+        xx = x[i] + 0.5 * k1x
+        k2x = DeltaT * vv
+        k2v = DeltaT * spring_force(vv, xx, t[i] + 0.5 * DeltaT)
+
+        # k3
+        vv = v[i] + 0.5 * k2v
+        xx = x[i] + 0.5 * k2x
+        k3x = DeltaT * vv
+        k3v = DeltaT * spring_force(vv, xx, t[i] + 0.5 * DeltaT)
+
+        # k4
+        vv = v[i] + k3v
+        xx = x[i] + k3x
+        k4x = DeltaT * vv
+        k4v = DeltaT * spring_force(vv, xx, t[i] + DeltaT)
+
+        # Update
+        x[i + 1] = x[i] + (k1x + 2.0 * k2x + 2.0 * k3x + k4x) / 6.0
+        v[i + 1] = v[i] + (k1v + 2.0 * k2v + 2.0 * k3v + k4v) / 6.0
+        t[i + 1] = t[i] + DeltaT
+
+    return t, x, v
+
+
+# Sequence generation for RNN training
+
+def create_sequences(x, seq_len):
+    """
+    Given a 1D array x (e.g., position as a function of time),
+    create input/target sequences for next-step prediction.
+
+    Inputs:  [x_i, x_{i+1}, ..., x_{i+seq_len-1}]
+    Targets: [x_{i+1}, ..., x_{i+seq_len}]
+    """
+    xs = []
+    ys = []
+    for i in range(len(x) - seq_len):
+        seq_x = x[i : i + seq_len]
+        seq_y = x[i + 1 : i + seq_len + 1]  # shifted by one step
+        xs.append(seq_x)
+        ys.append(seq_y)
+
+    xs = np.array(xs, dtype=np.float32)      # shape: (num_samples, seq_len)
+    ys = np.array(ys, dtype=np.float32)      # shape: (num_samples, seq_len)
+    # Add feature dimension (1 feature: the position x)
+    xs = np.expand_dims(xs, axis=-1)         # (num_samples, seq_len, 1)
+    ys = np.expand_dims(ys, axis=-1)         # (num_samples, seq_len, 1)
+    return xs, ys
+
+
+class OscillatorDataset(Dataset):
+    def __init__(self, seq_len=50, DeltaT=0.001, tfinal=20.0, x0=1.0, v0=0.0):
+        t, x, v = rk4_trajectory(DeltaT=DeltaT, tfinal=tfinal, x0=x0, v0=v0)
+        self.t = t
+        self.x = x
+        self.v = v
+        xs, ys = create_sequences(x, seq_len=seq_len)
+        self.inputs = torch.from_numpy(xs)  # (N, seq_len, 1)
+        self.targets = torch.from_numpy(ys) # (N, seq_len, 1)
+
+    def __len__(self):
+        return self.inputs.shape[0]
+
+    def __getitem__(self, idx):
+        return self.inputs[idx], self.targets[idx]
+
+
+# RNN model (LSTM-based in this example)
+
+class RNNPredictor(nn.Module):
+    def __init__(self, input_size=1, hidden_size=32, num_layers=1, output_size=1):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size=input_size,
+                            hidden_size=hidden_size,
+                            num_layers=num_layers,
+                            batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        # x: (batch, seq_len, input_size)
+        out, _ = self.lstm(x)   # out: (batch, seq_len, hidden_size)
+        out = self.fc(out)      # (batch, seq_len, output_size)
+        return out
+
+
+# Training part
+
+def train_model(
+    seq_len=50,
+    DeltaT=0.001,
+    tfinal=20.0,
+    batch_size=64,
+    num_epochs=10,
+    hidden_size=64,
+    lr=1e-3,
+    device=None,
+):
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    # Dataset & DataLoader
+    dataset = OscillatorDataset(seq_len=seq_len, DeltaT=DeltaT, tfinal=tfinal)
+    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    # Model, loss, optimizer
+    model = RNNPredictor(input_size=1, hidden_size=hidden_size, output_size=1)
+    model.to(device)
+
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    # Training loop
+    model.train()
+    for epoch in range(num_epochs):
+        epoch_loss = 0.0
+        for batch_x, batch_y in train_loader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+
+            optimizer.zero_grad()
+            outputs = model(batch_x)
+            loss = criterion(outputs, batch_y)
+            loss.backward()
+            optimizer.step()
+
+            epoch_loss += loss.item() * batch_x.size(0)
+
+        epoch_loss /= len(train_loader.dataset)
+        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.6f}")
+
+    return model, dataset
+
+
+# Evaluation / visualization
+
+def evaluate_and_plot(model, dataset, seq_len=50, device=None):
+    if device is None:
+        device = next(model.parameters()).device
+
+    model.eval()
+    with torch.no_grad():
+        # Take a single sequence from the dataset
+        x_seq, y_seq = dataset[0]  # shapes: (seq_len, 1), (seq_len, 1)
+        x_input = x_seq.unsqueeze(0).to(device)  # (1, seq_len, 1)
+        # Model prediction (next-step for whole sequence)
+        y_pred = model(x_input).cpu().numpy().squeeze(-1).squeeze(0)  # (seq_len,)
+        # True target
+        y_true = y_seq.numpy().squeeze(-1)  # (seq_len,)
+        # Plot comparison
+        plt.figure()
+        plt.plot(y_true, label="True x(t+Δt)", linestyle="-")
+        plt.plot(y_pred, label="Predicted x(t+Δt)", linestyle="--")
+        plt.xlabel("Time step in sequence")
+        plt.ylabel("Position")
+        plt.legend()
+        plt.title("RNN next-step prediction on oscillator trajectory")
+        plt.tight_layout()
+        plt.show()
+
+# This is the main part of the code where we define the network
+
+if __name__ == "__main__":
+    # Hyperparameters can be tweaked as you like
+    seq_len = 50
+    DeltaT = 0.001
+    tfinal = 20.0
+    num_epochs = 10
+    batch_size = 64
+    hidden_size = 64
+    lr = 1e-3
+
+    model, dataset = train_model(
+        seq_len=seq_len,
+        DeltaT=DeltaT,
+        tfinal=tfinal,
+        batch_size=batch_size,
+        num_epochs=num_epochs,
+        hidden_size=hidden_size,
+        lr=lr,
+    )
+
+    evaluate_and_plot(model, dataset, seq_len=seq_len)
+
+!ec
