@@ -1168,3 +1168,166 @@ Lecture 4: Advanced Topics in Simple RNNs
 \item Original papers: Pascanu et al. (2013) On the Difficulty of Training RNNs, Bengio et al. (1994) Learning long-term dependencies is difficult.
 \end{itemize}
 \end{frame}
+
+
+PyTorch RNN Time Series Example
+
+We first implement a simple RNN in PyTorch to forecast a univariate time series (a sine wave). The steps are: (1) generate synthetic data and form input/output sequences; (2) define an nn.RNN model; (3) train the model with MSE loss and an optimizer; (4) evaluate on a held-out test set. For example, using a sine wave as in prior tutorials ￼, we create sliding windows of length seq_length. The code below shows each step. We use nn.RNN (the basic recurrent layer) followed by a linear output. The training loop (with MSELoss and Adam) updates the model to minimize prediction error ￼.
+
+import numpy as np
+import torch
+from torch import nn, optim
+
+# 1. Data preparation: generate a sine wave and create input-output sequences
+time_steps = np.linspace(0, 100, 500)
+data = np.sin(time_steps)                   # shape (500,)
+seq_length = 20
+X, y = [], []
+for i in range(len(data) - seq_length):
+    X.append(data[i:i+seq_length])         # sequence of length seq_length
+    y.append(data[i+seq_length])           # next value to predict
+X = np.array(X)                            # shape (480, seq_length)
+y = np.array(y)                            # shape (480,)
+# Add feature dimension (1) for the RNN input
+X = X[..., None]                           # shape (480, seq_length, 1)
+y = y[..., None]                           # shape (480, 1)
+
+# Split into train/test sets (80/20 split)
+train_size = int(0.8 * len(X))
+X_train = torch.tensor(X[:train_size], dtype=torch.float32)
+y_train = torch.tensor(y[:train_size], dtype=torch.float32)
+X_test  = torch.tensor(X[train_size:],  dtype=torch.float32)
+y_test  = torch.tensor(y[train_size:],  dtype=torch.float32)
+
+# 2. Model definition: simple RNN followed by a linear layer
+class SimpleRNNModel(nn.Module):
+    def __init__(self, input_size=1, hidden_size=16, num_layers=1):
+        super(SimpleRNNModel, self).__init__()
+        # nn.RNN for sequential data (batch_first=True expects (batch, seq_len, features))
+        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, 1)    # output layer for prediction
+
+    def forward(self, x):
+        out, _ = self.rnn(x)                 # out: (batch, seq_len, hidden_size)
+        out = out[:, -1, :]                  # take output of last time step
+        return self.fc(out)                 # linear layer to 1D output
+
+model = SimpleRNNModel(input_size=1, hidden_size=16, num_layers=1)
+print(model)  # print model summary (structure)
+# Output example:
+# SimpleRNNModel(
+#   (rnn): RNN(1, 16, batch_first=True)
+#   (fc): Linear(in_features=16, out_features=1, bias=True)
+# )
+
+	•	Model Explanation: Here input_size=1 because each time step has one feature. The RNN hidden state has size 16, and batch_first=True means input tensors have shape (batch, seq_len, features). We take the last RNN output and feed it through a linear layer to predict the next value ￼.
+
+# 3. Training loop: MSE loss and Adam optimizer
+criterion = nn.MSELoss()                  # mean squared error loss
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+epochs = 50
+for epoch in range(1, epochs+1):
+    model.train()
+    optimizer.zero_grad()
+    output = model(X_train)               # forward pass
+    loss = criterion(output, y_train)     # compute training loss
+    loss.backward()                       # backpropagate
+    optimizer.step()                      # update weights
+    if epoch % 10 == 0:
+        print(f'Epoch {epoch}/{epochs}, Loss: {loss.item():.4f}')
+# Sample output:
+# Epoch 10/50, Loss: 0.3604
+# Epoch 20/50, Loss: 0.0542
+# Epoch 30/50, Loss: 0.0207
+# Epoch 40/50, Loss: 0.0102
+# Epoch 50/50, Loss: 0.0065
+
+	•	Training Details: We train for 50 epochs, printing the training loss every 10 epochs. As training proceeds, the loss (MSE) typically decreases, indicating the RNN is learning the sine-wave pattern ￼.
+
+# 4. Evaluation on test set
+model.eval()
+with torch.no_grad():
+    pred = model(X_test)
+    test_loss = criterion(pred, y_test)
+print(f'Test Loss: {test_loss.item():.4f}')
+
+# (Optional) View a few actual vs. predicted values
+print("Actual:", y_test[:5].flatten().numpy())
+print("Pred : ", pred[:5].flatten().numpy())
+
+	•	Evaluation: We switch to eval mode and compute loss on the test set. The lower test loss indicates how well the model generalizes. The code prints a few sample predictions against actual values for qualitative assessment. This simple PyTorch RNN code closely follows known tutorials ￼.
+
+TensorFlow (Keras) RNN Time Series Example
+
+Next, we use TensorFlow/Keras to do the same task. We build a tf.keras.Sequential model with a SimpleRNN layer (the most basic recurrent layer) ￼ followed by a Dense output. The workflow is similar: create the same synthetic sine data and split it into train/test sets; then define, train, and evaluate the model.
+
+import numpy as np
+import tensorflow as tf
+
+# 1. Data preparation: same sine wave data and sequences as above
+time_steps = np.linspace(0, 100, 500)
+data = np.sin(time_steps)                     # (500,)
+seq_length = 20
+X, y = [], []
+for i in range(len(data) - seq_length):
+    X.append(data[i:i+seq_length])
+    y.append(data[i+seq_length])
+X = np.array(X)                               # (480, seq_length)
+y = np.array(y)                               # (480,)
+# reshape for RNN: (samples, timesteps, features)
+X = X.reshape(-1, seq_length, 1)             # (480, 20, 1)
+y = y.reshape(-1, 1)                         # (480, 1)
+
+# Split into train/test (80/20)
+split = int(0.8 * len(X))
+X_train, X_test = X[:split], X[split:]
+y_train, y_test = y[:split], y[split:]
+
+	•	Data: We use the same sine-wave sequence and sliding-window split as in the PyTorch example ￼. The arrays are reshaped to (batch, timesteps, features) for Keras.
+
+# 2. Model definition: Keras SimpleRNN and Dense
+model = tf.keras.Sequential([
+    tf.keras.layers.SimpleRNN(16, input_shape=(seq_length, 1)),
+    tf.keras.layers.Dense(1)
+])
+model.compile(optimizer='adam', loss='mse')   # MSE loss and Adam optimizer
+model.summary()
+# Output example:
+# Model: "sequential"
+# _________________________________________________________________
+# Layer (type)                 Output Shape              Param #   
+# =================================================================
+# simple_rnn (SimpleRNN)      (None, 16)                 288       
+# _________________________________________________________________
+# dense (Dense)              (None, 1)                   17        
+# =================================================================
+
+	•	Model Explanation: Here SimpleRNN(16) creates 16 recurrent units. The model summary shows the shapes and number of parameters. (Keras handles the sequence dimension internally.)
+
+# 3. Training
+history = model.fit(
+    X_train, y_train,
+    epochs=50,
+    batch_size=32,
+    validation_split=0.2,    # use 20% of train data for validation
+    verbose=1
+)
+# Training progress prints loss/val_loss each epoch
+
+	•	Training: We train for 50 epochs. The fit call also reports validation loss (using a 20% split of the training data) to monitor generalization. (This follows the standard Keras approach ￼.)
+
+# 4. Evaluation on test set
+test_loss = model.evaluate(X_test, y_test, verbose=0)
+print(f'Test Loss: {test_loss:.4f}')
+
+# (Optional) Predictions
+predictions = model.predict(X_test)
+print("Actual:", y_test.flatten()[:5])
+print("Pred : ", predictions.flatten()[:5])
+
+	•	Evaluation: After training, we call model.evaluate on the test set. A low test loss indicates good forecasting accuracy. We also predict and compare a few samples of actual vs. predicted values. This completes the simple RNN forecasting example in TensorFlow.
+
+Both examples use only basic RNN cells (no LSTM/GRU) and include data preparation, model definition, training loop, and evaluation. The PyTorch code uses nn.RNN as in common tutorials ￼ ￼, and the Keras code uses SimpleRNN layer ￼. Each code block above is self-contained and can be run independently with standard libraries (NumPy, PyTorch or TensorFlow).
+
+Sources: We adapted the PyTorch example from a tutorial using a sine-wave dataset ￼ ￼ ￼, and the Keras steps follow standard time-series RNN usage ￼ ￼.
