@@ -894,3 +894,277 @@ if __name__ == "__main__":
     evaluate_and_plot(model, dataset, seq_len=seq_len)
 
 !ec
+
+
+
+Simple RNN Lecture Series
+
+Lecture 1: Introduction to Simple RNNs
+
+\begin{frame}{Why Recurrent Networks?}
+\begin{itemize}
+\item Traditional feedforward networks process fixed-size inputs and ignore temporal order. RNNs incorporate recurrence to handle sequential data like time series or language ￼.
+\item At each time step, an RNN cell processes input x_t and a hidden state h_{t-1} from the previous step, producing a new hidden state h_t and (optionally) an output y_t.
+\item This hidden state acts as a “memory” carrying information forward. For example, predicting stock prices or words in a sentence relies on past inputs ￼ ￼.
+\item RNNs share parameters across time steps, so they can generalize patterns regardless of sequence length ￼.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{RNN Forward Pass Equations}
+	•	For a simple (vanilla) RNN with one hidden layer and no bias, the state update and output are:
+\mathbf{h}_t = \phi(\mathbf{W}_{xh}\mathbf{x}_t + \mathbf{W}_{hh}\mathbf{h}_{t-1})\,,\quad
+\mathbf{y}_t = \mathbf{W}_{yh}\mathbf{h}_t\,,
+where \phi is a nonlinear activation (e.g. tanh or ReLU) ￼.
+	•	In matrix form, \mathbf{W}_{xh}\in\mathbb{R}^{h\times d}, \mathbf{W}_{hh}\in\mathbb{R}^{h\times h}, \mathbf{W}_{yh}\in\mathbb{R}^{q\times h} for input dim d, hidden dim h, output dim q ￼.
+	•	We often also write y_t = f(\mathbf{o}_t) with \mathbf{o}_t=W_{yh}h_t to include a final activation for classification.
+	•	Because the same \mathbf{W} are used each step, gradients during training will propagate through time (see Lecture 2).
+\end{frame}
+
+\begin{frame}{Unrolled RNN in Time}
+
+\begin{itemize}
+\item The diagram above shows an RNN cell unrolled over three time steps. Each copy of the cell shares the same weights ￼.
+\item Input x_1,x_2,x_3 feed sequentially; the hidden state flows from one step to the next, capturing past context.
+\item After processing the final input x_T, the network can make a prediction (many-to-one) or outputs can be produced at each step (many-to-many).
+\item Unrolling clarifies that training an RNN is like training a deep feedforward network of depth T, with recurrent connections tying layers together ￼.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example Task: Character-level RNN Classification}
+\begin{itemize}
+\item A classic example: feed a name (sequence of characters) one char at a time, and classify its language of origin.
+\item At each step, the RNN outputs a hidden state; we use the final hidden state to predict the class of the entire sequence ￼.
+\item “A character-level RNN reads words as a series of characters—outputting a prediction and ‘hidden state’ at each step, feeding the previous hidden state into the next step. We take the final prediction to be the output” ￼.
+\item This illustrates sequence-to-one modeling: every output depends on all previous inputs.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PyTorch: Defining a Simple RNN}
+\begin{lstlisting}
+import torch, torch.nn as nn
+
+A simple RNN-based model
+
+model = nn.Sequential(
+nn.RNN(input_size=10, hidden_size=20, num_layers=2, batch_first=True),
+nn.Linear(20, 5)  # 5 output classes
+)
+
+Example input: batch of 3 sequences, each of length 7, input dim 10
+
+x = torch.randn(3, 7, 10)
+output, hn = model(x)  # output shape: (3,7,20), hn shape: (2,3,20)
+\end{lstlisting}
+	•	PyTorch’s nn.RNN(in_features, hidden_size, num_layers) stacks RNN layers (here 2) ￼.
+	•	The output tensor has shape (batch, seq_len, hidden_size); hn contains the last hidden states for each layer.
+	•	This code example is adapted from PyTorch docs ￼ ￼.
+\end{frame}
+
+\begin{frame}{TensorFlow: Defining a Simple RNN}
+\begin{lstlisting}
+from tensorflow.keras import layers, models
+
+Sequential model with a single SimpleRNN layer
+
+model = models.Sequential([
+layers.SimpleRNN(64, input_shape=(None, 10), activation=‘tanh’),
+layers.Dense(5, activation=‘softmax’)
+])
+model.summary()
+\end{lstlisting}
+	•	This Keras model takes variable-length sequences of 10-dimensional inputs; the SimpleRNN(64) layer returns a 64-dim vector.
+	•	We then use a dense output for classification. TensorFlow usage example:
+model.add(layers.SimpleRNN(128)) produces output shape (None,128) ￼.
+	•	Both frameworks require you to handle batching and sequence lengths (e.g., batch_first=True in PyTorch makes input shape (batch,seq,features), whereas in TensorFlow Keras, batch is first by default ￼).
+\end{frame}
+
+Lecture 2: Backpropagation Through Time (BPTT) and Gradients
+
+\begin{frame}{Backpropagation Through Time (BPTT)}
+\begin{itemize}
+\item Training an RNN involves computing gradients through time by unfolding the network: treat the unrolled RNN as a very deep feedforward net.
+\item We compute the loss L = \frac{1}{T}\sum_{t=1}^T \ell(y_t,\hat y_t) and backpropagate from t=T down to t=1.
+\item The computational graph below (for 3 steps) shows how each hidden state depends on inputs and parameters across time ￼.
+\item BPTT applies the chain rule along this graph, accumulating gradients from each time step into the shared parameters.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{RNN Computational Graph}
+
+\begin{itemize}
+\item Boxes (variables) and circles (operations) illustrate dependencies: each h_t depends on W_{xh},W_{hh}, h_{t-1}, x_t ￼.
+\item During the backward pass, we traverse this graph in reverse, summing gradients that flow from future time steps.
+\item Note how the hidden state paths merge: gradients at step t come from both the loss at t and from the next step t+1.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Gradient Computation (BPTT Equations)}
+	•	Let L be the total loss. For the final time step T,
+\frac{\partial L}{\partial h_T} = W_{yh}^T \frac{\partial L}{\partial y_T} using y_T=W_{yh}h_T ￼.
+	•	For any intermediate step t<T, the gradient w.r.t. the hidden state obeys the recurrence:
+\displaystyle\frac{\partial L}{\partial h_t} = W_{hh}^T\frac{\partial L}{\partial h_{t+1}} + W_{yh}^T\frac{\partial L}{\partial y_t} ￼.
+	•	In words: error from the future step (\partial L/\partial h_{t+1}) is backpropagated through W_{hh}, and error from current output is backpropagated through W_{yh}.
+	•	The gradients for the parameters are sums over time: e.g., \partial L/\partial W_{yh} = \sum_{t=1}^T \frac{\partial L}{\partial y_t}h_t^T ￼ and similar for W_{xh},W_{hh}.
+\end{frame}
+
+\begin{frame}{Exploding and Vanishing Gradients}
+	•	Unfolded BPTT shows gradients involve powers of W_{hh}. For example, expanding the recurrence gives terms like (W_{hh}^T)^{k} multiplying gradients from k steps ahead ￼.
+	•	Vanishing gradients: If \|W_{hh}\|<1 (eigenvalues <1), repeated multiplications shrink gradients exponentially, making it hard to learn long-range dependencies.
+	•	Exploding gradients: If \|W_{hh}\|>1, gradients grow exponentially, causing instability.
+	•	As noted: “eigenvalues smaller than 1 vanish and eigenvalues larger than 1 diverge. This is numerically unstable… manifesting as vanishing and exploding gradients.” ￼.
+	•	In practice, one mitigates this by careful weight initialization and gradient clipping (e.g., clip_grad_norm_ in PyTorch), or by truncating BPTT.
+\end{frame}
+
+\begin{frame}{Truncated BPTT and Gradient Clipping}
+\begin{itemize}
+\item Truncated BPTT: Instead of backpropagating through all T steps, we may backpropagate through a fixed window of length \tau. This approximates the full gradient and reduces computation ￼.
+\item Concretely, one computes gradients up to \tau steps and treats gradients beyond as zero. This still allows learning short-term patterns efficiently.
+\item Gradient Clipping: Cap the gradient norm to a maximum value to prevent explosion. For example in PyTorch:
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) ensures \|\nabla\|\le1.
+\item These techniques help stabilize training, but the fundamental vanishing problem motivates using alternative RNN cells (LSTM/GRU) in practice (though we do not cover them here).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Mathematical Insight on Gradients}
+	•	In a linearized RNN, one can derive (9.7.15) showing \partial L/\partial h_t = \sum_{i=t}^T (W_{hh}^T)^{T-i} W_{yh}^T \frac{\partial L}{\partial y_{T+t-i}} ￼.
+	•	From this, any eigenvalue \lambda of W_{hh} contributes factors \lambda^{T-t} to gradients. If |\lambda|<1, terms vanish as T\to\infty; if |\lambda|>1, they explode.
+	•	Thus, simple RNNs struggle with long-term dependencies: information far back in time has negligible influence on the loss gradient ￼.
+	•	Truncation effectively ignores terms beyond a window, trading off accuracy for stability.
+\end{frame}
+
+Lecture 3: Applications of Simple RNNs
+
+\begin{frame}{RNNs for Time Series Forecasting}
+\begin{itemize}
+\item Forecasting: RNNs can predict future values from historical data. Example tasks include stock prices, weather patterns, or any temporal signal ￼.
+\item By feeding in sequence \{x_1,x_2,\dots,x_T\}, an RNN can output a prediction y_T (one-step ahead) or even a full sequence \{y_2,\dots,y_{T+1}\}.
+\item Unlike linear models, RNNs can capture complex temporal patterns (trends, seasonality, autocorrelation) in a data-driven way ￼.
+\item Preprocessing (normalization, sliding windows) is important. Split data into train/test by time (no shuffling).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Sequence Modeling Tasks}
+\begin{itemize}
+\item Many-to-One: Classify or predict one value from an entire sequence (e.g., sentiment analysis of a movie review, or classifying a time series). We use the final hidden state as a summary of the sequence.
+\item Many-to-Many (Prediction): Predict an output at each time step (e.g., language modeling or sequential regression). RNN outputs are used at each step.
+\item Encoder–Decoder (Seq2Seq): (Advanced) Map input sequences to output sequences of different lengths. Though typically LSTM-based, it’s conceptually possible with simple RNNs.
+\item RNNs also apply to physics and biology: e.g., modeling dynamical systems, protein sequences, or neuroscience time series. Any domain with sequential data can use RNN-based modeling.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PyTorch Example: Time Series Regression}
+\begin{lstlisting}
+import torch.nn as nn
+
+Simple RNN for sequence-to-value regression
+
+class ForecastRNN(nn.Module):
+def init(self, input_dim, hidden_dim):
+super().init()
+self.rnn = nn.RNN(input_dim, hidden_dim, batch_first=True)
+self.fc = nn.Linear(hidden_dim, 1)
+def forward(self, x):
+out, _ = self.rnn(x)         # out: (batch, seq_len, hidden_dim)
+return self.fc(out[:, -1, :])  # use last output for prediction
+
+model = ForecastRNN(input_dim=1, hidden_dim=20)
+x = torch.randn(16, 10, 1)  # batch=16, seq_len=10
+y_pred = model(x)  # shape (16,1)
+\end{lstlisting}
+	•	This RNN reads 10 time steps of a univariate series and outputs a single prediction (one-step ahead).
+	•	We apply a linear layer to the last RNN output (out[:,-1,:]) to make the forecast.
+	•	Training would minimize MSE between y_pred and true next value.
+\end{frame}
+
+\begin{frame}{TensorFlow Example: Time Series Regression}
+\begin{lstlisting}
+from tensorflow.keras import layers, models
+
+model = models.Sequential([
+layers.SimpleRNN(20, input_shape=(None, 1), activation=‘tanh’),
+layers.Dense(1)
+])
+model.compile(loss=‘mse’, optimizer=‘adam’)
+model.summary()
+\end{lstlisting}
+	•	Here SimpleRNN(20) processes sequences of shape (batch, seq_len, 1), outputting a 20-dimensional vector for the last time step.
+	•	We then predict a single value with Dense(1). The model is compiled with mean-squared error for regression.
+	•	This aligns with the PyTorch example: both frameworks allow easy stacking of an RNN layer followed by a Dense layer for output.
+\end{frame}
+
+\begin{frame}{Other Sequence Applications}
+\begin{itemize}
+\item Sequence Classification: Use RNN hidden state for class labels. For example, classify a time series into anomaly vs normal.
+\item Sequence Labeling: Predict labels at each time step (e.g. part-of-speech tagging). The RNN outputs a vector at each step passed through a classification layer.
+\item Language and Text: (Advanced) Character or word-level models use RNNs to generate text or classify documents. E.g., predicting next character from previous ones (RNN language model) ￼.
+\item Physically Motivated Data: RNNs can model dynamical systems (e.g., rolling ball trajectories, neuron spikes over time, climate data). They learn temporal patterns directly from data without explicit equations.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Training and Practical Tips}
+\begin{itemize}
+\item Loss Functions: Use MSE for regression tasks, cross-entropy for classification tasks. Sum or average losses over time steps as needed.
+\item Batching Sequences: Handle variable-length sequences by padding or using masking. PyTorch pack_padded_sequence or Keras masking can help.
+\item Optimization: Standard optimizers (SGD, Adam) work. Learning rate may need tuning due to sequential correlations.
+\item Initial Hidden State: Usually initialized to zeros. Can also learn an initial state or carry hidden state across batches for very long sequences (stateful=True in Keras).
+\item Regularization: Dropout can be applied to inputs or recurrent states (PyTorch/RNN has dropout option; Keras has dropout/recurrent_dropout).
+\end{itemize}
+\end{frame}
+
+Lecture 4: Advanced Topics in Simple RNNs
+
+\begin{frame}{Stacked (Deep) RNNs}
+
+\begin{itemize}
+\item In a deep RNN, multiple RNN layers are stacked: the output of layer l-1 at time t feeds into layer l at the same time (see Fig. 10.3.1) ￼.
+\item Formally, for layer l: H_t^{(l)} = \phi\big(H_t^{(l-1)}W_{xh}^{(l)} + H_{t-1}^{(l)}W_{hh}^{(l)} + b_h^{(l)}\big) ￼.
+\item Stacking increases model capacity, allowing complex input-to-output transformations and temporal modeling.
+\item In code (PyTorch), use num_layers>1 or explicitly stack nn.RNN layers ￼. In Keras, add multiple SimpleRNN layers with return_sequences=True on all but the last.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bidirectional RNNs (Brief Mention)}
+\begin{itemize}
+\item Though beyond “simple” RNNs, note: Bidirectional RNNs process the sequence forward and backward, concatenating both hidden states. Useful when entire sequence is known (e.g. offline tasks).
+\item In PyTorch: nn.RNN(..., bidirectional=True) makes a 2-directional RNN. In Keras: layers.Bidirectional(layers.SimpleRNN(...)).
+\item This doubles parameters and output size but can improve context capture. However, it still uses simple RNN cells internally (no gates).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Parameter and Output Shapes}
+\begin{itemize}
+\item For PyTorch’s nn.RNN, inputs shape (batch, seq_len, input_dim) (with batch_first=True) ￼; output is (batch, seq_len, hidden_size).
+\item Keras SimpleRNN(units, input_shape=(None,input_dim)) outputs shape (batch, units) by default (last output). To get full sequences, use return_sequences=True.
+\item Hidden state tensor shapes: PyTorch returns h_n of shape (num_layers * num_directions, batch, hidden_size).
+\item Always check framework docs for exact conventions (e.g., PyTorch’s batch_first flag) ￼ ￼.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Limitations and Considerations}
+\begin{itemize}
+\item Vanishing Gradients: Simple RNNs have fundamental difficulty learning long-term dependencies due to gradient decay ￼.
+\item Capacity: Without gates, RNNs may struggle with tasks requiring remembering far-back inputs. Training can be slow as it’s inherently sequential.
+\item Alternatives: In practice, gated RNNs (LSTM/GRU) or Transformers are often used for long-range dependencies. However, simple RNNs are still instructive and sometimes sufficient for short sequences ￼ ￼.
+\item Regularization: Weight decay or dropout (on inputs/states) can help generalization but must be applied carefully due to temporal correlations.
+\item Statefulness: For very long sequences, one can preserve hidden state across batches (stateful RNN) to avoid resetting memory.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Summary of Forward/Backward}
+\begin{itemize}
+\item Forward pass: h_t = \phi(W_{xh} x_t + W_{hh} h_{t-1} + b), y_t = W_{yh} h_t + c ￼.
+\item Backward pass (BPTT): Gradients flow as
+\frac{\partial L}{\partial h_t} = W_{hh}^T \frac{\partial L}{\partial h_{t+1}} + W_{yh}^T \frac{\partial L}{\partial y_t} ￼, accumulating through time.
+\item Training: Use gradient descent (SGD, Adam, etc.) to update weights W. Monitor for vanishing/exploding gradients and use clipping or truncation as needed ￼ ￼.
+\item Usage: RNNs excel at modeling sequences with short- to mid-term dependencies. They have been widely used in time series, NLP, and any domain with temporal structure ￼ ￼.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Further Resources}
+\begin{itemize}
+\item Deep Learning (Goodfellow et al., 2016) – Chapter on RNNs, BPTT, and gradient issues ￼.
+\item Dive into Deep Learning (https://d2l.ai) – Sections 9.4–9.7 cover RNN implementation and BPTT ￼ ￼.
+\item PyTorch and TensorFlow official tutorials – for practical code examples of RNNs ￼ ￼.
+\item Original papers: Pascanu et al. (2013) On the Difficulty of Training RNNs, Bengio et al. (1994) Learning long-term dependencies is difficult.
+\end{itemize}
+\end{frame}
