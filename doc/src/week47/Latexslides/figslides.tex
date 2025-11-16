@@ -305,246 +305,35 @@ For Gaussian decoder (and diagonal posterior) the ELBO per datapoint:
 Implement with Monte Carlo estimate (often single sample) and backprop through reparameterization.
 \end{frame}
 
-\begin{frame}[<+->]{VAE diagram (reveal)}
-\centering
-\begin{tikzpicture}[>=stealth, node distance=1.8cm]
-  \node[layer] (x) {Input $x$};
-  \node[layer, right=1.8cm of x] (enc) {Encoder};
-  \node[layer, right=1.8cm of enc, yshift=6mm] (mu) {$\mu(x)$};
-  \node[layer, right=1.8cm of enc, yshift=-6mm] (sigma) {$\sigma(x)$};
-  \node[layer, right=2.6cm of mu] (z) {$z=\mu+\sigma\odot\epsilon$};
-  \node[layer, right=2.3cm of z] (dec) {Decoder};
-  \node[layer, right=1.6cm of dec] (xhat) {$\hat x$};
-
-  \draw[->] (x) -- (enc);
-  \draw[->] (enc) -- (mu);
-  \draw[->] (enc) -- (sigma);
-  \draw[->] (mu) -- (z);
-  \draw[->] (sigma) -- (z);
-  \draw[->] (z) -- (dec);
-  \draw[->] (dec) -- (xhat);
-
-  \node[right=0.5cm of sigma] (eps) {$\epsilon\sim\mathcal{N}(0,I)$};
-\end{tikzpicture}
-\end{frame}
-
-
-\begin{frame}{Unrolled RNN With Weight Matrices}
-
-\begin{tikzpicture}[>=stealth, node distance=2.2cm]
-
-\tikzstyle{node}=[draw, circle, minimum size=10mm]
-\tikzstyle{cell}=[draw, rectangle, minimum width=16mm, minimum height=12mm]
-
-% Time step 1
-\node[node] (x1) {$x_1$};
-\node[cell, above=1.5cm of x1] (h1) {$h_1$};
-\node[node, above=1.5cm of h1] (y1) {$y_1$};
-
-% Step 2
-\node[node, right=3cm of x1] (x2) {$x_2$};
-\node[cell, above=1.5cm of x2] (h2) {$h_2$};
-\node[node, above=1.5cm of h2] (y2) {$y_2$};
-
-% Step 3
-\node[node, right=3cm of x2] (x3) {$x_3$};
-\node[cell, above=1.5cm of x3] (h3) {$h_3$};
-\node[node, above=1.5cm of h3] (y3) {$y_3$};
-
-% Arrows input → hidden
-\draw[->] (x1) -- node[right] {$W_{xh}$} (h1);
-\draw[->] (x2) -- node[right] {$W_{xh}$} (h2);
-\draw[->] (x3) -- node[right] {$W_{xh}$} (h3);
-
-% Recurrent arrows
-\draw[->] (h1) -- node[above] {$W_{hh}$} (h2);
-\draw[->] (h2) -- node[above] {$W_{hh}$} (h3);
-
-% Hidden → output
-\draw[->] (h1) -- node[right] {$W_{hy}$} (y1);
-\draw[->] (h2) -- node[right] {$W_{hy}$} (y2);
-\draw[->] (h3) -- node[right] {$W_{hy}$} (y3);
-
-% Time labels
-\node[below=0.2cm of x1] {$t=1$};
-\node[below=0.2cm of x2] {$t=2$};
-\node[below=0.2cm of x3] {$t=3$};
-
-\end{tikzpicture}
-
-\end{frame}
-
-
-\begin{frame}{Deep Autoencoder With Bottleneck and Matrices}
-
-\begin{tikzpicture}[>=stealth, node distance=2cm]
-
-\tikzstyle{layer}=[draw, rectangle, minimum width=22mm, minimum height=12mm]
-
-% Input
-\node[layer] (x) {Input $x$};
-
-% Encoder layers
-\node[layer, right=2cm of x] (enc1) {Enc1 \\ $W_1$};
-\node[layer, right=1.7cm of enc1] (enc2) {Enc2 \\ $W_2$};
-
-% Latent
-\node[layer, right=1.7cm of enc2, minimum width=16mm] (z) {Latent $z$};
-
-% Decoder
-\node[layer, right=1.7cm of z] (dec1) {Dec1 \\ $W_3$};
-\node[layer, right=1.7cm of dec1] (dec2) {Dec2 \\ $W_4$};
-
-% Output
-\node[layer, right=2cm of dec2] (xhat) {Output $\hat{x}$};
-
-% Arrows
-\draw[->] (x) -- (enc1);
-\draw[->] (enc1) -- (enc2);
-\draw[->] (enc2) -- (z);
-\draw[->] (z) -- (dec1);
-\draw[->] (dec1) -- (dec2);
-\draw[->] (dec2) -- (xhat);
-
-\end{tikzpicture}
-
-\end{frame}
-
-
-
-\begin{frame}{LSTM Cell Structure}
-
-\begin{tikzpicture}[>=stealth, node distance=1.8cm]
-
-\tikzstyle{gate}=[draw, rectangle, minimum width=14mm, minimum height=10mm]
-\tikzstyle{circlebox}=[draw, circle, minimum size=8mm]
-
-% Input
-\node[circlebox] (xt) {$x_t$};
-
-% Gates
-\node[gate, above right=0.8cm and 2cm of xt] (i) {Input $i_t$};
-\node[gate, above=1.2cm of xt] (f) {Forget $f_t$};
-\node[gate, below=1.2cm of xt] (o) {Output $o_t$};
-
-% Cell state
-\node[gate, right=3.5cm of xt] (c) {$c_t$};
-
-% Hidden state
-\node[circlebox, right=2cm of o] (ht) {$h_t$};
-
-% Arrows
-\draw[->] (xt) -- (i);
-\draw[->] (xt) -- (f);
-\draw[->] (xt) -- (o);
-
-\draw[->] (i) -- (c);
-\draw[->] (f) -- (c);
-\draw[->] (c) -- (ht);
-\draw[->] (o) -- (ht);
-
-\node[above=0.2cm of c] {$c_{t-1}$};
-
-\draw[->] ($(c)+(-1.5,0.7)$) -- (c);
-
-\end{tikzpicture}
-
-\end{frame}
-
-
-\begin{frame}{CNN Autoencoder}
-
-\begin{tikzpicture}[>=stealth, node distance=2.4cm]
-
-\tikzstyle{block}=[draw, rectangle, minimum width=20mm, minimum height=12mm]
-
-% Input
-\node[block] (x) {Input Image};
-
-% Encoder
-\node[block, right=2cm of x] (conv1) {Conv};
-\node[block, right=1.6cm of conv1] (pool1) {Pool};
-\node[block, right=1.6cm of pool1] (conv2) {Conv};
-\node[block, right=1.6cm of conv2] (pool2) {Pool};
-
-% Latent
-\node[block, right=1.8cm of pool2] (z) {Latent};
-
-% Decoder
-\node[block, right=1.8cm of z] (up1) {Upsample};
-\node[block, right=1.6cm of up1] (deconv1) {Deconv};
-\node[block, right=1.6cm of deconv1] (up2) {Upsample};
-\node[block, right=1.6cm of up2] (deconv2) {Deconv};
-
-% Output
-\node[block, right=2.2cm of deconv2] (xhat) {Reconstruction};
-
-% Arrows
-\draw[->] (x) -- (conv1);
-\draw[->] (conv1) -- (pool1);
-\draw[->] (pool1) -- (conv2);
-\draw[->] (conv2) -- (pool2);
-\draw[->] (pool2) -- (z);
-
-\draw[->] (z) -- (up1);
-\draw[->] (up1) -- (deconv1);
-\draw[->] (deconv1) -- (up2);
-\draw[->] (up2) -- (deconv2);
-\draw[->] (deconv2) -- (xhat);
-
-\end{tikzpicture}
-
-\end{frame}
-
-
 
 \begin{frame}{Variational Autoencoder (VAE)}
 
-\begin{tikzpicture}[>=stealth, node distance=2cm]
 
-\tikzstyle{block}=[draw, rectangle, minimum width=22mm, minimum height=12mm]
 
-% Input
-\node[block] (x) {Input $x$};
 
-% Encoder
-\node[block, right=2cm of x] (enc) {Encoder};
 
-% Mean & variance
-\node[block, right=2cm of enc, yshift=6mm] (mu) {$\mu(x)$};
-\node[block, right=2cm of enc, yshift=-6mm] (sigma) {$\sigma(x)$};
 
-% Latent z
-\node[block, right=3cm of mu] (z) {$z = \mu + \sigma \odot \epsilon$};
 
-% Decoder
-\node[block, right=3cm of z] (dec) {Decoder};
 
-% Output
-\node[block, right=2.2cm of dec] (xhat) {$\hat{x}$};
 
-% Arrows
-\draw[->] (x) -- (enc);
-\draw[->] (enc) -- (mu);
-\draw[->] (enc) -- (sigma);
-
-\draw[->] (mu) -- (z);
-\draw[->] (sigma) -- (z);
-
-\draw[->] (z) -- (dec);
-\draw[->] (dec) -- (xhat);
-
-% Noise input
-\node[right=0.3cm of sigma] (epslabel) {$\epsilon \sim \mathcal{N}(0,I)$};
-
+\begin{tikzpicture}[>=latex, thick, every node/.style={draw,circle,fill=white,minimum size=6mm}]
+  % Input and hidden state nodes (t=1..6)
+  \foreach \i in {0,...,5}{
+    \pgfmathtruncatemacro{\num}{\i+1}
+    \node (x\num) at ({2*\i},0) {$x_{\num}$};
+    \node (h\num) at ({2*\i},2) {$h_{\num}$};
+  }
+  % Arrows: input-to-hidden (W_{xh})
+  \foreach \i in {1,...,6}{
+    \draw[->] (x\i.north) -- node[midway,right] {$W_{xh}$} (h\i.south);
+  }
+  % Arrows: hidden-to-hidden (W_{hh})
+  \foreach \i/\j in {1/2,2/3,3/4,4/5,5/6}{
+    \draw[->] (h\i.east) -- node[midway,above] {$W_{hh}$} (h\j.west);
+  }
 \end{tikzpicture}
 
 \end{frame}
-
-
-
-
-
 \end{document}
 
 
