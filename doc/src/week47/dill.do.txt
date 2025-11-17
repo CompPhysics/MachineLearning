@@ -1,0 +1,570 @@
+TITLE: Week 47: Recurrent neural networks and Autoencoders
+AUTHOR: Morten Hjorth-Jensen {copyright, 1999-present|CC BY-NC} at Department of Physics, University of Oslo, Norway
+DATE: November 17-21, 2025
+
+
+!split
+===== Plan for week 47 =====
+
+
+!bblock Plans for the lecture Monday 17 November, with video suggestions etc
+o Recurrent neural networks, code examples and long-short-term memory
+o Autoencoders (last topic this semester)
+o Readings and Videos:
+o These lecture notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week47.ipynb"
+o See also lecture notes from week 46 at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb". The lecture on Monday starts with a repetition on recurrent neural networks. The second lecture starts with basics of autoenconders.
+#  o Video of lecture at URL:"https://youtu.be/RIHzmLv05DA"
+#  o Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesNovember18.pdf"
+#    * "Video of Lecture":"https://youtu.be/SpWXsvn5I9E"
+!eblock
+
+!bblock  Lab sessions on Tuesday and Wednesday
+o Work and Discussion of project 3
+!eblock  
+
+
+!split
+===== Reading recommendations =====
+
+!bblock
+o For RNNs, see Goodfellow et al chapter 10, see URL:"https://www.deeplearningbook.org/contents/rnn.html".
+o Reading suggestions for implementation of RNNs in PyTorch: see Rashcka et al.'s chapter 15 and GitHub site at URL:"https://github.com/rasbt/machine-learning-book/tree/main/ch15".
+
+!split
+===== TensorFlow examples ===== 
+For TensorFlow (using Keras) implementations, we recommend
+o David Foster, Generative Deep Learning with TensorFlow, see chapter 5 at URL:"https://www.oreilly.com/library/view/generative-deep-learning/9781098134174/ch05.html"
+o Joseph Babcock and Raghav Bali Generative AI with Python and their GitHub link, chapters 2 and  3 at URL:"https://github.com/PacktPublishing/Hands-On-Generative-AI-with-Python-and-TensorFlow-2"  
+!eblock
+
+
+
+!split
+===== What is a recurrent NN? =====
+
+A recurrent neural network (RNN), as opposed to a regular fully
+connected neural network (FCNN) or just neural network (NN), has
+layers that are connected to themselves.
+    
+
+In an FCNN there are no connections between nodes in a single
+layer. For instance, $(h_1^1$ is not connected to $(h_2^1$. In
+addition, the input and output are always of a fixed length.
+
+In an RNN, however, this is no longer the case. Nodes in the hidden
+layers are connected to themselves.
+
+    
+!split
+===== Why RNNs? =====
+
+Recurrent neural networks work very well when working with
+sequential data, that is data where the order matters. In a regular
+fully connected network, the order of input doesn't really matter.
+
+Another property of  RNNs is that they can handle variable input
+and output. Consider again the simplified breast cancer dataset. If you
+have trained a regular FCNN on the dataset with the two features, it
+makes no sense to suddenly add a third feature. The network would not
+know what to do with it, and would reject such inputs with three
+features (or any other number of features that isn't two, for that
+matter).
+
+!split
+===== More whys =====
+!bblock
+o Traditional feedforward networks process fixed-size inputs and ignore temporal order. RNNs incorporate recurrence to handle sequential data like time series or language ￼.
+o At each time step, an RNN cell processes input x_t and a hidden state h_{t-1} from the previous step, producing a new hidden state h_t and (optionally) an output y_t.
+o This hidden state acts as a “memory” carrying information forward. For example, predicting stock prices or words in a sentence relies on past inputs ￼ ￼.
+o RNNs share parameters across time steps, so they can generalize patterns regardless of sequence length ￼.
+!eblock
+
+
+
+!split
+===== RNNs in more detail  =====
+
+FIGURE: [figslides/RNN2.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 2  =====
+
+FIGURE: [figslides/RNN3.png, width=700 frac=0.9]
+
+
+!split
+===== RNNs in more detail, part 3  =====
+
+FIGURE: [figslides/RNN4.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 4  =====
+
+FIGURE: [figslides/RNN5.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 5  =====
+
+FIGURE: [figslides/RNN6.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 6  =====
+
+FIGURE: [figslides/RNN7.png, width=700 frac=0.9]
+
+!split
+===== RNNs in more detail, part 7  =====
+
+FIGURE: [figslides/RNN8.png, width=700 frac=0.9]
+
+
+
+!split
+===== RNN Forward Pass Equations =====
+
+For a simple (vanilla) RNN with one hidden layer and no bias, the state update and output are:
+!bt
+\[
+\mathbf{h}_t = \phi(\mathbf{W}_{xh}\mathbf{x}_t + \mathbf{W}_{hh}\mathbf{h}_{t-1})\,,\quad \mathbf{y}_t = \mathbf{W}_{yh}\mathbf{h}_t,
+\]
+!et
+where \phi is a nonlinear activation (e.g. tanh or ReLU) ￼.
+
+In matrix form,
+!bt
+\[
+\mathbf{W}_{xh}\in\mathbb{R}^{h\times d}, \mathbf{W}_{hh}\in\mathbb{R}^{h\times h}, \mathbf{W}_{yh}\in\mathbb{R}^{q\times h},
+\]
+!et
+for input dim d, hidden dim h, output dim q.
+
+We often also write
+!bt
+\[
+y_t = f(\mathbf{o}_t) with \mathbf{o}_t=W_{yh}h_t
+\]
+!et
+to include a final activation for classification.
+
+Because the same $\mathbf{W}$ are used each step, gradients during training will propagate through time.
+
+!split
+===== Unrolled RNN in Time =====
+
+!bblock
+o Input $x_1,x_2,x_3,\dots$ feed sequentially; the hidden state flows from one step to the next, capturing past context.
+o After processing the final input $x_T$, the network can make a prediction (many-to-one) or outputs can be produced at each step (many-to-many).
+o Unrolling clarifies that training an RNN is like training a deep feedforward network of depth T, with recurrent connections tying layers together.
+!eblock
+
+!split
+===== Example Task: Character-level RNN Classification =====
+!bblock
+o A classic example: feed a name (sequence of characters) one char at a time, and classify its language of origin.
+o At each step, the RNN outputs a hidden state; we use the final hidden state to predict the class of the entire sequence.
+o A character-level RNN reads words as a series of characters—outputting a prediction and ‘hidden state’ at each step, feeding the previous hidden state into the next step. We take the final prediction to be the output” ￼.
+o This illustrates sequence-to-one modeling: every output depends on all previous inputs.
+!eblock
+
+!split
+===== PyTorch: Defining a Simple RNN, using Tensorflow =====
+!bc pycod
+import tensorflow as tf
+import numpy as np
+
+# -----------------------
+# 1. Hyperparameters
+# -----------------------
+input_size = 10        # Dimensionality of each time step
+hidden_size = 20       # Number of recurrent units
+num_classes = 2        # Binary classification
+sequence_length = 5     # Sequence length
+batch_size = 16
+
+# -----------------------
+# 2. Dummy dataset
+#    X: [batch, seq, features]
+#    y: [batch]
+# -----------------------
+X = np.random.randn(batch_size, sequence_length, input_size).astype(np.float32)
+y = np.random.randint(0, num_classes, size=(batch_size,))
+
+# -----------------------
+# 3. Build simple RNN model
+# -----------------------
+model = tf.keras.Sequential([
+    tf.keras.layers.SimpleRNN(
+        units=hidden_size,
+        activation="tanh",
+        return_sequences=False,   # Only final hidden state
+        input_shape=(sequence_length, input_size)
+    ),
+    tf.keras.layers.Dense(num_classes)
+])
+
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(1e-3),
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"]
+)
+
+# -----------------------
+# 4. Train the model
+# -----------------------
+history = model.fit(
+    X, y,
+    epochs=5,
+    batch_size=batch_size,
+    verbose=1
+)
+
+# -----------------------
+# 5. Evaluate
+# -----------------------
+logits = model.predict(X)
+print("Logits from model:\n", logits)
+!ec
+
+This recurrent neural network uses the TensorFlow/Keras SimpleRNN, which is the counterpart to PyTorch’s nn.RNN.
+In this code we have used
+o return_sequences=False makes it output only the last hidden state, which is fed to the classifier. Also, we have
+o from_logits=True matches the PyTorch CrossEntropyLoss.
+
+
+!split
+===== Similar example using PyTorch =====
+!bc pycod
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# -----------------------
+# 1. Hyperparameters
+# -----------------------
+input_size = 10
+hidden_size = 20
+num_layers = 1
+num_classes = 2
+sequence_length = 5
+batch_size = 16
+lr = 1e-3
+
+# -----------------------
+# 2. Dummy dataset
+# -----------------------
+X = torch.randn(batch_size, sequence_length, input_size)
+y = torch.randint(0, num_classes, (batch_size,))
+
+# -----------------------
+# 3. Simple RNN model
+# -----------------------
+class SimpleRNN(nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+        super(SimpleRNN, self).__init__()
+        self.rnn = nn.RNN(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            nonlinearity="tanh"
+        )
+        self.fc = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        out, h_n = self.rnn(x)   # out: [batch, seq, hidden]
+
+        # ---- FIX: take only the last time-step tensor ----
+        last_hidden = out[:, -1, :]  # [batch, hidden]
+
+        logits = self.fc(last_hidden)
+        return logits
+
+model = SimpleRNN(input_size, hidden_size, num_layers, num_classes)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=lr)
+
+# -----------------------
+# 4. Training step
+# -----------------------
+model.train()
+optimizer.zero_grad()
+
+logits = model(X)
+loss = criterion(logits, y)
+loss.backward()
+optimizer.step()
+
+print(f"Loss: {loss.item():.4f}")
+!ec
+
+
+!split
+===== Backpropagation Through Time (BPTT) and Gradients =====
+
+!bblock Backpropagation Through Time (BPTT)
+o Training an RNN involves computing gradients through time by unfolding the network: treat the unrolled RNN as a very deep feedforward net.
+o We compute the loss $L = \frac{1}{T}\sum_{t=1}^T \ell(y_t,\hat y_t)$ and backpropagate from $t=T$ down to $t=1.$
+o The computational graphs in the figures below shows how each hidden state depends on inputs and parameters across time ￼.
+o BPTT applies the chain rule along this graph, accumulating gradients from each time step into the shared parameters.
+!eblock
+
+!split
+===== Truncated BPTT and Gradient Clipping =====
+
+!bblock
+o Truncated BPTT: Instead of backpropagating through all T steps, we may backpropagate through a fixed window of length $\tau$. This approximates the full gradient and reduces computation.
+o Concretely, one computes gradients up to $\tau$ steps and treats gradients beyond as zero. This still allows learning short-term patterns efficiently.
+o Gradient Clipping: Cap the gradient norm to a maximum value to prevent explosion. For example in PyTorch:
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) ensures $\|\nabla\|\le 1$.
+o These techniques help stabilize training, but the fundamental vanishing problem motivates using alternative RNN cells (LSTM/GRU) in practice (see below).
+!eblock
+
+!split
+===== Applications of Simple RNNs =====
+
+!bblock
+o Forecasting: RNNs can predict future values from historical data. Example tasks include stock prices, weather patterns, or any temporal signal ￼.
+o By feeding in sequence $\{x_1,x_2,\dots,x_T\}$, an RNN can output a prediction $y_T$ (one-step ahead) or even a full sequence $\{y_2,\dots,y_{T+1}\}$.
+o Unlike linear models, RNNs can capture complex temporal patterns (trends, seasonality, autocorrelation) in a data-driven way ￼.
+o Preprocessing (normalization, sliding windows) is important. Split data into train/test by time (no shuffling).
+!eblock
+
+!split
+===== Sequence Modeling Tasks =====
+!bblock
+o Many-to-One: Classify or predict one value from an entire sequence (e.g., sentiment analysis of a movie review, or classifying a time series). We use the final hidden state as a summary of the sequence.
+o Many-to-Many (Prediction): Predict an output at each time step (e.g., language modeling or sequential regression). RNN outputs are used at each step.
+o Encoder–Decoder (Seq2Seq): (Advanced) Map input sequences to output sequences of different lengths. Though typically LSTM-based, it is s conceptually possible with simple RNNs.
+o RNNs also apply to physics and biology: e.g., modeling dynamical systems, protein sequences, or neuroscience time series. Any domain with sequential data can use RNN-based modeling.
+!eblock
+
+!split
+===== Other Sequence Applications =====
+!bblock 
+o Sequence Classification: Use RNN hidden state for class labels. For example, classify a time series into anomaly vs normal.
+o Sequence Labeling: Predict labels at each time step (e.g. part-of-speech tagging). The RNN outputs a vector at each step passed through a classification layer.
+o Language and Text: (Advanced) Character or word-level models use RNNs to generate text or classify documents. E.g., predicting next character from previous ones (RNN language model) ￼.
+o Physically Motivated Data: RNNs can model dynamical systems (e.g., rolling ball trajectories, neuron spikes over time, climate data). They learn temporal patterns directly from data without explicit equations.
+!eblock
+
+!split
+===== Training and Practical Tips =====
+!bblock 
+o Loss Functions: Use MSE for regression tasks, cross-entropy for classification tasks. Sum or average losses over time steps as needed.
+o Batching Sequences: Handle variable-length sequences by padding or using masking. PyTorch pack_padded_sequence or Keras masking can help.
+o Optimization: Standard optimizers (SGD, Adam) work. Learning rate may need tuning due to sequential correlations.
+o Initial Hidden State: Usually initialized to zeros. Can also learn an initial state or carry hidden state across batches for very long sequences (stateful=True in Keras).
+o Regularization: Dropout can be applied to inputs or recurrent states (PyTorch/RNN has dropout option; Keras has dropout/recurrent_dropout).
+!eblock
+
+!split
+===== Limitations and Considerations =====
+!bblock
+o Vanishing Gradients: Simple RNNs have fundamental difficulty learning long-term dependencies due to gradient decay ￼.
+o Capacity: Without gates, RNNs may struggle with tasks requiring remembering far-back inputs. Training can be slow as it’s inherently sequential.
+o Alternatives: In practice, gated RNNs (LSTM/GRU) or Transformers are often used for long-range dependencies. However, simple RNNs are still instructive and sometimes sufficient for short sequences ￼ ￼.
+o Regularization: Weight decay or dropout (on inputs/states) can help generalization but must be applied carefully due to temporal correlations.
+o Statefulness: For very long sequences, one can preserve hidden state across batches (stateful RNN) to avoid resetting memory.
+!eblock
+
+
+!split
+===== PyTorch RNN Time Series Example =====
+
+We first implement a simple RNN in PyTorch to forecast a univariate
+time series (a sine wave). The steps are: (1) generate synthetic data
+and form input/output sequences; (2) define an nn.RNN model; (3) train
+the model with MSE loss and an optimizer; (4) evaluate on a held-out
+test set. For example, using a sine wave as in prior tutorials ￼, we
+create sliding windows of length seq_length. The code below shows each
+step. We use nn.RNN (the basic recurrent layer) followed by a linear
+output. The training loop (with MSELoss and Adam) updates the model to
+minimize prediction error ￼.
+
+!bc pycod
+import numpy as np
+import torch
+from torch import nn, optim
+
+# 1. Data preparation: generate a sine wave and create input-output sequences
+time_steps = np.linspace(0, 100, 500)
+data = np.sin(time_steps)                   # shape (500,)
+seq_length = 20
+X, y = [], []
+for i in range(len(data) - seq_length):
+    X.append(data[i:i+seq_length])         # sequence of length seq_length
+    y.append(data[i+seq_length])           # next value to predict
+X = np.array(X)                            # shape (480, seq_length)
+y = np.array(y)                            # shape (480,)
+# Add feature dimension (1) for the RNN input
+X = X[..., None]                           # shape (480, seq_length, 1)
+y = y[..., None]                           # shape (480, 1)
+
+# Split into train/test sets (80/20 split)
+train_size = int(0.8 * len(X))
+X_train = torch.tensor(X[:train_size], dtype=torch.float32)
+y_train = torch.tensor(y[:train_size], dtype=torch.float32)
+X_test  = torch.tensor(X[train_size:],  dtype=torch.float32)
+y_test  = torch.tensor(y[train_size:],  dtype=torch.float32)
+
+# 2. Model definition: simple RNN followed by a linear layer
+class SimpleRNNModel(nn.Module):
+    def __init__(self, input_size=1, hidden_size=16, num_layers=1):
+        super(SimpleRNNModel, self).__init__()
+        # nn.RNN for sequential data (batch_first=True expects (batch, seq_len, features))
+        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, 1)    # output layer for prediction
+
+    def forward(self, x):
+        out, _ = self.rnn(x)                 # out: (batch, seq_len, hidden_size)
+        out = out[:, -1, :]                  # take output of last time step
+        return self.fc(out)                 # linear layer to 1D output
+
+model = SimpleRNNModel(input_size=1, hidden_size=16, num_layers=1)
+print(model)  # print model summary (structure)
+!ec
+
+Model Explanation: Here input$\_$size=1 because each time step has one
+feature. The RNN hidden state has size 16, and batch$\_$first=True means
+input tensors have shape (batch, seq$\_$len, features). We take the last
+RNN output and feed it through a linear layer to predict the next
+value .
+
+!bc pycod
+# 3. Training loop: MSE loss and Adam optimizer
+criterion = nn.MSELoss()                  # mean squared error loss
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+epochs = 50
+for epoch in range(1, epochs+1):
+    model.train()
+    optimizer.zero_grad()
+    output = model(X_train)               # forward pass
+    loss = criterion(output, y_train)     # compute training loss
+    loss.backward()                       # backpropagate
+    optimizer.step()                      # update weights
+    if epoch % 10 == 0:
+        print(f'Epoch {epoch}/{epochs}, Loss: {loss.item():.4f}')
+!ec
+
+Training Details: We train for 50 epochs, printing the training loss
+every 10 epochs. As training proceeds, the loss (MSE) typically
+decreases, indicating the RNN is learning the sine-wave pattern ￼.
+
+!bc pycod
+# 4. Evaluation on test set
+model.eval()
+with torch.no_grad():
+    pred = model(X_test)
+    test_loss = criterion(pred, y_test)
+print(f'Test Loss: {test_loss.item():.4f}')
+
+# (Optional) View a few actual vs. predicted values
+print("Actual:", y_test[:5].flatten().numpy())
+print("Pred : ", pred[:5].flatten().numpy())
+!ec
+
+Evaluation: We switch to eval mode and compute loss on the test
+set. The lower test loss indicates how well the model generalizes. The
+code prints a few sample predictions against actual values for
+qualitative assessment. 
+
+!split
+===== Tensorflow (Keras) RNN Time Series Example =====
+
+Next, we use TensorFlow/Keras to do the same task. We build a
+tf.keras.Sequential model with a SimpleRNN layer (the most basic
+recurrent layer) ￼ followed by a Dense output. The workflow is
+similar: create the same synthetic sine data and split it into
+train/test sets; then define, train, and evaluate the model.
+
+!bc pycod
+import numpy as np
+import tensorflow as tf
+
+# 1. Data preparation: same sine wave data and sequences as above
+time_steps = np.linspace(0, 100, 500)
+data = np.sin(time_steps)                     # (500,)
+seq_length = 20
+X, y = [], []
+for i in range(len(data) - seq_length):
+    X.append(data[i:i+seq_length])
+    y.append(data[i+seq_length])
+X = np.array(X)                               # (480, seq_length)
+y = np.array(y)                               # (480,)
+# reshape for RNN: (samples, timesteps, features)
+X = X.reshape(-1, seq_length, 1)             # (480, 20, 1)
+y = y.reshape(-1, 1)                         # (480, 1)
+
+# Split into train/test (80/20)
+split = int(0.8 * len(X))
+X_train, X_test = X[:split], X[split:]
+y_train, y_test = y[:split], y[split:]
+!ec
+
+Data: We use the same sine-wave sequence and sliding-window split as
+in the PyTorch example ￼. The arrays are reshaped to (batch,
+timesteps, features) for Keras.
+
+!bc pycod
+# 2. Model definition: Keras SimpleRNN and Dense
+model = tf.keras.Sequential([
+    tf.keras.layers.SimpleRNN(16, input_shape=(seq_length, 1)),
+    tf.keras.layers.Dense(1)
+])
+model.compile(optimizer='adam', loss='mse')   # MSE loss and Adam optimizer
+model.summary()
+!ec
+
+Explanation: Here SimpleRNN(16) creates 16 recurrent units. The model
+summary shows the shapes and number of parameters. (Keras handles the
+sequence dimension internally.)
+
+!bc pycod
+# 3. Training
+history = model.fit(
+    X_train, y_train,
+    epochs=50,
+    batch_size=32,
+    validation_split=0.2,    # use 20% of train data for validation
+    verbose=1
+)
+!ec
+
+
+Training: We train for 50 epochs. The fit call also reports validation
+loss (using a 20$%$ split of the training data) to monitor
+generalization.
+
+!bc pycod
+# 4. Evaluation on test set
+test_loss = model.evaluate(X_test, y_test, verbose=0)
+print(f'Test Loss: {test_loss:.4f}')
+
+# (Optional) Predictions
+predictions = model.predict(X_test)
+print("Actual:", y_test.flatten()[:5])
+print("Pred : ", predictions.flatten()[:5])
+!ec
+
+Evaluation: After training, we call model.evaluate on the test set. A
+low test loss indicates good forecasting accuracy. We also predict and
+compare a few samples of actual vs. predicted values. This completes
+the simple RNN forecasting example in TensorFlow.
+
+Both examples use only basic RNN cells (no LSTM/GRU) and include data
+preparation, model definition, training loop, and evaluation. The
+PyTorch code uses nn.RNN as and the Keras
+code uses SimpleRNN layer. Each code block above is self-contained
+and can be run independently with standard libraries (NumPy, PyTorch
+or TensorFlow).
+
+
+
+!split
+===== The mathematics of RNNs, the basic architecture  =====
+
+See notebook at URL:"https://github.com/CompPhysics/AdvancedMachineLearning/blob/main/doc/pub/week7/ipynb/rnnmath.ipynb"
+
+

@@ -68,6 +68,7 @@ div.toc p,a {
               ('TensorFlow examples', 2, None, 'tensorflow-examples'),
               ('What is a recurrent NN?', 2, None, 'what-is-a-recurrent-nn'),
               ('Why RNNs?', 2, None, 'why-rnns'),
+              ('More whys', 2, None, 'more-whys'),
               ('RNNs in more detail', 2, None, 'rnns-in-more-detail'),
               ('RNNs in more detail, part 2',
                2,
@@ -93,6 +94,56 @@ div.toc p,a {
                2,
                None,
                'rnns-in-more-detail-part-7'),
+              ('RNN Forward Pass Equations',
+               2,
+               None,
+               'rnn-forward-pass-equations'),
+              ('Unrolled RNN in Time', 2, None, 'unrolled-rnn-in-time'),
+              ('Example Task: Character-level RNN Classification',
+               2,
+               None,
+               'example-task-character-level-rnn-classification'),
+              ('PyTorch: Defining a Simple RNN, using Tensorflow',
+               2,
+               None,
+               'pytorch-defining-a-simple-rnn-using-tensorflow'),
+              ('Similar example using PyTorch',
+               2,
+               None,
+               'similar-example-using-pytorch'),
+              ('Backpropagation Through Time (BPTT) and Gradients',
+               2,
+               None,
+               'backpropagation-through-time-bptt-and-gradients'),
+              ('Truncated BPTT and Gradient Clipping',
+               2,
+               None,
+               'truncated-bptt-and-gradient-clipping'),
+              ('Applications of Simple RNNs',
+               2,
+               None,
+               'applications-of-simple-rnns'),
+              ('Sequence Modeling Tasks', 2, None, 'sequence-modeling-tasks'),
+              ('Other Sequence Applications',
+               2,
+               None,
+               'other-sequence-applications'),
+              ('Training and Practical Tips',
+               2,
+               None,
+               'training-and-practical-tips'),
+              ('Limitations and Considerations',
+               2,
+               None,
+               'limitations-and-considerations'),
+              ('PyTorch RNN Time Series Example',
+               2,
+               None,
+               'pytorch-rnn-time-series-example'),
+              ('Tensorflow (Keras) RNN Time Series Example',
+               2,
+               None,
+               'tensorflow-keras-rnn-time-series-example'),
               ('The mathematics of RNNs, the basic architecture',
                2,
                None,
@@ -186,10 +237,11 @@ MathJax.Hub.Config({
 <h2 id="plan-for-week-47">Plan for week 47 </h2>
 
 <div class="alert alert-block alert-block alert-text-normal">
-<b>Plans for the lecture Monday 18 November, with video suggestions etc</b>
+<b>Plans for the lecture Monday 17 November, with video suggestions etc</b>
 <p>
 <ol>
 <li> Recurrent neural networks, code examples and long-short-term memory</li>
+<li> Autoencoders (last topic this semester)</li>
 <li> Readings and Videos:</li>
 <li> These lecture notes at <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week47.ipynb" target="_blank"><tt>https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week47.ipynb</tt></a></li>
 <li> See also lecture notes from week 46 at <a href="https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb" target="_blank"><tt>https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb</tt></a>. The lecture on Monday starts with a repetition on recurrent neural networks. The second lecture starts with basics of autoenconders.
@@ -205,7 +257,6 @@ MathJax.Hub.Config({
 <p>
 <ol>
 <li> Work and Discussion of project 3</li>
-<li> Last weekly exercise</li>
 </ol>
 </div>
   
@@ -263,6 +314,20 @@ know what to do with it, and would reject such inputs with three
 features (or any other number of features that isn't two, for that
 matter).
 </p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="more-whys">More whys </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Traditional feedforward networks process fixed-size inputs and ignore temporal order. RNNs incorporate recurrence to handle sequential data like time series or language &#65532;.</li>
+<li> At each time step, an RNN cell processes input x_t and a hidden state h_{t-1} from the previous step, producing a new hidden state h_t and (optionally) an output y_t.</li>
+<li> This hidden state acts as a &#8220;memory&#8221; carrying information forward. For example, predicting stock prices or words in a sentence relies on past inputs &#65532; &#65532;.</li>
+<li> RNNs share parameters across time steps, so they can generalize patterns regardless of sequence length &#65532;.</li>
+</ol>
+</div>
+
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="rnns-in-more-detail">RNNs in more detail  </h2>
@@ -326,6 +391,671 @@ matter).
 <p><img src="figslides/RNN8.png" width="700" align="bottom"></p>
 </center>
 <br/><br/>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="rnn-forward-pass-equations">RNN Forward Pass Equations </h2>
+
+<p>For a simple (vanilla) RNN with one hidden layer and no bias, the state update and output are:</p>
+$$
+\mathbf{h}_t = \phi(\mathbf{W}_{xh}\mathbf{x}_t + \mathbf{W}_{hh}\mathbf{h}_{t-1})\,,\quad \mathbf{y}_t = \mathbf{W}_{yh}\mathbf{h}_t,
+$$
+
+<p>where \phi is a nonlinear activation (e.g. tanh or ReLU) &#65532;.</p>
+
+<p>In matrix form,</p>
+$$
+\mathbf{W}_{xh}\in\mathbb{R}^{h\times d}, \mathbf{W}_{hh}\in\mathbb{R}^{h\times h}, \mathbf{W}_{yh}\in\mathbb{R}^{q\times h},
+$$
+
+<p>for input dim d, hidden dim h, output dim q.</p>
+
+<p>We often also write</p>
+$$
+y_t = f(\mathbf{o}_t) with \mathbf{o}_t=W_{yh}h_t
+$$
+
+<p>to include a final activation for classification.</p>
+
+<p>Because the same \( \mathbf{W} \) are used each step, gradients during training will propagate through time.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="unrolled-rnn-in-time">Unrolled RNN in Time </h2>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Input \( x_1,x_2,x_3,\dots \) feed sequentially; the hidden state flows from one step to the next, capturing past context.</li>
+<li> After processing the final input \( x_T \), the network can make a prediction (many-to-one) or outputs can be produced at each step (many-to-many).</li>
+<li> Unrolling clarifies that training an RNN is like training a deep feedforward network of depth T, with recurrent connections tying layers together.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="example-task-character-level-rnn-classification">Example Task: Character-level RNN Classification </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> A classic example: feed a name (sequence of characters) one char at a time, and classify its language of origin.</li>
+<li> At each step, the RNN outputs a hidden state; we use the final hidden state to predict the class of the entire sequence.</li>
+<li> A character-level RNN reads words as a series of characters&#8212;outputting a prediction and &#8216;hidden state&#8217; at each step, feeding the previous hidden state into the next step. We take the final prediction to be the output&#8221; &#65532;.</li>
+<li> This illustrates sequence-to-one modeling: every output depends on all previous inputs.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="pytorch-defining-a-simple-rnn-using-tensorflow">PyTorch: Defining a Simple RNN, using Tensorflow </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tensorflow</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">tf</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 1. Hyperparameters</span>
+<span style="color: #228B22"># -----------------------</span>
+input_size = <span style="color: #B452CD">10</span>        <span style="color: #228B22"># Dimensionality of each time step</span>
+hidden_size = <span style="color: #B452CD">20</span>       <span style="color: #228B22"># Number of recurrent units</span>
+num_classes = <span style="color: #B452CD">2</span>        <span style="color: #228B22"># Binary classification</span>
+sequence_length = <span style="color: #B452CD">5</span>     <span style="color: #228B22"># Sequence length</span>
+batch_size = <span style="color: #B452CD">16</span>
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 2. Dummy dataset</span>
+<span style="color: #228B22">#    X: [batch, seq, features]</span>
+<span style="color: #228B22">#    y: [batch]</span>
+<span style="color: #228B22"># -----------------------</span>
+X = np.random.randn(batch_size, sequence_length, input_size).astype(np.float32)
+y = np.random.randint(<span style="color: #B452CD">0</span>, num_classes, size=(batch_size,))
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 3. Build simple RNN model</span>
+<span style="color: #228B22"># -----------------------</span>
+model = tf.keras.Sequential([
+    tf.keras.layers.SimpleRNN(
+        units=hidden_size,
+        activation=<span style="color: #CD5555">&quot;tanh&quot;</span>,
+        return_sequences=<span style="color: #8B008B; font-weight: bold">False</span>,   <span style="color: #228B22"># Only final hidden state</span>
+        input_shape=(sequence_length, input_size)
+    ),
+    tf.keras.layers.Dense(num_classes)
+])
+
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(<span style="color: #B452CD">1e-3</span>),
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=<span style="color: #8B008B; font-weight: bold">True</span>),
+    metrics=[<span style="color: #CD5555">&quot;accuracy&quot;</span>]
+)
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 4. Train the model</span>
+<span style="color: #228B22"># -----------------------</span>
+history = model.fit(
+    X, y,
+    epochs=<span style="color: #B452CD">5</span>,
+    batch_size=batch_size,
+    verbose=<span style="color: #B452CD">1</span>
+)
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 5. Evaluate</span>
+<span style="color: #228B22"># -----------------------</span>
+logits = model.predict(X)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Logits from model:\n&quot;</span>, logits)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>This recurrent neural network uses the TensorFlow/Keras SimpleRNN, which is the counterpart to PyTorch&#8217;s nn.RNN.
+In this code we have used
+</p>
+<ol>
+<li> return_sequences=False makes it output only the last hidden state, which is fed to the classifier. Also, we have</li>
+<li> from_logits=True matches the PyTorch CrossEntropyLoss.</li>
+</ol>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="similar-example-using-pytorch">Similar example using PyTorch </h2>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">torch</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">torch.nn</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">nn</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">torch.optim</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">optim</span>
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 1. Hyperparameters</span>
+<span style="color: #228B22"># -----------------------</span>
+input_size = <span style="color: #B452CD">10</span>
+hidden_size = <span style="color: #B452CD">20</span>
+num_layers = <span style="color: #B452CD">1</span>
+num_classes = <span style="color: #B452CD">2</span>
+sequence_length = <span style="color: #B452CD">5</span>
+batch_size = <span style="color: #B452CD">16</span>
+lr = <span style="color: #B452CD">1e-3</span>
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 2. Dummy dataset</span>
+<span style="color: #228B22"># -----------------------</span>
+X = torch.randn(batch_size, sequence_length, input_size)
+y = torch.randint(<span style="color: #B452CD">0</span>, num_classes, (batch_size,))
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 3. Simple RNN model</span>
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">SimpleRNN</span>(nn.Module):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, input_size, hidden_size, num_layers, num_classes):
+        <span style="color: #658b00">super</span>(SimpleRNN, <span style="color: #658b00">self</span>).<span style="color: #008b45">__init__</span>()
+        <span style="color: #658b00">self</span>.rnn = nn.RNN(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=<span style="color: #8B008B; font-weight: bold">True</span>,
+            nonlinearity=<span style="color: #CD5555">&quot;tanh&quot;</span>
+        )
+        <span style="color: #658b00">self</span>.fc = nn.Linear(hidden_size, num_classes)
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">forward</span>(<span style="color: #658b00">self</span>, x):
+        out, h_n = <span style="color: #658b00">self</span>.rnn(x)   <span style="color: #228B22"># out: [batch, seq, hidden]</span>
+
+        <span style="color: #228B22"># ---- FIX: take only the last time-step tensor ----</span>
+        last_hidden = out[:, -<span style="color: #B452CD">1</span>, :]  <span style="color: #228B22"># [batch, hidden]</span>
+
+        logits = <span style="color: #658b00">self</span>.fc(last_hidden)
+        <span style="color: #8B008B; font-weight: bold">return</span> logits
+
+model = SimpleRNN(input_size, hidden_size, num_layers, num_classes)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=lr)
+
+<span style="color: #228B22"># -----------------------</span>
+<span style="color: #228B22"># 4. Training step</span>
+<span style="color: #228B22"># -----------------------</span>
+model.train()
+optimizer.zero_grad()
+
+logits = model(X)
+loss = criterion(logits, y)
+loss.backward()
+optimizer.step()
+
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&quot;Loss: {</span>loss.item()<span style="color: #CD5555">:.4f}&quot;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="backpropagation-through-time-bptt-and-gradients">Backpropagation Through Time (BPTT) and Gradients </h2>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b>Backpropagation Through Time (BPTT)</b>
+<p>
+<ol>
+<li> Training an RNN involves computing gradients through time by unfolding the network: treat the unrolled RNN as a very deep feedforward net.</li>
+<li> We compute the loss \( L = \frac{1}{T}\sum_{t=1}^T \ell(y_t,\hat y_t) \) and backpropagate from \( t=T \) down to \( t=1. \)</li>
+<li> The computational graphs in the figures below shows how each hidden state depends on inputs and parameters across time &#65532;.</li>
+<li> BPTT applies the chain rule along this graph, accumulating gradients from each time step into the shared parameters.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="truncated-bptt-and-gradient-clipping">Truncated BPTT and Gradient Clipping </h2>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Truncated BPTT: Instead of backpropagating through all T steps, we may backpropagate through a fixed window of length \( \tau \). This approximates the full gradient and reduces computation.</li>
+<li> Concretely, one computes gradients up to \( \tau \) steps and treats gradients beyond as zero. This still allows learning short-term patterns efficiently.</li>
+<li> Gradient Clipping: Cap the gradient norm to a maximum value to prevent explosion. For example in PyTorch:</li>
+</ol>
+<p>torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) ensures \( \|\nabla\|\le 1 \).</p>
+<ol>
+<li> These techniques help stabilize training, but the fundamental vanishing problem motivates using alternative RNN cells (LSTM/GRU) in practice (see below).</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="applications-of-simple-rnns">Applications of Simple RNNs </h2>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Forecasting: RNNs can predict future values from historical data. Example tasks include stock prices, weather patterns, or any temporal signal &#65532;.</li>
+<li> By feeding in sequence \( \{x_1,x_2,\dots,x_T\} \), an RNN can output a prediction \( y_T \) (one-step ahead) or even a full sequence \( \{y_2,\dots,y_{T+1}\} \).</li>
+<li> Unlike linear models, RNNs can capture complex temporal patterns (trends, seasonality, autocorrelation) in a data-driven way &#65532;.</li>
+<li> Preprocessing (normalization, sliding windows) is important. Split data into train/test by time (no shuffling).</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="sequence-modeling-tasks">Sequence Modeling Tasks </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Many-to-One: Classify or predict one value from an entire sequence (e.g., sentiment analysis of a movie review, or classifying a time series). We use the final hidden state as a summary of the sequence.</li>
+<li> Many-to-Many (Prediction): Predict an output at each time step (e.g., language modeling or sequential regression). RNN outputs are used at each step.</li>
+<li> Encoder&#8211;Decoder (Seq2Seq): (Advanced) Map input sequences to output sequences of different lengths. Though typically LSTM-based, it is s conceptually possible with simple RNNs.</li>
+<li> RNNs also apply to physics and biology: e.g., modeling dynamical systems, protein sequences, or neuroscience time series. Any domain with sequential data can use RNN-based modeling.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="other-sequence-applications">Other Sequence Applications </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Sequence Classification: Use RNN hidden state for class labels. For example, classify a time series into anomaly vs normal.</li>
+<li> Sequence Labeling: Predict labels at each time step (e.g. part-of-speech tagging). The RNN outputs a vector at each step passed through a classification layer.</li>
+<li> Language and Text: (Advanced) Character or word-level models use RNNs to generate text or classify documents. E.g., predicting next character from previous ones (RNN language model) &#65532;.</li>
+<li> Physically Motivated Data: RNNs can model dynamical systems (e.g., rolling ball trajectories, neuron spikes over time, climate data). They learn temporal patterns directly from data without explicit equations.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="training-and-practical-tips">Training and Practical Tips </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Loss Functions: Use MSE for regression tasks, cross-entropy for classification tasks. Sum or average losses over time steps as needed.</li>
+<li> Batching Sequences: Handle variable-length sequences by padding or using masking. PyTorch pack_padded_sequence or Keras masking can help.</li>
+<li> Optimization: Standard optimizers (SGD, Adam) work. Learning rate may need tuning due to sequential correlations.</li>
+<li> Initial Hidden State: Usually initialized to zeros. Can also learn an initial state or carry hidden state across batches for very long sequences (stateful=True in Keras).</li>
+<li> Regularization: Dropout can be applied to inputs or recurrent states (PyTorch/RNN has dropout option; Keras has dropout/recurrent_dropout).</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="limitations-and-considerations">Limitations and Considerations </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Vanishing Gradients: Simple RNNs have fundamental difficulty learning long-term dependencies due to gradient decay &#65532;.</li>
+<li> Capacity: Without gates, RNNs may struggle with tasks requiring remembering far-back inputs. Training can be slow as it&#8217;s inherently sequential.</li>
+<li> Alternatives: In practice, gated RNNs (LSTM/GRU) or Transformers are often used for long-range dependencies. However, simple RNNs are still instructive and sometimes sufficient for short sequences &#65532; &#65532;.</li>
+<li> Regularization: Weight decay or dropout (on inputs/states) can help generalization but must be applied carefully due to temporal correlations.</li>
+<li> Statefulness: For very long sequences, one can preserve hidden state across batches (stateful RNN) to avoid resetting memory.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="pytorch-rnn-time-series-example">PyTorch RNN Time Series Example </h2>
+
+<p>We first implement a simple RNN in PyTorch to forecast a univariate
+time series (a sine wave). The steps are: (1) generate synthetic data
+and form input/output sequences; (2) define an nn.RNN model; (3) train
+the model with MSE loss and an optimizer; (4) evaluate on a held-out
+test set. For example, using a sine wave as in prior tutorials &#65532;, we
+create sliding windows of length seq_length. The code below shows each
+step. We use nn.RNN (the basic recurrent layer) followed by a linear
+output. The training loop (with MSELoss and Adam) updates the model to
+minimize prediction error &#65532;.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">torch</span>
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">torch</span> <span style="color: #8B008B; font-weight: bold">import</span> nn, optim
+
+<span style="color: #228B22"># 1. Data preparation: generate a sine wave and create input-output sequences</span>
+time_steps = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">100</span>, <span style="color: #B452CD">500</span>)
+data = np.sin(time_steps)                   <span style="color: #228B22"># shape (500,)</span>
+seq_length = <span style="color: #B452CD">20</span>
+X, y = [], []
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(data) - seq_length):
+    X.append(data[i:i+seq_length])         <span style="color: #228B22"># sequence of length seq_length</span>
+    y.append(data[i+seq_length])           <span style="color: #228B22"># next value to predict</span>
+X = np.array(X)                            <span style="color: #228B22"># shape (480, seq_length)</span>
+y = np.array(y)                            <span style="color: #228B22"># shape (480,)</span>
+<span style="color: #228B22"># Add feature dimension (1) for the RNN input</span>
+X = X[..., <span style="color: #8B008B; font-weight: bold">None</span>]                           <span style="color: #228B22"># shape (480, seq_length, 1)</span>
+y = y[..., <span style="color: #8B008B; font-weight: bold">None</span>]                           <span style="color: #228B22"># shape (480, 1)</span>
+
+<span style="color: #228B22"># Split into train/test sets (80/20 split)</span>
+train_size = <span style="color: #658b00">int</span>(<span style="color: #B452CD">0.8</span> * <span style="color: #658b00">len</span>(X))
+X_train = torch.tensor(X[:train_size], dtype=torch.float32)
+y_train = torch.tensor(y[:train_size], dtype=torch.float32)
+X_test  = torch.tensor(X[train_size:],  dtype=torch.float32)
+y_test  = torch.tensor(y[train_size:],  dtype=torch.float32)
+
+<span style="color: #228B22"># 2. Model definition: simple RNN followed by a linear layer</span>
+<span style="color: #8B008B; font-weight: bold">class</span> <span style="color: #008b45; font-weight: bold">SimpleRNNModel</span>(nn.Module):
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">__init__</span>(<span style="color: #658b00">self</span>, input_size=<span style="color: #B452CD">1</span>, hidden_size=<span style="color: #B452CD">16</span>, num_layers=<span style="color: #B452CD">1</span>):
+        <span style="color: #658b00">super</span>(SimpleRNNModel, <span style="color: #658b00">self</span>).<span style="color: #008b45">__init__</span>()
+        <span style="color: #228B22"># nn.RNN for sequential data (batch_first=True expects (batch, seq_len, features))</span>
+        <span style="color: #658b00">self</span>.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=<span style="color: #8B008B; font-weight: bold">True</span>)
+        <span style="color: #658b00">self</span>.fc = nn.Linear(hidden_size, <span style="color: #B452CD">1</span>)    <span style="color: #228B22"># output layer for prediction</span>
+
+    <span style="color: #8B008B; font-weight: bold">def</span> <span style="color: #008b45">forward</span>(<span style="color: #658b00">self</span>, x):
+        out, _ = <span style="color: #658b00">self</span>.rnn(x)                 <span style="color: #228B22"># out: (batch, seq_len, hidden_size)</span>
+        out = out[:, -<span style="color: #B452CD">1</span>, :]                  <span style="color: #228B22"># take output of last time step</span>
+        <span style="color: #8B008B; font-weight: bold">return</span> <span style="color: #658b00">self</span>.fc(out)                 <span style="color: #228B22"># linear layer to 1D output</span>
+
+model = SimpleRNNModel(input_size=<span style="color: #B452CD">1</span>, hidden_size=<span style="color: #B452CD">16</span>, num_layers=<span style="color: #B452CD">1</span>)
+<span style="color: #658b00">print</span>(model)  <span style="color: #228B22"># print model summary (structure)</span>
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Model Explanation: Here input$\_$size=1 because each time step has one
+feature. The RNN hidden state has size 16, and batch$\_$first=True means
+input tensors have shape (batch, seq$\_$len, features). We take the last
+RNN output and feed it through a linear layer to predict the next
+value .
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># 3. Training loop: MSE loss and Adam optimizer</span>
+criterion = nn.MSELoss()                  <span style="color: #228B22"># mean squared error loss</span>
+optimizer = optim.Adam(model.parameters(), lr=<span style="color: #B452CD">0.01</span>)
+
+epochs = <span style="color: #B452CD">50</span>
+<span style="color: #8B008B; font-weight: bold">for</span> epoch <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #B452CD">1</span>, epochs+<span style="color: #B452CD">1</span>):
+    model.train()
+    optimizer.zero_grad()
+    output = model(X_train)               <span style="color: #228B22"># forward pass</span>
+    loss = criterion(output, y_train)     <span style="color: #228B22"># compute training loss</span>
+    loss.backward()                       <span style="color: #228B22"># backpropagate</span>
+    optimizer.step()                      <span style="color: #228B22"># update weights</span>
+    <span style="color: #8B008B; font-weight: bold">if</span> epoch % <span style="color: #B452CD">10</span> == <span style="color: #B452CD">0</span>:
+        <span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Epoch {</span>epoch<span style="color: #CD5555">}/{</span>epochs<span style="color: #CD5555">}, Loss: {</span>loss.item()<span style="color: #CD5555">:.4f}&#39;</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Training Details: We train for 50 epochs, printing the training loss
+every 10 epochs. As training proceeds, the loss (MSE) typically
+decreases, indicating the RNN is learning the sine-wave pattern &#65532;.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># 4. Evaluation on test set</span>
+model.eval()
+<span style="color: #8B008B; font-weight: bold">with</span> torch.no_grad():
+    pred = model(X_test)
+    test_loss = criterion(pred, y_test)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Test Loss: {</span>test_loss.item()<span style="color: #CD5555">:.4f}&#39;</span>)
+
+<span style="color: #228B22"># (Optional) View a few actual vs. predicted values</span>
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Actual:&quot;</span>, y_test[:<span style="color: #B452CD">5</span>].flatten().numpy())
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Pred : &quot;</span>, pred[:<span style="color: #B452CD">5</span>].flatten().numpy())
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Evaluation: We switch to eval mode and compute loss on the test
+set. The lower test loss indicates how well the model generalizes. The
+code prints a few sample predictions against actual values for
+qualitative assessment. 
+</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="tensorflow-keras-rnn-time-series-example">Tensorflow (Keras) RNN Time Series Example </h2>
+
+<p>Next, we use TensorFlow/Keras to do the same task. We build a
+tf.keras.Sequential model with a SimpleRNN layer (the most basic
+recurrent layer) &#65532; followed by a Dense output. The workflow is
+similar: create the same synthetic sine data and split it into
+train/test sets; then define, train, and evaluate the model.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">numpy</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">np</span>
+<span style="color: #8B008B; font-weight: bold">import</span> <span style="color: #008b45; text-decoration: underline">tensorflow</span> <span style="color: #8B008B; font-weight: bold">as</span> <span style="color: #008b45; text-decoration: underline">tf</span>
+
+<span style="color: #228B22"># 1. Data preparation: same sine wave data and sequences as above</span>
+time_steps = np.linspace(<span style="color: #B452CD">0</span>, <span style="color: #B452CD">100</span>, <span style="color: #B452CD">500</span>)
+data = np.sin(time_steps)                     <span style="color: #228B22"># (500,)</span>
+seq_length = <span style="color: #B452CD">20</span>
+X, y = [], []
+<span style="color: #8B008B; font-weight: bold">for</span> i <span style="color: #8B008B">in</span> <span style="color: #658b00">range</span>(<span style="color: #658b00">len</span>(data) - seq_length):
+    X.append(data[i:i+seq_length])
+    y.append(data[i+seq_length])
+X = np.array(X)                               <span style="color: #228B22"># (480, seq_length)</span>
+y = np.array(y)                               <span style="color: #228B22"># (480,)</span>
+<span style="color: #228B22"># reshape for RNN: (samples, timesteps, features)</span>
+X = X.reshape(-<span style="color: #B452CD">1</span>, seq_length, <span style="color: #B452CD">1</span>)             <span style="color: #228B22"># (480, 20, 1)</span>
+y = y.reshape(-<span style="color: #B452CD">1</span>, <span style="color: #B452CD">1</span>)                         <span style="color: #228B22"># (480, 1)</span>
+
+<span style="color: #228B22"># Split into train/test (80/20)</span>
+split = <span style="color: #658b00">int</span>(<span style="color: #B452CD">0.8</span> * <span style="color: #658b00">len</span>(X))
+X_train, X_test = X[:split], X[split:]
+y_train, y_test = y[:split], y[split:]
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Data: We use the same sine-wave sequence and sliding-window split as
+in the PyTorch example &#65532;. The arrays are reshaped to (batch,
+timesteps, features) for Keras.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># 2. Model definition: Keras SimpleRNN and Dense</span>
+model = tf.keras.Sequential([
+    tf.keras.layers.SimpleRNN(<span style="color: #B452CD">16</span>, input_shape=(seq_length, <span style="color: #B452CD">1</span>)),
+    tf.keras.layers.Dense(<span style="color: #B452CD">1</span>)
+])
+model.compile(optimizer=<span style="color: #CD5555">&#39;adam&#39;</span>, loss=<span style="color: #CD5555">&#39;mse&#39;</span>)   <span style="color: #228B22"># MSE loss and Adam optimizer</span>
+model.summary()
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Explanation: Here SimpleRNN(16) creates 16 recurrent units. The model
+summary shows the shapes and number of parameters. (Keras handles the
+sequence dimension internally.)
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># 3. Training</span>
+history = model.fit(
+    X_train, y_train,
+    epochs=<span style="color: #B452CD">50</span>,
+    batch_size=<span style="color: #B452CD">32</span>,
+    validation_split=<span style="color: #B452CD">0.2</span>,    <span style="color: #228B22"># use 20% of train data for validation</span>
+    verbose=<span style="color: #B452CD">1</span>
+)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Training: We train for 50 epochs. The fit call also reports validation
+loss (using a 20$%$ split of the training data) to monitor
+generalization.
+</p>
+
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #228B22"># 4. Evaluation on test set</span>
+test_loss = model.evaluate(X_test, y_test, verbose=<span style="color: #B452CD">0</span>)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">f&#39;Test Loss: {</span>test_loss<span style="color: #CD5555">:.4f}&#39;</span>)
+
+<span style="color: #228B22"># (Optional) Predictions</span>
+predictions = model.predict(X_test)
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Actual:&quot;</span>, y_test.flatten()[:<span style="color: #B452CD">5</span>])
+<span style="color: #658b00">print</span>(<span style="color: #CD5555">&quot;Pred : &quot;</span>, predictions.flatten()[:<span style="color: #B452CD">5</span>])
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Evaluation: After training, we call model.evaluate on the test set. A
+low test loss indicates good forecasting accuracy. We also predict and
+compare a few samples of actual vs. predicted values. This completes
+the simple RNN forecasting example in TensorFlow.
+</p>
+
+<p>Both examples use only basic RNN cells (no LSTM/GRU) and include data
+preparation, model definition, training loop, and evaluation. The
+PyTorch code uses nn.RNN as and the Keras
+code uses SimpleRNN layer. Each code block above is self-contained
+and can be run independently with standard libraries (NumPy, PyTorch
+or TensorFlow).
+</p>
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="the-mathematics-of-rnns-the-basic-architecture">The mathematics of RNNs, the basic architecture  </h2>
@@ -1207,6 +1937,7 @@ Ftilde = <span style="color: #B452CD">1.0</span>       <span style="color: #228B
     </div>
   </div>
 </div>
+
 
 <!-- ------------------- end of main content --------------- -->
 <center style="font-size:80%">
