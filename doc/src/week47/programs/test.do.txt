@@ -1,0 +1,874 @@
+!split
+===== Why Recurrent Networks? =====
+!bblock
+o Traditional feedforward networks process fixed-size inputs and ignore temporal order. RNNs incorporate recurrence to handle sequential data like time series or language ￼.
+o At each time step, an RNN cell processes input x_t and a hidden state h_{t-1} from the previous step, producing a new hidden state h_t and (optionally) an output y_t.
+o This hidden state acts as a “memory” carrying information forward. For example, predicting stock prices or words in a sentence relies on past inputs ￼ ￼.
+o RNNs share parameters across time steps, so they can generalize patterns regardless of sequence length ￼.
+!eblock
+
+!split
+===== RNN Forward Pass Equations =====
+
+For a simple (vanilla) RNN with one hidden layer and no bias, the state update and output are:
+!bt
+\[
+\mathbf{h}_t = \phi(\mathbf{W}_{xh}\mathbf{x}_t + \mathbf{W}_{hh}\mathbf{h}_{t-1})\,,\quad \mathbf{y}_t = \mathbf{W}_{yh}\mathbf{h}_t,
+\]
+!et
+where \phi is a nonlinear activation (e.g. tanh or ReLU) ￼.
+
+In matrix form,
+!bt
+\[
+\mathbf{W}_{xh}\in\mathbb{R}^{h\times d}, \mathbf{W}_{hh}\in\mathbb{R}^{h\times h}, \mathbf{W}_{yh}\in\mathbb{R}^{q\times h},
+\]
+!et
+for input dim d, hidden dim h, output dim q.
+
+We often also write
+!bt
+\[
+y_t = f(\mathbf{o}_t) with \mathbf{o}_t=W_{yh}h_t
+\]
+!et
+to include a final activation for classification.
+
+Because the same $\mathbf{W}$ are used each step, gradients during training will propagate through time.
+
+!bt
+\[
+===== Unrolled RNN in Time =====
+
+!bblock
+o Input $x_1,x_2,x_3,\dots$ feed sequentially; the hidden state flows from one step to the next, capturing past context.
+o After processing the final input $x_T$, the network can make a prediction (many-to-one) or outputs can be produced at each step (many-to-many).
+o Unrolling clarifies that training an RNN is like training a deep feedforward network of depth T, with recurrent connections tying layers together.
+!eblock
+
+!split
+===== Example Task: Character-level RNN Classification =====
+!bblock
+o A classic example: feed a name (sequence of characters) one char at a time, and classify its language of origin.
+o At each step, the RNN outputs a hidden state; we use the final hidden state to predict the class of the entire sequence.
+o A character-level RNN reads words as a series of characters—outputting a prediction and ‘hidden state’ at each step, feeding the previous hidden state into the next step. We take the final prediction to be the output” ￼.
+o This illustrates sequence-to-one modeling: every output depends on all previous inputs.
+!eblock
+
+!split
+===== PyTorch: Defining a Simple RNN =====
+!bc pycod
+import torch, torch.nn as nn
+
+# A simple RNN-based model
+
+model = nn.Sequential(
+nn.RNN(input_size=10, hidden_size=20, num_layers=2, batch_first=True),
+nn.Linear(20, 5)  # 5 output classes
+)
+
+#Example input: batch of 3 sequences, each of length 7, input dim 10
+
+x = torch.randn(3, 7, 10)
+output, hn = model(x)  # output shape: (3,7,20), hn shape: (2,3,20)
+!ec
+
+
+
+\end{lstlisting}
+	•	PyTorch’s nn.RNN(in_features, hidden_size, num_layers) stacks RNN layers (here 2) ￼.
+	•	The output tensor has shape (batch, seq_len, hidden_size); hn contains the last hidden states for each layer.
+	•	This code example is adapted from PyTorch docs ￼ ￼.
+\end{frame}
+
+\begin{frame}{TensorFlow: Defining a Simple RNN}
+\begin{lstlisting}
+from tensorflow.keras import layers, models
+
+Sequential model with a single SimpleRNN layer
+
+model = models.Sequential([
+layers.SimpleRNN(64, input_shape=(None, 10), activation=‘tanh’),
+layers.Dense(5, activation=‘softmax’)
+])
+model.summary()
+\end{lstlisting}
+	•	This Keras model takes variable-length sequences of 10-dimensional inputs; the SimpleRNN(64) layer returns a 64-dim vector.
+	•	We then use a dense output for classification. TensorFlow usage example:
+model.add(layers.SimpleRNN(128)) produces output shape (None,128) ￼.
+	•	Both frameworks require you to handle batching and sequence lengths (e.g., batch_first=True in PyTorch makes input shape (batch,seq,features), whereas in TensorFlow Keras, batch is first by default ￼).
+\end{frame}
+
+Lecture 2: Backpropagation Through Time (BPTT) and Gradients
+
+\begin{frame}{Backpropagation Through Time (BPTT)}
+\begin{itemize}
+\item Training an RNN involves computing gradients through time by unfolding the network: treat the unrolled RNN as a very deep feedforward net.
+\item We compute the loss L = \frac{1}{T}\sum_{t=1}^T \ell(y_t,\hat y_t) and backpropagate from t=T down to t=1.
+\item The computational graph below (for 3 steps) shows how each hidden state depends on inputs and parameters across time ￼.
+\item BPTT applies the chain rule along this graph, accumulating gradients from each time step into the shared parameters.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{RNN Computational Graph}
+
+\begin{itemize}
+\item Boxes (variables) and circles (operations) illustrate dependencies: each h_t depends on W_{xh},W_{hh}, h_{t-1}, x_t ￼.
+\item During the backward pass, we traverse this graph in reverse, summing gradients that flow from future time steps.
+\item Note how the hidden state paths merge: gradients at step t come from both the loss at t and from the next step t+1.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Gradient Computation (BPTT Equations)}
+	•	Let L be the total loss. For the final time step T,
+\frac{\partial L}{\partial h_T} = W_{yh}^T \frac{\partial L}{\partial y_T} using y_T=W_{yh}h_T ￼.
+	•	For any intermediate step t<T, the gradient w.r.t. the hidden state obeys the recurrence:
+\displaystyle\frac{\partial L}{\partial h_t} = W_{hh}^T\frac{\partial L}{\partial h_{t+1}} + W_{yh}^T\frac{\partial L}{\partial y_t} ￼.
+	•	In words: error from the future step (\partial L/\partial h_{t+1}) is backpropagated through W_{hh}, and error from current output is backpropagated through W_{yh}.
+	•	The gradients for the parameters are sums over time: e.g., \partial L/\partial W_{yh} = \sum_{t=1}^T \frac{\partial L}{\partial y_t}h_t^T ￼ and similar for W_{xh},W_{hh}.
+\end{frame}
+
+\begin{frame}{Exploding and Vanishing Gradients}
+	•	Unfolded BPTT shows gradients involve powers of W_{hh}. For example, expanding the recurrence gives terms like (W_{hh}^T)^{k} multiplying gradients from k steps ahead ￼.
+	•	Vanishing gradients: If \|W_{hh}\|<1 (eigenvalues <1), repeated multiplications shrink gradients exponentially, making it hard to learn long-range dependencies.
+	•	Exploding gradients: If \|W_{hh}\|>1, gradients grow exponentially, causing instability.
+	•	As noted: “eigenvalues smaller than 1 vanish and eigenvalues larger than 1 diverge. This is numerically unstable… manifesting as vanishing and exploding gradients.” ￼.
+	•	In practice, one mitigates this by careful weight initialization and gradient clipping (e.g., clip_grad_norm_ in PyTorch), or by truncating BPTT.
+\end{frame}
+
+\begin{frame}{Truncated BPTT and Gradient Clipping}
+\begin{itemize}
+\item Truncated BPTT: Instead of backpropagating through all T steps, we may backpropagate through a fixed window of length \tau. This approximates the full gradient and reduces computation ￼.
+\item Concretely, one computes gradients up to \tau steps and treats gradients beyond as zero. This still allows learning short-term patterns efficiently.
+\item Gradient Clipping: Cap the gradient norm to a maximum value to prevent explosion. For example in PyTorch:
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) ensures \|\nabla\|\le1.
+\item These techniques help stabilize training, but the fundamental vanishing problem motivates using alternative RNN cells (LSTM/GRU) in practice (though we do not cover them here).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Mathematical Insight on Gradients}
+	•	In a linearized RNN, one can derive (9.7.15) showing \partial L/\partial h_t = \sum_{i=t}^T (W_{hh}^T)^{T-i} W_{yh}^T \frac{\partial L}{\partial y_{T+t-i}} ￼.
+	•	From this, any eigenvalue \lambda of W_{hh} contributes factors \lambda^{T-t} to gradients. If |\lambda|<1, terms vanish as T\to\infty; if |\lambda|>1, they explode.
+	•	Thus, simple RNNs struggle with long-term dependencies: information far back in time has negligible influence on the loss gradient ￼.
+	•	Truncation effectively ignores terms beyond a window, trading off accuracy for stability.
+\end{frame}
+
+Lecture 3: Applications of Simple RNNs
+
+\begin{frame}{RNNs for Time Series Forecasting}
+\begin{itemize}
+\item Forecasting: RNNs can predict future values from historical data. Example tasks include stock prices, weather patterns, or any temporal signal ￼.
+\item By feeding in sequence \{x_1,x_2,\dots,x_T\}, an RNN can output a prediction y_T (one-step ahead) or even a full sequence \{y_2,\dots,y_{T+1}\}.
+\item Unlike linear models, RNNs can capture complex temporal patterns (trends, seasonality, autocorrelation) in a data-driven way ￼.
+\item Preprocessing (normalization, sliding windows) is important. Split data into train/test by time (no shuffling).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Sequence Modeling Tasks}
+\begin{itemize}
+\item Many-to-One: Classify or predict one value from an entire sequence (e.g., sentiment analysis of a movie review, or classifying a time series). We use the final hidden state as a summary of the sequence.
+\item Many-to-Many (Prediction): Predict an output at each time step (e.g., language modeling or sequential regression). RNN outputs are used at each step.
+\item Encoder–Decoder (Seq2Seq): (Advanced) Map input sequences to output sequences of different lengths. Though typically LSTM-based, it’s conceptually possible with simple RNNs.
+\item RNNs also apply to physics and biology: e.g., modeling dynamical systems, protein sequences, or neuroscience time series. Any domain with sequential data can use RNN-based modeling.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PyTorch Example: Time Series Regression}
+\begin{lstlisting}
+import torch.nn as nn
+
+Simple RNN for sequence-to-value regression
+
+class ForecastRNN(nn.Module):
+def init(self, input_dim, hidden_dim):
+super().init()
+self.rnn = nn.RNN(input_dim, hidden_dim, batch_first=True)
+self.fc = nn.Linear(hidden_dim, 1)
+def forward(self, x):
+out, _ = self.rnn(x)         # out: (batch, seq_len, hidden_dim)
+return self.fc(out[:, -1, :])  # use last output for prediction
+
+model = ForecastRNN(input_dim=1, hidden_dim=20)
+x = torch.randn(16, 10, 1)  # batch=16, seq_len=10
+y_pred = model(x)  # shape (16,1)
+\end{lstlisting}
+	•	This RNN reads 10 time steps of a univariate series and outputs a single prediction (one-step ahead).
+	•	We apply a linear layer to the last RNN output (out[:,-1,:]) to make the forecast.
+	•	Training would minimize MSE between y_pred and true next value.
+\end{frame}
+
+\begin{frame}{TensorFlow Example: Time Series Regression}
+\begin{lstlisting}
+from tensorflow.keras import layers, models
+
+model = models.Sequential([
+layers.SimpleRNN(20, input_shape=(None, 1), activation=‘tanh’),
+layers.Dense(1)
+])
+model.compile(loss=‘mse’, optimizer=‘adam’)
+model.summary()
+\end{lstlisting}
+	•	Here SimpleRNN(20) processes sequences of shape (batch, seq_len, 1), outputting a 20-dimensional vector for the last time step.
+	•	We then predict a single value with Dense(1). The model is compiled with mean-squared error for regression.
+	•	This aligns with the PyTorch example: both frameworks allow easy stacking of an RNN layer followed by a Dense layer for output.
+\end{frame}
+
+\begin{frame}{Other Sequence Applications}
+\begin{itemize}
+\item Sequence Classification: Use RNN hidden state for class labels. For example, classify a time series into anomaly vs normal.
+\item Sequence Labeling: Predict labels at each time step (e.g. part-of-speech tagging). The RNN outputs a vector at each step passed through a classification layer.
+\item Language and Text: (Advanced) Character or word-level models use RNNs to generate text or classify documents. E.g., predicting next character from previous ones (RNN language model) ￼.
+\item Physically Motivated Data: RNNs can model dynamical systems (e.g., rolling ball trajectories, neuron spikes over time, climate data). They learn temporal patterns directly from data without explicit equations.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Training and Practical Tips}
+\begin{itemize}
+\item Loss Functions: Use MSE for regression tasks, cross-entropy for classification tasks. Sum or average losses over time steps as needed.
+\item Batching Sequences: Handle variable-length sequences by padding or using masking. PyTorch pack_padded_sequence or Keras masking can help.
+\item Optimization: Standard optimizers (SGD, Adam) work. Learning rate may need tuning due to sequential correlations.
+\item Initial Hidden State: Usually initialized to zeros. Can also learn an initial state or carry hidden state across batches for very long sequences (stateful=True in Keras).
+\item Regularization: Dropout can be applied to inputs or recurrent states (PyTorch/RNN has dropout option; Keras has dropout/recurrent_dropout).
+\end{itemize}
+\end{frame}
+
+Lecture 4: Advanced Topics in Simple RNNs
+
+\begin{frame}{Stacked (Deep) RNNs}
+
+\begin{itemize}
+\item In a deep RNN, multiple RNN layers are stacked: the output of layer l-1 at time t feeds into layer l at the same time (see Fig. 10.3.1) ￼.
+\item Formally, for layer l: H_t^{(l)} = \phi\big(H_t^{(l-1)}W_{xh}^{(l)} + H_{t-1}^{(l)}W_{hh}^{(l)} + b_h^{(l)}\big) ￼.
+\item Stacking increases model capacity, allowing complex input-to-output transformations and temporal modeling.
+\item In code (PyTorch), use num_layers>1 or explicitly stack nn.RNN layers ￼. In Keras, add multiple SimpleRNN layers with return_sequences=True on all but the last.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bidirectional RNNs (Brief Mention)}
+\begin{itemize}
+\item Though beyond “simple” RNNs, note: Bidirectional RNNs process the sequence forward and backward, concatenating both hidden states. Useful when entire sequence is known (e.g. offline tasks).
+\item In PyTorch: nn.RNN(..., bidirectional=True) makes a 2-directional RNN. In Keras: layers.Bidirectional(layers.SimpleRNN(...)).
+\item This doubles parameters and output size but can improve context capture. However, it still uses simple RNN cells internally (no gates).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Parameter and Output Shapes}
+\begin{itemize}
+\item For PyTorch’s nn.RNN, inputs shape (batch, seq_len, input_dim) (with batch_first=True) ￼; output is (batch, seq_len, hidden_size).
+\item Keras SimpleRNN(units, input_shape=(None,input_dim)) outputs shape (batch, units) by default (last output). To get full sequences, use return_sequences=True.
+\item Hidden state tensor shapes: PyTorch returns h_n of shape (num_layers * num_directions, batch, hidden_size).
+\item Always check framework docs for exact conventions (e.g., PyTorch’s batch_first flag) ￼ ￼.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Limitations and Considerations}
+\begin{itemize}
+\item Vanishing Gradients: Simple RNNs have fundamental difficulty learning long-term dependencies due to gradient decay ￼.
+\item Capacity: Without gates, RNNs may struggle with tasks requiring remembering far-back inputs. Training can be slow as it’s inherently sequential.
+\item Alternatives: In practice, gated RNNs (LSTM/GRU) or Transformers are often used for long-range dependencies. However, simple RNNs are still instructive and sometimes sufficient for short sequences ￼ ￼.
+\item Regularization: Weight decay or dropout (on inputs/states) can help generalization but must be applied carefully due to temporal correlations.
+\item Statefulness: For very long sequences, one can preserve hidden state across batches (stateful RNN) to avoid resetting memory.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Summary of Forward/Backward}
+\begin{itemize}
+\item Forward pass: h_t = \phi(W_{xh} x_t + W_{hh} h_{t-1} + b), y_t = W_{yh} h_t + c ￼.
+\item Backward pass (BPTT): Gradients flow as
+\frac{\partial L}{\partial h_t} = W_{hh}^T \frac{\partial L}{\partial h_{t+1}} + W_{yh}^T \frac{\partial L}{\partial y_t} ￼, accumulating through time.
+\item Training: Use gradient descent (SGD, Adam, etc.) to update weights W. Monitor for vanishing/exploding gradients and use clipping or truncation as needed ￼ ￼.
+\item Usage: RNNs excel at modeling sequences with short- to mid-term dependencies. They have been widely used in time series, NLP, and any domain with temporal structure ￼ ￼.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Further Resources}
+\begin{itemize}
+\item Deep Learning (Goodfellow et al., 2016) – Chapter on RNNs, BPTT, and gradient issues ￼.
+\item Dive into Deep Learning (https://d2l.ai) – Sections 9.4–9.7 cover RNN implementation and BPTT ￼ ￼.
+\item PyTorch and TensorFlow official tutorials – for practical code examples of RNNs ￼ ￼.
+\item Original papers: Pascanu et al. (2013) On the Difficulty of Training RNNs, Bengio et al. (1994) Learning long-term dependencies is difficult.
+\end{itemize}
+\end{frame}
+
+
+PyTorch RNN Time Series Example
+
+We first implement a simple RNN in PyTorch to forecast a univariate time series (a sine wave). The steps are: (1) generate synthetic data and form input/output sequences; (2) define an nn.RNN model; (3) train the model with MSE loss and an optimizer; (4) evaluate on a held-out test set. For example, using a sine wave as in prior tutorials ￼, we create sliding windows of length seq_length. The code below shows each step. We use nn.RNN (the basic recurrent layer) followed by a linear output. The training loop (with MSELoss and Adam) updates the model to minimize prediction error ￼.
+
+import numpy as np
+import torch
+from torch import nn, optim
+
+# 1. Data preparation: generate a sine wave and create input-output sequences
+time_steps = np.linspace(0, 100, 500)
+data = np.sin(time_steps)                   # shape (500,)
+seq_length = 20
+X, y = [], []
+for i in range(len(data) - seq_length):
+    X.append(data[i:i+seq_length])         # sequence of length seq_length
+    y.append(data[i+seq_length])           # next value to predict
+X = np.array(X)                            # shape (480, seq_length)
+y = np.array(y)                            # shape (480,)
+# Add feature dimension (1) for the RNN input
+X = X[..., None]                           # shape (480, seq_length, 1)
+y = y[..., None]                           # shape (480, 1)
+
+# Split into train/test sets (80/20 split)
+train_size = int(0.8 * len(X))
+X_train = torch.tensor(X[:train_size], dtype=torch.float32)
+y_train = torch.tensor(y[:train_size], dtype=torch.float32)
+X_test  = torch.tensor(X[train_size:],  dtype=torch.float32)
+y_test  = torch.tensor(y[train_size:],  dtype=torch.float32)
+
+# 2. Model definition: simple RNN followed by a linear layer
+class SimpleRNNModel(nn.Module):
+    def __init__(self, input_size=1, hidden_size=16, num_layers=1):
+        super(SimpleRNNModel, self).__init__()
+        # nn.RNN for sequential data (batch_first=True expects (batch, seq_len, features))
+        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, 1)    # output layer for prediction
+
+    def forward(self, x):
+        out, _ = self.rnn(x)                 # out: (batch, seq_len, hidden_size)
+        out = out[:, -1, :]                  # take output of last time step
+        return self.fc(out)                 # linear layer to 1D output
+
+model = SimpleRNNModel(input_size=1, hidden_size=16, num_layers=1)
+print(model)  # print model summary (structure)
+# Output example:
+# SimpleRNNModel(
+#   (rnn): RNN(1, 16, batch_first=True)
+#   (fc): Linear(in_features=16, out_features=1, bias=True)
+# )
+
+	•	Model Explanation: Here input_size=1 because each time step has one feature. The RNN hidden state has size 16, and batch_first=True means input tensors have shape (batch, seq_len, features). We take the last RNN output and feed it through a linear layer to predict the next value ￼.
+
+# 3. Training loop: MSE loss and Adam optimizer
+criterion = nn.MSELoss()                  # mean squared error loss
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+epochs = 50
+for epoch in range(1, epochs+1):
+    model.train()
+    optimizer.zero_grad()
+    output = model(X_train)               # forward pass
+    loss = criterion(output, y_train)     # compute training loss
+    loss.backward()                       # backpropagate
+    optimizer.step()                      # update weights
+    if epoch % 10 == 0:
+        print(f'Epoch {epoch}/{epochs}, Loss: {loss.item():.4f}')
+# Sample output:
+# Epoch 10/50, Loss: 0.3604
+# Epoch 20/50, Loss: 0.0542
+# Epoch 30/50, Loss: 0.0207
+# Epoch 40/50, Loss: 0.0102
+# Epoch 50/50, Loss: 0.0065
+
+	•	Training Details: We train for 50 epochs, printing the training loss every 10 epochs. As training proceeds, the loss (MSE) typically decreases, indicating the RNN is learning the sine-wave pattern ￼.
+
+# 4. Evaluation on test set
+model.eval()
+with torch.no_grad():
+    pred = model(X_test)
+    test_loss = criterion(pred, y_test)
+print(f'Test Loss: {test_loss.item():.4f}')
+
+# (Optional) View a few actual vs. predicted values
+print("Actual:", y_test[:5].flatten().numpy())
+print("Pred : ", pred[:5].flatten().numpy())
+
+	•	Evaluation: We switch to eval mode and compute loss on the test set. The lower test loss indicates how well the model generalizes. The code prints a few sample predictions against actual values for qualitative assessment. This simple PyTorch RNN code closely follows known tutorials ￼.
+
+TensorFlow (Keras) RNN Time Series Example
+
+Next, we use TensorFlow/Keras to do the same task. We build a tf.keras.Sequential model with a SimpleRNN layer (the most basic recurrent layer) ￼ followed by a Dense output. The workflow is similar: create the same synthetic sine data and split it into train/test sets; then define, train, and evaluate the model.
+
+import numpy as np
+import tensorflow as tf
+
+# 1. Data preparation: same sine wave data and sequences as above
+time_steps = np.linspace(0, 100, 500)
+data = np.sin(time_steps)                     # (500,)
+seq_length = 20
+X, y = [], []
+for i in range(len(data) - seq_length):
+    X.append(data[i:i+seq_length])
+    y.append(data[i+seq_length])
+X = np.array(X)                               # (480, seq_length)
+y = np.array(y)                               # (480,)
+# reshape for RNN: (samples, timesteps, features)
+X = X.reshape(-1, seq_length, 1)             # (480, 20, 1)
+y = y.reshape(-1, 1)                         # (480, 1)
+
+# Split into train/test (80/20)
+split = int(0.8 * len(X))
+X_train, X_test = X[:split], X[split:]
+y_train, y_test = y[:split], y[split:]
+
+	•	Data: We use the same sine-wave sequence and sliding-window split as in the PyTorch example ￼. The arrays are reshaped to (batch, timesteps, features) for Keras.
+
+# 2. Model definition: Keras SimpleRNN and Dense
+model = tf.keras.Sequential([
+    tf.keras.layers.SimpleRNN(16, input_shape=(seq_length, 1)),
+    tf.keras.layers.Dense(1)
+])
+model.compile(optimizer='adam', loss='mse')   # MSE loss and Adam optimizer
+model.summary()
+# Output example:
+# Model: "sequential"
+# _________________________________________________________________
+# Layer (type)                 Output Shape              Param #   
+# =================================================================
+# simple_rnn (SimpleRNN)      (None, 16)                 288       
+# _________________________________________________________________
+# dense (Dense)              (None, 1)                   17        
+# =================================================================
+
+	•	Model Explanation: Here SimpleRNN(16) creates 16 recurrent units. The model summary shows the shapes and number of parameters. (Keras handles the sequence dimension internally.)
+
+# 3. Training
+history = model.fit(
+    X_train, y_train,
+    epochs=50,
+    batch_size=32,
+    validation_split=0.2,    # use 20% of train data for validation
+    verbose=1
+)
+# Training progress prints loss/val_loss each epoch
+
+	•	Training: We train for 50 epochs. The fit call also reports validation loss (using a 20% split of the training data) to monitor generalization. (This follows the standard Keras approach ￼.)
+
+# 4. Evaluation on test set
+test_loss = model.evaluate(X_test, y_test, verbose=0)
+print(f'Test Loss: {test_loss:.4f}')
+
+# (Optional) Predictions
+predictions = model.predict(X_test)
+print("Actual:", y_test.flatten()[:5])
+print("Pred : ", predictions.flatten()[:5])
+
+	•	Evaluation: After training, we call model.evaluate on the test set. A low test loss indicates good forecasting accuracy. We also predict and compare a few samples of actual vs. predicted values. This completes the simple RNN forecasting example in TensorFlow.
+
+Both examples use only basic RNN cells (no LSTM/GRU) and include data preparation, model definition, training loop, and evaluation. The PyTorch code uses nn.RNN as in common tutorials ￼ ￼, and the Keras code uses SimpleRNN layer ￼. Each code block above is self-contained and can be run independently with standard libraries (NumPy, PyTorch or TensorFlow).
+
+Sources: We adapted the PyTorch example from a tutorial using a sine-wave dataset ￼ ￼ ￼, and the Keras steps follow standard time-series RNN usage ￼ ￼.
+
+.style={->, >=stealth, thick}}
+
+\title[Autoencoders (4 Lectures)]{Autoencoders: Theory, Variants and Applications}
+\author{Prepared for Graduate Students in Natural Sciences & Mathematics}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+% ==========================
+% Lecture 1: Introduction and Linear Autoencoders
+% ==========================
+\section{Lecture 1: Introduction & Linear Autoencoders}
+
+\begin{frame}{Learning Goals (Lecture 1)}
+\begin{itemize}
+\item Understand the basic autoencoder architecture (encoder, latent space, decoder).
+\item Derive the linear autoencoder and its connection to PCA.
+\item See simple implementations and start hands-on examples.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What is an Autoencoder?}
+\begin{itemize}
+\item An autoencoder (AE) is a neural network trained to reconstruct its input: $\hat{x}=\mathrm{Dec}(\mathrm{Enc}(x))$.
+\item Components:
+\begin{itemize}
+\item \textbf{Encoder} $f_\theta:\mathbb{R}^d\to\mathbb{R}^m$ compresses input to latent code $z=f_\theta(x)$
+\item \textbf{Decoder} $g_\phi:\mathbb{R}^m\to\mathbb{R}^d$ reconstructs $\hat{x}=g_\phi(z)$
+\end{itemize}
+\item Training objective: minimize reconstruction loss, e.g. MSE
+\mathcal{L}(\theta,\phi)=\frac{1}{N}\sum_{i=1}^N \|x^{(i)}-g_\phi(f_\theta(x^{(i)}))\|^2_2.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Simple Diagram: Autoencoder}
+\centering
+\begin{tikzpicture}[node distance=12mm, auto, scale=0.95]
+\node (x) [draw, rectangle, rounded corners, minimum width=1.6cm, minimum height=6mm] {$x\in\mathbb{R}^d$};
+\node (enc1) [encoder, right=12mm of x] {Encoder layers};
+\node (z) [draw, rectangle, rounded corners, minimum width=1.6cm, minimum height=6mm, right=12mm of enc1] {$z\in\mathbb{R}^m$};
+\node (dec1) [decoder, right=12mm of z] {Decoder layers};
+\node (xhat) [draw, rectangle, rounded corners, minimum width=1.6cm, minimum height=6mm, right=12mm of dec1] {$\hat{x}\in\mathbb{R}^d$};
+\draw[arrow] (x) – (enc1);
+\draw[arrow] (enc1) – (z);
+\draw[arrow] (z) – (dec1);
+\draw[arrow] (dec1) – (xhat);
+\end{tikzpicture}
+\vspace{2mm}
+\begin{itemize}
+\item Encoder + Decoder may be \emph{linear} or \emph{nonlinear}.
+\item Bottleneck dimension $m$ controls compression; if $m<d$ we force representation learning.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Linear Autoencoder}
+\begin{itemize}
+\item Consider linear encoder and decoder with no biases for simplicity:
+z=W_e x,\qquad \hat{x}=W_d z = W_d W_e x.
+\item Minimize reconstruction error over dataset $X\in\mathbb{R}^{d\times N}$ (columns are datapoints):
+\min_{W_e,W_d} \|X - W_d W_e X\|_F^2.
+\item Let $W= W_d W_e$ be a rank-$m$ matrix approximation of the identity mapping on the data subspace.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Linear AE \leftrightarrow PCA}
+\begin{itemize}
+\item If we constrain $W_e$ to have orthonormal rows and $W_d=W_e^T$, minimizing Frobenius norm leads to PCA projection onto top-$m$ principal components.
+\item Proof sketch (informal): SVD of data $X = U \Sigma V^T$. Best rank-$m$ approximation in Frobenius norm is via truncation $U_m\Sigma_m V_m^T$ (Eckart–Young theorem). Linear AE learns the same subspace when optimal.
+\item Therefore linear AE with MSE and appropriate constraints recovers PCA.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Derivation (Sketch)}
+\begin{align*}
+&\min_{W,:,\mathrm{rank}(W)\le m} |X - W X|_F^2 \[2mm]
+&\text{SVD: } X = U \Sigma V^T, \quad X_m = U_m \Sigma_m V_m^T \\
+&\Rightarrow \operatorname{argmin}_W \|X - W X\|F^2 = P{U_m} = U_m U_m^T,
+\end{align*}
+which is the projection onto the leading $m$ principal components. A linear AE with encoder $W_e=U_m^T$, decoder $W_d=U_m$ achieves this.
+\end{frame}
+
+\begin{frame}{Practical remarks}
+\begin{itemize}
+\item Linear AE = good for understanding; nonlinear AE (with activations) can learn more complex manifolds.
+\item Bottleneck dimension $m$ should balance reconstruction fidelity vs. compression.
+\item Regularization (weight decay, sparsity) helps to learn meaningful features.
+\end{itemize}
+\end{frame}
+
+% ==========================
+% Lecture 2: Nonlinear Autoencoders and Training
+% ==========================
+\section{Lecture 2: Nonlinear Autoencoders \& Training}
+
+\begin{frame}{Learning Goals (Lecture 2)}
+\begin{itemize}
+\item Introduce nonlinear autoencoders with activation functions and multiple layers.
+\item Describe training via gradient descent and backpropagation through the encoder/decoder.
+\item Show full PyTorch and TensorFlow code for a simple AE on MNIST (or small dataset).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Nonlinear Autoencoder (Single Hidden Layer)}
+\begin{align*}
+z &= \sigma(W_e x + b_e),\\
+\hat{x} &= \sigma’(W_d z + b_d),
+\end{align*}
+where $\sigma,\sigma’$ are activation functions (ReLU, tanh, sigmoid) and losses are typically MSE or binary cross-entropy for normalized inputs.
+\end{frame}
+
+\begin{frame}{Backpropagation Through Autoencoder}
+\begin{itemize}
+\item Loss $\mathcal{L}(\theta) = \frac{1}{N}\sum_i \ell(x^{(i)},\hat{x}^{(i)})$ with $\hat{x}=g_\phi(f_\theta(x))$.
+\item Gradient computed via chain rule through decoder and encoder:
+\[\nabla_{\phi,\theta} \mathcal{L} = \frac{1}{N} \sum_i \nabla_{\hat{x}} \ell \cdot \nabla_{\phi} g_\phi(z) \cdot \nabla_\theta f_\theta(x).\]
+\item Standard autodiff in PyTorch / TensorFlow handles these computations.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PyTorch: Full Autoencoder (MNIST) — Code}
+\begin{lstlisting}
+
+PyTorch AE for MNIST (fully self-contained snippet)
+
+import torch
+from torch import nn, optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+Data
+
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+train_ds = datasets.MNIST(’.’, train=True, download=True, transform=transform)
+train_loader = DataLoader(train_ds, batch_size=128, shuffle=True)
+
+Model
+
+class Autoencoder(nn.Module):
+def init(self, input_dim=28*28, hidden_dim=64, latent_dim=16):
+super().init()
+self.encoder = nn.Sequential(
+nn.Flatten(),
+nn.Linear(input_dim, hidden_dim),
+nn.ReLU(),
+nn.Linear(hidden_dim, latent_dim),
+nn.ReLU()
+)
+self.decoder = nn.Sequential(
+nn.Linear(latent_dim, hidden_dim),
+nn.ReLU(),
+nn.Linear(hidden_dim, input_dim),
+nn.Sigmoid(),
+nn.Unflatten(1, (1,28,28))
+)
+def forward(self, x):
+z = self.encoder(x)
+xhat = self.decoder(z)
+return xhat
+
+model = Autoencoder()
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+Training loop (one epoch example)
+
+model.train()
+for epoch in range(1, 11):
+epoch_loss = 0.0
+for xb, _ in train_loader:
+optimizer.zero_grad()
+xb = xb
+xhat = model(xb)
+loss = criterion(xhat, xb)
+loss.backward()
+optimizer.step()
+epoch_loss += loss.item() * xb.size(0)
+epoch_loss /= len(train_loader.dataset)
+print(f”Epoch {epoch}, Loss: {epoch_loss:.6f}”)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{TensorFlow: Full Autoencoder (MNIST) — Code}
+\begin{lstlisting}
+
+TensorFlow Keras AE for MNIST
+
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+Data
+
+(x_train, _), (x_test, _) = tf.keras.datasets.mnist.load_data()
+x_train = x_train.astype(‘float32’) / 255.0
+x_train = x_train[…, None]
+
+Model
+
+input_shape = (28,28,1)
+encoder_inputs = layers.Input(shape=input_shape)
+x = layers.Flatten()(encoder_inputs)
+x = layers.Dense(64, activation=‘relu’)(x)
+latent = layers.Dense(16, activation=‘relu’)(x)
+
+x = layers.Dense(64, activation=‘relu’)(latent)
+x = layers.Dense(28*28, activation=‘sigmoid’)(x)
+outputs = layers.Reshape((28,28,1))(x)
+
+autoencoder = models.Model(encoder_inputs, outputs)
+autoencoder.compile(optimizer=‘adam’, loss=‘mse’)
+
+Training
+
+autoencoder.fit(x_train, x_train, epochs=10, batch_size=128)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Discussion: Architectures and Choices}
+\begin{itemize}
+\item Activation functions: ReLU often for hidden layers, sigmoid for output when input scaled to [0,1].
+\item Loss: MSE for continuous-valued inputs; binary cross-entropy if inputs are binary/normalized.
+\item Bottleneck/latent size affects compression and reconstruction quality.
+\item Use dropout, batch-norm, or weight decay as needed.
+\end{itemize}
+\end{frame}
+
+% ==========================
+% Lecture 3: Denoising, Sparse, and Regularized Autoencoders
+% ==========================
+\section{Lecture 3: Denoising, Sparse, and Regularized Autoencoders}
+
+\begin{frame}{Learning Goals (Lecture 3)}
+\begin{itemize}
+\item Understand denoising and sparse autoencoders.
+\item Learn regularization techniques to improve latent representations.
+\item See code examples for denoising and sparse penalties.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Denoising Autoencoder (DAE)}
+\begin{itemize}
+\item Idea: Corrupt input $x$ with noise to $\tilde{x}$ and train AE to reconstruct the clean $x$.
+\item Objective: $\mathbb{E}{x\sim p{data}}\mathbb{E}{\tilde{x}\sim q(\tilde{x}|x)}\big[\ell(x,g\phi(f_\theta(\tilde{x})))\big]$.
+\item Denoising forces encoder to learn robust features and manifold structure.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PyTorch: Denoising Autoencoder (Snippet)}
+\begin{lstlisting}
+
+Add Gaussian noise to inputs and train AE to reconstruct clean images
+
+noise_std = 0.3
+for xb, _ in train_loader:
+xb_noisy = xb + noise_std * torch.randn_like(xb)
+xb_noisy = torch.clip(xb_noisy, 0., 1.)
+optimizer.zero_grad()
+xhat = model(xb_noisy)
+loss = criterion(xhat, xb)  # target is original clean xb
+loss.backward()
+optimizer.step()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Sparse Autoencoders}
+\begin{itemize}
+\item Encourage activations in the latent code to be sparse (many near-zero).
+\item Add penalty (e.g., $L_1$ on activations, or KL divergence to small target sparsity $\rho$):
+\mathcal{L} = \frac{1}{N}\sum_i \|x^{(i)}-\hat{x}^{(i)}\|^2 + \beta \sum_j \text{KL}(\rho \| \hat{\rho}_j),
+where $\hat{\rho}_j$ is average activation of unit $j$ across data.
+\item Sparsity encourages disentanglement and interpretable features.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Implementation: Sparsity via $L_1$ Penalty (PyTorch)}
+\begin{lstlisting}
+
+After forward pass: z = model.encoder(xb)
+
+l1_lambda = 1e-5
+reconstruction = model.decoder(z)
+mse = criterion(reconstruction, xb)
+l1_penalty = l1_lambda * torch.mean(torch.abs(z))
+loss = mse + l1_penalty
+loss.backward()
+optimizer.step()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Contractive Autoencoders (Brief)}
+\begin{itemize}
+\item Penalize sensitivity of encoder to input by adding Frobenius norm of Jacobian $J_{f}(x)$:
+\mathcal{L} = \text{recon loss} + \lambda \|J_f(x)\|_F^2.
+\item Encourages robustness and local invariance around training points.
+\item More expensive: requires computing Jacobian or tractable approximations.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Applications: Denoising, Dimensionality Reduction, Anomaly Detection}
+\begin{itemize}
+\item \textbf{Denoising}: reconstruct clean signals from noisy inputs (images, sensor data).
+\item \textbf{Dimensionality reduction}: use latent $z$ for visualization, clustering.
+\item \textbf{Anomaly detection}: large reconstruction error indicates outliers or anomalies.
+\end{itemize}
+\end{frame}
+
+% ==========================
+% Lecture 4: Applications, Evaluation, and Advanced Practical Tips
+% ==========================
+\section{Lecture 4: Applications, Evaluation & Advanced Tips}
+
+\begin{frame}{Learning Goals (Lecture 4)}
+\begin{itemize}
+\item Put together applications: anomaly detection pipeline, denoising in practice.
+\item Discuss evaluation metrics and practical tips (regularization, early stopping, hyperparameters).
+\item Provide complete runnable examples in PyTorch and TensorFlow that illustrate anomaly detection and denoising.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Autoencoders for Anomaly Detection}
+\begin{itemize}
+\item Train AE on “normal” data only.
+\item For a test point $x^$ compute reconstruction error $r(x^)=|x^-\hat{x}^|^2$.
+\item If $r(x^*)$ exceeds threshold $\tau$, flag as anomaly. Threshold chosen via validation set or percentile.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PyTorch: Anomaly Detection Example (Synthetic)}
+\begin{lstlisting}
+
+Train AE on normal sine-wave data (from earlier lecture). After training:
+
+with torch.no_grad():
+recon = model(X_test)
+errors = torch.mean((recon - X_test)**2, dim=(1,2))  # per-sample MSE
+
+Choose threshold (e.g., 95th percentile of train errors)
+
+with torch.no_grad():
+recon_train = model(X_train)
+train_errors = torch.mean((recon_train - X_train)**2, dim=(1,2))
+threshold = torch.quantile(train_errors, 0.95)
+anomalies = (errors > threshold)
+print(‘Detected’, anomalies.sum().item(), ‘anomalies out of’, len(errors))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{TensorFlow: Denoising AE Example (MNIST) — Code}
+\begin{lstlisting}
+
+Using autoencoder defined earlier (TensorFlow)
+
+import numpy as np
+noise_factor = 0.5
+x_train_noisy = x_train + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=x_train.shape)
+x_train_noisy = np.clip(x_train_noisy, 0., 1.)
+autoencoder.fit(x_train_noisy, x_train, epochs=10, batch_size=128, validation_split=0.1)
+
+Then predict on noisy test images
+
+x_test_noisy = x_test + noise_factor * np.random.normal(size=x_test.shape)
+x_test_noisy = np.clip(x_test_noisy, 0., 1.)
+reconstructions = autoencoder.predict(x_test_noisy)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Evaluation Metrics and Model Selection}
+\begin{itemize}
+\item Reconstruction MSE / MAE: direct measure of reconstruction quality.
+\item For anomaly detection: Precision/Recall, ROC-AUC using reconstruction error as score.
+\item Visualization: t-SNE or PCA of latent vectors $z$ to inspect cluster structure.
+\item Cross-validation / held-out validation using normal data only for threshold selection.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Practical Tips}
+\begin{itemize}
+\item Normalize inputs consistently (e.g., [0,1] or zero-mean unit-variance).
+\item Small learning rates and early stopping help prevent overfitting to noise.
+\item Monitor validation reconstruction and latent-space structure.
+\item Consider deeper architectures or convolutional autoencoders for images.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Extensions (Brief Overview)}
+\begin{itemize}
+\item Variational Autoencoders (VAEs): probabilistic latent models (not covered here in detail).
+\item Convolutional and Sequence Autoencoders: replace dense layers with conv / RNN layers for images or sequences.
+\item Generative modeling, representation learning, and semi-supervised learning applications.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{References and Further Reading}
+\begin{itemize}
+\item Goodfellow, Bengio & Courville, “Deep Learning” (2016) — chapter on representation learning.
+\item Vincent et al., “Extracting and Composing Robust Features with Denoising Autoencoders” (2008).
+\item Tutorials: PyTorch and TensorFlow official guides for autoencoders and MNIST examples.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Appendix: Full Code Files and Tips}
+The slides included self-contained code snippets. For easier reuse, consider copying these snippets into separate .py or .ipynb files. Use GPU acceleration by moving PyTorch tensors to device = torch.device('cuda') when available, and in TensorFlow ensure GPU is visible via tf.config.list_physical_devices('GPU').
+\end{frame}
+
+\begin{frame}{Questions & Next Steps}
+\begin{itemize}
+\item Want me to expand this to include Variational Autoencoders (VAEs)?
+\item Would you like full runnable Jupyter notebooks exported (one per lecture)?
+\end{itemize}
+\end{frame}
+
+\end{document}
