@@ -258,13 +258,8 @@ MathJax.Hub.Config({
 <ol>
 <p><li> Goodfellow et al chapter 14, see <a href="https://www.deeplearningbook.org/contents/autoencoders.html" target="_blank"><tt>https://www.deeplearningbook.org/contents/autoencoders.html</tt></a></li>
 <p><li> Rashcka et al. Their chapter 17 contains a brief introduction only.</li>
-<p><li> Deep Learning Tutorial on AEs from Stanford University at <a href="http://ufldl.stanford.edu/tutorial/unsupervised/Autoencoders/" target="_blank"><tt>http://ufldl.stanford.edu/tutorial/unsupervised/Autoencoders/</tt></a></li>
 <p><li> Building AEs in Keras at <a href="https://blog.keras.io/building-autoencoders-in-keras.html" target="_blank"><tt>https://blog.keras.io/building-autoencoders-in-keras.html</tt></a></li>
 <p><li> Introduction to AEs in TensorFlow at <a href="https://www.tensorflow.org/tutorials/generative/autoencoder" target="_blank"><tt>https://www.tensorflow.org/tutorials/generative/autoencoder</tt></a></li>
-<p><li> Grosse, University of Toronto, Lecture on AEs at <a href="http://www.cs.toronto.edu/~rgrosse/courses/csc321_2017/slides/lec20.pdf" target="_blank"><tt>http://www.cs.toronto.edu/~rgrosse/courses/csc321_2017/slides/lec20.pdf</tt></a></li>
-<p><li> Bank et al on AEs at <a href="https://arxiv.org/abs/2003.05991" target="_blank"><tt>https://arxiv.org/abs/2003.05991</tt></a></li>
-
-<p><li> Baldi and Hornik, Neural networks and principal component analysis: Learning from examples without local minima, Neural Networks 2, 53 (1989)</li>
 </ol>
 </div>
 </section>
@@ -639,70 +634,8 @@ optimizer.step()
 <ol>
 <p><li> Truncated BPTT: Instead of backpropagating through all T steps, we may backpropagate through a fixed window of length \( \tau \). This approximates the full gradient and reduces computation.</li>
 <p><li> Concretely, one computes gradients up to \( \tau \) steps and treats gradients beyond as zero. This still allows learning short-term patterns efficiently.</li>
-<p><li> Gradient Clipping: Cap the gradient norm to a maximum value to prevent explosion. For example in PyTorch:</li>
-</ol>
-<p>
-<p>torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) ensures \( \|\nabla\|\le 1 \).</p>
-<ol>
+<p><li> Gradient Clipping: Cap the gradient norm to a maximum value to prevent explosion. For example in PyTorch: torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) ensures \( \|\nabla\|\le 1 \).</li>
 <p><li> These techniques help stabilize training, but the fundamental vanishing problem motivates using alternative RNN cells (LSTM/GRU) in practice (see below).</li>
-</ol>
-</div>
-</section>
-
-<section>
-<h2 id="applications-of-simple-rnns">Applications of Simple RNNs </h2>
-
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<ol>
-<p><li> Forecasting: RNNs can predict future values from historical data. Example tasks include stock prices, weather patterns, or any temporal signal &#65532;.</li>
-<p><li> By feeding in sequence \( \{x_1,x_2,\dots,x_T\} \), an RNN can output a prediction \( y_T \) (one-step ahead) or even a full sequence \( \{y_2,\dots,y_{T+1}\} \).</li>
-<p><li> Unlike linear models, RNNs can capture complex temporal patterns (trends, seasonality, autocorrelation) in a data-driven way &#65532;.</li>
-<p><li> Preprocessing (normalization, sliding windows) is important. Split data into train/test by time (no shuffling).</li>
-</ol>
-</div>
-</section>
-
-<section>
-<h2 id="sequence-modeling-tasks">Sequence Modeling Tasks </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<ol>
-<p><li> Many-to-One: Classify or predict one value from an entire sequence (e.g., sentiment analysis of a movie review, or classifying a time series). We use the final hidden state as a summary of the sequence.</li>
-<p><li> Many-to-Many (Prediction): Predict an output at each time step (e.g., language modeling or sequential regression). RNN outputs are used at each step.</li>
-<p><li> Encoder&#8211;Decoder (Seq2Seq): (Advanced) Map input sequences to output sequences of different lengths. Though typically LSTM-based, it is s conceptually possible with simple RNNs.</li>
-<p><li> RNNs also apply to physics and biology: e.g., modeling dynamical systems, protein sequences, or neuroscience time series. Any domain with sequential data can use RNN-based modeling.</li>
-</ol>
-</div>
-</section>
-
-<section>
-<h2 id="other-sequence-applications">Other Sequence Applications </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<ol>
-<p><li> Sequence Classification: Use RNN hidden state for class labels. For example, classify a time series into anomaly vs normal.</li>
-<p><li> Sequence Labeling: Predict labels at each time step (e.g. part-of-speech tagging). The RNN outputs a vector at each step passed through a classification layer.</li>
-<p><li> Language and Text: (Advanced) Character or word-level models use RNNs to generate text or classify documents. E.g., predicting next character from previous ones (RNN language model) &#65532;.</li>
-<p><li> Physically Motivated Data: RNNs can model dynamical systems (e.g., rolling ball trajectories, neuron spikes over time, climate data). They learn temporal patterns directly from data without explicit equations.</li>
-</ol>
-</div>
-</section>
-
-<section>
-<h2 id="training-and-practical-tips">Training and Practical Tips </h2>
-<div class="alert alert-block alert-block alert-text-normal">
-<b></b>
-<p>
-<ol>
-<p><li> Loss Functions: Use MSE for regression tasks, cross-entropy for classification tasks. Sum or average losses over time steps as needed.</li>
-<p><li> Batching Sequences: Handle variable-length sequences by padding or using masking. PyTorch pack_padded_sequence or Keras masking can help.</li>
-<p><li> Optimization: Standard optimizers (SGD, Adam) work. Learning rate may need tuning due to sequential correlations.</li>
-<p><li> Initial Hidden State: Usually initialized to zeros. Can also learn an initial state or carry hidden state across batches for very long sequences (stateful=True in Keras).</li>
-<p><li> Regularization: Dropout can be applied to inputs or recurrent states (PyTorch/RNN has dropout option; Keras has dropout/recurrent_dropout).</li>
 </ol>
 </div>
 </section>
