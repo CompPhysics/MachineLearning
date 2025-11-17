@@ -1,0 +1,486 @@
+% Full 2x45-minute Beamer Lecture on LSTMs
+% (Skeleton ready for expansion; includes ~20 slides)
+
+\documentclass{beamer}
+\usetheme{Madrid}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\title{Long Short-Term Memory Networks (LSTMs)\\A Two-Part Graduate Lecture}
+\author{Prepared for Mathematics & Natural Sciences Graduate Students}
+\date{~}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+%------------------------
+% Lecture 1
+%------------------------
+
+\section{Motivation and Background}
+
+\begin{frame}{Motivation: Why Sequence Models?}
+  \begin{itemize}
+    \item Many natural phenomena evolve over time: physics, biology, finance.
+    \item Sequential data requires models that maintain temporal memory.
+    \item Examples:
+      \begin{itemize}
+        \item Chaotic time series (Lorenz, RK4-generated data)
+        \item Biological signals (EEG, neural spikes)
+        \item Climate and environmental time series
+      \end{itemize}
+    \item Vanilla neural networks fail on sequence dependency.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The Recurrent Neural Network (RNN) Idea}
+  \begin{itemize}
+    \item Recurrence relation: $h_t = f(x_t, h_{t-1})$.
+    \item Hidden state acts as memory.
+    \item Training via Backpropagation Through Time (BPTT).
+    \item Major difficulty: vanishing/exploding gradients.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vanilla RNN Equations}
+  \begin{align*}
+    h_t &= \tanh(W_x x_t + W_h h_{t-1} + b) \\
+    y_t &= W_y h_t + c
+  \end{align*}
+  \begin{itemize}
+    \item Simple architecture but limited memory.
+    \item Gradient vanishes due to repeated multiplication by $W_h$.
+  \end{itemize}
+\end{frame}
+
+% TikZ RNN
+
+\begin{frame}{TikZ: Vanilla RNN Cell}
+\centering
+\begin{tikzpicture}[>=latex, node distance=1.8cm]
+\node[draw, minimum width=2cm, minimum height=1cm] (cell) {$\tanh$};
+\node[left=1.5cm of cell] (xt) {$x_t$};
+\node[above=1cm of xt] (ht1) {$h_{t-1}$};
+\node[right=1.5cm of cell] (ht) {$h_t$};
+
+\draw[->] (xt) -- (cell);
+\draw[->] (ht1) -- (cell);
+\draw[->] (cell) -- (ht);
+\end{tikzpicture}
+\end{frame}
+
+%------------------------
+% LSTM Theory
+%------------------------
+
+\section{LSTM Theory}
+
+\begin{frame}{LSTM: Key Idea}
+  \begin{itemize}
+    \item Introduced to solve vanishing gradients.
+    \item Adds explicit memory cell $c_t$.
+    \item Uses gates to regulate information flow:
+      \begin{itemize}
+        \item Forget gate
+        \item Input gate
+        \item Output gate
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{LSTM Equations}
+  \begin{align*}
+    f_t &= \sigma(W_f x_t + U_f h_{t-1} + b_f) \\
+    i_t &= \sigma(W_i x_t + U_i h_{t-1} + b_i) \\
+    \tilde{c}_t &= \tanh(W_c x_t + U_c h_{t-1} + b_c) \\
+    c_t &= f_t c_{t-1} + i_t \tilde{c}_t \\
+    o_t &= \sigma(W_o x_t + U_o h_{t-1} + b_o) \\
+    h_t &= o_t \tanh(c_t)
+  \end{align*}
+\end{frame}
+
+\begin{frame}{TikZ: LSTM Cell (Minimal)}
+\centering
+% (Uses the LSTM diagram from previous message)
+[Placeholder: Insert TikZ LSTM diagram here]
+\end{frame}
+
+%------------------------
+% GRU Theory
+%------------------------
+
+\section{GRU Theory}
+
+\begin{frame}{GRU Motivation}
+  \begin{itemize}
+    \item Simplifies LSTM by combining gates.
+    \item No separate cell state.
+    \item Often performs as well as LSTM with fewer parameters.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{GRU Equations}
+  \begin{align*}
+    z_t &= \sigma(W_z x_t + U_z h_{t-1}) \\
+    r_t &= \sigma(W_r x_t + U_r h_{t-1}) \\
+    \tilde{h}_t &= \tanh(W_h x_t + U_h(r_t \odot h_{t-1})) \\
+    h_t &= (1 - z_t) h_{t-1} + z_t \tilde{h}_t
+  \end{align*}
+\end{frame}
+
+\begin{frame}{TikZ: GRU Cell}
+\centering
+[Placeholder: Insert TikZ GRU diagram here]
+\end{frame}
+
+%------------------------
+% Implementation
+%------------------------
+
+\section{TensorFlow/Keras Implementation}
+
+\begin{frame}[fragile]{Generating Time Series Data}
+\begin{lstlisting}[language=Python]
+import numpy as np
+
+def generate_data(n=2000, seq_len=20):
+    t = np.linspace(0, 80, n)
+    y = np.sin(t) + 0.1*np.random.randn(n)
+    X, Y = [], []
+    for i in range(n - seq_len):
+        X.append(y[i:i+seq_len])
+        Y.append(y[i+seq_len])
+    return np.array(X)[...,None], np.array(Y)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{LSTM Model: TensorFlow/Keras}
+\begin{lstlisting}[language=Python]
+from tensorflow.keras import layers, models
+
+seq_len = 20
+X, Y = generate_data(seq_len=seq_len)
+
+model = models.Sequential([
+    layers.LSTM(50, input_shape=(seq_len, 1)),
+    layers.Dense(1)
+])
+
+model.compile(optimizer="adam", loss="mse")
+model.summary()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Training the LSTM}
+\begin{lstlisting}[language=Python]
+history = model.fit(
+    X, Y,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2
+)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Plotting Predictions}
+\begin{lstlisting}[language=Python]
+pred = model.predict(X)
+plt.plot(Y, label="True")
+plt.plot(pred[:,0], label="Pred")
+plt.legend(); plt.show()
+\end{lstlisting}
+\end{frame}
+
+% Additional TensorFlow Examples: RK4 and Lorenz
+
+\section{TensorFlow: Scientific Time-Series}
+
+\begin{frame}[fragile]{RK4 Time-Series Generation (ODE Example)}
+\begin{lstlisting}[language=Python]
+import numpy as np
+
+def rk4(f, y0, t):
+    y = np.zeros((len(t), len(y0)))
+    y[0] = y0
+    for i in range(1, len(t)):
+        h = t[i] - t[i-1]
+        k1 = f(t[i-1], y[i-1])
+        k2 = f(t[i-1] + h/2, y[i-1] + h*k1/2)
+        k3 = f(t[i-1] + h/2, y[i-1] + h*k2/2)
+        k4 = f(t[i-1] + h, y[i-1] + h*k3)
+        y[i] = y[i-1] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
+    return y
+
+# Example ODE: damped oscillator
+def f(t, y):
+    x, v = y
+    k = 0.5
+    c = 0.1
+    dxdt = v
+    dvdt = -k*x - c*v
+    return np.array([dxdt, dvdt])
+
+t = np.linspace(0, 50, 5000)
+solution = rk4(f, y0=[1.0, 0.0], t=t)
+X = solution[:-1]
+Y = solution[1:]
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{LSTM for RK4 Time-Series Prediction}
+\begin{lstlisting}[language=Python]
+from tensorflow.keras import layers, models
+
+seq_len = 25
+
+# Sliding windows
+def create_windows(data, seq_len):
+    X, Y = [], []
+    for i in range(len(data) - seq_len):
+        X.append(data[i:i+seq_len])
+        Y.append(data[i+seq_len])
+    return np.array(X), np.array(Y)
+
+Xrk, Yrk = create_windows(solution, seq_len)
+
+model_rk = models.Sequential([
+    layers.LSTM(64, return_sequences=True,
+                input_shape=(seq_len, 2)),
+    layers.LSTM(64),
+    layers.Dense(2)
+])
+
+model_rk.compile(optimizer='adam', loss='mse')
+
+model_rk.fit(Xrk, Yrk, epochs=20, batch_size=32)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Lorenz Attractor Generation}
+\begin{lstlisting}[language=Python]
+# Lorenz system parameters
+sigma, beta, rho = 10.0, 8/3, 28.0
+
+def lorenz(t, xyz):
+    x, y, z = xyz
+    dx = sigma * (y - x)
+    dy = x*(rho - z) - y
+    dz = x*y - beta*z
+    return np.array([dx, dy, dz])
+
+t = np.linspace(0, 40, 8000)
+lor = rk4(lorenz, [1.0, 1.0, 1.0], t)
+
+# Prepare windows
+Xlor, Ylor = create_windows(lor, 50)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{LSTM for Lorenz Attractor Prediction}
+\begin{lstlisting}[language=Python]
+model_lor = models.Sequential([
+    layers.LSTM(128, return_sequences=True,
+                input_shape=(50, 3)),
+    layers.LSTM(128),
+    layers.Dense(3)
+])
+
+model_lor.compile(optimizer='adam', loss='mse')
+model_lor.summary()
+
+model_lor.fit(Xlor, Ylor, epochs=25, batch_size=32)
+\end{lstlisting}
+\end{frame}
+
+%------------------------
+% Second 45-minute Lecture
+%------------------------
+
+\section{Advanced Topics}
+
+\begin{frame}{Sequence-to-Sequence LSTMs}
+  \begin{itemize}
+    \item Encoder-decoder structure.
+    \item Used for translation and scientific sequence prediction.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{LSTM for Dynamical Systems}
+  \begin{itemize}
+    \item Reconstructing chaotic attractors.
+    \item Learning ODE/PDE flows.
+    \item Predicting multi-step trajectories.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Regularization and Dropout in Recurrent Models}
+  \begin{itemize}
+    \item Dropout vs recurrent dropout.
+    \item Avoiding overfitting in time series.
+    \item Techniques: gradient clipping, layer normalization.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hyperparameter Tuning}
+  \begin{itemize}
+    \item Sequence length.
+    \item Hidden size.
+    \item Number of layers.
+    \item Choice of recurrent unit: RNN, GRU, LSTM.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Summary}
+  \begin{itemize}
+    \item LSTMs solve the vanishing gradient problem.
+    \item Useful for scientific time series.
+    \item TensorFlow/Keras provides easy implementation tools.
+    \item Next steps: attention mechanisms, transformers.
+  \end{itemize}
+\end{frame}
+
+% ----------------------
+% Additional: Convolutional Autoencoders
+% ----------------------
+
+\begin{frame}{Convolutional Autoencoders (Images / Spatio-temporal)}
+\begin{itemize}
+  \item Useful when input has local structure (images, spectrograms, spatial fields).
+  \item Encoder: convolution + pooling; Decoder: upsampling + convolution.
+\end{itemize}
+\begin{verbatim}
+from tensorflow.keras import layers, models
+
+input_shape = (64,64,1)
+inputs = tf.keras.Input(shape=input_shape)
+# Encoder
+x = layers.Conv2D(32, 3, activation='relu', padding='same')(inputs)
+x = layers.MaxPool2D(2, padding='same')(x)
+x = layers.Conv2D(64, 3, activation='relu', padding='same')(x)
+x = layers.MaxPool2D(2, padding='same')(x)
+shape_before_flatten = tf.keras.backend.int_shape(x)[1:]
+x = layers.Flatten()(x)
+latent = layers.Dense(128, name='latent')(x)
+
+# Decoder
+x = layers.Dense(np.prod(shape_before_flatten))(latent)
+x = layers.Reshape(shape_before_flatten)(x)
+x = layers.UpSampling2D(2)(x)
+x = layers.Conv2D(64, 3, activation='relu', padding='same')(x)
+x = layers.UpSampling2D(2)(x)
+outputs = layers.Conv2D(1, 3, activation='sigmoid', padding='same')(x)
+
+ae_conv = models.Model(inputs, outputs)
+ae_conv.compile(optimizer='adam', loss='mse')
+
+ae_conv.summary()
+\end{verbatim}
+\end{frame}
+
+% ----------------------
+% Variational Autoencoder (VAE)
+% ----------------------
+
+\begin{frame}[fragile]{Variational Autoencoder (VAE): Concept}
+\begin{itemize}
+  \item VAE learns a probabilistic latent representation: encoder produces mean and log-variance (\mu, \log\sigma^2).
+  \item During training, sample z = \mu + \sigma \odot \epsilon (reparameterization trick).
+  \item Loss = reconstruction loss + Kullback--Leibler (KL) divergence to prior.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{VAE: TensorFlow Implementation Sketch}
+\begin{verbatim}
+import tensorflow as tf
+from tensorflow.keras import layers, Model
+
+input_dim = 32
+latent_dim = 4
+
+# Encoder
+inputs = layers.Input(shape=(input_dim,))
+h = layers.Dense(64, activation='relu')(inputs)
+mu = layers.Dense(latent_dim)(h)
+logvar = layers.Dense(latent_dim)(h)
+
+# Reparameterization
+def sample_z(args):
+    mu, logvar = args
+    eps = tf.random.normal(shape=tf.shape(mu))
+    return mu + tf.exp(0.5*logvar) * eps
+
+z = layers.Lambda(sample_z)([mu, logvar])
+
+# Decoder
+h_dec = layers.Dense(64, activation='relu')(z)
+outputs = layers.Dense(input_dim, activation='linear')(h_dec)
+
+vae = Model(inputs, outputs)
+
+# Loss: reconstruction + KL
+recon_loss = tf.reduce_mean(tf.square(inputs - outputs))
+kl_loss = -0.5 * tf.reduce_mean(1 + logvar - tf.square(mu) - tf.exp(logvar))
+vae.add_loss(recon_loss + kl_loss)
+vae.compile(optimizer='adam')
+\end{verbatim}
+\end{frame}
+
+% ----------------------
+% RK4 and Lorenz Visualizations (matplotlib placeholders)
+% ----------------------
+
+\begin{frame}[fragile]{Visualizing RK4-generated Time Series}
+\begin{verbatim}
+import matplotlib.pyplot as plt
+
+# Assuming 'solution' is (T, dim) from the RK4 code
+plt.figure(figsize=(8,3))
+plt.plot(t, solution[:,0], label='x(t)')
+plt.plot(t, solution[:,1], label='v(t)')
+plt.xlabel('t')
+plt.legend()
+plt.title('RK4: Damped oscillator')
+plt.show()
+\end{verbatim}
+\vspace{0.5em}
+{\footnotesize Tip: create phase-space plots (x vs v) to compare reconstructions.}
+\end{frame}
+
+\begin{frame}[fragile]{Visualizing the Lorenz Attractor}
+\begin{verbatim}
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure(figsize=(6,5))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot(lor[:,0], lor[:,1], lor[:,2], lw=0.5)
+ax.set_title('Lorenz attractor (RK4-generated)')
+plt.show()
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{TikZ Placeholder: Phase-space Diagram}
+\centering
+\begin{tikzpicture}[scale=1]
+  \draw[->] (-3,0) -- (3,0) node[right] {$x$};
+  \draw[->] (0,-3) -- (0,3) node[above] {$v$};
+  \draw[domain=-2.5:2.5,smooth,variable=\\x,blue] plot ({\\x},{sin(\\x r)});
+  \node at (1.5,1.8) {\small Trajectory};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Practical Tips: Training Autoencoders on Scientific Data}
+\begin{itemize}
+  \item Normalize input features per-dimension (important for physical units).
+  \item Use early stopping and validation splits preserving temporal order (no leakage).
+  \item For sequence data, consider sequence autoencoders (LSTM/Conv1D-based).
+  \item Evaluate reconstruction in phase-space (e.g., x vs v) and on conserved quantities (energy).
+\end{itemize}
+\end{frame}
+
+
+\end{document}
