@@ -448,6 +448,9 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gating-mechanism-long-short-term-memory-lstm">Gating mechanism: Long Short Term Memory (LSTM)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementing-a-memory-cell-in-a-neural-network">Implementing a memory cell in a neural network</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-details">LSTM details</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-cell-and-gates">LSTM Cell and Gates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-lstm-equations">Core LSTM Equations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gate-intuition-and-dynamics">Gate Intuition and Dynamics</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-layout-all-figures-from-raschka-et-al">Basic layout (All figures from Raschka <em>et al.,</em>)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">LSTM details</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparing-with-a-standard-rnn">Comparing with a standard  RNN</a></li>
@@ -462,6 +465,11 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#forget-and-input">Forget and input</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Basic layout</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-gate">Output gate</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-implementation-code-example">LSTM Implementation (Code Example)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-modeling-dynamical-systems">Example: Modeling Dynamical Systems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-biological-sequences">Example: Biological Sequences</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training-tips-and-variants">Training Tips and Variants</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-summary">LSTM Summary</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-lstm">Summary of LSTM</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-implementation-using-tensorflow">LSTM implementation using TensorFlow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#and-the-corresponding-one-with-pytorch">And the corresponding one with PyTorch</a></li>
@@ -728,6 +736,7 @@ print(&quot;Logits from model:\n&quot;, logits)
 <p>This recurrent neural network uses the TensorFlow/Keras SimpleRNN, which is the counterpart to PyTorch’s nn.RNN.
 In this code we have used</p>
 <ol class="arabic simple">
+<li><p>sequence<span class="math notranslate nohighlight">\(\_\)</span>length is the number of time steps in each input sequence fed into a recurrent neural network. It represents how many time points we provide at once. It is the number of ordered observations in each sample of our dataset.</p></li>
 <li><p>return_sequences=False makes it output only the last hidden state, which is fed to the classifier. Also, we have</p></li>
 <li><p>from_logits=True matches the PyTorch CrossEntropyLoss.</p></li>
 </ol>
@@ -1083,6 +1092,44 @@ that implements an analog memory cell.</p>
 long-term memory, and a hidden state <span class="math notranslate nohighlight">\(h\)</span> which can be thought of as
 the short-term memory.</p>
 </section>
+<section id="lstm-cell-and-gates">
+<h2>LSTM Cell and Gates<a class="headerlink" href="#lstm-cell-and-gates" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Each LSTM cell contains a memory cell <span class="math notranslate nohighlight">\(C_t\)</span> and three gates (forget <span class="math notranslate nohighlight">\(f_t\)</span>, input <span class="math notranslate nohighlight">\(i_t\)</span>, output <span class="math notranslate nohighlight">\(o_t\)</span>) that control information flow.</p></li>
+<li><p><strong>Forget gate</strong> (<span class="math notranslate nohighlight">\(f_t\)</span>): chooses which information to erase from the previous cell state <span class="math notranslate nohighlight">\(C_{t-1}\)</span></p></li>
+<li><p><strong>Input gate</strong> (<span class="math notranslate nohighlight">\(i_t\)</span>): decides which new information <span class="math notranslate nohighlight">\(\tilde{C}_t\)</span> to add to the cell state.</p></li>
+<li><p><strong>Output gate</strong> (<span class="math notranslate nohighlight">\(o_t\)</span>): controls which parts of the cell state become the output <span class="math notranslate nohighlight">\(h_t\)</span>.</p></li>
+<li><p>The cell state update: <span class="math notranslate nohighlight">\(C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t\)</span></p></li>
+</ol>
+</section>
+<section id="core-lstm-equations">
+<h2>Core LSTM Equations<a class="headerlink" href="#core-lstm-equations" title="Link to this heading">#</a></h2>
+<p><strong>The gate computations and state updates are given by:</strong></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+    f_t &amp;= \sigma(W_f [h_{t-1}, x_t] + b_f), \\
+    i_t &amp;= \sigma(W_i [h_{t-1}, x_t] + b_i), \\
+    \tilde{C}_t &amp;= \tanh(W_C [h_{t-1}, x_t] + b_C), \\
+    C_t &amp;= f_t \odot C_{t-1} + i_t \odot \tilde{C}_t, \\
+    o_t &amp;= \sigma(W_o [h_{t-1}, x_t] + b_o), \\
+    h_t &amp;= o_t \odot \tanh(C_t).
+  \end{align*}
+\end{split}\]</div>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(\sigma\)</span> is the sigmoid function, <span class="math notranslate nohighlight">\(\odot\)</span> is elementwise product <a class="reference external" href="https://jaketae.github.io/study/dissecting-lstm/#:~:text=%5C%5B%5Cbegin,align">oai_citation:4‡jaketae.github.io</a>.</p></li>
+<li><p>These equations define how LSTM retains/updates memory and produces outputs.</p></li>
+</ol>
+</section>
+<section id="gate-intuition-and-dynamics">
+<h2>Gate Intuition and Dynamics<a class="headerlink" href="#gate-intuition-and-dynamics" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Forget gate <span class="math notranslate nohighlight">\(f_t\)</span> acts as a soft “erase” signal: <span class="math notranslate nohighlight">\(f_t \approx 0\)</span> forgets, <span class="math notranslate nohighlight">\(f_t \approx 1\)</span> retains previous memory.</p></li>
+<li><p>Input gate <span class="math notranslate nohighlight">\(i_t\)</span> scales how much new candidate memory <span class="math notranslate nohighlight">\(\tilde{C}_t\)</span> is written.</p></li>
+<li><p>Output gate <span class="math notranslate nohighlight">\(o_t\)</span> determines how much of the cell’s memory flows into the hidden state <span class="math notranslate nohighlight">\(h_t\)</span>.</p></li>
+<li><p>By controlling these gates, LSTM effectively keeps long-term information when needed.</p></li>
+</ol>
+</section>
 <section id="basic-layout-all-figures-from-raschka-et-al">
 <h2>Basic layout (All figures from Raschka <em>et al.,</em>)<a class="headerlink" href="#basic-layout-all-figures-from-raschka-et-al" title="Link to this heading">#</a></h2>
 <!-- dom:FIGURE: [figslides/LSTM1.png, width=700 frac=1.0] -->
@@ -1212,6 +1259,68 @@ the LSTM cell.</p>
 \end{aligned}
 \end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\mathbf{W_o,U_o}\)</span> are the weights of the output gate and <span class="math notranslate nohighlight">\(\mathbf{b_o}\)</span> is the bias of the output gate.</p>
+</section>
+<section id="lstm-implementation-code-example">
+<h2>LSTM Implementation (Code Example)<a class="headerlink" href="#lstm-implementation-code-example" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Using high-level libraries (Keras, PyTorch) simplifies LSTM usage.</p></li>
+<li><p>define and train a Keras LSTM on a univariate time series:</p></li>
+</ol>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+
+# X_train shape: (samples, timesteps, 1)
+model = Sequential([
+    LSTM(32, input_shape=(None, 1)),
+    Dense(1)
+])
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;mse&#39;)
+model.fit(X_train, y_train, epochs=20, batch_size=16)
+</pre></div>
+</div>
+</div>
+</div>
+<p>The model learns to map sequences to outputs; input sequences can be constructed via sliding windows.</p>
+</section>
+<section id="example-modeling-dynamical-systems">
+<h2>Example: Modeling Dynamical Systems<a class="headerlink" href="#example-modeling-dynamical-systems" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>LSTMs can learn complex time evolution of physical systems (e.g. Lorenz attractor, fluid dynamics) from data.</p></li>
+<li><p>Serve as data-driven surrogates for ODE/PDE solvers (trained on RK4-generated time series).</p></li>
+<li><p>For example, an LSTM surrogate accurately forecast 36h lake hydrodynamics (velocity, temperature) with <span class="math notranslate nohighlight">\(&lt;6\%\)</span> error.</p></li>
+<li><p>Such models dramatically speed up predictions compared to full numerical simulation.</p></li>
+</ol>
+</section>
+<section id="example-biological-sequences">
+<h2>Example: Biological Sequences<a class="headerlink" href="#example-biological-sequences" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Biological sequences (DNA/RNA/proteins) are effectively categorical time series.</p></li>
+<li><p>LSTMs capture sequence motifs and long-range dependencies (akin to language models).</p></li>
+<li><p>Widely used in genomics and proteomics (e.g., protein function, gene expression).</p></li>
+<li><p>They naturally handle variable-length input by processing one element at a time.</p></li>
+</ol>
+</section>
+<section id="training-tips-and-variants">
+<h2>Training Tips and Variants<a class="headerlink" href="#training-tips-and-variants" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Preprocess time series (normalize features, windowing); handle variable lengths (padding/truncation).</p></li>
+<li><p>Experiment with network depth, hidden units, and regularization (dropout) to avoid overfitting.</p></li>
+<li><p>Consider bidirectional LSTM or stacking multiple LSTM layers for complex patterns.</p></li>
+<li><p>GRU is a simpler gated RNN that combines forget/input gates into one update gate.</p></li>
+<li><p>Monitor gradients during training; use gradient clipping to stabilize learning if needed.</p></li>
+</ol>
+</section>
+<section id="lstm-summary">
+<h2>LSTM Summary<a class="headerlink" href="#lstm-summary" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>LSTMs extend RNNs with gated cells to remember long-term context, addressing RNN gradient issues.</p></li>
+<li><p>Core update: <span class="math notranslate nohighlight">\(C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t\)</span>, output <span class="math notranslate nohighlight">\(h_t = o_t \odot \tanh(C_t)\)</span>.</p></li>
+<li><p>Implementation is straightforward in libraries like Keras/PyTorch with few lines of code.</p></li>
+<li><p>Applications span science and engineering: forecasting dynamical systems, analyzing DNA/proteins, etc.</p></li>
+<li><p>For more details, see Goodfellow et al. (2016) Deep Learning, chapter 14</p></li>
+</ol>
 </section>
 <section id="summary-of-lstm">
 <h2>Summary of LSTM<a class="headerlink" href="#summary-of-lstm" title="Link to this heading">#</a></h2>
@@ -2391,6 +2500,9 @@ ourselves about the PCA method. This will be the topic of the last lecture, on M
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gating-mechanism-long-short-term-memory-lstm">Gating mechanism: Long Short Term Memory (LSTM)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementing-a-memory-cell-in-a-neural-network">Implementing a memory cell in a neural network</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-details">LSTM details</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-cell-and-gates">LSTM Cell and Gates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-lstm-equations">Core LSTM Equations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gate-intuition-and-dynamics">Gate Intuition and Dynamics</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-layout-all-figures-from-raschka-et-al">Basic layout (All figures from Raschka <em>et al.,</em>)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">LSTM details</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparing-with-a-standard-rnn">Comparing with a standard  RNN</a></li>
@@ -2405,6 +2517,11 @@ ourselves about the PCA method. This will be the topic of the last lecture, on M
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#forget-and-input">Forget and input</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Basic layout</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-gate">Output gate</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-implementation-code-example">LSTM Implementation (Code Example)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-modeling-dynamical-systems">Example: Modeling Dynamical Systems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-biological-sequences">Example: Biological Sequences</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training-tips-and-variants">Training Tips and Variants</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-summary">LSTM Summary</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-lstm">Summary of LSTM</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lstm-implementation-using-tensorflow">LSTM implementation using TensorFlow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#and-the-corresponding-one-with-pytorch">And the corresponding one with PyTorch</a></li>

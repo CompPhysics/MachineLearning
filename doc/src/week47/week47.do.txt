@@ -588,6 +588,41 @@ o and the output gate.
 It also introduces a cell state $c$, which can be thought of as the
 long-term memory, and a hidden state $h$ which can be thought of as
 the short-term memory.
+!split
+===== LSTM Cell and Gates =====
+!bblock
+o Each LSTM cell contains a memory cell $C_t$ and three gates (forget $f_t$, input $i_t$, output $o_t$) that control information flow.
+o _Forget gate_ ($f_t$): chooses which information to erase from the previous cell state $C_{t-1}$ 
+o _Input gate_ ($i_t$): decides which new information $\tilde{C}_t$ to add to the cell state.
+o _Output gate_ ($o_t$): controls which parts of the cell state become the output $h_t$.
+o The cell state update: $C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t$
+!eblock
+
+!split
+===== Core LSTM Equations =====
+!bblock The gate computations and state updates are given by:
+!bt
+\begin{align*}
+    f_t &= \sigma(W_f [h_{t-1}, x_t] + b_f), \\
+    i_t &= \sigma(W_i [h_{t-1}, x_t] + b_i), \\
+    \tilde{C}_t &= \tanh(W_C [h_{t-1}, x_t] + b_C), \\
+    C_t &= f_t \odot C_{t-1} + i_t \odot \tilde{C}_t, \\
+    o_t &= \sigma(W_o [h_{t-1}, x_t] + b_o), \\
+    h_t &= o_t \odot \tanh(C_t).
+  \end{align*}
+!et
+!eblock
+o $\sigma$ is the sigmoid function, $\odot$ is elementwise product [oai_citation:4‡jaketae.github.io](https://jaketae.github.io/study/dissecting-lstm/#:~:text=%5C%5B%5Cbegin,align).
+o These equations define how LSTM retains/updates memory and produces outputs.
+
+!split
+===== Gate Intuition and Dynamics =====
+!bblock
+o Forget gate $f_t$ acts as a soft “erase” signal: $f_t \approx 0$ forgets, $f_t \approx 1$ retains previous memory.
+o Input gate $i_t$ scales how much new candidate memory $\tilde{C}_t$ is written.
+o Output gate $o_t$ determines how much of the cell's memory flows into the hidden state $h_t$.
+o By controlling these gates, LSTM effectively keeps long-term information when needed.
+!eblock
 
 
 !split
@@ -744,6 +779,68 @@ We have
 \]
 !et
 where $\mathbf{W_o,U_o}$ are the weights of the output gate and $\mathbf{b_o}$ is the bias of the output gate.
+
+
+
+!split
+===== LSTM Implementation (Code Example) =====
+o Using high-level libraries (Keras, PyTorch) simplifies LSTM usage.
+o define and train a Keras LSTM on a univariate time series:
+!bc pycod
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+
+# X_train shape: (samples, timesteps, 1)
+model = Sequential([
+    LSTM(32, input_shape=(None, 1)),
+    Dense(1)
+])
+model.compile(optimizer='adam', loss='mse')
+model.fit(X_train, y_train, epochs=20, batch_size=16)
+!ec
+The model learns to map sequences to outputs; input sequences can be constructed via sliding windows.
+
+
+!split
+===== Example: Modeling Dynamical Systems =====
+!bblock
+o LSTMs can learn complex time evolution of physical systems (e.g. Lorenz attractor, fluid dynamics) from data.
+o Serve as data-driven surrogates for ODE/PDE solvers (trained on RK4-generated time series).
+o For example, an LSTM surrogate accurately forecast 36h lake hydrodynamics (velocity, temperature) with $<6\%$ error.
+o Such models dramatically speed up predictions compared to full numerical simulation.
+!eblock
+
+!split
+===== Example: Biological Sequences =====
+!bblock
+o Biological sequences (DNA/RNA/proteins) are effectively categorical time series.
+o LSTMs capture sequence motifs and long-range dependencies (akin to language models).
+o Widely used in genomics and proteomics (e.g., protein function, gene expression).
+o They naturally handle variable-length input by processing one element at a time.
+!eblock
+
+!split
+===== Training Tips and Variants =====
+!bblock
+o Preprocess time series (normalize features, windowing); handle variable lengths (padding/truncation).
+o Experiment with network depth, hidden units, and regularization (dropout) to avoid overfitting.
+o Consider bidirectional LSTM or stacking multiple LSTM layers for complex patterns.
+o GRU is a simpler gated RNN that combines forget/input gates into one update gate.
+o Monitor gradients during training; use gradient clipping to stabilize learning if needed.
+!eblock
+
+!split
+===== LSTM Summary =====
+!bblock
+o LSTMs extend RNNs with gated cells to remember long-term context, addressing RNN gradient issues.
+o Core update: $C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t$, output $h_t = o_t \odot \tanh(C_t)$.
+o Implementation is straightforward in libraries like Keras/PyTorch with few lines of code.
+o Applications span science and engineering: forecasting dynamical systems, analyzing DNA/proteins, etc.
+o For more details, see Goodfellow et al. (2016) Deep Learning, chapter 14
+!eblock
+
+
+
 
 
 !split
@@ -1905,4 +2002,7 @@ This is equivalent to our functions learning the same subspace as
 the PCA method. This means that we can interpret AEs as a
 dimensionality reduction method.  To see this, we need to remind
 ourselves about the PCA method. This will be the topic of the last lecture, on Monday November 24. We will use this lecture (second lecture) to summarize the course as well. Stay tuned.
+
+
+
 

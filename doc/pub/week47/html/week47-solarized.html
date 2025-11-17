@@ -151,6 +151,12 @@ div.toc p,a {
                None,
                'implementing-a-memory-cell-in-a-neural-network'),
               ('LSTM details', 2, None, 'lstm-details'),
+              ('LSTM Cell and Gates', 2, None, 'lstm-cell-and-gates'),
+              ('Core LSTM Equations', 2, None, 'core-lstm-equations'),
+              ('Gate Intuition and Dynamics',
+               2,
+               None,
+               'gate-intuition-and-dynamics'),
               ('Basic layout (All figures from Raschka *et al.,*)',
                2,
                None,
@@ -171,6 +177,23 @@ div.toc p,a {
               ('Forget and input', 2, None, 'forget-and-input'),
               ('Basic layout', 2, None, 'basic-layout'),
               ('Output gate', 2, None, 'output-gate'),
+              ('LSTM Implementation (Code Example)',
+               2,
+               None,
+               'lstm-implementation-code-example'),
+              ('Example: Modeling Dynamical Systems',
+               2,
+               None,
+               'example-modeling-dynamical-systems'),
+              ('Example: Biological Sequences',
+               2,
+               None,
+               'example-biological-sequences'),
+              ('Training Tips and Variants',
+               2,
+               None,
+               'training-tips-and-variants'),
+              ('LSTM Summary', 2, None, 'lstm-summary'),
               ('Summary of LSTM', 2, None, 'summary-of-lstm'),
               ('LSTM implementation using TensorFlow',
                2,
@@ -1120,6 +1143,55 @@ that implements an analog memory cell.
 long-term memory, and a hidden state \( h \) which can be thought of as
 the short-term memory.
 </p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="lstm-cell-and-gates">LSTM Cell and Gates </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Each LSTM cell contains a memory cell \( C_t \) and three gates (forget \( f_t \), input \( i_t \), output \( o_t \)) that control information flow.</li>
+<li> <b>Forget gate</b> (\( f_t \)): chooses which information to erase from the previous cell state \( C_{t-1} \)</li> 
+<li> <b>Input gate</b> (\( i_t \)): decides which new information \( \tilde{C}_t \) to add to the cell state.</li>
+<li> <b>Output gate</b> (\( o_t \)): controls which parts of the cell state become the output \( h_t \).</li>
+<li> The cell state update: \( C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t \)</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="core-lstm-equations">Core LSTM Equations </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b>The gate computations and state updates are given by:</b>
+<p>
+$$
+\begin{align*}
+    f_t &= \sigma(W_f [h_{t-1}, x_t] + b_f), \\
+    i_t &= \sigma(W_i [h_{t-1}, x_t] + b_i), \\
+    \tilde{C}_t &= \tanh(W_C [h_{t-1}, x_t] + b_C), \\
+    C_t &= f_t \odot C_{t-1} + i_t \odot \tilde{C}_t, \\
+    o_t &= \sigma(W_o [h_{t-1}, x_t] + b_o), \\
+    h_t &= o_t \odot \tanh(C_t).
+  \end{align*}
+$$
+</div>
+
+<ol>
+<li> \( \sigma \) is the sigmoid function, \( \odot \) is elementwise product [oai_citation:4&#8225;jaketae.github.io](https://jaketae.github.io/study/dissecting-lstm/#:~:text=%5C%5B%5Cbegin,align).</li>
+<li> These equations define how LSTM retains/updates memory and produces outputs.</li>
+</ol>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="gate-intuition-and-dynamics">Gate Intuition and Dynamics </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Forget gate \( f_t \) acts as a soft &#8220;erase&#8221; signal: \( f_t \approx 0 \) forgets, \( f_t \approx 1 \) retains previous memory.</li>
+<li> Input gate \( i_t \) scales how much new candidate memory \( \tilde{C}_t \) is written.</li>
+<li> Output gate \( o_t \) determines how much of the cell's memory flows into the hidden state \( h_t \).</li>
+<li> By controlling these gates, LSTM effectively keeps long-term information when needed.</li>
+</ol>
+</div>
+
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="basic-layout-all-figures-from-raschka-et-al">Basic layout (All figures from Raschka <em>et al.,</em>) </h2>
@@ -1289,6 +1361,104 @@ $$
 $$
 
 <p>where \( \mathbf{W_o,U_o} \) are the weights of the output gate and \( \mathbf{b_o} \) is the bias of the output gate.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="lstm-implementation-code-example">LSTM Implementation (Code Example) </h2>
+<ol>
+<li> Using high-level libraries (Keras, PyTorch) simplifies LSTM usage.</li>
+<li> define and train a Keras LSTM on a univariate time series:</li>
+</ol>
+
+<!-- code=python (!bc pycod) typeset with pygments style "perldoc" -->
+<div class="cell border-box-sizing code_cell rendered">
+  <div class="input">
+    <div class="inner_cell">
+      <div class="input_area">
+        <div class="highlight" style="background: #eeeedd">
+  <pre style="line-height: 125%;"><span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.models</span> <span style="color: #8B008B; font-weight: bold">import</span> Sequential
+<span style="color: #8B008B; font-weight: bold">from</span> <span style="color: #008b45; text-decoration: underline">tensorflow.keras.layers</span> <span style="color: #8B008B; font-weight: bold">import</span> LSTM, Dense
+
+<span style="color: #228B22"># X_train shape: (samples, timesteps, 1)</span>
+model = Sequential([
+    LSTM(<span style="color: #B452CD">32</span>, input_shape=(<span style="color: #8B008B; font-weight: bold">None</span>, <span style="color: #B452CD">1</span>)),
+    Dense(<span style="color: #B452CD">1</span>)
+])
+model.compile(optimizer=<span style="color: #CD5555">&#39;adam&#39;</span>, loss=<span style="color: #CD5555">&#39;mse&#39;</span>)
+model.fit(X_train, y_train, epochs=<span style="color: #B452CD">20</span>, batch_size=<span style="color: #B452CD">16</span>)
+</pre>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="output_wrapper">
+    <div class="output">
+      <div class="output_area">
+        <div class="output_subarea output_stream output_stdout output_text">          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>The model learns to map sequences to outputs; input sequences can be constructed via sliding windows.</p>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="example-modeling-dynamical-systems">Example: Modeling Dynamical Systems </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> LSTMs can learn complex time evolution of physical systems (e.g. Lorenz attractor, fluid dynamics) from data.</li>
+<li> Serve as data-driven surrogates for ODE/PDE solvers (trained on RK4-generated time series).</li>
+<li> For example, an LSTM surrogate accurately forecast 36h lake hydrodynamics (velocity, temperature) with \( < 6\% \) error.</li>
+<li> Such models dramatically speed up predictions compared to full numerical simulation.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="example-biological-sequences">Example: Biological Sequences </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Biological sequences (DNA/RNA/proteins) are effectively categorical time series.</li>
+<li> LSTMs capture sequence motifs and long-range dependencies (akin to language models).</li>
+<li> Widely used in genomics and proteomics (e.g., protein function, gene expression).</li>
+<li> They naturally handle variable-length input by processing one element at a time.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="training-tips-and-variants">Training Tips and Variants </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> Preprocess time series (normalize features, windowing); handle variable lengths (padding/truncation).</li>
+<li> Experiment with network depth, hidden units, and regularization (dropout) to avoid overfitting.</li>
+<li> Consider bidirectional LSTM or stacking multiple LSTM layers for complex patterns.</li>
+<li> GRU is a simpler gated RNN that combines forget/input gates into one update gate.</li>
+<li> Monitor gradients during training; use gradient clipping to stabilize learning if needed.</li>
+</ol>
+</div>
+
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+<h2 id="lstm-summary">LSTM Summary </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+<ol>
+<li> LSTMs extend RNNs with gated cells to remember long-term context, addressing RNN gradient issues.</li>
+<li> Core update: \( C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t \), output \( h_t = o_t \odot \tanh(C_t) \).</li>
+<li> Implementation is straightforward in libraries like Keras/PyTorch with few lines of code.</li>
+<li> Applications span science and engineering: forecasting dynamical systems, analyzing DNA/proteins, etc.</li>
+<li> For more details, see Goodfellow et al. (2016) Deep Learning, chapter 14</li>
+</ol>
+</div>
+
 
 <!-- !split --><br><br><br><br><br><br><br><br><br><br>
 <h2 id="summary-of-lstm">Summary of LSTM </h2>
@@ -2586,6 +2756,7 @@ the PCA method. This means that we can interpret AEs as a
 dimensionality reduction method.  To see this, we need to remind
 ourselves about the PCA method. This will be the topic of the last lecture, on Monday November 24. We will use this lecture (second lecture) to summarize the course as well. Stay tuned.
 </p>
+
 <!-- ------------------- end of main content --------------- -->
 <center style="font-size:80%">
 <!-- copyright --> &copy; 1999-2025, Morten Hjorth-Jensen. Released under CC Attribution-NonCommercial 4.0 license
