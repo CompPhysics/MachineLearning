@@ -10,9 +10,7 @@ DATE: November 17-21, 2025
 !bblock Plans for the lecture Monday 17 November, with video suggestions etc
 o Recurrent neural networks, code examples and long-short-term memory
 o Autoencoders (last topic this semester)
-o Readings and Videos:
-o These lecture notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week47.ipynb"
-o See also lecture notes from week 46 at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb". The lecture on Monday starts with a repetition on recurrent neural networks. The second lecture starts with basics of autoenconders.
+o Last lecture: November 24, note error in time planner.
 #  o Video of lecture at URL:"https://youtu.be/RIHzmLv05DA"
 #  o Whiteboard notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/HandWrittenNotes/2024/NotesNovember18.pdf"
 #    * "Video of Lecture":"https://youtu.be/SpWXsvn5I9E"
@@ -20,22 +18,45 @@ o See also lecture notes from week 46 at URL:"https://github.com/CompPhysics/Mac
 
 !bblock  Lab sessions on Tuesday and Wednesday
 o Work and Discussion of project 3
+o Last weekly exercise with deadline November 28, available from (early morning) Tuesday November 18.
+o Last lab sessions: November 25 and 26
 !eblock  
 
 
 !split
-===== Reading recommendations =====
+===== Reading recommendations RNNs =====
 
 !bblock
+o These lecture notes at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week47/ipynb/week47.ipynb"
+o See also lecture notes from week 46 at URL:"https://github.com/CompPhysics/MachineLearning/blob/master/doc/pub/week46/ipynb/week46.ipynb". The lecture on Monday starts with a repetition on recurrent neural networks. The second lecture starts with basics of autoenconders.
 o For RNNs, see Goodfellow et al chapter 10, see URL:"https://www.deeplearningbook.org/contents/rnn.html".
 o Reading suggestions for implementation of RNNs in PyTorch: see Rashcka et al.'s chapter 15 and GitHub site at URL:"https://github.com/rasbt/machine-learning-book/tree/main/ch15".
+o RNN video at URL:"https://youtu.be/PCgrgHgy26c?feature=shared"
+o New xLSTM, see Beck et al URL:"https://arxiv.org/abs/2405.04517". Exponential gating and modified memory structures boost xLSTM capabilities to perform favorably when compared to state-of-the-art Transformers and State Space Models, both in performance and scaling.
+!eblock
 
 !split
 ===== TensorFlow examples ===== 
+!bblock
 For TensorFlow (using Keras) implementations, we recommend
 o David Foster, Generative Deep Learning with TensorFlow, see chapter 5 at URL:"https://www.oreilly.com/library/view/generative-deep-learning/9781098134174/ch05.html"
 o Joseph Babcock and Raghav Bali Generative AI with Python and their GitHub link, chapters 2 and  3 at URL:"https://github.com/PacktPublishing/Hands-On-Generative-AI-with-Python-and-TensorFlow-2"  
 !eblock
+
+!split
+===== Reading recommendations: Autoencoders (AE) =====
+
+!bblock
+o Goodfellow et al chapter 14, see URL:"https://www.deeplearningbook.org/contents/autoencoders.html"
+o Rashcka et al. Their chapter 17 contains a brief introduction only.
+o Deep Learning Tutorial on AEs from Stanford University at URL:"http://ufldl.stanford.edu/tutorial/unsupervised/Autoencoders/"
+o Building AEs in Keras at URL:"https://blog.keras.io/building-autoencoders-in-keras.html"
+o Introduction to AEs in TensorFlow at URL:"https://www.tensorflow.org/tutorials/generative/autoencoder"
+o Grosse, University of Toronto, Lecture on AEs at URL:"http://www.cs.toronto.edu/~rgrosse/courses/csc321_2017/slides/lec20.pdf"
+o Bank et al on AEs at URL:"https://arxiv.org/abs/2003.05991"  
+o Baldi and Hornik, Neural networks and principal component analysis: Learning from examples without local minima, Neural Networks 2, 53 (1989)
+!eblock
+
 
 
 
@@ -1105,236 +1126,823 @@ plt.show()
 ===== Using the above data to train an RNN =====
 
 
-In the code here we have reworked the previous example in order to generate data that can be handled by recurrent neural networks in order to train our model.
+In the code here we have reworked the previous example in order to
+generate data that can be handled by recurrent neural networks in
+order to train our model. The first code is written using Tensorflow/keras while the second example uses PyTorch.
+In both cases we use the Runge Kutta to fourth order as a way to generate the data. We have implemented a simple RNN only.
+We leave it as an exercise (possible path in project 3) to implement LSTMs.
+
+
 !bc pycod
+# train_rnn_from_rk4.py
+
+import runpy
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+import tensorflow as tf
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import os
 
+# ---------- Load RK4-generated data from your script ----------
+# This runs rungekutta.py and collects its globals. It must populate 't' and 'x' arrays.
+g = runpy.run_path('rungekutta.py')
 
-# Newton's equation for harmonic oscillations with external force
+if not all(k in g for k in ('t','x','v')):
+    raise RuntimeError("rungekutta.py did not expose required variables 't', 'x', 'v' in its globals.")
 
-# Global parameters
-gamma = 0.2        # damping
-Omegatilde = 0.5   # driving frequency
-Ftilde = 1.0       # driving amplitude
+t = np.array(g['t']).ravel()
+x = np.array(g['x']).ravel()
+v = np.array(g['v']).ravel()
 
-def spring_force(v, x, t):
-    """
-    SpringForce:
-    note: divided by mass => returns acceleration
-    a = -2*gamma*v - x + Ftilde*cos(Omegatilde * t)
-    """
-    return -2.0 * gamma * v - x + Ftilde * np.cos(Omegatilde * t)
+print("Loaded shapes:", t.shape, x.shape, v.shape)
 
+# Simple plot of the original trajectory
+plt.figure(figsize=(8,3))
+plt.plot(t, x)
+plt.xlabel('t')
+plt.ylabel('x')
+plt.title('True trajectory from RK4')
+plt.tight_layout()
+plt.show()
 
-def rk4_trajectory(DeltaT=0.001, tfinal=20.0, x0=1.0, v0=0.0):
-    """
-    Returns t, x, v arrays.
-    """
-    n = int(np.ceil(tfinal / DeltaT))
+# ---------- Prepare datasets ----------
+def make_dataset(series, input_len):
+    X, y = [], []
+    N = len(series)
+    for i in range(N - input_len):
+        X.append(series[i:i+input_len])
+        y.append(series[i+input_len])
+    X = np.array(X).reshape(-1, input_len, 1)  # (samples, timesteps, 1)
+    y = np.array(y).reshape(-1, 1)
+    return X, y
 
-    t = np.zeros(n, dtype=np.float32)
-    x = np.zeros(n, dtype=np.float32)
-    v = np.zeros(n, dtype=np.float32)
+# normalize using global mean/std
+mean_x, std_x = x.mean(), x.std()
+x_norm = (x - mean_x) / std_x
 
-    x[0] = x0
-    v[0] = v0
+print(f"Normalization: mean={mean_x:.6f}, std={std_x:.6f}")
 
-    for i in range(n - 1):
-        # k1
-        k1x = DeltaT * v[i]
-        k1v = DeltaT * spring_force(v[i], x[i], t[i])
+# Model A: input_len = 1 (x_t -> x_{t+1})
+input_len_A = 1
+X_A, y_A = make_dataset(x_norm, input_len_A)
 
-        # k2
-        vv = v[i] + 0.5 * k1v
-        xx = x[i] + 0.5 * k1x
-        k2x = DeltaT * vv
-        k2v = DeltaT * spring_force(vv, xx, t[i] + 0.5 * DeltaT)
+# Model B: input_len = 10 (used for autoregressive generation)
+input_len_B = 10
+X_B, y_B = make_dataset(x_norm, input_len_B)
 
-        # k3
-        vv = v[i] + 0.5 * k2v
-        xx = x[i] + 0.5 * k2x
-        k3x = DeltaT * vv
-        k3v = DeltaT * spring_force(vv, xx, t[i] + 0.5 * DeltaT)
+# train/test split
+test_size = 0.2
+random_seed = 42
+Xa_train, Xa_test, ya_train, ya_test = train_test_split(X_A, y_A, test_size=test_size, random_state=random_seed)
+Xb_train, Xb_test, yb_train, yb_test = train_test_split(X_B, y_B, test_size=test_size, random_state=random_seed)
 
-        # k4
-        vv = v[i] + k3v
-        xx = x[i] + k3x
-        k4x = DeltaT * vv
-        k4v = DeltaT * spring_force(vv, xx, t[i] + DeltaT)
+print("Model A shapes:", Xa_train.shape, ya_train.shape, "Model B shapes:", Xb_train.shape, yb_train.shape)
 
-        # Update
-        x[i + 1] = x[i] + (k1x + 2.0 * k2x + 2.0 * k3x + k4x) / 6.0
-        v[i + 1] = v[i] + (k1v + 2.0 * k2v + 2.0 * k3v + k4v) / 6.0
-        t[i + 1] = t[i] + DeltaT
+# ---------- Build models ----------
+def build_simple_rnn(input_len, hidden_size=32):
+    model = tf.keras.Sequential([
+        tf.keras.Input(shape=(input_len,1)),
+        tf.keras.layers.SimpleRNN(hidden_size, activation='tanh'),
+        tf.keras.layers.Dense(1)
+    ])
+    model.compile(optimizer=tf.keras.optimizers.Adam(1e-3),
+                  loss='mse',
+                  metrics=['mse'])
+    return model
 
-    return t, x, v
+model_A = build_simple_rnn(input_len_A, hidden_size=32)
+model_B = build_simple_rnn(input_len_B, hidden_size=64)
 
+print("Model A summary:")
+model_A.summary()
+print("\nModel B summary:")
+model_B.summary()
 
-# Sequence generation for RNN training
+# ---------- Train ----------
+epochs_A = 30
+epochs_B = 40
 
-def create_sequences(x, seq_len):
-    """
-    Given a 1D array x (e.g., position as a function of time),
-    create input/target sequences for next-step prediction.
+hist_A = model_A.fit(Xa_train, ya_train, validation_data=(Xa_test, ya_test),
+                     epochs=epochs_A, batch_size=32, verbose=1)
 
-    Inputs:  [x_i, x_{i+1}, ..., x_{i+seq_len-1}]
-    Targets: [x_{i+1}, ..., x_{i+seq_len}]
-    """
-    xs = []
-    ys = []
-    for i in range(len(x) - seq_len):
-        seq_x = x[i : i + seq_len]
-        seq_y = x[i + 1 : i + seq_len + 1]  # shifted by one step
-        xs.append(seq_x)
-        ys.append(seq_y)
+hist_B = model_B.fit(Xb_train, yb_train, validation_data=(Xb_test, yb_test),
+                     epochs=epochs_B, batch_size=32, verbose=1)
 
-    xs = np.array(xs, dtype=np.float32)      # shape: (num_samples, seq_len)
-    ys = np.array(ys, dtype=np.float32)      # shape: (num_samples, seq_len)
-    # Add feature dimension (1 feature: the position x)
-    xs = np.expand_dims(xs, axis=-1)         # (num_samples, seq_len, 1)
-    ys = np.expand_dims(ys, axis=-1)         # (num_samples, seq_len, 1)
-    return xs, ys
+# ---------- Plot training curves ----------
+plt.figure(figsize=(10,3))
+plt.subplot(1,2,1)
+plt.plot(hist_A.history['loss'], label='train')
+plt.plot(hist_A.history['val_loss'], label='val')
+plt.title('Model A loss')
+plt.xlabel('epoch'); plt.ylabel('mse'); plt.legend()
 
+plt.subplot(1,2,2)
+plt.plot(hist_B.history['loss'], label='train')
+plt.plot(hist_B.history['val_loss'], label='val')
+plt.title('Model B loss')
+plt.xlabel('epoch'); plt.ylabel('mse'); plt.legend()
 
-class OscillatorDataset(Dataset):
-    def __init__(self, seq_len=50, DeltaT=0.001, tfinal=20.0, x0=1.0, v0=0.0):
-        t, x, v = rk4_trajectory(DeltaT=DeltaT, tfinal=tfinal, x0=x0, v0=v0)
-        self.t = t
-        self.x = x
-        self.v = v
-        xs, ys = create_sequences(x, seq_len=seq_len)
-        self.inputs = torch.from_numpy(xs)  # (N, seq_len, 1)
-        self.targets = torch.from_numpy(ys) # (N, seq_len, 1)
+plt.tight_layout()
+plt.show()
 
-    def __len__(self):
-        return self.inputs.shape[0]
+# ---------- Evaluate one-step predictions ----------
+preds_A = model_A.predict(Xa_test)
+preds_A_un = preds_A.flatten() * std_x + mean_x
+ya_test_un = ya_test.flatten() * std_x + mean_x
 
-    def __getitem__(self, idx):
-        return self.inputs[idx], self.targets[idx]
+print("Model A one-step MSE (unnormalized):", np.mean((preds_A_un - ya_test_un)**2))
 
+plt.figure(figsize=(8,3))
+nplot = min(100, len(ya_test_un))
+plt.plot(ya_test_un[:nplot], label='true next x')
+plt.plot(preds_A_un[:nplot], label='predicted next x (Model A)')
+plt.title("Model A: one-step predictions (segment)")
+plt.legend()
+plt.show()
 
-# RNN model (LSTM-based in this example)
+# ---------- Autoregressive generation using Model B ----------
+# Start from the first input_len_B true values, then generate the remainder autoregressively
+initial_window = x_norm[:input_len_B].reshape(1,input_len_B,1)
+gen_steps = len(x_norm) - input_len_B
+generated = []
+current_window = initial_window.copy()
 
-class RNNPredictor(nn.Module):
-    def __init__(self, input_size=1, hidden_size=32, num_layers=1, output_size=1):
-        super().__init__()
-        self.lstm = nn.LSTM(input_size=input_size,
-                            hidden_size=hidden_size,
-                            num_layers=num_layers,
-                            batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
+for i in range(gen_steps):
+    pred_norm = model_B.predict(current_window, verbose=0)  # shape (1,1)
+    generated.append(pred_norm.flatten()[0])
+    # roll the window and append prediction
+    current_window = np.concatenate([current_window[:,1:,:], pred_norm.reshape(1,1,1)], axis=1)
 
-    def forward(self, x):
-        # x: (batch, seq_len, input_size)
-        out, _ = self.lstm(x)   # out: (batch, seq_len, hidden_size)
-        out = self.fc(out)      # (batch, seq_len, output_size)
-        return out
+generated_un = np.array(generated) * std_x + mean_x
+true_remainder = x[input_len_B:]
 
+plt.figure(figsize=(8,3))
+plt.plot(true_remainder, label='true remainder')
+plt.plot(generated_un, label='generated (Model B)')
+plt.title('Model B autoregressive generation')
+plt.legend()
+plt.show()
 
-# Training part
+# ---------- Save models ----------
+os.makedirs('saved_models', exist_ok=True)
+path_A = os.path.join('saved_models','model_A_rnn.h5')
+path_B = os.path.join('saved_models','model_B_rnn.h5')
+model_A.save(path_A)
+model_B.save(path_B)
+print("Saved models to:", path_A, path_B)
 
-def train_model(
-    seq_len=50,
-    DeltaT=0.001,
-    tfinal=20.0,
-    batch_size=64,
-    num_epochs=10,
-    hidden_size=64,
-    lr=1e-3,
-    device=None,
-):
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-
-    # Dataset & DataLoader
-    dataset = OscillatorDataset(seq_len=seq_len, DeltaT=DeltaT, tfinal=tfinal)
-    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-    # Model, loss, optimizer
-    model = RNNPredictor(input_size=1, hidden_size=hidden_size, output_size=1)
-    model.to(device)
-
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-
-    # Training loop
-    model.train()
-    for epoch in range(num_epochs):
-        epoch_loss = 0.0
-        for batch_x, batch_y in train_loader:
-            batch_x = batch_x.to(device)
-            batch_y = batch_y.to(device)
-
-            optimizer.zero_grad()
-            outputs = model(batch_x)
-            loss = criterion(outputs, batch_y)
-            loss.backward()
-            optimizer.step()
-
-            epoch_loss += loss.item() * batch_x.size(0)
-
-        epoch_loss /= len(train_loader.dataset)
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.6f}")
-
-    return model, dataset
-
-
-# Evaluation / visualization
-
-def evaluate_and_plot(model, dataset, seq_len=50, device=None):
-    if device is None:
-        device = next(model.parameters()).device
-
-    model.eval()
-    with torch.no_grad():
-        # Take a single sequence from the dataset
-        x_seq, y_seq = dataset[0]  # shapes: (seq_len, 1), (seq_len, 1)
-        x_input = x_seq.unsqueeze(0).to(device)  # (1, seq_len, 1)
-        # Model prediction (next-step for whole sequence)
-        y_pred = model(x_input).cpu().numpy().squeeze(-1).squeeze(0)  # (seq_len,)
-        # True target
-        y_true = y_seq.numpy().squeeze(-1)  # (seq_len,)
-        # Plot comparison
-        plt.figure()
-        plt.plot(y_true, label="True x(t+Δt)", linestyle="-")
-        plt.plot(y_pred, label="Predicted x(t+Δt)", linestyle="--")
-        plt.xlabel("Time step in sequence")
-        plt.ylabel("Position")
-        plt.legend()
-        plt.title("RNN next-step prediction on oscillator trajectory")
-        plt.tight_layout()
-        plt.show()
-
-# This is the main part of the code where we define the network
-
-if __name__ == "__main__":
-    # Hyperparameters can be tweaked as you like
-    seq_len = 50
-    DeltaT = 0.001
-    tfinal = 20.0
-    num_epochs = 10
-    batch_size = 64
-    hidden_size = 64
-    lr = 1e-3
-
-    model, dataset = train_model(
-        seq_len=seq_len,
-        DeltaT=DeltaT,
-        tfinal=tfinal,
-        batch_size=batch_size,
-        num_epochs=num_epochs,
-        hidden_size=hidden_size,
-        lr=lr,
-    )
-
-    evaluate_and_plot(model, dataset, seq_len=seq_len)
+# ---------- Final numeric summaries ----------
+preds_B = model_B.predict(Xb_test)
+preds_B_un = preds_B.flatten() * std_x + mean_x
+yb_test_un = yb_test.flatten() * std_x + mean_x
+mse_A = np.mean((preds_A_un - ya_test_un)**2)
+mse_B = np.mean((preds_B_un - yb_test_un)**2)
+print(f"One-step MSE (Model A): {mse_A:.6e}")
+print(f"One-step MSE (Model B): {mse_B:.6e}")
 
 !ec
 
 
+!split
+===== Similar code using PyTorch =====
+
+!bc pycod
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+import runpy
+import matplotlib.pyplot as plt
+
+# -------------------------------------------------------
+# 1. Load your RK4 integrator and generate the dataset
+# -------------------------------------------------------
+data = runpy.run_path("rungekutta.py")
+
+t = np.array(data["t"])
+x = np.array(data["x"])
+
+x = x.reshape(-1, 1)          # shape: (T, 1)
+T = len(x)
+
+# -------------------------------------------------------
+# 2. Build supervised learning dataset
+# -------------------------------------------------------
+
+# ---------- Task 1: one-step predictor x_t → x_{t+1} ----------
+X1 = x[:-1]
+Y1 = x[1:]
+
+X1_torch = torch.tensor(X1, dtype=torch.float32)
+Y1_torch = torch.tensor(Y1, dtype=torch.float32)
+
+# ---------- Task 2: sequence predictor ----------
+seq_len = 20        # length of input window
+pred_len = 20       # number of future steps to predict
+
+X2 = []
+Y2 = []
+
+for i in range(T - seq_len - pred_len):
+    X2.append(x[i : i + seq_len])
+    Y2.append(x[i + seq_len : i + seq_len + pred_len])
+
+X2 = np.array(X2)     # (N, seq_len, 1)
+Y2 = np.array(Y2)     # (N, pred_len, 1)
+
+X2_torch = torch.tensor(X2, dtype=torch.float32)
+Y2_torch = torch.tensor(Y2, dtype=torch.float32)
+
+# -------------------------------------------------------
+# 3. Define RNN models
+# -------------------------------------------------------
+
+class RNNOneStep(nn.Module):
+    """Model 1: x_t → x_{t+1}"""
+    def __init__(self, hidden=32):
+        super().__init__()
+        self.rnn = nn.RNN(1, hidden, batch_first=True)
+        self.fc = nn.Linear(hidden, 1)
+
+    def forward(self, x):
+        out, _ = self.rnn(x.unsqueeze(1))   # shape (batch, 1, hidden)
+        out = out[:, -1, :]                 # last time step
+        return self.fc(out)
+
+
+class RNNSequence(nn.Module):
+    """Model 2: Predict multiple future steps"""
+    def __init__(self, hidden=64):
+        super().__init__()
+        self.rnn = nn.RNN(1, hidden, batch_first=True)
+        self.fc = nn.Linear(hidden, 1)
+
+    def forward(self, x):
+        out, _ = self.rnn(x)           # out: (batch, seq_len, hidden)
+        out = self.fc(out)             # (batch, seq_len, 1)
+        return out
+
+
+# -------------------------------------------------------
+# 4. Train Model 1 (single-step predictor)
+# -------------------------------------------------------
+
+model1 = RNNOneStep()
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model1.parameters(), lr=1e-3)
+
+for epoch in range(200):
+    optimizer.zero_grad()
+    pred = model1(X1_torch)
+    loss = criterion(pred, Y1_torch)
+    loss.backward()
+    optimizer.step()
+    if epoch % 50 == 0:
+        print(f"One-step Epoch {epoch}, Loss: {loss.item():.6f}")
+
+# -------------------------------------------------------
+# 5. Train Model 2 (sequence predictor)
+# -------------------------------------------------------
+
+model2 = RNNSequence()
+optimizer = optim.Adam(model4.parameters(), lr=1e-3)
+
+for epoch in range(200):
+    optimizer.zero_grad()
+    pred = model2(X2_torch)
+    loss = criterion(pred, Y2_torch)
+    loss.backward()
+    optimizer.step()
+    if epoch % 50 == 0:
+        print(f"Sequence Epoch {epoch}, Loss: {loss.item():.6f}")
+
+# -------------------------------------------------------
+# 6. Evaluate: multi-step prediction
+# -------------------------------------------------------
+
+with torch.no_grad():
+    sample_input = X2_torch[10:11]      # shape (1, seq_len, 1)
+    predicted_seq = model4(sample_input).numpy().squeeze()
+    true_seq = Y2[10].squeeze()
+
+plt.plot(true_seq, label="True")
+plt.plot(predicted_seq, label="Predicted", linestyle="--")
+plt.legend()
+plt.title("Sequence prediction (20 steps ahead)")
+plt.show()
+
+!ec
+
+
+
+
+
+
+
+
+!split
+===== Autoencoders: Overarching view =====
+
+Autoencoders are artificial neural networks capable of learning
+efficient representations of the input data (these representations are called codings)  without
+any supervision (i.e., the training set is unlabeled). These codings
+typically have a much lower dimensionality than the input data, making
+autoencoders useful for dimensionality reduction. 
+
+Autoencoders learn to encode the
+input data into a lower-dimensional representation, and then decode it
+back to the original data. The goal of autoencoders is to minimize the
+reconstruction error, which measures how well the output matches the
+input. Autoencoders can be seen as a way of learning the latent
+features or hidden structure of the data, and they can be used for
+data compression, denoising, anomaly detection, and generative
+modeling.
+
+!split
+===== Powerful detectors =====
+
+More importantly, autoencoders act as powerful feature detectors, and
+they can be used for unsupervised pretraining of deep neural networks.
+
+Lastly, they are capable of randomly generating new data that looks
+very similar to the training data; this is called a generative
+model. For example, you could train an autoencoder on pictures of
+faces, and it would then be able to generate new faces.  Surprisingly,
+autoencoders work by simply learning to copy their inputs to their
+outputs. This may sound like a trivial task, but we will see that
+constraining the network in various ways can make it rather
+difficult. For example, you can limit the size of the internal
+representation, or you can add noise to the inputs and train the
+network to recover the original inputs. These constraints prevent the
+autoencoder from trivially copying the inputs directly to the outputs,
+which forces it to learn efficient ways of representing the data. In
+short, the codings are byproducts of the autoencoder’s attempt to
+learn the identity function under some constraints.
+
+
+
+
+!split
+===== First introduction of AEs =====
+
+Autoencoders were first introduced by Rumelhart, Hinton, and Williams
+in 1986 with the goal of learning to reconstruct the input
+observations with the lowest error possible.
+
+
+Why would one want to learn to reconstruct the input observations? If
+you have problems imagining what that means, think of having a dataset
+made of images. An autoencoder would be an algorithm that can give as
+output an image that is as similar as possible to the input one. You
+may be confused, as there is no apparent reason of doing so. To better
+understand why autoencoders are useful we need a more informative
+(although not yet unambiguous) definition.
+
+!bblock
+An autoencoder is a type of algorithm with the primary purpose of learning an "informative" representation of the data that can be used for different applications ("see Bank, D., Koenigstein, N., and Giryes, R., Autoencoders":"https://arxiv.org/abs/2003.05991") by learning to reconstruct a set of input observations well enough.
+!eblock
+
+
+
+!split
+===== Autoencoder structure =====
+
+
+Autoencoders are neural networks where the outputs are its own
+inputs. They are split into an _encoder part_
+which maps the input $\bm{x}$ via a function $f(\bm{x},\bm{W})$ (this
+is the encoder part) to a _so-called code part_ (or intermediate part)
+with the result $\bm{h}$
+
+!bt
+\[
+\bm{h} = f(\bm{x},\bm{W})),
+\]
+!et
+where $\bm{W}$ are the weights to be determined.  The _decoder_ parts maps, via its own parameters (weights given by the matrix $\bm{V}$ and its own biases) to 
+the final ouput
+!bt
+\[
+\tilde{\bm{x}} = g(\bm{h},\bm{V})).
+\]
+!et
+
+The goal is to minimize the construction error.
+
+!split
+===== Schematic image of an Autoencoder =====
+
+FIGURE: [figures/ae1.png, width=700 frac=1.0]
+
+
+
+!split
+===== More on the structure =====
+
+In most typical architectures, the encoder and the decoder are neural networks
+since they can be easily trained with existing software libraries such as TensorFlow or PyTorch with back propagation.
+
+
+
+In general, the encoder can be written as a function $g$ that will depend on some parameters
+!bt
+\[
+\mathbf{h}_{i} = g(\mathbf{x}_{i}),
+\]
+!et
+where $\mathbf{h}_{i}\in\mathbb{R}^{q}$  (the latent feature representation) is the output of the encoder block where we evaluate
+it using the input $\mathbf{x}_{i}$.
+
+!split
+===== Decoder part =====
+
+Note that we have $g:\mathbb{R}^{n}\rightarrow\mathbb{R}^{q}$
+The decoder and the output of the network $\tilde{\mathbf{x}}_{i}$ can be written then as a second generic function
+of the latent features
+!bt
+\[
+\tilde{\mathbf{x}}_{i} = f\left(\mathbf{h}_{i}\right) = f\left(g\left(\mathbf{x}_{i}\right)\right),
+\]
+!et
+where $\tilde{\mathbf{x}}_{i}\mathbf{\in }\mathbb{R}^{n}$.
+
+Training an autoencoder simply means finding the functions $g(\cdot)$ and $f(\cdot)$
+that satisfy
+!bt
+\[
+\textrm{arg}\min_{f,g}<\left[\Delta (\mathbf{x}_{i}, f(g\left(\mathbf{x}_{i}\right))\right]>.
+\]
+!et
+
+
+!split
+===== Typical AEs =====
+
+The standard setup is done via a standard feed forward neural network (FFNN), or what is called a Feed Forward Autoencoder.
+
+A typical FFNN architecture has a given  number of layers and is symmetrical with respect to the middle layer.
+
+Typically, the first layer has a number of neurons $n_{1} = n$ which equals the size of the input observation $\mathbf{x}_{\mathbf{i}}$.
+
+As we move toward the center of the network, the number of neurons in each layer drops in some measure.
+The middle layer usually has the smallest number of neurons.
+The fact that the number of neurons in this layer is smaller than the size of the input, is often called the _bottleneck_.
+
+!split
+===== Feed Forward Autoencoder =====
+
+FIGURE: [figures/ae2.pdf, width=700 frac=1.0]
+
+
+!split
+===== Mirroring =====
+
+In almost all practical applications,
+the layers after the middle one are a mirrored version of the layers before the middle one.
+For example, an autoencoder with three layers could have the following numbers of neurons:
+
+$n_{1} = 10$, $n_{2} = 5$ and then $n_{3} = n_{1} = 10$ where the input dimension is equal to ten.
+
+
+All the layers up to and including the middle one, make what is called the encoder, and all the layers from and including
+the middle one (up to the output) make what is called the decoder.
+
+If the FFNN training is successful, the result will
+be a good approximation of the input $\tilde{\mathbf{x}}_{i}\approx\mathbf{x}_{i}$.
+
+What is essential to notice is that the decoder can reconstruct the
+input by using only a much smaller number of features than the input
+observations initially have.
+
+!split
+===== Output of middle layer =====
+
+The output of the middle layer
+$\mathbf{h}_{\mathbf{i}}$ are also called a _learned representation_ of the input observation $\mathbf{x}_{i}$.
+
+The encoder can reduce the number of dimensions of the input
+observation and create a learned representation
+$\mathbf{h}_{\mathbf{i}}\mathbf{) }$ of the input that has a smaller
+dimension $q<n$.
+
+This learned representation is enough for the decoder to reconstruct
+the input accurately (if the autoencoder training was successful as
+intended).
+
+!split
+===== Activation Function of the Output Layer =====
+
+In autoencoders based on neural networks, the output layer's
+activation function plays a particularly important role.  The most
+used functions are ReLU and Sigmoid. 
+
+!split
+===== ReLU =====
+
+The  ReLU activation function can assume all values in the range $\left[0,\infty\right]$. As a remainder, its formula is
+!bt
+\[
+\textrm{ReLU}\left(x\right) = \max\left(0,x\right).
+\]
+!et
+This choice is good when the input observations \(\mathbf{x}_{i}\) assume a wide range of positive values.
+If the input $\mathbf{x}_{i}$ can assume negative values, the ReLU is, of course, a terrible choice, and the identity function is a much better choice. It is then common to replace to the ReLU with the so-called _Leaky ReLu_ or just modified ReLU.
+
+The ReLU activation function for the output layer is well suited for cases when the input observations \(\mathbf{x}_{i}\) assume a wide range of positive real values.  
+
+!split
+===== Sigmoid =====
+
+The sigmoid function $\sigma$ can assume all values in the range $[0,1]$,
+!bt
+\[
+\sigma\left(x\right) =\frac{1}{1+e^{-x}}.
+\]
+!et
+
+
+This activation function can only be used if the input observations
+$\mathbf{x}_{i}$ are all in the range $[0,1]$  or if you have
+normalized them to be in that range. Consider as an example the MNIST
+dataset. Each value of the input observation $\mathbf{x}_{i}$ (one
+image) is the gray values of the pixels that can assume any value from
+0 to 255. Normalizing the data by dividing the pixel values by 255
+would make each observation (each image) have only pixel values
+between 0 and 1. In this case, the sigmoid would be a good choice for
+the output layer's activation function.
+
+!split
+===== Cost/Loss Function =====
+
+If an autoencoder is trying to solve a regression problem, the most
+common choice as a loss function is the Mean Square Error
+
+!bt
+\[
+L_{\textrm{MSE}} = \textrm{MSE} = \frac{1}{n}\sum_{i = 1}^{n}\left\vert\vert\mathbf{x}_{i}-\tilde{\mathbf{x}}_{i}\right\vert\vert^{2}_2.
+\]
+!et
+
+
+!split
+===== Binary Cross-Entropy =====
+
+If the activation function of the output layer of the AE is a sigmoid
+function, thus limiting neuron outputs to be between 0 and 1, and the
+input features are normalized to be between 0 and 1 we can use as loss
+function the binary cross-entropy. This cots/loss function is
+typically used in classification problems, but it works well for
+autoencoders. The formula for it is
+
+!bt
+\[
+L_{\textrm{CE}} = -\frac{1}{n}\sum_{i = 1}^{n}\sum_{j = 1}^{p}[x_{j,i} \log\tilde{x}_{j,i}+\left(1-x_{j,i}\right)\log (1-\tilde{x}_{j,i})].
+\]
+!et
+
+!split
+===== Reconstruction Error =====
+
+The reconstruction error (RE) is a metric that gives you an indication of how good (or bad) the autoencoder was able to reconstruct
+the input observation $\mathbf{x}_{i}$. The most typical RE used is the MSE
+
+!bt
+\[
+\textrm{RE}\equiv \textrm{MSE} = \frac{1}{n}\sum_{i = 1}^{n}\left\vert\vert\mathbf{x}_{i}-\tilde{\mathbf{x}}_{i}\right\vert\vert^{2}_2.
+\]
+!et
+
+!split
+===== Implementation using TensorFlow =====
+
+The code here has the following structure
+o Data Loading: The MNIST dataset is loaded and normalized to a range of $[0, 1]$. Each image is reshaped into a flat vector.
+o Model Definition: An autoencoder architecture is defined with an encoder that compresses the input and a decoder that reconstructs it back to its original form.
+o Training: The model is trained using binary crossentropy as the loss function over several epochs.
+o Visualization: After training completes, it visualizes original images alongside their reconstructions.
+
+!bc pycod
+### Autoencoder Implementation in TensorFlow/Keras
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.datasets import mnist
+
+# Load MNIST dataset
+(x_train, _), (x_test, _) = mnist.load_data()
+
+# Normalize the images to [0, 1] range and reshape them to (num_samples, 28*28)
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
+x_train = x_train.reshape((len(x_train), -1))
+x_test = x_test.reshape((len(x_test), -1))
+
+# Define the Autoencoder Model
+input_dim = x_train.shape[1]
+encoding_dim = 64  # Dimension of the encoding layer
+
+# Encoder
+input_img = layers.Input(shape=(input_dim,))
+encoded = layers.Dense(256, activation='relu')(input_img)
+encoded = layers.Dense(encoding_dim, activation='relu')(encoded)
+
+# Decoder
+decoded = layers.Dense(256, activation='relu')(encoded)
+decoded = layers.Dense(input_dim, activation='sigmoid')(decoded)  # Use sigmoid since we normalized input between 0 and 1.
+
+# Autoencoder Model
+autoencoder = keras.Model(input_img, decoded)
+
+# Compile the model
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+
+# Train the model
+autoencoder.fit(x_train, x_train,
+                epochs=10,
+                batch_size=128,
+                shuffle=True,
+                validation_data=(x_test, x_test))
+
+# Visualize some results after training
+decoded_imgs = autoencoder.predict(x_test)
+
+n = 8  # Number of digits to display
+plt.figure(figsize=(9,4))
+for i in range(n):
+    # Display original images on top row 
+    ax = plt.subplot(2,n,i+1)
+    plt.imshow(x_test[i].reshape(28, 28), cmap='gray')
+    ax.axis('off')
+
+    # Display reconstructed images on bottom row 
+    ax = plt.subplot(2,n,i+n+1)
+    plt.imshow(decoded_imgs[i].reshape(28, 28), cmap='gray')
+    ax.axis('off')
+
+plt.show()
+!ec
+
+
+
+!split
+===== Implementation using PyTorch =====
+
+The code here as the same structure as the previous one which uses TensorFlow.
+o Data Loading: The MNIST dataset is loaded with normalization applied.
+o Model Definition: An *Autoencoder* class defines both encoder and decoder networks.
+o Training part: The network is trained over several epochs using Mean Squared Error (MSE) as the loss function.
+o Visualization: After training completes, it visualizes original images alongside their reconstructions.
+
+!bc pycod
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+
+# Hyperparameters
+batch_size = 128
+learning_rate = 0.001
+num_epochs = 10
+
+# Transform to normalize the data
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
+
+# Load MNIST dataset
+train_dataset = datasets.MNIST(root='./data', train=True, transform=transform, download=True)
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+
+# Define the Autoencoder Model
+class Autoencoder(nn.Module):
+    def __init__(self):
+        super(Autoencoder, self).__init__()
+        # Encoder layers
+        self.encoder = nn.Sequential(
+            nn.Linear(28 * 28, 256),
+            nn.ReLU(True),
+            nn.Linear(256, 64),
+            nn.ReLU(True)
+        )
+        # Decoder layers
+        self.decoder = nn.Sequential(
+            nn.Linear(64, 256),
+            nn.ReLU(True),
+            nn.Linear(256, 28 * 28),
+            nn.Tanh()   # Use Tanh since we normalized input between -1 and 1.
+        )
+
+    def forward(self, x):
+        x = x.view(-1, 28 * 28)  # Flatten the image tensor into vectors.
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded.view(-1, 1, 28, 28)   # Reshape back to original image dimensions.
+
+# Initialize model, loss function and optimizer
+model = Autoencoder()
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+# Training Loop
+for epoch in range(num_epochs):
+    for data in train_loader:
+        img, _ = data
+        
+        # Forward pass 
+        output = model(img)
+        
+        # Compute loss 
+        loss = criterion(output, img)
+        
+        # Backward pass and optimization 
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+
+# Visualize some results after training
+with torch.no_grad():
+    sample_data = next(iter(train_loader))[0]
+    reconstructed_data = model(sample_data)
+
+plt.figure(figsize=(9,4))
+for i in range(8):
+    ax = plt.subplot(2,8,i+1)
+    plt.imshow(sample_data[i][0], cmap='gray')
+    ax.axis('off')
+
+    ax = plt.subplot(2,8,i+9)
+    plt.imshow(reconstructed_data[i][0], cmap='gray')
+    ax.axis('off')
+
+plt.show()
+!ec
+
+
+
+
+
+
+!split
+===== Dimensionality reduction and links with Principal component analysis =====
+
+The hope is that the training of the autoencoder can unravel some
+useful properties of the function $f$. They are often trained with
+only single-layer neural networks (although deep networks can improve
+the training) and are essentially given by feed forward neural
+networks.
+
+!split
+===== Linear functions =====
+
+If the function $f$ and $g$ are given by a linear dependence on the
+weight matrices $\bm{W}$ and $\bm{V}$, we can show that for a
+regression case, by miminizing the mean squared error between $\bm{x}$
+and $\tilde{\bm{x}}$, the autoencoder learns the same subspace as the
+standard principal component analysis (PCA).
+
+In order to see this, we define then
+!bt
+\[
+\bm{h} = f(\bm{x},\bm{W}))=\bm{W}\bm{x},
+\]
+!et
+and
+!bt
+\[
+\tilde{\bm{x}} = g(\bm{h},\bm{V}))=\bm{V}\bm{h}=\bm{V}\bm{W}\bm{x}.
+\]
+!et
+
+!split
+===== AE mean-squared error =====
+
+With the above linear dependence we can in turn define our
+optimization problem in terms of the optimization of the mean-squared
+error, that is we wish to optimize
+
+!bt
+\[
+\min_{\bm{W},\bm{V}\in {\mathbb{R}}}\frac{1}{n}\sum_{i=0}^{n-1}\left(x_i-\tilde{x}_i\right)^2=\frac{1}{n}\vert\vert \bm{x}-\bm{V}\bm{W}\bm{x}\vert\vert_2^2,
+\]
+!et
+where we have used the definition of  a norm-2 vector, that is
+!bt
+\[
+\vert\vert \bm{x}\vert\vert_2 = \sqrt{\sum_i x_i^2}. 
+\]
+!et
+
+!split
+===== Dimensionality reduction =====
+
+This is equivalent to our functions learning the same subspace as
+the PCA method. This means that we can interpret AEs as a
+dimensionality reduction method.  To see this, we need to remind
+ourselves about the PCA method. This will be the topic of the last lecture, on Monday November 24. We will use this lecture (second lecture) to summarize the course as well. Stay tuned.
 
