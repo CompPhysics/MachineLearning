@@ -28,10 +28,10 @@
 \newcommand{\myalert}[1]{\textcolor{red!70!black}{\textbf{#1}}}
 
 %% ─── Title ───────────────────────────────────────────────────────────────────
-\title[NTK, Natural Gradient, SR \& Adam]{%
+\title[NTK, Natural Gradient, SR, Adam \& Beyond]{%
   Neural Tangent Kernel:\\
-  Convergence, Generalisation, and Connections to\\
-  Natural Gradient, Stochastic Reconfiguration \& Adaptive Optimisers}
+  Convergence, Generalisation, Adaptive Optimisers,\\
+  and Post-2018 Developments}
 
 \subtitle{Based on Jacot, Gabriel \& Hongler, NeurIPS 2018}
 
@@ -813,6 +813,257 @@
 \end{frame}
 
 % ═════════════════════════════════════════════════════════════════════════════
+\section{Post-2018 Developments}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\begin{frame}{Post-2018 Landscape: Overview}
+  The NTK paper triggered an explosion of follow-up work. Major threads:
+
+  \vspace{0.4em}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lp{7.5cm}}
+    \toprule
+    \textbf{Thread} & \textbf{Key question} \\
+    \midrule
+    Lazy vs.\ feature learning & When does the NTK picture break down, and what replaces it? \\
+    $\mu$P \& Tensor Programs & Which parametrisations allow feature learning at infinite width? \\
+    Finite-width corrections & How do the $1/n$ corrections to the NTK affect generalisation? \\
+    Architecture extensions & NTK for CNNs, RNNs, Transformers, GNNs. \\
+    Practical limits & How well do NTK predictions match real networks on benchmarks? \\
+    Novel phenomena & Catapult phase, grokking, double descent through the NTK lens. \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{frame}{Lazy Training vs.\ Feature Learning}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \textbf{The ``lazy'' (NTK) regime} (Chizat et al., 2019):
+      \begin{itemize}
+        \item Network stays close to its initialisation; parameters move $\mathcal{O}(1/\sqrt{n})$.
+        \item NTK is approximately fixed $\Rightarrow$ training $\approx$ kernel regression.
+        \item Triggered by: large initialisation scale, small learning rate, output rescaling.
+        \item Network \highlight{cannot learn new features} — the kernel is data-independent.
+      \end{itemize}
+      \vspace{0.4em}
+      \textbf{The ``rich'' (feature learning) regime}:
+      \begin{itemize}
+        \item Parameters move $\mathcal{O}(1)$; NTK evolves substantially.
+        \item Network \highlight{adapts its representations} to the data.
+        \item Empirically outperforms the NTK predictor on most real tasks.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{alertblock}{Key result (Yang \& Hu, 2021)}
+        The lazy and rich regimes are \textbf{mutually exclusive} (dynamical dichotomy theorem): in the $n\to\infty$ limit, a network is either in the NTK regime (frozen kernel, no feature learning) or in the feature learning regime ($\mu$P), \emph{never} both.
+      \end{alertblock}
+
+      \vspace{0.4em}
+      \begin{exampleblock}{Practical implication}
+        Real finite networks trained at standard scale usually \emph{escape} the NTK regime early in training — NTK theory captures initialisation and very early training faithfully, but less so the full trajectory.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{frame}{$\mu$P Parametrisation and Tensor Programs}
+  Yang \& Hu (2020, 2021) introduced the \textbf{Maximal Update Parametrisation ($\mu$P)} and the
+  \textbf{Tensor Programs} framework to systematically classify all infinite-width limits.
+
+  \vspace{0.4em}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \textbf{Key results:}
+      \begin{itemize}
+        \item Standard parametrisation and NTK parametrisation both land in the \myalert{lazy regime} at infinite width.
+        \item $\mu$P rescales each layer's weights by $1/n_\ell$ (not $1/\sqrt{n_\ell}$), enabling \highlight{maximal feature learning across all layers}.
+        \item $\mu$P is the \emph{unique} parametrisation achieving non-trivial feature learning at $n\to\infty$.
+        \item Depth-dependent scaling extensions (Yang et al., 2023) cover residual and transformer architectures.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \renewcommand{\arraystretch}{1.3}
+      \begin{tabular}{lcc}
+        \toprule
+        \textbf{Param.} & \textbf{Feature} & \textbf{NTK} \\
+                        & \textbf{learning} & \textbf{fixed?} \\
+        \midrule
+        Standard (NTK) & \myalert{No} & Yes \\
+        Mean field & Partial & Varies \\
+        \highlight{$\mu$P} & \highlight{Yes} & No \\
+        \bottomrule
+      \end{tabular}
+
+      \vspace{0.5em}
+      \begin{block}{\small Practical payoff}
+        $\mu$P enables \textbf{hyperparameter transfer}: tune on a small model, transfer to large. Used in Microsoft's $\mu$Transfer (Yang et al., 2022).
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{frame}{Finite-Width Corrections to the NTK}
+  The original NTK theory is exact only at $n=\infty$. Two key finite-width results:
+
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \textbf{Mean and variance of the NTK} (Hanin \& Nica, 2019):
+      \begin{itemize}
+        \item For ReLU networks: the standard deviation of the NTK scales as
+          $\mathrm{Std}[\Theta^{(L)}] \sim e^{L/n}$,
+          i.e.\ \myalert{exponential in the depth-to-width ratio} $L/n$.
+        \item Wide-but-not-deep networks: corrections small.
+        \item Deep-but-narrow networks: corrections can dominate.
+      \end{itemize}
+      \vspace{0.3em}
+      \textbf{Feynman diagram approach} (2024):
+      \begin{itemize}
+        \item Systematic $1/n$ perturbation theory for NTK statistics using Feynman-like diagrams.
+        \item First-order corrections visibly improve alignment with finite-width samples.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{alertblock}{Depth-width interplay}
+        For scale-invariant activations (ReLU), $\Theta(x,x)$ has \emph{no} finite-width corrections — but off-diagonal elements do. Critical initialisation that stabilises the infinite-width NTK also stabilises finite-width gradients, informing initialisation schemes.
+      \end{alertblock}
+      \vspace{0.4em}
+      \begin{exampleblock}{Practical takeaway}
+        Finite-width networks with $L/n \ll 1$ behave close to NTK theory. Most practical large models have $L/n \sim 0.01$–$0.1$, so corrections are moderate but non-negligible.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{frame}{NTK for Modern Architectures}
+  Yang's \textbf{Tensor Programs II} (2020) extended the NTK to \emph{any} architecture:
+
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \textbf{Architectures covered:}
+      \begin{itemize}
+        \item Convolutional networks (CNN-NTK): competitive kernel for image tasks.
+        \item Recurrent networks (RNN-NTK).
+        \item \textbf{Transformer NTK}: infinite-width limit of attention + MLP blocks.
+          \begin{itemize}
+            \item Linearised attention \emph{does not} converge to its NTK limit at practical widths (attention cubes the Gram matrix condition number).
+            \item Standard softmax attention requires careful depth-and-width joint scaling.
+          \end{itemize}
+        \item Graph Neural Network NTK (GNN-NTK): used to study oversmoothing and training dynamics on large graphs.
+        \item Self-supervised learning NTK: infinite-width Barlow Twins converge to a fixed kernel (Fleissner et al., 2025).
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Shaped Transformer (2023)}
+        The ``Shaped Transformer'' (Noci et al., 2023) shows the standard NTK limit (fixed depth) fails to capture rank-collapse in deep attention. Joint depth-and-width limits are needed for faithful transformer theory.
+      \end{block}
+      \vspace{0.4em}
+      \begin{exampleblock}{Reference implementation}
+        Open-source NTK computations for all these architectures are available via the \texttt{neural-tangents} JAX library (Novak et al., 2020), enabling practical use of NTK predictions.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{frame}{Practical Performance Gap and Limitations}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \textbf{What NTK kernels do well:}
+      \begin{itemize}
+        \item Small datasets: NTK often matches or beats finite-width networks (Arora et al., 2019).
+        \item Theoretical upper bounds on generalisation error.
+        \item Architecture search: ranking architectures by NTK spectrum correlates with test accuracy.
+        \item NTK-CKA (centered kernel alignment) as a diagnostic for whether a network is in the lazy regime.
+      \end{itemize}
+      \vspace{0.3em}
+      \textbf{Where NTK predictions fail:}
+      \begin{itemize}
+        \item \myalert{Large datasets}: finite-width networks outperform NTK kernel regression significantly (performance gap grows with dataset size).
+        \item \myalert{Scale} and \myalert{fine-tuning}: pre-trained LLMs operate deep in the feature-learning regime.
+        \item Tasks requiring \myalert{compositional or hierarchical} representations.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{alertblock}{The core limitation}
+        The NTK describes a network that \emph{never learns new features} — it is stuck with the random feature map at initialisation. Real networks succeed precisely by \emph{changing} their feature map during training. The gap between NTK predictions and real networks \emph{quantifies} how much feature learning matters for a given task.
+      \end{alertblock}
+      \vspace{0.4em}
+      \small
+      \textbf{Weighted NTK (WNTK)}: extends NTK to adjusted gradient descent (e.g.\ Adam), showing that the effective kernel under adaptive optimisers is a \emph{reweighted} NTK (Zhang et al., 2023).
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{frame}{Novel Phenomena: Catapult Phase, Grokking, Double Descent}
+  Three phenomena discovered after 2018 that the NTK framework partially explains — and partially fails to explain:
+
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \begin{column}{0.32\textwidth}
+      \textbf{Catapult phase} (Lewkowycz et al., 2020)
+      \begin{itemize}
+        \item Using learning rates \emph{above} the NTK stability threshold ($\eta > 2/\lambda_{\max}$) causes the NTK to first ``inflate'' then settle at a \highlight{lower, flatter kernel}.
+        \item Results in \highlight{better generalisation} than pure lazy training.
+        \item Provides a mechanism for how large learning rates aid implicit regularisation.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.33\textwidth}
+      \textbf{Grokking} (Power et al., 2022)
+      \begin{itemize}
+        \item Networks first memorise (NTK regime: high training accuracy, no generalisation), then \emph{abruptly} generalise much later.
+        \item Interpreted as a \highlight{delayed transition} from the lazy (NTK) regime to the feature-learning regime (Noether, 2024).
+        \item Weight decay accelerates the transition by pushing the network out of the lazy regime.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \textbf{Double descent} (Belkin et al.; Nakkiran et al., 2019)
+      \begin{itemize}
+        \item Test error \emph{decreases again} after the interpolation threshold.
+        \item Analysed via NTK: in the overparametrised regime, the \highlight{minimum-norm interpolant} (= kernel regression with $\NTK$) generalises.
+        \item The second descent coincides with NTK Gram matrix becoming well-conditioned.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{frame}{NTK Theory: Status in 2025}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \textbf{What is now well-established:}
+      \begin{itemize}
+        \item NTK provides a \highlight{rigorous, computable baseline} for understanding training dynamics and generalisation in the lazy regime.
+        \item Finite-width corrections are under perturbative control for standard MLPs.
+        \item NTK for arbitrary architectures (Tensor Programs): theoretical toolkit is mature.
+        \item $\mu$P gives a principled path beyond the NTK to feature learning.
+        \item NTK spectrum = direct predictor of training speed and early stopping.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \textbf{What remains open:}
+      \begin{itemize}
+        \item A full theory of the \myalert{feature-learning regime} at finite width.
+        \item NTK for \myalert{transformers at joint depth-width scaling}.
+        \item Quantitative connection between NTK structure and \myalert{in-context learning} in LLMs.
+        \item The role of the NTK in \myalert{fine-tuning} and transfer learning.
+        \item NTK description of \myalert{grokking timescales} and phase transition sharpness.
+      \end{itemize}
+
+      \begin{block}{\small Bottom line}
+        The NTK is the \textbf{linear theory} of deep learning — essential, exact in its regime, and a precise measure of its own limitations.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ═════════════════════════════════════════════════════════════════════════════
 \section{Summary \& Outlook}
 % ═════════════════════════════════════════════════════════════════════════════
 
@@ -876,6 +1127,7 @@
         \item Spectral analysis of $S$ for diagnosis of training pathologies.
         \item Connections to quantum geometry (quantum Fisher, Berry curvature).
         \item NTK-informed adaptive learning rates for SR (diagonal $S$ shift vs.\ full inversion).
+        \item $\mu$P for NQS: is there a ``maximal update'' parametrisation for quantum variational methods?
       \end{itemize}
     \end{column}
   \end{columns}
@@ -890,9 +1142,15 @@
 \begin{frame}{Key References}
   \footnotesize
   \begin{itemize}
+    \item L.\ Chizat, E.\ Oyallon \& F.\ Bach. \textit{On Lazy Training in Differentiable Programming.} NeurIPS 2019.
+    \item G.\ Yang \& E.J.\ Hu. \textit{Feature Learning in Infinite-Width Neural Networks ($\mu$P).} ICML 2021.
+    \item B.\ Hanin \& M.\ Nica. \textit{Finite Depth and Width Corrections to the NTK.} ICLR 2020.
+    \item G.\ Yang. \textit{Tensor Programs II: NTK for Any Architecture.} NeurIPS 2020.
+    \item A.\ Lewkowycz et al.\ \textit{The Large Learning Rate Phase of Deep Learning: the Catapult Mechanism.} 2020.
+    \item A.\ Power et al.\ \textit{Grokking: Generalization Beyond Overfitting.} 2022.
+    \item R.\ Novak et al.\ \textit{Neural Tangents: Fast and Easy Infinite Neural Networks.} ICLR 2020.
     \item D.P.\ Kingma \& J.\ Ba. \textit{Adam: A Method for Stochastic Optimization.} ICLR 2015.
-    \item T.\ Tieleman \& G.\ Hinton. \textit{Lecture 6.5 — RMSProp.} Coursera, 2012.
-    \item J.\ Martens \& R.\ Grosse. \textit{Optimizing Neural Networks with Kronecker-factored Approximate Curvature (K-FAC).} ICML 2015.
+    \item J.\ Martens \& R.\ Grosse. \textit{Optimizing Neural Networks with K-FAC.} ICML 2015.
     \item A.\ Jacot, F.\ Gabriel, C.\ Hongler. \textit{Neural Tangent Kernel: Convergence and Generalization in Neural Networks.} NeurIPS 2018.
     \item R.M.\ Neal. \textit{Bayesian Learning for Neural Networks.} Springer, 1996.
     \item J.H.\ Lee et al.\ \textit{Deep Neural Networks as Gaussian Processes.} ICLR 2018.
