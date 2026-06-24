@@ -23,7 +23,7 @@ The course is project based and through various numerical projects and
 weekly exercises you will be exposed to fundamental research problems
 in these fields, with the aim to reproduce state of the art scientific
 results. Both supervised and unsupervised methods will be covered. The
-emphasis is on a frequentist approach with an emphasis on predictions
+focus is on a frequentist approach with an emphasis on predictions
 and correaltions. However, we will try, where appropriate, to link our
 machine learning models with a Bayesian approach as well. You will
 learn to develop and structure large codes for studying different
