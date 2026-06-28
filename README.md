@@ -96,7 +96,7 @@ possible.
 
 ## Instructor information
 
-##  Teaching team Fall 2025
+##  Teaching team Fall 2026
 * Morten Hjorth-Jensen, mhjensen@uio.no
   * _Phone_: +47-48257387
   * _Office_: Department of Physics, room FØ470 
@@ -109,10 +109,10 @@ possible.
 
 ## Practicalities
 
-1. The sessions on Tuesdays and Wednesdays last four hours for each group (four in total) and will include lectures in a flipped mode (promoting active learning) and work on exercices and projects.  The sessions will begin with lectures and questions and answers about the material to be covered every week.
-2. There are four groups, Tuesdays 815am-12pm and 1215pm-4pm and Wednesdays 815am-12pm and 1215pm-4pm. Please sign up as soon as possible for one of the groups. Max capacity per group is 30-40 participants.
+1. The sessions on Wednesdays last four hours for each group (four in total) and will include lectures in a flipped mode (promoting active learning) and work on exercices and projects.  The sessions will begin with lectures and questions and answers about the material to be covered every week.
+2. There are two groups, Wednesdays 815am-12pm and 1215pm-4pm. Please sign up as soon as possible for one of the groups. Max capacity per group is 30-40 participants.
 
-3. On Mondays  we have a regular lecture. These lectures start at 215pm and ends at 4pm. These lectures are recorded.
+3. Lectures are Mondays and Tuesdays. The lectures combine a mix of traditional lectures with an active learning environment. These lectures are recorded. 
 4. Three projects which are graded and count 1/3 each of the final grade;
 5. A selected number of weekly assignments. The weekly assignments can be handed in and for all assignments you can get an extra score of 20 points to the final grade.
 6. The course is offered as a so-called _cloned_ course,  FYS-STK4155 at the Master of Science level and FYS-STK3155 as a senior undergraduate)course;
@@ -124,12 +124,12 @@ Grading scale: Grades are awarded on a scale from A to F, where A is the best gr
 
 The final number of points is based on the average of all projects (including eventual additional points) and the grade follows the following table:
 
- * 92-100 points: A
- * 77-91 points: B
- * 58-76 points: C
- * 46-57 points: D
- * 40-45 points: E
- * 0-39 points: F-failed
+ *  points: A
+ *  points: B
+ *  points: C
+ *  points: D
+ *  points: E
+ * 0-59 points: F-failed
 
 ## Tentative deadllines for projects
 
