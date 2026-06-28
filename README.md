@@ -101,11 +101,9 @@ possible.
   * _Phone_: +47-48257387
   * _Office_: Department of Physics, room FØ470 
   * _Office hours_: *Anytime*! Individual or group office hours can be performed either in person or via zoom. Feel free to send an email for planning.
-* 
-* 
-* 
-* 
-* 
+* Amanda Jean Bowerman, amandajb@fys.uio.no
+* Viktor Svensson, viktor.svensson@fys.uio.no
+* Amund Solum Alsvik, amundsal@student.matnat.uio.no
 * Britt S. Haanen, b.s.m.haanen@fys.uio.no
 
 
